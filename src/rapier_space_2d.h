@@ -116,7 +116,7 @@ class RapierSpace2D {
 	static bool _is_handle_excluded_callback(const rapier2d::Handle world_handle, const rapier2d::Handle collider_handle, const rapier2d::UserData* collider);
 
 	static Object* _get_object_instance_hack(uint64_t p_object_id) {
-		return (Object*)internal::gde_interface->object_get_instance_from_id(p_object_id);
+		return reinterpret_cast<Object *>((GodotObject *)(internal::gdextension_interface_object_get_instance_from_id(p_object_id)));
 	}
 
 public:

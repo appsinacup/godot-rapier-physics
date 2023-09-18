@@ -1,6 +1,7 @@
 [submodule "godot-cpp"]
 	path = godot-cpp
-	url = https://github.com/godotengine/godot-cpp.git
-[submodule "projects/physics-test"]
-	path = projects/physics-test
+	url = https://github.com/godotengine/godot-cpp
+	branch = 4.1
+[submodule "Godot-Physics-Tests"]
+	path = Godot-Physics-Tests
 	url = https://github.com/fabriceci/Godot-Physics-Tests

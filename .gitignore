@@ -1,6 +1,10 @@
 # Ignore everything in bin folder by default
 bin/*
 
+# Binaries
+*.os
+*.dblite
+
 # Don't ignore gdextension files
 !bin/*.gdextension
 
@@ -12,4 +16,5 @@ bin/*
 # System/tool-specific ignores
 .directory
 .DS_Store
+.vscode
 *~

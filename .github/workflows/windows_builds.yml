@@ -1,0 +1,35 @@
+name: 🏁 Windows Builds
+on:
+  workflow_call:
+
+# Global Settings
+env:
+  SCONSFLAGS: verbose=yes warnings=extra werror=yes
+
+jobs:
+  build-windows:
+    runs-on: "windows-latest"
+    name: Windows Build ${{ matrix.target }} ${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [template_debug, template_release]
+        arch: [x86_32, x86_64]
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Setup MSVC problem matcher
+        uses: ammaraskar/msvc-problem-matcher@master
+
+      - name: Build ${{ matrix.target }} ${{ matrix.arch }}
+        uses: ./.github/actions/build
+        with:
+          sconsflags: ${{ env.SCONSFLAGS }}
+          arch: ${{ matrix.arch }}
+          platform: windows
+          target: ${{ matrix.target }}
+
+      - name: Upload ${{ matrix.target }} ${{ matrix.arch }}
+        uses: ./.github/actions/upload

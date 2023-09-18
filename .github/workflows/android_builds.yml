@@ -1,0 +1,38 @@
+name: 🤖 Android Builds
+on:
+  workflow_call:
+
+# Global Settings
+env:
+  SCONSFLAGS: verbose=yes warnings=extra werror=yes
+
+jobs:
+  android:
+    runs-on: "ubuntu-20.04"
+    name: Android Build ${{ matrix.target }} ${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [template_debug, template_release]
+        arch: [arm64, x86_64]
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Set up Java 11
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 11
+
+      - name: Build ${{ matrix.target }} ${{ matrix.arch }}
+        uses: ./.github/actions/build
+        with:
+          sconsflags: ${{ env.SCONSFLAGS }}
+          arch: ${{ matrix.arch }}
+          platform: android
+          target: ${{ matrix.target }}
+
+      - name: Upload ${{ matrix.target }} ${{ matrix.arch }}
+        uses: ./.github/actions/upload

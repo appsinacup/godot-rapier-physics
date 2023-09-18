@@ -1,0 +1,15 @@
+name: 📊 Static Checks
+on:
+  workflow_call:
+
+jobs:
+  static-checks:
+    name: Code style
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Clang Format
+        shell: sh
+        run: ./scripts/clang-format.sh

@@ -303,7 +303,7 @@ bool RapierBodyUtils2D::body_motion_collide(
 		return false;
 	}
 
-	real_t min_distance = FLT_MAX;
+	real_t min_distance = INFINITY;
 	RapierBody2D* best_collision_body = nullptr;
 	int best_collision_shape_index = -1;
 	int best_body_shape_index = -1;

@@ -9,8 +9,10 @@ if env["dev_build"]:
     lib_folder = "src/rapier2d-wrapper/target/debug"
 else:
     lib_folder = "src/rapier2d-wrapper/target/release"
-lib_file = "librapier2d_wrapper.{}.{}{}"
-lib = lib_file.format(env["platform"], env["arch"], env["LIBSUFFIX"])
+
+lib_file = "librapier2d_wrapper{}"
+
+lib = lib_file.format(env["LIBSUFFIX"])
 env.Append(LIBPATH=[lib_folder])
 env.Append(LIBS=[lib])
 
@@ -21,10 +23,17 @@ sources = Glob("src/*.cpp")
 if env["platform"] == "windows":
     env.Append(CPPDEFINES="WINDOWS_ENABLED")
 
-## Library
-library = env.SharedLibrary(
-	"bin/libphysics_server_rapier2d{}{}".format(env["suffix"], env["SHLIBSUFFIX"]),
-	source=sources,
-)
+if env["platform"] == "macos":
+	library = env.SharedLibrary(
+		"bin/addons/godot-rapier2d/libphysics_server_rapier2d.{}.{}.framework/libphysics_server_rapier2d.{}.{}".format(
+			env["platform"], env["target"], env["platform"], env["target"]
+		),
+		source=sources,
+	)
+else:
+	library = env.SharedLibrary(
+		"bin/addons/godot-rapier2d/libphysics_server_rapier2d.{}{}".format(env["suffix"], env["SHLIBSUFFIX"]),
+		source=sources,
+	)
 
 Default(library)

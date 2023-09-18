@@ -1,0 +1,52 @@
+name: Physics Server Rapier Build
+description: Build Godot Cpp and the Physics Server 2D Extension.
+
+inputs:
+  platform:
+    required: true
+    description: Target platform.
+  arch:
+    default: ''
+    description: Target architecture.
+  target:
+    required: true
+    description: Build target (editor, template_release, template_debug).
+  sconsflags:
+    required: true
+    description: Extra flags
+
+runs:
+  using: composite
+  steps:
+    - name: Cache .scons_cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          ${{ github.workspace }}/.scons-cache/
+          ${{ github.workspace }}/godot-cpp/.scons-cache/
+        key: ${{ inputs.platform }}_${{ inputs.arch }}_${{ inputs.target }}_cache
+    - name: Setup python and scons
+      uses: ./.github/actions/deps
+    - name: Lint
+      shell: sh
+      run:
+        ./scripts/clang-format.sh
+        ./scripts/clang-tidy.sh
+    - name: Build Godot Cpp
+      shell: sh
+      env:
+        SCONS_CACHE: .scons-cache
+        SCONS_CACHE_DIR: .scons-cache
+      run: |
+        cd godot-cpp && scons target=${{ inputs.target }} platform=${{ inputs.platform }} arch=${{ inputs.arch }} generate_bindings=yes ${{ inputs.sconsflags }}
+    - name: Build Rapier
+      shell: sh
+      run: |
+        cd src/rapier2d-wrapper && cargo build && cargo build --release
+    - name: Build Physics Server Rapier
+      shell: sh
+      env:
+        SCONS_CACHE: .scons-cache
+        SCONS_CACHE_DIR: .scons-cache
+      run: |
+        scons target=${{ inputs.target }} platform=${{ inputs.platform }} arch=${{ inputs.arch }} generate_bindings=no ${{ inputs.sconsflags }}

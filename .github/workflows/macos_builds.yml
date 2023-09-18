@@ -1,0 +1,46 @@
+name: 🍎 macOS Builds
+on:
+  workflow_call:
+    
+
+# Global Settings
+env:
+  SCONSFLAGS: verbose=yes warnings=extra werror=yes
+
+jobs:
+  macos:
+    runs-on: "macos-latest"
+    name: macOS Build ${{ matrix.target }} ${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [template_debug, template_release]
+        arch: [universal]
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+    
+      - name: Build ${{ matrix.target }} ${{ matrix.arch }}
+        uses: ./.github/actions/build
+        with:
+          sconsflags: ${{ env.SCONSFLAGS }}
+          arch: ${{ matrix.arch }}
+          platform: macos
+          target: ${{ matrix.target }}
+      
+      - name: Sign frameworks
+        shell: pwsh
+        env:
+          APPLE_CERT_BASE64: ${{ secrets.PROD_MACOS_CERTIFICATE }}
+          APPLE_CERT_PASSWORD: ${{ secrets.PROD_MACOS_CERTIFICATE_PWD }}
+          APPLE_DEV_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_APPLE_ID }}
+          APPLE_DEV_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
+          APPLE_DEV_PASSWORD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
+          APPLE_DEV_APP_ID: ${{ secrets.PROD_MACOS_APPLE_DEV_APP_ID }}
+        run: ./scripts/ci-sign-macos.ps1 dist/addons/godot-rapier/bin/libgodot-rapier.macos.${{ matrix.target }}.framework
+        if: ${{ env.APPLE_DEV_ID }}
+
+      - name: Upload ${{ matrix.target }} ${{ matrix.arch }}
+        uses: ./.github/actions/upload

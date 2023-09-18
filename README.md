@@ -1,9 +1,9 @@
-![Rapier2D Extension for Godot](https://github.com/fabriceci/godot-rapier2d/blob/main/logo.jpg?raw=true)
+<p align="center">
+	<img src="https://github.com/fabriceci/godot-rapier2d/blob/main/logo.jpg?raw=true"/> 
+	<h1 align="center">Godot Rapier2D <img src="https://img.shields.io/badge/Godot-v4.1-%23478cbf?logo=godot-engine&logoColor=white"/><img src="https://img.shields.io/badge/Rapier2D-v0.17.2-%23478cbf?logoColor=white"/></h1> 
+</p>
 
-## Compatibility
-
-Godot Engine 4.0 stable
-Rapier2D 0.17.1
+[![🔗 Build Status](https://github.com/fabriceci/godot-rapier2d/actions/workflows/runner.yml/badge.svg)](https://github.com/fabriceci/godot-rapier2d/actions/workflows/runner.yml)
 
 ## Build the Rapier 2D Extension
 

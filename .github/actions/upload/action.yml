@@ -1,0 +1,13 @@
+name: Physics Server Rapier Upload
+description: Upload Godot Cpp and the Physics Server 2D Extension.
+
+runs:
+  using: composite
+  steps:
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: Godot Rapier
+        path: |
+          ${{ github.workspace }}/bin/**
+        retention-days: 14

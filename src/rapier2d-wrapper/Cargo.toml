@@ -7,12 +7,10 @@ edition = "2021"
 
 [lib]
 name = "rapier2d_wrapper"
-#crate-type = ["cdylib"]	# Creates dynamic lib
 crate-type = ["staticlib"]	# Creates static lib
 
 [dependencies]
-rapier2d = { version = "0.17.1", features = [ "simd-stable"] } 
-#rapier2d = { path = "../../rapier/crates/rapier2d", features = [ "simd-stable"] }
+rapier2d = { version = "0.17.2", features = [ "simd-stable"] } 
 lazy_static = "1.4.0"
 
 [profile.release]
