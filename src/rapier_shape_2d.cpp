@@ -64,7 +64,7 @@ rapier2d::Handle RapierWorldBoundaryShape2D::create_rapier_shape() const {
 	return rapier2d::shape_create_halfspace(&v);
 }
 
-void RapierWorldBoundaryShape2D::apply_rapier_transform(rapier2d::Vector& position, real_t& angle) const {
+void RapierWorldBoundaryShape2D::apply_rapier_transform(rapier2d::Vector &position, real_t &angle) const {
 	position.x += normal.x * d;
 	position.y += normal.y * d;
 }
@@ -109,10 +109,9 @@ Variant RapierWorldBoundaryShape2D::get_data() const {
 /*********************************************************/
 
 rapier2d::Handle RapierSegmentShape2D::create_rapier_shape() const {
-	
 	Vector2 direction = b - a;
 	direction.normalize();
-	
+
 	Vector2 perpendicular = Vector2(-direction.y, direction.x);
 	float height = 0.1;
 
@@ -157,7 +156,7 @@ Variant RapierSegmentShape2D::get_data() const {
 	return r;
 }
 
-real_t RapierSegmentShape2D::get_moment_of_inertia(real_t p_mass, const Size2& p_scale) const {
+real_t RapierSegmentShape2D::get_moment_of_inertia(real_t p_mass, const Size2 &p_scale) const {
 	return p_mass * ((a * p_scale).distance_squared_to(b * p_scale)) / 12;
 }
 
@@ -178,7 +177,7 @@ Variant RapierCircleShape2D::get_data() const {
 	return radius;
 }
 
-real_t RapierCircleShape2D::get_moment_of_inertia(real_t p_mass, const Size2& p_scale) const {
+real_t RapierCircleShape2D::get_moment_of_inertia(real_t p_mass, const Size2 &p_scale) const {
 	real_t a = radius * p_scale.x;
 	real_t b = radius * p_scale.y;
 	return p_mass * (a * a + b * b) / 4.0;
@@ -204,7 +203,7 @@ Variant RapierRectangleShape2D::get_data() const {
 	return half_extents;
 }
 
-real_t RapierRectangleShape2D::get_moment_of_inertia(real_t p_mass, const Size2& p_scale) const {
+real_t RapierRectangleShape2D::get_moment_of_inertia(real_t p_mass, const Size2 &p_scale) const {
 	Vector2 he2 = half_extents * 2.0 * p_scale;
 	return p_mass * he2.dot(he2) / 12.0;
 }
@@ -294,7 +293,7 @@ Variant RapierConvexPolygonShape2D::get_data() const {
 	return dvr;
 }
 
-real_t RapierConvexPolygonShape2D::get_moment_of_inertia(real_t p_mass, const Size2& p_scale) const {
+real_t RapierConvexPolygonShape2D::get_moment_of_inertia(real_t p_mass, const Size2 &p_scale) const {
 	ERR_FAIL_COND_V_MSG(point_count == 0, 0, "Convex polygon shape has no points.");
 	Rect2 aabb_new;
 	aabb_new.position = points[0].pos * p_scale;
@@ -341,7 +340,7 @@ Variant RapierCapsuleShape2D::get_data() const {
 	return Point2(height, radius);
 }
 
-real_t RapierCapsuleShape2D::get_moment_of_inertia(real_t p_mass, const Size2& p_scale) const {
+real_t RapierCapsuleShape2D::get_moment_of_inertia(real_t p_mass, const Size2 &p_scale) const {
 	Vector2 he2 = Vector2(radius * 2.0, height) * p_scale;
 	return p_mass * he2.dot(he2) / 12.0;
 }

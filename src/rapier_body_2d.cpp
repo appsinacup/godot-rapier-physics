@@ -61,7 +61,7 @@ void RapierBody2D::update_mass_properties(bool force_update) {
 					continue;
 				}
 
-				const RapierShape2D* shape = get_shape(i);
+				const RapierShape2D *shape = get_shape(i);
 
 				real_t shape_area = shape->get_aabb().get_area();
 				if (shape_area == 0.0) {
@@ -87,7 +87,7 @@ void RapierBody2D::update_mass_properties(bool force_update) {
 					continue;
 				}
 
-				const RapierShape2D* shape = get_shape(i);
+				const RapierShape2D *shape = get_shape(i);
 
 				real_t shape_area = shape->get_aabb().get_area();
 				if (shape_area == 0.0) {
@@ -183,7 +183,7 @@ void RapierBody2D::on_update_active() {
 void RapierBody2D::set_param(PhysicsServer2D::BodyParameter p_param, const Variant &p_value) {
 	switch (p_param) {
 		case PhysicsServer2D::BODY_PARAM_BOUNCE:
-		case PhysicsServer2D::BODY_PARAM_FRICTION:  {
+		case PhysicsServer2D::BODY_PARAM_FRICTION: {
 			if (p_param == PhysicsServer2D::BODY_PARAM_BOUNCE) {
 				bounce = p_value;
 			} else {
@@ -397,7 +397,7 @@ void RapierBody2D::set_state(PhysicsServer2D::BodyState p_state, const Variant &
 				break;
 			}
 			bool do_sleep = p_variant;
-			
+
 			if (do_sleep) {
 				if (!can_sleep) {
 					force_sleep();
@@ -560,7 +560,7 @@ void RapierBody2D::call_queries() {
 
 			arg_array[0] = get_direct_state();
 			arg_array[1] = fi_callback_data->udata;
-			
+
 			body_state_callback.callv(arg_array);
 		}
 	}
@@ -574,7 +574,7 @@ void RapierBody2D::call_queries() {
 		}();
 
 		arg_array[0] = get_direct_state();
-		
+
 		body_state_callback.callv(arg_array);
 	}
 
@@ -601,7 +601,7 @@ void RapierBody2D::set_force_integration_callback(const Callable &p_callable, co
 }
 
 void RapierBody2D::apply_central_impulse(const Vector2 &p_impulse) {
-	if (!get_space()){
+	if (!get_space()) {
 		WARN_PRINT("Applying central impulse on body not in simulation, ignored.");
 		return;
 	}
@@ -814,7 +814,7 @@ Vector2 RapierBody2D::get_constant_force() const {
 
 	return Vector2(force.x, force.y);
 }
- 
+
 void RapierBody2D::set_constant_torque(real_t p_torque) {
 	if (!get_space()) {
 		WARN_PRINT("Setting constant torque on body not in simulation, ignored. Ensure to apply torque after add_child.");
@@ -885,7 +885,7 @@ RapierDirectBodyState2D *RapierBody2D::get_direct_state() {
 	return direct_state;
 }
 
-void RapierBody2D::add_area(RapierArea2D* p_area) {
+void RapierBody2D::add_area(RapierArea2D *p_area) {
 	++area_detection_counter;
 	if (p_area->has_any_space_override()) {
 		areas.ordered_insert(AreaCMP(p_area));
@@ -893,7 +893,7 @@ void RapierBody2D::add_area(RapierArea2D* p_area) {
 	}
 }
 
-void RapierBody2D::remove_area(RapierArea2D* p_area) {
+void RapierBody2D::remove_area(RapierArea2D *p_area) {
 	ERR_FAIL_COND(area_detection_counter == 0);
 	--area_detection_counter;
 	if (p_area->has_any_space_override()) {
@@ -904,15 +904,15 @@ void RapierBody2D::remove_area(RapierArea2D* p_area) {
 	}
 }
 
-void RapierBody2D::on_area_updated(RapierArea2D* p_area) {
+void RapierBody2D::on_area_updated(RapierArea2D *p_area) {
 	// TODO: Check if uses any override (damp mode vs. area damp override)
-	
+
 	if (!area_override_update_list.in_list()) {
 		get_space()->body_add_to_area_update_list(&area_override_update_list);
 	}
 }
 
-void RapierBody2D::set_linear_velocity(const Vector2& linear_velocity) {
+void RapierBody2D::set_linear_velocity(const Vector2 &linear_velocity) {
 	if (mode == PhysicsServer2D::BODY_MODE_STATIC) {
 		if (linear_velocity != Vector2()) {
 			WARN_PRINT_ONCE("Setting linear velocity on static bodies is not supported.");
@@ -1008,7 +1008,7 @@ void RapierBody2D::_apply_angular_damping(real_t new_value, bool apply_default) 
 	if (apply_default) {
 		total_angular_damping += (real_t)get_space()->get_default_area_param(PhysicsServer2D::AREA_PARAM_ANGULAR_DAMP);
 	}
-	
+
 	rapier2d::Handle space_handle = get_space()->get_handle();
 	ERR_FAIL_COND(!rapier2d::is_handle_valid(space_handle));
 
@@ -1053,7 +1053,7 @@ void RapierBody2D::update_area_override() {
 	bool linear_damping_done = (linear_damping_mode == PhysicsServer2D::BODY_DAMP_MODE_REPLACE);
 	bool angular_damping_done = (angular_damping_mode == PhysicsServer2D::BODY_DAMP_MODE_REPLACE);
 	if (ac > 0) {
-		const AreaCMP* aa = &areas[0];
+		const AreaCMP *aa = &areas[0];
 		for (int i = ac - 1; i >= 0; i--) {
 			if (!gravity_done) {
 				PhysicsServer2D::AreaSpaceOverrideMode area_gravity_mode = (PhysicsServer2D::AreaSpaceOverrideMode)(int)aa[i].area->get_param(PhysicsServer2D::AREA_PARAM_GRAVITY_OVERRIDE_MODE);

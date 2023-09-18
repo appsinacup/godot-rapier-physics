@@ -3,8 +3,8 @@
 
 #include "rapier_collision_object_2d.h"
 
-#include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/classes/physics_server2d.hpp>
+#include <godot_cpp/templates/hash_map.hpp>
 
 using namespace godot;
 
@@ -42,24 +42,24 @@ class RapierArea2D : public RapierCollisionObject2D {
 	struct BodyRefCount {
 		uint32_t count = 0;
 	};
-	HashMap <RID, BodyRefCount> detected_bodies;
+	HashMap<RID, BodyRefCount> detected_bodies;
 
 	SelfList<RapierArea2D> monitor_query_list;
 	SelfList<RapierArea2D> area_override_update_list;
 
 	virtual void _shapes_changed() override {}
 
-	void _set_space_override_mode(PhysicsServer2D::AreaSpaceOverrideMode& r_mode, PhysicsServer2D::AreaSpaceOverrideMode p_value);
+	void _set_space_override_mode(PhysicsServer2D::AreaSpaceOverrideMode &r_mode, PhysicsServer2D::AreaSpaceOverrideMode p_value);
 	void _enable_space_override();
 	void _disable_space_override();
 	void _reset_space_override();
 
 public:
-	void on_body_enter(rapier2d::Handle p_collider_handle, RapierBody2D* p_body, uint32_t p_body_shape, RID p_body_rid, ObjectID p_body_instance_id, rapier2d::Handle p_area_collider_handle, uint32_t p_area_shape);
-	void on_body_exit(rapier2d::Handle p_collider_handle, RapierBody2D* p_body, uint32_t p_body_shape, RID p_body_rid, ObjectID p_body_instance_id, rapier2d::Handle p_area_collider_handle, uint32_t p_area_shape, bool p_update_detection = true);
+	void on_body_enter(rapier2d::Handle p_collider_handle, RapierBody2D *p_body, uint32_t p_body_shape, RID p_body_rid, ObjectID p_body_instance_id, rapier2d::Handle p_area_collider_handle, uint32_t p_area_shape);
+	void on_body_exit(rapier2d::Handle p_collider_handle, RapierBody2D *p_body, uint32_t p_body_shape, RID p_body_rid, ObjectID p_body_instance_id, rapier2d::Handle p_area_collider_handle, uint32_t p_area_shape, bool p_update_detection = true);
 
-	void on_area_enter(rapier2d::Handle p_collider_handle, RapierArea2D* p_other_area, uint32_t p_other_area_shape, RID p_other_area_rid, ObjectID p_other_area_instance_id, rapier2d::Handle p_area_collider_handle, uint32_t p_area_shape);
-	void on_area_exit(rapier2d::Handle p_collider_handle, RapierArea2D* p_other_area, uint32_t p_other_area_shape, RID p_other_area_rid, ObjectID p_other_area_instance_id, rapier2d::Handle p_area_collider_handle, uint32_t p_area_shape);
+	void on_area_enter(rapier2d::Handle p_collider_handle, RapierArea2D *p_other_area, uint32_t p_other_area_shape, RID p_other_area_rid, ObjectID p_other_area_instance_id, rapier2d::Handle p_area_collider_handle, uint32_t p_area_shape);
+	void on_area_exit(rapier2d::Handle p_collider_handle, RapierArea2D *p_other_area, uint32_t p_other_area_shape, RID p_other_area_rid, ObjectID p_other_area_instance_id, rapier2d::Handle p_area_collider_handle, uint32_t p_area_shape);
 
 	void update_area_override();
 	bool has_any_space_override() const;

@@ -2,15 +2,15 @@
 
 #include <gdextension_interface.h>
 
+#include <godot_cpp/classes/physics_server2d_manager.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
 #include <godot_cpp/variant/callable.hpp>
-#include <godot_cpp/classes/physics_server2d_manager.hpp>
 
 #include "rapier_body_direct_state_2d.h"
-#include "rapier_space_2d.h"
 #include "rapier_physics_server_2d.h"
+#include "rapier_space_2d.h"
 
 #if defined(WINDOWS_ENABLED)
 // Libs needed to link Rapier
@@ -28,7 +28,7 @@ void initialize_rapier_2d_module(ModuleInitializationLevel p_level) {
 	if (p_level != MODULE_INITIALIZATION_LEVEL_SERVERS) {
 		return;
 	}
-	
+
 	ClassDB::register_class<RapierDirectBodyState2D>(true);
 	ClassDB::register_class<RapierDirectSpaceState2D>(true);
 	ClassDB::register_class<RapierPhysicsServer2D>();

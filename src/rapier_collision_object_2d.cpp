@@ -30,7 +30,7 @@ void RapierCollisionObject2D::add_shape(RapierShape2D *p_shape, const Transform2
 void RapierCollisionObject2D::set_shape(int p_index, RapierShape2D *p_shape) {
 	ERR_FAIL_INDEX(p_index, (int)shapes.size());
 
-	Shape& shape = shapes[p_index];
+	Shape &shape = shapes[p_index];
 
 	_destroy_shape(shape, p_index);
 
@@ -56,7 +56,7 @@ void RapierCollisionObject2D::set_shape(int p_index, RapierShape2D *p_shape) {
 void RapierCollisionObject2D::set_shape_transform(int p_index, const Transform2D &p_transform) {
 	ERR_FAIL_INDEX(p_index, (int)shapes.size());
 
-	Shape& shape = shapes[p_index];
+	Shape &shape = shapes[p_index];
 	shape.xform = p_transform;
 
 	_update_shape_transform(shape);
@@ -122,7 +122,7 @@ void RapierCollisionObject2D::remove_shape(int p_index) {
 	//remove anything from shape to be erased to end, so subindices don't change
 	ERR_FAIL_INDEX(p_index, (int)shapes.size());
 
-	Shape& shape = shapes[p_index];
+	Shape &shape = shapes[p_index];
 
 	if (!shape.disabled) {
 		_destroy_shape(shape, p_index);
@@ -183,7 +183,7 @@ void RapierCollisionObject2D::set_transform(const Transform2D &p_transform, bool
 
 		ERR_FAIL_COND(!rapier2d::is_handle_valid(body_handle));
 
-		const Vector2& origin = transform.get_origin();
+		const Vector2 &origin = transform.get_origin();
 		rapier2d::Vector position = { origin.x, origin.y };
 		real_t rotation = transform.get_rotation();
 
@@ -191,7 +191,7 @@ void RapierCollisionObject2D::set_transform(const Transform2D &p_transform, bool
 	}
 }
 
-void RapierCollisionObject2D::_create_shape(Shape& shape, uint32_t p_shape_index) {
+void RapierCollisionObject2D::_create_shape(Shape &shape, uint32_t p_shape_index) {
 	if (!space) {
 		return;
 	}
@@ -223,7 +223,7 @@ void RapierCollisionObject2D::_create_shape(Shape& shape, uint32_t p_shape_index
 	_init_collider(shape.collider_handle);
 }
 
-void RapierCollisionObject2D::_destroy_shape(Shape& shape, uint32_t p_shape_index) {
+void RapierCollisionObject2D::_destroy_shape(Shape &shape, uint32_t p_shape_index) {
 	if (!space) {
 		return;
 	}
@@ -242,7 +242,7 @@ void RapierCollisionObject2D::_destroy_shape(Shape& shape, uint32_t p_shape_inde
 	shape.collider_handle = rapier2d::invalid_handle(); // collider_handle = rapier ID
 }
 
-void RapierCollisionObject2D::_update_shape_transform(const Shape& shape) {
+void RapierCollisionObject2D::_update_shape_transform(const Shape &shape) {
 	if (!space) {
 		return;
 	}
@@ -252,7 +252,7 @@ void RapierCollisionObject2D::_update_shape_transform(const Shape& shape) {
 
 	ERR_FAIL_COND(!rapier2d::is_handle_valid(shape.collider_handle));
 
-	const Vector2& origin = shape.xform.get_origin();
+	const Vector2 &origin = shape.xform.get_origin();
 	rapier2d::Vector position = { origin.x, origin.y };
 	real_t angle = shape.xform.get_rotation();
 
@@ -265,7 +265,7 @@ void RapierCollisionObject2D::_set_space(RapierSpace2D *p_space) {
 	if (space) {
 		rapier2d::Handle space_handle = space->get_handle();
 		ERR_FAIL_COND(!rapier2d::is_handle_valid(space_handle));
-	
+
 		ERR_FAIL_COND(!rapier2d::is_handle_valid(body_handle));
 
 		// This call also destroys the colliders
@@ -273,7 +273,7 @@ void RapierCollisionObject2D::_set_space(RapierSpace2D *p_space) {
 		body_handle = rapier2d::invalid_handle();
 
 		for (uint32_t i = 0; i < shapes.size(); i++) {
-			Shape& shape = shapes[i];
+			Shape &shape = shapes[i];
 			if (shape.disabled) {
 				continue;
 			}
@@ -306,7 +306,7 @@ void RapierCollisionObject2D::_set_space(RapierSpace2D *p_space) {
 		}
 
 		for (uint32_t i = 0; i < shapes.size(); i++) {
-			Shape& shape = shapes[i];
+			Shape &shape = shapes[i];
 			if (shape.disabled) {
 				continue;
 			}
@@ -317,31 +317,31 @@ void RapierCollisionObject2D::_set_space(RapierSpace2D *p_space) {
 	}
 }
 
-void RapierCollisionObject2D::set_body_user_data(rapier2d::UserData& r_user_data) const {
+void RapierCollisionObject2D::set_body_user_data(rapier2d::UserData &r_user_data) const {
 	r_user_data.part1 = (uint64_t)this;
 }
 
-RapierCollisionObject2D* RapierCollisionObject2D::get_body_user_data(const rapier2d::UserData& p_user_data) {
-	return (RapierCollisionObject2D*)p_user_data.part1;
+RapierCollisionObject2D *RapierCollisionObject2D::get_body_user_data(const rapier2d::UserData &p_user_data) {
+	return (RapierCollisionObject2D *)p_user_data.part1;
 }
 
-void RapierCollisionObject2D::set_collider_user_data(rapier2d::UserData& r_user_data, uint32_t p_shape_index) const {
+void RapierCollisionObject2D::set_collider_user_data(rapier2d::UserData &r_user_data, uint32_t p_shape_index) const {
 	r_user_data.part1 = (uint64_t)this;
 	r_user_data.part2 = p_shape_index;
 }
 
-RapierCollisionObject2D* RapierCollisionObject2D::get_collider_user_data(const rapier2d::UserData& p_user_data, uint32_t& r_shape_index) {
+RapierCollisionObject2D *RapierCollisionObject2D::get_collider_user_data(const rapier2d::UserData &p_user_data, uint32_t &r_shape_index) {
 	r_shape_index = (uint32_t)p_user_data.part2;
-	return (RapierCollisionObject2D*)p_user_data.part1;
+	return (RapierCollisionObject2D *)p_user_data.part1;
 }
 
-void RapierCollisionObject2D::_shape_changed(RapierShape2D* p_shape) {
+void RapierCollisionObject2D::_shape_changed(RapierShape2D *p_shape) {
 	if (!space) {
 		return;
 	}
 
 	for (uint32_t i = 0; i < shapes.size(); i++) {
-		Shape& shape = shapes[i];
+		Shape &shape = shapes[i];
 		if (shape.shape != p_shape) {
 			continue;
 		}

@@ -15,7 +15,7 @@ void RapierArea2D::set_space(RapierSpace2D *p_space) {
 		}
 
 		for (auto E = detected_bodies.begin(); E != detected_bodies.end(); ++E) {
-			RapierBody2D* body = get_space()->get_body_from_rid(E->key);
+			RapierBody2D *body = get_space()->get_body_from_rid(E->key);
 			if (!body || !body->get_space()) {
 				continue;
 			}
@@ -31,11 +31,11 @@ void RapierArea2D::set_space(RapierSpace2D *p_space) {
 	_set_space(p_space);
 }
 
-void RapierArea2D::on_body_enter(rapier2d::Handle p_collider_handle, RapierBody2D* p_body, uint32_t p_body_shape, RID p_body_rid, ObjectID p_body_instance_id, rapier2d::Handle p_area_collider_handle, uint32_t p_area_shape) {
+void RapierArea2D::on_body_enter(rapier2d::Handle p_collider_handle, RapierBody2D *p_body, uint32_t p_body_shape, RID p_body_rid, ObjectID p_body_instance_id, rapier2d::Handle p_area_collider_handle, uint32_t p_area_shape) {
 	ERR_FAIL_COND(!p_body); // Shouldn't happen after removal
 
 	// Add to keep track of currently detected bodies
-	BodyRefCount& bodyRefCount = detected_bodies[p_body_rid];
+	BodyRefCount &bodyRefCount = detected_bodies[p_body_rid];
 	if (bodyRefCount.count++ == 0) {
 		p_body->add_area(this);
 	}
@@ -56,7 +56,7 @@ void RapierArea2D::on_body_enter(rapier2d::Handle p_collider_handle, RapierBody2
 	}
 }
 
-void RapierArea2D::on_body_exit(rapier2d::Handle p_collider_handle, RapierBody2D* p_body, uint32_t p_body_shape, RID p_body_rid, ObjectID p_body_instance_id, rapier2d::Handle p_area_collider_handle, uint32_t p_area_shape, bool p_update_detection) {
+void RapierArea2D::on_body_exit(rapier2d::Handle p_collider_handle, RapierBody2D *p_body, uint32_t p_body_shape, RID p_body_rid, ObjectID p_body_instance_id, rapier2d::Handle p_area_collider_handle, uint32_t p_area_shape, bool p_update_detection) {
 	if (p_update_detection) {
 		// Remove from currently detected bodies
 		auto foundIt = detected_bodies.find(p_body_rid);
@@ -93,7 +93,7 @@ void RapierArea2D::on_body_exit(rapier2d::Handle p_collider_handle, RapierBody2D
 	}
 }
 
-void RapierArea2D::on_area_enter(rapier2d::Handle p_collider_handle, RapierArea2D* p_other_area, uint32_t p_other_area_shape, RID p_other_area_rid, ObjectID p_other_area_instance_id, rapier2d::Handle p_area_collider_handle, uint32_t p_area_shape) {
+void RapierArea2D::on_area_enter(rapier2d::Handle p_collider_handle, RapierArea2D *p_other_area, uint32_t p_other_area_shape, RID p_other_area_rid, ObjectID p_other_area_instance_id, rapier2d::Handle p_area_collider_handle, uint32_t p_area_shape) {
 	ERR_FAIL_COND(!p_other_area); // Shouldn't happen after removal
 
 	if (area_monitor_callback.is_null()) {
@@ -117,7 +117,7 @@ void RapierArea2D::on_area_enter(rapier2d::Handle p_collider_handle, RapierArea2
 	}
 }
 
-void RapierArea2D::on_area_exit(rapier2d::Handle p_collider_handle, RapierArea2D* p_other_area, uint32_t p_other_area_shape, RID p_other_area_rid, ObjectID p_other_area_instance_id, rapier2d::Handle p_area_collider_handle, uint32_t p_area_shape) {
+void RapierArea2D::on_area_exit(rapier2d::Handle p_collider_handle, RapierArea2D *p_other_area, uint32_t p_other_area_shape, RID p_other_area_rid, ObjectID p_other_area_instance_id, rapier2d::Handle p_area_collider_handle, uint32_t p_area_shape) {
 	if (area_monitor_callback.is_null()) {
 		return;
 	}
@@ -150,7 +150,7 @@ void RapierArea2D::update_area_override() {
 	area_override_update_list.remove_from_list();
 
 	for (auto E = detected_bodies.begin(); E != detected_bodies.end(); ++E) {
-		RapierBody2D* body = get_space()->get_body_from_rid(E->key);
+		RapierBody2D *body = get_space()->get_body_from_rid(E->key);
 		if (!body || !body->get_space()) {
 			continue;
 		}
@@ -188,7 +188,7 @@ void RapierArea2D::set_area_monitor_callback(const Callable &p_callback) {
 	monitored_objects.clear();
 }
 
-void RapierArea2D::_set_space_override_mode(PhysicsServer2D::AreaSpaceOverrideMode& r_mode, PhysicsServer2D::AreaSpaceOverrideMode p_value) {
+void RapierArea2D::_set_space_override_mode(PhysicsServer2D::AreaSpaceOverrideMode &r_mode, PhysicsServer2D::AreaSpaceOverrideMode p_value) {
 	bool had_override = has_any_space_override();
 	r_mode = p_value;
 	bool has_override = has_any_space_override();
@@ -196,8 +196,7 @@ void RapierArea2D::_set_space_override_mode(PhysicsServer2D::AreaSpaceOverrideMo
 	if (has_override != had_override) {
 		if (has_override) {
 			_enable_space_override();
-		}
-		else {
+		} else {
 			_disable_space_override();
 		}
 	}
@@ -218,7 +217,7 @@ bool RapierArea2D::has_any_space_override() const {
 
 void RapierArea2D::_enable_space_override() {
 	for (auto E = detected_bodies.begin(); E != detected_bodies.end(); ++E) {
-		RapierBody2D* body = get_space()->get_body_from_rid(E->key);
+		RapierBody2D *body = get_space()->get_body_from_rid(E->key);
 		if (!body || !body->get_space()) {
 			continue;
 		}
@@ -231,7 +230,7 @@ void RapierArea2D::_enable_space_override() {
 
 void RapierArea2D::_disable_space_override() {
 	for (auto E = detected_bodies.begin(); E != detected_bodies.end(); ++E) {
-		RapierBody2D* body = get_space()->get_body_from_rid(E->key);
+		RapierBody2D *body = get_space()->get_body_from_rid(E->key);
 		if (!body || !body->get_space()) {
 			continue;
 		}
@@ -244,7 +243,7 @@ void RapierArea2D::_disable_space_override() {
 
 void RapierArea2D::_reset_space_override() {
 	for (auto E = detected_bodies.begin(); E != detected_bodies.end(); ++E) {
-		RapierBody2D* body = get_space()->get_body_from_rid(E->key);
+		RapierBody2D *body = get_space()->get_body_from_rid(E->key);
 		if (!body || !body->get_space()) {
 			continue;
 		}
@@ -391,7 +390,7 @@ void RapierArea2D::call_queries() {
 	if (monitored_objects.is_empty()) {
 		return;
 	}
-	
+
 	static Array arg_array = []() {
 		Array array;
 		array.resize(5);
@@ -399,9 +398,9 @@ void RapierArea2D::call_queries() {
 	}();
 
 	for (auto E = monitored_objects.begin(); E != monitored_objects.end(); ++E) {
-		const MonitorInfo& monitor_info = E->value;
+		const MonitorInfo &monitor_info = E->value;
 		ERR_CONTINUE(monitor_info.state == 0);
-		
+
 		arg_array[0] = monitor_info.state > 0 ? PhysicsServer2D::AREA_BODY_ADDED : PhysicsServer2D::AREA_BODY_REMOVED;
 		arg_array[1] = monitor_info.rid;
 		arg_array[2] = monitor_info.instance_id;

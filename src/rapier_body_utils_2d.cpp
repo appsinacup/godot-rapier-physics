@@ -1,19 +1,18 @@
-#include "rapier_body_2d.h"
-#include "rapier_space_2d.h"
-#include "rapier_shape_2d.h"
 #include "rapier_body_utils_2d.h"
+#include "rapier_body_2d.h"
+#include "rapier_shape_2d.h"
+#include "rapier_space_2d.h"
 
 #define TEST_MOTION_MARGIN_MIN_VALUE 0.0001
 #define TEST_MOTION_MIN_CONTACT_DEPTH_FACTOR 0.05
 
 bool RapierBodyUtils2D::body_motion_recover(
-    const RapierSpace2D& p_space,
-	const RapierBody2D& p_body,
-	Transform2D& p_transform,
-	real_t p_margin,
-	Vector2& p_recover_motion,
-	Rect2& p_body_aabb
-) {
+		const RapierSpace2D &p_space,
+		const RapierBody2D &p_body,
+		Transform2D &p_transform,
+		real_t p_margin,
+		Vector2 &p_recover_motion,
+		Rect2 &p_body_aabb) {
 	int shape_count = p_body.get_shape_count();
 	ERR_FAIL_COND_V(shape_count < 1, false);
 
@@ -51,7 +50,7 @@ bool RapierBodyUtils2D::body_motion_recover(
 	do {
 		rapier2d::PointHitInfo results[32];
 		int result_count = p_space.rapier_intersect_aabb(margin_body_aabb, p_body.get_collision_mask(), true, false, results, 32, &result_count, p_body.get_rid());
-		
+
 		// Optimization
 		if (result_count == 0) {
 			break;
@@ -66,27 +65,27 @@ bool RapierBodyUtils2D::body_motion_recover(
 
 			RapierShape2D *body_shape = p_body.get_shape(body_shape_idx);
 			rapier2d::Handle body_shape_handle = body_shape->get_rapier_shape();
-			Transform2D const& body_shape_transform = p_transform * p_body.get_shape_transform(body_shape_idx);
+			Transform2D const &body_shape_transform = p_transform * p_body.get_shape_transform(body_shape_idx);
 			Vector2 body_shape_pos = body_shape_transform.get_origin();
-			rapier2d::Vector rapier_body_shape_pos {body_shape_pos.x, body_shape_pos.y};
+			rapier2d::Vector rapier_body_shape_pos{ body_shape_pos.x, body_shape_pos.y };
 			real_t rapier_body_shape_rot = body_shape_transform.get_rotation();
 
 			for (int result_idx = 0; result_idx < result_count; ++result_idx) {
-				rapier2d::PointHitInfo& result = results[result_idx];
+				rapier2d::PointHitInfo &result = results[result_idx];
 
 				ERR_CONTINUE(!rapier2d::is_user_data_valid(result.user_data));
 				uint32_t shape_index = 0;
-				RapierCollisionObject2D* shape_col_object = RapierCollisionObject2D::get_collider_user_data(result.user_data, shape_index);
+				RapierCollisionObject2D *shape_col_object = RapierCollisionObject2D::get_collider_user_data(result.user_data, shape_index);
 				ERR_CONTINUE(!shape_col_object);
 
 				ERR_CONTINUE(shape_col_object->get_type() != RapierCollisionObject2D::TYPE_BODY);
-				RapierBody2D* collision_body = static_cast<RapierBody2D*>(shape_col_object);
+				RapierBody2D *collision_body = static_cast<RapierBody2D *>(shape_col_object);
 
 				RapierShape2D *col_shape = collision_body->get_shape(shape_index);
 				rapier2d::Handle col_shape_handle = col_shape->get_rapier_shape();
-				Transform2D const& col_shape_transform = collision_body->get_transform() * collision_body->get_shape_transform(shape_index);
+				Transform2D const &col_shape_transform = collision_body->get_transform() * collision_body->get_shape_transform(shape_index);
 				Vector2 col_shape_pos = col_shape_transform.get_origin();
-				rapier2d::Vector rapier_col_shape_pos {col_shape_pos.x, col_shape_pos.y};
+				rapier2d::Vector rapier_col_shape_pos{ col_shape_pos.x, col_shape_pos.y };
 				real_t rapier_col_shape_rot = col_shape_transform.get_rotation();
 
 				rapier2d::ContactResult contact = rapier2d::shapes_contact(p_space.get_handle(), body_shape_handle, &rapier_body_shape_pos, rapier_body_shape_rot, col_shape_handle, &rapier_col_shape_pos, rapier_col_shape_rot, margin);
@@ -126,23 +125,21 @@ bool RapierBodyUtils2D::body_motion_recover(
 }
 
 void RapierBodyUtils2D::cast_motion(
-        const RapierSpace2D& p_space,
- 		const RapierBody2D& p_body,
-        const Transform2D& p_transform,
-        const Vector2& p_motion,
-		const Rect2& p_body_aabb,
-        real_t& p_closest_safe,
-        real_t& p_closest_unsafe,
-		int& p_best_body_shape
-    ) {
-
+		const RapierSpace2D &p_space,
+		const RapierBody2D &p_body,
+		const Transform2D &p_transform,
+		const Vector2 &p_motion,
+		const Rect2 &p_body_aabb,
+		real_t &p_closest_safe,
+		real_t &p_closest_unsafe,
+		int &p_best_body_shape) {
 	Rect2 motion_aabb = p_body_aabb;
 	motion_aabb.position += p_motion;
 	motion_aabb = motion_aabb.merge(p_body_aabb);
 
 	rapier2d::PointHitInfo results[32];
 	int result_count = p_space.rapier_intersect_aabb(motion_aabb, p_body.get_collision_mask(), true, false, results, 32, &result_count, p_body.get_rid());
-	
+
 	if (result_count == 0) {
 		return;
 	}
@@ -154,7 +151,7 @@ void RapierBodyUtils2D::cast_motion(
 
 		RapierShape2D *body_shape = p_body.get_shape(body_shape_idx);
 		rapier2d::Handle body_shape_handle = body_shape->get_rapier_shape();
-		Transform2D const& body_shape_transform = p_transform * p_body.get_shape_transform(body_shape_idx);
+		Transform2D const &body_shape_transform = p_transform * p_body.get_shape_transform(body_shape_idx);
 		Vector2 body_shape_pos = body_shape_transform.get_origin();
 		real_t body_shape_rot = body_shape_transform.get_rotation();
 
@@ -178,23 +175,23 @@ void RapierBodyUtils2D::cast_motion(
 		}*/
 
 		for (int result_idx = 0; result_idx < result_count; ++result_idx) {
-			rapier2d::PointHitInfo& result = results[result_idx];
+			rapier2d::PointHitInfo &result = results[result_idx];
 
 			ERR_CONTINUE(!rapier2d::is_user_data_valid(result.user_data));
 			//ERR_CONTINUE(!rapier2d::is_user_data_valid(shape_cast_result.user_data));
 			uint32_t shape_index = 0;
-			RapierCollisionObject2D* shape_col_object = RapierCollisionObject2D::get_collider_user_data(result.user_data, shape_index);
+			RapierCollisionObject2D *shape_col_object = RapierCollisionObject2D::get_collider_user_data(result.user_data, shape_index);
 			//RapierCollisionObject2D* shape_col_object = RapierCollisionObject2D::get_collider_user_data(shape_cast_result.user_data, shape_index);
 			ERR_CONTINUE(!shape_col_object);
 
 			ERR_CONTINUE(shape_col_object->get_type() != RapierCollisionObject2D::TYPE_BODY);
-			RapierBody2D* collision_body = static_cast<RapierBody2D*>(shape_col_object);
+			RapierBody2D *collision_body = static_cast<RapierBody2D *>(shape_col_object);
 
 			RapierShape2D *col_shape = collision_body->get_shape(shape_index);
 			rapier2d::Handle col_shape_handle = col_shape->get_rapier_shape();
-			Transform2D const& col_shape_transform = collision_body->get_transform() * collision_body->get_shape_transform(shape_index);
+			Transform2D const &col_shape_transform = collision_body->get_transform() * collision_body->get_shape_transform(shape_index);
 			Vector2 col_shape_pos = col_shape_transform.get_origin();
-			rapier2d::Vector rapier_col_shape_pos {col_shape_pos.x, col_shape_pos.y};
+			rapier2d::Vector rapier_col_shape_pos{ col_shape_pos.x, col_shape_pos.y };
 			real_t rapier_col_shape_rot = col_shape_transform.get_rotation();
 
 			//just do kinematic solving
@@ -213,9 +210,9 @@ void RapierBodyUtils2D::cast_motion(
 			for (int k = 0; k < 4; k++) { //steps should be customizable..
 				real_t fraction = low + (hi - low) * fraction_coeff;
 
-				rapier2d::Vector rapier_body_shape_step_pos {body_shape_pos.x + p_motion.x * fraction, body_shape_pos.y + p_motion.y * fraction};
+				rapier2d::Vector rapier_body_shape_step_pos{ body_shape_pos.x + p_motion.x * fraction, body_shape_pos.y + p_motion.y * fraction };
 				rapier2d::ContactResult step_contact = rapier2d::shapes_contact(p_space.get_handle(), body_shape_handle, &rapier_body_shape_step_pos, body_shape_rot, col_shape_handle, &rapier_col_shape_pos, rapier_col_shape_rot, 0);
-				
+
 				if (step_contact.collided) {
 					hi = fraction;
 					if ((k == 0) || (low > 0.0)) { // Did it not collide before?
@@ -257,14 +254,13 @@ void RapierBodyUtils2D::cast_motion(
 }
 
 bool RapierBodyUtils2D::body_motion_collide(
-        const RapierSpace2D& p_space,
-        const RapierBody2D& p_body,
-        const Transform2D& p_transform,
-		const Rect2& p_body_aabb,
+		const RapierSpace2D &p_space,
+		const RapierBody2D &p_body,
+		const Transform2D &p_transform,
+		const Rect2 &p_body_aabb,
 		int p_best_body_shape,
-        real_t p_margin,
-        PhysicsServer2DExtensionMotionResult* p_result
-) {
+		real_t p_margin,
+		PhysicsServer2DExtensionMotionResult *p_result) {
 	int shape_count = p_body.get_shape_count();
 	ERR_FAIL_COND_V(shape_count < 1, false);
 
@@ -297,14 +293,14 @@ bool RapierBodyUtils2D::body_motion_collide(
 
 	rapier2d::PointHitInfo results[32];
 	int result_count = p_space.rapier_intersect_aabb(margin_body_aabb, p_body.get_collision_mask(), true, false, results, 32, &result_count, p_body.get_rid());
-		
+
 	// Optimization
 	if (result_count == 0) {
 		return false;
 	}
 
 	real_t min_distance = INFINITY;
-	RapierBody2D* best_collision_body = nullptr;
+	RapierBody2D *best_collision_body = nullptr;
 	int best_collision_shape_index = -1;
 	int best_body_shape_index = -1;
 	rapier2d::ContactResult best_contact;
@@ -318,27 +314,27 @@ bool RapierBodyUtils2D::body_motion_collide(
 
 		RapierShape2D *body_shape = p_body.get_shape(body_shape_idx);
 		rapier2d::Handle body_shape_handle = body_shape->get_rapier_shape();
-		Transform2D const& body_shape_transform = p_transform * p_body.get_shape_transform(body_shape_idx);
+		Transform2D const &body_shape_transform = p_transform * p_body.get_shape_transform(body_shape_idx);
 		Vector2 body_shape_pos = body_shape_transform.get_origin();
-		rapier2d::Vector rapier_body_shape_pos {body_shape_pos.x, body_shape_pos.y};
+		rapier2d::Vector rapier_body_shape_pos{ body_shape_pos.x, body_shape_pos.y };
 		real_t rapier_body_shape_rot = body_shape_transform.get_rotation();
 
 		for (int result_idx = 0; result_idx < result_count; ++result_idx) {
-			rapier2d::PointHitInfo& result = results[result_idx];
+			rapier2d::PointHitInfo &result = results[result_idx];
 
 			ERR_CONTINUE(!rapier2d::is_user_data_valid(result.user_data));
 			uint32_t shape_index = 0;
-			RapierCollisionObject2D* shape_col_object = RapierCollisionObject2D::get_collider_user_data(result.user_data, shape_index);
+			RapierCollisionObject2D *shape_col_object = RapierCollisionObject2D::get_collider_user_data(result.user_data, shape_index);
 			ERR_CONTINUE(!shape_col_object);
 
 			ERR_CONTINUE(shape_col_object->get_type() != RapierCollisionObject2D::TYPE_BODY);
-			RapierBody2D* collision_body = static_cast<RapierBody2D*>(shape_col_object);
+			RapierBody2D *collision_body = static_cast<RapierBody2D *>(shape_col_object);
 
 			RapierShape2D *col_shape = collision_body->get_shape(shape_index);
 			rapier2d::Handle col_shape_handle = col_shape->get_rapier_shape();
-			Transform2D const& col_shape_transform = collision_body->get_transform() * collision_body->get_shape_transform(shape_index);
+			Transform2D const &col_shape_transform = collision_body->get_transform() * collision_body->get_shape_transform(shape_index);
 			Vector2 col_shape_pos = col_shape_transform.get_origin();
-			rapier2d::Vector rapier_col_shape_pos {col_shape_pos.x, col_shape_pos.y};
+			rapier2d::Vector rapier_col_shape_pos{ col_shape_pos.x, col_shape_pos.y };
 			real_t rapier_col_shape_rot = col_shape_transform.get_rotation();
 
 			rapier2d::ContactResult contact = rapier2d::shapes_contact(p_space.get_handle(), body_shape_handle, &rapier_body_shape_pos, rapier_body_shape_rot, col_shape_handle, &rapier_col_shape_pos, rapier_col_shape_rot, margin);

@@ -53,8 +53,8 @@ RapierPinJoint2D::RapierPinJoint2D(const Vector2 &p_pos, RapierBody2D *p_body_a,
 
 //////////////////////////////////////////////
 
-RapierGrooveJoint2D::RapierGrooveJoint2D(const Vector2& p_a_groove1, const Vector2& p_a_groove2, const Vector2& p_b_anchor, RapierBody2D* p_body_a, RapierBody2D* p_body_b) :
-	RapierJoint2D(_arr, 2) {
+RapierGrooveJoint2D::RapierGrooveJoint2D(const Vector2 &p_a_groove1, const Vector2 &p_a_groove2, const Vector2 &p_b_anchor, RapierBody2D *p_body_a, RapierBody2D *p_body_b) :
+		RapierJoint2D(_arr, 2) {
 	A = p_body_a;
 	B = p_body_b;
 

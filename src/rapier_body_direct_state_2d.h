@@ -1,9 +1,9 @@
 #ifndef RAPIER_BODY_DIRECT_STATE_2D_H
 #define RAPIER_BODY_DIRECT_STATE_2D_H
 
-#include <godot_cpp/classes/physics_server2d.hpp>
 #include <godot_cpp/classes/physics_direct_body_state2d.hpp>
 #include <godot_cpp/classes/physics_direct_body_state2d_extension.hpp>
+#include <godot_cpp/classes/physics_server2d.hpp>
 
 using namespace godot;
 
@@ -11,7 +11,7 @@ class RapierBody2D;
 
 class RapierDirectBodyState2D : public PhysicsDirectBodyState2DExtension {
 	GDCLASS(RapierDirectBodyState2D, PhysicsDirectBodyState2DExtension);
-	
+
 protected:
 	static void _bind_methods() {}
 

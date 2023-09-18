@@ -19,7 +19,7 @@ protected:
 	}
 
 public:
-	_FORCE_INLINE_ void set_rid(const RID & p_rid) { rid = p_rid; }
+	_FORCE_INLINE_ void set_rid(const RID &p_rid) { rid = p_rid; }
 	_FORCE_INLINE_ RID get_rid() const { return rid; }
 
 	_FORCE_INLINE_ RapierBody2D **get_body_ptr() const { return _body_ptr; }

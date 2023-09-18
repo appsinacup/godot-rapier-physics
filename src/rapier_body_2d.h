@@ -86,8 +86,8 @@ class RapierBody2D : public RapierCollisionObject2D {
 		Vector2 impulse;
 	};
 
-	 LocalVector<Contact> contacts; //no contacts by default
-	 int contact_count = 0;
+	LocalVector<Contact> contacts; //no contacts by default
+	int contact_count = 0;
 
 	Callable body_state_callback;
 
@@ -104,7 +104,7 @@ class RapierBody2D : public RapierCollisionObject2D {
 
 	friend class RapierDirectBodyState2D; // i give up, too many functions to expose
 
-	void set_linear_velocity(const Vector2& linear_velocity);
+	void set_linear_velocity(const Vector2 &linear_velocity);
 	Vector2 get_linear_velocity() const;
 
 	void set_angular_velocity(real_t angular_velocity);
@@ -116,8 +116,8 @@ class RapierBody2D : public RapierCollisionObject2D {
 	void _apply_gravity_scale(real_t new_value);
 
 protected:
-		virtual void _init_material(rapier2d::Material &mat) const override;
-		virtual void _init_collider(rapier2d::Handle collider_handle) const override;
+	virtual void _init_material(rapier2d::Material &mat) const override;
+	virtual void _init_collider(rapier2d::Handle collider_handle) const override;
 
 public:
 	void set_state_sync_callback(const Callable &p_callable);
@@ -125,21 +125,21 @@ public:
 
 	RapierDirectBodyState2D *get_direct_state();
 
-	void add_area(RapierArea2D* p_area);
-	void remove_area(RapierArea2D* p_area);
-	void on_area_updated(RapierArea2D* p_area);
+	void add_area(RapierArea2D *p_area);
+	void remove_area(RapierArea2D *p_area);
+	void on_area_updated(RapierArea2D *p_area);
 
 	void update_area_override();
 
 	void update_gravity(real_t p_step);
 
 	_FORCE_INLINE_ void set_max_contacts_reported(int p_size) {
-	 	contacts.resize(p_size);
-	 	contact_count = 0;
+		contacts.resize(p_size);
+		contact_count = 0;
 	}
 	_FORCE_INLINE_ int get_max_contacts_reported() const { return contacts.size(); }
 	_FORCE_INLINE_ bool can_report_contacts() const { return !contacts.is_empty(); }
-	_FORCE_INLINE_ void add_contact(const Vector2 &p_local_pos, const Vector2 &p_local_normal, real_t p_depth, int p_local_shape, const Vector2 &p_collider_pos, int p_collider_shape, ObjectID p_collider_instance_id, const RID &p_collider, const Vector2 &p_collider_velocity_at_pos, const Vector2 & p_impulse);
+	_FORCE_INLINE_ void add_contact(const Vector2 &p_local_pos, const Vector2 &p_local_normal, real_t p_depth, int p_local_shape, const Vector2 &p_collider_pos, int p_collider_shape, ObjectID p_collider_instance_id, const RID &p_collider, const Vector2 &p_collider_velocity_at_pos, const Vector2 &p_impulse);
 
 	_FORCE_INLINE_ void add_exception(const RID &p_exception) { exceptions.insert(p_exception); }
 	_FORCE_INLINE_ void remove_exception(const RID &p_exception) { exceptions.erase(p_exception); }
@@ -223,14 +223,14 @@ public:
 	~RapierBody2D();
 };
 
-void RapierBody2D::add_contact(const Vector2& p_local_pos, const Vector2& p_local_normal, real_t p_depth, int p_local_shape, const Vector2& p_collider_pos, int p_collider_shape, ObjectID p_collider_instance_id, const RID& p_collider, const Vector2& p_collider_velocity_at_pos, const Vector2& p_impulse) {
+void RapierBody2D::add_contact(const Vector2 &p_local_pos, const Vector2 &p_local_normal, real_t p_depth, int p_local_shape, const Vector2 &p_collider_pos, int p_collider_shape, ObjectID p_collider_instance_id, const RID &p_collider, const Vector2 &p_collider_velocity_at_pos, const Vector2 &p_impulse) {
 	int c_max = contacts.size();
 
 	if (c_max == 0) {
 		return;
 	}
 
-	Contact* c = contacts.ptr();
+	Contact *c = contacts.ptr();
 
 	int idx = -1;
 

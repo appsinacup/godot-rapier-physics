@@ -9,13 +9,13 @@ RID RapierPhysicsServer2D::_shape_create(ShapeType p_shape) {
 	RapierShape2D *shape = nullptr;
 	switch (p_shape) {
 		case SHAPE_WORLD_BOUNDARY: {
-		 	shape = memnew(RapierWorldBoundaryShape2D);
+			shape = memnew(RapierWorldBoundaryShape2D);
 		} break;
 		// case SHAPE_SEPARATION_RAY: {
 		// 	shape = memnew(RapierSeparationRayShape2D);
 		// } break;
 		case SHAPE_SEGMENT: {
-		 	shape = memnew(RapierSegmentShape2D);
+			shape = memnew(RapierSegmentShape2D);
 		} break;
 		case SHAPE_CIRCLE: {
 			shape = memnew(RapierCircleShape2D);
@@ -30,7 +30,7 @@ RID RapierPhysicsServer2D::_shape_create(ShapeType p_shape) {
 			shape = memnew(RapierConvexPolygonShape2D);
 		} break;
 		case SHAPE_CONCAVE_POLYGON: {
-		 	shape = memnew(RapierConcavePolygonShape2D);
+			shape = memnew(RapierConcavePolygonShape2D);
 		} break;
 		case SHAPE_CUSTOM: {
 			ERR_FAIL_V(RID());
@@ -238,40 +238,40 @@ PhysicsDirectSpaceState2D *RapierPhysicsServer2D::_space_get_direct_state(const 
 }
 
 RID RapierPhysicsServer2D::_area_create() {
-	 RapierArea2D *area = memnew(RapierArea2D);
+	RapierArea2D *area = memnew(RapierArea2D);
 
-	 RID rid = area_owner.make_rid(area);
-	 area->set_rid(rid);
+	RID rid = area_owner.make_rid(area);
+	area->set_rid(rid);
 
-	 return rid;
+	return rid;
 }
 
 void RapierPhysicsServer2D::_area_set_space(const RID &p_area, const RID &p_space) {
-	 RapierArea2D *area = area_owner.get_or_null(p_area);
-	 ERR_FAIL_COND(!area);
+	RapierArea2D *area = area_owner.get_or_null(p_area);
+	ERR_FAIL_COND(!area);
 
-	 RapierSpace2D *space = nullptr;
-	 if (p_space.is_valid()) {
-	 	space = space_owner.get_or_null(p_space);
-	 	ERR_FAIL_COND(!space);
-	 }
+	RapierSpace2D *space = nullptr;
+	if (p_space.is_valid()) {
+		space = space_owner.get_or_null(p_space);
+		ERR_FAIL_COND(!space);
+	}
 
-	 if (area->get_space() == space) {
-	 	return; //pointless
-	 }
+	if (area->get_space() == space) {
+		return; //pointless
+	}
 
-	 area->set_space(space);
+	area->set_space(space);
 }
 
 RID RapierPhysicsServer2D::_area_get_space(const RID &p_area) const {
-	 RapierArea2D *area = area_owner.get_or_null(p_area);
-	 ERR_FAIL_COND_V(!area, RID());
+	RapierArea2D *area = area_owner.get_or_null(p_area);
+	ERR_FAIL_COND_V(!area, RID());
 
-	 RapierSpace2D *space = area->get_space();
-	 if (!space) {
-	 	return RID();
-	 }
-	 return space->get_rid();
+	RapierSpace2D *space = area->get_space();
+	if (!space) {
+		return RID();
+	}
+	return space->get_rid();
 }
 
 void RapierPhysicsServer2D::_area_add_shape(const RID &p_area, const RID &p_shape, const Transform2D &p_transform, bool p_disabled) {
@@ -375,19 +375,19 @@ uint64_t RapierPhysicsServer2D::_area_get_canvas_instance_id(const RID &p_area) 
 	return area->get_canvas_instance_id();
 }
 
-void RapierPhysicsServer2D::_area_set_param(const RID &p_area, AreaParameter p_param, const Variant &p_value){
+void RapierPhysicsServer2D::_area_set_param(const RID &p_area, AreaParameter p_param, const Variant &p_value) {
 	if (space_owner.owns(p_area)) {
 		RapierSpace2D *space = space_owner.get_or_null(p_area);
 		ERR_FAIL_COND(!space);
 		space->set_default_area_param(p_param, p_value);
 	} else {
-		RapierArea2D* area = area_owner.get_or_null(p_area);
+		RapierArea2D *area = area_owner.get_or_null(p_area);
 		ERR_FAIL_COND(!area);
 		area->set_param(p_param, p_value);
 	}
 };
 
-void RapierPhysicsServer2D::_area_set_transform(const RID &p_area, const Transform2D &p_transform){
+void RapierPhysicsServer2D::_area_set_transform(const RID &p_area, const Transform2D &p_transform) {
 	RapierArea2D *area = area_owner.get_or_null(p_area);
 	ERR_FAIL_COND(!area);
 	area->set_transform(p_transform);
@@ -479,7 +479,7 @@ RID RapierPhysicsServer2D::_body_create() {
 
 /**
  * Add the body in the physics space (world).
-*/
+ */
 void RapierPhysicsServer2D::_body_set_space(const RID &p_body, const RID &p_space) {
 	RapierBody2D *body = body_owner.get_or_null(p_body);
 	ERR_FAIL_COND(!body);
@@ -846,16 +846,16 @@ void RapierPhysicsServer2D::_body_remove_collision_exception(const RID &p_body, 
 TypedArray<RID> RapierPhysicsServer2D::_body_get_collision_exceptions(const RID &p_body) const {
 	RapierBody2D *body = body_owner.get_or_null(p_body);
 	ERR_FAIL_COND_V(!body, TypedArray<RID>());
-	
+
 	size_t exception_count = body->get_exceptions().size();
-	
+
 	TypedArray<RID> array;
 	array.resize(exception_count);
 
 	for (int i = 0; i < exception_count; i++) {
 		array[i] = body->get_exceptions()[i];
 	}
-	
+
 	return array;
 };
 
@@ -1006,30 +1006,30 @@ double RapierPhysicsServer2D::_joint_get_param(const RID &p_joint, JointParam p_
 }
 
 void RapierPhysicsServer2D::_joint_disable_collisions_between_bodies(const RID &p_joint, const bool p_disable) {
-	 RapierJoint2D *joint = joint_owner.get_or_null(p_joint);
-	 ERR_FAIL_COND(!joint);
+	RapierJoint2D *joint = joint_owner.get_or_null(p_joint);
+	ERR_FAIL_COND(!joint);
 
-	 joint->disable_collisions_between_bodies(p_disable);
+	joint->disable_collisions_between_bodies(p_disable);
 
-	 if (2 == joint->get_body_count()) {
+	if (2 == joint->get_body_count()) {
 		RapierBody2D *body_a = *joint->get_body_ptr();
 		RapierBody2D *body_b = *(joint->get_body_ptr() + 1);
 
 		if (p_disable) {
- 			body_add_collision_exception(body_a->get_rid(), body_b->get_rid());
- 			body_add_collision_exception(body_b->get_rid(), body_a->get_rid());
+			body_add_collision_exception(body_a->get_rid(), body_b->get_rid());
+			body_add_collision_exception(body_b->get_rid(), body_a->get_rid());
 		} else {
- 			body_remove_collision_exception(body_a->get_rid(), body_b->get_rid());
- 			body_remove_collision_exception(body_b->get_rid(), body_a->get_rid());
+			body_remove_collision_exception(body_a->get_rid(), body_b->get_rid());
+			body_remove_collision_exception(body_b->get_rid(), body_a->get_rid());
 		}
-	 }
+	}
 }
 
 bool RapierPhysicsServer2D::_joint_is_disabled_collisions_between_bodies(const RID &p_joint) const {
- const RapierJoint2D *joint = joint_owner.get_or_null(p_joint);
- ERR_FAIL_COND_V(!joint, true);
+	const RapierJoint2D *joint = joint_owner.get_or_null(p_joint);
+	ERR_FAIL_COND_V(!joint, true);
 
- return joint->is_disabled_collisions_between_bodies();
+	return joint->is_disabled_collisions_between_bodies();
 }
 
 void RapierPhysicsServer2D::_joint_make_pin(const RID &p_joint, const Vector2 &p_pos, const RID &p_body_a, const RID &p_body_b) {
@@ -1052,20 +1052,20 @@ void RapierPhysicsServer2D::_joint_make_pin(const RID &p_joint, const Vector2 &p
 }
 
 void RapierPhysicsServer2D::_joint_make_groove(const RID &p_joint, const Vector2 &p_a_groove1, const Vector2 &p_a_groove2, const Vector2 &p_b_anchor, const RID &p_body_a, const RID &p_body_b) {
-	 RapierBody2D *A = body_owner.get_or_null(p_body_a);
-	 ERR_FAIL_COND(!A);
+	RapierBody2D *A = body_owner.get_or_null(p_body_a);
+	ERR_FAIL_COND(!A);
 
-	 RapierBody2D *B = body_owner.get_or_null(p_body_b);
-	 ERR_FAIL_COND(!B);
+	RapierBody2D *B = body_owner.get_or_null(p_body_b);
+	ERR_FAIL_COND(!B);
 
-	 RapierJoint2D *prev_joint = joint_owner.get_or_null(p_joint);
-	 ERR_FAIL_COND(prev_joint == nullptr);
+	RapierJoint2D *prev_joint = joint_owner.get_or_null(p_joint);
+	ERR_FAIL_COND(prev_joint == nullptr);
 
-	 RapierJoint2D *joint = memnew(RapierGrooveJoint2D(p_a_groove1, p_a_groove2, p_b_anchor, A, B));
+	RapierJoint2D *joint = memnew(RapierGrooveJoint2D(p_a_groove1, p_a_groove2, p_b_anchor, A, B));
 
-	 joint_owner.replace(p_joint, joint);
-	 joint->copy_settings_from(prev_joint);
-	 memdelete(prev_joint);
+	joint_owner.replace(p_joint, joint);
+	joint->copy_settings_from(prev_joint);
+	memdelete(prev_joint);
 }
 
 void RapierPhysicsServer2D::_joint_make_damped_spring(const RID &p_joint, const Vector2 &p_anchor_a, const Vector2 &p_anchor_b, const RID &p_body_a, const RID &p_body_b) {
@@ -1155,14 +1155,14 @@ void RapierPhysicsServer2D::_free_rid(const RID &p_rid) {
 	} else if (area_owner.owns(p_rid)) {
 		RapierArea2D *area = area_owner.get_or_null(p_rid);
 
- 		area->set_space(nullptr);
+		area->set_space(nullptr);
 
- 		while (area->get_shape_count()) {
- 			area->remove_shape(0);
- 		}
+		while (area->get_shape_count()) {
+			area->remove_shape(0);
+		}
 
- 		area_owner.free(p_rid);
- 		memdelete(area);
+		area_owner.free(p_rid);
+		memdelete(area);
 	} else if (space_owner.owns(p_rid)) {
 		RapierSpace2D *space = space_owner.get_or_null(p_rid);
 
@@ -1201,8 +1201,8 @@ void RapierPhysicsServer2D::_step(double p_step) {
 
 	++frame;
 
-	for (auto const& iterator : active_spaces) {
-		RapierSpace2D* space = iterator.value;
+	for (auto const &iterator : active_spaces) {
+		RapierSpace2D *space = iterator.value;
 		space->step(p_step);
 	}
 
@@ -1223,7 +1223,7 @@ void RapierPhysicsServer2D::_sync() {
 
 /**
  * Synchronize the infos (like transforms) from the rapier to Godot nodes/script.
-*/
+ */
 void RapierPhysicsServer2D::_flush_queries() {
 	if (!active) {
 		return;
@@ -1233,8 +1233,8 @@ void RapierPhysicsServer2D::_flush_queries() {
 
 	// uint64_t time_beg = OS::get_singleton()->get_ticks_usec();
 
-	for (auto const& iterator : active_spaces) {
-		RapierSpace2D* space = iterator.value;
+	for (auto const &iterator : active_spaces) {
+		RapierSpace2D *space = iterator.value;
 		space->call_queries();
 	}
 

@@ -13,7 +13,7 @@ class RapierShape2D;
 
 class RapierShapeOwner2D {
 public:
-	virtual void _shape_changed(RapierShape2D* p_shape) = 0;
+	virtual void _shape_changed(RapierShape2D *p_shape) = 0;
 	virtual void remove_shape(RapierShape2D *p_shape) = 0;
 
 	virtual ~RapierShapeOwner2D() {}
@@ -36,12 +36,12 @@ protected:
 	void destroy_rapier_shape();
 
 public:
-	_FORCE_INLINE_ void set_rid(const RID & p_rid) { rid = p_rid; }
+	_FORCE_INLINE_ void set_rid(const RID &p_rid) { rid = p_rid; }
 	_FORCE_INLINE_ RID get_rid() const { return rid; }
 
 	virtual PhysicsServer2D::ShapeType get_type() const = 0;
 
-	virtual void apply_rapier_transform(rapier2d::Vector& position, real_t& angle) const {}
+	virtual void apply_rapier_transform(rapier2d::Vector &position, real_t &angle) const {}
 
 	rapier2d::Handle get_rapier_shape();
 
@@ -56,7 +56,7 @@ public:
 	virtual void set_data(const Variant &p_data) = 0;
 	virtual Variant get_data() const = 0;
 
-	virtual real_t get_moment_of_inertia(real_t p_mass, const Size2& p_scale) const = 0;
+	virtual real_t get_moment_of_inertia(real_t p_mass, const Size2 &p_scale) const = 0;
 
 	RapierShape2D() {}
 	virtual ~RapierShape2D();
@@ -70,15 +70,14 @@ protected:
 	virtual rapier2d::Handle create_rapier_shape() const override;
 
 public:
-
 	virtual PhysicsServer2D::ShapeType get_type() const override { return PhysicsServer2D::SHAPE_WORLD_BOUNDARY; }
 
-	virtual void apply_rapier_transform(rapier2d::Vector& position, real_t& angle) const override;
+	virtual void apply_rapier_transform(rapier2d::Vector &position, real_t &angle) const override;
 
 	virtual void set_data(const Variant &p_data) override;
 	virtual Variant get_data() const override;
 
-	virtual real_t get_moment_of_inertia(real_t p_mass, const Size2& p_scale) const override { return 0.0; }
+	virtual real_t get_moment_of_inertia(real_t p_mass, const Size2 &p_scale) const override { return 0.0; }
 };
 
 // class RapierSeparationRayShape2D : public RapierShape2D {
@@ -120,7 +119,7 @@ public:
 	virtual void set_data(const Variant &p_data) override;
 	virtual Variant get_data() const override;
 
-	virtual real_t get_moment_of_inertia(real_t p_mass, const Size2& p_scale) const override;
+	virtual real_t get_moment_of_inertia(real_t p_mass, const Size2 &p_scale) const override;
 
 	_FORCE_INLINE_ RapierSegmentShape2D() {}
 	_FORCE_INLINE_ RapierSegmentShape2D(const Vector2 &p_a, const Vector2 &p_b, const Vector2 &p_n) {
@@ -144,7 +143,7 @@ public:
 	virtual void set_data(const Variant &p_data) override;
 	virtual Variant get_data() const override;
 
-	virtual real_t get_moment_of_inertia(real_t p_mass, const Size2& p_scale) const override;
+	virtual real_t get_moment_of_inertia(real_t p_mass, const Size2 &p_scale) const override;
 };
 
 class RapierRectangleShape2D : public RapierShape2D {
@@ -161,7 +160,7 @@ public:
 	virtual void set_data(const Variant &p_data) override;
 	virtual Variant get_data() const override;
 
-	virtual real_t get_moment_of_inertia(real_t p_mass, const Size2& p_scale) const override;
+	virtual real_t get_moment_of_inertia(real_t p_mass, const Size2 &p_scale) const override;
 };
 
 class RapierConvexPolygonShape2D : public RapierShape2D {
@@ -179,7 +178,7 @@ public:
 	virtual void set_data(const Variant &p_data) override;
 	virtual Variant get_data() const override;
 
-	virtual real_t get_moment_of_inertia(real_t p_mass, const Size2& p_scale) const override;
+	virtual real_t get_moment_of_inertia(real_t p_mass, const Size2 &p_scale) const override;
 
 	~RapierConvexPolygonShape2D();
 
@@ -200,7 +199,7 @@ public:
 	virtual void set_data(const Variant &p_data) override;
 	virtual Variant get_data() const override;
 
-	virtual real_t get_moment_of_inertia(real_t p_mass, const Size2& p_scale) const override;
+	virtual real_t get_moment_of_inertia(real_t p_mass, const Size2 &p_scale) const override;
 
 protected:
 	virtual rapier2d::Handle create_rapier_shape() const override;
@@ -223,7 +222,7 @@ public:
 	virtual void set_data(const Variant &p_data) override;
 	virtual Variant get_data() const override;
 
-	virtual real_t get_moment_of_inertia(real_t p_mass, const Size2& p_scale) const override { return 0.0; }
+	virtual real_t get_moment_of_inertia(real_t p_mass, const Size2 &p_scale) const override { return 0.0; }
 };
 
 #endif // RAPIER_SHAPE_2D_H

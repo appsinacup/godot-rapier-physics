@@ -1,9 +1,9 @@
 #ifndef RAPIER_PHYSICS_SERVER_2D_H
 #define RAPIER_PHYSICS_SERVER_2D_H
 
+#include <godot_cpp/classes/physics_direct_body_state2d.hpp>
 #include <godot_cpp/classes/physics_server2d.hpp>
 #include <godot_cpp/classes/physics_server2d_extension.hpp>
-#include <godot_cpp/classes/physics_direct_body_state2d.hpp>
 #include <godot_cpp/classes/physics_test_motion_parameters2d.hpp>
 #include <godot_cpp/classes/physics_test_motion_result2d.hpp>
 #include <godot_cpp/variant/callable.hpp>
@@ -40,7 +40,7 @@ class RapierPhysicsServer2D : public PhysicsServer2DExtension {
 
 	bool flushing_queries = false;
 
-	HashMap<uint32_t, RapierSpace2D*> active_spaces;
+	HashMap<uint32_t, RapierSpace2D *> active_spaces;
 
 	mutable RID_PtrOwner<RapierShape2D, true> shape_owner;
 	mutable RID_PtrOwner<RapierSpace2D, true> space_owner;
@@ -51,10 +51,10 @@ class RapierPhysicsServer2D : public PhysicsServer2DExtension {
 	RID _shape_create(ShapeType p_shape);
 
 protected:
-	static void _bind_methods() {};
+	static void _bind_methods(){};
 
 public:
-	static RapierPhysicsServer2D* singleton;
+	static RapierPhysicsServer2D *singleton;
 
 	struct CollCbkData {
 		Vector2 valid_dir;
@@ -284,7 +284,7 @@ public:
 
 	int get_frame() { return frame; }
 
-	RapierSpace2D* get_active_space(rapier2d::Handle p_handle) const {
+	RapierSpace2D *get_active_space(rapier2d::Handle p_handle) const {
 		ERR_FAIL_COND_V(!rapier2d::is_handle_valid(p_handle), nullptr);
 		return active_spaces.get(rapier2d::handle_hash(p_handle));
 	}
@@ -293,7 +293,7 @@ public:
 	~RapierPhysicsServer2D() {}
 };
 
-class RapierPhysicsServer2DFactory: public Object {
+class RapierPhysicsServer2DFactory : public Object {
 	GDCLASS(RapierPhysicsServer2DFactory, Object);
 
 protected:
@@ -306,7 +306,6 @@ public:
 		PhysicsServer2D *physics_server_2d = memnew(RapierPhysicsServer2D());
 		return physics_server_2d;
 	}
-
 };
 
 #endif // RAPIER_PHYSICS_SERVER_2D_H

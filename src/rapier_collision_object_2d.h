@@ -5,9 +5,9 @@
 
 #include "rapier_include.h"
 
+#include <godot_cpp/classes/physics_server2d.hpp>
 #include <godot_cpp/templates/local_vector.hpp>
 #include <godot_cpp/templates/self_list.hpp>
-#include <godot_cpp/classes/physics_server2d.hpp>
 
 using namespace godot;
 
@@ -45,9 +45,9 @@ private:
 	real_t collision_priority = 1.0;
 	bool _static = true;
 
-	void _create_shape(Shape& shape, uint32_t p_shape_index);
-	void _destroy_shape(Shape& shape, uint32_t p_shape_index);
-	void _update_shape_transform(const Shape& shape);
+	void _create_shape(Shape &shape, uint32_t p_shape_index);
+	void _destroy_shape(Shape &shape, uint32_t p_shape_index);
+	void _update_shape_transform(const Shape &shape);
 
 protected:
 	rapier2d::Handle body_handle = rapier2d::invalid_handle();
@@ -68,23 +68,23 @@ protected:
 	RapierCollisionObject2D(Type p_type);
 
 public:
-	_FORCE_INLINE_ void set_rid(const RID & p_rid) { rid = p_rid; }
+	_FORCE_INLINE_ void set_rid(const RID &p_rid) { rid = p_rid; }
 	_FORCE_INLINE_ RID get_rid() const { return rid; }
 
-	_FORCE_INLINE_ void set_instance_id(const ObjectID&p_instance_id) { instance_id = p_instance_id; }
+	_FORCE_INLINE_ void set_instance_id(const ObjectID &p_instance_id) { instance_id = p_instance_id; }
 	_FORCE_INLINE_ ObjectID get_instance_id() const { return instance_id; }
 	_FORCE_INLINE_ rapier2d::Handle get_body_handle() { return body_handle; }
 
-	_FORCE_INLINE_ void set_canvas_instance_id(const ObjectID&p_canvas_instance_id) { canvas_instance_id = p_canvas_instance_id; }
+	_FORCE_INLINE_ void set_canvas_instance_id(const ObjectID &p_canvas_instance_id) { canvas_instance_id = p_canvas_instance_id; }
 	_FORCE_INLINE_ ObjectID get_canvas_instance_id() const { return canvas_instance_id; }
 
-	void set_body_user_data(rapier2d::UserData& r_user_data) const;
-	static RapierCollisionObject2D* get_body_user_data(const rapier2d::UserData& p_user_data);
+	void set_body_user_data(rapier2d::UserData &r_user_data) const;
+	static RapierCollisionObject2D *get_body_user_data(const rapier2d::UserData &p_user_data);
 
-	void set_collider_user_data(rapier2d::UserData& r_user_data, uint32_t p_shape_index) const;
-	static RapierCollisionObject2D* get_collider_user_data(const rapier2d::UserData& p_user_data, uint32_t& r_shape_index);
+	void set_collider_user_data(rapier2d::UserData &r_user_data, uint32_t p_shape_index) const;
+	static RapierCollisionObject2D *get_collider_user_data(const rapier2d::UserData &p_user_data, uint32_t &r_shape_index);
 
-	void _shape_changed(RapierShape2D* p_shape) override;
+	void _shape_changed(RapierShape2D *p_shape) override;
 
 	_FORCE_INLINE_ Type get_type() const { return type; }
 	void add_shape(RapierShape2D *p_shape, const Transform2D &p_transform = Transform2D(), bool p_disabled = false);
@@ -103,7 +103,7 @@ public:
 		return shapes[p_index].xform;
 	}
 
-	void set_transform(const Transform2D& p_transform, bool wake_up = false);
+	void set_transform(const Transform2D &p_transform, bool wake_up = false);
 
 	_FORCE_INLINE_ const Transform2D &get_transform() const { return transform; }
 	_FORCE_INLINE_ const Transform2D &get_inv_transform() const { return inv_transform; }
@@ -150,7 +150,6 @@ public:
 
 	void remove_shape(RapierShape2D *p_shape) override;
 	void remove_shape(int p_index);
-
 
 	virtual void set_space(RapierSpace2D *p_space) = 0;
 

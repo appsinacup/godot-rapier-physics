@@ -4,16 +4,16 @@
 #include "rapier_area_2d.h"
 #include "rapier_body_2d.h"
 
+#include <gdextension_interface.h>
+#include <godot_cpp/classes/physics_direct_space_state2d.hpp>
+#include <godot_cpp/classes/physics_direct_space_state2d_extension.hpp>
 #include <godot_cpp/classes/physics_server2d.hpp>
 #include <godot_cpp/classes/physics_server2d_extension_motion_result.hpp>
 #include <godot_cpp/classes/physics_server2d_extension_ray_result.hpp>
 #include <godot_cpp/classes/physics_server2d_extension_shape_rest_info.hpp>
 #include <godot_cpp/classes/physics_server2d_extension_shape_result.hpp>
-#include <godot_cpp/classes/physics_direct_space_state2d.hpp>
-#include <godot_cpp/classes/physics_direct_space_state2d_extension.hpp>
 #include <godot_cpp/classes/physics_test_motion_result2d.hpp>
 #include <godot_cpp/templates/hash_set.hpp>
-#include <gdextension_interface.h>
 
 using namespace godot;
 
@@ -21,13 +21,15 @@ class RapierSpace2D;
 
 class RapierDirectSpaceState2D : public PhysicsDirectSpaceState2DExtension {
 	GDCLASS(RapierDirectSpaceState2D, PhysicsDirectSpaceState2DExtension);
-	
+
 protected:
 	static void _bind_methods() {}
 
 private:
-	enum RID_TYPE { RID_TYPE_BODY, RID_TYPE_SHAPE };
+	enum RID_TYPE { RID_TYPE_BODY,
+		RID_TYPE_SHAPE };
 	void _hashset_rid_to_handle(rapier2d::Handle *r_rapier_exclude, uint32_t *r_rapier_exclude_size, const HashSet<RID> &exclude, RID_TYPE p_rid_type = RID_TYPE_BODY);
+
 public:
 	RapierSpace2D *space = nullptr;
 	virtual int _intersect_point(const Vector2 &position, uint64_t canvas_instance_id, uint32_t collision_mask, bool collide_with_bodies, bool collide_with_areas, PhysicsServer2DExtensionShapeResult *r_results, int32_t p_result_max) override;
@@ -95,27 +97,27 @@ class RapierSpace2D {
 
 	friend class RapierDirectSpaceState2D;
 
-	static void active_body_callback(rapier2d::Handle world_handle, const rapier2d::ActiveBodyInfo* active_body_info);
+	static void active_body_callback(rapier2d::Handle world_handle, const rapier2d::ActiveBodyInfo *active_body_info);
 
 	struct CollidersInfo {
 		uint32_t shape1 = 0;
-		RapierCollisionObject2D* object1 = nullptr;
+		RapierCollisionObject2D *object1 = nullptr;
 		uint32_t shape2 = 0;
-		RapierCollisionObject2D* object2 = nullptr;
+		RapierCollisionObject2D *object2 = nullptr;
 	};
 
-	static bool collision_filter_common_callback(rapier2d::Handle world_handle, const rapier2d::CollisionFilterInfo* filter_info, CollidersInfo& r_colliders_info);
-	static bool collision_filter_body_callback(rapier2d::Handle world_handle, const rapier2d::CollisionFilterInfo* filter_info);
-	static bool collision_filter_sensor_callback(rapier2d::Handle world_handle, const rapier2d::CollisionFilterInfo* filter_info);
+	static bool collision_filter_common_callback(rapier2d::Handle world_handle, const rapier2d::CollisionFilterInfo *filter_info, CollidersInfo &r_colliders_info);
+	static bool collision_filter_body_callback(rapier2d::Handle world_handle, const rapier2d::CollisionFilterInfo *filter_info);
+	static bool collision_filter_sensor_callback(rapier2d::Handle world_handle, const rapier2d::CollisionFilterInfo *filter_info);
 
-	static void collision_event_callback(rapier2d::Handle world_handle, const rapier2d::CollisionEventInfo* event_info);
+	static void collision_event_callback(rapier2d::Handle world_handle, const rapier2d::CollisionEventInfo *event_info);
 
-	static bool contact_force_event_callback(rapier2d::Handle world_handle, const rapier2d::ContactForceEventInfo* event_info);
-	static bool contact_point_callback(rapier2d::Handle world_handle, const rapier2d::ContactPointInfo* contact_info);
+	static bool contact_force_event_callback(rapier2d::Handle world_handle, const rapier2d::ContactForceEventInfo *event_info);
+	static bool contact_point_callback(rapier2d::Handle world_handle, const rapier2d::ContactPointInfo *contact_info);
 
-	static bool _is_handle_excluded_callback(const rapier2d::Handle world_handle, const rapier2d::Handle collider_handle, const rapier2d::UserData* collider);
+	static bool _is_handle_excluded_callback(const rapier2d::Handle world_handle, const rapier2d::Handle collider_handle, const rapier2d::UserData *collider);
 
-	static Object* _get_object_instance_hack(uint64_t p_object_id) {
+	static Object *_get_object_instance_hack(uint64_t p_object_id) {
 		return reinterpret_cast<Object *>((GodotObject *)(internal::gdextension_interface_object_get_instance_from_id(p_object_id)));
 	}
 
@@ -125,17 +127,17 @@ public:
 	_FORCE_INLINE_ void set_rid(const RID &p_rid) { rid = p_rid; }
 	_FORCE_INLINE_ RID get_rid() const { return rid; }
 
-	void body_add_to_mass_properties_update_list(SelfList<RapierBody2D>* p_body);
-	void body_add_to_gravity_update_list(SelfList<RapierBody2D>* p_body);
+	void body_add_to_mass_properties_update_list(SelfList<RapierBody2D> *p_body);
+	void body_add_to_gravity_update_list(SelfList<RapierBody2D> *p_body);
 
 	void body_add_to_active_list(SelfList<RapierBody2D> *p_body);
 	void body_add_to_state_query_list(SelfList<RapierBody2D> *p_body);
 
 	void area_add_to_monitor_query_list(SelfList<RapierArea2D> *p_area);
-	void area_add_to_area_update_list(SelfList<RapierArea2D>* p_area);
-	void body_add_to_area_update_list(SelfList<RapierBody2D>* p_body);
+	void area_add_to_area_update_list(SelfList<RapierArea2D> *p_area);
+	void body_add_to_area_update_list(SelfList<RapierBody2D> *p_body);
 
-	void add_removed_collider(rapier2d::Handle p_handle, RapierCollisionObject2D* p_object, uint32_t p_shape_index);
+	void add_removed_collider(rapier2d::Handle p_handle, RapierCollisionObject2D *p_object, uint32_t p_shape_index);
 	bool get_removed_collider_info(rapier2d::Handle p_handle, RID &r_rid, ObjectID &r_instance_id, uint32_t &r_shape_index, RapierCollisionObject2D::Type &r_type) const;
 
 	_FORCE_INLINE_ int get_solver_iterations() const { return solver_iterations; }
@@ -161,7 +163,7 @@ public:
 	void set_param(PhysicsServer2D::SpaceParameter p_param, real_t p_value);
 	real_t get_param(PhysicsServer2D::SpaceParameter p_param) const;
 
-	void set_default_area_param(PhysicsServer2D::AreaParameter p_param, const Variant& p_value);
+	void set_default_area_param(PhysicsServer2D::AreaParameter p_param, const Variant &p_value);
 	Variant get_default_area_param(PhysicsServer2D::AreaParameter p_param) const;
 
 	void set_island_count(int p_island_count) { island_count = p_island_count; }
@@ -172,9 +174,9 @@ public:
 
 	int get_collision_pairs() const { return collision_pairs; }
 
-	RapierArea2D* get_area_from_rid(RID p_area_rid) const;
-	RapierBody2D* get_body_from_rid(RID p_body_rid) const;
-	RapierShape2D* get_shape_from_rid(RID p_shape_rid) const;
+	RapierArea2D *get_area_from_rid(RID p_area_rid) const;
+	RapierBody2D *get_body_from_rid(RID p_body_rid) const;
+	RapierShape2D *get_shape_from_rid(RID p_shape_rid) const;
 
 	void set_debug_contacts(int p_amount) { contact_debug.resize(p_amount); }
 	_FORCE_INLINE_ bool is_debugging_contacts() const { return !contact_debug.is_empty(); }
@@ -183,7 +185,7 @@ public:
 			contact_debug[contact_debug_count++] = p_contact;
 		}
 	}
-	_FORCE_INLINE_ const PackedVector2Array& get_debug_contacts() { return contact_debug; }
+	_FORCE_INLINE_ const PackedVector2Array &get_debug_contacts() { return contact_debug; }
 	_FORCE_INLINE_ int get_debug_contact_count() { return contact_debug_count; }
 
 	RapierDirectSpaceState2D *get_direct_state();
