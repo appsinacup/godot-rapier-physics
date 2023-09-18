@@ -5,6 +5,10 @@ inputs:
   platform:
     required: true
     description: Target platform.
+  rust_target:
+    required: false
+    default: ''
+    description: Rust target platform.
   arch:
     default: ''
     description: Target architecture.
@@ -42,7 +46,7 @@ runs:
     - name: Build Rapier
       shell: sh
       run: |
-        cd src/rapier2d-wrapper && cargo build && cargo build --release
+        cd src/rapier2d-wrapper && cargo build && cargo build ${{ inputs.rust_target }} --release
     - name: Build Physics Server Rapier
       shell: sh
       env:

@@ -557,6 +557,8 @@ Variant RapierSpace2D::get_default_area_param(PhysicsServer2D::AreaParameter p_p
 			return default_linear_damping;
 		case PhysicsServer2D::AREA_PARAM_ANGULAR_DAMP:
 			return default_angular_damping;
+		default:
+			break;
 	}
 
 	ERR_FAIL_V_MSG(Variant(), "Unsupported space default area param " + itos(p_param));
@@ -762,7 +764,7 @@ bool RapierDirectSpaceState2D::_collide_shape(const RID &shape_rid, const Transf
 		if (!result.collided) {
 			break;
 		}
-		*result_count++;
+		(*result_count)++;
 		g_query_exclude[g_query_exclude_size++] = result.collider;
 
 		results_out[array_idx++] = Vector2(result.witness1.x, result.witness1.y);

@@ -18,6 +18,7 @@
 #pragma comment(lib, "BCrypt")
 #pragma comment(lib, "userenv")
 #pragma comment(lib, "advapi32")
+#pragma comment(lib, "Ntdll")
 #endif
 
 using namespace godot;

@@ -827,7 +827,7 @@ pub extern "C" fn world_create(settings: &WorldSettings) -> Handle {
 	let physics_world = PhysicsWorld::new(settings);
 	let mut physics_engine = SINGLETON.lock().unwrap();
 	let world_handle = physics_engine.insert_world(physics_world);
-	let mut physics_world = physics_engine.get_world(world_handle);
+	let physics_world = physics_engine.get_world(world_handle);
 	physics_world.handle = world_handle;
 	return world_handle;
 }
@@ -835,7 +835,7 @@ pub extern "C" fn world_create(settings: &WorldSettings) -> Handle {
 #[no_mangle]
 pub extern "C" fn world_destroy(world_handle : Handle) {
 	let mut physics_engine = SINGLETON.lock().unwrap();
-	let mut physics_world = physics_engine.get_world(world_handle);
+	let physics_world = physics_engine.get_world(world_handle);
 	physics_world.handle = invalid_handle();
 	physics_engine.remove_world(world_handle);
 }
@@ -1091,7 +1091,7 @@ pub extern "C" fn body_create_dynamic(world_handle : Handle, pos : &Vector, rot 
     let mut physics_engine = SINGLETON.lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
     let mut rigid_body = RigidBodyBuilder::dynamic().can_sleep(true).sleeping(true).build();
-	let mut activation = rigid_body.activation_mut();
+	let activation = rigid_body.activation_mut();
 	// TODO: set parameter in Rapier once added, not possible for now
 	//activation.time_since_can_sleep = physics_world.sleep_time_until_sleep;
     activation.linear_threshold = physics_world.sleep_linear_threshold;
@@ -1235,11 +1235,11 @@ pub extern "C" fn body_set_can_sleep(world_handle : Handle, body_handle : Handle
     let body = body.unwrap();
     
     if can_sleep && body.activation().angular_threshold == -1.0 {
-		let mut activation = body.activation_mut();
+		let activation = body.activation_mut();
         activation.angular_threshold = physics_world.sleep_angular_threshold;
         activation.linear_threshold = physics_world.sleep_linear_threshold;
     } else if !can_sleep && body.activation().angular_threshold != -1.0 {
-		let mut activation = body.activation_mut();
+		let activation = body.activation_mut();
         activation.angular_threshold = -1.0;
         activation.linear_threshold = -1.0;
     }

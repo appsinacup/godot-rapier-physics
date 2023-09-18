@@ -43,7 +43,9 @@ struct PointHitInfo {
 	UserData user_data;
 };
 
-using QueryHandleExcludedCallback = bool (*)(Handle world_handle, Handle collider_handle, const UserData *user_data);
+using QueryHandleExcludedCallback = bool (*)(Handle world_handle,
+		Handle collider_handle,
+		const UserData *user_data);
 
 struct RayHitInfo {
 	Vector position;
@@ -111,7 +113,8 @@ struct ContactForceEventInfo {
 	UserData user_data2;
 };
 
-using ContactForceEventCallback = bool (*)(Handle world_handle, const ContactForceEventInfo *event_info);
+using ContactForceEventCallback = bool (*)(Handle world_handle,
+		const ContactForceEventInfo *event_info);
 
 struct ContactPointInfo {
 	Vector local_pos_1;

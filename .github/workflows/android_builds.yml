@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         target: [template_debug, template_release]
-        arch: [arm64, x86_64]
+        arch: [x86_64] # Todo reenable arm64
 
     steps:
       - uses: actions/checkout@v3

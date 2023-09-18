@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         target: [template_debug, template_release]
-        arch: [x86_32, x86_64]
+        arch: [x86_64] # Rust doesn't have built in config for 32 bit windows build.
 
     steps:
       - uses: actions/checkout@v3

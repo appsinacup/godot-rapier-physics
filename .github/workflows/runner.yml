@@ -18,10 +18,10 @@ jobs:
     needs: static-checks
     uses: ./.github/workflows/android_builds.yml
 
-  ios-build:
-    name: 🍏 iOS
-    needs: static-checks
-    uses: ./.github/workflows/ios_builds.yml
+  #ios-build: TODO Needs signing anyway
+  #  name: 🍏 iOS
+  #  needs: static-checks
+  #  uses: ./.github/workflows/ios_builds.yml
 
   linux-build:
     name: 🐧 Linux

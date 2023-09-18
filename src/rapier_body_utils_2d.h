@@ -1,6 +1,8 @@
 #ifndef RAPIER_BODY_UTILS_2D_H
 #define RAPIER_BODY_UTILS_2D_H
 
+#include <godot_cpp/classes/physics_server2d.hpp>
+#include <godot_cpp/classes/physics_server2d_extension_motion_result.hpp>
 #include <godot_cpp/variant/transform2d.hpp>
 
 using namespace godot;

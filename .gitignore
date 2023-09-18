@@ -1,17 +1,15 @@
 # Ignore everything in bin folder by default
-bin/*
+bin/godot-rapier2d/bin/*
 
 # Binaries
 *.os
 *.dblite
-
-# Don't ignore gdextension files
-!bin/*.gdextension
 
 # Binaries
 *.os
 *.dblite
 *.pdb
+
 
 # System/tool-specific ignores
 .directory

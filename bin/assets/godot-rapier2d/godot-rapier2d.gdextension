@@ -1,0 +1,16 @@
+[configuration]
+
+entry_symbol = "physics_server_rapier_2d_library_init"
+compatibility_minimum = 4.1
+
+
+[libraries]
+
+macos.debug = "res://addons/godot-rapier2d/bin/libphysics_server_rapier2d.macos.template_debug.framework"
+macos.release = "res://addons/godot-rapier2d/bin/libphysics_server_rapier2d.macos.template_release.framework"
+windows.debug.x86_64 = "res://addons/godot-rapier2d/bin/libphysics_server_rapier2d.windows.template_debug.dev.x86_64.dll"
+windows.release.x86_64 = "res://addons/godot-rapier2d/bin/libphysics_server_rapier2d.windows.template_release.x86_64.dll"
+linux.debug.x86_64 = "res://addons/godot-rapier2d/bin/libphysics_server_rapier2d.linux.template_debug.dev.x86_64.so"
+linux.release.x86_64 = "res://addons/godot-rapier2d/bin/libphysics_server_rapier2d.linux.template_release.x86_64.so"
+android.debug.x86_64 = "res://addons/godot-rapier2d/bin/libphysics_server_rapier2d.android.template_debug.dev.x86_64.so"
+android.release.x86_64 = "res://addons/godot-rapier2d/bin/libphysics_server_rapier2d.android.template_release.x86_64.so"
