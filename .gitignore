@@ -1,5 +1,5 @@
 # Ignore everything in bin folder by default
-bin/godot-rapier2d/bin/*
+bin/addons/godot-rapier2d/bin/*
 
 # Binaries
 *.os
