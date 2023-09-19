@@ -1,6 +1,9 @@
 # Ignore everything in bin folder by default
 bin/addons/godot-rapier2d/bin/*
 
+!bin/addons/godot-rapier2d/bin/libphysics_server_rapier2d.macos.template_debug.framework/Resources/Info.plist
+!bin/addons/godot-rapier2d/bin/libphysics_server_rapier2d.macos.template_release.framework/Resources/Info.plist
+
 # Binaries
 *.os
 *.dblite
