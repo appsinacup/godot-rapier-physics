@@ -1,9 +1,12 @@
-<p align="center">
-	<img src="https://github.com/fabriceci/godot-rapier2d/blob/main/logo.jpg?raw=true"/> 
-	<h1 align="center">Godot Rapier2D <img src="https://img.shields.io/badge/Godot-v4.1-%23478cbf?logo=godot-engine&logoColor=white"/><img src="https://img.shields.io/badge/Rapier2D-v0.17.2-%23478cbf?logoColor=white"/></h1> 
-</p>
+<div align="center">
+  <h1>Godot Rapier2D</h1> 
 
-[![🔗 Build Status](https://github.com/fabriceci/godot-rapier2d/actions/workflows/runner.yml/badge.svg)](https://github.com/fabriceci/godot-rapier2d/actions/workflows/runner.yml)
+  <a href="https://github.com/godotengine/godot/releases/tag/4.1-stable"><img src="https://img.shields.io/badge/Godot-v4.1-%23478cbf?logo=godot-engine&logoColor=white"/></a>
+  <a href="https://github.com/dimforge/rapier/releases/tag/v0.17.2"><img src="https://img.shields.io/badge/Rapier2D-v0.17.2-%23478cbf?logoColor=white"/></a>
+  <a href="https://github.com/fabriceci/godot-rapier2d/actions/workflows/runner.yml?branch=main">![🔗 Build Status](https://github.com/fabriceci/godot-rapier2d/actions/workflows/runner.yml/badge.svg?branch=main)</a>
+</div>
+
+<img src="https://github.com/fabriceci/godot-rapier2d/blob/main/logo.jpg?raw=true"/> 
 
 ## Build the Rapier 2D Extension
 
