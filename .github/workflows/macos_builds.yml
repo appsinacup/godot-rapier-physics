@@ -39,7 +39,7 @@ jobs:
           APPLE_DEV_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
           APPLE_DEV_PASSWORD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
           APPLE_DEV_APP_ID: ${{ secrets.PROD_MACOS_APPLE_DEV_APP_ID }}
-        run: ./scripts/ci-sign-macos.ps1 dist/addons/godot-rapier/bin/libgodot-rapier.macos.${{ matrix.target }}.framework
+        run: ./scripts/ci-sign-macos.ps1 bin/addons/godot-rapier2d/bin/libphysics_server_rapier2d.macos.${{ matrix.target }}.framework
         if: ${{ env.APPLE_DEV_ID }}
 
       - name: Upload ${{ matrix.target }} ${{ matrix.arch }}
