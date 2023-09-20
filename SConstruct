@@ -35,7 +35,7 @@ if env["platform"] == "macos":
 	)
 else:
 	library = env.SharedLibrary(
-		"bin/addons/godot-rapier2d/bin/libphysics_server_rapier2d.{}{}".format(env["suffix"], env["SHLIBSUFFIX"]),
+		"bin/addons/godot-rapier2d/bin/libphysics_server_rapier2d{}{}".format(env["suffix"], env["SHLIBSUFFIX"]),
 		source=sources,
 	)
 
