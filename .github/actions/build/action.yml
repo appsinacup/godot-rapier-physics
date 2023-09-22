@@ -46,7 +46,14 @@ runs:
     - name: Build Rapier
       shell: sh
       run: |
-        cd src/rapier2d-wrapper && cargo build && cargo build ${{ inputs.rust_target }} --release
+        cd src/rapier2d-wrapper && cargo build ${{ inputs.rust_target }} --release
+    - name: Build Rapier Macos Universal
+      shell: sh
+      
+      # we already built for x86_64-apple-darwin for mac, now build arm64
+      if: ${{ inputs.platform == 'macos'}}
+      run: |
+        cd src/rapier2d-wrapper && mkdir release && rustup target add aarch64-apple-darwin && cargo build --target=aarch64-apple-darwin --release && lipo -create -output target/release/librapier2d_wrapper.a target/aarch64-apple-darwin/release/librapier2d_wrapper.a target/x86_64-apple-darwin/release/librapier2d_wrapper.a
     - name: Build Physics Server Rapier
       shell: sh
       env:

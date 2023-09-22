@@ -28,6 +28,7 @@ jobs:
           sconsflags: ${{ env.SCONSFLAGS }}
           arch: ${{ matrix.arch }}
           platform: macos
+          rust_target: --target=x86_64-apple-darwin
           target: ${{ matrix.target }}
       
       - name: Sign frameworks
