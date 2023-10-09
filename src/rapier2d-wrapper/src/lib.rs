@@ -1094,8 +1094,7 @@ pub extern "C" fn body_create_dynamic(world_handle : Handle, pos : &Vector, rot 
 	let physics_world = physics_engine.get_world(world_handle);
     let mut rigid_body = RigidBodyBuilder::dynamic().can_sleep(true).sleeping(true).build();
 	let activation = rigid_body.activation_mut();
-	// TODO: set parameter in Rapier once added, not possible for now
-	//activation.time_since_can_sleep = physics_world.sleep_time_until_sleep;
+	activation.time_until_sleep = physics_world.sleep_time_until_sleep;
     activation.linear_threshold = physics_world.sleep_linear_threshold;
     activation.angular_threshold = physics_world.sleep_angular_threshold;
     set_rigid_body_properties_internal(&mut rigid_body, pos, rot);
