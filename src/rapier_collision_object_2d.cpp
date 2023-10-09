@@ -11,7 +11,7 @@ void RapierCollisionObject2D::add_shape(RapierShape2D *p_shape, const Transform2
 	shape.one_way_collision_margin = 0;
 
 	if (!shape.disabled) {
-		_create_shape(shape, shapes.size() - 1);
+		_create_shape(shape, shapes.size());
 		_update_shape_transform(shape);
 	}
 
