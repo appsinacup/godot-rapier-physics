@@ -73,6 +73,7 @@ struct ShapeInfo {
 
 struct ContactResult {
 	bool collided;
+	bool within_margin;
 	float distance;
 	Vector point1;
 	Vector point2;

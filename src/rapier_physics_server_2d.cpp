@@ -33,11 +33,11 @@ RID RapierPhysicsServer2D::_shape_create(ShapeType p_shape) {
 			shape = memnew(RapierConcavePolygonShape2D);
 		} break;
 		case SHAPE_CUSTOM: {
-			ERR_FAIL_V(RID());
+			ERR_FAIL_V_MSG(RID(), "Unsupported shape");
 
 		} break;
 		default:
-			ERR_FAIL_V(RID());
+			ERR_FAIL_V_MSG(RID(), "Unsupported shape");
 	}
 
 	RID id = shape_owner.make_rid(shape);

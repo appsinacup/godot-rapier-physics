@@ -244,6 +244,7 @@ impl ShapeCastResult {
 #[repr(C)]
 pub struct ContactResult {
     collided: bool,
+    within_margin: bool,
     distance: f32,
     point1 : Vector,
     point2 : Vector,
@@ -255,6 +256,7 @@ impl ContactResult {
     fn new() -> ContactResult {
         ContactResult {
             collided : false,
+            within_margin: false,
             distance : 0.0, 
             point1 : Vector{ x: 0.0, y: 0.0 },
             point2 : Vector{ x: 0.0, y: 0.0 },
@@ -1711,8 +1713,8 @@ pub extern "C" fn intersect_aabb(world_handle : Handle, aabb_min : &Vector, aabb
 #[no_mangle]
 pub extern "C" fn shapes_contact(world_handle : Handle, shape_handle1 : Handle, position1: &Vector, rotation1: f32, shape_handle2 : Handle, position2: &Vector, rotation2: f32, margin: f32) -> ContactResult {
     let mut physics_engine = SINGLETON.lock().unwrap();
-
-	let physics_world = physics_engine.get_world(world_handle);
+    
+    let physics_world = physics_engine.get_world(world_handle);
 
     let prediction = f32::max(physics_world.solver_prediction_distance, margin);
 
@@ -1723,13 +1725,24 @@ pub extern "C" fn shapes_contact(world_handle : Handle, shape_handle1 : Handle, 
     let shape_transform2 = Isometry::new(vector![position2.x, position2.y], rotation2);
     
     let mut result = ContactResult::new();
-    
     if let Ok(Some(contact)) = parry::query::contact(
-        &shape_transform1, shared_shape1.as_ref(), &shape_transform2, shared_shape2.as_ref(), prediction
+        &shape_transform1, shared_shape1.as_ref(), &shape_transform2, shared_shape2.as_ref(), prediction * 1.1
     ) {
-        result.collided = true;
+        // we used at contact a bigger number, prediction * 1.1 in order to increase search range.
+        // now check if we are actually within the margin, if not, return no intersection.
+        if contact.dist > prediction {
+            return result;
+        }
+        // the distance is negative if there is intersection
+        // and positive if the objects are separated by distance less than margin
         result.distance = contact.dist;
-        result.point1 = Vector{ x: contact.point1.x, y: contact.point1.y };
+        if contact.dist < 0.0 {
+            result.within_margin = false;
+        } else {
+            result.within_margin = true;
+        }
+        result.collided = true;
+        result.point1 = Vector{ x: contact.point1.x + prediction * contact.normal1.x, y: contact.point1.y + prediction * contact.normal1.y };
         result.point2 = Vector{ x: contact.point2.x, y: contact.point2.y };
         result.normal1 = Vector{ x: contact.normal1.x, y: contact.normal1.y };
         result.normal2 = Vector{ x: contact.normal2.x, y: contact.normal2.y };
