@@ -5,14 +5,15 @@
 
 #define TEST_MOTION_MIN_CONTACT_DEPTH_FACTOR 0.05
 #define SMALL_MARGIN_FOR_NUMERICAL_ERRORS 0.1
+#define BODY_MOTION_RECOVER_ATTEMPTS 4
+#define BODY_MOTION_RECOVER_RATIO 0.4
 
 bool RapierBodyUtils2D::body_motion_recover(
 		const RapierSpace2D &p_space,
-		const RapierBody2D &p_body,
+		RapierBody2D &p_body,
 		Transform2D &p_transform,
 		real_t p_margin,
-		Vector2 &p_recover_motion,
-		Rect2 &p_margin_aabb) {
+		Vector2 &p_recover_motion) {
 	int shape_count = p_body.get_shape_count();
 	ERR_FAIL_COND_V(shape_count < 1, false);
 	real_t min_contact_depth = p_margin * TEST_MOTION_MIN_CONTACT_DEPTH_FACTOR;
@@ -39,10 +40,16 @@ bool RapierBodyUtils2D::body_motion_recover(
 	}*/
 
 	bool recovered = false;
-	int recover_attempts = 4;
+	int recover_attempts = BODY_MOTION_RECOVER_ATTEMPTS;
 	do {
 		rapier2d::PointHitInfo results[32];
-		int result_count = p_space.rapier_intersect_aabb(p_margin_aabb, p_body.get_collision_mask(), true, false, results, 32, &result_count, p_body.get_rid());
+
+		Rect2 body_aabb = p_body.get_aabb();
+		// Undo the currently transform the physics server is aware of and apply the provided one
+		Rect2 margin_aabb = p_transform.xform(body_aabb);
+		margin_aabb = margin_aabb.grow(p_margin);
+
+		int result_count = p_space.rapier_intersect_aabb(margin_aabb, p_body.get_collision_mask(), true, false, results, 32, &result_count, p_body.get_rid());
 		// Optimization
 		if (result_count == 0) {
 			break;
@@ -79,6 +86,7 @@ bool RapierBodyUtils2D::body_motion_recover(
 				Vector2 col_shape_pos = col_shape_transform.get_origin();
 				rapier2d::Vector rapier_col_shape_pos{ col_shape_pos.x, col_shape_pos.y };
 				real_t rapier_col_shape_rot = col_shape_transform.get_rotation();
+
 				rapier2d::ContactResult contact = rapier2d::shapes_contact(p_space.get_handle(), body_shape_handle, &rapier_body_shape_pos, rapier_body_shape_rot, col_shape_handle, &rapier_col_shape_pos, rapier_col_shape_rot, p_margin);
 
 				if (!contact.collided) {
@@ -99,34 +107,40 @@ bool RapierBodyUtils2D::body_motion_recover(
 				real_t depth = n.dot(a + recover_step) - d;
 				if (depth > min_contact_depth + CMP_EPSILON) {
 					// Only recover if there is penetration.
-					recover_step -= n * (depth - min_contact_depth) * 0.4f;
+					recover_step -= n * (depth - min_contact_depth) * BODY_MOTION_RECOVER_RATIO;
 				}
 			}
+		}
+		if (recover_step == Vector2()) {
+			recovered = false;
+			break;
 		}
 		if (recovered) {
 			p_recover_motion += recover_step;
 			p_transform.columns[2] += recover_step;
-			p_margin_aabb.position += recover_step;
-		} else {
-			break;
 		}
-	} while (--recover_attempts);
+		recover_attempts--;
+	} while (recover_attempts);
 
 	return recovered;
 }
 
 void RapierBodyUtils2D::cast_motion(
 		const RapierSpace2D &p_space,
-		const RapierBody2D &p_body,
+		RapierBody2D &p_body,
 		const Transform2D &p_transform,
 		const Vector2 &p_motion,
-		const Rect2 &p_body_aabb,
+		real_t p_margin,
 		real_t &p_closest_safe,
 		real_t &p_closest_unsafe,
 		int &p_best_body_shape) {
-	Rect2 motion_aabb = p_body_aabb;
+	Rect2 body_aabb = p_body.get_aabb();
+	Rect2 margin_aabb = p_transform.xform(body_aabb);
+
+	margin_aabb = margin_aabb.grow(p_margin);
+	Rect2 motion_aabb = margin_aabb;
 	motion_aabb.position += p_motion;
-	motion_aabb = motion_aabb.merge(p_body_aabb);
+	motion_aabb = motion_aabb.merge(margin_aabb);
 
 	rapier2d::PointHitInfo results[32];
 	int result_count = p_space.rapier_intersect_aabb(motion_aabb, p_body.get_collision_mask(), true, false, results, 32, &result_count, p_body.get_rid());
@@ -147,8 +161,8 @@ void RapierBodyUtils2D::cast_motion(
 		real_t body_shape_rot = body_shape_transform.get_rotation();
 
 		bool stuck = false;
-		real_t best_safe = 1;
-		real_t best_unsafe = 1;
+		real_t best_safe = 1.0;
+		real_t best_unsafe = 1.0;
 
 		// Check collision along the whole motion (optimization)
 		/*rapier2d::ShapeCastResult shape_cast_result;
@@ -195,12 +209,12 @@ void RapierBodyUtils2D::cast_motion(
 				}
 			}
 			{
-				// no collision logic at end of motion
-				rapier2d::Vector rapier_body_shape_pos{ body_shape_pos.x + p_motion.x, body_shape_pos.y + p_motion.y };
-				rapier2d::ContactResult step_contact = rapier2d::shapes_contact(p_space.get_handle(), body_shape_handle, &rapier_body_shape_pos, body_shape_rot, col_shape_handle, &rapier_col_shape_pos, rapier_col_shape_rot, SMALL_MARGIN_FOR_NUMERICAL_ERRORS);
-				if (!step_contact.collided || (step_contact.collided && step_contact.within_margin)) {
-					continue;
-				}
+				// no collision logic at end of motion. Disabling this as it seems to cause jitter
+				//rapier2d::Vector rapier_body_shape_pos{ body_shape_pos.x + p_motion.x, body_shape_pos.y + p_motion.y };
+				//rapier2d::ContactResult step_contact = rapier2d::shapes_contact(p_space.get_handle(), body_shape_handle, &rapier_body_shape_pos, body_shape_rot, col_shape_handle, &rapier_col_shape_pos, rapier_col_shape_rot, SMALL_MARGIN_FOR_NUMERICAL_ERRORS);
+				//if (!step_contact.collided || (step_contact.collided && step_contact.within_margin)) {
+				//continue;
+				//}
 			}
 
 			//just do kinematic solving
@@ -221,7 +235,6 @@ void RapierBodyUtils2D::cast_motion(
 
 				rapier2d::Vector rapier_body_shape_step_pos{ body_shape_pos.x + p_motion.x * fraction, body_shape_pos.y + p_motion.y * fraction };
 				rapier2d::ContactResult step_contact = rapier2d::shapes_contact(p_space.get_handle(), body_shape_handle, &rapier_body_shape_step_pos, body_shape_rot, col_shape_handle, &rapier_col_shape_pos, rapier_col_shape_rot, SMALL_MARGIN_FOR_NUMERICAL_ERRORS);
-
 				if (step_contact.collided && !step_contact.within_margin) {
 					hi = fraction;
 					if ((k == 0) || (low > 0.0)) { // Did it not collide before?
@@ -264,14 +277,22 @@ void RapierBodyUtils2D::cast_motion(
 
 bool RapierBodyUtils2D::body_motion_collide(
 		const RapierSpace2D &p_space,
-		const RapierBody2D &p_body,
+		RapierBody2D &p_body,
 		const Transform2D &p_transform,
-		const Rect2 &p_body_aabb,
+		const Vector2 &p_motion,
 		int p_best_body_shape,
 		real_t p_margin,
 		PhysicsServer2DExtensionMotionResult *p_result) {
 	int shape_count = p_body.get_shape_count();
 	ERR_FAIL_COND_V(shape_count < 1, false);
+	Rect2 body_aabb = p_body.get_aabb();
+	Rect2 margin_aabb = p_transform.xform(body_aabb);
+	margin_aabb = margin_aabb.grow(p_margin);
+
+	// also check things at motion
+	Rect2 motion_aabb = margin_aabb;
+	motion_aabb.position += p_motion;
+	motion_aabb = motion_aabb.merge(margin_aabb);
 
 	// Create compound shape for the body if needed
 	/*rapier2d::Handle body_shape_handle;
@@ -296,7 +317,7 @@ bool RapierBodyUtils2D::body_motion_collide(
 	}*/
 
 	rapier2d::PointHitInfo results[32];
-	int result_count = p_space.rapier_intersect_aabb(p_body_aabb, p_body.get_collision_mask(), true, false, results, 32, &result_count, p_body.get_rid());
+	int result_count = p_space.rapier_intersect_aabb(motion_aabb, p_body.get_collision_mask(), true, false, results, 32, &result_count, p_body.get_rid());
 	// Optimization
 	if (result_count == 0) {
 		return false;
@@ -364,7 +385,8 @@ bool RapierBodyUtils2D::body_motion_collide(
 			p_result->collision_point = Vector2(best_contact.point1.x, best_contact.point1.y);
 			// Normal from the collided object to get the contact normal
 			p_result->collision_normal = Vector2(best_contact.normal2.x, best_contact.normal2.y);
-			p_result->collision_depth = best_contact.distance;
+			// compute distance without sign
+			p_result->collision_depth = p_margin - best_contact.distance;
 
 			Vector2 local_position = p_result->collision_point - best_collision_body->get_transform().get_origin();
 			p_result->collider_velocity = best_collision_body->get_velocity_at_local_point(local_position);
