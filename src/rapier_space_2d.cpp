@@ -2,6 +2,7 @@
 
 #include "rapier_body_utils_2d.h"
 #include "rapier_physics_server_2d.h"
+#include "rapier_project_settings.h"
 
 #include <godot_cpp/classes/project_settings.hpp>
 
@@ -387,12 +388,23 @@ void RapierSpace2D::step(real_t p_step) {
 	}
 
 	rapier2d::SimulationSettings settings = rapier2d::default_simulation_settings();
-	settings.delta_time = p_step;
+	settings.dt = p_step;
 	settings.gravity.x = default_gravity_dir.x * default_gravity_value;
 	settings.gravity.y = default_gravity_dir.y * default_gravity_value;
-	settings.max_velocity_iterations = 8;
-	settings.max_velocity_friction_iterations = 8;
-	settings.max_stabilization_iterations = 1;
+	settings.allowed_linear_error = RapierProjectSettings::get_solver_allowed_linear_error();
+	settings.damping_ratio = RapierProjectSettings::get_solver_damping_ratio();
+	settings.erp = RapierProjectSettings::get_solver_erp();
+	settings.interleave_restitution_and_friction_resolution = RapierProjectSettings::get_solver_interleave_restitution_and_friction_resolution();
+	settings.joint_damping_ratio = RapierProjectSettings::get_solver_joint_damping_ratio();
+	settings.joint_erp = RapierProjectSettings::get_solver_joint_erp();
+	settings.max_ccd_substeps = RapierProjectSettings::get_solver_max_ccd_substeps();
+	settings.max_penetration_correction = RapierProjectSettings::get_solver_max_penetration_correction();
+	settings.max_stabilization_iterations = RapierProjectSettings::get_solver_max_stabilization_iterations();
+	settings.max_velocity_friction_iterations = RapierProjectSettings::get_solver_max_velocity_friction_iterations();
+	settings.max_velocity_iterations = RapierProjectSettings::get_solver_max_velocity_iterations();
+	settings.min_ccd_dt = RapierProjectSettings::get_solver_min_ccd_dt();
+	settings.min_island_size = RapierProjectSettings::get_solver_min_island_size();
+	settings.prediction_distance = RapierProjectSettings::get_solver_prediction_distance();
 
 	ERR_FAIL_COND(!is_handle_valid(handle));
 	rapier2d::world_step(handle, &settings);
@@ -618,6 +630,7 @@ RapierSpace2D::RapierSpace2D() {
 	world_settings.sleep_linear_threshold = body_linear_velocity_sleep_threshold;
 	world_settings.sleep_angular_threshold = body_angular_velocity_sleep_threshold;
 	world_settings.sleep_time_until_sleep = body_time_to_sleep;
+	world_settings.solver_prediction_distance = RapierProjectSettings::get_solver_prediction_distance();
 
 	handle = rapier2d::world_create(&world_settings);
 	ERR_FAIL_COND(!is_handle_valid(handle));

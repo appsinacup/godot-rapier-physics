@@ -10,6 +10,7 @@
 
 #include "rapier_body_direct_state_2d.h"
 #include "rapier_physics_server_2d.h"
+#include "rapier_project_settings.h"
 #include "rapier_space_2d.h"
 
 #if defined(WINDOWS_ENABLED)
@@ -26,17 +27,22 @@ using namespace godot;
 static RapierPhysicsServer2DFactory *rapier_2d_factory = nullptr;
 
 void initialize_rapier_2d_module(ModuleInitializationLevel p_level) {
-	if (p_level != MODULE_INITIALIZATION_LEVEL_SERVERS) {
-		return;
+	switch (p_level) {
+		case MODULE_INITIALIZATION_LEVEL_SERVERS: {
+			ClassDB::register_class<RapierDirectBodyState2D>(true);
+			ClassDB::register_class<RapierDirectSpaceState2D>(true);
+			ClassDB::register_class<RapierPhysicsServer2D>();
+			ClassDB::register_class<RapierPhysicsServer2DFactory>();
+
+			rapier_2d_factory = memnew(RapierPhysicsServer2DFactory());
+			PhysicsServer2DManager::get_singleton()->register_server("Rapier2D", Callable(rapier_2d_factory, "create_rapier_2d_callback"));
+		} break;
+		case MODULE_INITIALIZATION_LEVEL_SCENE: {
+			RapierProjectSettings::register_settings();
+		} break;
+		default: {
+		} break;
 	}
-
-	ClassDB::register_class<RapierDirectBodyState2D>(true);
-	ClassDB::register_class<RapierDirectSpaceState2D>(true);
-	ClassDB::register_class<RapierPhysicsServer2D>();
-	ClassDB::register_class<RapierPhysicsServer2DFactory>();
-
-	rapier_2d_factory = memnew(RapierPhysicsServer2DFactory());
-	PhysicsServer2DManager::get_singleton()->register_server("Rapier2D", Callable(rapier_2d_factory, "create_rapier_2d_callback"));
 }
 
 void uninitialize_rapier_2d_module(ModuleInitializationLevel p_level) {

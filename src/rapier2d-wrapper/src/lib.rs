@@ -279,20 +279,85 @@ pub struct ShapeInfo {
 
 #[repr(C)]
 pub struct SimulationSettings {
-    delta_time : f32,
-    max_velocity_iterations : usize,
-    max_velocity_friction_iterations : usize,
-    max_stabilization_iterations : usize,
+    /// The timestep length (default: `1.0 / 60.0`)
+    pub dt: f32,
+    /// Minimum timestep size when using CCD with multiple substeps (default `1.0 / 60.0 / 100.0`)
+    ///
+    /// When CCD with multiple substeps is enabled, the timestep is subdivided
+    /// into smaller pieces. This timestep subdivision won't generate timestep
+    /// lengths smaller than `min_ccd_dt`.
+    ///
+    /// Setting this to a large value will reduce the opportunity to performing
+    /// CCD substepping, resulting in potentially more time dropped by the
+    /// motion-clamping mechanism. Setting this to an very small value may lead
+    /// to numerical instabilities.
+    pub min_ccd_dt: f32,
+
+    /// 0-1: multiplier for how much of the constraint violation (e.g. contact penetration)
+    /// will be compensated for during the velocity solve.
+    /// (default `0.8`).
+    pub erp: f32,
+    /// 0-1: the damping ratio used by the springs for Baumgarte constraints stabilization.
+    /// Lower values make the constraints more compliant (more "springy", allowing more visible penetrations
+    /// before stabilization).
+    /// (default `0.25`).
+    pub damping_ratio: f32,
+
+    /// 0-1: multiplier for how much of the joint violation
+    /// will be compensated for during the velocity solve.
+    /// (default `1.0`).
+    pub joint_erp: f32,
+
+    /// The fraction of critical damping applied to the joint for constraints regularization.
+    /// (default `0.25`).
+    pub joint_damping_ratio: f32,
+
+    /// Amount of penetration the engine wont attempt to correct (default: `0.001m`).
+    pub allowed_linear_error: f32,
+    /// Maximum amount of penetration the solver will attempt to resolve in one timestep.
+    pub max_penetration_correction: f32,
+    /// The maximal distance separating two objects that will generate predictive contacts (default: `0.002`).
+    pub prediction_distance: f32,
+    /// Maximum number of iterations performed to solve non-penetration and joint constraints (default: `4`).
+    pub max_velocity_iterations: usize,
+    /// Maximum number of iterations performed to solve friction constraints (default: `8`).
+    pub max_velocity_friction_iterations: usize,
+    /// Maximum number of iterations performed to remove the energy introduced by penetration corrections  (default: `1`).
+    pub max_stabilization_iterations: usize,
+    /// If `false`, friction and non-penetration constraints will be solved in the same loop. Otherwise,
+    /// non-penetration constraints are solved first, and friction constraints are solved after (default: `true`).
+    pub interleave_restitution_and_friction_resolution: bool,
+    /// Minimum number of dynamic bodies in each active island (default: `128`).
+    pub min_island_size: usize,
+    /// Maximum number of substeps performed by the  solver (default: `1`).
+    pub max_ccd_substeps: usize,
+
     gravity : Vector,
 }
 
 #[no_mangle]
 pub extern "C" fn default_simulation_settings() -> SimulationSettings {
     SimulationSettings {
-        delta_time : 1.0 / 60.0,
-        max_velocity_iterations : 4,
-        max_velocity_friction_iterations : 8,
-        max_stabilization_iterations : 1,
+        dt: 1.0 / 60.0,
+        min_ccd_dt: 1.0 / 60.0 / 100.0,
+        erp: 0.8,
+        damping_ratio: 0.25,
+        joint_erp: 1.0,
+        joint_damping_ratio: 1.0,
+        allowed_linear_error: 0.001,
+        max_penetration_correction: Real::MAX,
+        prediction_distance: 0.002,
+        max_velocity_iterations: 4,
+        max_velocity_friction_iterations: 8,
+        max_stabilization_iterations: 1,
+        interleave_restitution_and_friction_resolution: true, // Enabling this makes a big difference for 2D stability.
+        // TODO: what is the optimal value for min_island_size?
+        // It should not be too big so that we don't end up with
+        // huge islands that don't fit in cache.
+        // However we don't want it to be too small and end up with
+        // tons of islands, reducing SIMD parallelism opportunities.
+        min_island_size: 128,
+        max_ccd_substeps: 1,
         gravity : Vector { x : 0.0, y : -9.81 },
     }
 }
@@ -304,7 +369,6 @@ pub struct WorldSettings {
 	sleep_linear_threshold: f32,
 	sleep_angular_threshold: f32,
 	sleep_time_until_sleep: f32,
-    solver_damping_ratio : f32,
     solver_prediction_distance : f32,
 }
 
@@ -314,7 +378,6 @@ pub extern "C" fn default_world_settings() -> WorldSettings {
 		sleep_linear_threshold : 0.1,
 		sleep_angular_threshold : 0.1,
 		sleep_time_until_sleep : 1.0,
-        solver_damping_ratio : 0.42,
         solver_prediction_distance : 0.002,
     }
 }
@@ -330,7 +393,7 @@ pub struct Material {
 #[no_mangle]
 pub extern "C" fn default_material() -> Material {
     Material {
-        friction : 0.5,
+        friction : 1.0,
         restitution : 0.0,
     }
 }
@@ -543,7 +606,6 @@ struct PhysicsWorld {
 	sleep_linear_threshold: f32,
 	sleep_angular_threshold: f32,
 	sleep_time_until_sleep: f32,
-    solver_damping_ratio : f32,
     solver_prediction_distance : f32,
 	
 	active_body_callback : ActiveBodyCallback,
@@ -576,7 +638,6 @@ impl PhysicsWorld {
 			sleep_linear_threshold : settings.sleep_linear_threshold,
 			sleep_angular_threshold : settings.sleep_angular_threshold,
 			sleep_time_until_sleep : settings.sleep_time_until_sleep,
-            solver_damping_ratio : settings.solver_damping_ratio,
             solver_prediction_distance :settings.solver_prediction_distance,
     
 			active_body_callback : None,
@@ -597,12 +658,22 @@ impl PhysicsWorld {
 
     fn step(&mut self, settings : &SimulationSettings) {
         let mut integration_parameters = IntegrationParameters::default();
-        integration_parameters.dt = settings.delta_time;
+
+        integration_parameters.dt = settings.dt;
+        integration_parameters.min_ccd_dt = settings.min_ccd_dt;
+        integration_parameters.erp = settings.erp;
+        integration_parameters.damping_ratio = settings.damping_ratio;
+        integration_parameters.joint_erp = settings.joint_erp;
+        integration_parameters.joint_damping_ratio = settings.joint_damping_ratio;
+        integration_parameters.allowed_linear_error = settings.allowed_linear_error;
+        integration_parameters.max_penetration_correction = settings.max_penetration_correction;
+        integration_parameters.prediction_distance = settings.prediction_distance;
         integration_parameters.max_velocity_iterations = settings.max_velocity_iterations;
         integration_parameters.max_velocity_friction_iterations = settings.max_velocity_friction_iterations;
         integration_parameters.max_stabilization_iterations = settings.max_stabilization_iterations;
-		integration_parameters.damping_ratio = self.solver_damping_ratio;
-		integration_parameters.prediction_distance = self.solver_prediction_distance;
+        integration_parameters.interleave_restitution_and_friction_resolution = settings.interleave_restitution_and_friction_resolution;
+        integration_parameters.min_island_size = settings.min_island_size;
+        integration_parameters.max_ccd_substeps = settings.max_ccd_substeps;
 
         let gravity = vector![settings.gravity.x, settings.gravity.y];
 
@@ -811,7 +882,7 @@ impl PhysicsWorld {
 	fn insert_joint(&mut self, body_handle_1 : Handle, body_handle_2 : Handle, joint : impl Into<GenericJoint>) -> Handle {
 		let rigid_body_1_handle = handle_to_rigid_body_handle(body_handle_1);
 		let rigid_body_2_handle = handle_to_rigid_body_handle(body_handle_2);
-
+        
 		let joint_handle = self.impulse_joint_set.insert(rigid_body_1_handle, rigid_body_2_handle, joint, true);
 		return joint_handle_to_handle(joint_handle);
 	}

@@ -817,14 +817,12 @@ void RapierPhysicsServer2D::_body_set_axis_velocity(const RID &p_body, const Vec
 	RapierBody2D *body = body_owner.get_or_null(p_body);
 	ERR_FAIL_COND(!body);
 
-	// Vector2 v = body->get_linear_velocity();
-	// Vector2 axis = p_axis_velocity.normalized();
-	// v -= axis * axis.dot(v);
-	// v += p_axis_velocity;
-	// body->set_linear_velocity(v);
-	// body->wakeup();
-
-	ERR_PRINT_ONCE("Unsupported feature");
+	Vector2 v = body->get_direct_state()->get_linear_velocity();
+	Vector2 axis = p_axis_velocity.normalized();
+	v -= axis * axis.dot(v);
+	v += p_axis_velocity;
+	body->get_direct_state()->set_linear_velocity(v);
+	body->wakeup();
 };
 
 void RapierPhysicsServer2D::_body_add_collision_exception(const RID &p_body, const RID &p_body_b) {
