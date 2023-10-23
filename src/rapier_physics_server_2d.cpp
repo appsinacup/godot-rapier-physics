@@ -1083,23 +1083,40 @@ void RapierPhysicsServer2D::_joint_make_damped_spring(const RID &p_joint, const 
 	memdelete(prev_joint);
 }
 
-void RapierPhysicsServer2D::_pin_joint_set_param(const RID &p_joint, PinJointParam p_param, double p_value) {
-	// RapierJoint2D *j = joint_owner.get_or_null(p_joint);
-	// ERR_FAIL_COND(!j);
-	// ERR_FAIL_COND(j->get_type() != JOINT_TYPE_PIN);
+void RapierPhysicsServer2D::_pin_joint_set_flag(const RID &p_joint, PhysicsServer2D::PinJointFlag p_flag, bool p_enabled) {
+	RapierJoint2D *joint = joint_owner.get_or_null(p_joint);
+	ERR_FAIL_NULL(joint);
+	ERR_FAIL_COND(joint->get_type() != JOINT_TYPE_PIN);
 
-	// RapierPinJoint2D *pin_joint = static_cast<RapierPinJoint2D *>(j);
-	// pin_joint->set_param(p_param, p_value);
+	RapierPinJoint2D *pin_joint = static_cast<RapierPinJoint2D *>(joint);
+	pin_joint->set_flag(p_flag, p_enabled);
+}
+
+bool RapierPhysicsServer2D::_pin_joint_get_flag(const RID &p_joint, PhysicsServer2D::PinJointFlag p_flag) const {
+	RapierJoint2D *joint = joint_owner.get_or_null(p_joint);
+	ERR_FAIL_NULL_V(joint, 0);
+	ERR_FAIL_COND_V(joint->get_type() != JOINT_TYPE_PIN, 0);
+
+	RapierPinJoint2D *pin_joint = static_cast<RapierPinJoint2D *>(joint);
+	return pin_joint->get_flag(p_flag);
+}
+
+void RapierPhysicsServer2D::_pin_joint_set_param(const RID &p_joint, PinJointParam p_param, double p_value) {
+	RapierJoint2D *j = joint_owner.get_or_null(p_joint);
+	ERR_FAIL_COND(!j);
+	ERR_FAIL_COND(j->get_type() != JOINT_TYPE_PIN);
+
+	RapierPinJoint2D *pin_joint = static_cast<RapierPinJoint2D *>(j);
+	pin_joint->set_param(p_param, p_value);
 }
 
 double RapierPhysicsServer2D::_pin_joint_get_param(const RID &p_joint, PinJointParam p_param) const {
-	// RapierJoint2D *j = joint_owner.get_or_null(p_joint);
-	// ERR_FAIL_COND_V(!j, 0);
-	// ERR_FAIL_COND_V(j->get_type() != JOINT_TYPE_PIN, 0);
+	RapierJoint2D *j = joint_owner.get_or_null(p_joint);
+	ERR_FAIL_COND_V(!j, 0);
+	ERR_FAIL_COND_V(j->get_type() != JOINT_TYPE_PIN, 0);
 
-	// RapierPinJoint2D *pin_joint = static_cast<RapierPinJoint2D *>(j);
-	// return pin_joint->get_param(p_param);
-	return 0;
+	RapierPinJoint2D *pin_joint = static_cast<RapierPinJoint2D *>(j);
+	return pin_joint->get_param(p_param);
 }
 
 void RapierPhysicsServer2D::_damped_spring_joint_set_param(const RID &p_joint, DampedSpringParam p_param, double p_value) {
