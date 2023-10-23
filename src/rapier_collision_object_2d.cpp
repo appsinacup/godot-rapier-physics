@@ -248,15 +248,15 @@ void RapierCollisionObject2D::_update_shape_transform(const Shape &shape) {
 	}
 
 	rapier2d::Handle space_handle = space->get_handle();
-	ERR_FAIL_COND(!rapier2d::is_handle_valid(space_handle));
-
-	ERR_FAIL_COND(!rapier2d::is_handle_valid(shape.collider_handle));
 
 	const Vector2 &origin = shape.xform.get_origin();
 	rapier2d::Vector position = { origin.x, origin.y };
 	real_t angle = shape.xform.get_rotation();
 
 	shape.shape->apply_rapier_transform(position, angle);
+	ERR_FAIL_COND(!rapier2d::is_handle_valid(space_handle));
+
+	ERR_FAIL_COND(!rapier2d::is_handle_valid(shape.collider_handle));
 
 	rapier2d::collider_set_transform(space_handle, shape.collider_handle, &position, angle);
 }

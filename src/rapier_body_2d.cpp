@@ -1179,10 +1179,12 @@ Rect2 RapierBody2D::get_aabb() {
 			continue;
 		}
 		if (!shapes_found) {
-			body_aabb = get_shape(i)->get_aabb();
+			// TODO not 100% correct, we don't take into consideration rotation here.
+			body_aabb = get_shape(i)->get_aabb(get_shape_transform(i).get_origin());
 			shapes_found = true;
 		} else {
-			body_aabb = body_aabb.merge(get_shape(i)->get_aabb());
+			// TODO not 100% correct, we don't take into consideration rotation here.
+			body_aabb = body_aabb.merge(get_shape(i)->get_aabb(get_shape_transform(i).get_origin()));
 		}
 	}
 	return body_aabb;

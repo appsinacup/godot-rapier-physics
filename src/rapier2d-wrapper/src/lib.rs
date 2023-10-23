@@ -591,6 +591,33 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
 
 		return true;
     }
+
+    fn modify_solver_contacts(&self, context: &mut ContactModificationContext) {
+        // TODO implement conveyer belt
+        // for this we need to store the static object constant speed somewhere
+        /*
+        if context.rigid_body1.is_none() || context.rigid_body2.is_none() {
+            return;
+        }
+		let rigid_body1 = context.bodies.get(context.rigid_body1.unwrap());
+		let rigid_body2 = context.bodies.get(context.rigid_body1.unwrap());
+        if rigid_body1.is_none() || rigid_body2.is_none() {
+            return;
+        }
+        let mut rigid_body1 = rigid_body1.unwrap();
+        let mut rigid_body2 = rigid_body2.unwrap();
+
+        if rigid_body2.is_fixed() && !rigid_body1.is_fixed() {
+            (rigid_body2, rigid_body1) = (rigid_body1, rigid_body2);
+        }
+        */
+        // static and non static
+        //if rigid_body1.is_fixed() && !rigid_body2.is_fixed() {
+            for solver_contact in &mut *context.solver_contacts {
+                //solver_contact.tangent_velocity.x = 100.0;
+            }
+        //}
+    }
 }
 
 struct PhysicsWorld {
@@ -987,7 +1014,22 @@ pub extern "C" fn shape_create_circle(radius : f32) -> Handle {
 
 #[no_mangle]
 pub extern "C" fn shape_create_capsule(half_height : f32, radius : f32) -> Handle {
-	let shape = SharedShape::capsule_y(half_height, radius);
+	let top_circle = SharedShape::ball(radius);
+    let top_circle_position = Isometry::new(vector![0.0, -half_height], 0.0);
+	let bottom_circle = SharedShape::ball(radius);
+    let bottom_circle_position = Isometry::new(vector![0.0, half_height], 0.0);
+	let square = SharedShape::cuboid(0.5 * radius, 0.5 * (half_height - radius));
+    let square_pos = Isometry::new(vector![0.0, 0.0], 0.0);
+    let mut shapes_vec = Vec::<(Isometry<Real>, SharedShape)>::new();
+    shapes_vec.push((top_circle_position, top_circle));
+    shapes_vec.push((bottom_circle_position, bottom_circle));
+    shapes_vec.push((square_pos, square));
+    let shape = SharedShape::compound(shapes_vec);
+    // For now create the shape using circles and squares as the default capsule is buggy
+    // in case of distance checking(returns invalid distances when close to the ends)
+    // overall results in a 1.33x decrease in performance
+    // TODO only do this in case of static objects?
+	//let shape = SharedShape::capsule_y(half_height, radius);
     let mut physics_engine = SINGLETON.lock().unwrap();
 	return physics_engine.insert_shape(shape);
 }
@@ -1048,7 +1090,7 @@ pub extern "C" fn collider_create_solid(world_handle : Handle, shape_handle : Ha
     collider.set_restitution_combine_rule(CoefficientCombineRule::Max);
     collider.set_density(0.0);
 	collider.user_data = user_data.get_data();
-	collider.set_active_hooks(ActiveHooks::FILTER_CONTACT_PAIRS);
+	collider.set_active_hooks(ActiveHooks::FILTER_CONTACT_PAIRS | ActiveHooks::FILTER_INTERSECTION_PAIR | ActiveHooks::MODIFY_SOLVER_CONTACTS);
 	let physics_world = physics_engine.get_world(world_handle);
     return physics_world.insert_collider(collider, body_handle);
 }
@@ -1143,17 +1185,21 @@ pub extern "C" fn collider_set_contact_force_events_enabled(world_handle : Handl
 
 // Rigid body interface
 
-fn set_rigid_body_properties_internal(rigid_body : &mut RigidBody, pos : &Vector, rot : f32) {
-    rigid_body.set_rotation(Rotation::new(rot), false);
-    rigid_body.set_translation(vector![pos.x, pos.y], false);
+fn set_rigid_body_properties_internal(rigid_body : &mut RigidBody, pos : &Vector, rot : f32, wake_up : bool) {
+    if rigid_body.is_dynamic() {
+        rigid_body.set_rotation(Rotation::new(rot), wake_up);
+        rigid_body.set_translation(vector![pos.x, pos.y], wake_up);
+    } else {
+        rigid_body.set_next_kinematic_position(Isometry::new(vector![pos.x, pos.y], rot));
+    }
 }
 
 #[no_mangle]
 pub extern "C" fn body_create_fixed(world_handle : Handle, pos : &Vector, rot : f32, user_data : &UserData) -> Handle {
     let mut physics_engine = SINGLETON.lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
-    let mut rigid_body = RigidBodyBuilder::fixed().build();
-    set_rigid_body_properties_internal(&mut rigid_body, pos, rot);
+    let mut rigid_body = RigidBodyBuilder::kinematic_position_based().build();
+    set_rigid_body_properties_internal(&mut rigid_body, pos, rot, true);
 	rigid_body.user_data = user_data.get_data();
     let body_handle = physics_world.rigid_body_set.insert(rigid_body);
     return rigid_body_handle_to_handle(body_handle);
@@ -1168,7 +1214,7 @@ pub extern "C" fn body_create_dynamic(world_handle : Handle, pos : &Vector, rot 
 	activation.time_until_sleep = physics_world.sleep_time_until_sleep;
     activation.linear_threshold = physics_world.sleep_linear_threshold;
     activation.angular_threshold = physics_world.sleep_angular_threshold;
-    set_rigid_body_properties_internal(&mut rigid_body, pos, rot);
+    set_rigid_body_properties_internal(&mut rigid_body, pos, rot, false);
 	rigid_body.user_data = user_data.get_data();
     return physics_world.insert_rigid_body(rigid_body);
 }
@@ -1208,7 +1254,8 @@ pub extern "C" fn body_set_transform(world_handle : Handle, body_handle : Handle
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     let body = physics_world.rigid_body_set.get_mut(rigid_body_handle);
     assert!(body.is_some());
-    body.unwrap().set_position(Isometry::new(vector![pos.x, pos.y], rot), wake_up);
+    let body = body.unwrap();
+    set_rigid_body_properties_internal(body, pos, rot, wake_up);
 }
 
 #[no_mangle]
@@ -1796,13 +1843,8 @@ pub extern "C" fn shapes_contact(world_handle : Handle, shape_handle1 : Handle, 
     
     let mut result = ContactResult::new();
     if let Ok(Some(contact)) = parry::query::contact(
-        &shape_transform1, shared_shape1.as_ref(), &shape_transform2, shared_shape2.as_ref(), prediction * 1.5
+        &shape_transform1, shared_shape1.as_ref(), &shape_transform2, shared_shape2.as_ref(), prediction
     ) {
-        // we used at contact a bigger number, prediction * 1.5 in order to increase search range.
-        // now check if we are actually within the margin, if not, return no intersection.
-        if contact.dist > prediction {
-            return result;
-        }
         // the distance is negative if there is intersection
         // and positive if the objects are separated by distance less than margin
         result.distance = contact.dist;

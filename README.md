@@ -25,30 +25,27 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 
 # Limitations
 
-- One way direction (WIP)
-- Spring Joint (WIP)
-- Static Body Constant Speed or Conveyer Belt (WIP)
-- Small issues with Character Controller (WIP)
+- One way direction missing(WIP)
+- Spring Joint missing(WIP)
+- Static Body Constant Speed or Conveyer Belt missing (WIP)
+- Shape scaling doesn't work (WIP)
+- Changing properties before they are added in world doesn't work (WIP)
 
 # Installation
 
-- Automatic (WIP)
 
-- Manual: 
+- Automatic (Recommended): Download the plugin from the official [Godot Asset Store](https://godotengine.org/asset-library/asset/2267) using the `AssetLib` tab in Godot.
 
-  a. Download the github release and move only the `addons` folder into your project `addons` folder. After installing, go to `Advanced Settings` -> `Physics` -> `2D`. Change `Physics Engine` to `Rapier2D`.
+- Manual: Download the github release and move only the `addons` folder into your project `addons` folder.
 
-  b. Build it yourself. Read more about it in the [documentation](DOCUMENTATION.MD).
+- Build it yourself. Read more about it in the [documentation](DOCUMENTATION.MD).
 
-## Use the Rapier 2D extension
-
-Copy the `addons/` folder to your project root.
+After installing, go to `Advanced Settings` -> `Physics` -> `2D`. Change `Physics Engine` to `Rapier2D`.
 
 # Roadmap
 
 - Cross Platform Determinism
-- Add more types of joints
-- Pass all Godot Physics Tests.
+- Fix all other issues from Limitations.
 
 # [Discord](https://discord.gg/56dMud8HYn)
 

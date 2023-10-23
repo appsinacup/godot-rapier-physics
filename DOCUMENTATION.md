@@ -68,7 +68,6 @@ The library files will be found in `bin/addons/` folder.
 ### Step 1
 
 We check if the body + margin collide something:
-![Body Test Motion Step 1](docs/test_body_motion_step_1.png)
 - if true: 
     
     we loop 4 times: 

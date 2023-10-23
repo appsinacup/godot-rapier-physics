@@ -45,7 +45,11 @@ public:
 
 	rapier2d::Handle get_rapier_shape();
 
-	_FORCE_INLINE_ Rect2 get_aabb() const { return aabb; }
+	_FORCE_INLINE_ Rect2 get_aabb(Vector2 origin = Vector2()) const {
+		Rect2 aabb_clone = aabb;
+		aabb_clone.position += origin;
+		return aabb_clone;
+	}
 	_FORCE_INLINE_ bool is_configured() const { return configured; }
 
 	void add_owner(RapierShapeOwner2D *p_owner);
