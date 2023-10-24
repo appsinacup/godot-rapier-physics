@@ -11,12 +11,14 @@ env:
 jobs:
   web:
     runs-on: ubuntu-20.04
-    name: Web Build ${{ matrix.target }} ${{ matrix.arch }}
+    name: ${{ matrix.target }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
     strategy:
       fail-fast: false
       matrix:
         target: [template_debug, template_release]
         arch: [wasm32]
+        precision: [single, double]
+        features: [simd-stable, enhanced-determinism]
 
     steps:
       - uses: actions/checkout@v3
@@ -33,14 +35,19 @@ jobs:
         run: |
           emcc -v
 
-      - name: Build ${{ matrix.target }} ${{ matrix.arch }}
+      - name: Build ${{ matrix.target }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/build
         with:
           sconsflags: ${{ env.SCONSFLAGS }}
           arch: ${{ matrix.arch }}
           platform: javascript
           target: ${{ matrix.target }}
+          precision: ${{ matrix.precision }}
+          features: ${{ matrix.features }}
 
-      - name: Upload ${{ matrix.target }} ${{ matrix.arch }}
+      - name: Upload ${{ matrix.target }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/upload
+        with:
+          precision: ${{ matrix.precision }}
+          features: ${{ matrix.features }}
     

@@ -10,19 +10,21 @@ env:
 jobs:
   macos:
     runs-on: "macos-latest"
-    name: macOS Build ${{ matrix.target }} ${{ matrix.arch }}
+    name: ${{ matrix.target }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
     strategy:
       fail-fast: false
       matrix:
         target: [template_debug, template_release]
         arch: [universal]
+        precision: [single, double]
+        features: [simd-stable, enhanced-determinism]
 
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: true
     
-      - name: Build ${{ matrix.target }} ${{ matrix.arch }}
+      - name: Build ${{ matrix.target }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/build
         with:
           sconsflags: ${{ env.SCONSFLAGS }}
@@ -30,8 +32,10 @@ jobs:
           platform: macos
           rust_target: --target=x86_64-apple-darwin
           target: ${{ matrix.target }}
+          precision: ${{ matrix.precision }}
+          features: ${{ matrix.features }}
       
-      - name: Sign frameworks
+      - name: Sign frameworks ${{ matrix.target }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         shell: pwsh
         env:
           APPLE_CERT_BASE64: ${{ secrets.PROD_MACOS_CERTIFICATE }}
@@ -43,5 +47,8 @@ jobs:
         run: ./scripts/ci-sign-macos.ps1 bin/addons/godot-rapier2d/bin/libphysics_server_rapier2d.macos.${{ matrix.target }}.framework
         if: ${{ env.APPLE_DEV_ID }}
 
-      - name: Upload ${{ matrix.target }} ${{ matrix.arch }}
+      - name: Upload ${{ matrix.target }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/upload
+        with:
+          precision: ${{ matrix.precision }}
+          features: ${{ matrix.features }}

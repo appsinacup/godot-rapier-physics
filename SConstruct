@@ -21,11 +21,15 @@ env.Append(LIBS=[lib])
 
 ## Sources
 env.Append(CPPPATH=["src/"])
-sources = Glob("src/*.cpp")
+sources = [Glob("src/*.cpp"),Glob("src/bodies/*.cpp"),Glob("src/joints/*.cpp"),Glob("src/servers/*.cpp"),Glob("src/shapes/*.cpp"),Glob("src/spaces/*.cpp")]
 
 if env["platform"] == "windows":
     env.Append(CPPDEFINES="WINDOWS_ENABLED")
 
+if env["precision"] == "double":
+	env.Append(CPPDEFINES=["REAL_T_IS_DOUBLE"])
+else:
+	env.Append(CPPDEFINES=["REAL_T_IS_FLOAT"])
 if env["platform"] == "macos":
 	library = env.SharedLibrary(
 		"bin/addons/godot-rapier2d/bin/libphysics_server_rapier2d.{}.{}.framework/libphysics_server_rapier2d.{}.{}".format(

@@ -31,8 +31,20 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 - Shape scaling doesn't work (WIP)
 - Changing properties before they are added in world doesn't work (WIP)
 
-# Installation
+# Build Features
 
+## Float Precision
+
+This plugin is built for both single and double precision builds.
+
+## Rapier Features
+
+This package supports the following features of rapier ([more on this here](https://rapier.rs/docs/user_guides/rust/getting_started)):
+
+- simd-stable: enables explicit SIMD optimizations using the wide crate. Has limited cross-platform support but can be used with a stable version of the Rust compiler.
+- enhanced-determinism: enables cross-platform determinism (assuming the rest of your code is also deterministic) across all 32-bit and 64-bit platforms that implements the IEEE 754-2008 standard strictly. This includes most modern processors as well as WASM targets.
+
+# Installation
 
 - Automatic (Recommended): Download the plugin from the official [Godot Asset Store](https://godotengine.org/asset-library/asset/2267) using the `AssetLib` tab in Godot.
 

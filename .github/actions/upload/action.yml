@@ -1,13 +1,21 @@
 name: Physics Server Rapier Upload
 description: Upload Godot Cpp and the Physics Server 2D Extension.
 
+inputs:
+  precision:
+    required: true
+    description: single or double
+  features:
+    required: true
+    description: simd-nightly,simd-stable,parallel,enhanced-determinism
+
 runs:
   using: composite
   steps:
     - name: Upload Artifact
       uses: actions/upload-artifact@v3
       with:
-        name: Godot Rapier 2D
+        name: Godot Rapier 2D ${{ inputs.precision }} ${{ inputs.features }}
         path: |
           ${{ github.workspace }}/bin/**
         retention-days: 14
