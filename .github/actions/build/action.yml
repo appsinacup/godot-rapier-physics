@@ -54,7 +54,7 @@ runs:
       shell: sh
       run: |
         cd src/rapier2d-wrapper && \
-        cargo build ${{ inputs.rust_target }} --release --features=${{ inputs.features }}
+        cargo build ${{ inputs.rust_target }} --release --features="${{ inputs.features }},${{ inputs.precision }}"
     - name: Build Rapier Macos Universal
       shell: sh
       
@@ -62,7 +62,7 @@ runs:
       if: ${{ inputs.platform == 'macos'}}
       run: |
         cd src/rapier2d-wrapper && mkdir release && rustup target add aarch64-apple-darwin && \
-        cargo build --target=aarch64-apple-darwin --release --features=${{ inputs.features }} && \
+        cargo build --target=aarch64-apple-darwin --release --features="${{ inputs.features }},${{ inputs.precision }}" && \
         lipo -create -output target/release/librapier2d_wrapper.a target/aarch64-apple-darwin/release/librapier2d_wrapper.a target/x86_64-apple-darwin/release/librapier2d_wrapper.a
     - name: Build Physics Server Rapier
       shell: sh

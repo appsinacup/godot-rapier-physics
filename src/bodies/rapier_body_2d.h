@@ -49,6 +49,15 @@ class RapierBody2D : public RapierCollisionObject2D {
 	bool marked_active = false;
 	bool can_sleep = true;
 
+	Vector2 constant_force;
+	Vector2 linear_velocity;
+	Vector2 impulse;
+	real_t torque = 0.0;
+	real_t angular_velocity = 0.0;
+	real_t constant_torque = 0.0;
+
+	bool sleep = false;
+
 	void _mass_properties_changed();
 	void _apply_mass_properties(bool force_update = false);
 
@@ -181,8 +190,8 @@ public:
 	void on_marked_active();
 	void on_update_active();
 
-	void wakeup() const;
-	void force_sleep() const;
+	void wakeup();
+	void force_sleep();
 
 	void set_param(PhysicsServer2D::BodyParameter p_param, const Variant &p_value);
 	Variant get_param(PhysicsServer2D::BodyParameter p_param) const;

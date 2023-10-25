@@ -10,7 +10,8 @@ name = "rapier2d_wrapper"
 crate-type = ["staticlib"]	# Creates static lib
 
 [features]
-f64 = []
+single = []
+double = []
 enhanced-determinism = ["rapier2d/enhanced-determinism", "rapier2d-f64/enhanced-determinism"]
 simd-stable = ["rapier2d/simd-stable", "rapier2d-f64/simd-stable"]
 simd-nightly = ["rapier2d/simd-nightly", "rapier2d-f64/simd-nightly"]

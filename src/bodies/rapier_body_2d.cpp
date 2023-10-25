@@ -363,11 +363,7 @@ void RapierBody2D::set_mode(PhysicsServer2D::BodyMode p_mode) {
 		if (get_space()) {
 			update_area_override();
 
-			rapier2d::Handle space_handle = get_space()->get_handle();
-			ERR_FAIL_COND(!rapier2d::is_handle_valid(space_handle));
-
-			ERR_FAIL_COND(!rapier2d::is_handle_valid(body_handle));
-			rapier2d::body_set_gravity_scale(space_handle, body_handle, gravity_scale, false);
+			_apply_gravity_scale(gravity_scale);
 		}
 	}
 }
@@ -396,10 +392,10 @@ void RapierBody2D::set_state(PhysicsServer2D::BodyState p_state, const Variant &
 			if (mode == PhysicsServer2D::BODY_MODE_STATIC || mode == PhysicsServer2D::BODY_MODE_KINEMATIC) {
 				break;
 			}
-			bool do_sleep = p_variant;
+			sleep = p_variant;
 
-			if (do_sleep) {
-				if (!can_sleep) {
+			if (sleep) {
+				if (can_sleep) {
 					force_sleep();
 					set_active(false);
 				}
@@ -511,10 +507,18 @@ void RapierBody2D::set_space(RapierSpace2D *p_space) {
 
 	if (get_space()) {
 		if (mode >= PhysicsServer2D::BODY_MODE_KINEMATIC) {
-			if (mode >= PhysicsServer2D::BODY_MODE_RIGID) {
-				rapier2d::Handle space_handle = get_space()->get_handle();
-				ERR_FAIL_COND(!rapier2d::is_handle_valid(space_handle));
+			if (!can_sleep) {
+				set_can_sleep(false);
+			}
 
+			if (active || !sleep) {
+				wakeup();
+				get_space()->body_add_to_active_list(&active_list);
+			} else if (can_sleep && sleep) {
+				force_sleep();
+			}
+			if (mode >= PhysicsServer2D::BODY_MODE_RIGID) {
+				_apply_gravity_scale(gravity_scale);
 				if (linear_damping_mode == PhysicsServer2D::BODY_DAMP_MODE_COMBINE) {
 					_apply_linear_damping(linear_damping);
 				}
@@ -523,22 +527,29 @@ void RapierBody2D::set_space(RapierSpace2D *p_space) {
 				}
 
 				_mass_properties_changed();
-				rapier2d::body_set_gravity_scale(space_handle, body_handle, gravity_scale, false);
-
-				if (ccd_mode != PhysicsServer2D::CCD_MODE_DISABLED) {
-					rapier2d::body_set_ccd_enabled(space_handle, body_handle, true);
+				if (!linear_velocity.is_zero_approx()) {
+					set_linear_velocity(linear_velocity);
 				}
-			}
-
-			if (!can_sleep) {
-				set_can_sleep(false);
-			}
-
-			if (active) {
-				wakeup();
-				get_space()->body_add_to_active_list(&active_list);
-			} else if (can_sleep) {
-				force_sleep();
+				if (angular_velocity != 0.0) {
+					set_angular_velocity(angular_velocity);
+				}
+				if (!constant_force.is_zero_approx()) {
+					set_constant_force(constant_force);
+				}
+				if (constant_torque != 0.0) {
+					set_constant_torque(constant_torque);
+				}
+				if (!impulse.is_zero_approx()) {
+					apply_impulse(impulse);
+				}
+				if (torque != 0.0) {
+					apply_torque_impulse(torque);
+				}
+				rapier2d::Handle space_handle = get_space()->get_handle();
+				rapier2d::Material mat;
+				mat.friction = friction;
+				mat.restitution = bounce;
+				rapier2d::body_update_material(space_handle, body_handle, &mat);
 			}
 		}
 	}
@@ -601,8 +612,8 @@ void RapierBody2D::set_force_integration_callback(const Callable &p_callable, co
 }
 
 void RapierBody2D::apply_central_impulse(const Vector2 &p_impulse) {
+	impulse += p_impulse;
 	if (!get_space()) {
-		WARN_PRINT("Applying central impulse on body not in simulation, ignored.");
 		return;
 	}
 
@@ -620,8 +631,9 @@ void RapierBody2D::apply_central_impulse(const Vector2 &p_impulse) {
 }
 
 void RapierBody2D::apply_impulse(const Vector2 &p_impulse, const Vector2 &p_position) {
+	impulse += p_impulse;
+	torque += (p_position - get_center_of_mass()).cross(p_impulse);
 	if (!get_space()) {
-		WARN_PRINT("Applying impulse on body not in simulation, ignored. Ensure to apply impulse after add_child.");
 		return;
 	}
 
@@ -640,8 +652,8 @@ void RapierBody2D::apply_impulse(const Vector2 &p_impulse, const Vector2 &p_posi
 }
 
 void RapierBody2D::apply_torque_impulse(real_t p_torque) {
+	torque += p_torque;
 	if (!get_space()) {
-		WARN_PRINT("Applying torque impulse on body not in simulation, ignored. Ensure to apply impulse after add_child.");
 		return;
 	}
 
@@ -658,8 +670,10 @@ void RapierBody2D::apply_torque_impulse(real_t p_torque) {
 }
 
 void RapierBody2D::apply_central_force(const Vector2 &p_force) {
+	// Note: using last delta assuming constant physics time
+	real_t last_delta = get_space()->get_last_step();
+	impulse += p_force * last_delta;
 	if (!get_space()) {
-		WARN_PRINT("Applying central force on body not in simulation, ignored. Ensure to apply force after add_child.");
 		return;
 	}
 
@@ -670,9 +684,6 @@ void RapierBody2D::apply_central_force(const Vector2 &p_force) {
 
 	rapier2d::Handle space_handle = get_space()->get_handle();
 	ERR_FAIL_COND(!rapier2d::is_handle_valid(space_handle));
-
-	// Note: using last delta assuming constant physics time
-	real_t last_delta = get_space()->get_last_step();
 
 	ERR_FAIL_COND(!rapier2d::is_handle_valid(body_handle));
 	rapier2d::Vector force = { p_force.x * last_delta, p_force.y * last_delta };
@@ -680,8 +691,11 @@ void RapierBody2D::apply_central_force(const Vector2 &p_force) {
 }
 
 void RapierBody2D::apply_force(const Vector2 &p_force, const Vector2 &p_position) {
+	// Note: using last delta assuming constant physics time
+	real_t last_delta = get_space()->get_last_step();
+	impulse += p_force * last_delta;
+	torque += (p_position - get_center_of_mass()).cross(p_force) * last_delta;
 	if (!get_space()) {
-		WARN_PRINT("Applying force on body not in simulation, ignored. Ensure to apply force after add_child.");
 		return;
 	}
 
@@ -692,10 +706,6 @@ void RapierBody2D::apply_force(const Vector2 &p_force, const Vector2 &p_position
 
 	rapier2d::Handle space_handle = get_space()->get_handle();
 	ERR_FAIL_COND(!rapier2d::is_handle_valid(space_handle));
-
-	// Note: using last delta assuming constant physics time
-	real_t last_delta = get_space()->get_last_step();
-
 	ERR_FAIL_COND(!rapier2d::is_handle_valid(body_handle));
 	rapier2d::Vector force = { p_force.x * last_delta, p_force.y * last_delta };
 	rapier2d::Vector pos = { p_position.x, p_position.y };
@@ -703,8 +713,10 @@ void RapierBody2D::apply_force(const Vector2 &p_force, const Vector2 &p_position
 }
 
 void RapierBody2D::apply_torque(real_t p_torque) {
+	// Note: using last delta assuming constant physics time
+	real_t last_delta = get_space()->get_last_step();
+	torque += p_torque * last_delta;
 	if (!get_space()) {
-		WARN_PRINT("Applying torque on body not in simulation, ignored. Ensure to apply torque after add_child.");
 		return;
 	}
 
@@ -716,16 +728,13 @@ void RapierBody2D::apply_torque(real_t p_torque) {
 	rapier2d::Handle space_handle = get_space()->get_handle();
 	ERR_FAIL_COND(!rapier2d::is_handle_valid(space_handle));
 
-	// Note: using last delta assuming constant physics time
-	real_t last_delta = get_space()->get_last_step();
-
 	ERR_FAIL_COND(!rapier2d::is_handle_valid(body_handle));
 	rapier2d::body_apply_torque_impulse(space_handle, body_handle, p_torque * last_delta);
 }
 
 void RapierBody2D::add_constant_central_force(const Vector2 &p_force) {
+	constant_force += p_force;
 	if (!get_space()) {
-		WARN_PRINT("Adding constant central force on body not in simulation, ignored. Ensure to apply force after add_child.");
 		return;
 	}
 
@@ -743,8 +752,9 @@ void RapierBody2D::add_constant_central_force(const Vector2 &p_force) {
 }
 
 void RapierBody2D::add_constant_force(const Vector2 &p_force, const Vector2 &p_position) {
+	constant_torque += (p_position - get_center_of_mass()).cross(p_force);
+	constant_force += p_force;
 	if (!get_space()) {
-		WARN_PRINT("Adding constant force on body not in simulation, ignored. Ensure to apply force after add_child.");
 		return;
 	}
 
@@ -763,8 +773,8 @@ void RapierBody2D::add_constant_force(const Vector2 &p_force, const Vector2 &p_p
 }
 
 void RapierBody2D::add_constant_torque(real_t p_torque) {
+	constant_torque += p_torque;
 	if (!get_space()) {
-		WARN_PRINT("Adding constant torque on body not in simulation, ignored. Ensure to apply torque after add_child.");
 		return;
 	}
 
@@ -781,8 +791,8 @@ void RapierBody2D::add_constant_torque(real_t p_torque) {
 }
 
 void RapierBody2D::set_constant_force(const Vector2 &p_force) {
+	constant_force = p_force;
 	if (!get_space()) {
-		WARN_PRINT("Setting constant force on body not in simulation, ignored. Ensure to apply force after add_child.");
 		return;
 	}
 
@@ -802,7 +812,7 @@ void RapierBody2D::set_constant_force(const Vector2 &p_force) {
 
 Vector2 RapierBody2D::get_constant_force() const {
 	if (!get_space()) {
-		return Vector2();
+		return constant_force;
 	}
 
 	rapier2d::Handle space_handle = get_space()->get_handle();
@@ -816,8 +826,8 @@ Vector2 RapierBody2D::get_constant_force() const {
 }
 
 void RapierBody2D::set_constant_torque(real_t p_torque) {
+	constant_torque = p_torque;
 	if (!get_space()) {
-		WARN_PRINT("Setting constant torque on body not in simulation, ignored. Ensure to apply torque after add_child.");
 		return;
 	}
 
@@ -836,7 +846,7 @@ void RapierBody2D::set_constant_torque(real_t p_torque) {
 
 real_t RapierBody2D::get_constant_torque() const {
 	if (!get_space()) {
-		return 0.0;
+		return constant_torque;
 	}
 
 	rapier2d::Handle space_handle = get_space()->get_handle();
@@ -847,7 +857,8 @@ real_t RapierBody2D::get_constant_torque() const {
 	return rapier2d::body_get_constant_torque(space_handle, body_handle);
 }
 
-void RapierBody2D::wakeup() const {
+void RapierBody2D::wakeup() {
+	sleep = false;
 	if (mode == PhysicsServer2D::BODY_MODE_STATIC) {
 		return;
 	}
@@ -863,7 +874,8 @@ void RapierBody2D::wakeup() const {
 	rapier2d::body_wake_up(space_handle, body_handle, true);
 }
 
-void RapierBody2D::force_sleep() const {
+void RapierBody2D::force_sleep() {
+	sleep = true;
 	if (!get_space()) {
 		return;
 	}
@@ -912,7 +924,8 @@ void RapierBody2D::on_area_updated(RapierArea2D *p_area) {
 	}
 }
 
-void RapierBody2D::set_linear_velocity(const Vector2 &linear_velocity) {
+void RapierBody2D::set_linear_velocity(const Vector2 &p_linear_velocity) {
+	linear_velocity = p_linear_velocity;
 	if (mode == PhysicsServer2D::BODY_MODE_STATIC) {
 		if (linear_velocity != Vector2()) {
 			WARN_PRINT_ONCE("Setting linear velocity on static bodies is not supported.");
@@ -921,7 +934,6 @@ void RapierBody2D::set_linear_velocity(const Vector2 &linear_velocity) {
 	}
 
 	if (!get_space()) {
-		WARN_PRINT("Setting linear velocity on body not in simulation, ignored. Ensure to apply velocity after add_child.");
 		return;
 	}
 
@@ -936,7 +948,7 @@ void RapierBody2D::set_linear_velocity(const Vector2 &linear_velocity) {
 
 Vector2 RapierBody2D::get_linear_velocity() const {
 	if (!get_space()) {
-		return Vector2();
+		return linear_velocity;
 	}
 
 	rapier2d::Handle space_handle = get_space()->get_handle();
@@ -947,16 +959,16 @@ Vector2 RapierBody2D::get_linear_velocity() const {
 	return Vector2(vel.x, vel.y);
 }
 
-void RapierBody2D::set_angular_velocity(real_t angular_velocity) {
+void RapierBody2D::set_angular_velocity(real_t p_angular_velocity) {
+	angular_velocity = p_angular_velocity;
 	if (mode == PhysicsServer2D::BODY_MODE_STATIC) {
 		if (angular_velocity != 0.0f) {
-			WARN_PRINT_ONCE("Setting angular velocity on static bodies is not supported. Ensure to apply velocity after add_child.");
+			WARN_PRINT_ONCE("Setting angular velocity on static bodies is not supported.");
 		}
 		return;
 	}
 
 	if (!get_space()) {
-		WARN_PRINT("Setting angular velocity on body not in simulation, ignored.");
 		return;
 	}
 
@@ -970,7 +982,7 @@ void RapierBody2D::set_angular_velocity(real_t angular_velocity) {
 
 real_t RapierBody2D::get_angular_velocity() const {
 	if (!get_space()) {
-		return 0.0f;
+		return angular_velocity;
 	}
 
 	rapier2d::Handle space_handle = get_space()->get_handle();
