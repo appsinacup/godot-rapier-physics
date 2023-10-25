@@ -330,7 +330,12 @@ void collider_set_collision_events_enabled(Handle world_handle, Handle handle, b
 
 void collider_set_contact_force_events_enabled(Handle world_handle, Handle handle, bool enable);
 
-void collider_set_transform(Handle world_handle, Handle handle, const Vector *pos, Real rot);
+void collider_set_transform(Handle world_handle,
+		Handle handle,
+		Handle shape_handle,
+		const Vector *pos,
+		Real rot,
+		const Vector *scale);
 
 Material default_material();
 

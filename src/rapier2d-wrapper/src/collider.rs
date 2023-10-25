@@ -1,3 +1,4 @@
+use rapier2d::na::Vector2;
 use rapier2d::prelude::*;
 use crate::handle::*;
 use crate::user_data::*;
@@ -78,14 +79,79 @@ pub extern "C" fn collider_get_angle(world_handle : Handle, handle : Handle) -> 
     return collider.unwrap().rotation().angle();
 }
 
+fn _scale_shape(shape: &SharedShape, scale: &Vector) -> Option<SharedShape> {
+    let shape_type = shape.shape_type();
+    if shape_type == ShapeType::Ball {
+        let new_shape = shape.as_ball().unwrap().scaled(&Vector2::<Real>::new(scale.x, scale.y), 20).unwrap();
+        if new_shape.is_left() {
+            let shape = new_shape.unwrap_left();
+            return Some(SharedShape::new(shape));
+        } else {
+            let shape = new_shape.unwrap_right();
+            return Some(SharedShape::new(shape));
+        }
+    }
+    else if shape_type == ShapeType::Cuboid {
+        let new_shape = shape.as_cuboid().unwrap().scaled(&Vector2::<Real>::new(scale.x, scale.y));
+        return Some(SharedShape::new(new_shape));
+    }
+    else if shape_type == ShapeType::HalfSpace {
+        let new_shape = shape.as_halfspace().unwrap().scaled(&Vector2::<Real>::new(scale.x, scale.y)).unwrap();
+        return Some(SharedShape::new(new_shape));
+    }
+    else if shape_type == ShapeType::Polyline {
+        let new_shape = shape.as_polyline().unwrap().clone().scaled(&Vector2::<Real>::new(scale.x, scale.y));
+        return Some(SharedShape::new(new_shape));
+    }
+    else if shape_type == ShapeType::ConvexPolygon {
+        let new_shape = shape.as_convex_polygon().unwrap().clone().scaled(&Vector2::<Real>::new(scale.x, scale.y)).unwrap();
+        return Some(SharedShape::new(new_shape));
+    }
+    else if shape_type == ShapeType::Compound {
+        let new_shapes = shape.as_compound().unwrap().shapes();
+        let mut shapes_vec = Vec::<(Isometry<Real>, SharedShape)>::new();
+        for shape in new_shapes {
+            let new_shape = _scale_shape(&shape.1, scale);
+            if let Some(shape_extracted) = new_shape {
+                shapes_vec.push((shape.0, shape_extracted));
+            }
+        }
+        return Some(SharedShape::compound(shapes_vec));
+    }
+    return None;
+}
+
 #[no_mangle]
-pub extern "C" fn collider_set_transform(world_handle : Handle, handle : Handle, pos : &Vector, rot : Real) {
-    let mut physics_engine = SINGLETON.lock().unwrap();
-	let physics_world = physics_engine.get_world(world_handle);
-    let collider_handle = handle_to_collider_handle(handle);
-    let collider = physics_world.collider_set.get_mut(collider_handle);
-    assert!(collider.is_some());
-    collider.unwrap().set_position_wrt_parent(Isometry::new(vector![pos.x, pos.y], rot));
+pub extern "C" fn collider_set_transform(world_handle : Handle, handle : Handle, shape_handle : Handle, pos : &Vector, rot : Real, scale: &Vector) {
+    {
+        let mut physics_engine = SINGLETON.lock().unwrap();
+        let physics_world = physics_engine.get_world(world_handle);
+        let collider_handle = handle_to_collider_handle(handle);
+        let collider = physics_world.collider_set.get_mut(collider_handle);
+        assert!(collider.is_some());
+        let collider = collider.unwrap();
+        collider.set_position_wrt_parent(Isometry::new(vector![pos.x, pos.y], rot));
+    }
+    {
+        let new_shape:SharedShape;
+        {
+            let mut physics_engine = SINGLETON.lock().unwrap();
+            let shape = physics_engine.get_shape(shape_handle);
+            if let Some(extracted_shape) = _scale_shape(shape, scale) {
+                new_shape = extracted_shape;
+            } else {
+                return;
+            }
+        }
+        {
+            let mut physics_engine = SINGLETON.lock().unwrap();
+            let physics_world = physics_engine.get_world(world_handle);
+            let collider_handle = handle_to_collider_handle(handle);
+            let collider = physics_world.collider_set.get_mut(collider_handle);
+            assert!(collider.is_some());
+            collider.unwrap().set_shape(new_shape);
+        }
+    }
 }
 
 #[no_mangle]
