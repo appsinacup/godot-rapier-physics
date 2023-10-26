@@ -44,7 +44,10 @@ runs:
     - name: Print version
       shell: sh
       run:
-        echo ${{ steps.version.outputs.version }} > bin/addons/godot-rapier2d/VERSION.txt
+        echo v${{ steps.version.outputs.version }} > bin/addons/godot-rapier2d/VERSION.txt
+    - name: Update server name
+      shell: sh
+      run: ./scripts/crossplatform-sed.sh "s/Rapier2D/Rapier2D-${{inputs.precision}}-${{inputs.features}}/g" src/register_types.cpp
     - name: Setup python and scons
       uses: ./.github/actions/deps
     - name: Lint
