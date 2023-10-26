@@ -240,7 +240,10 @@ pub extern "C" fn body_add_force_at_point(world_handle : Handle, body_handle : H
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     let body = physics_world.rigid_body_set.get_mut(rigid_body_handle);
     assert!(body.is_some());
-    body.unwrap().add_force_at_point(vector!(force.x, force.y),point![point.x, point.y] , true);
+    let mut local_point = point![point.x, point.y];
+    let body = body.unwrap();
+    local_point += body.center_of_mass().coords;
+    body.add_force_at_point(vector!(force.x, force.y), local_point, true);
 }
 
 #[no_mangle]
@@ -270,7 +273,10 @@ pub extern "C" fn body_apply_impulse_at_point(world_handle : Handle, body_handle
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     let body = physics_world.rigid_body_set.get_mut(rigid_body_handle);
     assert!(body.is_some());
-    body.unwrap().apply_impulse_at_point(vector!(impulse.x, impulse.y),point![point.x, point.y] , true);
+    let mut local_point = point![point.x, point.y];
+    let body = body.unwrap();
+    local_point += body.center_of_mass().coords;
+    body.apply_impulse_at_point(vector!(impulse.x, impulse.y), local_point, true);
 }
 
 #[no_mangle]

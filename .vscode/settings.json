@@ -1,0 +1,11 @@
+{
+    "rust-analyzer.linkedProjects": [
+        "./src/rapier2d-wrapper/Cargo.toml"
+    ],
+    "files.associations": {
+        "__locale": "cpp",
+        "string": "cpp",
+        "string_view": "cpp"
+    },
+    "rust-analyzer.showUnlinkedFileNotification": false
+}

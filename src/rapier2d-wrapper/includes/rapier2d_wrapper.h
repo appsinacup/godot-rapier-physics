@@ -168,6 +168,14 @@ using ContactPointCallback = bool (*)(Handle world_handle,
 		const ContactPointInfo *contact_info,
 		const ContactForceEventInfo *event_info);
 
+struct OneWayDirection {
+	bool body1;
+	bool body2;
+};
+
+using CollisionModifyContactsCallback = OneWayDirection (*)(Handle world_handle,
+		const CollisionFilterInfo *filter_info);
+
 struct SimulationSettings {
 	/// The timestep length (default: `1.0 / 60.0`)
 	Real dt;
@@ -471,6 +479,9 @@ void world_set_contact_force_event_callback(Handle world_handle,
 		ContactForceEventCallback callback);
 
 void world_set_contact_point_callback(Handle world_handle, ContactPointCallback callback);
+
+void world_set_modify_contacts_callback(Handle world_handle,
+		CollisionModifyContactsCallback callback);
 
 void world_set_sensor_collision_filter_callback(Handle world_handle,
 		CollisionFilterCallback callback);

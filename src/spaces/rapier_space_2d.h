@@ -87,6 +87,7 @@ class RapierSpace2D {
 	static bool collision_filter_common_callback(rapier2d::Handle world_handle, const rapier2d::CollisionFilterInfo *filter_info, CollidersInfo &r_colliders_info);
 	static bool collision_filter_body_callback(rapier2d::Handle world_handle, const rapier2d::CollisionFilterInfo *filter_info);
 	static bool collision_filter_sensor_callback(rapier2d::Handle world_handle, const rapier2d::CollisionFilterInfo *filter_info);
+	static rapier2d::OneWayDirection collision_modify_contacts_callback(rapier2d::Handle world_handle, const rapier2d::CollisionFilterInfo *filter_info);
 
 	static void collision_event_callback(rapier2d::Handle world_handle, const rapier2d::CollisionEventInfo *event_info);
 

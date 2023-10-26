@@ -35,6 +35,16 @@ runs:
           ${{ github.workspace }}/.scons-cache/
           ${{ github.workspace }}/godot-cpp/.scons-cache/
         key: ${{ inputs.platform }}_${{ inputs.arch }}_${{ inputs.target }}_cache
+    - uses: paulhatch/semantic-version@v5.3.0
+      id: version
+      with:
+        bump_each_commit: true
+        tag_prefix: "v"
+        debug: true
+    - name: Print version
+      shell: sh
+      run:
+        echo ${{ steps.version.outputs.version }} > bin/addons/godot-rapier2d/VERSION.txt
     - name: Setup python and scons
       uses: ./.github/actions/deps
     - name: Lint

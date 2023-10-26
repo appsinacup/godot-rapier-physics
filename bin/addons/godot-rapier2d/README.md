@@ -3,10 +3,10 @@
 
   <a href="https://github.com/godotengine/godot/releases/tag/4.1-stable"><img src="https://img.shields.io/badge/Godot-v4.1-%23478cbf?logo=godot-engine&logoColor=white"/></a>
   <a href="https://github.com/dimforge/rapier/releases/tag/v0.17.2"><img src="https://img.shields.io/badge/Rapier2D-v0.17.2-%23478cbf?logoColor=white"/></a>
-  <a href="https://github.com/fabriceci/godot-rapier2d/actions/workflows/runner.yml?branch=main">![🔗 Build Status](https://github.com/fabriceci/godot-rapier2d/actions/workflows/runner.yml/badge.svg?branch=main)</a>
+  <a href="https://github.com/appsinacup/godot-rapier2d/actions/workflows/runner.yml?branch=main">![🔗 Build Status](https://github.com/appsinacup/godot-rapier2d/actions/workflows/runner.yml/badge.svg?branch=main)</a>
 </div>
 
-<img src="https://github.com/fabriceci/godot-rapier2d/blob/main/logo.jpg?raw=true"/> 
+<img src="https://github.com/appsinacup/godot-rapier2d/blob/main/logo.jpg?raw=true"/> 
 
 ## Build the Rapier 2D Extension
 
