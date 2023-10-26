@@ -55,11 +55,11 @@ runs:
     - name: Update server name
       shell: sh
       run: |
-      ./scripts/crossplatform-sed.sh "s/Rapier2D/Rapier2D-${{inputs.precision}}-${{inputs.features}}/g" src/register_types.cpp
-      ./scripts/crossplatform-sed.sh "s/create_rapier_2d_callback/create_rapier_2d_callback_${{inputs.precision}}_${{inputs.features}}/g" src/register_types.cpp
-      ./scripts/crossplatform-sed.sh "s/create_rapier_2d_callback/create_rapier_2d_callback_${{inputs.precision}}_${{inputs.features}}/g" src/servers/rapier_physics_server_2d.h
-      ./scripts/crossplatform-sed.sh "s/physics_server_rapier_2d_library_init/physics_server_rapier_2d_library_init_${{inputs.precision}}_${{inputs.features}}/g" bin/addons/godot-rapier2d/godot-rapier2d.gdextension
-      ./scripts/crossplatform-sed.sh "s/physics_server_rapier_2d_library_init/physics_server_rapier_2d_library_init_${{inputs.precision}}_${{inputs.features}}/g" src/register_types.cpp
+        ./scripts/crossplatform-sed.sh "s/Rapier2D/Rapier2D-${{inputs.precision}}-${{inputs.features}}/g" src/register_types.cpp
+        ./scripts/crossplatform-sed.sh "s/create_rapier_2d_callback/create_rapier_2d_callback_${{inputs.precision}}_${{inputs.features}}/g" src/register_types.cpp
+        ./scripts/crossplatform-sed.sh "s/create_rapier_2d_callback/create_rapier_2d_callback_${{inputs.precision}}_${{inputs.features}}/g" src/servers/rapier_physics_server_2d.h
+        ./scripts/crossplatform-sed.sh "s/physics_server_rapier_2d_library_init/physics_server_rapier_2d_library_init_${{inputs.precision}}_${{inputs.features}}/g" bin/addons/godot-rapier2d/godot-rapier2d.gdextension
+        ./scripts/crossplatform-sed.sh "s/physics_server_rapier_2d_library_init/physics_server_rapier_2d_library_init_${{inputs.precision}}_${{inputs.features}}/g" src/register_types.cpp
     - name: Build Godot Cpp
       shell: sh
       env:
