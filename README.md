@@ -66,3 +66,4 @@ A vibrant community for discussion, user support and showcases.
 # License
 
 All code in this repository is provided under the MIT license. See `LICENSE` for more details and `THIRDPARTY.txt` for third-party licenses.
+This repo is a continuation of https://github.com/fabriceci/godot-rapier2d .
