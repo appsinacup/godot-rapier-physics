@@ -23,7 +23,7 @@ inputs:
     description: single or double
   features:
     required: true
-    description: simd,determinism
+    description: simd-nightly,simd-stable,parallel,enhanced-determinism
 
 runs:
   using: composite

@@ -16,7 +16,7 @@ jobs:
         target: [template_debug, template_release]
         arch: [x86_64] # Rust doesn't have built in config for 32 bit windows build.
         precision: [single, double]
-        features: [simd, determinism]
+        features: [simd-stable, enhanced-determinism]
 
     steps:
       - uses: actions/checkout@v3
