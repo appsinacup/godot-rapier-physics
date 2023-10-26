@@ -5,6 +5,48 @@ use crate::user_data::*;
 use crate::vector::Vector;
 use crate::physics_world::*;
 
+pub fn scale_shape(shape: &SharedShape, scale: &Vector) -> Option<SharedShape> {
+    let shape_type = shape.shape_type();
+    if shape_type == ShapeType::Ball {
+        let new_shape = shape.as_ball().unwrap().scaled(&Vector2::<Real>::new(scale.x, scale.y), 20).unwrap();
+        if new_shape.is_left() {
+            let shape = new_shape.unwrap_left();
+            return Some(SharedShape::new(shape));
+        } else {
+            let shape = new_shape.unwrap_right();
+            return Some(SharedShape::new(shape));
+        }
+    }
+    else if shape_type == ShapeType::Cuboid {
+        let new_shape = shape.as_cuboid().unwrap().scaled(&Vector2::<Real>::new(scale.x, scale.y));
+        return Some(SharedShape::new(new_shape));
+    }
+    else if shape_type == ShapeType::HalfSpace {
+        let new_shape = shape.as_halfspace().unwrap().scaled(&Vector2::<Real>::new(scale.x, scale.y)).unwrap();
+        return Some(SharedShape::new(new_shape));
+    }
+    else if shape_type == ShapeType::Polyline {
+        let new_shape = shape.as_polyline().unwrap().clone().scaled(&Vector2::<Real>::new(scale.x, scale.y));
+        return Some(SharedShape::new(new_shape));
+    }
+    else if shape_type == ShapeType::ConvexPolygon {
+        let new_shape = shape.as_convex_polygon().unwrap().clone().scaled(&Vector2::<Real>::new(scale.x, scale.y)).unwrap();
+        return Some(SharedShape::new(new_shape));
+    }
+    else if shape_type == ShapeType::Compound {
+        let new_shapes = shape.as_compound().unwrap().shapes();
+        let mut shapes_vec = Vec::<(Isometry<Real>, SharedShape)>::new();
+        for shape in new_shapes {
+            let new_shape = scale_shape(&shape.1, scale);
+            if let Some(shape_extracted) = new_shape {
+                shapes_vec.push((shape.0, shape_extracted));
+            }
+        }
+        return Some(SharedShape::compound(shapes_vec));
+    }
+    return None;
+}
+
 #[repr(C)]
 pub struct Material {
     pub friction : Real,
@@ -79,48 +121,6 @@ pub extern "C" fn collider_get_angle(world_handle : Handle, handle : Handle) -> 
     return collider.unwrap().rotation().angle();
 }
 
-fn _scale_shape(shape: &SharedShape, scale: &Vector) -> Option<SharedShape> {
-    let shape_type = shape.shape_type();
-    if shape_type == ShapeType::Ball {
-        let new_shape = shape.as_ball().unwrap().scaled(&Vector2::<Real>::new(scale.x, scale.y), 20).unwrap();
-        if new_shape.is_left() {
-            let shape = new_shape.unwrap_left();
-            return Some(SharedShape::new(shape));
-        } else {
-            let shape = new_shape.unwrap_right();
-            return Some(SharedShape::new(shape));
-        }
-    }
-    else if shape_type == ShapeType::Cuboid {
-        let new_shape = shape.as_cuboid().unwrap().scaled(&Vector2::<Real>::new(scale.x, scale.y));
-        return Some(SharedShape::new(new_shape));
-    }
-    else if shape_type == ShapeType::HalfSpace {
-        let new_shape = shape.as_halfspace().unwrap().scaled(&Vector2::<Real>::new(scale.x, scale.y)).unwrap();
-        return Some(SharedShape::new(new_shape));
-    }
-    else if shape_type == ShapeType::Polyline {
-        let new_shape = shape.as_polyline().unwrap().clone().scaled(&Vector2::<Real>::new(scale.x, scale.y));
-        return Some(SharedShape::new(new_shape));
-    }
-    else if shape_type == ShapeType::ConvexPolygon {
-        let new_shape = shape.as_convex_polygon().unwrap().clone().scaled(&Vector2::<Real>::new(scale.x, scale.y)).unwrap();
-        return Some(SharedShape::new(new_shape));
-    }
-    else if shape_type == ShapeType::Compound {
-        let new_shapes = shape.as_compound().unwrap().shapes();
-        let mut shapes_vec = Vec::<(Isometry<Real>, SharedShape)>::new();
-        for shape in new_shapes {
-            let new_shape = _scale_shape(&shape.1, scale);
-            if let Some(shape_extracted) = new_shape {
-                shapes_vec.push((shape.0, shape_extracted));
-            }
-        }
-        return Some(SharedShape::compound(shapes_vec));
-    }
-    return None;
-}
-
 #[no_mangle]
 pub extern "C" fn collider_set_transform(world_handle : Handle, handle : Handle, shape_handle : Handle, pos : &Vector, rot : Real, scale: &Vector) {
     {
@@ -137,7 +137,7 @@ pub extern "C" fn collider_set_transform(world_handle : Handle, handle : Handle,
         {
             let mut physics_engine = SINGLETON.lock().unwrap();
             let shape = physics_engine.get_shape(shape_handle);
-            if let Some(extracted_shape) = _scale_shape(shape, scale) {
+            if let Some(extracted_shape) = scale_shape(shape, scale) {
                 new_shape = extracted_shape;
             } else {
                 return;
