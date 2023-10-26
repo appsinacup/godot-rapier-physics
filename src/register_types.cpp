@@ -30,8 +30,8 @@ static RapierPhysicsServer2DFactory *rapier_2d_factory = nullptr;
 void initialize_rapier_2d_module(ModuleInitializationLevel p_level) {
 	switch (p_level) {
 		case MODULE_INITIALIZATION_LEVEL_SERVERS: {
-			ClassDB::register_class<RapierDirectBodyState2D>();
-			ClassDB::register_class<RapierDirectSpaceState2D>();
+			ClassDB::register_class<RapierDirectBodyState2D>(true);
+			ClassDB::register_class<RapierDirectSpaceState2D>(true);
 			ClassDB::register_class<RapierPhysicsServer2D>();
 			ClassDB::register_class<RapierPhysicsServer2DFactory>();
 
