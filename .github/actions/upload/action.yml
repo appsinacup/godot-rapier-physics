@@ -22,10 +22,3 @@ runs:
         path: |
           ${{ github.workspace }}/bin/**
         retention-days: 14
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: Godot Rapier 2D
-        path: |
-          ${{ github.workspace }}/bin/**
-        retention-days: 14

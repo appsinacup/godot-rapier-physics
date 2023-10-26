@@ -459,9 +459,11 @@ ContactResult shapes_contact(Handle world_handle,
 		Handle shape_handle1,
 		const Vector *position1,
 		Real rotation1,
+		Vector scale1,
 		Handle shape_handle2,
 		const Vector *position2,
 		Real rotation2,
+		Vector scale2,
 		Real margin);
 
 Handle world_create(const WorldSettings *settings);
