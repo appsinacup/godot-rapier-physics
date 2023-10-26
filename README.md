@@ -3,23 +3,23 @@
 </div>
 
 <p align="center">
-	<a href="https://github.com/fabriceci/godot-rapier2d/actions/workflows/runner.yml">
-        <img src="https://github.com/fabriceci/godot-rapier2d/actions/workflows/runner.yml/badge.svg?branch=main"
+	<a href="https://github.com/appsinacup/godot-rapier2d/actions/workflows/runner.yml">
+        <img src="https://github.com/appsinacup/godot-rapier2d/actions/workflows/runner.yml/badge.svg?branch=main"
             alt="Godot Rapier2D Build"></a>
     <a href="https://github.com/dimforge/rapier/releases/tag/v0.17.2" alt="Rapier2D Version">
         <img src="https://img.shields.io/badge/Rapier2D-v0.17.2-%23478cbf?logoColor=white" /></a>
     <a href="https://github.com/godotengine/godot-cpp" alt="Godot Version">
         <img src="https://img.shields.io/badge/Godot-v4.1-%23478cbf?logo=godot-engine&logoColor=white" /></a>
-    <a href="https://github.com/fabriceci/godot-rapier2d/graphs/contributors" alt="Contributors">
-        <img src="https://img.shields.io/github/contributors/fabriceci/godot-rapier2d" /></a>
-    <a href="https://github.com/fabriceci/godot-rapier2d/pulse" alt="Activity">
-        <img src="https://img.shields.io/github/commit-activity/m/fabriceci/godot-rapier2d" /></a>
+    <a href="https://github.com/appsinacup/godot-rapier2d/graphs/contributors" alt="Contributors">
+        <img src="https://img.shields.io/github/contributors/appsinacup/godot-rapier2d" /></a>
+    <a href="https://github.com/appsinacup/godot-rapier2d/pulse" alt="Activity">
+        <img src="https://img.shields.io/github/commit-activity/m/appsinacup/godot-rapier2d" /></a>
     <a href="https://discord.gg/56dMud8HYn">
         <img src="https://img.shields.io/discord/1138836561102897172?logo=discord"
             alt="Chat on Discord"></a>
 </p>
 
-<img src="https://github.com/fabriceci/godot-rapier2d/blob/main/logo.jpg?raw=true"/> 
+<img src="https://github.com/appsinacup/godot-rapier2d/blob/main/logo.jpg?raw=true"/> 
 
 A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engine](https://github.com/godotengine/godot), implemented as a GDExtension.
 
