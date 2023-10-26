@@ -44,7 +44,6 @@ runs:
     - name: Print version
       shell: sh
       run:
-        echo ${{ steps.version.outputs.version }}
         echo ${{ steps.version.outputs.version }} > bin/addons/godot-rapier2d/VERSION.txt
     - name: Setup python and scons
       uses: ./.github/actions/deps
