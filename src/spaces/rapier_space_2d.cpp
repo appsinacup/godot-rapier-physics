@@ -123,8 +123,8 @@ rapier2d::OneWayDirection RapierSpace2D::collision_modify_contacts_callback(rapi
 	RapierSpace2D *space = RapierPhysicsServer2D::singleton->get_active_space(world_handle);
 	ERR_FAIL_COND_V(!space, result);
 
-	RapierCollisionObject2D* body1;
-	RapierCollisionObject2D* body2;
+	RapierCollisionObject2D *body1;
+	RapierCollisionObject2D *body2;
 	uint32_t shape1;
 	uint32_t shape2;
 	if (rapier2d::is_user_data_valid(filter_info->user_data1)) {
