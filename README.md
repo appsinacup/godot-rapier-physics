@@ -25,11 +25,10 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 
 # Limitations
 
-- One way direction missing(WIP)
+- One way direction missing for CharacterBody2D (WIP)
+- Static Body Constant Speed or Conveyer Belt missing for CharacterBody2D vs StaticBody2D (WIP)
 - Spring Joint missing(WIP)
-- Static Body Constant Speed or Conveyer Belt missing (WIP)
-- Shape scaling doesn't work (WIP)
-- Changing properties before they are added in world doesn't work (WIP)
+- Shape skewing doesn't work (WIP)
 
 # Build Features
 
@@ -56,7 +55,6 @@ After installing, go to `Advanced Settings` -> `Physics` -> `2D`. Change `Physic
 
 # Roadmap
 
-- Cross Platform Determinism
 - Fix all other issues from Limitations.
 
 # [Discord](https://discord.gg/56dMud8HYn)
