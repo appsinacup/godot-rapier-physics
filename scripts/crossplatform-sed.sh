@@ -15,5 +15,3 @@ if [[ "$PLATFORM" == "OSX" || "$PLATFORM" == "BSD" ]]; then
 elif [ "$PLATFORM" == "LINUX" ]; then
     sed -i "$1" "$2"
 fi
-
-echo "Done"
