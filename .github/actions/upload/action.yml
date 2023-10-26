@@ -13,6 +13,7 @@ runs:
   using: composite
   steps:
     - name: Move to correct folder
+      shell: sh
       run: mv bin/addons/godot-rapier2d bin/addons/godot-rapier2d-${{ inputs.precision }}-${{ inputs.features }}
     - name: Upload Artifact
       uses: actions/upload-artifact@v3
