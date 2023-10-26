@@ -22,6 +22,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
+          fetch-depth: 0
 
       - name: Build ${{ matrix.target }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/build
