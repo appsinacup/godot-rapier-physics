@@ -4,6 +4,7 @@ use crate::handle::*;
 use crate::user_data::*;
 use crate::physics_world::*;
 use crate::vector::Vector;
+use crate::collider::*;
 
 #[repr(C)]
 pub struct RayHitInfo {
@@ -355,16 +356,24 @@ pub extern "C" fn intersect_aabb(world_handle : Handle, aabb_min : &Vector, aabb
 }
 
 #[no_mangle]
-pub extern "C" fn shapes_contact(world_handle : Handle, shape_handle1 : Handle, position1: &Vector, rotation1: Real, shape_handle2 : Handle, position2: &Vector, rotation2: Real, margin: Real) -> ContactResult {
+pub extern "C" fn shapes_contact(world_handle : Handle, shape_handle1 : Handle, position1: &Vector, rotation1: Real, scale1: Vector, shape_handle2 : Handle, position2: &Vector, rotation2: Real, scale2: Vector, margin: Real) -> ContactResult {
     let mut physics_engine = SINGLETON.lock().unwrap();
     
     let physics_world = physics_engine.get_world(world_handle);
 
     let prediction = Real::max(physics_world.solver_prediction_distance, margin);
 
-    let shared_shape1 = physics_engine.get_shape(shape_handle1).clone();
-    let shared_shape2 = physics_engine.get_shape(shape_handle2).clone();
-
+    let mut shared_shape1 = physics_engine.get_shape(shape_handle1).clone();
+    let shared_shape1_scaled = scale_shape(&shared_shape1, &scale1);
+    if shared_shape1_scaled.is_some() {
+        shared_shape1 = shared_shape1_scaled.unwrap();
+    }
+    let mut shared_shape2 = physics_engine.get_shape(shape_handle2).clone();
+    let shared_shape2_scaled = scale_shape(&shared_shape2, &scale2);
+    if shared_shape2_scaled.is_some() {
+        shared_shape2 = shared_shape2_scaled.unwrap();
+    }
+    
     let shape_transform1 = Isometry::new(vector![position1.x, position1.y], rotation1);
     let shape_transform2 = Isometry::new(vector![position2.x, position2.y], rotation2);
     
