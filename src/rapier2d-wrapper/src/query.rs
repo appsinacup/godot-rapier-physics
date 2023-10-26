@@ -5,6 +5,7 @@ use crate::user_data::*;
 use crate::physics_world::*;
 use crate::vector::Vector;
 use crate::collider::*;
+use crate::shape::*;
 
 #[repr(C)]
 pub struct RayHitInfo {
@@ -197,15 +198,18 @@ pub extern "C" fn intersect_point(world_handle : Handle, position : &Vector,  co
 }
 
 #[no_mangle]
-pub extern "C" fn shape_casting(world_handle : Handle, motion : &Vector, position: &Vector, rotation: Real, shape_handle : Handle, collide_with_body: bool, collide_with_area: bool, handle_excluded_callback: QueryHandleExcludedCallback, handle_excluded_info: &QueryExcludedInfo) -> ShapeCastResult {
+pub extern "C" fn shape_casting(world_handle : Handle, motion : &Vector, shape_info: ShapeInfo, collide_with_body: bool, collide_with_area: bool, handle_excluded_callback: QueryHandleExcludedCallback, handle_excluded_info: &QueryExcludedInfo) -> ShapeCastResult {
     let mut physics_engine = SINGLETON.lock().unwrap();
 
-    let shared_shape = physics_engine.get_shape(shape_handle).clone();
+    let mut shared_shape = physics_engine.get_shape(shape_info.handle).clone();
+    if let Some(new_shape) = scale_shape(&shared_shape, &shape_info.scale) {
+        shared_shape = new_shape;
+    }
 
 	let physics_world = physics_engine.get_world(world_handle);
     
     let shape_vel = vector![motion.x, motion.y];
-    let shape_transform = Isometry::new(vector![position.x, position.y], rotation);
+    let shape_transform = Isometry::new(vector![shape_info.position.x, shape_info.position.y], shape_info.rotation);
     
     let mut filter = QueryFilter::new();
 
@@ -244,14 +248,17 @@ pub extern "C" fn shape_casting(world_handle : Handle, motion : &Vector, positio
 }
 
 #[no_mangle]
-pub extern "C" fn intersect_shape(world_handle : Handle, position: &Vector, rotation: Real, shape_handle : Handle, collide_with_body: bool, collide_with_area: bool, hit_info_array : *mut PointHitInfo, hit_info_length : usize, handle_excluded_callback: QueryHandleExcludedCallback, handle_excluded_info: &QueryExcludedInfo) -> usize {
+pub extern "C" fn intersect_shape(world_handle : Handle, shape_info: ShapeInfo, collide_with_body: bool, collide_with_area: bool, hit_info_array : *mut PointHitInfo, hit_info_length : usize, handle_excluded_callback: QueryHandleExcludedCallback, handle_excluded_info: &QueryExcludedInfo) -> usize {
     let mut physics_engine = SINGLETON.lock().unwrap();
 
-    let shared_shape = physics_engine.get_shape(shape_handle).clone();
+    let mut shared_shape = physics_engine.get_shape(shape_info.handle).clone();
+    if let Some(new_shape) = scale_shape(&shared_shape, &shape_info.scale) {
+        shared_shape = new_shape;
+    }
 
 	let physics_world = physics_engine.get_world(world_handle);
     
-    let shape_transform = Isometry::new(vector![position.x, position.y], rotation);
+    let shape_transform = Isometry::new(vector![shape_info.position.x, shape_info.position.y], shape_info.rotation);
     
     let mut filter = QueryFilter::new();
 
@@ -356,26 +363,24 @@ pub extern "C" fn intersect_aabb(world_handle : Handle, aabb_min : &Vector, aabb
 }
 
 #[no_mangle]
-pub extern "C" fn shapes_contact(world_handle : Handle, shape_handle1 : Handle, position1: &Vector, rotation1: Real, scale1: Vector, shape_handle2 : Handle, position2: &Vector, rotation2: Real, scale2: Vector, margin: Real) -> ContactResult {
+pub extern "C" fn shapes_contact(world_handle : Handle, shape_info1 : ShapeInfo, shape_info2 : ShapeInfo, margin: Real) -> ContactResult {
     let mut physics_engine = SINGLETON.lock().unwrap();
     
     let physics_world = physics_engine.get_world(world_handle);
 
     let prediction = Real::max(physics_world.solver_prediction_distance, margin);
 
-    let mut shared_shape1 = physics_engine.get_shape(shape_handle1).clone();
-    let shared_shape1_scaled = scale_shape(&shared_shape1, &scale1);
-    if shared_shape1_scaled.is_some() {
-        shared_shape1 = shared_shape1_scaled.unwrap();
+    let mut shared_shape1 = physics_engine.get_shape(shape_info1.handle).clone();
+    if let Some(new_shape) = scale_shape(&shared_shape1, &shape_info1.scale) {
+        shared_shape1 = new_shape;
     }
-    let mut shared_shape2 = physics_engine.get_shape(shape_handle2).clone();
-    let shared_shape2_scaled = scale_shape(&shared_shape2, &scale2);
-    if shared_shape2_scaled.is_some() {
-        shared_shape2 = shared_shape2_scaled.unwrap();
+    let mut shared_shape2 = physics_engine.get_shape(shape_info2.handle).clone();
+    if let Some(new_shape) = scale_shape(&shared_shape2, &shape_info2.scale) {
+        shared_shape2 = new_shape;
     }
     
-    let shape_transform1 = Isometry::new(vector![position1.x, position1.y], rotation1);
-    let shape_transform2 = Isometry::new(vector![position2.x, position2.y], rotation2);
+    let shape_transform1 = Isometry::new(vector![shape_info1.position.x, shape_info1.position.y], shape_info1.rotation);
+    let shape_transform2 = Isometry::new(vector![shape_info2.position.x, shape_info2.position.y], shape_info2.rotation);
     
     let mut result = ContactResult::new();
     if let Ok(Some(contact)) = parry::query::contact(

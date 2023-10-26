@@ -16,10 +16,12 @@ pub fn point_array_to_vec(data : &Vector, data_count : usize) -> Vec::<Point::<R
 
 #[repr(C)]
 pub struct ShapeInfo {
-    handle: Handle,
-    position : Vector,
-    rotation : Real,
+    pub handle: Handle,
+    pub position : Vector,
+    pub rotation : Real,
+    pub scale: Vector,
 }
+
 #[no_mangle]
 pub extern "C" fn shape_create_box(size : &Vector) -> Handle {
 	let shape = SharedShape::cuboid(0.5 * size.x, 0.5 * size.y);

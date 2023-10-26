@@ -5,3 +5,4 @@ pub struct Vector {
     pub x : Real,
     pub y : Real,
 }
+
