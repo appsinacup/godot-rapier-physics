@@ -2,7 +2,14 @@ use rapier2d::prelude::*;
 use crate::handle::*;
 use crate::user_data::*;
 
+#[repr(C)]
+pub struct OneWayDirection {
+    pub body1 : bool,
+    pub body2 : bool,
+}
+
 pub type CollisionFilterCallback = Option<extern "C" fn(world_handle : Handle, filter_info : &CollisionFilterInfo) -> bool>;
+pub type CollisionModifyContactsCallback = Option<extern "C" fn(world_handle : Handle, filter_info : &CollisionFilterInfo) -> OneWayDirection>;
 
 #[repr(C)]
 pub struct CollisionFilterInfo {
@@ -23,6 +30,7 @@ pub struct PhysicsHooksCollisionFilter<'a> {
 	pub world_handle : Handle,
 	pub collision_filter_body_callback : &'a CollisionFilterCallback,
 	pub collision_filter_sensor_callback : &'a CollisionFilterCallback,
+	pub collision_modify_contacts_callback : &'a CollisionModifyContactsCallback,
 }
 
 impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
@@ -64,30 +72,30 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
 		return true;
     }
 
-    fn modify_solver_contacts(&self, _context: &mut ContactModificationContext) {
-        // TODO implement conveyer belt
-        // for this we need to store the static object constant speed somewhere
-        /*
-        if context.rigid_body1.is_none() || context.rigid_body2.is_none() {
-            return;
-        }
-		let rigid_body1 = context.bodies.get(context.rigid_body1.unwrap());
-		let rigid_body2 = context.bodies.get(context.rigid_body1.unwrap());
-        if rigid_body1.is_none() || rigid_body2.is_none() {
-            return;
-        }
-        let mut rigid_body1 = rigid_body1.unwrap();
-        let mut rigid_body2 = rigid_body2.unwrap();
+    fn modify_solver_contacts(&self, context: &mut ContactModificationContext) {
+        if self.collision_modify_contacts_callback.is_some() {
+			let callback = self.collision_modify_contacts_callback.unwrap();
 
-        if rigid_body2.is_fixed() && !rigid_body1.is_fixed() {
-            (rigid_body2, rigid_body1) = (rigid_body1, rigid_body2);
+            let collider_1 = &context.colliders[context.collider1];
+            let collider_2 = &context.colliders[context.collider2];
+            let body1 = &context.bodies[context.rigid_body1.unwrap()];
+            let body2 = &context.bodies[context.rigid_body2.unwrap()];
+
+			let mut filter_info = CollisionFilterInfo::new();
+			filter_info.user_data1 = UserData::new(collider_1.user_data);
+			filter_info.user_data2 = UserData::new(collider_2.user_data);
+            let allowed_local_n1 = collider_1.position().rotation * Vector::y();
+            let allowed_local_n2 = collider_2.position().rotation * Vector::y();
+			let one_way_direction = callback(self.world_handle, &filter_info);
+            let mut contact_is_pass_through = false;
+            if one_way_direction.body1 {
+                contact_is_pass_through = body2.linvel().normalize().dot(&allowed_local_n1) <= -DEFAULT_EPSILON * 10.0;
+            } else if one_way_direction.body2 {
+                contact_is_pass_through = body1.linvel().normalize().dot(&allowed_local_n2) <= -DEFAULT_EPSILON * 10.0;
+            }
+            if contact_is_pass_through {
+                context.solver_contacts.clear();
+            }
         }
-        */
-        // static and non static
-        //if rigid_body1.is_fixed() && !rigid_body2.is_fixed() {
-            //for solver_contact in &mut *context.solver_contacts {
-                //solver_contact.tangent_velocity.x = 100.0;
-            //}
-        //}
     }
 }

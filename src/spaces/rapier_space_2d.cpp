@@ -115,6 +115,35 @@ bool RapierSpace2D::collision_filter_sensor_callback(rapier2d::Handle world_hand
 	return collision_filter_common_callback(world_handle, filter_info, colliders_info);
 }
 
+rapier2d::OneWayDirection RapierSpace2D::collision_modify_contacts_callback(rapier2d::Handle world_handle, const rapier2d::CollisionFilterInfo *filter_info) {
+	rapier2d::OneWayDirection result;
+	result.body1 = false;
+	result.body2 = false;
+
+	RapierSpace2D *space = RapierPhysicsServer2D::singleton->get_active_space(world_handle);
+	ERR_FAIL_COND_V(!space, result);
+
+	RapierCollisionObject2D* body1;
+	RapierCollisionObject2D* body2;
+	uint32_t shape1;
+	uint32_t shape2;
+	if (rapier2d::is_user_data_valid(filter_info->user_data1)) {
+		body1 = RapierCollisionObject2D::get_collider_user_data(filter_info->user_data1, shape1);
+	}
+
+	if (rapier2d::is_user_data_valid(filter_info->user_data2)) {
+		body2 = RapierCollisionObject2D::get_collider_user_data(filter_info->user_data2, shape2);
+	}
+	ERR_FAIL_COND_V(!body1, result);
+	ERR_FAIL_COND_V(!body2, result);
+	if (body1->interacts_with(body2)) {
+		result.body1 = body1->is_shape_set_as_one_way_collision(shape1);
+		result.body2 = body2->is_shape_set_as_one_way_collision(shape2);
+	}
+
+	return result;
+}
+
 void RapierSpace2D::collision_event_callback(rapier2d::Handle world_handle, const rapier2d::CollisionEventInfo *event_info) {
 	RapierSpace2D *space = RapierPhysicsServer2D::singleton->get_active_space(world_handle);
 	ERR_FAIL_COND(!space);
@@ -606,6 +635,7 @@ RapierSpace2D::RapierSpace2D() {
 	rapier2d::world_set_active_body_callback(handle, active_body_callback);
 	rapier2d::world_set_body_collision_filter_callback(handle, collision_filter_body_callback);
 	rapier2d::world_set_sensor_collision_filter_callback(handle, collision_filter_sensor_callback);
+	rapier2d::world_set_modify_contacts_callback(handle, collision_modify_contacts_callback);
 	rapier2d::world_set_collision_event_callback(handle, collision_event_callback);
 	rapier2d::world_set_contact_force_event_callback(handle, contact_force_event_callback);
 	rapier2d::world_set_contact_point_callback(handle, contact_point_callback);

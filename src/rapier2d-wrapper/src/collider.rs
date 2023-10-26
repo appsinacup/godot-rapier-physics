@@ -30,7 +30,7 @@ pub extern "C" fn collider_create_solid(world_handle : Handle, shape_handle : Ha
     collider.set_restitution_combine_rule(CoefficientCombineRule::Max);
     collider.set_density(0.0);
 	collider.user_data = user_data.get_data();
-	collider.set_active_hooks(ActiveHooks::FILTER_CONTACT_PAIRS | ActiveHooks::FILTER_INTERSECTION_PAIR | ActiveHooks::MODIFY_SOLVER_CONTACTS);
+	collider.set_active_hooks(ActiveHooks::FILTER_CONTACT_PAIRS | ActiveHooks::MODIFY_SOLVER_CONTACTS);
 	let physics_world = physics_engine.get_world(world_handle);
     return physics_world.insert_collider(collider, body_handle);
 }

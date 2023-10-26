@@ -121,6 +121,7 @@ pub struct PhysicsWorld {
 	pub active_body_callback : ActiveBodyCallback,
 	pub collision_filter_body_callback : CollisionFilterCallback,
 	pub collision_filter_sensor_callback : CollisionFilterCallback,
+	pub collision_modify_contacts_callback : CollisionModifyContactsCallback,
 
 	pub collision_event_callback : CollisionEventCallback,
 	pub contact_force_event_callback : ContactForceEventCallback,
@@ -153,6 +154,7 @@ impl PhysicsWorld {
 			active_body_callback : None,
 			collision_filter_body_callback : None,
 			collision_filter_sensor_callback : None,
+			collision_modify_contacts_callback: None,
 
 			collision_event_callback : None,
 			contact_force_event_callback : None,
@@ -191,6 +193,7 @@ impl PhysicsWorld {
 			world_handle : self.handle,
 			collision_filter_body_callback : &self.collision_filter_body_callback,
 			collision_filter_sensor_callback : &self.collision_filter_sensor_callback,
+			collision_modify_contacts_callback: &self.collision_modify_contacts_callback,
 		};
 
         // Initialize the event collector.
@@ -499,6 +502,13 @@ pub extern "C" fn world_set_sensor_collision_filter_callback(world_handle : Hand
 	let mut physics_engine = SINGLETON.lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
 	physics_world.collision_filter_sensor_callback = callback;
+}
+
+#[no_mangle]
+pub extern "C" fn world_set_modify_contacts_callback(world_handle : Handle, callback : CollisionModifyContactsCallback) {
+	let mut physics_engine = SINGLETON.lock().unwrap();
+	let physics_world = physics_engine.get_world(world_handle);
+	physics_world.collision_modify_contacts_callback = callback;
 }
 
 #[no_mangle]
