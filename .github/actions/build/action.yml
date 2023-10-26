@@ -23,7 +23,7 @@ inputs:
     description: single or double
   features:
     required: true
-    description: simd-nightly,simd-stable,parallel,enhanced-determinism
+    description: simd,determinism
 
 runs:
   using: composite
@@ -54,7 +54,7 @@ runs:
         ./scripts/clang-tidy.sh
     - name: Update server name
       shell: sh
-      run:
+      run: |
       ./scripts/crossplatform-sed.sh "s/Rapier2D/Rapier2D-${{inputs.precision}}-${{inputs.features}}/g" src/register_types.cpp
       ./scripts/crossplatform-sed.sh "s/create_rapier_2d_callback/create_rapier_2d_callback_${{inputs.precision}}_${{inputs.features}}/g" src/register_types.cpp
       ./scripts/crossplatform-sed.sh "s/create_rapier_2d_callback/create_rapier_2d_callback_${{inputs.precision}}_${{inputs.features}}/g" src/servers/rapier_physics_server_2d.h

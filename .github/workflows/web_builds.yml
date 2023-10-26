@@ -18,7 +18,7 @@ jobs:
         target: [template_debug, template_release]
         arch: [wasm32]
         precision: [single, double]
-        features: [simd-stable, enhanced-determinism]
+        features: [simd, determinism]
 
     steps:
       - uses: actions/checkout@v3
