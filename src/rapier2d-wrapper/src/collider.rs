@@ -1,6 +1,7 @@
 use rapier2d::na::Vector2;
 use rapier2d::prelude::*;
 use crate::handle::*;
+use crate::shape::ShapeInfo;
 use crate::user_data::*;
 use crate::vector::Vector;
 use crate::physics_world::*;
@@ -122,7 +123,7 @@ pub extern "C" fn collider_get_angle(world_handle : Handle, handle : Handle) -> 
 }
 
 #[no_mangle]
-pub extern "C" fn collider_set_transform(world_handle : Handle, handle : Handle, shape_handle : Handle, pos : &Vector, rot : Real, scale: &Vector) {
+pub extern "C" fn collider_set_transform(world_handle : Handle, handle : Handle, shape_info: ShapeInfo) {
     {
         let mut physics_engine = SINGLETON.lock().unwrap();
         let physics_world = physics_engine.get_world(world_handle);
@@ -130,16 +131,17 @@ pub extern "C" fn collider_set_transform(world_handle : Handle, handle : Handle,
         let collider = physics_world.collider_set.get_mut(collider_handle);
         assert!(collider.is_some());
         let collider = collider.unwrap();
-        collider.set_position_wrt_parent(Isometry::new(vector![pos.x, pos.y], rot));
+        collider.set_position_wrt_parent(Isometry::new(vector![shape_info.position.x, shape_info.position.y], shape_info.rotation));
     }
     {
         let new_shape:SharedShape;
         {
             let mut physics_engine = SINGLETON.lock().unwrap();
-            let shape = physics_engine.get_shape(shape_handle);
-            if let Some(extracted_shape) = scale_shape(shape, scale) {
+            let shape = physics_engine.get_shape(shape_info.handle);
+            if let Some(extracted_shape) = scale_shape(shape, &shape_info.scale) {
                 new_shape = extracted_shape;
             } else {
+                // investigate why it failed
                 return;
             }
         }

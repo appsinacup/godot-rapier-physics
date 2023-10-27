@@ -123,22 +123,36 @@ rapier2d::OneWayDirection RapierSpace2D::collision_modify_contacts_callback(rapi
 	RapierSpace2D *space = RapierPhysicsServer2D::singleton->get_active_space(world_handle);
 	ERR_FAIL_COND_V(!space, result);
 
-	RapierCollisionObject2D *body1;
-	RapierCollisionObject2D *body2;
+	RapierCollisionObject2D *collision_object_1;
+	RapierCollisionObject2D *collision_object_2;
 	uint32_t shape1;
 	uint32_t shape2;
 	if (rapier2d::is_user_data_valid(filter_info->user_data1)) {
-		body1 = RapierCollisionObject2D::get_collider_user_data(filter_info->user_data1, shape1);
+		collision_object_1 = RapierCollisionObject2D::get_collider_user_data(filter_info->user_data1, shape1);
 	}
 
 	if (rapier2d::is_user_data_valid(filter_info->user_data2)) {
-		body2 = RapierCollisionObject2D::get_collider_user_data(filter_info->user_data2, shape2);
+		collision_object_2 = RapierCollisionObject2D::get_collider_user_data(filter_info->user_data2, shape2);
 	}
-	ERR_FAIL_COND_V(!body1, result);
-	ERR_FAIL_COND_V(!body2, result);
-	if (body1->interacts_with(body2)) {
-		result.body1 = body1->is_shape_set_as_one_way_collision(shape1);
-		result.body2 = body2->is_shape_set_as_one_way_collision(shape2);
+	ERR_FAIL_COND_V(!collision_object_1, result);
+	ERR_FAIL_COND_V(!collision_object_2, result);
+	if (collision_object_1->interacts_with(collision_object_2)) {
+		result.body1 = collision_object_1->is_shape_set_as_one_way_collision(shape1);
+		result.body2 = collision_object_2->is_shape_set_as_one_way_collision(shape2);
+		if (collision_object_1->get_type() == RapierCollisionObject2D::TYPE_BODY && collision_object_2->get_type() == RapierCollisionObject2D::TYPE_BODY) {
+			RapierBody2D *body1 = static_cast<RapierBody2D *>(collision_object_1);
+			RapierBody2D *body2 = static_cast<RapierBody2D *>(collision_object_2);
+			if (body1->is_static()) {
+				// TODO figure out when to set this.
+				//body2->set_linear_velocity(body2->get_linear_velocity() + body1->get_static_linear_velocity());
+				//body2->set_angular_velocity(body2->get_angular_velocity() + body1->get_static_angular_velocity());
+			}
+			if (body2->is_static()) {
+				// TODO figure out when to set this.
+				//body1->set_linear_velocity(body1->get_linear_velocity() + body2->get_static_linear_velocity());
+				//body1->set_angular_velocity(body1->get_angular_velocity() + body2->get_static_angular_velocity());
+			}
+		}
 	}
 
 	return result;
@@ -704,8 +718,7 @@ bool RapierSpace2D::rapier_shape_cast(rapier2d::Handle p_shape_handle, const Tra
 	ERR_FAIL_COND_V(!rapier2d::is_handle_valid(p_shape_handle), false);
 
 	rapier2d::Vector rapier_motion{ p_motion.x, p_motion.y };
-	rapier2d::Vector rapier_pos{ p_transform.get_origin().x, p_transform.get_origin().y };
-	real_t rotation = p_transform.get_rotation();
+	rapier2d::ShapeInfo shape_info = rapier2d::shape_info_from_body_shape(p_shape_handle, p_transform);
 
 	rapier2d::QueryExcludedInfo handle_excluded_info = rapier2d::default_query_excluded_info();
 	handle_excluded_info.query_exclude = (rapier2d::Handle *)alloca((p_max_results) * sizeof(rapier2d::Handle));
@@ -716,7 +729,7 @@ bool RapierSpace2D::rapier_shape_cast(rapier2d::Handle p_shape_handle, const Tra
 	int array_idx = 0;
 	do {
 		rapier2d::ShapeCastResult &result = p_results[cpt];
-		result = rapier2d::shape_casting(handle, &rapier_motion, &rapier_pos, rotation, p_shape_handle, p_collide_with_bodies, p_collide_with_areas, RapierSpace2D::_is_handle_excluded_callback, &handle_excluded_info);
+		result = rapier2d::shape_casting(handle, &rapier_motion, shape_info, p_collide_with_bodies, p_collide_with_areas, RapierSpace2D::_is_handle_excluded_callback, &handle_excluded_info);
 		if (!result.collided) {
 			break;
 		}
@@ -733,16 +746,13 @@ int RapierSpace2D::rapier_intersect_shape(rapier2d::Handle p_shape_handle, const
 
 	ERR_FAIL_COND_V(!rapier2d::is_handle_valid(p_shape_handle), false);
 
-	rapier2d::Vector rapier_pos{ p_transform.get_origin().x, p_transform.get_origin().y };
-	real_t rotation = p_transform.get_rotation();
-
 	rapier2d::QueryExcludedInfo handle_excluded_info = rapier2d::default_query_excluded_info();
 	handle_excluded_info.query_exclude = (rapier2d::Handle *)alloca((p_max_results) * sizeof(rapier2d::Handle));
 	handle_excluded_info.query_collision_layer_mask = p_collision_mask;
 	handle_excluded_info.query_exclude_size = 0;
 	handle_excluded_info.query_exclude_body = p_exclude_body.get_id();
-
-	return rapier2d::intersect_shape(handle, &rapier_pos, rotation, p_shape_handle, p_collide_with_bodies, p_collide_with_areas, p_results, p_max_results, RapierSpace2D::_is_handle_excluded_callback, &handle_excluded_info);
+	rapier2d::ShapeInfo shape_info = rapier2d::shape_info_from_body_shape(p_shape_handle, p_transform);
+	return rapier2d::intersect_shape(handle, shape_info, p_collide_with_bodies, p_collide_with_areas, p_results, p_max_results, RapierSpace2D::_is_handle_excluded_callback, &handle_excluded_info);
 }
 
 int RapierSpace2D::rapier_intersect_aabb(Rect2 p_aabb, uint32_t p_collision_mask, bool p_collide_with_bodies, bool p_collide_with_areas, rapier2d::PointHitInfo *p_results, int32_t p_max_results, int32_t *p_result_count, RID p_exclude_body) const {

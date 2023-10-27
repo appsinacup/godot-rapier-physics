@@ -58,6 +58,13 @@ struct Material {
 	Real restitution;
 };
 
+struct ShapeInfo {
+	Handle handle;
+	Vector position;
+	Real rotation;
+	Vector scale;
+};
+
 struct QueryExcludedInfo {
 	uint32_t query_collision_layer_mask;
 	uint64_t query_canvas_instance_id;
@@ -99,12 +106,6 @@ struct ShapeCastResult {
 	Vector normal2;
 	Handle collider;
 	UserData user_data;
-};
-
-struct ShapeInfo {
-	Handle handle;
-	Vector position;
-	Real rotation;
 };
 
 struct ContactResult {
@@ -338,12 +339,7 @@ void collider_set_collision_events_enabled(Handle world_handle, Handle handle, b
 
 void collider_set_contact_force_events_enabled(Handle world_handle, Handle handle, bool enable);
 
-void collider_set_transform(Handle world_handle,
-		Handle handle,
-		Handle shape_handle,
-		const Vector *pos,
-		Real rot,
-		const Vector *scale);
+void collider_set_transform(Handle world_handle, Handle handle, ShapeInfo shape_info);
 
 Material default_material();
 
@@ -382,9 +378,7 @@ bool intersect_ray(Handle world_handle,
 		const QueryExcludedInfo *handle_excluded_info);
 
 size_t intersect_shape(Handle world_handle,
-		const Vector *position,
-		Real rotation,
-		Handle shape_handle,
+		ShapeInfo shape_info,
 		bool collide_with_body,
 		bool collide_with_area,
 		PointHitInfo *hit_info_array,
@@ -431,21 +425,22 @@ void joint_destroy(Handle world_handle, Handle joint_handle);
 
 ShapeCastResult shape_casting(Handle world_handle,
 		const Vector *motion,
-		const Vector *position,
-		Real rotation,
-		Handle shape_handle,
+		ShapeInfo shape_info,
 		bool collide_with_body,
 		bool collide_with_area,
 		QueryHandleExcludedCallback handle_excluded_callback,
 		const QueryExcludedInfo *handle_excluded_info);
+
+ShapeCastResult shape_collide(const Vector *motion1,
+		ShapeInfo shape_info1,
+		const Vector *motion2,
+		ShapeInfo shape_info2);
 
 Handle shape_create_box(const Vector *size);
 
 Handle shape_create_capsule(Real half_height, Real radius);
 
 Handle shape_create_circle(Real radius);
-
-Handle shape_create_compound(const ShapeInfo *shapes, size_t shape_count);
 
 Handle shape_create_convave_polyline(const Vector *points, size_t point_count);
 
@@ -456,14 +451,8 @@ Handle shape_create_halfspace(const Vector *normal);
 void shape_destroy(Handle shape_handle);
 
 ContactResult shapes_contact(Handle world_handle,
-		Handle shape_handle1,
-		const Vector *position1,
-		Real rotation1,
-		Vector scale1,
-		Handle shape_handle2,
-		const Vector *position2,
-		Real rotation2,
-		Vector scale2,
+		ShapeInfo shape_info1,
+		ShapeInfo shape_info2,
 		Real margin);
 
 Handle world_create(const WorldSettings *settings);

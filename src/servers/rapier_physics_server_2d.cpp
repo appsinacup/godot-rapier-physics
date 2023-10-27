@@ -178,8 +178,30 @@ bool RapierPhysicsServer2D::_shape_collide(const RID &p_shape_A, const Transform
 	RapierShape2D *shape_B = shape_owner.get_or_null(p_shape_B);
 	ERR_FAIL_COND_V(!shape_B, false);
 
-	ERR_PRINT_ONCE("Unsupported feature");
-	return false;
+	rapier2d::Handle shape_A_handle = shape_A->get_rapier_shape();
+	rapier2d::Handle shape_B_handle = shape_B->get_rapier_shape();
+	ERR_FAIL_COND_V(!rapier2d::is_handle_valid(shape_A_handle), false);
+	ERR_FAIL_COND_V(!rapier2d::is_handle_valid(shape_B_handle), false);
+	rapier2d::ShapeInfo shape_A_info = rapier2d::shape_info_from_body_shape(shape_A_handle, p_xform_A);
+	rapier2d::ShapeInfo shape_B_info = rapier2d::shape_info_from_body_shape(shape_B_handle, p_xform_B);
+	rapier2d::Vector rapier_A_motion{ p_motion_A.x, p_motion_A.y };
+	rapier2d::Vector rapier_B_motion{ p_motion_B.x, p_motion_B.y };
+
+	Vector2 *results_out = static_cast<Vector2 *>(r_results);
+
+	rapier2d::QueryExcludedInfo query_excluded_info = rapier2d::default_query_excluded_info();
+
+	int array_idx = 0;
+	rapier2d::ShapeCastResult result = rapier2d::shape_collide(&rapier_A_motion, shape_A_info, &rapier_A_motion, shape_A_info);
+	if (!result.collided) {
+		return false;
+	}
+	(*p_result_count)++;
+
+	results_out[array_idx++] = Vector2(result.witness1.x, result.witness1.y);
+	results_out[array_idx++] = Vector2(result.witness2.x, result.witness2.y);
+
+	return array_idx > 0;
 }
 
 RID RapierPhysicsServer2D::_space_create() {

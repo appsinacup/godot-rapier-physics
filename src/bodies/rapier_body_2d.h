@@ -113,12 +113,6 @@ class RapierBody2D : public RapierCollisionObject2D {
 
 	friend class RapierDirectBodyState2D; // i give up, too many functions to expose
 
-	void set_linear_velocity(const Vector2 &linear_velocity);
-	Vector2 get_linear_velocity() const;
-
-	void set_angular_velocity(real_t angular_velocity);
-	real_t get_angular_velocity() const;
-
 	void _apply_linear_damping(real_t new_value, bool apply_default = true);
 	void _apply_angular_damping(real_t new_value, bool apply_default = true);
 
@@ -129,6 +123,14 @@ protected:
 	virtual void _init_collider(rapier2d::Handle collider_handle) const override;
 
 public:
+	void set_linear_velocity(const Vector2 &linear_velocity);
+	Vector2 get_linear_velocity() const;
+	Vector2 get_static_linear_velocity() const;
+
+	void set_angular_velocity(real_t angular_velocity);
+	real_t get_angular_velocity() const;
+	real_t get_static_angular_velocity() const;
+
 	void set_state_sync_callback(const Callable &p_callable);
 	void set_force_integration_callback(const Callable &p_callable, const Variant &p_udata = Variant());
 

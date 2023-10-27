@@ -16,10 +16,12 @@ pub fn point_array_to_vec(data : &Vector, data_count : usize) -> Vec::<Point::<R
 
 #[repr(C)]
 pub struct ShapeInfo {
-    handle: Handle,
-    position : Vector,
-    rotation : Real,
+    pub handle: Handle,
+    pub position : Vector,
+    pub rotation : Real,
+    pub scale: Vector,
 }
+
 #[no_mangle]
 pub extern "C" fn shape_create_box(size : &Vector) -> Handle {
 	let shape = SharedShape::cuboid(0.5 * size.x, 0.5 * size.y);
@@ -80,23 +82,6 @@ pub extern "C" fn shape_create_convave_polyline(points : &Vector, point_count : 
     let points_vec = point_array_to_vec(points, point_count);
     let shape = SharedShape::polyline(points_vec, None);
     let mut physics_engine = SINGLETON.lock().unwrap();
-	return physics_engine.insert_shape(shape);
-}
-
-#[no_mangle]
-pub extern "C" fn shape_create_compound(shapes : &ShapeInfo, shape_count : usize) -> Handle {
-    let mut shapes_vec = Vec::<(Isometry<Real>, SharedShape)>::with_capacity(shape_count);
-    let mut physics_engine = SINGLETON.lock().unwrap();
-    unsafe {
-        let data_raw = std::slice::from_raw_parts(shapes, shape_count);
-        for shape_info in data_raw {
-            let shape = physics_engine.get_shape(shape_info.handle);
-            let pos = vector![shape_info.position.x, shape_info.position.y];
-            shapes_vec.push((Isometry::new(pos, shape_info.rotation), shape.clone()));
-        }
-    }
-
-    let shape = SharedShape::compound(shapes_vec);
 	return physics_engine.insert_shape(shape);
 }
 

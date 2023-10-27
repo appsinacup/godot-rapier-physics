@@ -25,10 +25,11 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 
 # Limitations
 
-- One way direction missing for CharacterBody2D (WIP)
-- Static Body Constant Speed or Conveyer Belt missing for CharacterBody2D vs StaticBody2D (WIP)
-- Spring Joint missing(WIP)
-- Shape skewing doesn't work (WIP)
+- One way direction for CharacterBody2D missing.
+- Static Body Constant Speed for CharacterBody2D and RigidBody2D missing.
+- Spring Joint missing.
+- Shape skewing missing.
+- Shape Cast Margin isn't supported.
 
 # Build Features
 
