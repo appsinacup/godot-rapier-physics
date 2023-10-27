@@ -295,7 +295,6 @@ pub extern "C" fn intersect_shape(world_handle : Handle, shape_info: ShapeInfo, 
     }
 
 	let physics_world = physics_engine.get_world(world_handle);
-    
     let shape_transform = Isometry::new(vector![shape_info.position.x, shape_info.position.y], shape_info.rotation);
     
     let mut filter = QueryFilter::new();
