@@ -125,9 +125,11 @@ protected:
 public:
 	void set_linear_velocity(const Vector2 &linear_velocity);
 	Vector2 get_linear_velocity() const;
+	Vector2 get_static_linear_velocity() const;
 
 	void set_angular_velocity(real_t angular_velocity);
 	real_t get_angular_velocity() const;
+	real_t get_static_angular_velocity() const;
 
 	void set_state_sync_callback(const Callable &p_callable);
 	void set_force_integration_callback(const Callable &p_callable, const Variant &p_udata = Variant());

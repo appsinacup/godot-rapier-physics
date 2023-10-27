@@ -927,9 +927,6 @@ void RapierBody2D::on_area_updated(RapierArea2D *p_area) {
 void RapierBody2D::set_linear_velocity(const Vector2 &p_linear_velocity) {
 	linear_velocity = p_linear_velocity;
 	if (mode == PhysicsServer2D::BODY_MODE_STATIC) {
-		if (linear_velocity != Vector2()) {
-			WARN_PRINT_ONCE("Setting linear velocity on static bodies is not supported.");
-		}
 		return;
 	}
 
@@ -959,12 +956,13 @@ Vector2 RapierBody2D::get_linear_velocity() const {
 	return Vector2(vel.x, vel.y);
 }
 
+Vector2 RapierBody2D::get_static_linear_velocity() const {
+	return linear_velocity;
+}
+
 void RapierBody2D::set_angular_velocity(real_t p_angular_velocity) {
 	angular_velocity = p_angular_velocity;
 	if (mode == PhysicsServer2D::BODY_MODE_STATIC) {
-		if (angular_velocity != 0.0f) {
-			WARN_PRINT_ONCE("Setting angular velocity on static bodies is not supported.");
-		}
 		return;
 	}
 
@@ -990,6 +988,10 @@ real_t RapierBody2D::get_angular_velocity() const {
 
 	ERR_FAIL_COND_V(!rapier2d::is_handle_valid(body_handle), 0.0f);
 	return rapier2d::body_get_angular_velocity(space_handle, body_handle);
+}
+
+real_t RapierBody2D::get_static_angular_velocity() const {
+	return angular_velocity;
 }
 
 void RapierBody2D::_apply_linear_damping(real_t new_value, bool apply_default) {
