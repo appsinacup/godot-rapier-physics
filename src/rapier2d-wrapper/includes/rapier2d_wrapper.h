@@ -431,6 +431,11 @@ ShapeCastResult shape_casting(Handle world_handle,
 		QueryHandleExcludedCallback handle_excluded_callback,
 		const QueryExcludedInfo *handle_excluded_info);
 
+ShapeCastResult shape_collide(const Vector *motion1,
+		ShapeInfo shape_info1,
+		const Vector *motion2,
+		ShapeInfo shape_info2);
+
 Handle shape_create_box(const Vector *size);
 
 Handle shape_create_capsule(Real half_height, Real radius);

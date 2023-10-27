@@ -1,4 +1,7 @@
 use rapier2d::parry;
+use rapier2d::parry::query::NonlinearRigidMotion;
+use parry::query::{DefaultQueryDispatcher};
+use rapier2d::parry::query::QueryDispatcher;
 use rapier2d::prelude::*;
 use crate::handle::*;
 use crate::user_data::*;
@@ -195,6 +198,41 @@ pub extern "C" fn intersect_point(world_handle : Handle, position : &Vector,  co
     });
 
     return cpt_hit;
+}
+
+#[no_mangle]
+pub extern "C" fn shape_collide(motion1 : &Vector, shape_info1: ShapeInfo, motion2 : &Vector, shape_info2: ShapeInfo) -> ShapeCastResult {
+    let mut physics_engine = SINGLETON.lock().unwrap();
+
+    let mut shared_shape1 = physics_engine.get_shape(shape_info1.handle).clone();
+    if let Some(new_shape) = scale_shape(&shared_shape1, &shape_info1.scale) {
+        shared_shape1 = new_shape;
+    }
+    let mut shared_shape2 = physics_engine.get_shape(shape_info1.handle).clone();
+    if let Some(new_shape) = scale_shape(&shared_shape2, &shape_info1.scale) {
+        shared_shape2 = new_shape;
+    }
+    
+    let shape_vel1 = vector![motion1.x, motion1.y];
+    let shape_vel2 = vector![motion2.x, motion2.y];
+    let shape_transform1 = Isometry::new(vector![shape_info1.position.x, shape_info1.position.y], shape_info1.rotation);
+    let shape_transform2 = Isometry::new(vector![shape_info2.position.x, shape_info2.position.y], shape_info2.rotation);
+    let shape_nonlin1 = NonlinearRigidMotion::new(shape_transform1, Point::default(), shape_vel1, 0.0);
+    let shape_nonlin2 = NonlinearRigidMotion::new(shape_transform2, Point::default(), shape_vel2, 0.0);
+    let mut result = ShapeCastResult::new();
+    let dispatcher = DefaultQueryDispatcher;
+    let toi_result = dispatcher.nonlinear_time_of_impact(&shape_nonlin1, shared_shape1.as_ref(), &shape_nonlin2, shared_shape2.as_ref(), 0.0, 1.0, true);
+    assert!(toi_result.is_ok());
+    if let Some(hit) = toi_result.unwrap() {
+        result.collided = true;
+        result.toi = hit.toi;
+        result.witness1 = Vector{ x: hit.witness1.x, y: hit.witness1.y };
+        result.witness2 = Vector{ x: hit.witness2.x, y: hit.witness2.y };
+        result.normal1 = Vector{ x: hit.normal1.x, y: hit.normal1.y };
+        result.normal2 = Vector{ x: hit.normal2.x, y: hit.normal2.y };
+        return result;
+    }
+    return result;
 }
 
 #[no_mangle]
