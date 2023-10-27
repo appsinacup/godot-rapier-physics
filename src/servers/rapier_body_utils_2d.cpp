@@ -263,7 +263,7 @@ bool RapierBodyUtils2D::body_motion_collide(
 			RapierShape2D *col_shape = collision_body->get_shape(shape_index);
 			Transform2D const &col_shape_transform = collision_body->get_transform() * collision_body->get_shape_transform(shape_index);
 			rapier2d::ShapeInfo col_shape_info = rapier2d::shape_info_from_body_shape(col_shape->get_rapier_shape(), col_shape_transform);
-			rapier2d::ContactResult contact = rapier2d::shapes_contact(p_space.get_handle(), col_shape_info, body_shape_info, p_margin);
+			rapier2d::ContactResult contact = rapier2d::shapes_contact(p_space.get_handle(), body_shape_info, col_shape_info, p_margin);
 			if (!contact.collided) {
 				continue;
 			}

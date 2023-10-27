@@ -258,7 +258,7 @@ void RapierCollisionObject2D::_update_shape_transform(const Shape &shape) {
 
 	ERR_FAIL_COND(!rapier2d::is_handle_valid(shape.collider_handle));
 	ERR_FAIL_COND(!rapier2d::is_handle_valid(shape.shape->get_rapier_shape()));
-	rapier2d::ShapeInfo shape_info {
+	rapier2d::ShapeInfo shape_info{
 		shape.shape->get_rapier_shape(),
 		position,
 		angle,
