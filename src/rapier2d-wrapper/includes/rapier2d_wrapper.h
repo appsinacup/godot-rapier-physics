@@ -437,8 +437,6 @@ Handle shape_create_capsule(Real half_height, Real radius);
 
 Handle shape_create_circle(Real radius);
 
-Handle shape_create_compound(const ShapeInfo *shapes, size_t shape_count);
-
 Handle shape_create_convave_polyline(const Vector *points, size_t point_count);
 
 Handle shape_create_convex_polyline(const Vector *points, size_t point_count);

@@ -16,27 +16,6 @@ bool RapierBodyUtils2D::body_motion_recover(
 	int shape_count = p_body.get_shape_count();
 	ERR_FAIL_COND_V(shape_count < 1, false);
 	real_t min_contact_depth = p_margin * TEST_MOTION_MIN_CONTACT_DEPTH_FACTOR;
-	// Create compound shape for the body if needed
-	/*rapier2d::Handle body_shape_handle;
-	if (shape_count > 1) {
-		rapier2d::ShapeInfo* shapes = (rapier2d::ShapeInfo*)alloca((shape_count) * sizeof(rapier2d::ShapeInfo));
-		for (int i = 0; i < shape_count; ++i) {
-			if (p_body.is_shape_disabled(i)) {
-				continue;
-			}
-			rapier2d::ShapeInfo& shape_info = shapes[i];
-			shape_info.handle = p_body.get_shape(i)->get_rapier_shape();
-			Transform2D const& shape_transform = p_body.get_shape_transform(i);
-			Vector2 const& shape_pos = shape_transform.get_origin();
-			shape_info.position.x = shape_pos.x;
-			shape_info.position.y = shape_pos.y;
-			shape_info.rotation = shape_transform.get_rotation();
-		}
-
-		body_shape_handle = rapier2d::shape_create_compound(shapes, shape_count);
-	} else {
-		body_shape_handle = p_body.get_shape(0)->get_rapier_shape();
-	}*/
 
 	bool recovered = false;
 	int recover_attempts = BODY_MOTION_RECOVER_ATTEMPTS;
@@ -188,6 +167,7 @@ void RapierBodyUtils2D::cast_motion(
 				rapier2d::Vector{ col_shape_transform.get_scale().x, col_shape_transform.get_scale().y }
 			};
 			{
+				body_shape_info.position = { (body_shape_transform.get_origin() + p_motion).x, (body_shape_transform.get_origin() + p_motion).y };
 				// stuck logic, check if body collides in place
 				rapier2d::ContactResult step_contact = rapier2d::shapes_contact(p_space.get_handle(), body_shape_info, col_shape_info, 0.0);
 				if (step_contact.collided && !step_contact.within_margin) {
