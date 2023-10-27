@@ -3,8 +3,8 @@
 
 #include "rapier2d-wrapper/includes/rapier2d_wrapper.h"
 
-#include <godot_cpp/variant/transform2d.hpp>
 #include <godot_cpp/templates/hashfuncs.hpp>
+#include <godot_cpp/variant/transform2d.hpp>
 
 using namespace godot;
 
@@ -26,9 +26,9 @@ inline ShapeInfo shape_info_from_body_shape(rapier2d::Handle shape_handle, const
 	Vector2 scale = transform.get_scale();
 	return ShapeInfo{
 		shape_handle,
-		{origin.x, origin.y},
+		{ origin.x, origin.y },
 		transform.get_rotation(),
-		{scale.x, scale.y},
+		{ scale.x, scale.y },
 	};
 }
 
