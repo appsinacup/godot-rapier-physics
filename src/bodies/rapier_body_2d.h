@@ -128,7 +128,7 @@ public:
 
 	void set_angular_velocity(real_t angular_velocity);
 	real_t get_angular_velocity() const;
-	
+
 	void set_state_sync_callback(const Callable &p_callable);
 	void set_force_integration_callback(const Callable &p_callable, const Variant &p_udata = Variant());
 

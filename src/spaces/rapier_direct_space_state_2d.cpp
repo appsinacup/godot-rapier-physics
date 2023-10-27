@@ -148,8 +148,6 @@ int RapierDirectSpaceState2D::_intersect_shape(const RID &shape_rid, const Trans
 
 	rapier2d::Vector rapier_motion{ motion.x, motion.y };
 	rapier2d::ShapeInfo shape_info = rapier2d::shape_info_from_body_shape(shape_handle, transform);
-	// Exclude BODY RID
-	rapier2d::Handle *rapier_exclude = nullptr;
 
 	rapier2d::QueryExcludedInfo query_excluded_info = rapier2d::default_query_excluded_info();
 	query_excluded_info.query_collision_layer_mask = collision_mask;
@@ -194,10 +192,8 @@ bool RapierDirectSpaceState2D::_rest_info(const RID &shape_rid, const Transform2
 
 	rapier2d::Vector rapier_motion{ motion.x, motion.y };
 	rapier2d::ShapeInfo shape_info = rapier2d::shape_info_from_body_shape(shape_handle, transform);
-	// Exclude BODY RID
-	rapier2d::Handle *rapier_exclude = nullptr;
-
 	rapier2d::QueryExcludedInfo query_excluded_info = rapier2d::default_query_excluded_info();
+	query_excluded_info.query_collision_layer_mask = collision_mask;
 
 	rapier2d::ShapeCastResult result = rapier2d::shape_casting(space->handle, &rapier_motion, shape_info, collide_with_bodies, collide_with_areas, RapierSpace2D::_is_handle_excluded_callback, &query_excluded_info);
 	if (!result.collided) {
