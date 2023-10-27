@@ -143,14 +143,14 @@ rapier2d::OneWayDirection RapierSpace2D::collision_modify_contacts_callback(rapi
 			RapierBody2D *body1 = static_cast<RapierBody2D *>(collision_object_1);
 			RapierBody2D *body2 = static_cast<RapierBody2D *>(collision_object_2);
 			//if (body1->is_static()) {
-				// TODO figure out when to set this.
-				//body2->set_linear_velocity(body2->get_linear_velocity() + body1->get_static_linear_velocity());
-				//body2->set_angular_velocity(body2->get_angular_velocity() + body1->get_static_angular_velocity());
+			// TODO figure out when to set this.
+			//body2->set_linear_velocity(body2->get_linear_velocity() + body1->get_static_linear_velocity());
+			//body2->set_angular_velocity(body2->get_angular_velocity() + body1->get_static_angular_velocity());
 			//}
 			//if (body2->is_static()) {
-				// TODO figure out when to set this.
-				//body1->set_linear_velocity(body1->get_linear_velocity() + body2->get_static_linear_velocity());
-				//body1->set_angular_velocity(body1->get_angular_velocity() + body2->get_static_angular_velocity());
+			// TODO figure out when to set this.
+			//body1->set_linear_velocity(body1->get_linear_velocity() + body2->get_static_linear_velocity());
+			//body1->set_angular_velocity(body1->get_angular_velocity() + body2->get_static_angular_velocity());
 			//}
 		}
 	}

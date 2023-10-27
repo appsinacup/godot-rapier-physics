@@ -227,6 +227,14 @@ impl PhysicsWorld {
 
 				callback(self.handle, &active_body_info);
 			}
+			for handle in self.island_manager.active_kinematic_bodies() {
+				// Send the active body event.
+				let mut active_body_info = ActiveBodyInfo::new();
+				active_body_info.body_handle = rigid_body_handle_to_handle(*handle);
+				active_body_info.body_user_data = self.get_rigid_body_user_data(*handle);
+
+				callback(self.handle, &active_body_info);
+			}
 		}
 		
 		if self.collision_event_callback.is_some() {
