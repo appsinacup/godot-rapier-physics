@@ -96,12 +96,7 @@ bool RapierDirectSpaceState2D::_cast_motion(const RID &shape_rid, const Transfor
 	ERR_FAIL_COND_V(!rapier2d::is_handle_valid(shape_handle), false);
 
 	rapier2d::Vector rapier_motion = { motion.x, motion.y };
-	rapier2d::ShapeInfo shape_info{
-		shape_handle,
-		rapier2d::Vector{ transform.get_origin().x, transform.get_origin().y },
-		transform.get_rotation(),
-		rapier2d::Vector{ transform.get_scale().x, transform.get_scale().y }
-	};
+	rapier2d::ShapeInfo shape_info = rapier2d::shape_info_from_body_shape(shape_handle, transform);
 
 	rapier2d::QueryExcludedInfo query_excluded_info = rapier2d::default_query_excluded_info();
 	query_excluded_info.query_collision_layer_mask = collision_mask;
@@ -120,12 +115,7 @@ bool RapierDirectSpaceState2D::_collide_shape(const RID &shape_rid, const Transf
 	rapier2d::Vector rapier_motion{ motion.x, motion.y };
 
 	Vector2 *results_out = static_cast<Vector2 *>(results);
-	rapier2d::ShapeInfo shape_info{
-		shape_handle,
-		rapier2d::Vector{ transform.get_origin().x, transform.get_origin().y },
-		transform.get_rotation(),
-		rapier2d::Vector{ transform.get_scale().x, transform.get_scale().y }
-	};
+	rapier2d::ShapeInfo shape_info = rapier2d::shape_info_from_body_shape(shape_handle, transform);
 	rapier2d::QueryExcludedInfo query_excluded_info = rapier2d::default_query_excluded_info();
 	query_excluded_info.query_collision_layer_mask = collision_mask;
 	query_excluded_info.query_exclude = (rapier2d::Handle *)alloca((max_results) * sizeof(rapier2d::Handle));
@@ -157,12 +147,7 @@ int RapierDirectSpaceState2D::_intersect_shape(const RID &shape_rid, const Trans
 	ERR_FAIL_COND_V(!rapier2d::is_handle_valid(shape_handle), false);
 
 	rapier2d::Vector rapier_motion{ motion.x, motion.y };
-	rapier2d::ShapeInfo shape_info{
-		shape_handle,
-		rapier2d::Vector{ transform.get_origin().x, transform.get_origin().y },
-		transform.get_rotation(),
-		rapier2d::Vector{ transform.get_scale().x, transform.get_scale().y }
-	};
+	rapier2d::ShapeInfo shape_info = rapier2d::shape_info_from_body_shape(shape_handle, transform);
 	// Exclude BODY RID
 	rapier2d::Handle *rapier_exclude = nullptr;
 
