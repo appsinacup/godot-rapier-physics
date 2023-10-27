@@ -96,12 +96,16 @@ bool RapierDirectSpaceState2D::_cast_motion(const RID &shape_rid, const Transfor
 	ERR_FAIL_COND_V(!rapier2d::is_handle_valid(shape_handle), false);
 
 	rapier2d::Vector rapier_motion = { motion.x, motion.y };
-	rapier2d::Vector rapier_pos = { transform.get_origin().x, transform.get_origin().y };
-	real_t rotation = transform.get_rotation();
+	rapier2d::ShapeInfo shape_info{
+		shape_handle,
+		rapier2d::Vector{ transform.get_origin().x, transform.get_origin().y },
+		transform.get_rotation(),
+		rapier2d::Vector{ transform.get_scale().x, transform.get_scale().y }
+	};
 
 	rapier2d::QueryExcludedInfo query_excluded_info = rapier2d::default_query_excluded_info();
 	query_excluded_info.query_collision_layer_mask = collision_mask;
-	real_t hit = rapier2d::shape_casting(space->handle, &rapier_motion, &rapier_pos, rotation, shape_handle, collide_with_bodies, collide_with_areas, RapierSpace2D::_is_handle_excluded_callback, &query_excluded_info).toi;
+	real_t hit = rapier2d::shape_casting(space->handle, &rapier_motion, shape_info, collide_with_bodies, collide_with_areas, RapierSpace2D::_is_handle_excluded_callback, &query_excluded_info).toi;
 	*p_closest_safe = hit;
 	*p_closest_unsafe = hit;
 	return true;
@@ -114,11 +118,14 @@ bool RapierDirectSpaceState2D::_collide_shape(const RID &shape_rid, const Transf
 	ERR_FAIL_COND_V(!rapier2d::is_handle_valid(shape_handle), false);
 
 	rapier2d::Vector rapier_motion{ motion.x, motion.y };
-	rapier2d::Vector rapier_pos{ transform.get_origin().x, transform.get_origin().y };
-	real_t rotation = transform.get_rotation();
 
 	Vector2 *results_out = static_cast<Vector2 *>(results);
-
+	rapier2d::ShapeInfo shape_info{
+		shape_handle,
+		rapier2d::Vector{ transform.get_origin().x, transform.get_origin().y },
+		transform.get_rotation(),
+		rapier2d::Vector{ transform.get_scale().x, transform.get_scale().y }
+	};
 	rapier2d::QueryExcludedInfo query_excluded_info = rapier2d::default_query_excluded_info();
 	query_excluded_info.query_collision_layer_mask = collision_mask;
 	query_excluded_info.query_exclude = (rapier2d::Handle *)alloca((max_results) * sizeof(rapier2d::Handle));
@@ -127,7 +134,7 @@ bool RapierDirectSpaceState2D::_collide_shape(const RID &shape_rid, const Transf
 	int cpt = 0;
 	int array_idx = 0;
 	do {
-		rapier2d::ShapeCastResult result = rapier2d::shape_casting(space->handle, &rapier_motion, &rapier_pos, rotation, shape_handle, collide_with_bodies, collide_with_areas, RapierSpace2D::_is_handle_excluded_callback, &query_excluded_info);
+		rapier2d::ShapeCastResult result = rapier2d::shape_casting(space->handle, &rapier_motion, shape_info, collide_with_bodies, collide_with_areas, RapierSpace2D::_is_handle_excluded_callback, &query_excluded_info);
 		if (!result.collided) {
 			break;
 		}
@@ -150,9 +157,12 @@ int RapierDirectSpaceState2D::_intersect_shape(const RID &shape_rid, const Trans
 	ERR_FAIL_COND_V(!rapier2d::is_handle_valid(shape_handle), false);
 
 	rapier2d::Vector rapier_motion{ motion.x, motion.y };
-	rapier2d::Vector rapier_pos{ transform.get_origin().x, transform.get_origin().y };
-	real_t rotation = transform.get_rotation();
-
+	rapier2d::ShapeInfo shape_info{
+		shape_handle,
+		rapier2d::Vector{ transform.get_origin().x, transform.get_origin().y },
+		transform.get_rotation(),
+		rapier2d::Vector{ transform.get_scale().x, transform.get_scale().y }
+	};
 	// Exclude BODY RID
 	rapier2d::Handle *rapier_exclude = nullptr;
 
@@ -163,7 +173,7 @@ int RapierDirectSpaceState2D::_intersect_shape(const RID &shape_rid, const Trans
 
 	int cpt = 0;
 	do {
-		rapier2d::ShapeCastResult result = rapier2d::shape_casting(space->handle, &rapier_motion, &rapier_pos, rotation, shape_handle, collide_with_bodies, collide_with_areas, RapierSpace2D::_is_handle_excluded_callback, &query_excluded_info);
+		rapier2d::ShapeCastResult result = rapier2d::shape_casting(space->handle, &rapier_motion, shape_info, collide_with_bodies, collide_with_areas, RapierSpace2D::_is_handle_excluded_callback, &query_excluded_info);
 		if (!result.collided) {
 			break;
 		}
