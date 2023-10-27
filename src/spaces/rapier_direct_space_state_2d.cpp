@@ -185,3 +185,38 @@ int RapierDirectSpaceState2D::_intersect_shape(const RID &shape_rid, const Trans
 
 	return cpt;
 }
+
+bool RapierDirectSpaceState2D::_rest_info(const RID &shape_rid, const Transform2D &transform, const Vector2 &motion, double margin, uint32_t collision_mask, bool collide_with_bodies, bool collide_with_areas, PhysicsServer2DExtensionShapeRestInfo *r_info) {
+	RapierShape2D *shape = space->get_shape_from_rid(shape_rid);
+	ERR_FAIL_COND_V(!shape, false);
+	rapier2d::Handle shape_handle = shape->get_rapier_shape();
+	ERR_FAIL_COND_V(!rapier2d::is_handle_valid(shape_handle), false);
+
+	rapier2d::Vector rapier_motion{ motion.x, motion.y };
+	rapier2d::ShapeInfo shape_info = rapier2d::shape_info_from_body_shape(shape_handle, transform);
+	// Exclude BODY RID
+	rapier2d::Handle *rapier_exclude = nullptr;
+
+	rapier2d::QueryExcludedInfo query_excluded_info = rapier2d::default_query_excluded_info();
+
+	rapier2d::ShapeCastResult result = rapier2d::shape_casting(space->handle, &rapier_motion, shape_info, collide_with_bodies, collide_with_areas, RapierSpace2D::_is_handle_excluded_callback, &query_excluded_info);
+	if (!result.collided) {
+		return false;
+	}
+	uint32_t shape_index = 0;
+	RapierCollisionObject2D *collision_object_2d = RapierCollisionObject2D::get_collider_user_data(result.user_data, shape_index);
+	ERR_FAIL_COND_V(!collision_object_2d, false);
+	r_info->collider_id = collision_object_2d->get_instance_id();
+	if (collision_object_2d->get_type() == RapierCollisionObject2D::Type::TYPE_BODY) {
+		const RapierBody2D *body = static_cast<const RapierBody2D *>(collision_object_2d);
+		Vector2 rel_vec = r_info->point - (body->get_transform().get_origin() + body->get_center_of_mass());
+		r_info->linear_velocity = Vector2(-body->get_angular_velocity() * rel_vec.y, body->get_angular_velocity() * rel_vec.x) + body->get_linear_velocity();
+
+	} else {
+		r_info->linear_velocity = Vector2();
+	}
+	r_info->normal = Vector2(result.normal1.x, result.normal1.y);
+	r_info->rid = collision_object_2d->get_rid();
+	r_info->shape = shape_index;
+	return true;
+}
