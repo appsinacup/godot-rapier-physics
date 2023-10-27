@@ -141,17 +141,6 @@ void RapierCollisionObject2D::remove_shape(int p_index) {
 	}
 }
 
-void RapierCollisionObject2D::_set_static(bool p_static) {
-	if (_static == p_static) {
-		return;
-	}
-	_static = p_static;
-
-	if (!space) {
-		return;
-	}
-}
-
 void RapierCollisionObject2D::_unregister_shapes() {
 }
 
@@ -187,7 +176,6 @@ void RapierCollisionObject2D::set_transform(const Transform2D &p_transform, bool
 		const Vector2 &origin = transform.get_origin();
 		rapier2d::Vector position = { origin.x, origin.y };
 		real_t rotation = transform.get_rotation();
-
 		rapier2d::body_set_transform(space_handle, body_handle, &position, rotation, wake_up);
 	}
 }
@@ -304,11 +292,12 @@ void RapierCollisionObject2D::_set_space(RapierSpace2D *p_space) {
 
 		rapier2d::Vector position = { transform.get_origin().x, transform.get_origin().y };
 		real_t angle = transform.get_rotation();
-
-		if (_static) {
-			body_handle = rapier2d::body_create_fixed(space_handle, &position, angle, &user_data);
+		if (mode == PhysicsServer2D::BODY_MODE_STATIC) {
+			body_handle = rapier2d::body_create(space_handle, &position, angle, &user_data, rapier2d::BodyType::Static);
+		} else if (mode == PhysicsServer2D::BODY_MODE_KINEMATIC) {
+			body_handle = rapier2d::body_create(space_handle, &position, angle, &user_data, rapier2d::BodyType::Kinematic);
 		} else {
-			body_handle = rapier2d::body_create_dynamic(space_handle, &position, angle, &user_data);
+			body_handle = rapier2d::body_create(space_handle, &position, angle, &user_data, rapier2d::BodyType::Dynamic);
 		}
 
 		for (uint32_t i = 0; i < shapes.size(); i++) {

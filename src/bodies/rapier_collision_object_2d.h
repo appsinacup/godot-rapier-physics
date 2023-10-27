@@ -42,21 +42,19 @@ private:
 	uint32_t collision_mask = 1;
 	uint32_t collision_layer = 1;
 	real_t collision_priority = 1.0;
-	bool _static = true;
 
 	void _create_shape(Shape &shape, uint32_t p_shape_index);
 	void _destroy_shape(Shape &shape, uint32_t p_shape_index);
 	void _update_shape_transform(const Shape &shape);
 
 protected:
+	PhysicsServer2D::BodyMode mode = PhysicsServer2D::BODY_MODE_RIGID;
 	rapier2d::Handle body_handle = rapier2d::invalid_handle();
 	uint32_t area_detection_counter = 0;
 
 	void _unregister_shapes();
 
 	void _update_transform();
-
-	void _set_static(bool p_static);
 
 	virtual void _init_material(rapier2d::Material &mat) const {}
 	virtual void _init_collider(rapier2d::Handle collider_handle) const {}
@@ -151,8 +149,6 @@ public:
 	void remove_shape(int p_index);
 
 	virtual void set_space(RapierSpace2D *p_space) = 0;
-
-	_FORCE_INLINE_ bool is_static() const { return _static; }
 
 	void set_pickable(bool p_pickable) { pickable = p_pickable; }
 	_FORCE_INLINE_ bool is_pickable() const { return pickable; }

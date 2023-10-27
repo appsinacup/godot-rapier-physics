@@ -14,8 +14,6 @@ using namespace godot;
 class RapierDirectBodyState2D;
 
 class RapierBody2D : public RapierCollisionObject2D {
-	PhysicsServer2D::BodyMode mode = PhysicsServer2D::BODY_MODE_RIGID;
-
 	PhysicsServer2D::BodyDampMode linear_damping_mode = PhysicsServer2D::BODY_DAMP_MODE_COMBINE;
 	PhysicsServer2D::BodyDampMode angular_damping_mode = PhysicsServer2D::BODY_DAMP_MODE_COMBINE;
 

@@ -367,11 +367,6 @@ impl PhysicsWorld {
         }
 	}
     
-    pub fn insert_rigid_body(&mut self, rigid_body : RigidBody) -> Handle {
-        let body_handle = self.rigid_body_set.insert(rigid_body);
-        return rigid_body_handle_to_handle(body_handle);
-    }
-    
     pub fn remove_rigid_body(&mut self, body_handle : Handle) {
         let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
         self.rigid_body_set.remove(rigid_body_handle

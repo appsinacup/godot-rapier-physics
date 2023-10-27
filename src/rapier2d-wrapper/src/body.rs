@@ -5,20 +5,41 @@ use crate::user_data::UserData;
 use crate::physics_world::*;
 use crate::collider::*;
 
+#[repr(C)]
+pub enum BodyType {
+    Dynamic,
+    Kinematic,
+    Static,
+}
+
 fn set_rigid_body_properties_internal(rigid_body : &mut RigidBody, pos : &Vector, rot : Real, wake_up : bool) {
     if rigid_body.is_dynamic() {
-        rigid_body.set_rotation(Rotation::new(rot), wake_up);
-        rigid_body.set_translation(vector![pos.x, pos.y], wake_up);
+        rigid_body.set_position(Isometry::new(vector![pos.x, pos.y], rot), wake_up);
     } else {
         rigid_body.set_next_kinematic_position(Isometry::new(vector![pos.x, pos.y], rot));
     }
 }
 
 #[no_mangle]
-pub extern "C" fn body_create_fixed(world_handle : Handle, pos : &Vector, rot : Real, user_data : &UserData) -> Handle {
+pub extern "C" fn body_create(world_handle : Handle, pos : &Vector, rot : Real, user_data : &UserData, body_type: BodyType) -> Handle {
     let mut physics_engine = SINGLETON.lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
-    let mut rigid_body = RigidBodyBuilder::kinematic_position_based().build();
+    let mut rigid_body : RigidBody;
+    match body_type {
+        BodyType::Dynamic => {
+            rigid_body = RigidBodyBuilder::dynamic().build();
+        }
+        BodyType::Kinematic => {
+            rigid_body = RigidBodyBuilder::kinematic_position_based().build();
+        }
+        BodyType::Static => {
+            rigid_body = RigidBodyBuilder::fixed().build();
+        }
+    }
+	let activation = rigid_body.activation_mut();
+	activation.time_until_sleep = physics_world.sleep_time_until_sleep;
+    activation.linear_threshold = physics_world.sleep_linear_threshold;
+    activation.angular_threshold = physics_world.sleep_angular_threshold;
     set_rigid_body_properties_internal(&mut rigid_body, pos, rot, true);
 	rigid_body.user_data = user_data.get_data();
     let body_handle = physics_world.rigid_body_set.insert(rigid_body);
@@ -26,17 +47,24 @@ pub extern "C" fn body_create_fixed(world_handle : Handle, pos : &Vector, rot : 
 }
 
 #[no_mangle]
-pub extern "C" fn body_create_dynamic(world_handle : Handle, pos : &Vector, rot : Real, user_data : &UserData) -> Handle {
+pub extern "C" fn body_change_mode(world_handle : Handle, body_handle : Handle, body_type: BodyType, wakeup: bool) {
     let mut physics_engine = SINGLETON.lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
-    let mut rigid_body = RigidBodyBuilder::dynamic().can_sleep(true).sleeping(true).build();
-	let activation = rigid_body.activation_mut();
-	activation.time_until_sleep = physics_world.sleep_time_until_sleep;
-    activation.linear_threshold = physics_world.sleep_linear_threshold;
-    activation.angular_threshold = physics_world.sleep_angular_threshold;
-    set_rigid_body_properties_internal(&mut rigid_body, pos, rot, false);
-	rigid_body.user_data = user_data.get_data();
-    return physics_world.insert_rigid_body(rigid_body);
+    let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
+    let body = physics_world.rigid_body_set.get_mut(rigid_body_handle);
+    assert!(body.is_some());
+    let body: &mut RigidBody = body.unwrap();
+    match body_type {
+        BodyType::Dynamic => {
+            body.set_body_type(RigidBodyType::Dynamic, wakeup);
+        }
+        BodyType::Kinematic => {
+            body.set_body_type(RigidBodyType::KinematicPositionBased, wakeup);
+        }
+        BodyType::Static => {
+            body.set_body_type(RigidBodyType::Fixed, wakeup);
+        }
+    }
 }
 
 #[no_mangle]
@@ -85,7 +113,8 @@ pub extern "C" fn body_get_linear_velocity(world_handle : Handle, body_handle : 
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     let body = physics_world.rigid_body_set.get(rigid_body_handle);
     assert!(body.is_some());
-    let body_vel = body.unwrap().linvel();
+    let body = body.unwrap();
+    let body_vel = body.linvel();
     return Vector { x : body_vel.x, y : body_vel.y };
 }
 
