@@ -29,6 +29,7 @@ jobs:
           sconsflags: ${{ env.SCONSFLAGS }}
           arch: ${{ matrix.arch }}
           platform: ios
+          rust_target: --target=aarch64-apple-ios
           target: ${{ matrix.target }}
           precision: ${{ matrix.precision }}
           features: ${{ matrix.features }}
