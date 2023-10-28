@@ -5,6 +5,12 @@
 
 namespace rapier2d {
 
+enum class BodyType {
+	Dynamic,
+	Kinematic,
+	Static,
+};
+
 #if !defined(DEFINE_SPIN_NO_STD)
 template <typename T = void>
 struct Lazy;
@@ -251,15 +257,13 @@ void body_apply_impulse_at_point(Handle world_handle,
 
 void body_apply_torque_impulse(Handle world_handle, Handle body_handle, Real torque_impulse);
 
-Handle body_create_dynamic(Handle world_handle,
-		const Vector *pos,
-		Real rot,
-		const UserData *user_data);
+void body_change_mode(Handle world_handle, Handle body_handle, BodyType body_type, bool wakeup);
 
-Handle body_create_fixed(Handle world_handle,
+Handle body_create(Handle world_handle,
 		const Vector *pos,
 		Real rot,
-		const UserData *user_data);
+		const UserData *user_data,
+		BodyType body_type);
 
 void body_destroy(Handle world_handle, Handle body_handle);
 

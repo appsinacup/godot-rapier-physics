@@ -227,6 +227,14 @@ impl PhysicsWorld {
 
 				callback(self.handle, &active_body_info);
 			}
+			for handle in self.island_manager.active_kinematic_bodies() {
+				// Send the active body event.
+				let mut active_body_info = ActiveBodyInfo::new();
+				active_body_info.body_handle = rigid_body_handle_to_handle(*handle);
+				active_body_info.body_user_data = self.get_rigid_body_user_data(*handle);
+
+				callback(self.handle, &active_body_info);
+			}
 		}
 		
 		if self.collision_event_callback.is_some() {
@@ -366,11 +374,6 @@ impl PhysicsWorld {
             return None;
         }
 	}
-    
-    pub fn insert_rigid_body(&mut self, rigid_body : RigidBody) -> Handle {
-        let body_handle = self.rigid_body_set.insert(rigid_body);
-        return rigid_body_handle_to_handle(body_handle);
-    }
     
     pub fn remove_rigid_body(&mut self, body_handle : Handle) {
         let rigid_body_handle = handle_to_rigid_body_handle(body_handle);

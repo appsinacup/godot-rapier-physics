@@ -331,13 +331,23 @@ void RapierBody2D::set_mode(PhysicsServer2D::BodyMode p_mode) {
 	if (mode == p_mode) {
 		return;
 	}
-
 	PhysicsServer2D::BodyMode prev_mode = mode;
 	mode = p_mode;
-
+	if (get_space()) {
+		switch (p_mode) {
+			case PhysicsServer2D::BODY_MODE_KINEMATIC: {
+				rapier2d::body_change_mode(get_space()->get_handle(), get_body_handle(), rapier2d::BodyType::Kinematic, true);
+			} break;
+			case PhysicsServer2D::BODY_MODE_STATIC: {
+				rapier2d::body_change_mode(get_space()->get_handle(), get_body_handle(), rapier2d::BodyType::Static, true);
+			} break;
+			case PhysicsServer2D::BODY_MODE_RIGID:
+			case PhysicsServer2D::BODY_MODE_RIGID_LINEAR: {
+				rapier2d::body_change_mode(get_space()->get_handle(), get_body_handle(), rapier2d::BodyType::Dynamic, true);
+			} break;
+		}
+	}
 	if (p_mode == PhysicsServer2D::BODY_MODE_STATIC) {
-		_set_static(true);
-
 		force_sleep();
 
 		ERR_FAIL_COND(marked_active);
@@ -348,8 +358,6 @@ void RapierBody2D::set_mode(PhysicsServer2D::BodyMode p_mode) {
 
 		return;
 	}
-
-	_set_static(false);
 
 	if (active && (prev_mode == PhysicsServer2D::BODY_MODE_STATIC)) {
 		if (get_space()) {
@@ -389,7 +397,7 @@ void RapierBody2D::set_state(PhysicsServer2D::BodyState p_state, const Variant &
 			set_angular_velocity(p_variant);
 		} break;
 		case PhysicsServer2D::BODY_STATE_SLEEPING: {
-			if (mode == PhysicsServer2D::BODY_MODE_STATIC || mode == PhysicsServer2D::BODY_MODE_KINEMATIC) {
+			if (mode == PhysicsServer2D::BODY_MODE_STATIC) {
 				break;
 			}
 			sleep = p_variant;
@@ -1211,7 +1219,6 @@ RapierBody2D::RapierBody2D() :
 		gravity_update_list(this),
 		area_override_update_list(this),
 		direct_state_query_list(this) {
-	_set_static(false);
 }
 
 RapierBody2D::~RapierBody2D() {
