@@ -66,8 +66,8 @@ runs:
         cd src/rapier2d-wrapper && \
         rustup target add ${{ inputs.rust_target }} && \
         cargo build --target=${{ inputs.rust_target }} --release --features="${{ inputs.features }},${{ inputs.precision }}" && \
-        mkdir targets/release && \
-        cp -rf target/${{ inputs.rust_target }} targets/release
+        mkdir target/release && \
+        cp -rf target/${{ inputs.rust_target }} target/release
     - name: Build Rapier Macos Universal
       shell: sh
       
