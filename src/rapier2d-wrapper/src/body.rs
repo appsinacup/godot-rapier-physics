@@ -13,7 +13,7 @@ pub enum BodyType {
 }
 
 fn set_rigid_body_properties_internal(rigid_body : &mut RigidBody, pos : &Vector, rot : Real, wake_up : bool) {
-    if rigid_body.is_dynamic() {
+    if !rigid_body.is_kinematic() {
         rigid_body.set_position(Isometry::new(vector![pos.x, pos.y], rot), wake_up);
     } else {
         rigid_body.set_next_kinematic_position(Isometry::new(vector![pos.x, pos.y], rot));
