@@ -58,7 +58,6 @@ bool RapierBodyUtils2D::body_motion_recover(
 				Transform2D const &col_shape_transform = collision_body->get_transform() * collision_body->get_shape_transform(shape_index);
 				rapier2d::ShapeInfo col_shape_info = rapier2d::shape_info_from_body_shape(col_shape->get_rapier_shape(), col_shape_transform);
 
-
 				/*
 				if (body_shape->allows_one_way_collision() && col_obj->is_shape_set_as_one_way_collision(shape_idx)) {
 					cbk.valid_dir = col_obj_shape_xform.columns[1].normalized();
