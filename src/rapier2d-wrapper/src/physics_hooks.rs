@@ -89,9 +89,9 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
 			let one_way_direction = callback(self.world_handle, &filter_info);
             let mut contact_is_pass_through = false;
             if one_way_direction.body1 {
-                contact_is_pass_through = body2.linvel().normalize().dot(&allowed_local_n1) <= -DEFAULT_EPSILON * 10.0;
+                contact_is_pass_through = body2.linvel().normalize().dot(&allowed_local_n1) <= DEFAULT_EPSILON * 10.0;
             } else if one_way_direction.body2 {
-                contact_is_pass_through = body1.linvel().normalize().dot(&allowed_local_n2) <= -DEFAULT_EPSILON * 10.0;
+                contact_is_pass_through = body1.linvel().normalize().dot(&allowed_local_n2) <= DEFAULT_EPSILON * 10.0;
             }
             if contact_is_pass_through {
                 context.solver_contacts.clear();
