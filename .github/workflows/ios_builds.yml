@@ -9,12 +9,12 @@ env:
 jobs:
   ios:
     runs-on: "macos-latest"
-    name: ${{ matrix.target }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+    name: ${{ matrix.target }} ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
     strategy:
       fail-fast: false
       matrix:
         target: [template_debug, template_release]
-        arch: [arm64]
+        arch: [{arch: "arm64", rust: "--target=aarch64-apple-ios"}]
         precision: [single, double]
         features: [simd-stable, enhanced-determinism]
 
@@ -23,18 +23,18 @@ jobs:
         with:
           submodules: true
           fetch-depth: 0
-      - name: Build ${{ matrix.target }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+      - name: Build ${{ matrix.target }} ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/build
         with:
           sconsflags: ${{ env.SCONSFLAGS }}
-          arch: ${{ matrix.arch }}
+          arch: ${{ matrix.arch.arch }}
+          rust_target: ${{ matrix.arch.rust }}
           platform: ios
-          rust_target: --target=aarch64-apple-ios
           target: ${{ matrix.target }}
           precision: ${{ matrix.precision }}
           features: ${{ matrix.features }}
 
-      - name: Upload ${{ matrix.target }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+      - name: Upload ${{ matrix.target }} ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/upload
         with:
           precision: ${{ matrix.precision }}

@@ -11,12 +11,12 @@ env:
 jobs:
   web:
     runs-on: ubuntu-20.04
-    name: ${{ matrix.target }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+    name: ${{ matrix.target }} ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
     strategy:
       fail-fast: false
       matrix:
         target: [template_debug, template_release]
-        arch: [wasm32]
+        arch: [{arch: "wasm32", rust: ""}]
         precision: [single, double]
         features: [simd-stable, enhanced-determinism]
 
@@ -36,17 +36,18 @@ jobs:
         run: |
           emcc -v
 
-      - name: Build ${{ matrix.target }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+      - name: Build ${{ matrix.target }} ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/build
         with:
           sconsflags: ${{ env.SCONSFLAGS }}
-          arch: ${{ matrix.arch }}
+          arch: ${{ matrix.arch.arch }}
+          rust_target: ${{ matrix.arch.rust }}
           platform: javascript
           target: ${{ matrix.target }}
           precision: ${{ matrix.precision }}
           features: ${{ matrix.features }}
 
-      - name: Upload ${{ matrix.target }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+      - name: Upload ${{ matrix.target }} ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/upload
         with:
           precision: ${{ matrix.precision }}

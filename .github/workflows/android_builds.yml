@@ -9,12 +9,12 @@ env:
 jobs:
   android:
     runs-on: "ubuntu-20.04"
-    name: ${{ matrix.target }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+    name: ${{ matrix.target }} ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
     strategy:
       fail-fast: false
       matrix:
         target: [template_debug, template_release]
-        arch: [x86_64, arm64] # Todo reenable arm64
+        arch: [{arch: "x86_64",rust: ""}, {arch: "arm64",rust: "--target=aarch64-linux-android"}]
         precision: [single, double]
         features: [simd-stable, enhanced-determinism]
 
@@ -29,17 +29,18 @@ jobs:
           distribution: temurin
           java-version: 11
 
-      - name: Build ${{ matrix.target }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+      - name: Build ${{ matrix.target }} ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/build
         with:
           sconsflags: ${{ env.SCONSFLAGS }}
-          arch: ${{ matrix.arch }}
+          arch: ${{ matrix.arch.arch }}
+          rust_target: ${{ matrix.arch.rust }}
           platform: android
           target: ${{ matrix.target }}
           precision: ${{ matrix.precision }}
           features: ${{ matrix.features }}
 
-      - name: Upload ${{ matrix.target }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+      - name: Upload ${{ matrix.target }} ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/upload
         with:
           precision: ${{ matrix.precision }}
