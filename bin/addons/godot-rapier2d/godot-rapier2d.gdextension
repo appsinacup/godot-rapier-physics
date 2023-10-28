@@ -16,5 +16,5 @@ android.debug.x86_64 = "res://addons/godot-rapier2d/bin/libphysics_server_rapier
 android.release.x86_64 = "res://addons/godot-rapier2d/bin/libphysics_server_rapier2d.android.template_release.x86_64.so"
 android.debug.arm64 = "res://addons/godot-rapier2d/bin/libphysics_server_rapier2d.android.template_debug.arm64.so"
 android.release.arm64 = "res://addons/godot-rapier2d/bin/libphysics_server_rapier2d.android.template_release.arm64.so"
-ios.debug = "res://addons/godot-box2d/bin/libgodot-box2d.ios.template_debug.arm64.dylib"
-ios.release = "res://addons/godot-box2d/bin/libgodot-box2d.ios.template_release.arm64.dylib"
+ios.debug = "res://addons/godot-rapier2d/bin/libphysics_server_rapier2d.ios.template_debug.arm64.dylib"
+ios.release = "res://addons/godot-rapier2d/bin/libphysics_server_rapier2d.ios.template_release.arm64.dylib"
