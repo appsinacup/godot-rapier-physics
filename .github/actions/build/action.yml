@@ -67,7 +67,7 @@ runs:
         rustup target add ${{ inputs.rust_target }} && \
         cargo build --target=${{ inputs.rust_target }} --release --features="${{ inputs.features }},${{ inputs.precision }}" && \
         mkdir -p target/release && \
-        cp -rf target/${{ inputs.rust_target }} target/release
+        cp -rf target/${{ inputs.rust_target }}/release target/release
     - name: Build Rapier Macos Universal
       shell: sh
       
