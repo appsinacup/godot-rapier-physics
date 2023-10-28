@@ -58,6 +58,29 @@ bool RapierBodyUtils2D::body_motion_recover(
 				Transform2D const &col_shape_transform = collision_body->get_transform() * collision_body->get_shape_transform(shape_index);
 				rapier2d::ShapeInfo col_shape_info = rapier2d::shape_info_from_body_shape(col_shape->get_rapier_shape(), col_shape_transform);
 
+
+				/*
+				if (body_shape->allows_one_way_collision() && col_obj->is_shape_set_as_one_way_collision(shape_idx)) {
+					cbk.valid_dir = col_obj_shape_xform.columns[1].normalized();
+
+					real_t owc_margin = col_obj->get_shape_one_way_collision_margin(shape_idx);
+					cbk.valid_depth = MAX(owc_margin, margin); //user specified, but never less than actual margin or it won't work
+					cbk.invalid_by_dir = 0;
+
+					if (col_obj->get_type() == GodotCollisionObject2D::TYPE_BODY) {
+						const GodotBody2D *b = static_cast<const GodotBody2D *>(col_obj);
+						if (b->get_mode() == PhysicsServer2D::BODY_MODE_KINEMATIC || b->get_mode() == PhysicsServer2D::BODY_MODE_RIGID) {
+							//fix for moving platforms (kinematic and dynamic), margin is increased by how much it moved in the given direction
+							Vector2 lv = b->get_linear_velocity();
+							//compute displacement from linear velocity
+							Vector2 motion = lv * last_step;
+							real_t motion_len = motion.length();
+							motion.normalize();
+							cbk.valid_depth += motion_len * MAX(motion.dot(-cbk.valid_dir), 0.0);
+						}
+					}
+				}*/
+
 				rapier2d::ContactResult contact = rapier2d::shapes_contact(p_space.get_handle(), body_shape_info, col_shape_info, p_margin);
 
 				if (!contact.collided) {
