@@ -45,7 +45,7 @@ jobs:
           platform: web
           target: ${{ matrix.target }}
           precision: ${{ matrix.precision }}
-          features: ${{ matrix.features }}
+          features: ${{ matrix.features }},wasm-bindgen
 
       - name: Upload ${{ matrix.target }} ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/upload

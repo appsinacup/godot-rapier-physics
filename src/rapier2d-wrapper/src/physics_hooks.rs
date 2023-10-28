@@ -1,3 +1,5 @@
+use std::borrow::BorrowMut;
+
 use rapier2d::prelude::*;
 use crate::handle::*;
 use crate::user_data::*;
@@ -78,11 +80,7 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
 
             let collider_1 = &context.colliders[context.collider1];
             let collider_2 = &context.colliders[context.collider2];
-			let rigidbody1_handle = context.rigid_body1.unwrap();
-            let body1 = context.bodies.get(rigidbody1_handle);
-			assert!(body1.is_some());
-			let body1 = body1.unwrap();
-			//body1.apply_impulse(vector![10.0, 0.0], true);
+            let body1 = &context.bodies[context.rigid_body1.unwrap()];
             let body2 = &context.bodies[context.rigid_body2.unwrap()];
 			let mut filter_info = CollisionFilterInfo::new();
 			filter_info.user_data1 = UserData::new(collider_1.user_data);
