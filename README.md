@@ -23,6 +23,15 @@
 
 A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engine](https://github.com/godotengine/godot), implemented as a GDExtension.
 
+## Supported Platforms
+
+Curently the Godot Box2d addon builds for:
+
+- Windows (x86_64)
+- macOS (x86-64 + Apple Silicon)
+- Linux (x86_64)
+- Android (x86_64)
+
 # Limitations
 
 - One way direction for CharacterBody2D missing.
