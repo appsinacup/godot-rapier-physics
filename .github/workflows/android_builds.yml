@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         target: [template_debug, template_release]
-        arch: [x86_64] # Todo reenable arm64
+        arch: [x86_64, arm64] # Todo reenable arm64
         precision: [single, double]
         features: [simd-stable, enhanced-determinism]
 
