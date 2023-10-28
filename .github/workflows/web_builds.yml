@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         target: [template_debug, template_release]
-        arch: [{arch: "wasm32", rust: ""}]
+        arch: [{arch: "wasm32", rust: "wasm32-unknown-emscripten"}]
         precision: [single, double]
         features: [simd-stable, enhanced-determinism]
 

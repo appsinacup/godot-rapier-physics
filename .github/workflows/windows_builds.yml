@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         target: [template_debug, template_release]
-        arch: [{arch: "x86_64", rust: ""}]
+        arch: [{arch: "x86_64", rust: "x86_64-pc-windows-msvc"}]
         precision: [single, double]
         features: [simd-stable, enhanced-determinism]
 
@@ -31,6 +31,7 @@ jobs:
         with:
           sconsflags: ${{ env.SCONSFLAGS }}
           arch: ${{ matrix.arch.arch }}
+          rust_target: ${{ matrix.arch.rust }}
           platform: windows
           target: ${{ matrix.target }}
           precision: ${{ matrix.precision }}

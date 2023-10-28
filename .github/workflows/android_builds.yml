@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         target: [template_debug, template_release]
-        arch: [{arch: "x86_64",rust: ""}, {arch: "arm64",rust: "--target=aarch64-linux-android"}]
+        arch: [{arch: "x86_64", rust: "x86_64-linux-android"}, {arch: "arm64",rust: "aarch64-linux-android"}]
         precision: [single, double]
         features: [simd-stable, enhanced-determinism]
 

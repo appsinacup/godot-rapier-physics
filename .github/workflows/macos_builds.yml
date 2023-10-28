@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         target: [template_debug, template_release]
-        arch:  [{arch: "universal", rust: "--target=x86_64-apple-darwin"}]
+        arch:  [{arch: "universal", rust: "x86_64-apple-darwin"}]
         precision: [single, double]
         features: [simd-stable, enhanced-determinism]
 

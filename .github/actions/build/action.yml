@@ -6,7 +6,7 @@ inputs:
     required: true
     description: Target platform.
   rust_target:
-    required: false
+    required: true
     default: ''
     description: Rust target platform.
   arch:
@@ -64,7 +64,8 @@ runs:
       shell: sh
       run: |
         cd src/rapier2d-wrapper && \
-        cargo build ${{ inputs.rust_target }} --release --features="${{ inputs.features }},${{ inputs.precision }}"
+        rustup target add ${{ inputs.rust_target }} && \
+        cargo build --target=${{ inputs.rust_target }} --release --features="${{ inputs.features }},${{ inputs.precision }}"
     - name: Build Rapier Macos Universal
       shell: sh
       
