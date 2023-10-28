@@ -50,7 +50,7 @@ This package supports the following features of rapier ([more on this here](http
 
 - Manual: Download the github release and move only the `addons` folder into your project `addons` folder.
 
-- Build it yourself. Read more about it in the [documentation](DOCUMENTATION.MD).
+- Build it yourself. Read more about it in the [documentation](DOCUMENTATION.md).
 
 After installing, go to `Advanced Settings` -> `Physics` -> `2D`. Change `Physics Engine` to `Rapier2D`.
 
