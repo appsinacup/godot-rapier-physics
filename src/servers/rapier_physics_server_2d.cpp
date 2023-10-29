@@ -1036,6 +1036,7 @@ double RapierPhysicsServer2D::_joint_get_param(const RID &p_joint, JointParam p_
 			return joint->get_max_force();
 			break;
 	}
+	return 0;
 }
 
 void RapierPhysicsServer2D::_joint_disable_collisions_between_bodies(const RID &p_joint, const bool p_disable) {

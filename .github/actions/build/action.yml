@@ -6,18 +6,12 @@ inputs:
     required: true
     description: Target platform.
   rust_target:
-    required: false
+    required: true
     default: ''
     description: Rust target platform.
   arch:
     default: ''
     description: Target architecture.
-  target:
-    required: true
-    description: Build target (editor, template_release, template_debug).
-  sconsflags:
-    required: true
-    description: Extra flags
   precision:
     required: true
     description: single or double
@@ -34,7 +28,7 @@ runs:
         path: |
           ${{ github.workspace }}/.scons-cache/
           ${{ github.workspace }}/godot-cpp/.scons-cache/
-        key: ${{ inputs.platform }}_${{ inputs.arch }}_${{ inputs.target }}_${{ inputs.precision }}_cache
+        key: ${{ inputs.platform }}_${{ inputs.arch }}_${{ inputs.precision }}_cache
     - uses: paulhatch/semantic-version@v5.3.0
       id: version
       with:
@@ -59,19 +53,25 @@ runs:
         SCONS_CACHE_DIR: .scons-cache
       run: |
         cd godot-cpp && \
-        scons target=${{ inputs.target }} platform=${{ inputs.platform }} arch=${{ inputs.arch }} generate_bindings=yes ${{ inputs.sconsflags }} precision=${{ inputs.precision }}
+        scons target=template_debug platform=${{ inputs.platform }} arch=${{ inputs.arch }} generate_bindings=yes precision=${{ inputs.precision }} && \
+        scons target=template_release platform=${{ inputs.platform }} arch=${{ inputs.arch }} generate_bindings=yes precision=${{ inputs.precision }}
     - name: Build Rapier
       shell: sh
       run: |
         cd src/rapier2d-wrapper && \
-        cargo build ${{ inputs.rust_target }} --release --features="${{ inputs.features }},${{ inputs.precision }}"
+        rustup target add ${{ inputs.rust_target }} && \
+        cargo build --target=${{ inputs.rust_target }} --release --features="${{ inputs.features }},${{ inputs.precision }}" && \
+        mkdir -p target/release && \
+        rm -rf target/release && \
+        cp -rf target/${{ inputs.rust_target }}/release target/release && \
+        ls -l target/release
     - name: Build Rapier Macos Universal
       shell: sh
       
       # we already built for x86_64-apple-darwin for mac, now build arm64
       if: ${{ inputs.platform == 'macos'}}
       run: |
-        cd src/rapier2d-wrapper && mkdir release && rustup target add aarch64-apple-darwin && \
+        cd src/rapier2d-wrapper && mkdir -p target/release && rustup target add aarch64-apple-darwin && \
         cargo build --target=aarch64-apple-darwin --release --features="${{ inputs.features }},${{ inputs.precision }}" && \
         lipo -create -output target/release/librapier2d_wrapper.a target/aarch64-apple-darwin/release/librapier2d_wrapper.a target/x86_64-apple-darwin/release/librapier2d_wrapper.a
     - name: Build Physics Server Rapier
@@ -80,4 +80,5 @@ runs:
         SCONS_CACHE: .scons-cache
         SCONS_CACHE_DIR: .scons-cache
       run: |
-        scons target=${{ inputs.target }} platform=${{ inputs.platform }} arch=${{ inputs.arch }} generate_bindings=no ${{ inputs.sconsflags }} precision=${{ inputs.precision }}
+        scons target=template_debug platform=${{ inputs.platform }} arch=${{ inputs.arch }} generate_bindings=no precision=${{ inputs.precision }}
+        scons target=template_release platform=${{ inputs.platform }} arch=${{ inputs.arch }} generate_bindings=no precision=${{ inputs.precision }}

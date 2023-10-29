@@ -2,21 +2,14 @@ name: 🌐 Web Builds
 on:
   workflow_call:
 
-# Global Settings
-env:
-  SCONSFLAGS: verbose=yes warnings=extra werror=yes
-  EM_VERSION: 3.1.18
-  EM_CACHE_FOLDER: "emsdk-cache"
-
 jobs:
   web:
     runs-on: ubuntu-20.04
-    name: ${{ matrix.target }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+    name: ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
     strategy:
       fail-fast: false
       matrix:
-        target: [template_debug, template_release]
-        arch: [wasm32]
+        arch: [{arch: "wasm32", rust: "wasm32-unknown-emscripten"}]
         precision: [single, double]
         features: [simd-stable, enhanced-determinism]
 
@@ -29,24 +22,23 @@ jobs:
       - name: Set up Emscripten latest
         uses: mymindstorm/setup-emsdk@v12
         with:
-          version: ${{env.EM_VERSION}}
-          actions-cache-folder: ${{env.EM_CACHE_FOLDER}}
+          version: 3.1.45
+          no-cache: true
 
       - name: Verify Emscripten setup
         run: |
           emcc -v
 
-      - name: Build ${{ matrix.target }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+      - name: Build ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/build
         with:
-          sconsflags: ${{ env.SCONSFLAGS }}
-          arch: ${{ matrix.arch }}
-          platform: javascript
-          target: ${{ matrix.target }}
+          arch: ${{ matrix.arch.arch }}
+          rust_target: ${{ matrix.arch.rust }}
+          platform: web
           precision: ${{ matrix.precision }}
-          features: ${{ matrix.features }}
+          features: ${{ matrix.features }},wasm-bindgen
 
-      - name: Upload ${{ matrix.target }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+      - name: Upload ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/upload
         with:
           precision: ${{ matrix.precision }}

@@ -1,3 +1,5 @@
+use std::borrow::BorrowMut;
+
 use rapier2d::prelude::*;
 use crate::handle::*;
 use crate::user_data::*;
@@ -80,7 +82,6 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
             let collider_2 = &context.colliders[context.collider2];
             let body1 = &context.bodies[context.rigid_body1.unwrap()];
             let body2 = &context.bodies[context.rigid_body2.unwrap()];
-
 			let mut filter_info = CollisionFilterInfo::new();
 			filter_info.user_data1 = UserData::new(collider_1.user_data);
 			filter_info.user_data2 = UserData::new(collider_2.user_data);
@@ -89,9 +90,9 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
 			let one_way_direction = callback(self.world_handle, &filter_info);
             let mut contact_is_pass_through = false;
             if one_way_direction.body1 {
-                contact_is_pass_through = body2.linvel().normalize().dot(&allowed_local_n1) <= -DEFAULT_EPSILON * 10.0;
+                contact_is_pass_through = body2.linvel().normalize().dot(&allowed_local_n1) <= DEFAULT_EPSILON * 10.0;
             } else if one_way_direction.body2 {
-                contact_is_pass_through = body1.linvel().normalize().dot(&allowed_local_n2) <= -DEFAULT_EPSILON * 10.0;
+                contact_is_pass_through = body1.linvel().normalize().dot(&allowed_local_n2) <= DEFAULT_EPSILON * 10.0;
             }
             if contact_is_pass_through {
                 context.solver_contacts.clear();

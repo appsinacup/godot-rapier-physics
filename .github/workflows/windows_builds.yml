@@ -2,19 +2,14 @@ name: 🏁 Windows Builds
 on:
   workflow_call:
 
-# Global Settings
-env:
-  SCONSFLAGS: verbose=yes warnings=extra werror=yes
-
 jobs:
   build-windows:
     runs-on: "windows-latest"
-    name: ${{ matrix.target }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+    name: ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
     strategy:
       fail-fast: false
       matrix:
-        target: [template_debug, template_release]
-        arch: [x86_64] # Rust doesn't have built in config for 32 bit windows build.
+        arch: [{arch: "x86_64", rust: "x86_64-pc-windows-msvc"}]
         precision: [single, double]
         features: [simd-stable, enhanced-determinism]
 
@@ -26,17 +21,16 @@ jobs:
       - name: Setup MSVC problem matcher
         uses: ammaraskar/msvc-problem-matcher@master
 
-      - name: Build ${{ matrix.target }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+      - name: Build ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/build
         with:
-          sconsflags: ${{ env.SCONSFLAGS }}
-          arch: ${{ matrix.arch }}
+          arch: ${{ matrix.arch.arch }}
+          rust_target: ${{ matrix.arch.rust }}
           platform: windows
-          target: ${{ matrix.target }}
           precision: ${{ matrix.precision }}
           features: ${{ matrix.features }}
 
-      - name: Upload ${{ matrix.target }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+      - name: Upload ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/upload
         with:
           precision: ${{ matrix.precision }}

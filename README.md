@@ -23,6 +23,17 @@
 
 A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engine](https://github.com/godotengine/godot), implemented as a GDExtension.
 
+## Supported Platforms
+
+Curently the Godot Box2d addon builds for:
+
+- Windows (x86_64)
+- macOS (x86-64 + arm64 Universal)
+- Linux (x86_64)
+- Android (x86_64, arm64)
+- iOS (arm64) without signing
+- Web (wasm32)
+
 # Limitations
 
 - One way direction for CharacterBody2D missing.
@@ -31,18 +42,13 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 - Shape skewing missing.
 - Shape Cast Margin isn't supported.
 
-# Build Features
+# Features
 
-## Float Precision
+- Single and double float precision build
+- SIMD (Single instruction, multiple data) build
+- Cross-platform determinism (assuming the rest of your code is also deterministic)
 
-This plugin is built for both single and double precision builds.
-
-## Rapier Features
-
-This package supports the following features of rapier ([more on this here](https://rapier.rs/docs/user_guides/rust/getting_started)):
-
-- simd-stable: enables explicit SIMD optimizations using the wide crate. Has limited cross-platform support but can be used with a stable version of the Rust compiler.
-- enhanced-determinism: enables cross-platform determinism (assuming the rest of your code is also deterministic) across all 32-bit and 64-bit platforms that implements the IEEE 754-2008 standard strictly. This includes most modern processors as well as WASM targets.
+[More on different rapier features](https://rapier.rs/docs/user_guides/rust/getting_started)
 
 # Installation
 
