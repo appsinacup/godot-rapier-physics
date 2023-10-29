@@ -13,6 +13,10 @@ inputs:
     required: false
     default: ''
     description: Rust extra flags.
+  rust_env_flags:
+    required: false
+    default: ''
+    descriptio: RUSTFLAGS env var.
   arch:
     default: ''
     description: Target architecture.
@@ -68,6 +72,8 @@ runs:
         mkdir -p target/release && \
         rm -rf target/release && \
         cp -rf target/${{ inputs.rust_target }}/release target/release
+      env:
+        RUSTFLAGS: ${{ inputs.rust_env_flags }}
     - name: Build Rapier Macos Universal
       shell: sh
       
