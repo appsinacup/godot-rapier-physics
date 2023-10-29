@@ -68,7 +68,6 @@ runs:
         mkdir -p target/release && \
         rm -rf target/release && \
         cp -rf target/${{ inputs.rust_target }}/release target/release && \
-        ls -l target/release
     - name: Build Rapier Macos Universal
       shell: sh
       
