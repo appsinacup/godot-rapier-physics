@@ -38,8 +38,8 @@ jobs:
     name: 🏁 Windows
     needs: static-checks
     uses: ./.github/workflows/windows_builds.yml
-  # Needs nightly toolchain, todo investigate more.
-  #web-build:
-  #  name: 🌐 Web Builds
-  #  needs: static-checks
-  #  uses: ./.github/workflows/web_builds.yml
+
+  web-build:
+    name: 🌐 Web Builds
+    needs: static-checks
+    uses: ./.github/workflows/web_builds.yml
