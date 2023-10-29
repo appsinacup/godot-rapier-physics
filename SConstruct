@@ -9,7 +9,10 @@ if env["dev_build"]:
     lib_folder = "src/rapier2d-wrapper/target/debug"
 else:
     lib_folder = "src/rapier2d-wrapper/target/release"
-
+if env["platform"] == "ios":
+	env.Append(LDFLAGS='-framework Security" -framework Foundation -v')
+	env.Append(LDFLAGS='-l Security" -l Foundation')
+	
 if env["platform"] == "windows":
 	lib_file = "rapier2d_wrapper{}"
 	lib = lib_file.format(env["LIBSUFFIX"])
