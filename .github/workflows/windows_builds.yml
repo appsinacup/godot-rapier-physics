@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [{arch: "x86_64", rust: "x86_64-pc-windows-msvc"}]
+        arch: [{arch: "x86_64", rust: "x86_64-pc-windows-msvc"}, {arch: "x86_32", rust: "i686-pc-windows-msvc"}]
         precision: [single, double]
         features: [simd-stable, enhanced-determinism]
 

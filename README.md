@@ -25,22 +25,11 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 
 ## Supported Platforms
 
-Curently the Godot Box2d addon builds for:
-
-- Windows (x86_64)
+- Windows (x86_64, x86_32)
 - macOS (x86-64 + arm64 Universal)
 - Linux (x86_64)
 - Android (x86_64, arm64)
 - iOS (arm64) without signing
-- Web (wasm32)
-
-# Limitations
-
-- One way direction for CharacterBody2D missing.
-- Static Body Constant Speed for CharacterBody2D and RigidBody2D missing.
-- Spring Joint missing.
-- Shape skewing missing.
-- Shape Cast Margin isn't supported.
 
 # Features
 
@@ -49,6 +38,14 @@ Curently the Godot Box2d addon builds for:
 - Cross-platform determinism (assuming the rest of your code is also deterministic)
 
 [More on different rapier features](https://rapier.rs/docs/user_guides/rust/getting_started)
+
+# Limitations
+
+- One way direction for CharacterBody2D missing.
+- Static Body Constant Speed for CharacterBody2D and RigidBody2D missing.
+- Spring Joint missing.
+- Shape skewing missing.
+- Shape Cast Margin isn't supported.
 
 # Installation
 
