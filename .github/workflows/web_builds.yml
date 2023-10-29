@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [{arch: "wasm32", rust: "wasm32-unknown-emscripten"}]
+        arch: [{arch: "wasm32", rust: "wasm32-unknown-emscripten", rust_extra_flags: "-Z build-std=panic_abort,std"}]
         precision: [single, double]
         features: [simd-stable, enhanced-determinism]
 
@@ -33,13 +33,13 @@ jobs:
         run: |
           rustup toolchain install nightly
           rustup override set nightly
-          cargo build --target wasm32-unknown-unknown -Z build-std=panic_abort,std
 
       - name: Build ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/build
         with:
           arch: ${{ matrix.arch.arch }}
           rust_target: ${{ matrix.arch.rust }}
+          rust_extra_flags: ${{ matrix.arch.rust_extra_flags }}
           platform: web
           precision: ${{ matrix.precision }}
           features: ${{ matrix.features }},wasm-bindgen
