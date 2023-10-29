@@ -29,6 +29,12 @@ jobs:
         run: |
           emcc -v
 
+      - name: Rust Install Nightly
+        run: |
+          rustup toolchain install nightly
+          rustup override set nightly
+          cargo build --target wasm32-unknown-unknown -Z build-std=panic_abort,std
+
       - name: Build ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/build
         with:
