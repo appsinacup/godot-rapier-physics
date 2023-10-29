@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [{arch: "x86_64", rust: "x86_64-unknown-linux-gnu"}]
+        arch: [{arch: "x86_64", rust: "x86_64-unknown-linux-gnu"}, {arch: "x86_32", rust: "i686-unknown-linux-gnu"}, {arch: "arm64", rust: "aarch64-unknown-linux-gnu"}]
         precision: [single, double]
         features: [simd-stable, enhanced-determinism]
 
