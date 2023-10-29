@@ -12,9 +12,6 @@ inputs:
   arch:
     default: ''
     description: Target architecture.
-  target:
-    required: true
-    description: Build target (editor, template_release, template_debug).
   sconsflags:
     required: true
     description: Extra flags
@@ -34,7 +31,7 @@ runs:
         path: |
           ${{ github.workspace }}/.scons-cache/
           ${{ github.workspace }}/godot-cpp/.scons-cache/
-        key: ${{ inputs.platform }}_${{ inputs.arch }}_${{ inputs.target }}_${{ inputs.precision }}_cache
+        key: ${{ inputs.platform }}_${{ inputs.arch }}_${{ inputs.precision }}_cache
     - uses: paulhatch/semantic-version@v5.3.0
       id: version
       with:
@@ -59,7 +56,8 @@ runs:
         SCONS_CACHE_DIR: .scons-cache
       run: |
         cd godot-cpp && \
-        scons target=${{ inputs.target }} platform=${{ inputs.platform }} arch=${{ inputs.arch }} generate_bindings=yes ${{ inputs.sconsflags }} precision=${{ inputs.precision }}
+        scons target=template_debug platform=${{ inputs.platform }} arch=${{ inputs.arch }} generate_bindings=yes ${{ inputs.sconsflags }} precision=${{ inputs.precision }} && \
+        scons target=template_release platform=${{ inputs.platform }} arch=${{ inputs.arch }} generate_bindings=yes ${{ inputs.sconsflags }} precision=${{ inputs.precision }}
     - name: Build Rapier
       shell: sh
       run: |
@@ -85,4 +83,5 @@ runs:
         SCONS_CACHE: .scons-cache
         SCONS_CACHE_DIR: .scons-cache
       run: |
-        scons target=${{ inputs.target }} platform=${{ inputs.platform }} arch=${{ inputs.arch }} generate_bindings=no ${{ inputs.sconsflags }} precision=${{ inputs.precision }}
+        scons target=template_debug platform=${{ inputs.platform }} arch=${{ inputs.arch }} generate_bindings=no ${{ inputs.sconsflags }} precision=${{ inputs.precision }}
+        scons target=template_release platform=${{ inputs.platform }} arch=${{ inputs.arch }} generate_bindings=no ${{ inputs.sconsflags }} precision=${{ inputs.precision }}

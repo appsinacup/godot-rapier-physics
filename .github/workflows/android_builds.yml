@@ -9,12 +9,11 @@ env:
 jobs:
   android:
     runs-on: "ubuntu-20.04"
-    name: ${{ matrix.target }} ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+    name: ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
     strategy:
       fail-fast: false
       matrix:
-        target: [template_debug, template_release]
-        arch: [{arch: "x86_64", rust: "x86_64-linux-android"}, {arch: "arm64",rust: "aarch64-linux-android"}]
+        arch: [{arch: "x86_64", rust: "x86_64-linux-android"}, {arch: "x86_32", rust: "i686-linux-android"}, {arch: "arm64",rust: "aarch64-linux-android"}, {arch: "arm32",rust: "armv7-linux-androideabi"}]
         precision: [single, double]
         features: [simd-stable, enhanced-determinism]
 

@@ -9,11 +9,10 @@ env:
 jobs:
   build-windows:
     runs-on: "windows-latest"
-    name: ${{ matrix.target }} ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+    name: ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
     strategy:
       fail-fast: false
       matrix:
-        target: [template_debug, template_release]
         arch: [{arch: "x86_64", rust: "x86_64-pc-windows-msvc"}]
         precision: [single, double]
         features: [simd-stable, enhanced-determinism]

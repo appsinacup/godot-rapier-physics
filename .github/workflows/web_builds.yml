@@ -11,11 +11,10 @@ env:
 jobs:
   web:
     runs-on: ubuntu-20.04
-    name: ${{ matrix.target }} ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+    name: ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
     strategy:
       fail-fast: false
       matrix:
-        target: [template_debug, template_release]
         arch: [{arch: "wasm32", rust: "wasm32-unknown-emscripten"}]
         precision: [single, double]
         features: [simd-stable, enhanced-determinism]

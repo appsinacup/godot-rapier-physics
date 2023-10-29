@@ -9,11 +9,10 @@ env:
 jobs:
   ios:
     runs-on: "macos-latest"
-    name: ${{ matrix.target }} ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+    name: ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
     strategy:
       fail-fast: false
       matrix:
-        target: [template_debug, template_release]
         arch: [{arch: "arm64", rust: "aarch64-apple-ios"}]
         precision: [single, double]
         features: [simd-stable, enhanced-determinism]

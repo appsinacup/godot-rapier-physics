@@ -10,11 +10,10 @@ env:
 jobs:
   macos:
     runs-on: "macos-latest"
-    name: ${{ matrix.target }} ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+    name: ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
     strategy:
       fail-fast: false
       matrix:
-        target: [template_debug, template_release]
         arch:  [{arch: "universal", rust: "x86_64-apple-darwin"}]
         precision: [single, double]
         features: [simd-stable, enhanced-determinism]
