@@ -24,18 +24,17 @@ jobs:
           submodules: true
           fetch-depth: 0
     
-      - name: Build ${{ matrix.target }} ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+      - name: Build {{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/build
         with:
           sconsflags: ${{ env.SCONSFLAGS }}
           arch: ${{ matrix.arch.arch }}
           rust_target: ${{ matrix.arch.rust }}
           platform: macos
-          target: ${{ matrix.target }}
           precision: ${{ matrix.precision }}
           features: ${{ matrix.features }}
       
-      - name: Sign frameworks ${{ matrix.target }} ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+      - name: Sign frameworks ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         shell: pwsh
         env:
           APPLE_CERT_BASE64: ${{ secrets.PROD_MACOS_CERTIFICATE }}
@@ -44,10 +43,12 @@ jobs:
           APPLE_DEV_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
           APPLE_DEV_PASSWORD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
           APPLE_DEV_APP_ID: ${{ secrets.PROD_MACOS_APPLE_DEV_APP_ID }}
-        run: ./scripts/ci-sign-macos.ps1 bin/addons/godot-rapier2d/bin/libphysics_server_rapier2d.macos.${{ matrix.target }}.framework
+        run: |
+          ./scripts/ci-sign-macos.ps1 bin/addons/godot-rapier2d/bin/libphysics_server_rapier2d.macos.template_debug.framework
+          ./scripts/ci-sign-macos.ps1 bin/addons/godot-rapier2d/bin/libphysics_server_rapier2d.macos.template_release.framework
         if: ${{ env.APPLE_DEV_ID }}
 
-      - name: Upload ${{ matrix.target }} ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+      - name: Upload {{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/upload
         with:
           precision: ${{ matrix.precision }}
