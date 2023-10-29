@@ -12,9 +12,6 @@ inputs:
   arch:
     default: ''
     description: Target architecture.
-  sconsflags:
-    required: true
-    description: Extra flags
   precision:
     required: true
     description: single or double
@@ -56,8 +53,8 @@ runs:
         SCONS_CACHE_DIR: .scons-cache
       run: |
         cd godot-cpp && \
-        scons target=template_debug platform=${{ inputs.platform }} arch=${{ inputs.arch }} generate_bindings=yes ${{ inputs.sconsflags }} precision=${{ inputs.precision }} && \
-        scons target=template_release platform=${{ inputs.platform }} arch=${{ inputs.arch }} generate_bindings=yes ${{ inputs.sconsflags }} precision=${{ inputs.precision }}
+        scons target=template_debug platform=${{ inputs.platform }} arch=${{ inputs.arch }} generate_bindings=yes precision=${{ inputs.precision }} && \
+        scons target=template_release platform=${{ inputs.platform }} arch=${{ inputs.arch }} generate_bindings=yes precision=${{ inputs.precision }}
     - name: Build Rapier
       shell: sh
       run: |
@@ -83,5 +80,5 @@ runs:
         SCONS_CACHE: .scons-cache
         SCONS_CACHE_DIR: .scons-cache
       run: |
-        scons target=template_debug platform=${{ inputs.platform }} arch=${{ inputs.arch }} generate_bindings=no ${{ inputs.sconsflags }} precision=${{ inputs.precision }}
-        scons target=template_release platform=${{ inputs.platform }} arch=${{ inputs.arch }} generate_bindings=no ${{ inputs.sconsflags }} precision=${{ inputs.precision }}
+        scons target=template_debug platform=${{ inputs.platform }} arch=${{ inputs.arch }} generate_bindings=no precision=${{ inputs.precision }}
+        scons target=template_release platform=${{ inputs.platform }} arch=${{ inputs.arch }} generate_bindings=no precision=${{ inputs.precision }}

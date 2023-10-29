@@ -2,10 +2,6 @@ name: 🐧 Linux Builds
 on:
   workflow_call:
 
-# Global Settings
-env:
-  SCONSFLAGS: verbose=yes warnings=extra werror=yes
-
 jobs:
   linux:
     runs-on: ubuntu-20.04
@@ -26,7 +22,6 @@ jobs:
       - name: Build ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/build
         with:
-          sconsflags: ${{ env.SCONSFLAGS }}
           arch: ${{ matrix.arch.arch }}
           rust_target: ${{ matrix.arch.rust }}
           platform: linux
