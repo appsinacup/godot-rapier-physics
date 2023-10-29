@@ -22,7 +22,7 @@ jobs:
       - name: Set up Emscripten latest
         uses: mymindstorm/setup-emsdk@v12
         with:
-          version: ${{env.EM_VERSION}}
+          version: 3.1.45
           actions-cache-folder: ${{ inputs.features }}_${{ inputs.precision }}_${{env.EM_CACHE_FOLDER}}
 
       - name: Verify Emscripten setup
