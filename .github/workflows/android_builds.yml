@@ -10,7 +10,7 @@ jobs:
       fail-fast: false
       matrix:
         arch: [{arch: "x86_64", rust: "x86_64-linux-android"}, {arch: "arm64",rust: "aarch64-linux-android"}]
-        precision: [single]
+        precision: [single, double]
         features: [simd-stable, enhanced-determinism]
 
     steps:
