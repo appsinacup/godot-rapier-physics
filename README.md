@@ -23,21 +23,14 @@
 
 A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engine](https://github.com/godotengine/godot), implemented as a GDExtension.
 
-## Supported Platforms
+## Table of Contents
 
-- Windows (x86_64, x86_32)
-- macOS (x86-64 + arm64 Universal)
-- Linux (x86_64)
-- Android (x86_64, arm64)
-- iOS (arm64) without signing
-
-# Features
-
-- Single and double float precision build
-- SIMD (Single instruction, multiple data) build
-- Cross-platform determinism (assuming the rest of your code is also deterministic)
-
-[More on different rapier features](https://rapier.rs/docs/user_guides/rust/getting_started)
+1. [Limitations](#limitations)
+2. [Supported Platforms](#supported-platforms)
+3. [Installation](#installation)
+4. [Features](#features)
+5. [Comparison](#comparison)
+6. [License](#license)
 
 # Limitations
 
@@ -46,6 +39,14 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 - Spring Joint missing.
 - Shape skewing missing.
 - Shape Cast Margin isn't supported.
+
+# Supported Platforms
+
+- Windows (x86_64, x86_32)
+- macOS (x86-64 + arm64 Universal)
+- Linux (x86_64)
+- Android (x86_64, arm64)
+- iOS (arm64) without signing
 
 # Installation
 
@@ -56,6 +57,27 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 - Build it yourself. Read more about it in the [documentation](DOCUMENTATION.md).
 
 After installing, go to `Advanced Settings` -> `Physics` -> `2D`. Change `Physics Engine` to `Rapier2D`.
+
+Video Tutorial:
+
+[![Tutorial](https://img.youtube.com/vi/KgKWAZ49T9E/0.jpg)](https://www.youtube.com/watch?v=KgKWAZ49T9E)
+
+# Features
+
+- Single and double float precision build
+- SIMD (Single instruction, multiple data) build
+- Cross-platform determinism (assuming the rest of your code is also deterministic)
+
+[More on different rapier features](https://rapier.rs/docs/user_guides/rust/getting_started)
+
+# Comparison
+
+Watch a comparison to Godot Physics 2D and [Box2D](https://github.com/appsinacup/godot-box-2d) physics plugin:
+
+[![Comparison](https://img.youtube.com/vi/wgUiZ7E19eM/0.jpg)](https://www.youtube.com/watch?v=wgUiZ7E19eM)
+
+Or read about it on [appsinacup.com/godot-physics-vs-box2d-vs-rapier2d](https://appsinacup.com/godot-physics-vs-box2d-vs-rapier2d/)
+
 
 # Roadmap
 

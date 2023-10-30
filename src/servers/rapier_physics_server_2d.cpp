@@ -1238,20 +1238,16 @@ void RapierPhysicsServer2D::_step(double p_step) {
 
 	++frame;
 
+	island_count = 0;
+	active_objects = 0;
+	collision_pairs = 0;
 	for (auto const &iterator : active_spaces) {
 		RapierSpace2D *space = iterator.value;
 		space->step(p_step);
+		island_count += space->get_island_count();
+		active_objects += space->get_active_objects();
+		collision_pairs += space->get_collision_pairs();
 	}
-
-	// island_count = 0;
-	// active_objects = 0;
-	// collision_pairs = 0;
-	// for (const RapierSpace2D *space : active_spaces) {
-	// 	stepper->step(space, p_step);
-	// 	island_count += space->get_island_count();
-	// 	active_objects += space->get_active_objects();
-	// 	collision_pairs += space->get_collision_pairs();
-	// }
 }
 
 void RapierPhysicsServer2D::_sync() {

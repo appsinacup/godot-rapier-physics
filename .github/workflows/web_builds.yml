@@ -43,7 +43,7 @@ jobs:
           rust_extra_flags: ${{ matrix.arch.rust_extra_flags }}
           platform: web
           precision: ${{ matrix.precision }}
-          features: ${{ matrix.features }},wasm-bindgen
+          features: ${{ matrix.features }}
           rust_env_flags: "-C target-feature=+atomics,+bulk-memory"
 
       - name: Upload ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}

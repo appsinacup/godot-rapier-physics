@@ -534,3 +534,10 @@ pub extern "C" fn world_set_contact_point_callback(world_handle : Handle, callba
 	let physics_world = physics_engine.get_world(world_handle);
 	physics_world.contact_point_callback = callback;
 }
+
+#[no_mangle]
+pub extern "C" fn world_get_active_objects_count(world_handle : Handle) -> usize {
+	let mut physics_engine = SINGLETON.lock().unwrap();
+	let physics_world = physics_engine.get_world(world_handle);
+	return physics_world.island_manager.active_dynamic_bodies().len();
+}

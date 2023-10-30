@@ -463,6 +463,8 @@ Handle world_create(const WorldSettings *settings);
 
 void world_destroy(Handle world_handle);
 
+size_t world_get_active_objects_count(Handle world_handle);
+
 void world_set_active_body_callback(Handle world_handle, ActiveBodyCallback callback);
 
 void world_set_body_collision_filter_callback(Handle world_handle,
