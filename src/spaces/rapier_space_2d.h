@@ -148,7 +148,6 @@ public:
 	void set_island_count(int p_island_count) { island_count = p_island_count; }
 	int get_island_count() const { return island_count; }
 
-	void set_active_objects(int p_active_objects) { active_objects = p_active_objects; }
 	int get_active_objects() const { return active_objects; }
 
 	int get_collision_pairs() const { return collision_pairs; }

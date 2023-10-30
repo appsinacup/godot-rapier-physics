@@ -453,6 +453,7 @@ void RapierSpace2D::step(real_t p_step) {
 		body_iterator = body_iterator->next();
 		body->on_update_active();
 	}
+	active_objects = rapier2d::world_get_active_objects_count(handle);
 }
 
 // Returns true to ignore the collider
