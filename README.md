@@ -9,7 +9,7 @@
     <a href="https://github.com/dimforge/rapier/releases/tag/v0.17.2" alt="Rapier2D Version">
         <img src="https://img.shields.io/badge/Rapier2D-v0.17.2-%23478cbf?logoColor=white" /></a>
     <a href="https://github.com/godotengine/godot-cpp" alt="Godot Version">
-        <img src="https://img.shields.io/badge/Godot-v4.1-%23478cbf?logo=godot-engine&logoColor=white" /></a>
+        <img src="https://img.shields.io/badge/Godot-v4.2-%23478cbf?logo=godot-engine&logoColor=white" /></a>
     <a href="https://github.com/appsinacup/godot-rapier2d/graphs/contributors" alt="Contributors">
         <img src="https://img.shields.io/github/contributors/appsinacup/godot-rapier2d" /></a>
     <a href="https://github.com/appsinacup/godot-rapier2d/pulse" alt="Activity">
@@ -38,7 +38,8 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 - Static Body Constant Speed for CharacterBody2D and RigidBody2D missing.
 - Spring Joint missing.
 - Shape skewing missing.
-- Shape Cast Margin isn't supported.
+- Shape Cast Margin is missing.
+- Warmstart missing (affects boxes stackability)
 
 # Supported Platforms
 
@@ -46,7 +47,8 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 - macOS (x86-64 + arm64 Universal)
 - Linux (x86_64)
 - Android (x86_64, arm64)
-- iOS (arm64) without signing
+- iOS (arm64)
+- Web (wasm32)
 
 # Installation
 
@@ -64,11 +66,9 @@ Video Tutorial:
 
 # Features
 
-- Single and double float precision build
-- SIMD (Single instruction, multiple data) build
-- Cross-platform determinism (assuming the rest of your code is also deterministic)
-
-[More on different rapier features](https://rapier.rs/docs/user_guides/rust/getting_started)
+- Single and Double float precision build.
+- SIMD (Single instruction, multiple data) build.
+- Cross-platform determinism build.
 
 # Comparison
 
