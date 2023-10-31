@@ -15,6 +15,8 @@ public:
 
 	//virtual void apply_rapier_transform(rapier2d::Vector &position, real_t &angle) const override;
 
+	virtual bool allows_one_way_collision() const override { return false; }
+
 	virtual void set_data(const Variant &p_data) override;
 	virtual Variant get_data() const override;
 

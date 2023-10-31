@@ -58,27 +58,27 @@ bool RapierBodyUtils2D::body_motion_recover(
 				Transform2D const &col_shape_transform = collision_body->get_transform() * collision_body->get_shape_transform(shape_index);
 				rapier2d::ShapeInfo col_shape_info = rapier2d::shape_info_from_body_shape(col_shape->get_rapier_shape(), col_shape_transform);
 
-				/*
-				if (body_shape->allows_one_way_collision() && col_obj->is_shape_set_as_one_way_collision(shape_idx)) {
-					cbk.valid_dir = col_obj_shape_xform.columns[1].normalized();
+				real_t valid_depth = p_margin;
+				Vector2 valid_dir;
+				if (body_shape->allows_one_way_collision() && collision_body->is_shape_set_as_one_way_collision(shape_index)) {
+					valid_dir = col_shape_transform.columns[1].normalized();
 
-					real_t owc_margin = col_obj->get_shape_one_way_collision_margin(shape_idx);
-					cbk.valid_depth = MAX(owc_margin, margin); //user specified, but never less than actual margin or it won't work
-					cbk.invalid_by_dir = 0;
+					real_t owc_margin = collision_body->get_shape_one_way_collision_margin(shape_index);
+					valid_depth = MAX(owc_margin, p_margin); //user specified, but never less than actual margin or it won't work
 
-					if (col_obj->get_type() == GodotCollisionObject2D::TYPE_BODY) {
-						const GodotBody2D *b = static_cast<const GodotBody2D *>(col_obj);
+					if (collision_body->get_type() == RapierCollisionObject2D::TYPE_BODY) {
+						const RapierBody2D *b = static_cast<const RapierBody2D *>(collision_body);
 						if (b->get_mode() == PhysicsServer2D::BODY_MODE_KINEMATIC || b->get_mode() == PhysicsServer2D::BODY_MODE_RIGID) {
 							//fix for moving platforms (kinematic and dynamic), margin is increased by how much it moved in the given direction
 							Vector2 lv = b->get_linear_velocity();
 							//compute displacement from linear velocity
-							Vector2 motion = lv * last_step;
+							Vector2 motion = lv * p_space.get_last_step();
 							real_t motion_len = motion.length();
 							motion.normalize();
-							cbk.valid_depth += motion_len * MAX(motion.dot(-cbk.valid_dir), 0.0);
+							valid_depth += motion_len * MAX(motion.dot(-valid_dir), 0.0);
 						}
 					}
-				}*/
+				}
 
 				rapier2d::ContactResult contact = rapier2d::shapes_contact(p_space.get_handle(), body_shape_info, col_shape_info, p_margin);
 
@@ -86,10 +86,21 @@ bool RapierBodyUtils2D::body_motion_recover(
 					continue;
 				}
 
-				recovered = true;
-
 				Vector2 a(contact.point1.x, contact.point1.y);
 				Vector2 b(contact.point2.x, contact.point2.y);
+
+				Vector2 rel_dir = (a - b);
+				real_t rel_length2 = rel_dir.length_squared();
+				if (valid_dir != Vector2()) {
+					if (valid_depth < 10e20) {
+						if (rel_length2 > valid_depth * valid_depth ||
+								(rel_length2 > CMP_EPSILON && valid_dir.dot(rel_dir.normalized()) < CMP_EPSILON)) {
+							continue;
+						}
+					}
+				}
+
+				recovered = true;
 
 				// Compute plane on b towards a.
 				Vector2 n = Vector2(contact.normal1.x, contact.normal1.y);
