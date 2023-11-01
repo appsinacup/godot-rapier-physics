@@ -34,10 +34,9 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 
 # Limitations
 
-- Spring Joint missing.
-- Shape skewing missing.
-- Shape Cast Margin is missing.
-- Warmstart missing (affects boxes stackability)
+- SeparationRay2D missing.
+- DampedSpringJoint2D missing.
+- Shape skew missing.
 
 # Supported Platforms
 
