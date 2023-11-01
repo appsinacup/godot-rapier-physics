@@ -178,6 +178,9 @@ using ContactPointCallback = bool (*)(Handle world_handle,
 struct OneWayDirection {
 	bool body1;
 	bool body2;
+	Real body1_margin;
+	Real body2_margin;
+	Real last_timestep;
 };
 
 using CollisionModifyContactsCallback = OneWayDirection (*)(Handle world_handle,

@@ -122,56 +122,6 @@ double RapierPhysicsServer2D::_shape_get_custom_solver_bias(const RID &p_shape) 
 	return 0.0;
 }
 
-void RapierPhysicsServer2D::_shape_col_cbk(const Vector2 &p_point_A, const Vector2 &p_point_B, void *p_userdata) {
-	CollCbkData *cbk = static_cast<CollCbkData *>(p_userdata);
-
-	if (cbk->max == 0) {
-		return;
-	}
-
-	Vector2 rel_dir = (p_point_A - p_point_B);
-	real_t rel_length2 = rel_dir.length_squared();
-	if (cbk->valid_dir != Vector2()) {
-		if (cbk->valid_depth < 10e20) {
-			if (rel_length2 > cbk->valid_depth * cbk->valid_depth ||
-					(rel_length2 > CMP_EPSILON && cbk->valid_dir.dot(rel_dir.normalized()) < CMP_EPSILON)) {
-				cbk->invalid_by_dir++;
-				return;
-			}
-		} else {
-			if (rel_length2 > 0 && cbk->valid_dir.dot(rel_dir.normalized()) < CMP_EPSILON) {
-				return;
-			}
-		}
-	}
-
-	if (cbk->amount == cbk->max) {
-		//find least deep
-		real_t min_depth = 1e20;
-		int min_depth_idx = 0;
-		for (int i = 0; i < cbk->amount; i++) {
-			real_t d = cbk->ptr[i * 2 + 0].distance_squared_to(cbk->ptr[i * 2 + 1]);
-			if (d < min_depth) {
-				min_depth = d;
-				min_depth_idx = i;
-			}
-		}
-
-		if (rel_length2 < min_depth) {
-			return;
-		}
-		cbk->ptr[min_depth_idx * 2 + 0] = p_point_A;
-		cbk->ptr[min_depth_idx * 2 + 1] = p_point_B;
-		cbk->passed++;
-
-	} else {
-		cbk->ptr[cbk->amount * 2 + 0] = p_point_A;
-		cbk->ptr[cbk->amount * 2 + 1] = p_point_B;
-		cbk->amount++;
-		cbk->passed++;
-	}
-}
-
 bool RapierPhysicsServer2D::_shape_collide(const RID &p_shape_A, const Transform2D &p_xform_A, const Vector2 &p_motion_A, const RID &p_shape_B, const Transform2D &p_xform_B, const Vector2 &p_motion_B, void *r_results, int32_t p_result_max, int32_t *p_result_count) {
 	RapierShape2D *shape_A = shape_owner.get_or_null(p_shape_A);
 	ERR_FAIL_COND_V(!shape_A, false);

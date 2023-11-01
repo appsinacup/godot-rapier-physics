@@ -42,6 +42,8 @@ public:
 
 	virtual void apply_rapier_transform(rapier2d::Vector &position, real_t &angle) const {}
 
+	virtual bool allows_one_way_collision() const { return true; }
+
 	rapier2d::Handle get_rapier_shape();
 
 	_FORCE_INLINE_ Rect2 get_aabb(Vector2 origin = Vector2()) const {
