@@ -54,6 +54,10 @@ class RapierBody2D : public RapierCollisionObject2D {
 	real_t angular_velocity = 0.0;
 	real_t constant_torque = 0.0;
 
+	// Add this after body intersected with static body
+	real_t to_add_angular_velocity = 0.0;
+	Vector2 to_add_linear_velocity;
+
 	bool sleep = false;
 
 	void _mass_properties_changed();
@@ -121,6 +125,8 @@ protected:
 	virtual void _init_collider(rapier2d::Handle collider_handle) const override;
 
 public:
+	_FORCE_INLINE_ void to_add_static_constant_linear_velocity(const Vector2 &linear_velocity) { to_add_linear_velocity = linear_velocity; }
+	_FORCE_INLINE_ void to_add_static_constant_angular_velocity(const real_t &angular_velocity) { to_add_angular_velocity = angular_velocity; }
 	void set_linear_velocity(const Vector2 &linear_velocity);
 	Vector2 get_linear_velocity() const;
 	Vector2 get_static_linear_velocity() const;
