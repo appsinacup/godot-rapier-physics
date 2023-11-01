@@ -670,6 +670,9 @@ RapierSpace2D::~RapierSpace2D() {
 }
 
 bool RapierSpace2D::test_body_motion(RapierBody2D *p_body, const Transform2D &p_from, const Vector2 &p_motion, double p_margin, bool p_collide_separation_ray, bool p_recovery_as_collision, PhysicsServer2DExtensionMotionResult *r_result) const {
+	if (r_result) {
+		r_result->travel = Vector2();
+	}
 	Transform2D body_transform = p_from; // Because body_transform needs to be modified during recovery
 	// Step 1: recover motion.
 	// Expand the body colliders by the margin (grow) and check if now it collides with a collider,
@@ -702,12 +705,12 @@ bool RapierSpace2D::test_body_motion(RapierBody2D *p_body, const Transform2D &p_
 
 	if (r_result) {
 		if (collided) {
-			r_result->travel = recover_motion + p_motion * best_safe;
+			r_result->travel += recover_motion + p_motion * best_safe;
 			r_result->remainder = p_motion - p_motion * best_safe;
 			r_result->collision_safe_fraction = best_safe;
 			r_result->collision_unsafe_fraction = best_unsafe;
 		} else {
-			r_result->travel = recover_motion + p_motion;
+			r_result->travel += recover_motion + p_motion;
 			r_result->remainder = Vector2();
 			r_result->collision_depth = 0.0f;
 			r_result->collision_safe_fraction = 1.0f;

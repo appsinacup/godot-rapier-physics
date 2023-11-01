@@ -333,8 +333,11 @@ bool RapierBodyUtils2D::body_motion_collide(const RapierSpace2D &p_space, Rapier
 			}
 		}
 	}
-
 	if (best_collision_body) {
+		// conveyer belt
+		if (best_collision_body->get_static_linear_velocity() != Vector2()) {
+			p_result->travel += best_collision_body->get_static_linear_velocity() * p_space.get_last_step();
+		}
 		if (p_result) {
 			p_result->collider = best_collision_body->get_rid();
 			p_result->collider_id = best_collision_body->get_instance_id();
