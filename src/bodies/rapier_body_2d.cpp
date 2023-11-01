@@ -178,6 +178,16 @@ void RapierBody2D::on_update_active() {
 	if (!direct_state_query_list.in_list()) {
 		get_space()->body_add_to_state_query_list(&direct_state_query_list);
 	}
+	if (mode >= PhysicsServer2D::BODY_MODE_RIGID) {
+		if (to_add_angular_velocity != 0.0) {
+			set_angular_velocity(to_add_angular_velocity);
+			to_add_angular_velocity = 0.0;
+		}
+		if (to_add_linear_velocity != Vector2()) {
+			set_linear_velocity(to_add_linear_velocity);
+			to_add_linear_velocity = Vector2();
+		}
+	}
 }
 
 void RapierBody2D::set_param(PhysicsServer2D::BodyParameter p_param, const Variant &p_value) {
@@ -535,19 +545,19 @@ void RapierBody2D::set_space(RapierSpace2D *p_space) {
 				}
 
 				_mass_properties_changed();
-				if (!linear_velocity.is_zero_approx()) {
+				if (linear_velocity != Vector2()) {
 					set_linear_velocity(linear_velocity);
 				}
 				if (angular_velocity != 0.0) {
 					set_angular_velocity(angular_velocity);
 				}
-				if (!constant_force.is_zero_approx()) {
+				if (constant_force != Vector2()) {
 					set_constant_force(constant_force);
 				}
 				if (constant_torque != 0.0) {
 					set_constant_torque(constant_torque);
 				}
-				if (!impulse.is_zero_approx()) {
+				if (impulse != Vector2()) {
 					apply_impulse(impulse);
 				}
 				if (torque != 0.0) {

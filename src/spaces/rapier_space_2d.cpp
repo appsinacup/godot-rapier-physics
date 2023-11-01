@@ -145,19 +145,18 @@ rapier2d::OneWayDirection RapierSpace2D::collision_modify_contacts_callback(rapi
 		if (collision_object_1->get_type() == RapierCollisionObject2D::TYPE_BODY && collision_object_2->get_type() == RapierCollisionObject2D::TYPE_BODY) {
 			RapierBody2D *body1 = static_cast<RapierBody2D *>(collision_object_1);
 			RapierBody2D *body2 = static_cast<RapierBody2D *>(collision_object_2);
-			if (!body1->get_static_linear_velocity().is_zero_approx()) {
-				//body2->apply_central_impulse(body1->get_static_linear_velocity());
-				//body2->apply_central_impulse(Vector2(100,0));
+			if (body1->get_static_linear_velocity() != Vector2()) {
+				body2->to_add_static_constant_linear_velocity(body1->get_static_linear_velocity());
 			}
-			if (!body2->get_static_linear_velocity().is_zero_approx()) {
-				//body1->apply_central_impulse(body2->get_static_linear_velocity());
+			if (body2->get_static_linear_velocity() != Vector2()) {
+				body1->to_add_static_constant_linear_velocity(body2->get_static_linear_velocity());
 			}
-			//body2->set_angular_velocity(body2->get_angular_velocity() + body1->get_static_angular_velocity());
-			//if (body2->is_static()) {
-			// TODO figure out when to set this.
-			//body1->set_linear_velocity(body1->get_linear_velocity() + body2->get_static_linear_velocity());
-			//body1->set_angular_velocity(body1->get_angular_velocity() + body2->get_static_angular_velocity());
-			//}
+			if (body1->get_static_angular_velocity() != 0.0) {
+				body2->to_add_static_constant_angular_velocity(body1->get_static_angular_velocity());
+			}
+			if (body2->get_static_angular_velocity() != 0.0) {
+				body1->to_add_static_constant_angular_velocity(body2->get_static_angular_velocity());
+			}
 		}
 	}
 

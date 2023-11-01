@@ -34,7 +34,6 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 
 # Limitations
 
-- Static Body Constant Speed for CharacterBody2D and RigidBody2D missing.
 - Spring Joint missing.
 - Shape skewing missing.
 - Shape Cast Margin is missing.
