@@ -122,6 +122,7 @@ rapier2d::OneWayDirection RapierSpace2D::collision_modify_contacts_callback(rapi
 
 	RapierSpace2D *space = RapierPhysicsServer2D::singleton->get_active_space(world_handle);
 	ERR_FAIL_COND_V(!space, result);
+	result.last_timestep = space->get_last_step();
 
 	RapierCollisionObject2D *collision_object_1;
 	RapierCollisionObject2D *collision_object_2;
@@ -138,7 +139,9 @@ rapier2d::OneWayDirection RapierSpace2D::collision_modify_contacts_callback(rapi
 	ERR_FAIL_COND_V(!collision_object_2, result);
 	if (collision_object_1->interacts_with(collision_object_2)) {
 		result.body1 = collision_object_1->is_shape_set_as_one_way_collision(shape1);
+		result.body1_margin = collision_object_1->get_shape_one_way_collision_margin(shape1);
 		result.body2 = collision_object_2->is_shape_set_as_one_way_collision(shape2);
+		result.body2_margin = collision_object_1->get_shape_one_way_collision_margin(shape2);
 		if (collision_object_1->get_type() == RapierCollisionObject2D::TYPE_BODY && collision_object_2->get_type() == RapierCollisionObject2D::TYPE_BODY) {
 			RapierBody2D *body1 = static_cast<RapierBody2D *>(collision_object_1);
 			RapierBody2D *body2 = static_cast<RapierBody2D *>(collision_object_2);
@@ -675,13 +678,13 @@ bool RapierSpace2D::test_body_motion(RapierBody2D *p_body, const Transform2D &p_
 	Vector2 recover_motion;
 	real_t margin = MAX(p_margin, TEST_MOTION_MARGIN_MIN_VALUE);
 
-	bool recovered = RapierBodyUtils2D::body_motion_recover(*this, *p_body, body_transform, margin, recover_motion);
+	bool recovered = RapierBodyUtils2D::body_motion_recover(*this, *p_body, body_transform, p_motion, margin, recover_motion);
 	// Step 2: Cast motion.
 	// Try to to find what is the possible motion (how far it can move, it's a shapecast, when you try to find the safe point (max you can move without collision ))
 	real_t best_safe = 1.0;
 	real_t best_unsafe = 1.0;
 	int best_body_shape = -1;
-	RapierBodyUtils2D::cast_motion(*this, *p_body, body_transform, p_motion, margin, best_safe, best_unsafe, best_body_shape);
+	RapierBodyUtils2D::cast_motion(*this, *p_body, body_transform, p_motion, p_collide_separation_ray, contact_max_allowed_penetration, margin, best_safe, best_unsafe, best_body_shape);
 
 	// Step 3: Rest Info
 	// Apply the motion and fill the collision information

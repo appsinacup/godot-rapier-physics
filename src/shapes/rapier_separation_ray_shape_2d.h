@@ -15,6 +15,7 @@ public:
 
 	//virtual void apply_rapier_transform(rapier2d::Vector &position, real_t &angle) const override;
 
+	_FORCE_INLINE_ bool get_slide_on_slope() const { return slide_on_slope; }
 	virtual bool allows_one_way_collision() const override { return false; }
 
 	virtual void set_data(const Variant &p_data) override;

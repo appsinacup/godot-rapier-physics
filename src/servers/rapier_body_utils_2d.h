@@ -14,30 +14,14 @@ class RapierShape2D;
 class RapierBodyUtils2D {
 public:
 	static bool body_motion_recover(
-			const RapierSpace2D &p_space,
-			RapierBody2D &p_body,
-			Transform2D &p_transform,
-			real_t p_margin,
-			Vector2 &p_recover_motion);
+			const RapierSpace2D &p_space, RapierBody2D &p_body, Transform2D &p_transform, const Vector2 &p_motion, real_t p_margin, Vector2 &p_recover_motion);
 
-	static void cast_motion(
-			const RapierSpace2D &p_space,
-			RapierBody2D &p_body,
-			const Transform2D &p_transform,
-			const Vector2 &p_motion,
-			real_t p_margin,
-			real_t &p_closest_safe,
-			real_t &p_closest_unsafe,
-			int &p_best_body_shape);
+	static void cast_motion(const RapierSpace2D &p_space, RapierBody2D &p_body, const Transform2D &p_transform, const Vector2 &p_motion,
+			bool p_collide_separation_ray, real_t contact_max_allowed_penetration, real_t p_margin, real_t &p_closest_safe,
+			real_t &p_closest_unsafe, int &p_best_body_shape);
 
-	static bool body_motion_collide(
-			const RapierSpace2D &p_space,
-			RapierBody2D &p_body,
-			const Transform2D &p_transform,
-			const Vector2 &p_motion,
-			int p_best_body_shape,
-			real_t p_margin,
-			PhysicsServer2DExtensionMotionResult *p_result);
+	static bool body_motion_collide(const RapierSpace2D &p_space, RapierBody2D &p_body, const Transform2D &p_transform,
+			const Vector2 &p_motion, int p_best_body_shape, real_t p_margin, PhysicsServer2DExtensionMotionResult *p_result);
 };
 
 #endif // RAPIER_BODY_UTILS_2D_H
