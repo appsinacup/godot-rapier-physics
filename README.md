@@ -21,6 +21,11 @@
 
 <img src="https://github.com/appsinacup/godot-rapier2d/blob/main/logo.jpg?raw=true"/> 
 
+
+<p align="center">
+<img src="rapier-vid.gif"/>
+</p>
+
 A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engine](https://github.com/godotengine/godot), implemented as a GDExtension.
 
 ## Table of Contents
