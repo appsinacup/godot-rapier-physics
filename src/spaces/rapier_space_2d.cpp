@@ -119,29 +119,28 @@ rapier2d::OneWayDirection RapierSpace2D::collision_modify_contacts_callback(rapi
 	rapier2d::OneWayDirection result;
 	result.body1 = false;
 	result.body2 = false;
+	result.last_timestep = 0.001;
 
 	RapierSpace2D *space = RapierPhysicsServer2D::singleton->get_active_space(world_handle);
 	ERR_FAIL_COND_V(!space, result);
+	ERR_FAIL_COND_V(!filter_info, result);
 	result.last_timestep = space->get_last_step();
 
-	RapierCollisionObject2D *collision_object_1;
-	RapierCollisionObject2D *collision_object_2;
+	ERR_FAIL_COND_V(!rapier2d::is_user_data_valid(filter_info->user_data1), result);
+	ERR_FAIL_COND_V(!rapier2d::is_user_data_valid(filter_info->user_data2), result);
 	uint32_t shape1;
 	uint32_t shape2;
-	if (rapier2d::is_user_data_valid(filter_info->user_data1)) {
-		collision_object_1 = RapierCollisionObject2D::get_collider_user_data(filter_info->user_data1, shape1);
-	}
-
-	if (rapier2d::is_user_data_valid(filter_info->user_data2)) {
-		collision_object_2 = RapierCollisionObject2D::get_collider_user_data(filter_info->user_data2, shape2);
-	}
+	RapierCollisionObject2D *collision_object_1 = RapierCollisionObject2D::get_collider_user_data(filter_info->user_data1, shape1);
+	RapierCollisionObject2D *collision_object_2 = RapierCollisionObject2D::get_collider_user_data(filter_info->user_data2, shape2);
 	ERR_FAIL_COND_V(!collision_object_1, result);
 	ERR_FAIL_COND_V(!collision_object_2, result);
 	if (collision_object_1->interacts_with(collision_object_2)) {
+		ERR_FAIL_COND_V(collision_object_1->is_shape_disabled(shape1), result);
+		ERR_FAIL_COND_V(collision_object_2->is_shape_disabled(shape2), result);
 		result.body1 = collision_object_1->is_shape_set_as_one_way_collision(shape1);
 		result.body1_margin = collision_object_1->get_shape_one_way_collision_margin(shape1);
 		result.body2 = collision_object_2->is_shape_set_as_one_way_collision(shape2);
-		result.body2_margin = collision_object_1->get_shape_one_way_collision_margin(shape2);
+		result.body2_margin = collision_object_2->get_shape_one_way_collision_margin(shape2);
 		if (collision_object_1->get_type() == RapierCollisionObject2D::TYPE_BODY && collision_object_2->get_type() == RapierCollisionObject2D::TYPE_BODY) {
 			RapierBody2D *body1 = static_cast<RapierBody2D *>(collision_object_1);
 			RapierBody2D *body2 = static_cast<RapierBody2D *>(collision_object_2);
