@@ -110,7 +110,7 @@ public:
 	void set_shape_disabled(int p_index, bool p_disabled);
 
 	_FORCE_INLINE_ bool is_shape_disabled(int p_index) const {
-		ERR_FAIL_INDEX_V(p_index, (int)shapes.size(), false);
+		ERR_FAIL_INDEX_V(p_index, (int)shapes.size(), true);
 		return shapes[p_index].disabled;
 	}
 
