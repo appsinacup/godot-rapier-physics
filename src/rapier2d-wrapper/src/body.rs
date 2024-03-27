@@ -138,7 +138,7 @@ pub extern "C" fn body_update_material(world_handle : Handle, body_handle : Hand
     for collider in body.unwrap().colliders() {
         if let Some(col) = physics_world.collider_set.get_mut(*collider) {
             col.set_friction(mat.friction);
-            col.set_restitution(mat.restitution)
+            col.set_restitution(mat.restitution);
         }
     }
 }

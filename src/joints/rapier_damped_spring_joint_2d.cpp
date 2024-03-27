@@ -1,4 +1,5 @@
 #include "rapier_damped_spring_joint_2d.h"
+#include "../spaces/rapier_space_2d.h"
 
 void RapierDampedSpringJoint2D::set_param(PhysicsServer2D::DampedSpringParam p_param, real_t p_value) {
 	switch (p_param) {
@@ -12,6 +13,7 @@ void RapierDampedSpringJoint2D::set_param(PhysicsServer2D::DampedSpringParam p_p
 			stiffness = p_value;
 		} break;
 	}
+	rapier2d::joint_change_sprint_params(space_handle, handle, rest_length, damping, stiffness);
 }
 
 real_t RapierDampedSpringJoint2D::get_param(PhysicsServer2D::DampedSpringParam p_param) const {
@@ -37,10 +39,14 @@ RapierDampedSpringJoint2D::RapierDampedSpringJoint2D(const Vector2 &p_anchor_a, 
 
 	rest_length = p_anchor_a.distance_to(p_anchor_b);
 
-	// TODO: create rapier joint when available
-	// See https://github.com/dimforge/rapier/issues/241
-	ERR_FAIL_MSG("Spring joints not supported for now");
+	rapier2d::Vector rapier_anchor_A = { anchor_A.x, anchor_A.y };
+	rapier2d::Vector rapier_anchor_B = { anchor_B.x, anchor_B.y };
 
-	//A->add_constraint(this, 0);
-	//B->add_constraint(this, 1);
+	ERR_FAIL_COND(!p_body_a->get_space());
+	ERR_FAIL_COND(p_body_a->get_space() != p_body_b->get_space());
+	space_handle = p_body_a->get_space()->get_handle();
+	ERR_FAIL_COND(!rapier2d::is_handle_valid(space_handle));
+
+	handle = rapier2d::joint_create_spring(space_handle, p_body_a->get_body_handle(), p_body_b->get_body_handle(), &rapier_anchor_A, &rapier_anchor_B, stiffness, damping, rest_length, is_disabled_collisions_between_bodies());
+	ERR_FAIL_COND(!rapier2d::is_handle_valid(handle));
 }

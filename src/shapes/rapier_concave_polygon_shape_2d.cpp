@@ -3,11 +3,13 @@
 rapier2d::Handle RapierConcavePolygonShape2D::create_rapier_shape() const {
 	int point_count = points.size();
 	ERR_FAIL_COND_V(point_count < 3, rapier2d::invalid_handle());
-	rapier2d::Vector *rapier_points = (rapier2d::Vector *)alloca(point_count * sizeof(rapier2d::Vector));
+	rapier2d::Vector *rapier_points = (rapier2d::Vector *)alloca((point_count + 1) * sizeof(rapier2d::Vector));
 	for (int i = 0; i < point_count; i++) {
 		rapier_points[i] = rapier2d::Vector{ (points[i].x), (points[i].y) };
 	}
-	return rapier2d::shape_create_convave_polyline(rapier_points, point_count);
+	// In order to close the polyline shape
+	rapier_points[point_count] = rapier_points[0];
+	return rapier2d::shape_create_convave_polyline(rapier_points, point_count + 1);
 }
 
 void RapierConcavePolygonShape2D::set_data(const Variant &p_data) {

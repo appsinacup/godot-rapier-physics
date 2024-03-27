@@ -431,17 +431,12 @@ void RapierSpace2D::step(real_t p_step) {
 	settings.allowed_linear_error = RapierProjectSettings::get_solver_allowed_linear_error();
 	settings.damping_ratio = RapierProjectSettings::get_solver_damping_ratio();
 	settings.erp = RapierProjectSettings::get_solver_erp();
-	settings.interleave_restitution_and_friction_resolution = RapierProjectSettings::get_solver_interleave_restitution_and_friction_resolution();
 	settings.joint_damping_ratio = RapierProjectSettings::get_solver_joint_damping_ratio();
 	settings.joint_erp = RapierProjectSettings::get_solver_joint_erp();
-	settings.max_ccd_substeps = RapierProjectSettings::get_solver_max_ccd_substeps();
-	settings.max_penetration_correction = RapierProjectSettings::get_solver_max_penetration_correction();
-	settings.max_stabilization_iterations = RapierProjectSettings::get_solver_max_stabilization_iterations();
-	settings.max_velocity_friction_iterations = RapierProjectSettings::get_solver_max_velocity_friction_iterations();
-	settings.max_velocity_iterations = RapierProjectSettings::get_solver_max_velocity_iterations();
-	settings.min_ccd_dt = RapierProjectSettings::get_solver_min_ccd_dt();
-	settings.min_island_size = RapierProjectSettings::get_solver_min_island_size();
 	settings.prediction_distance = RapierProjectSettings::get_solver_prediction_distance();
+	settings.num_additional_friction_iterations = RapierProjectSettings::get_solver_num_additional_friction_iterations();
+	settings.num_internal_pgs_iterations = RapierProjectSettings::get_solver_num_internal_pgs_iterations();
+	settings.num_solver_iterations = RapierProjectSettings::get_solver_num_solver_iterations();
 
 	ERR_FAIL_COND(!is_handle_valid(handle));
 	rapier2d::world_step(handle, &settings);

@@ -189,17 +189,6 @@ using CollisionModifyContactsCallback = OneWayDirection (*)(Handle world_handle,
 struct SimulationSettings {
 	/// The timestep length (default: `1.0 / 60.0`)
 	Real dt;
-	/// Minimum timestep size when using CCD with multiple substeps (default `1.0 / 60.0 / 100.0`)
-	///
-	/// When CCD with multiple substeps is enabled, the timestep is subdivided
-	/// into smaller pieces. This timestep subdivision won't generate timestep
-	/// lengths smaller than `min_ccd_dt`.
-	///
-	/// Setting this to a large value will reduce the opportunity to performing
-	/// CCD substepping, resulting in potentially more time dropped by the
-	/// motion-clamping mechanism. Setting this to an very small value may lead
-	/// to numerical instabilities.
-	Real min_ccd_dt;
 	/// 0-1: multiplier for how much of the constraint violation (e.g. contact penetration)
 	/// will be compensated for during the velocity solve.
 	/// (default `0.8`).
@@ -218,23 +207,14 @@ struct SimulationSettings {
 	Real joint_damping_ratio;
 	/// Amount of penetration the engine wont attempt to correct (default: `0.001m`).
 	Real allowed_linear_error;
-	/// Maximum amount of penetration the solver will attempt to resolve in one timestep.
-	Real max_penetration_correction;
 	/// The maximal distance separating two objects that will generate predictive contacts (default: `0.002`).
 	Real prediction_distance;
-	/// Maximum number of iterations performed to solve non-penetration and joint constraints (default: `4`).
-	size_t max_velocity_iterations;
-	/// Maximum number of iterations performed to solve friction constraints (default: `8`).
-	size_t max_velocity_friction_iterations;
-	/// Maximum number of iterations performed to remove the energy introduced by penetration corrections  (default: `1`).
-	size_t max_stabilization_iterations;
-	/// If `false`, friction and non-penetration constraints will be solved in the same loop. Otherwise,
-	/// non-penetration constraints are solved first, and friction constraints are solved after (default: `true`).
-	bool interleave_restitution_and_friction_resolution;
-	/// Minimum number of dynamic bodies in each active island (default: `128`).
-	size_t min_island_size;
-	/// Maximum number of substeps performed by the  solver (default: `1`).
-	size_t max_ccd_substeps;
+	/// The number of solver iterations run by the constraints solver for calculating forces (default: `4`).
+	size_t num_solver_iterations;
+	/// Number of addition friction resolution iteration run during the last solver sub-step (default: `4`).
+	size_t num_additional_friction_iterations;
+	/// Number of internal Project Gauss Seidel (PGS) iterations run at each solver iteration (default: `1`).
+	size_t num_internal_pgs_iterations;
 	Vector gravity;
 };
 
@@ -401,6 +381,10 @@ bool is_handle_valid(Handle handle);
 
 bool is_user_data_valid(UserData user_data);
 
+void joint_change_disable_collision(Handle world_handle,
+		Handle joint_handle,
+		bool disable_collision);
+
 void joint_change_revolute_params(Handle world_handle,
 		Handle joint_handle,
 		Real angular_limit_lower,
@@ -409,13 +393,20 @@ void joint_change_revolute_params(Handle world_handle,
 		Real motor_target_velocity,
 		bool motor_enabled);
 
+void joint_change_sprint_params(Handle world_handle,
+		Handle joint_handle,
+		Real stiffness,
+		Real damping,
+		Real rest_length);
+
 Handle joint_create_prismatic(Handle world_handle,
 		Handle body_handle_1,
 		Handle body_handle_2,
 		const Vector *axis,
 		const Vector *anchor_1,
 		const Vector *anchor_2,
-		const Vector *limits);
+		const Vector *limits,
+		bool disable_collision);
 
 Handle joint_create_revolute(Handle world_handle,
 		Handle body_handle_1,
@@ -426,7 +417,18 @@ Handle joint_create_revolute(Handle world_handle,
 		Real angular_limit_upper,
 		bool angular_limit_enabled,
 		Real motor_target_velocity,
-		bool motor_enabled);
+		bool motor_enabled,
+		bool disable_collision);
+
+Handle joint_create_spring(Handle world_handle,
+		Handle body_handle_1,
+		Handle body_handle_2,
+		const Vector *anchor_1,
+		const Vector *anchor_2,
+		Real stiffness,
+		Real damping,
+		Real rest_length,
+		bool disable_collision);
 
 void joint_destroy(Handle world_handle, Handle joint_handle);
 

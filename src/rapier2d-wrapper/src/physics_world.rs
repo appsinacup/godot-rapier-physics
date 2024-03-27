@@ -2,6 +2,7 @@ use rapier2d::crossbeam;
 use rapier2d::data::Arena;
 use rapier2d::prelude::*;
 use std::sync::Mutex;
+use std::num::NonZeroUsize;
 use lazy_static::lazy_static;
 use crate::handle::*;
 use crate::user_data::*;
@@ -107,7 +108,7 @@ pub struct PhysicsWorld {
     pub query_pipeline: QueryPipeline,
     pub physics_pipeline : PhysicsPipeline,
     pub island_manager : IslandManager,
-    pub broad_phase : BroadPhase,
+    pub broad_phase : BroadPhaseMultiSap,
     pub narrow_phase : NarrowPhase,
     pub impulse_joint_set : ImpulseJointSet,
     pub multibody_joint_set : MultibodyJointSet,
@@ -140,7 +141,7 @@ impl PhysicsWorld {
             query_pipeline : QueryPipeline::new(),
             physics_pipeline : PhysicsPipeline::new(),
 	        island_manager : IslandManager::new(),
-	        broad_phase : BroadPhase::new(),
+	        broad_phase : DefaultBroadPhase::new(),
 	        narrow_phase : NarrowPhase::new(),
 	        impulse_joint_set : ImpulseJointSet::new(),
 	        multibody_joint_set : MultibodyJointSet::new(),
@@ -172,20 +173,17 @@ impl PhysicsWorld {
         let mut integration_parameters = IntegrationParameters::default();
 
         integration_parameters.dt = settings.dt;
-        integration_parameters.min_ccd_dt = settings.min_ccd_dt;
         integration_parameters.erp = settings.erp;
         integration_parameters.damping_ratio = settings.damping_ratio;
         integration_parameters.joint_erp = settings.joint_erp;
         integration_parameters.joint_damping_ratio = settings.joint_damping_ratio;
         integration_parameters.allowed_linear_error = settings.allowed_linear_error;
-        integration_parameters.max_penetration_correction = settings.max_penetration_correction;
         integration_parameters.prediction_distance = settings.prediction_distance;
-        integration_parameters.max_velocity_iterations = settings.max_velocity_iterations;
-        integration_parameters.max_velocity_friction_iterations = settings.max_velocity_friction_iterations;
-        integration_parameters.max_stabilization_iterations = settings.max_stabilization_iterations;
-        integration_parameters.interleave_restitution_and_friction_resolution = settings.interleave_restitution_and_friction_resolution;
-        integration_parameters.min_island_size = settings.min_island_size;
-        integration_parameters.max_ccd_substeps = settings.max_ccd_substeps;
+		if settings.num_solver_iterations > 0 {
+			integration_parameters.num_solver_iterations = NonZeroUsize::new(settings.num_solver_iterations).unwrap();
+		}
+		integration_parameters.num_additional_friction_iterations = settings.num_additional_friction_iterations;
+		integration_parameters.num_internal_pgs_iterations = settings.num_internal_pgs_iterations;
 
         let gravity = vector![settings.gravity.x, settings.gravity.y];
 
