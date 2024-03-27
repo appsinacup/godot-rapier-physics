@@ -6,8 +6,8 @@
 	<a href="https://github.com/appsinacup/godot-rapier2d/actions/workflows/runner.yml">
         <img src="https://github.com/appsinacup/godot-rapier2d/actions/workflows/runner.yml/badge.svg?branch=main"
             alt="Godot Rapier2D Build"></a>
-    <a href="https://github.com/dimforge/rapier/releases/tag/v0.17.2" alt="Rapier2D Version">
-        <img src="https://img.shields.io/badge/Rapier2D-v0.17.2-%23478cbf?logoColor=white" /></a>
+    <a href="https://github.com/dimforge/rapier/releases/tag/v0.18.0" alt="Rapier2D Version">
+        <img src="https://img.shields.io/badge/Rapier2D-v0.18.0-%23478cbf?logoColor=white" /></a>
     <a href="https://github.com/godotengine/godot-cpp" alt="Godot Version">
         <img src="https://img.shields.io/badge/Godot-v4.2-%23478cbf?logo=godot-engine&logoColor=white" /></a>
     <a href="https://github.com/appsinacup/godot-rapier2d/graphs/contributors" alt="Contributors">
