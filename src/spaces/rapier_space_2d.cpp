@@ -216,7 +216,7 @@ void RapierSpace2D::collision_event_callback(rapier2d::Handle world_handle, cons
 
 	if (event_info->is_sensor) {
 		if (!instanceId1.is_valid()) {
-			ERR_FAIL_COND_MSG(pObject2, "Should be able to get info about a removed object if the other one is still valid.");
+			ERR_FAIL_COND_MSG(pObject1, "Should be able to get info about a removed object if the other one is still valid.");
 			return;
 		}
 		if (!instanceId2.is_valid()) {
@@ -235,36 +235,32 @@ void RapierSpace2D::collision_event_callback(rapier2d::Handle world_handle, cons
 		}
 
 		RapierArea2D *pArea = static_cast<RapierArea2D *>(pObject1);
-		uint32_t area_shape = shape1;
-		uint32_t other_shape = shape2;
-		RID other_rid = rid2;
-		ObjectID other_instance_id = instanceId2;
 		if (type2 == RapierCollisionObject2D::TYPE_AREA) {
 			RapierArea2D *pArea2 = static_cast<RapierArea2D *>(pObject2);
 			if (event_info->is_started) {
 				ERR_FAIL_COND(!pArea);
 				ERR_FAIL_COND(!pArea2);
-				pArea->on_area_enter(collider_handle2, pArea2, other_shape, other_rid, other_instance_id, collider_handle1, area_shape);
-				pArea2->on_area_enter(collider_handle1, pArea, area_shape, other_rid, other_instance_id, collider_handle2, other_shape);
+				pArea->on_area_enter(collider_handle2, pArea2, shape2, rid2, instanceId2, collider_handle1, shape1);
+				pArea2->on_area_enter(collider_handle1, pArea, shape1, rid1, instanceId1, collider_handle2, shape2);
 			} else {
 				if (pArea) {
-					pArea->on_area_exit(collider_handle2, pArea2, other_shape, other_rid, other_instance_id, collider_handle1, area_shape);
+					pArea->on_area_exit(collider_handle2, pArea2, shape2, rid2, instanceId2, collider_handle1, shape1);
 				} else {
 					// Try to retrieve area if not destroyed yet
 					pArea = space->get_area_from_rid(rid1);
 					if (pArea) {
 						// Use invalid area case to keep counters consistent for already removed collider
-						pArea->on_area_exit(collider_handle2, nullptr, other_shape, other_rid, other_instance_id, collider_handle1, area_shape);
+						pArea->on_area_exit(collider_handle2, nullptr, shape2, rid2, instanceId2, collider_handle1, shape1);
 					}
 				}
 				if (pArea2) {
-					pArea2->on_area_exit(collider_handle1, pArea, area_shape, other_rid, other_instance_id, collider_handle2, other_shape);
+					pArea2->on_area_exit(collider_handle1, pArea, shape1, rid1, instanceId1, collider_handle2, shape2);
 				} else {
 					// Try to retrieve area if not destroyed yet
 					pArea2 = space->get_area_from_rid(rid2);
 					if (pArea2) {
 						// Use invalid area case to keep counters consistent for already removed collider
-						pArea2->on_area_exit(collider_handle1, nullptr, area_shape, other_rid, other_instance_id, collider_handle2, other_shape);
+						pArea2->on_area_exit(collider_handle1, nullptr, shape1, rid1, instanceId1, collider_handle2, shape2);
 					}
 				}
 			}
@@ -272,15 +268,15 @@ void RapierSpace2D::collision_event_callback(rapier2d::Handle world_handle, cons
 			RapierBody2D *pBody = static_cast<RapierBody2D *>(pObject2);
 			if (event_info->is_started) {
 				ERR_FAIL_COND(!pArea);
-				pArea->on_body_enter(collider_handle2, pBody, other_shape, other_rid, other_instance_id, collider_handle1, area_shape);
+				pArea->on_body_enter(collider_handle2, pBody, shape2, rid2, instanceId2, collider_handle1, shape1);
 			} else if (pArea) {
-				pArea->on_body_exit(collider_handle2, pBody, other_shape, other_rid, other_instance_id, collider_handle1, area_shape);
+				pArea->on_body_exit(collider_handle2, pBody, shape2, rid2, instanceId2, collider_handle1, shape1);
 			} else {
 				// Try to retrieve area if not destroyed yet
 				pArea = space->get_area_from_rid(rid1);
 				if (pArea) {
 					// Use invalid body case to keep counters consistent for already removed collider
-					pArea->on_body_exit(collider_handle2, nullptr, other_shape, other_rid, other_instance_id, collider_handle1, area_shape, false);
+					pArea->on_body_exit(collider_handle2, nullptr, shape2, rid2, instanceId2, collider_handle1, shape1, false);
 				}
 			}
 		}
