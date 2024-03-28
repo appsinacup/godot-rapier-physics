@@ -33,10 +33,16 @@ pub extern "C" fn shape_create_box(pixel_size : &Vector) -> Handle {
 }
 
 #[no_mangle]
-pub extern "C" fn shape_create_halfspace(normal : &Vector) -> Handle {
-	let shape = SharedShape::halfspace(UnitVector::new_normalize(vector![normal.x, normal.y]));
+pub extern "C" fn shape_create_halfspace(normal : &Vector, pixel_distance: Real) -> Handle {
+    let distance = pixels_to_meters(pixel_distance);
+
+	let shape = SharedShape::halfspace(UnitVector::new_normalize(vector![normal.x, -normal.y]));
+    let shape_position = Isometry::new(vector![normal.x * distance, normal.y * distance], std::f32::consts::PI);
+    let mut shapes_vec = Vec::<(Isometry<Real>, SharedShape)>::new();
+    shapes_vec.push((shape_position, shape));
+    let shape_compound = SharedShape::compound(shapes_vec);
     let mut physics_engine = SINGLETON.lock().unwrap();
-	return physics_engine.insert_shape(shape);
+	return physics_engine.insert_shape(shape_compound);
 }
 
 #[no_mangle]
@@ -52,11 +58,11 @@ pub extern "C" fn shape_create_capsule(pixel_half_height : Real, pixel_radius : 
     let half_height = pixels_to_meters(pixel_half_height);
     let radius = pixels_to_meters(pixel_radius);
 
-	let top_circle = SharedShape::ball(radius);
-    let top_circle_position = Isometry::new(vector![0.0, -half_height], 0.0);
-	let bottom_circle = SharedShape::ball(radius);
-    let bottom_circle_position = Isometry::new(vector![0.0, half_height], 0.0);
-	let square = SharedShape::cuboid(0.5 * radius, 0.5 * (half_height - radius));
+	//let top_circle = SharedShape::ball(radius);
+    //let top_circle_position = Isometry::new(vector![0.0, -half_height], 0.0);
+	//let bottom_circle = SharedShape::ball(radius);
+    //let bottom_circle_position = Isometry::new(vector![0.0, half_height], 0.0);
+	//let square = SharedShape::cuboid(0.5 * radius, 0.5 * (half_height - radius));
     //let square_pos = Isometry::default();
     //let mut shapes_vec = Vec::<(Isometry<Real>, SharedShape)>::new();
     //shapes_vec.push((top_circle_position, top_circle));

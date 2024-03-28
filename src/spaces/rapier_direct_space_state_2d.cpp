@@ -67,7 +67,7 @@ bool RapierDirectSpaceState2D::_intersect_ray(const Vector2 &from, const Vector2
 			&query_excluded_info);
 
 	if (collide) {
-		r_result->position = Vector2(hit_info.position.x, hit_info.position.y);
+		r_result->position = Vector2(hit_info.pixel_position.x, hit_info.pixel_position.y);
 		r_result->normal = Vector2(hit_info.normal.x, hit_info.normal.y);
 
 		ERR_FAIL_COND_V(!rapier2d::is_user_data_valid(hit_info.user_data), false);
@@ -131,8 +131,8 @@ bool RapierDirectSpaceState2D::_collide_shape(const RID &shape_rid, const Transf
 		(*result_count)++;
 		query_excluded_info.query_exclude[query_excluded_info.query_exclude_size++] = result.collider;
 
-		results_out[array_idx++] = Vector2(result.witness1.x, result.witness1.y);
-		results_out[array_idx++] = Vector2(result.witness2.x, result.witness2.y);
+		results_out[array_idx++] = Vector2(result.pixel_witness1.x, result.pixel_witness1.y);
+		results_out[array_idx++] = Vector2(result.pixel_witness2.x, result.pixel_witness2.y);
 
 		cpt++;
 	} while (cpt < max_results);
