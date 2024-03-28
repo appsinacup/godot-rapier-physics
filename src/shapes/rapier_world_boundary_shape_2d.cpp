@@ -1,8 +1,8 @@
 #include "rapier_world_boundary_shape_2d.h"
 
 rapier2d::Handle RapierWorldBoundaryShape2D::create_rapier_shape() const {
-	rapier2d::Vector v = { normal.x, normal.y };
-	return rapier2d::shape_create_halfspace(&v, d);
+	rapier2d::Vector v = { normal.x, -normal.y };
+	return rapier2d::shape_create_halfspace(&v, -d);
 }
 
 void RapierWorldBoundaryShape2D::apply_rapier_transform(rapier2d::Vector &position, real_t &angle) const {

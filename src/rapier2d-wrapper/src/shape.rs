@@ -37,7 +37,7 @@ pub extern "C" fn shape_create_halfspace(normal : &Vector, pixel_distance: Real)
     let distance = pixels_to_meters(pixel_distance);
 
 	let shape = SharedShape::halfspace(UnitVector::new_normalize(vector![normal.x, -normal.y]));
-    let shape_position = Isometry::new(vector![normal.x * distance, normal.y * distance], std::f32::consts::PI);
+    let shape_position = Isometry::new(vector![normal.x * distance, normal.y * distance], 0.0);
     let mut shapes_vec = Vec::<(Isometry<Real>, SharedShape)>::new();
     shapes_vec.push((shape_position, shape));
     let shape_compound = SharedShape::compound(shapes_vec);
