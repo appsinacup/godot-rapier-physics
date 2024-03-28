@@ -249,8 +249,8 @@ pub extern "C" fn body_set_mass_properties(world_handle : Handle, body_handle : 
     let local_com = &vector_pixels_to_meters(pixel_local_com);
     let inertia = pixels_to_meters(pixels_to_meters(pixel_inertia));
     let mass = mass;
-    if inertia == 0.0 || mass == 0.0 {
-        return;
+    if inertia == 0.0 || mass == 0.0{
+        return
     }
 
     let mut physics_engine = SINGLETON.lock().unwrap();

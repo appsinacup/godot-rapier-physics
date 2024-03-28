@@ -65,7 +65,7 @@ void RapierBody2D::update_mass_properties(bool force_update) {
 				const RapierShape2D *shape = get_shape(i);
 
 				real_t shape_area = shape->get_aabb().get_area();
-				if (shape_area == 0.0) {
+				if (shape_area == 0.0 || mass == 0.0) {
 					continue;
 				}
 
@@ -91,7 +91,7 @@ void RapierBody2D::update_mass_properties(bool force_update) {
 				const RapierShape2D *shape = get_shape(i);
 
 				real_t shape_area = shape->get_aabb().get_area();
-				if (shape_area == 0.0) {
+				if (shape_area == 0.0 || mass == 0.0) {
 					continue;
 				}
 

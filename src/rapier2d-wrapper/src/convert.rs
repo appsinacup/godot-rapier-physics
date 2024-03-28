@@ -1,8 +1,10 @@
 use rapier2d::prelude::*;
 use crate::vector::Vector;
 
+const PIXELS_PER_METER : Real = 100.0;
+
 pub fn pixels_to_meters(x : Real) -> Real {
-    x / 100.0
+    if x == 0.0 { 0.0 } else { x / PIXELS_PER_METER }
 }
 
 pub fn vector_pixels_to_meters(v : &Vector) -> Vector {
@@ -10,7 +12,7 @@ pub fn vector_pixels_to_meters(v : &Vector) -> Vector {
 }
 
 pub fn meters_to_pixels(x : Real) -> Real {
-    x * 100.0
+    x * PIXELS_PER_METER
 }
 
 pub fn vector_meters_to_pixels(v : &Vector) -> Vector {

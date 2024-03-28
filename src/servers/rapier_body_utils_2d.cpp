@@ -33,7 +33,7 @@ bool should_skip_collision_one_dir(rapier2d::ContactResult contact, RapierShape2
 		Vector2 motion = p_motion;
 		real_t motion_len = motion.length();
 		valid_depth += motion_len * MAX(motion.normalized().dot(valid_dir), 0.0);
-		if ((dist < -valid_depth) || (p_motion.normalized().dot(valid_dir) < CMP_EPSILON * 10.0)) {
+		if ((dist < -valid_depth) || (p_motion.normalized().dot(valid_dir) < CMP_EPSILON)) {
 			return true;
 		}
 	}

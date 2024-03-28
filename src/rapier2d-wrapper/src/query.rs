@@ -419,9 +419,10 @@ pub extern "C" fn intersect_aabb(world_handle : Handle, pixel_aabb_min : &Vector
 }
 
 #[no_mangle]
-pub extern "C" fn shapes_contact(world_handle : Handle, shape_info1 : ShapeInfo, shape_info2 : ShapeInfo, margin: Real) -> ContactResult {
+pub extern "C" fn shapes_contact(world_handle : Handle, shape_info1 : ShapeInfo, shape_info2 : ShapeInfo, pixel_margin: Real) -> ContactResult {
     let position1 = vector_pixels_to_meters(&shape_info1.pixel_position);
     let position2 = vector_pixels_to_meters(&shape_info2.pixel_position);
+    let margin = pixels_to_meters(pixel_margin);
 
     let mut physics_engine = SINGLETON.lock().unwrap();
     
