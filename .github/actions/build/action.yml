@@ -16,7 +16,7 @@ inputs:
   rust_env_flags:
     required: false
     default: ''
-    descriptio: RUSTFLAGS env var.
+    description: RUSTFLAGS env var.
   arch:
     default: ''
     description: Target architecture.
