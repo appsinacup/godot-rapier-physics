@@ -66,7 +66,7 @@ struct Material {
 
 struct ShapeInfo {
 	Handle handle;
-	Vector position;
+	Vector pixel_position;
 	Real rotation;
 	Vector scale;
 };
@@ -161,14 +161,14 @@ using ContactForceEventCallback = bool (*)(Handle world_handle,
 		const ContactForceEventInfo *event_info);
 
 struct ContactPointInfo {
-	Vector local_pos_1;
-	Vector local_pos_2;
-	Vector velocity_pos_1;
-	Vector velocity_pos_2;
+	Vector pixel_local_pos_1;
+	Vector pixel_local_pos_2;
+	Vector pixel_velocity_pos_1;
+	Vector pixel_velocity_pos_2;
 	Vector normal;
-	Real distance;
-	Real impulse;
-	Real tangent_impulse;
+	Real pixel_distance;
+	Real pixel_impulse;
+	Real pixel_tangent_impulse;
 };
 
 using ContactPointCallback = bool (*)(Handle world_handle,
@@ -178,8 +178,8 @@ using ContactPointCallback = bool (*)(Handle world_handle,
 struct OneWayDirection {
 	bool body1;
 	bool body2;
-	Real body1_margin;
-	Real body2_margin;
+	Real pixel_body1_margin;
+	Real pixel_body2_margin;
 	Real last_timestep;
 };
 
@@ -215,35 +215,35 @@ struct SimulationSettings {
 	size_t num_additional_friction_iterations;
 	/// Number of internal Project Gauss Seidel (PGS) iterations run at each solver iteration (default: `1`).
 	size_t num_internal_pgs_iterations;
-	Vector gravity;
+	Vector pixel_gravity;
 };
 
 extern "C" {
 
 bool are_handles_equal(Handle handle1, Handle handle2);
 
-void body_add_force(Handle world_handle, Handle body_handle, const Vector *force);
+void body_add_force(Handle world_handle, Handle body_handle, const Vector *pixel_force);
 
 void body_add_force_at_point(Handle world_handle,
 		Handle body_handle,
-		const Vector *force,
-		const Vector *point);
+		const Vector *pixel_force,
+		const Vector *pixel_point);
 
 void body_add_torque(Handle world_handle, Handle body_handle, Real torque);
 
-void body_apply_impulse(Handle world_handle, Handle body_handle, const Vector *impulse);
+void body_apply_impulse(Handle world_handle, Handle body_handle, const Vector *pixel_impulse);
 
 void body_apply_impulse_at_point(Handle world_handle,
 		Handle body_handle,
-		const Vector *impulse,
-		const Vector *point);
+		const Vector *pixel_impulse,
+		const Vector *pixel_point);
 
 void body_apply_torque_impulse(Handle world_handle, Handle body_handle, Real torque_impulse);
 
 void body_change_mode(Handle world_handle, Handle body_handle, BodyType body_type, bool wakeup);
 
 Handle body_create(Handle world_handle,
-		const Vector *pos,
+		const Vector *pixel_pos,
 		Real rot,
 		const UserData *user_data,
 		BodyType body_type);
@@ -285,19 +285,19 @@ void body_set_gravity_scale(Handle world_handle,
 
 void body_set_linear_damping(Handle world_handle, Handle body_handle, Real linear_damping);
 
-void body_set_linear_velocity(Handle world_handle, Handle body_handle, const Vector *vel);
+void body_set_linear_velocity(Handle world_handle, Handle body_handle, const Vector *pixel_vel);
 
 void body_set_mass_properties(Handle world_handle,
 		Handle body_handle,
 		Real mass,
 		Real inertia,
-		const Vector *local_com,
+		const Vector *pixel_local_com,
 		bool wake_up,
 		bool force_update);
 
 void body_set_transform(Handle world_handle,
 		Handle body_handle,
-		const Vector *pos,
+		const Vector *pixel_pos,
 		Real rot,
 		bool wake_up);
 
@@ -390,44 +390,44 @@ void joint_change_revolute_params(Handle world_handle,
 		Real angular_limit_lower,
 		Real angular_limit_upper,
 		bool angular_limit_enabled,
-		Real motor_target_velocity,
+		Real pixel_motor_target_velocity,
 		bool motor_enabled);
 
 void joint_change_sprint_params(Handle world_handle,
 		Handle joint_handle,
 		Real stiffness,
 		Real damping,
-		Real rest_length);
+		Real pixel_rest_length);
 
 Handle joint_create_prismatic(Handle world_handle,
 		Handle body_handle_1,
 		Handle body_handle_2,
 		const Vector *axis,
-		const Vector *anchor_1,
-		const Vector *anchor_2,
-		const Vector *limits,
+		const Vector *pixel_anchor_1,
+		const Vector *pixel_anchor_2,
+		const Vector *pixel_limits,
 		bool disable_collision);
 
 Handle joint_create_revolute(Handle world_handle,
 		Handle body_handle_1,
 		Handle body_handle_2,
-		const Vector *anchor_1,
-		const Vector *anchor_2,
+		const Vector *pixel_anchor_1,
+		const Vector *pixel_anchor_2,
 		Real angular_limit_lower,
 		Real angular_limit_upper,
 		bool angular_limit_enabled,
-		Real motor_target_velocity,
+		Real pixel_motor_target_velocity,
 		bool motor_enabled,
 		bool disable_collision);
 
 Handle joint_create_spring(Handle world_handle,
 		Handle body_handle_1,
 		Handle body_handle_2,
-		const Vector *anchor_1,
-		const Vector *anchor_2,
+		const Vector *pixel_anchor_1,
+		const Vector *pixel_anchor_2,
 		Real stiffness,
 		Real damping,
-		Real rest_length,
+		Real pixel_rest_length,
 		bool disable_collision);
 
 void joint_destroy(Handle world_handle, Handle joint_handle);
@@ -445,15 +445,15 @@ ShapeCastResult shape_collide(const Vector *motion1,
 		const Vector *motion2,
 		ShapeInfo shape_info2);
 
-Handle shape_create_box(const Vector *size);
+Handle shape_create_box(const Vector *pixel_size);
 
-Handle shape_create_capsule(Real half_height, Real radius);
+Handle shape_create_capsule(Real pixel_half_height, Real pixel_radius);
 
-Handle shape_create_circle(Real radius);
+Handle shape_create_circle(Real pixel_radius);
 
-Handle shape_create_convave_polyline(const Vector *points, size_t point_count);
+Handle shape_create_convave_polyline(const Vector *pixel_points, size_t point_count);
 
-Handle shape_create_convex_polyline(const Vector *points, size_t point_count);
+Handle shape_create_convex_polyline(const Vector *pixel_points, size_t point_count);
 
 Handle shape_create_halfspace(const Vector *normal);
 

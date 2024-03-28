@@ -138,9 +138,9 @@ rapier2d::OneWayDirection RapierSpace2D::collision_modify_contacts_callback(rapi
 		ERR_FAIL_COND_V(collision_object_1->is_shape_disabled(shape1), result);
 		ERR_FAIL_COND_V(collision_object_2->is_shape_disabled(shape2), result);
 		result.body1 = collision_object_1->is_shape_set_as_one_way_collision(shape1);
-		result.body1_margin = collision_object_1->get_shape_one_way_collision_margin(shape1);
+		result.pixel_body1_margin = collision_object_1->get_shape_one_way_collision_margin(shape1);
 		result.body2 = collision_object_2->is_shape_set_as_one_way_collision(shape2);
-		result.body2_margin = collision_object_2->get_shape_one_way_collision_margin(shape2);
+		result.pixel_body2_margin = collision_object_2->get_shape_one_way_collision_margin(shape2);
 		if (collision_object_1->get_type() == RapierCollisionObject2D::TYPE_BODY && collision_object_2->get_type() == RapierCollisionObject2D::TYPE_BODY) {
 			RapierBody2D *body1 = static_cast<RapierBody2D *>(collision_object_1);
 			RapierBody2D *body2 = static_cast<RapierBody2D *>(collision_object_2);
@@ -334,8 +334,8 @@ bool RapierSpace2D::contact_point_callback(rapier2d::Handle world_handle, const 
 	ERR_FAIL_COND_V(!space, false);
 	ERR_FAIL_COND_V(space->get_handle().id != world_handle.id, false);
 
-	Vector2 pos1(contact_info->local_pos_1.x, contact_info->local_pos_1.y);
-	Vector2 pos2(contact_info->local_pos_2.x, contact_info->local_pos_2.y);
+	Vector2 pos1(contact_info->pixel_local_pos_1.x, contact_info->pixel_local_pos_1.y);
+	Vector2 pos2(contact_info->pixel_local_pos_2.x, contact_info->pixel_local_pos_2.y);
 
 	bool keep_sending_contacts = false;
 
@@ -367,21 +367,21 @@ bool RapierSpace2D::contact_point_callback(rapier2d::Handle world_handle, const 
 	ERR_FAIL_COND_V(!pObject2, false);
 	RapierBody2D *body2 = static_cast<RapierBody2D *>(pObject2);
 
-	real_t depth = MAX(0.0, -contact_info->distance); // negative distance means penetration
+	real_t depth = MAX(0.0, -contact_info->pixel_distance); // negative distance means penetration
 
 	Vector2 normal(contact_info->normal.x, contact_info->normal.y);
 	Vector2 tangent = normal.orthogonal();
-	Vector2 impulse = contact_info->impulse * normal + contact_info->tangent_impulse * tangent;
+	Vector2 impulse = contact_info->pixel_impulse * normal + contact_info->pixel_tangent_impulse * tangent;
 
 	if (body1->can_report_contacts()) {
 		keep_sending_contacts = true;
-		Vector2 vel_pos2(contact_info->velocity_pos_2.x, contact_info->velocity_pos_2.y);
+		Vector2 vel_pos2(contact_info->pixel_velocity_pos_2.x, contact_info->pixel_velocity_pos_2.y);
 		body1->add_contact(pos1, -normal, depth, (int)shape1, pos2, (int)shape2, body2->get_instance_id(), body2->get_rid(), vel_pos2, impulse);
 	}
 
 	if (body2->can_report_contacts()) {
 		keep_sending_contacts = true;
-		Vector2 vel_pos1(contact_info->velocity_pos_1.x, contact_info->velocity_pos_1.y);
+		Vector2 vel_pos1(contact_info->pixel_velocity_pos_1.x, contact_info->pixel_velocity_pos_1.y);
 		body2->add_contact(pos2, normal, depth, (int)shape2, pos1, (int)shape1, body1->get_instance_id(), body1->get_rid(), vel_pos1, impulse);
 	}
 
@@ -426,8 +426,8 @@ void RapierSpace2D::step(real_t p_step) {
 
 	rapier2d::SimulationSettings settings;
 	settings.dt = p_step;
-	settings.gravity.x = default_gravity_dir.x * default_gravity_value;
-	settings.gravity.y = default_gravity_dir.y * default_gravity_value;
+	settings.pixel_gravity.x = default_gravity_dir.x * default_gravity_value;
+	settings.pixel_gravity.y = default_gravity_dir.y * default_gravity_value;
 	settings.allowed_linear_error = RapierProjectSettings::get_solver_allowed_linear_error();
 	settings.damping_ratio = RapierProjectSettings::get_solver_damping_ratio();
 	settings.erp = RapierProjectSettings::get_solver_erp();

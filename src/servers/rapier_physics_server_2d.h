@@ -51,7 +51,7 @@ class RapierPhysicsServer2D : public PhysicsServer2DExtension {
 	RID _shape_create(ShapeType p_shape);
 
 protected:
-	static void _bind_methods() {};
+	static void _bind_methods(){};
 
 public:
 	static RapierPhysicsServer2D *singleton;

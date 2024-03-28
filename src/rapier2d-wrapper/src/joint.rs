@@ -1,10 +1,16 @@
 use rapier2d::prelude::*;
+use crate::convert::*;
 use crate::handle::*;
 use crate::physics_world::*;
 use crate::vector::Vector;
 
 #[no_mangle]
-pub extern "C" fn joint_create_revolute(world_handle : Handle, body_handle_1 : Handle, body_handle_2 : Handle, anchor_1 : &Vector, anchor_2 : &Vector, angular_limit_lower: Real, angular_limit_upper: Real, angular_limit_enabled: bool, motor_target_velocity: Real, motor_enabled: bool, disable_collision: bool) -> Handle {
+pub extern "C" fn joint_create_revolute(world_handle : Handle, body_handle_1 : Handle, body_handle_2 : Handle, pixel_anchor_1 : &Vector, pixel_anchor_2 : &Vector, angular_limit_lower: Real, angular_limit_upper: Real, angular_limit_enabled: bool, pixel_motor_target_velocity: Real, motor_enabled: bool, disable_collision: bool) -> Handle {
+    let anchor_1 = &vector_pixels_to_meters(pixel_anchor_1);
+    let anchor_2 = &vector_pixels_to_meters(pixel_anchor_2);
+
+    let motor_target_velocity = pixels_to_meters(pixel_motor_target_velocity);
+    
     let mut physics_engine = SINGLETON.lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
 
@@ -25,7 +31,9 @@ pub extern "C" fn joint_create_revolute(world_handle : Handle, body_handle_1 : H
 
 
 #[no_mangle]
-pub extern "C" fn joint_change_revolute_params(world_handle : Handle, joint_handle: Handle , angular_limit_lower: Real, angular_limit_upper: Real, angular_limit_enabled: bool, motor_target_velocity: Real, motor_enabled: bool){
+pub extern "C" fn joint_change_revolute_params(world_handle : Handle, joint_handle: Handle , angular_limit_lower: Real, angular_limit_upper: Real, angular_limit_enabled: bool, pixel_motor_target_velocity: Real, motor_enabled: bool){
+    let motor_target_velocity = pixels_to_meters(pixel_motor_target_velocity);
+
     let mut physics_engine = SINGLETON.lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
 
@@ -43,7 +51,11 @@ pub extern "C" fn joint_change_revolute_params(world_handle : Handle, joint_hand
 }
 
 #[no_mangle]
-pub extern "C" fn joint_create_prismatic(world_handle : Handle, body_handle_1 : Handle, body_handle_2 : Handle, axis : &Vector, anchor_1 : &Vector, anchor_2 : &Vector, limits : &Vector, disable_collision: bool) -> Handle {
+pub extern "C" fn joint_create_prismatic(world_handle : Handle, body_handle_1 : Handle, body_handle_2 : Handle, axis : &Vector, pixel_anchor_1 : &Vector, pixel_anchor_2 : &Vector, pixel_limits : &Vector, disable_collision: bool) -> Handle {
+    let anchor_1 = &vector_pixels_to_meters(pixel_anchor_1);
+    let anchor_2 = &vector_pixels_to_meters(pixel_anchor_2);
+    let limits = &vector_pixels_to_meters(pixel_limits);
+
     let mut physics_engine = SINGLETON.lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
 
@@ -57,7 +69,11 @@ pub extern "C" fn joint_create_prismatic(world_handle : Handle, body_handle_1 : 
 }
 
 #[no_mangle]
-pub extern "C" fn joint_create_spring(world_handle : Handle, body_handle_1 : Handle, body_handle_2 : Handle, anchor_1 : &Vector, anchor_2 : &Vector, stiffness: Real, damping: Real, rest_length: Real, disable_collision: bool) -> Handle {
+pub extern "C" fn joint_create_spring(world_handle : Handle, body_handle_1 : Handle, body_handle_2 : Handle, pixel_anchor_1 : &Vector, pixel_anchor_2 : &Vector, stiffness: Real, damping: Real, pixel_rest_length: Real, disable_collision: bool) -> Handle {
+    let anchor_1 = &vector_pixels_to_meters(pixel_anchor_1);
+    let anchor_2 = &vector_pixels_to_meters(pixel_anchor_2);
+    let rest_length = pixels_to_meters(pixel_rest_length);
+    
     let mut physics_engine = SINGLETON.lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
 
@@ -70,7 +86,9 @@ pub extern "C" fn joint_create_spring(world_handle : Handle, body_handle_1 : Han
 }
 
 #[no_mangle]
-pub extern "C" fn joint_change_sprint_params(world_handle : Handle, joint_handle: Handle , stiffness: Real, damping: Real, rest_length: Real){
+pub extern "C" fn joint_change_sprint_params(world_handle : Handle, joint_handle: Handle , stiffness: Real, damping: Real, pixel_rest_length: Real){
+    let rest_length = pixels_to_meters(pixel_rest_length);
+
     let mut physics_engine = SINGLETON.lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
 

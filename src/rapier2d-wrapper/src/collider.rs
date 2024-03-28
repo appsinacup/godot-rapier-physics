@@ -5,6 +5,7 @@ use crate::shape::ShapeInfo;
 use crate::user_data::*;
 use crate::vector::Vector;
 use crate::physics_world::*;
+use crate::convert::*;
 
 pub fn scale_shape(shape: &SharedShape, scale: &Vector) -> Option<SharedShape> {
     let shape_type = shape.shape_type();
@@ -112,7 +113,7 @@ pub extern "C" fn collider_get_position(world_handle : Handle, handle : Handle) 
     let collider = physics_world.collider_set.get(collider_handle);
     assert!(collider.is_some());
     let collider_vector = collider.unwrap().translation();
-    return Vector { x : collider_vector.x, y : collider_vector.y };
+    return vector_meters_to_pixels(&Vector { x : collider_vector.x, y : collider_vector.y });
 }
 
 #[no_mangle]
@@ -127,14 +128,16 @@ pub extern "C" fn collider_get_angle(world_handle : Handle, handle : Handle) -> 
 
 #[no_mangle]
 pub extern "C" fn collider_set_transform(world_handle : Handle, handle : Handle, shape_info: ShapeInfo) {
-    {
+    {   
+        let position = &vector_pixels_to_meters(&shape_info.pixel_position);
+
         let mut physics_engine = SINGLETON.lock().unwrap();
         let physics_world = physics_engine.get_world(world_handle);
         let collider_handle = handle_to_collider_handle(handle);
         let collider = physics_world.collider_set.get_mut(collider_handle);
         assert!(collider.is_some());
         let collider = collider.unwrap();
-        collider.set_position_wrt_parent(Isometry::new(vector![shape_info.position.x, shape_info.position.y], shape_info.rotation));
+        collider.set_position_wrt_parent(Isometry::new(vector![position.x, position.y], shape_info.rotation));
     }
     {
         let new_shape:SharedShape;
@@ -144,6 +147,7 @@ pub extern "C" fn collider_set_transform(world_handle : Handle, handle : Handle,
             if let Some(extracted_shape) = scale_shape(shape, &shape_info.scale) {
                 new_shape = extracted_shape;
             } else {
+                assert!(false);
                 // investigate why it failed
                 return;
             }

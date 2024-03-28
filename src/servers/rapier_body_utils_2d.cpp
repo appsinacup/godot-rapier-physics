@@ -186,7 +186,7 @@ void RapierBodyUtils2D::cast_motion(const RapierSpace2D &p_space, RapierBody2D &
 			Transform2D const &col_shape_transform = collision_body->get_transform() * collision_body->get_shape_transform(shape_index);
 			rapier2d::ShapeInfo col_shape_info = rapier2d::shape_info_from_body_shape(col_shape->get_rapier_shape(), col_shape_transform);
 			// stuck logic, check if body collides in place
-			body_shape_info.position = { (body_shape_transform.get_origin()).x, (body_shape_transform.get_origin()).y };
+			body_shape_info.pixel_position = { (body_shape_transform.get_origin()).x, (body_shape_transform.get_origin()).y };
 			rapier2d::ContactResult step_contact = rapier2d::shapes_contact(p_space.get_handle(), body_shape_info, col_shape_info, 0.0);
 			if (step_contact.collided && !step_contact.within_margin) {
 				if (body_shape->allows_one_way_collision() && collision_body->is_shape_set_as_one_way_collision(shape_index)) {
@@ -209,7 +209,7 @@ void RapierBodyUtils2D::cast_motion(const RapierSpace2D &p_space, RapierBody2D &
 			for (int k = 0; k < 8; k++) {
 				real_t fraction = low + (hi - low) * fraction_coeff;
 
-				body_shape_info.position = rapier2d::Vector{ (body_shape_transform.get_origin() + p_motion * fraction).x,
+				body_shape_info.pixel_position = rapier2d::Vector{ (body_shape_transform.get_origin() + p_motion * fraction).x,
 					(body_shape_transform.get_origin() + p_motion * fraction).y };
 				rapier2d::ContactResult step_contact = rapier2d::shapes_contact(p_space.get_handle(), body_shape_info, col_shape_info, 0.0);
 				if (step_contact.collided && !step_contact.within_margin) {
@@ -236,7 +236,7 @@ void RapierBodyUtils2D::cast_motion(const RapierSpace2D &p_space, RapierBody2D &
 					}
 				}
 			}
-			body_shape_info.position =
+			body_shape_info.pixel_position =
 					rapier2d::Vector{ (body_shape_transform.get_origin() + p_motion * (hi + contact_max_allowed_penetration)).x,
 						(body_shape_transform.get_origin() + p_motion * (hi + contact_max_allowed_penetration)).y };
 			rapier2d::ContactResult contact = rapier2d::shapes_contact(p_space.get_handle(), body_shape_info, col_shape_info, 0.0);

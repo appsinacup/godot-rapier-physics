@@ -53,5 +53,5 @@ pub struct SimulationSettings {
     pub num_additional_friction_iterations: usize,
     /// Number of internal Project Gauss Seidel (PGS) iterations run at each solver iteration (default: `1`).
     pub num_internal_pgs_iterations: usize,
-    pub gravity : Vector,
+    pub pixel_gravity : Vector,
 }

@@ -1,4 +1,5 @@
 use rapier2d::prelude::*;
+use crate::convert::*;
 use crate::handle::*;
 use crate::user_data::*;
 
@@ -6,8 +7,8 @@ use crate::user_data::*;
 pub struct OneWayDirection {
     pub body1 : bool,
     pub body2 : bool,
-    pub body1_margin : Real,
-    pub body2_margin : Real,
+    pub pixel_body1_margin : Real,
+    pub pixel_body2_margin : Real,
 	pub last_timestep: Real,
 }
 
@@ -97,11 +98,13 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
 			
             if one_way_direction.body1 {
 				let motion_len = body2.linvel().magnitude();
-				let max_allowed = motion_len * Real::max(body2.linvel().normalize().dot(&allowed_local_n1), 0.0) + one_way_direction.body1_margin;
+				let body_margin1 = pixels_to_meters(one_way_direction.pixel_body1_margin);
+				let max_allowed = motion_len * Real::max(body2.linvel().normalize().dot(&allowed_local_n1), 0.0) + body_margin1;
                 contact_is_pass_through = body2.linvel().dot(&allowed_local_n1) <= DEFAULT_EPSILON * 10.0 || dist < -max_allowed;
             } else if one_way_direction.body2 {
 				let motion_len = body1.linvel().magnitude();
-				let max_allowed = motion_len * Real::max(body1.linvel().normalize().dot(&allowed_local_n2), 0.0) + one_way_direction.body2_margin;
+				let body_margin2 = pixels_to_meters(one_way_direction.pixel_body2_margin);
+				let max_allowed = motion_len * Real::max(body1.linvel().normalize().dot(&allowed_local_n2), 0.0) + body_margin2;
                 contact_is_pass_through = body1.linvel().dot(&allowed_local_n2) <= DEFAULT_EPSILON * 10.0 || dist < -max_allowed;
             }
             if contact_is_pass_through {

@@ -4,6 +4,9 @@ use rapier2d::prelude::*;
 use std::sync::Mutex;
 use std::num::NonZeroUsize;
 use lazy_static::lazy_static;
+use crate::convert::meters_to_pixels;
+use crate::convert::vector_meters_to_pixels;
+use crate::convert::vector_pixels_to_meters;
 use crate::handle::*;
 use crate::user_data::*;
 use crate::settings::*;
@@ -28,27 +31,27 @@ impl ActiveBodyInfo {
 
 #[repr(C)]
 pub struct ContactPointInfo {
-    local_pos_1: Vector,
-    local_pos_2: Vector,
-    velocity_pos_1: Vector,
-    velocity_pos_2: Vector,
+    pixel_local_pos_1: Vector,
+    pixel_local_pos_2: Vector,
+    pixel_velocity_pos_1: Vector,
+    pixel_velocity_pos_2: Vector,
     normal: Vector,
-    distance: Real,
-    impulse: Real,
-    tangent_impulse: Real,
+    pixel_distance: Real,
+    pixel_impulse: Real,
+    pixel_tangent_impulse: Real,
 }
 
 impl ContactPointInfo {
     fn new() -> ContactPointInfo {
         ContactPointInfo {
-			local_pos_1: Vector { x : 0.0, y : 0.0 },
-			local_pos_2: Vector { x : 0.0, y : 0.0 },
-			velocity_pos_1: Vector { x : 0.0, y : 0.0 },
-			velocity_pos_2: Vector { x : 0.0, y : 0.0 },
+			pixel_local_pos_1: Vector { x : 0.0, y : 0.0 },
+			pixel_local_pos_2: Vector { x : 0.0, y : 0.0 },
+			pixel_velocity_pos_1: Vector { x : 0.0, y : 0.0 },
+			pixel_velocity_pos_2: Vector { x : 0.0, y : 0.0 },
 			normal: Vector { x : 0.0, y : 0.0 },
-            distance: 0.0,
-            impulse: 0.0,
-            tangent_impulse: 0.0,
+            pixel_distance: 0.0,
+            pixel_impulse: 0.0,
+            pixel_tangent_impulse: 0.0,
         }
     }
 }
@@ -184,8 +187,8 @@ impl PhysicsWorld {
 		}
 		integration_parameters.num_additional_friction_iterations = settings.num_additional_friction_iterations;
 		integration_parameters.num_internal_pgs_iterations = settings.num_internal_pgs_iterations;
-
-        let gravity = vector![settings.gravity.x, settings.gravity.y];
+		let gravity_vector = vector_pixels_to_meters(&settings.pixel_gravity);
+        let gravity = vector![gravity_vector.x, gravity_vector.y];
 
 		let physics_hooks = PhysicsHooksCollisionFilter {
 			world_handle : self.handle,
@@ -302,19 +305,19 @@ impl PhysicsWorld {
                                 let point_velocity_2 = body2.velocity_at_point(&collider_pos_2);
 
                                 if swap {
-                                    contact_info.local_pos_1 = Vector { x : collider_pos_2.x, y : collider_pos_2.y };
-                                    contact_info.local_pos_2 = Vector { x : collider_pos_1.x, y : collider_pos_1.y };
-                                    contact_info.velocity_pos_1 = Vector { x : point_velocity_2.x, y : point_velocity_2.y };
-                                    contact_info.velocity_pos_2 = Vector { x : point_velocity_1.x, y : point_velocity_1.y };
+                                    contact_info.pixel_local_pos_1 = vector_meters_to_pixels(&Vector { x : collider_pos_2.x, y : collider_pos_2.y });
+                                    contact_info.pixel_local_pos_2 = vector_meters_to_pixels(&Vector { x : collider_pos_1.x, y : collider_pos_1.y });
+                                    contact_info.pixel_velocity_pos_1 = vector_meters_to_pixels(&Vector { x : point_velocity_2.x, y : point_velocity_2.y });
+                                    contact_info.pixel_velocity_pos_2 = vector_meters_to_pixels(&Vector { x : point_velocity_1.x, y : point_velocity_1.y });
                                 } else {
-                                    contact_info.local_pos_1 = Vector { x : collider_pos_1.x, y : collider_pos_1.y };
-                                    contact_info.local_pos_2 = Vector { x : collider_pos_2.x, y : collider_pos_2.y };
-                                    contact_info.velocity_pos_1 = Vector { x : point_velocity_1.x, y : point_velocity_1.y };
-                                    contact_info.velocity_pos_2 = Vector { x : point_velocity_2.x, y : point_velocity_2.y };
+                                    contact_info.pixel_local_pos_1 = vector_meters_to_pixels(&Vector { x : collider_pos_1.x, y : collider_pos_1.y });
+                                    contact_info.pixel_local_pos_2 = vector_meters_to_pixels(&Vector { x : collider_pos_2.x, y : collider_pos_2.y });
+                                    contact_info.pixel_velocity_pos_1 = vector_meters_to_pixels(&Vector { x : point_velocity_1.x, y : point_velocity_1.y });
+                                    contact_info.pixel_velocity_pos_2 = vector_meters_to_pixels(&Vector { x : point_velocity_2.x, y : point_velocity_2.y });
                                 }
-                                contact_info.distance = contact_point.dist;
-                                contact_info.impulse = contact_point.data.impulse;
-                                contact_info.tangent_impulse = contact_point.data.tangent_impulse;
+                                contact_info.pixel_distance = meters_to_pixels(contact_point.dist);
+                                contact_info.pixel_impulse = meters_to_pixels(contact_point.data.impulse);
+                                contact_info.pixel_tangent_impulse = meters_to_pixels(contact_point.data.tangent_impulse);
                                 
                                 send_contact_points = contact_callback(self.handle, &contact_info, &event_info);
 								if !send_contact_points {
