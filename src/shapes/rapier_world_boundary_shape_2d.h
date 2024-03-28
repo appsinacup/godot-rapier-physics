@@ -13,8 +13,6 @@ protected:
 public:
 	virtual PhysicsServer2D::ShapeType get_type() const override { return PhysicsServer2D::SHAPE_WORLD_BOUNDARY; }
 
-	virtual void apply_rapier_transform(rapier2d::Vector &position, real_t &angle) const override;
-
 	virtual void set_data(const Variant &p_data) override;
 	virtual Variant get_data() const override;
 
