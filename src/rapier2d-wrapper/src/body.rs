@@ -294,7 +294,8 @@ pub extern "C" fn body_add_force_at_point(world_handle : Handle, body_handle : H
 }
 
 #[no_mangle]
-pub extern "C" fn body_add_torque(world_handle : Handle, body_handle : Handle, torque: Real) {
+pub extern "C" fn body_add_torque(world_handle : Handle, body_handle : Handle, pixel_torque: Real) {
+    let torque = pixels_to_meters(pixels_to_meters(pixel_torque));
     let mut physics_engine = SINGLETON.lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
@@ -349,11 +350,13 @@ pub extern "C" fn body_get_constant_torque(world_handle : Handle, body_handle : 
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     let body = physics_world.rigid_body_set.get_mut(rigid_body_handle);
     assert!(body.is_some());
-    body.unwrap().user_torque()
+    meters_to_pixels(meters_to_pixels(body.unwrap().user_torque()))
 }
 
 #[no_mangle]
-pub extern "C" fn body_apply_torque_impulse(world_handle : Handle, body_handle : Handle, torque_impulse : Real) {
+pub extern "C" fn body_apply_torque_impulse(world_handle : Handle, body_handle : Handle, pixel_torque_impulse : Real) {
+    let torque_impulse = pixels_to_meters(pixels_to_meters(pixel_torque_impulse));
+
     let mut physics_engine = SINGLETON.lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);

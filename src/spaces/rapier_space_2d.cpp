@@ -354,7 +354,6 @@ bool RapierSpace2D::contact_point_callback(rapier2d::Handle world_handle, const 
 	}
 	ERR_FAIL_COND_V(!pObject1, false);
 	ERR_FAIL_COND_V(pObject1->get_type() != RapierCollisionObject2D::TYPE_BODY, false);
-	ERR_FAIL_COND_V(!pObject1, false);
 	RapierBody2D *body1 = static_cast<RapierBody2D *>(pObject1);
 	// body and shape 2
 	uint32_t shape2 = 0;
@@ -364,7 +363,6 @@ bool RapierSpace2D::contact_point_callback(rapier2d::Handle world_handle, const 
 	}
 	ERR_FAIL_COND_V(!pObject2, false);
 	ERR_FAIL_COND_V(pObject2->get_type() != RapierCollisionObject2D::TYPE_BODY, false);
-	ERR_FAIL_COND_V(!pObject2, false);
 	RapierBody2D *body2 = static_cast<RapierBody2D *>(pObject2);
 
 	real_t depth = MAX(0.0, -contact_info->pixel_distance); // negative distance means penetration
@@ -390,6 +388,11 @@ bool RapierSpace2D::contact_point_callback(rapier2d::Handle world_handle, const 
 
 void RapierSpace2D::step(real_t p_step) {
 	last_step = p_step;
+	for (SelfList<RapierBody2D> *body_iterator = active_list.first(); body_iterator;) {
+		RapierBody2D *body = body_iterator->self();
+		body_iterator = body_iterator->next();
+		body->reset_contact_count();
+	}
 	contact_debug_count = 0;
 
 	ProjectSettings *project_settings = ProjectSettings::get_singleton();
