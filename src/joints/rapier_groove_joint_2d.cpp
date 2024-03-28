@@ -22,7 +22,7 @@ RapierGrooveJoint2D::RapierGrooveJoint2D(const Vector2 &p_a_groove1, const Vecto
 	space_handle = p_body_a->get_space()->get_handle();
 	ERR_FAIL_COND(!rapier2d::is_handle_valid(space_handle));
 
-	handle = rapier2d::joint_create_prismatic(space_handle, p_body_a->get_body_handle(), p_body_b->get_body_handle(), &rapier_axis, &rapier_anchor_A, &rapier_anchor_B, &rapier_limits);
+	handle = rapier2d::joint_create_prismatic(space_handle, p_body_a->get_body_handle(), p_body_b->get_body_handle(), &rapier_axis, &rapier_anchor_A, &rapier_anchor_B, &rapier_limits, is_disabled_collisions_between_bodies());
 	ERR_FAIL_COND(!rapier2d::is_handle_valid(handle));
 
 	//A->add_constraint(this, 0);

@@ -41,8 +41,9 @@ void RapierBody2D::_apply_mass_properties(bool force_update) {
 
 void RapierBody2D::update_mass_properties(bool force_update) {
 	mass_properties_update_list.remove_from_list();
-
-	ERR_FAIL_COND(mode < PhysicsServer2D::BODY_MODE_RIGID);
+	if (mode < PhysicsServer2D::BODY_MODE_RIGID) {
+		return;
+	}
 
 	real_t total_area = 0;
 	for (int i = 0; i < get_shape_count(); i++) {
@@ -64,7 +65,7 @@ void RapierBody2D::update_mass_properties(bool force_update) {
 				const RapierShape2D *shape = get_shape(i);
 
 				real_t shape_area = shape->get_aabb().get_area();
-				if (shape_area == 0.0) {
+				if (shape_area == 0.0 || mass == 0.0) {
 					continue;
 				}
 
@@ -90,7 +91,7 @@ void RapierBody2D::update_mass_properties(bool force_update) {
 				const RapierShape2D *shape = get_shape(i);
 
 				real_t shape_area = shape->get_aabb().get_area();
-				if (shape_area == 0.0) {
+				if (shape_area == 0.0 || mass == 0.0) {
 					continue;
 				}
 

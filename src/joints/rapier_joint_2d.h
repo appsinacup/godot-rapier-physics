@@ -24,7 +24,7 @@ public:
 	_FORCE_INLINE_ void set_rid(const RID &p_rid) { rid = p_rid; }
 	_FORCE_INLINE_ RID get_rid() const { return rid; }
 
-	_FORCE_INLINE_ void disable_collisions_between_bodies(const bool p_disabled) { disabled_collisions_between_bodies = p_disabled; }
+	void disable_collisions_between_bodies(const bool p_disabled);
 	_FORCE_INLINE_ bool is_disabled_collisions_between_bodies() const { return disabled_collisions_between_bodies; }
 
 	_FORCE_INLINE_ void set_max_force(real_t p_force) { max_force = p_force; }

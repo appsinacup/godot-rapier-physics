@@ -3,17 +3,17 @@
 </div>
 
 <p align="center">
-	<a href="https://github.com/appsinacup/godot-rapier2d/actions/workflows/runner.yml">
-        <img src="https://github.com/appsinacup/godot-rapier2d/actions/workflows/runner.yml/badge.svg?branch=main"
+	<a href="https://github.com/appsinacup/godot-rapier-2d/actions/workflows/runner.yml">
+        <img src="https://github.com/appsinacup/godot-rapier-2d/actions/workflows/runner.yml/badge.svg?branch=main"
             alt="Godot Rapier2D Build"></a>
-    <a href="https://github.com/dimforge/rapier/releases/tag/v0.17.2" alt="Rapier2D Version">
-        <img src="https://img.shields.io/badge/Rapier2D-v0.17.2-%23478cbf?logoColor=white" /></a>
+    <a href="https://github.com/dimforge/rapier/releases/tag/v0.18.0" alt="Rapier2D Version">
+        <img src="https://img.shields.io/badge/Rapier2D-v0.18.0-%23478cbf?logoColor=white" /></a>
     <a href="https://github.com/godotengine/godot-cpp" alt="Godot Version">
         <img src="https://img.shields.io/badge/Godot-v4.2-%23478cbf?logo=godot-engine&logoColor=white" /></a>
-    <a href="https://github.com/appsinacup/godot-rapier2d/graphs/contributors" alt="Contributors">
-        <img src="https://img.shields.io/github/contributors/appsinacup/godot-rapier2d" /></a>
-    <a href="https://github.com/appsinacup/godot-rapier2d/pulse" alt="Activity">
-        <img src="https://img.shields.io/github/commit-activity/m/appsinacup/godot-rapier2d" /></a>
+    <a href="https://github.com/appsinacup/godot-rapier-2d/graphs/contributors" alt="Contributors">
+        <img src="https://img.shields.io/github/contributors/appsinacup/godot-rapier-2d" /></a>
+    <a href="https://github.com/appsinacup/godot-rapier-2d/pulse" alt="Activity">
+        <img src="https://img.shields.io/github/commit-activity/m/appsinacup/godot-rapier-2d" /></a>
     <a href="https://discord.gg/56dMud8HYn">
         <img src="https://img.shields.io/discord/1138836561102897172?logo=discord"
             alt="Chat on Discord"></a>
@@ -40,8 +40,8 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 # Limitations
 
 - SeparationRay2D missing.
-- DampedSpringJoint2D missing.
 - Shape skew missing.
+- Web exports not working [issues/23](https://github.com/appsinacup/godot-rapier-2d/issues/23)
 
 # Supported Platforms
 
@@ -50,7 +50,7 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 - Linux (x86_64)
 - Android (x86_64, arm64)
 - iOS (arm64)
-- Web (wasm32)
+- Web (wasm32) * Not working
 
 # Installation
 

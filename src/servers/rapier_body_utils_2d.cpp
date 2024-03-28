@@ -9,7 +9,7 @@
 #define BODY_MOTION_RECOVER_RATIO 0.4
 
 bool should_skip_collision_one_dir(rapier2d::ContactResult contact, RapierShape2D *body_shape, RapierBody2D *collision_body, int shape_index, const Transform2D &col_shape_transform, real_t p_margin, real_t last_step, Vector2 p_motion) {
-	real_t dist = contact.distance;
+	real_t dist = contact.pixel_distance;
 	if (!contact.within_margin && body_shape->allows_one_way_collision() && collision_body->is_shape_set_as_one_way_collision(shape_index)) {
 		real_t valid_depth = 10e20;
 		Vector2 valid_dir = col_shape_transform.columns[1].normalized();
@@ -33,7 +33,7 @@ bool should_skip_collision_one_dir(rapier2d::ContactResult contact, RapierShape2
 		Vector2 motion = p_motion;
 		real_t motion_len = motion.length();
 		valid_depth += motion_len * MAX(motion.normalized().dot(valid_dir), 0.0);
-		if ((dist < -valid_depth) || (p_motion.normalized().dot(valid_dir) < CMP_EPSILON * 10.0)) {
+		if ((dist < -valid_depth) || (p_motion.normalized().dot(valid_dir) < CMP_EPSILON)) {
 			return true;
 		}
 	}
@@ -98,8 +98,8 @@ bool RapierBodyUtils2D::body_motion_recover(
 				if (should_skip_collision_one_dir(contact, body_shape, collision_body, shape_index, col_shape_transform, p_margin, p_space.get_last_step(), p_motion)) {
 					continue;
 				}
-				Vector2 a(contact.point1.x, contact.point1.y);
-				Vector2 b(contact.point2.x, contact.point2.y);
+				Vector2 a(contact.pixel_point1.x, contact.pixel_point1.y);
+				Vector2 b(contact.pixel_point2.x, contact.pixel_point2.y);
 
 				recovered = true;
 
@@ -186,7 +186,7 @@ void RapierBodyUtils2D::cast_motion(const RapierSpace2D &p_space, RapierBody2D &
 			Transform2D const &col_shape_transform = collision_body->get_transform() * collision_body->get_shape_transform(shape_index);
 			rapier2d::ShapeInfo col_shape_info = rapier2d::shape_info_from_body_shape(col_shape->get_rapier_shape(), col_shape_transform);
 			// stuck logic, check if body collides in place
-			body_shape_info.position = { (body_shape_transform.get_origin()).x, (body_shape_transform.get_origin()).y };
+			body_shape_info.pixel_position = { (body_shape_transform.get_origin()).x, (body_shape_transform.get_origin()).y };
 			rapier2d::ContactResult step_contact = rapier2d::shapes_contact(p_space.get_handle(), body_shape_info, col_shape_info, 0.0);
 			if (step_contact.collided && !step_contact.within_margin) {
 				if (body_shape->allows_one_way_collision() && collision_body->is_shape_set_as_one_way_collision(shape_index)) {
@@ -209,7 +209,7 @@ void RapierBodyUtils2D::cast_motion(const RapierSpace2D &p_space, RapierBody2D &
 			for (int k = 0; k < 8; k++) {
 				real_t fraction = low + (hi - low) * fraction_coeff;
 
-				body_shape_info.position = rapier2d::Vector{ (body_shape_transform.get_origin() + p_motion * fraction).x,
+				body_shape_info.pixel_position = rapier2d::Vector{ (body_shape_transform.get_origin() + p_motion * fraction).x,
 					(body_shape_transform.get_origin() + p_motion * fraction).y };
 				rapier2d::ContactResult step_contact = rapier2d::shapes_contact(p_space.get_handle(), body_shape_info, col_shape_info, 0.0);
 				if (step_contact.collided && !step_contact.within_margin) {
@@ -236,7 +236,7 @@ void RapierBodyUtils2D::cast_motion(const RapierSpace2D &p_space, RapierBody2D &
 					}
 				}
 			}
-			body_shape_info.position =
+			body_shape_info.pixel_position =
 					rapier2d::Vector{ (body_shape_transform.get_origin() + p_motion * (hi + contact_max_allowed_penetration)).x,
 						(body_shape_transform.get_origin() + p_motion * (hi + contact_max_allowed_penetration)).y };
 			rapier2d::ContactResult contact = rapier2d::shapes_contact(p_space.get_handle(), body_shape_info, col_shape_info, 0.0);
@@ -318,14 +318,14 @@ bool RapierBodyUtils2D::body_motion_collide(const RapierSpace2D &p_space, Rapier
 				continue;
 			}
 
-			Vector2 a(contact.point1.x, contact.point1.y);
-			Vector2 b(contact.point2.x, contact.point2.y);
+			Vector2 a(contact.pixel_point1.x, contact.pixel_point1.y);
+			Vector2 b(contact.pixel_point2.x, contact.pixel_point2.y);
 
 			if (should_skip_collision_one_dir(contact, body_shape, collision_body, shape_index, col_shape_transform, p_margin, p_space.get_last_step(), p_motion)) {
 				continue;
 			}
-			if (contact.distance < min_distance) {
-				min_distance = contact.distance;
+			if (contact.pixel_distance < min_distance) {
+				min_distance = contact.pixel_distance;
 				best_collision_body = collision_body;
 				best_collision_shape_index = shape_index;
 				best_body_shape_index = body_shape_idx;
@@ -344,11 +344,11 @@ bool RapierBodyUtils2D::body_motion_collide(const RapierSpace2D &p_space, Rapier
 			p_result->collider_shape = best_collision_shape_index;
 			p_result->collision_local_shape = best_body_shape_index;
 			// World position from the moving body to get the contact point
-			p_result->collision_point = Vector2(best_contact.point1.x, best_contact.point1.y);
+			p_result->collision_point = Vector2(best_contact.pixel_point1.x, best_contact.pixel_point1.y);
 			// Normal from the collided object to get the contact normal
 			p_result->collision_normal = Vector2(best_contact.normal2.x, best_contact.normal2.y);
 			// compute distance without sign
-			p_result->collision_depth = p_margin - best_contact.distance;
+			p_result->collision_depth = p_margin - best_contact.pixel_distance;
 
 			Vector2 local_position = p_result->collision_point - best_collision_body->get_transform().get_origin();
 			p_result->collider_velocity = best_collision_body->get_velocity_at_local_point(local_position);

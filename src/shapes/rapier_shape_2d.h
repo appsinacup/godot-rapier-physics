@@ -40,8 +40,6 @@ public:
 
 	virtual PhysicsServer2D::ShapeType get_type() const = 0;
 
-	virtual void apply_rapier_transform(rapier2d::Vector &position, real_t &angle) const {}
-
 	virtual bool allows_one_way_collision() const { return true; }
 
 	rapier2d::Handle get_rapier_shape();

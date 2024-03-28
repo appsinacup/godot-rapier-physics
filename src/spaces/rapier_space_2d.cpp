@@ -138,9 +138,9 @@ rapier2d::OneWayDirection RapierSpace2D::collision_modify_contacts_callback(rapi
 		ERR_FAIL_COND_V(collision_object_1->is_shape_disabled(shape1), result);
 		ERR_FAIL_COND_V(collision_object_2->is_shape_disabled(shape2), result);
 		result.body1 = collision_object_1->is_shape_set_as_one_way_collision(shape1);
-		result.body1_margin = collision_object_1->get_shape_one_way_collision_margin(shape1);
+		result.pixel_body1_margin = collision_object_1->get_shape_one_way_collision_margin(shape1);
 		result.body2 = collision_object_2->is_shape_set_as_one_way_collision(shape2);
-		result.body2_margin = collision_object_2->get_shape_one_way_collision_margin(shape2);
+		result.pixel_body2_margin = collision_object_2->get_shape_one_way_collision_margin(shape2);
 		if (collision_object_1->get_type() == RapierCollisionObject2D::TYPE_BODY && collision_object_2->get_type() == RapierCollisionObject2D::TYPE_BODY) {
 			RapierBody2D *body1 = static_cast<RapierBody2D *>(collision_object_1);
 			RapierBody2D *body2 = static_cast<RapierBody2D *>(collision_object_2);
@@ -216,7 +216,7 @@ void RapierSpace2D::collision_event_callback(rapier2d::Handle world_handle, cons
 
 	if (event_info->is_sensor) {
 		if (!instanceId1.is_valid()) {
-			ERR_FAIL_COND_MSG(pObject2, "Should be able to get info about a removed object if the other one is still valid.");
+			ERR_FAIL_COND_MSG(pObject1, "Should be able to get info about a removed object if the other one is still valid.");
 			return;
 		}
 		if (!instanceId2.is_valid()) {
@@ -235,36 +235,32 @@ void RapierSpace2D::collision_event_callback(rapier2d::Handle world_handle, cons
 		}
 
 		RapierArea2D *pArea = static_cast<RapierArea2D *>(pObject1);
-		uint32_t area_shape = shape1;
-		uint32_t other_shape = shape2;
-		RID other_rid = rid2;
-		ObjectID other_instance_id = instanceId2;
 		if (type2 == RapierCollisionObject2D::TYPE_AREA) {
 			RapierArea2D *pArea2 = static_cast<RapierArea2D *>(pObject2);
 			if (event_info->is_started) {
 				ERR_FAIL_COND(!pArea);
 				ERR_FAIL_COND(!pArea2);
-				pArea->on_area_enter(collider_handle2, pArea2, other_shape, other_rid, other_instance_id, collider_handle1, area_shape);
-				pArea2->on_area_enter(collider_handle1, pArea, area_shape, other_rid, other_instance_id, collider_handle2, other_shape);
+				pArea->on_area_enter(collider_handle2, pArea2, shape2, rid2, instanceId2, collider_handle1, shape1);
+				pArea2->on_area_enter(collider_handle1, pArea, shape1, rid1, instanceId1, collider_handle2, shape2);
 			} else {
 				if (pArea) {
-					pArea->on_area_exit(collider_handle2, pArea2, other_shape, other_rid, other_instance_id, collider_handle1, area_shape);
+					pArea->on_area_exit(collider_handle2, pArea2, shape2, rid2, instanceId2, collider_handle1, shape1);
 				} else {
 					// Try to retrieve area if not destroyed yet
 					pArea = space->get_area_from_rid(rid1);
 					if (pArea) {
 						// Use invalid area case to keep counters consistent for already removed collider
-						pArea->on_area_exit(collider_handle2, nullptr, other_shape, other_rid, other_instance_id, collider_handle1, area_shape);
+						pArea->on_area_exit(collider_handle2, nullptr, shape2, rid2, instanceId2, collider_handle1, shape1);
 					}
 				}
 				if (pArea2) {
-					pArea2->on_area_exit(collider_handle1, pArea, area_shape, other_rid, other_instance_id, collider_handle2, other_shape);
+					pArea2->on_area_exit(collider_handle1, pArea, shape1, rid1, instanceId1, collider_handle2, shape2);
 				} else {
 					// Try to retrieve area if not destroyed yet
 					pArea2 = space->get_area_from_rid(rid2);
 					if (pArea2) {
 						// Use invalid area case to keep counters consistent for already removed collider
-						pArea2->on_area_exit(collider_handle1, nullptr, area_shape, other_rid, other_instance_id, collider_handle2, other_shape);
+						pArea2->on_area_exit(collider_handle1, nullptr, shape1, rid1, instanceId1, collider_handle2, shape2);
 					}
 				}
 			}
@@ -272,15 +268,15 @@ void RapierSpace2D::collision_event_callback(rapier2d::Handle world_handle, cons
 			RapierBody2D *pBody = static_cast<RapierBody2D *>(pObject2);
 			if (event_info->is_started) {
 				ERR_FAIL_COND(!pArea);
-				pArea->on_body_enter(collider_handle2, pBody, other_shape, other_rid, other_instance_id, collider_handle1, area_shape);
+				pArea->on_body_enter(collider_handle2, pBody, shape2, rid2, instanceId2, collider_handle1, shape1);
 			} else if (pArea) {
-				pArea->on_body_exit(collider_handle2, pBody, other_shape, other_rid, other_instance_id, collider_handle1, area_shape);
+				pArea->on_body_exit(collider_handle2, pBody, shape2, rid2, instanceId2, collider_handle1, shape1);
 			} else {
 				// Try to retrieve area if not destroyed yet
 				pArea = space->get_area_from_rid(rid1);
 				if (pArea) {
 					// Use invalid body case to keep counters consistent for already removed collider
-					pArea->on_body_exit(collider_handle2, nullptr, other_shape, other_rid, other_instance_id, collider_handle1, area_shape, false);
+					pArea->on_body_exit(collider_handle2, nullptr, shape2, rid2, instanceId2, collider_handle1, shape1, false);
 				}
 			}
 		}
@@ -334,8 +330,8 @@ bool RapierSpace2D::contact_point_callback(rapier2d::Handle world_handle, const 
 	ERR_FAIL_COND_V(!space, false);
 	ERR_FAIL_COND_V(space->get_handle().id != world_handle.id, false);
 
-	Vector2 pos1(contact_info->local_pos_1.x, contact_info->local_pos_1.y);
-	Vector2 pos2(contact_info->local_pos_2.x, contact_info->local_pos_2.y);
+	Vector2 pos1(contact_info->pixel_local_pos_1.x, contact_info->pixel_local_pos_1.y);
+	Vector2 pos2(contact_info->pixel_local_pos_2.x, contact_info->pixel_local_pos_2.y);
 
 	bool keep_sending_contacts = false;
 
@@ -354,7 +350,6 @@ bool RapierSpace2D::contact_point_callback(rapier2d::Handle world_handle, const 
 	}
 	ERR_FAIL_COND_V(!pObject1, false);
 	ERR_FAIL_COND_V(pObject1->get_type() != RapierCollisionObject2D::TYPE_BODY, false);
-	ERR_FAIL_COND_V(!pObject1, false);
 	RapierBody2D *body1 = static_cast<RapierBody2D *>(pObject1);
 	// body and shape 2
 	uint32_t shape2 = 0;
@@ -364,24 +359,23 @@ bool RapierSpace2D::contact_point_callback(rapier2d::Handle world_handle, const 
 	}
 	ERR_FAIL_COND_V(!pObject2, false);
 	ERR_FAIL_COND_V(pObject2->get_type() != RapierCollisionObject2D::TYPE_BODY, false);
-	ERR_FAIL_COND_V(!pObject2, false);
 	RapierBody2D *body2 = static_cast<RapierBody2D *>(pObject2);
 
-	real_t depth = MAX(0.0, -contact_info->distance); // negative distance means penetration
+	real_t depth = MAX(0.0, -contact_info->pixel_distance); // negative distance means penetration
 
 	Vector2 normal(contact_info->normal.x, contact_info->normal.y);
 	Vector2 tangent = normal.orthogonal();
-	Vector2 impulse = contact_info->impulse * normal + contact_info->tangent_impulse * tangent;
+	Vector2 impulse = contact_info->pixel_impulse * normal + contact_info->pixel_tangent_impulse * tangent;
 
 	if (body1->can_report_contacts()) {
 		keep_sending_contacts = true;
-		Vector2 vel_pos2(contact_info->velocity_pos_2.x, contact_info->velocity_pos_2.y);
+		Vector2 vel_pos2(contact_info->pixel_velocity_pos_2.x, contact_info->pixel_velocity_pos_2.y);
 		body1->add_contact(pos1, -normal, depth, (int)shape1, pos2, (int)shape2, body2->get_instance_id(), body2->get_rid(), vel_pos2, impulse);
 	}
 
 	if (body2->can_report_contacts()) {
 		keep_sending_contacts = true;
-		Vector2 vel_pos1(contact_info->velocity_pos_1.x, contact_info->velocity_pos_1.y);
+		Vector2 vel_pos1(contact_info->pixel_velocity_pos_1.x, contact_info->pixel_velocity_pos_1.y);
 		body2->add_contact(pos2, normal, depth, (int)shape2, pos1, (int)shape1, body1->get_instance_id(), body1->get_rid(), vel_pos1, impulse);
 	}
 
@@ -390,6 +384,11 @@ bool RapierSpace2D::contact_point_callback(rapier2d::Handle world_handle, const 
 
 void RapierSpace2D::step(real_t p_step) {
 	last_step = p_step;
+	for (SelfList<RapierBody2D> *body_iterator = active_list.first(); body_iterator;) {
+		RapierBody2D *body = body_iterator->self();
+		body_iterator = body_iterator->next();
+		body->reset_contact_count();
+	}
 	contact_debug_count = 0;
 
 	ProjectSettings *project_settings = ProjectSettings::get_singleton();
@@ -426,22 +425,17 @@ void RapierSpace2D::step(real_t p_step) {
 
 	rapier2d::SimulationSettings settings;
 	settings.dt = p_step;
-	settings.gravity.x = default_gravity_dir.x * default_gravity_value;
-	settings.gravity.y = default_gravity_dir.y * default_gravity_value;
+	settings.pixel_gravity.x = default_gravity_dir.x * default_gravity_value;
+	settings.pixel_gravity.y = default_gravity_dir.y * default_gravity_value;
 	settings.allowed_linear_error = RapierProjectSettings::get_solver_allowed_linear_error();
 	settings.damping_ratio = RapierProjectSettings::get_solver_damping_ratio();
 	settings.erp = RapierProjectSettings::get_solver_erp();
-	settings.interleave_restitution_and_friction_resolution = RapierProjectSettings::get_solver_interleave_restitution_and_friction_resolution();
 	settings.joint_damping_ratio = RapierProjectSettings::get_solver_joint_damping_ratio();
 	settings.joint_erp = RapierProjectSettings::get_solver_joint_erp();
-	settings.max_ccd_substeps = RapierProjectSettings::get_solver_max_ccd_substeps();
-	settings.max_penetration_correction = RapierProjectSettings::get_solver_max_penetration_correction();
-	settings.max_stabilization_iterations = RapierProjectSettings::get_solver_max_stabilization_iterations();
-	settings.max_velocity_friction_iterations = RapierProjectSettings::get_solver_max_velocity_friction_iterations();
-	settings.max_velocity_iterations = RapierProjectSettings::get_solver_max_velocity_iterations();
-	settings.min_ccd_dt = RapierProjectSettings::get_solver_min_ccd_dt();
-	settings.min_island_size = RapierProjectSettings::get_solver_min_island_size();
 	settings.prediction_distance = RapierProjectSettings::get_solver_prediction_distance();
+	settings.num_additional_friction_iterations = RapierProjectSettings::get_solver_num_additional_friction_iterations();
+	settings.num_internal_pgs_iterations = RapierProjectSettings::get_solver_num_internal_pgs_iterations();
+	settings.num_solver_iterations = RapierProjectSettings::get_solver_num_solver_iterations();
 
 	ERR_FAIL_COND(!is_handle_valid(handle));
 	rapier2d::world_step(handle, &settings);

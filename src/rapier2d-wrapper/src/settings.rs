@@ -23,17 +23,6 @@ pub extern "C" fn default_world_settings() -> WorldSettings {
 pub struct SimulationSettings {
     /// The timestep length (default: `1.0 / 60.0`)
     pub dt: Real,
-    /// Minimum timestep size when using CCD with multiple substeps (default `1.0 / 60.0 / 100.0`)
-    ///
-    /// When CCD with multiple substeps is enabled, the timestep is subdivided
-    /// into smaller pieces. This timestep subdivision won't generate timestep
-    /// lengths smaller than `min_ccd_dt`.
-    ///
-    /// Setting this to a large value will reduce the opportunity to performing
-    /// CCD substepping, resulting in potentially more time dropped by the
-    /// motion-clamping mechanism. Setting this to an very small value may lead
-    /// to numerical instabilities.
-    pub min_ccd_dt: Real,
 
     /// 0-1: multiplier for how much of the constraint violation (e.g. contact penetration)
     /// will be compensated for during the velocity solve.
@@ -56,23 +45,13 @@ pub struct SimulationSettings {
 
     /// Amount of penetration the engine wont attempt to correct (default: `0.001m`).
     pub allowed_linear_error: Real,
-    /// Maximum amount of penetration the solver will attempt to resolve in one timestep.
-    pub max_penetration_correction: Real,
     /// The maximal distance separating two objects that will generate predictive contacts (default: `0.002`).
     pub prediction_distance: Real,
-    /// Maximum number of iterations performed to solve non-penetration and joint constraints (default: `4`).
-    pub max_velocity_iterations: usize,
-    /// Maximum number of iterations performed to solve friction constraints (default: `8`).
-    pub max_velocity_friction_iterations: usize,
-    /// Maximum number of iterations performed to remove the energy introduced by penetration corrections  (default: `1`).
-    pub max_stabilization_iterations: usize,
-    /// If `false`, friction and non-penetration constraints will be solved in the same loop. Otherwise,
-    /// non-penetration constraints are solved first, and friction constraints are solved after (default: `true`).
-    pub interleave_restitution_and_friction_resolution: bool,
-    /// Minimum number of dynamic bodies in each active island (default: `128`).
-    pub min_island_size: usize,
-    /// Maximum number of substeps performed by the  solver (default: `1`).
-    pub max_ccd_substeps: usize,
-
-    pub gravity : Vector,
+    /// The number of solver iterations run by the constraints solver for calculating forces (default: `4`).
+    pub num_solver_iterations: usize,
+    /// Number of addition friction resolution iteration run during the last solver sub-step (default: `4`).
+    pub num_additional_friction_iterations: usize,
+    /// Number of internal Project Gauss Seidel (PGS) iterations run at each solver iteration (default: `1`).
+    pub num_internal_pgs_iterations: usize,
+    pub pixel_gravity : Vector,
 }

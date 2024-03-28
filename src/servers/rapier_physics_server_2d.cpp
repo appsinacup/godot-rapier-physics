@@ -148,8 +148,8 @@ bool RapierPhysicsServer2D::_shape_collide(const RID &p_shape_A, const Transform
 	}
 	(*p_result_count)++;
 
-	results_out[array_idx++] = Vector2(result.witness1.x, result.witness1.y);
-	results_out[array_idx++] = Vector2(result.witness2.x, result.witness2.y);
+	results_out[array_idx++] = Vector2(result.pixel_witness1.x, result.pixel_witness1.y);
+	results_out[array_idx++] = Vector2(result.pixel_witness2.x, result.pixel_witness2.y);
 
 	return array_idx > 0;
 }
