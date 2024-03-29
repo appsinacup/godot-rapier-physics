@@ -133,11 +133,16 @@ pub extern "C" fn intersect_ray(world_handle : Handle, pixel_from : &Vector, dir
     filter.predicate = Some(&predicate);
      
     let mut result = false;
+    let mut length_current = Real::MAX;
     physics_world.query_pipeline.intersections_with_ray(&physics_world.rigid_body_set, &physics_world.collider_set, &ray, length, solid, filter,
         |handle, intersection| {
+            // Find closest intersection
+            if intersection.toi > length_current {
+                return true;
+            }
             // Callback called on each collider hit by the ray.
-
             if hit_from_inside || intersection.toi != 0.0 {
+                length_current = intersection.toi;
                 result = true;
 
                 let hit_point = ray.point_at(intersection.toi);
@@ -152,7 +157,7 @@ pub extern "C" fn intersect_ray(world_handle : Handle, pixel_from : &Vector, dir
                 };
                 hit_info.collider = collider_handle_to_handle(handle);
 				hit_info.user_data = physics_world.get_collider_user_data(handle);
-                return false; // We found a collision hit.
+                //return false; // We found a collision hit.
             }
             true // Continue to search.
         },
