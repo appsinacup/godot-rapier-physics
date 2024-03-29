@@ -24,8 +24,8 @@ parallel = ["rapier2d/parallel", "rapier2d-f64/parallel"]
 # rapier2d = { features = [ "simd-stable"] }
 
 # This changes the parry contacts to work even in some weird cases where in main branch it would return None
-rapier2d = {git = "https://github.com/appsinacup/rapier", branch = "master"}
-rapier2d-f64 = {git = "https://github.com/appsinacup/rapier", branch = "master"}
+rapier2d = {git = "https://github.com/dimforge/rapier", branch = "master"}
+rapier2d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master"}
 lazy_static = "1.4.0"
 
 [profile.release]
