@@ -3,6 +3,7 @@ extern crate rapier2d_f64 as rapier2d;
 mod body;
 mod collider;
 mod convert;
+mod event_handler;
 mod handle;
 mod joint;
 mod physics_hooks;

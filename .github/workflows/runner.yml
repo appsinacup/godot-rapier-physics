@@ -1,12 +1,14 @@
 name: 🔗 Builds
 on: 
-  push:
-  pull_request:
   workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - "main"
 
-concurrency:
-  group: ${{ github.workflow }}
-  cancel-in-progress: true
+#concurrency:
+#  group: ${{ github.workflow }}
+#  cancel-in-progress: true
 
 jobs:
   static-checks:
@@ -43,3 +45,10 @@ jobs:
     name: 🌐 Web Builds
     needs: static-checks
     uses: ./.github/workflows/web_builds.yml
+
+  release:
+    name: Create Release
+    permissions:
+      contents: write
+    needs: [android-build, ios-build, linux-build, macos-build, windows-build, web-build]
+    uses: ./.github/workflows/release.yml

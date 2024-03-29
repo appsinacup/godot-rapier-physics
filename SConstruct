@@ -34,7 +34,14 @@ else:
 	env.Append(CPPDEFINES=["REAL_T_IS_FLOAT"])
 if env["platform"] == "macos":
 	library = env.SharedLibrary(
-		"bin/addons/godot-rapier2d/bin/libphysics_server_rapier2d.{}.{}.framework/libphysics_server_rapier2d.{}.{}".format(
+		"bin/addons/godot-rapier2d/bin/libphysics_server_rapier2d.{}.{}.framework/libphysics_server_rapier2d.{}.{}.dylib".format(
+			env["platform"], env["target"], env["platform"], env["target"]
+		),
+		source=sources,
+	)
+elif env["platform"] == "ios":
+	library = env.SharedLibrary(
+		"bin/addons/godot-rapier2d/bin/libphysics_server_rapier2d.{}.{}.framework/libphysics_server_rapier2d.{}.{}.dylib".format(
 			env["platform"], env["target"], env["platform"], env["target"]
 		),
 		source=sources,

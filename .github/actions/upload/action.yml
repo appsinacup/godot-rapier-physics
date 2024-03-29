@@ -15,7 +15,7 @@ runs:
     - name: Upload Artifact
       uses: actions/upload-artifact@v3
       with:
-        name: Godot Rapier 2D ${{ inputs.precision }} ${{ inputs.features }}
+        name: godot-rapier-2d-${{ inputs.precision }}-${{ inputs.features }}
         path: |
           ${{ github.workspace }}/bin/**
         retention-days: 14
