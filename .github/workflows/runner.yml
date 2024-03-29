@@ -4,9 +4,9 @@ on:
   pull_request:
   workflow_dispatch:
 
-concurrency:
-  group: ${{ github.workflow }}
-  cancel-in-progress: true
+#concurrency:
+#  group: ${{ github.workflow }}
+#  cancel-in-progress: true
 
 jobs:
   static-checks:
