@@ -28,3 +28,7 @@ If applicable, add screenshots to help explain your problem.
  - Version [e.g. v0.3]
  - Godot Version [e.g. v4.2]
 - Type [e.g. simd single is the default one from asset store]
+
+**Example project(zip)**
+
+Please attach a zip with project where issue occurs.
