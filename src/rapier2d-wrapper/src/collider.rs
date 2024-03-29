@@ -8,6 +8,9 @@ use crate::physics_world::*;
 use crate::convert::*;
 
 pub fn scale_shape(shape: &SharedShape, scale: &Vector) -> Option<SharedShape> {
+    if scale.x == 1.0 && scale.y == 1.0 {
+        return Some(shape.clone());
+    }
     let shape_type = shape.shape_type();
     if shape_type == ShapeType::Ball {
         let new_shape = shape.as_ball().unwrap().scaled(&Vector2::<Real>::new(scale.x, scale.y), 20).unwrap();
