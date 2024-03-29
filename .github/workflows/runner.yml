@@ -45,3 +45,10 @@ jobs:
     name: 🌐 Web Builds
     needs: static-checks
     uses: ./.github/workflows/web_builds.yml
+
+  release:
+    name: Create Release
+    permissions:
+      contents: write
+    needs: [android-build, ios-build, linux-build, macos-build, windows-build, web-build]
+    uses: ./.github/workflows/release.yml

@@ -107,6 +107,7 @@ impl ContactForceEventInfo {
     }
 }
 
+//#[cfg_attr(feature = "serde-serialize", derive(Serialize, Deserialize))]
 pub struct PhysicsWorld {
     pub query_pipeline: QueryPipeline,
     pub physics_pipeline : PhysicsPipeline,
