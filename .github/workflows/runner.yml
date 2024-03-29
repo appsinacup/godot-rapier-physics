@@ -1,8 +1,10 @@
 name: 🔗 Builds
 on: 
-  push:
-  pull_request:
   workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - "main"
 
 #concurrency:
 #  group: ${{ github.workflow }}
