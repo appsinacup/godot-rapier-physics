@@ -70,12 +70,13 @@ pub extern "C" fn default_material() -> Material {
 pub extern "C" fn collider_create_solid(world_handle : Handle, shape_handle : Handle, mat : &Material, body_handle : Handle, user_data : &UserData) -> Handle {
     let mut physics_engine = SINGLETON.lock().unwrap();
     let shape = physics_engine.get_shape(shape_handle);
-    let mut collider = ColliderBuilder::new(shape.clone()).build();
+    let mut collider = ColliderBuilder::new(shape.clone()).contact_force_event_threshold(-Real::MAX).build();
     collider.set_friction(mat.friction);
     collider.set_restitution(mat.restitution);
     collider.set_friction_combine_rule(CoefficientCombineRule::Multiply);
     collider.set_restitution_combine_rule(CoefficientCombineRule::Max);
     collider.set_density(0.0);
+    collider.set_contact_force_event_threshold(-Real::MAX);
     collider.user_data = user_data.get_data();
     collider.set_active_hooks(ActiveHooks::FILTER_CONTACT_PAIRS | ActiveHooks::MODIFY_SOLVER_CONTACTS);
     let physics_world = physics_engine.get_world(world_handle);
@@ -150,7 +151,7 @@ pub extern "C" fn collider_set_transform(world_handle : Handle, handle : Handle,
             if let Some(extracted_shape) = scale_shape(shape, &shape_info.scale) {
                 new_shape = extracted_shape;
             } else {
-                //assert!(false);
+                assert!(false);
                 // investigate why it failed
                 return;
             }
@@ -194,6 +195,7 @@ pub extern "C" fn collider_set_contact_force_events_enabled(world_handle : Handl
     let mut active_events = collider_access.active_events();
     if enable {
         active_events |= ActiveEvents::CONTACT_FORCE_EVENTS;
+        
     } else {
         active_events &= !ActiveEvents::CONTACT_FORCE_EVENTS;
     }
