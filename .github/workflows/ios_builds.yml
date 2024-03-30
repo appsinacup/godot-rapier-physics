@@ -12,6 +12,7 @@ jobs:
         arch: [{arch: "arm64", rust: "aarch64-apple-ios"}]
         precision: [single, double]
         features: [simd-stable, enhanced-determinism]
+        rust_features: ["simd-stable,parallel", enhanced-determinism]
 
     steps:
       - uses: actions/checkout@v3
@@ -25,7 +26,7 @@ jobs:
           rust_target: ${{ matrix.arch.rust }}
           platform: ios
           precision: ${{ matrix.precision }}
-          features: ${{ matrix.features }}
+          features: ${{ matrix.rust_features }}
 
       - name: Sign dylib ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         shell: pwsh

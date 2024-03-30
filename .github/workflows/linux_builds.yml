@@ -17,6 +17,7 @@ jobs:
         arch: [{arch: "x86_64", rust: "x86_64-unknown-linux-gnu"}]
         precision: [single, double]
         features: [simd-stable, enhanced-determinism]
+        rust_features: ["simd-stable,parallel", enhanced-determinism]
 
     steps:
       - uses: actions/checkout@v3
@@ -35,7 +36,7 @@ jobs:
           rust_target: ${{ matrix.arch.rust }}
           platform: linux
           precision: ${{ matrix.precision }}
-          features: ${{ matrix.features }}
+          features: ${{ matrix.rust_features }}
 
       - name: Upload ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/upload

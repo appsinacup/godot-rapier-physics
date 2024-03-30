@@ -67,6 +67,7 @@ Video Tutorial:
 
 # Features
 
+- Parallel support (for non enhnanced determinism builds)
 - Single and Double float precision build.
 - SIMD (Single instruction, multiple data) build.
 - Cross-platform determinism build.
