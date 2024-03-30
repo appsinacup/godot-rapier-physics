@@ -242,7 +242,7 @@ void RapierSpace2D::collision_event_callback(rapier2d::Handle world_handle, cons
 				ERR_FAIL_COND(!pArea2);
 				pArea->on_area_enter(collider_handle2, pArea2, shape2, rid2, instanceId2, collider_handle1, shape1);
 				pArea2->on_area_enter(collider_handle1, pArea, shape1, rid1, instanceId1, collider_handle2, shape2);
-			} else {
+			} else if (event_info->is_stopped) {
 				if (pArea) {
 					pArea->on_area_exit(collider_handle2, pArea2, shape2, rid2, instanceId2, collider_handle1, shape1);
 				} else {
@@ -269,12 +269,12 @@ void RapierSpace2D::collision_event_callback(rapier2d::Handle world_handle, cons
 			if (event_info->is_started) {
 				ERR_FAIL_COND(!pArea);
 				pArea->on_body_enter(collider_handle2, pBody, shape2, rid2, instanceId2, collider_handle1, shape1);
-			} else if (pArea) {
+			} else if (pArea && event_info->is_stopped) {
 				pArea->on_body_exit(collider_handle2, pBody, shape2, rid2, instanceId2, collider_handle1, shape1);
 			} else {
 				// Try to retrieve area if not destroyed yet
 				pArea = space->get_area_from_rid(rid1);
-				if (pArea) {
+				if (pArea && event_info->is_stopped) {
 					// Use invalid body case to keep counters consistent for already removed collider
 					pArea->on_body_exit(collider_handle2, nullptr, shape2, rid2, instanceId2, collider_handle1, shape1, false);
 				}

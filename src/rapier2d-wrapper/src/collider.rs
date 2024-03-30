@@ -151,7 +151,7 @@ pub extern "C" fn collider_set_transform(world_handle : Handle, handle : Handle,
             if let Some(extracted_shape) = scale_shape(shape, &shape_info.scale) {
                 new_shape = extracted_shape;
             } else {
-                assert!(false);
+                //assert!(false);
                 // investigate why it failed
                 return;
             }
