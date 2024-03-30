@@ -1,3 +1,5 @@
+use rapier2d::na::ComplexField;
+use rapier2d::na::Point2;
 use rapier2d::na::Vector2;
 use rapier2d::prelude::*;
 use crate::handle::*;
@@ -7,49 +9,111 @@ use crate::vector::Vector;
 use crate::physics_world::*;
 use crate::convert::*;
 
-pub fn scale_shape(shape: &SharedShape, scale: &Vector) -> Option<SharedShape> {
+const SUBDIVISIONS: u32 = 50;
+
+fn skew_polyline(vertices: &Vec<Point2<Real>>, skew: Real) -> SharedShape {
+    // Apply skew transformation to the vertices
+    let mut skewed_vertices = Vec::new();
+    for vertex in vertices {
+        let mut skewed_vertex = vertex.clone();
+        skewed_vertex.x -= skewed_vertex.y * skew;
+        skewed_vertices.push(skewed_vertex);
+    }
+
+    if let Some(convex_polyline) = SharedShape::convex_hull(&skewed_vertices.clone()) {
+        return convex_polyline;
+    }
+
+    SharedShape::polyline(skewed_vertices, None)
+}
+
+// Function to skew a shape
+pub fn skew_shape(shape: &SharedShape, skew: Real) -> SharedShape {
+    if skew == 0.0 {
+        return shape.clone();
+    }
+    match shape.shape_type() {
+        ShapeType::Compound => {
+            let compound = shape.as_compound().unwrap();
+            let shapes = compound.shapes();
+            let mut transformed_shapes = Vec::new();
+            for (position, sub_shape) in shapes.iter() {
+                let skewed_sub_shape = skew_shape(sub_shape, skew);
+                let transformed_position = *position;
+                transformed_shapes.push((transformed_position, skewed_sub_shape));
+            }
+            return SharedShape::compound(transformed_shapes);
+        }
+        ShapeType::Ball => {
+            let ball_polyline = shape.as_ball().unwrap().to_polyline(SUBDIVISIONS);
+            return skew_polyline(&ball_polyline, skew);
+        }
+        ShapeType::Cuboid => {
+            let cuboid_polyline = shape.as_cuboid().unwrap().to_polyline();
+            return skew_polyline(&cuboid_polyline, skew);
+        }
+        ShapeType::Polyline => {
+            let polyline = shape.as_polyline().unwrap();
+            return skew_polyline(&polyline.vertices().to_vec(), skew);
+        }
+        ShapeType::ConvexPolygon => {
+            let convex_polygon = shape.as_convex_polygon().unwrap();
+            let pooints =convex_polygon.points();
+            return skew_polyline(&pooints.to_vec(), skew);
+        }
+        ShapeType::Capsule => {
+            let capsule = shape.as_capsule().unwrap().to_polyline(SUBDIVISIONS);
+            return skew_polyline(&capsule, skew);
+        }
+        _ => {
+            return shape.clone();
+        }
+    }
+}
+
+
+
+pub fn scale_shape(shape: &SharedShape, scale: &Vector2<Real>) -> SharedShape {
     if scale.x == 1.0 && scale.y == 1.0 {
-        return Some(shape.clone());
+        return shape.clone();
     }
     let shape_type = shape.shape_type();
     if shape_type == ShapeType::Ball {
-        let new_shape = shape.as_ball().unwrap().scaled(&Vector2::<Real>::new(scale.x, scale.y), 20).unwrap();
+        let new_shape = shape.as_ball().unwrap().scaled(scale, SUBDIVISIONS).unwrap();
         if new_shape.is_left() {
             let shape = new_shape.unwrap_left();
-            return Some(SharedShape::new(shape));
+            return SharedShape::new(shape);
         } else {
             let shape = new_shape.unwrap_right();
-            return Some(SharedShape::new(shape));
+            return SharedShape::new(shape);
         }
     }
     else if shape_type == ShapeType::Cuboid {
-        let new_shape = shape.as_cuboid().unwrap().scaled(&Vector2::<Real>::new(scale.x, scale.y));
-        return Some(SharedShape::new(new_shape));
+        let new_shape = shape.as_cuboid().unwrap().scaled(scale);
+        return SharedShape::new(new_shape);
     }
     else if shape_type == ShapeType::HalfSpace {
-        let new_shape = shape.as_halfspace().unwrap().scaled(&Vector2::<Real>::new(scale.x, scale.y)).unwrap();
-        return Some(SharedShape::new(new_shape));
+        let new_shape = shape.as_halfspace().unwrap().scaled(scale).unwrap();
+        return SharedShape::new(new_shape);
     }
     else if shape_type == ShapeType::Polyline {
-        let new_shape = shape.as_polyline().unwrap().clone().scaled(&Vector2::<Real>::new(scale.x, scale.y));
-        return Some(SharedShape::new(new_shape));
+        let new_shape = shape.as_polyline().unwrap().clone().scaled(scale);
+        return SharedShape::new(new_shape);
     }
     else if shape_type == ShapeType::ConvexPolygon {
-        let new_shape = shape.as_convex_polygon().unwrap().clone().scaled(&Vector2::<Real>::new(scale.x, scale.y)).unwrap();
-        return Some(SharedShape::new(new_shape));
+        let new_shape = shape.as_convex_polygon().unwrap().clone().scaled(scale).unwrap();
+        return SharedShape::new(new_shape);
     }
     else if shape_type == ShapeType::Compound {
         let new_shapes = shape.as_compound().unwrap().shapes();
         let mut shapes_vec = Vec::<(Isometry<Real>, SharedShape)>::new();
         for shape in new_shapes {
             let new_shape = scale_shape(&shape.1, scale);
-            if let Some(shape_extracted) = new_shape {
-                shapes_vec.push((shape.0, shape_extracted));
-            }
+            shapes_vec.push((shape.0, new_shape));
         }
-        return Some(SharedShape::compound(shapes_vec));
+        return SharedShape::compound(shapes_vec);
     }
-    return None;
+    return shape.clone();
 }
 
 #[repr(C)]
@@ -144,26 +208,15 @@ pub extern "C" fn collider_set_transform(world_handle : Handle, handle : Handle,
         collider.set_position_wrt_parent(Isometry::new(vector![position.x, position.y], shape_info.rotation));
     }
     {
-        let new_shape:SharedShape;
-        {
-            let mut physics_engine = SINGLETON.lock().unwrap();
-            let shape = physics_engine.get_shape(shape_info.handle);
-            if let Some(extracted_shape) = scale_shape(shape, &shape_info.scale) {
-                new_shape = extracted_shape;
-            } else {
-                //assert!(false);
-                // investigate why it failed
-                return;
-            }
-        }
-        {
-            let mut physics_engine = SINGLETON.lock().unwrap();
-            let physics_world = physics_engine.get_world(world_handle);
-            let collider_handle = handle_to_collider_handle(handle);
-            let collider = physics_world.collider_set.get_mut(collider_handle);
-            assert!(collider.is_some());
-            collider.unwrap().set_shape(new_shape);
-        }
+        let mut physics_engine = SINGLETON.lock().unwrap();
+        let shape = physics_engine.get_shape(shape_info.handle);
+        let skewed_shape = skew_shape(shape, shape_info.skew);
+        let new_shape = scale_shape(&skewed_shape, &Vector2::<Real>::new(shape_info.scale.x, shape_info.scale.y));
+        let physics_world = physics_engine.get_world(world_handle);
+        let collider_handle = handle_to_collider_handle(handle);
+        let collider = physics_world.collider_set.get_mut(collider_handle);
+        assert!(collider.is_some());
+        collider.unwrap().set_shape(new_shape);
     }
 }
 

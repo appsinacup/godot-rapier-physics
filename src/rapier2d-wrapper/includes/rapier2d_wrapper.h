@@ -68,6 +68,7 @@ struct ShapeInfo {
 	Handle handle;
 	Vector pixel_position;
 	Real rotation;
+	Real skew;
 	Vector scale;
 };
 

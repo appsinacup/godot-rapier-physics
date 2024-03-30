@@ -21,6 +21,7 @@ pub struct ShapeInfo {
     pub handle: Handle,
     pub pixel_position : Vector,
     pub rotation : Real,
+    pub skew: Real,
     pub scale: Vector,
 }
 

@@ -250,6 +250,7 @@ void RapierCollisionObject2D::_update_shape_transform(const Shape &shape) {
 		shape.shape->get_rapier_shape(),
 		position,
 		angle,
+		shape.xform.get_skew(),
 		rapier2d::Vector{ shape.xform.get_scale().x, shape.xform.get_scale().y }
 	};
 	rapier2d::collider_set_transform(space_handle, shape.collider_handle, shape_info);

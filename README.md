@@ -39,8 +39,7 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 
 # Limitations
 
-- SeparationRay2D missing.
-- Shape skew missing.
+- SeparationRay2D missing [issues/5](https://github.com/appsinacup/godot-rapier-2d/issues/5)
 - Web exports not working [issues/23](https://github.com/appsinacup/godot-rapier-2d/issues/23)
 
 # Supported Platforms
@@ -50,7 +49,7 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 - Linux (x86_64)
 - Android (x86_64, arm64)
 - iOS (arm64)
-- Web (wasm32) * Not working
+- Web (wasm32) 
 
 # Installation
 

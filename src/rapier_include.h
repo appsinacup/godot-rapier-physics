@@ -28,6 +28,7 @@ inline ShapeInfo shape_info_from_body_shape(rapier2d::Handle shape_handle, const
 		shape_handle,
 		{ origin.x, origin.y },
 		transform.get_rotation(),
+		transform.get_skew(),
 		{ scale.x, scale.y },
 	};
 }
