@@ -12,6 +12,7 @@ jobs:
         arch:  [{arch: "universal", rust: "x86_64-apple-darwin"}]
         precision: [single, double]
         features: [simd-stable, enhanced-determinism]
+        rust_features: ["simd-stable,parallel", enhanced-determinism]
 
     steps:
       - uses: actions/checkout@v3
@@ -26,7 +27,7 @@ jobs:
           rust_target: ${{ matrix.arch.rust }}
           platform: macos
           precision: ${{ matrix.precision }}
-          features: ${{ matrix.features }}
+          features: ${{ matrix.rust_features }}
       
       - name: Mac Sign
         uses: ughuuu/godot-cpp-template/.github/actions/sign@add-more-stuff/options-to-build

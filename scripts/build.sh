@@ -1,5 +1,5 @@
 cd src/rapier2d-wrapper
-cargo build --release --features="single,simd-stable,serde-serialize"
+cargo build --release --features="single,simd-stable,parallel"
 cd ../..
 
 scons arch=arm64 target=template_debug debug_symbols=yes

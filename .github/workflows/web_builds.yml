@@ -12,6 +12,8 @@ jobs:
         arch: [{arch: "wasm32", rust: "wasm32-unknown-emscripten", rust_extra_flags: "-Z build-std=panic_abort,std"}]
         precision: [single, double]
         features: [simd-stable, enhanced-determinism]
+        # Web doesnt support simd-stable
+        rust_features: ["", enhanced-determinism]
 
     steps:
       - uses: actions/checkout@v3
@@ -43,7 +45,7 @@ jobs:
           rust_extra_flags: ${{ matrix.arch.rust_extra_flags }}
           platform: web
           precision: ${{ matrix.precision }}
-          features: ${{ matrix.features }}
+          features: ${{ matrix.rust_features }}
           rust_env_flags: "-C target-feature=+atomics,+bulk-memory"
 
       - name: Upload ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
