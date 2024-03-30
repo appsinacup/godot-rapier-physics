@@ -145,6 +145,7 @@ struct CollisionEventInfo {
 	UserData user_data2;
 	bool is_sensor;
 	bool is_started;
+	bool is_stopped;
 	bool is_removed;
 };
 
@@ -229,7 +230,7 @@ void body_add_force_at_point(Handle world_handle,
 		const Vector *pixel_force,
 		const Vector *pixel_point);
 
-void body_add_torque(Handle world_handle, Handle body_handle, Real torque);
+void body_add_torque(Handle world_handle, Handle body_handle, Real pixel_torque);
 
 void body_apply_impulse(Handle world_handle, Handle body_handle, const Vector *pixel_impulse);
 
@@ -238,7 +239,7 @@ void body_apply_impulse_at_point(Handle world_handle,
 		const Vector *pixel_impulse,
 		const Vector *pixel_point);
 
-void body_apply_torque_impulse(Handle world_handle, Handle body_handle, Real torque_impulse);
+void body_apply_torque_impulse(Handle world_handle, Handle body_handle, Real pixel_torque_impulse);
 
 void body_change_mode(Handle world_handle, Handle body_handle, BodyType body_type, bool wakeup);
 

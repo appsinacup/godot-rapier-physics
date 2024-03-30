@@ -1193,7 +1193,9 @@ void RapierBody2D::update_area_override() {
 void RapierBody2D::update_gravity(real_t p_step) {
 	ERR_FAIL_COND(!using_area_gravity);
 	ERR_FAIL_COND(!get_space());
-
+	if (areas.size() > 0) {
+		update_area_override();
+	}
 	Vector2 gravity_impulse = total_gravity * mass * p_step;
 
 	rapier2d::Handle space_handle = get_space()->get_handle();
