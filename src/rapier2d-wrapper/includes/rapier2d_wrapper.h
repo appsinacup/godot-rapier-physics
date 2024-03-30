@@ -146,6 +146,7 @@ struct CollisionEventInfo {
 	UserData user_data2;
 	bool is_sensor;
 	bool is_started;
+	bool is_stopped;
 	bool is_removed;
 };
 

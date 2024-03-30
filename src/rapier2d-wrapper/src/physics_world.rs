@@ -72,6 +72,7 @@ pub struct CollisionEventInfo {
     user_data2: UserData,
 	is_sensor: bool,
 	is_started: bool,
+	is_stopped: bool,
 	is_removed: bool,
 }
 
@@ -85,6 +86,7 @@ impl CollisionEventInfo {
 			is_sensor: false,
 			is_started: false,
 			is_removed: false,
+			is_stopped: false,
         }
     }
 }
@@ -250,6 +252,7 @@ impl PhysicsWorld {
 				event_info.is_sensor = collision_event.sensor();
 				event_info.is_removed = collision_event.removed();
 				event_info.is_started = collision_event.started();
+				event_info.is_stopped = collision_event.stopped();
 				event_info.collider1 = collider_handle_to_handle(handle1);
 				event_info.collider2 = collider_handle_to_handle(handle2);
 				event_info.user_data1 = self.get_collider_user_data(handle1);

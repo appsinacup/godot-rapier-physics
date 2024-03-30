@@ -100,12 +100,12 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
 				let motion_len = body2.linvel().magnitude();
 				let body_margin1 = pixels_to_meters(one_way_direction.pixel_body1_margin);
 				let max_allowed = motion_len * Real::max(body2.linvel().normalize().dot(&allowed_local_n1), 0.0) + body_margin1;
-                contact_is_pass_through = body2.linvel().dot(&allowed_local_n1) <= DEFAULT_EPSILON * 10.0 || dist < -max_allowed;
+                contact_is_pass_through = body2.linvel().dot(&allowed_local_n1) <= DEFAULT_EPSILON || dist < -max_allowed;
             } else if one_way_direction.body2 {
 				let motion_len = body1.linvel().magnitude();
 				let body_margin2 = pixels_to_meters(one_way_direction.pixel_body2_margin);
 				let max_allowed = motion_len * Real::max(body1.linvel().normalize().dot(&allowed_local_n2), 0.0) + body_margin2;
-                contact_is_pass_through = body1.linvel().dot(&allowed_local_n2) <= DEFAULT_EPSILON * 10.0 || dist < -max_allowed;
+                contact_is_pass_through = body1.linvel().dot(&allowed_local_n2) <= DEFAULT_EPSILON || dist < -max_allowed;
             }
             if contact_is_pass_through {
                 context.solver_contacts.clear();
