@@ -1,3 +1,4 @@
+use rapier2d::na::Vector2;
 use rapier2d::parry;
 use rapier2d::parry::query::NonlinearRigidMotion;
 use parry::query::DefaultQueryDispatcher;
@@ -221,14 +222,12 @@ pub extern "C" fn shape_collide(pixel_motion1 : &Vector, shape_info1: ShapeInfo,
 
     let mut physics_engine = SINGLETON.lock().unwrap();
 
-    let mut shared_shape1 = physics_engine.get_shape(shape_info1.handle).clone();
-    if let Some(new_shape) = scale_shape(&shared_shape1, &shape_info1.scale) {
-        shared_shape1 = new_shape;
-    }
-    let mut shared_shape2 = physics_engine.get_shape(shape_info1.handle).clone();
-    if let Some(new_shape) = scale_shape(&shared_shape2, &shape_info1.scale) {
-        shared_shape2 = new_shape;
-    }
+    let raw_shared_shape1 = physics_engine.get_shape(shape_info1.handle).clone();
+    let skewed_shape1 = skew_shape(&raw_shared_shape1, shape_info1.skew);
+    let shared_shape1 = scale_shape(&skewed_shape1, &Vector2::<Real>::new(shape_info1.scale.x, shape_info1.scale.y));
+    let raw_shared_shape2 = physics_engine.get_shape(shape_info1.handle).clone();
+    let skewed_shape2 = skew_shape(&raw_shared_shape2, shape_info2.skew);
+    let shared_shape2 = scale_shape(&skewed_shape2, &Vector2::<Real>::new(shape_info2.scale.x, shape_info2.scale.y));
     
     let shape_vel1 = vector![motion1.x, motion1.y];
     let shape_vel2 = vector![motion2.x, motion2.y];
@@ -259,10 +258,9 @@ pub extern "C" fn shape_casting(world_handle : Handle, pixel_motion : &Vector, s
 
     let mut physics_engine = SINGLETON.lock().unwrap();
 
-    let mut shared_shape = physics_engine.get_shape(shape_info.handle).clone();
-    if let Some(new_shape) = scale_shape(&shared_shape, &shape_info.scale) {
-        shared_shape = new_shape;
-    }
+    let raw_shared_shape = physics_engine.get_shape(shape_info.handle).clone();
+    let skewed_shape = skew_shape(&raw_shared_shape, shape_info.skew);
+    let shared_shape = scale_shape(&skewed_shape, &Vector2::<Real>::new(shape_info.scale.x, shape_info.scale.y));
 
 	let physics_world = physics_engine.get_world(world_handle);
     
@@ -310,10 +308,9 @@ pub extern "C" fn intersect_shape(world_handle : Handle, shape_info: ShapeInfo, 
     let position = vector_pixels_to_meters(&shape_info.pixel_position);
     let mut physics_engine = SINGLETON.lock().unwrap();
 
-    let mut shared_shape = physics_engine.get_shape(shape_info.handle).clone();
-    if let Some(new_shape) = scale_shape(&shared_shape, &shape_info.scale) {
-        shared_shape = new_shape;
-    }
+    let raw_shared_shape = physics_engine.get_shape(shape_info.handle).clone();
+    let skewed_shape = skew_shape(&raw_shared_shape, shape_info.skew);
+    let shared_shape = scale_shape(&skewed_shape, &Vector2::<Real>::new(shape_info.scale.x, shape_info.scale.y));
 
 	let physics_world = physics_engine.get_world(world_handle);
     let shape_transform = Isometry::new(vector![position.x, position.y], shape_info.rotation);
@@ -435,14 +432,12 @@ pub extern "C" fn shapes_contact(world_handle : Handle, shape_info1 : ShapeInfo,
 
     let prediction = Real::max(physics_world.solver_prediction_distance, margin);
 
-    let mut shared_shape1 = physics_engine.get_shape(shape_info1.handle).clone();
-    if let Some(new_shape) = scale_shape(&shared_shape1, &shape_info1.scale) {
-        shared_shape1 = new_shape;
-    }
-    let mut shared_shape2 = physics_engine.get_shape(shape_info2.handle).clone();
-    if let Some(new_shape) = scale_shape(&shared_shape2, &shape_info2.scale) {
-        shared_shape2 = new_shape;
-    }
+    let raw_shared_shape1 = physics_engine.get_shape(shape_info1.handle).clone();
+    let skewed_shape1 = skew_shape(&raw_shared_shape1, shape_info1.skew);
+    let shared_shape1 = scale_shape(&skewed_shape1, &Vector2::<Real>::new(shape_info1.scale.x, shape_info1.scale.y));
+    let raw_shared_shape2 = physics_engine.get_shape(shape_info2.handle).clone();
+    let skewed_shape2 = skew_shape(&raw_shared_shape2, shape_info2.skew);
+    let shared_shape2 = scale_shape(&skewed_shape2, &Vector2::<Real>::new(shape_info2.scale.x, shape_info2.scale.y));
     
     let shape_transform1 = Isometry::new(vector![position1.x, position1.y], shape_info1.rotation);
     let shape_transform2 = Isometry::new(vector![position2.x, position2.y], shape_info2.rotation);
