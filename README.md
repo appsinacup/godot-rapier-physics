@@ -1,4 +1,5 @@
 <p align="center">
+<img src="https://github.com/appsinacup/godot-rapier2d/blob/main/logo.jpg?raw=true" width="256px"/> 
 	<a href="https://github.com/appsinacup/godot-rapier-2d/actions/workflows/runner.yml">
         <img src="https://github.com/appsinacup/godot-rapier-2d/actions/workflows/runner.yml/badge.svg?branch=main"
             alt="Godot Rapier2D Build"></a>
@@ -15,13 +16,6 @@
             alt="Chat on Discord"></a>
 </p>
 
-<img src="https://github.com/appsinacup/godot-rapier2d/blob/main/logo.jpg?raw=true" width="256px"/> 
-
-
-<p align="center">
-<img src="rapier-vid.gif"/>
-</p>
-
 A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engine](https://github.com/godotengine/godot), implemented as a GDExtension.
 
 # Features
@@ -30,6 +24,10 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 - Single and Double float precision build.
 - SIMD (Single instruction, multiple data) build.
 - Cross-platform determinism build.
+
+<p align="center">
+<img src="rapier-vid.gif"/>
+</p>
 
 # Limitations
 
