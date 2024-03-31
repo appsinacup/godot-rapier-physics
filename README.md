@@ -1,7 +1,3 @@
-<div align="center">
-  <h1>Godot Rapier2D</h1>
-</div>
-
 <p align="center">
 	<a href="https://github.com/appsinacup/godot-rapier-2d/actions/workflows/runner.yml">
         <img src="https://github.com/appsinacup/godot-rapier-2d/actions/workflows/runner.yml/badge.svg?branch=main"
@@ -19,7 +15,7 @@
             alt="Chat on Discord"></a>
 </p>
 
-<img src="https://github.com/appsinacup/godot-rapier2d/blob/main/logo.jpg?raw=true"/> 
+<img src="https://github.com/appsinacup/godot-rapier2d/blob/main/logo.jpg?raw=true" width="256px"/> 
 
 
 <p align="center">
