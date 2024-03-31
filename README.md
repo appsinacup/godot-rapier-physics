@@ -53,21 +53,9 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 
 After installing, go to `Advanced Settings` -> `Physics` -> `2D`. Change `Physics Engine` to `Rapier2D`.
 
-Video Tutorial:
-
-[![Tutorial](https://img.youtube.com/vi/KgKWAZ49T9E/0.jpg)](https://www.youtube.com/watch?v=KgKWAZ49T9E)
-
 # Contribute
 
-If you want to contribute, view `CONTRIBUTE.md` for more info.
-
-# Comparison
-
-Watch a comparison to Godot Physics 2D and [Box2D](https://github.com/appsinacup/godot-box-2d) physics plugin:
-
-[![Comparison](https://img.youtube.com/vi/wgUiZ7E19eM/0.jpg)](https://www.youtube.com/watch?v=wgUiZ7E19eM)
-
-Or read about it on [appsinacup.com/godot-physics-vs-box2d-vs-rapier2d](https://appsinacup.com/godot-physics-vs-box2d-vs-rapier2d/)
+If you want to contribute, view [CONTRIBUTE.md](CONTRIBUTE.md) for more info.
 
 # [Discord](https://discord.gg/56dMud8HYn)
 
