@@ -10,15 +10,12 @@
     <a href="https://github.com/godotengine/godot-cpp" alt="Godot Version">
         <img src="https://img.shields.io/badge/Godot-v4.2-%23478cbf?logo=godot-engine&logoColor=white" /></a>
     <a href="https://github.com/appsinacup/godot-rapier-2d/graphs/contributors" alt="Contributors">
-        <img src="https://img.shields.io/github/contributors/appsinacup/godot-rapier-2d" /></a>
-    <a href="https://github.com/appsinacup/godot-rapier-2d/pulse" alt="Activity">
-        <img src="https://img.shields.io/github/commit-activity/m/appsinacup/godot-rapier-2d" /></a>
     <a href="https://discord.gg/56dMud8HYn">
         <img src="https://img.shields.io/discord/1138836561102897172?logo=discord"
             alt="Chat on Discord"></a>
 </p>
 
-A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engine](https://github.com/godotengine/godot), implemented as a GDExtension.
+A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engine v4.2](https://github.com/godotengine/godot), implemented as a GDExtension.
 
 # Features
 
