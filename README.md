@@ -28,19 +28,18 @@
 
 A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engine](https://github.com/godotengine/godot), implemented as a GDExtension.
 
-## Table of Contents
+# Features
 
-1. [Limitations](#limitations)
-2. [Supported Platforms](#supported-platforms)
-3. [Installation](#installation)
-4. [Features](#features)
-5. [Comparison](#comparison)
-6. [License](#license)
+- Parallel support (for non enhnanced determinism builds)
+- Single and Double float precision build.
+- SIMD (Single instruction, multiple data) build.
+- Cross-platform determinism build.
 
 # Limitations
 
 - SeparationRay2D missing [issues/5](https://github.com/appsinacup/godot-rapier-2d/issues/5)
 - Web exports not working [issues/23](https://github.com/appsinacup/godot-rapier-2d/issues/23)
+- Cross platform determinism isn't working [issues/47](https://github.com/appsinacup/godot-rapier-2d/issues/47)
 
 # Supported Platforms
 
@@ -49,7 +48,7 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 - Linux (x86_64)
 - Android (x86_64, arm64)
 - iOS (arm64)
-- Web (wasm32) 
+- Web (wasm32)
 
 # Installation
 
@@ -65,13 +64,6 @@ Video Tutorial:
 
 [![Tutorial](https://img.youtube.com/vi/KgKWAZ49T9E/0.jpg)](https://www.youtube.com/watch?v=KgKWAZ49T9E)
 
-# Features
-
-- Parallel support (for non enhnanced determinism builds)
-- Single and Double float precision build.
-- SIMD (Single instruction, multiple data) build.
-- Cross-platform determinism build.
-
 # Comparison
 
 Watch a comparison to Godot Physics 2D and [Box2D](https://github.com/appsinacup/godot-box-2d) physics plugin:
@@ -80,16 +72,6 @@ Watch a comparison to Godot Physics 2D and [Box2D](https://github.com/appsinacup
 
 Or read about it on [appsinacup.com/godot-physics-vs-box2d-vs-rapier2d](https://appsinacup.com/godot-physics-vs-box2d-vs-rapier2d/)
 
-
-# Roadmap
-
-- Fix all other issues from Limitations.
-
 # [Discord](https://discord.gg/56dMud8HYn)
 
 A vibrant community for discussion, user support and showcases.
-
-# License
-
-All code in this repository is provided under the MIT license. See `LICENSE` for more details and `THIRDPARTY.txt` for third-party licenses.
-This repo is a continuation of https://github.com/fabriceci/godot-rapier2d .

@@ -1,0 +1,49 @@
+{
+	"folders": [
+		{
+			"path": "../godot"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"vector": "cpp",
+			"chrono": "cpp",
+			"*.inc": "cpp",
+			"__bit_reference": "cpp",
+			"bitset": "cpp",
+			"map": "cpp",
+			"set": "cpp",
+			"unordered_map": "cpp",
+			"unordered_set": "cpp",
+			"algorithm": "cpp",
+			"__locale": "cpp",
+			"string": "cpp",
+			"string_view": "cpp",
+			"__config": "cpp"
+		}
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"name": "Launch",
+				"program": "/Users/dragosdaian/Documents/GitHub/godot/bin/godot.macos.editor.arm64",
+				"type": "cppdbg",
+				"request": "launch",
+				"cwd": "/Users/dragosdaian/Documents/GitHub/godot-rapier-2d",
+				"osx": {
+					"MIMode": "lldb"
+				},
+				"args": [
+					"--path",
+					"/Users/dragosdaian/Documents/GitHub/godot-rapier-2d/Godot-Physics-Tests",
+					"--debug-collisions",
+					"test.tscn"
+				]
+			}
+		]
+	}
+}
