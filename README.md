@@ -64,6 +64,10 @@ Video Tutorial:
 
 [![Tutorial](https://img.youtube.com/vi/KgKWAZ49T9E/0.jpg)](https://www.youtube.com/watch?v=KgKWAZ49T9E)
 
+# Contribute
+
+If you want to contribute, view `CONTRIBUTE.md` for more info.
+
 # Comparison
 
 Watch a comparison to Godot Physics 2D and [Box2D](https://github.com/appsinacup/godot-box-2d) physics plugin:

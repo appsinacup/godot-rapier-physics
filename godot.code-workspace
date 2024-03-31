@@ -1,13 +1,22 @@
 {
 	"folders": [
 		{
+			"name": "godot",
 			"path": "../godot"
 		},
 		{
+			"name": "godot-rapier-2d",
 			"path": "."
 		}
 	],
 	"settings": {
+		"rust-analyzer.linkedProjects": [
+			"${workspaceFolder:godot-rapier-2d}/src/rapier2d-wrapper/Cargo.toml"
+		],
+		"rust-analyzer.showUnlinkedFileNotification": false,
+		"lldb.launch.sourceMap": {
+			"src/": "${workspaceFolder:godot-rapier-2d}/src"
+		},
 		"files.associations": {
 			"vector": "cpp",
 			"chrono": "cpp",
@@ -30,19 +39,71 @@
 		"configurations": [
 			{
 				"name": "Launch",
-				"program": "/Users/dragosdaian/Documents/GitHub/godot/bin/godot.macos.editor.arm64",
+				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.arm64",
 				"type": "cppdbg",
 				"request": "launch",
-				"cwd": "/Users/dragosdaian/Documents/GitHub/godot-rapier-2d",
+				"cwd": "${workspaceFolder:godot-rapier-2d}",
 				"osx": {
 					"MIMode": "lldb"
 				},
 				"args": [
 					"--path",
-					"/Users/dragosdaian/Documents/GitHub/godot-rapier-2d/Godot-Physics-Tests",
+					"${workspaceFolder:godot-rapier-2d}/Godot-Physics-Tests",
 					"--debug-collisions",
 					"test.tscn"
 				]
+			}
+		]
+	},
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"type": "shell",
+				"label": "godot build dev mac",
+				"command": "scons",
+				"args": [
+					"platform=macos",
+					"arch=arm64",
+					"tools=yes",
+					"target=editor",
+					"dev_build=true",
+					"debug_symbols=true",
+					"precision=single",
+					"--jobs=8"
+				],
+				"options": {
+				  "cwd": "${workspaceFolder:godot}"
+				},
+				"problemMatcher": ["$gcc"],
+				"group": {
+					"kind": "build",
+					"isDefault": true
+				},
+				"detail": "godot build dev"
+			}, 
+			{
+				"type": "shell",
+				"label": "godot build mac",
+				"command": "scons",
+				"args": [
+					"platform=macos",
+					"arch=arm64",
+					"tools=yes",
+					"target=editor",
+					"debug_symbols=false",
+					"precision=single",
+					"--jobs=8"
+				],
+				"options": {
+				  "cwd": "${workspaceFolder:godot}"
+				},
+				"problemMatcher": ["$gcc"],
+				"group": {
+					"kind": "build",
+					"isDefault": true
+				},
+				"detail": "build godot"
 			}
 		]
 	}
