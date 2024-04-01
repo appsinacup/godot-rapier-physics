@@ -243,7 +243,7 @@ impl PhysicsWorld {
 		
 		if self.collision_event_callback.is_some() {
 			let callback = self.collision_event_callback.unwrap();
-			while let Ok((collision_event, contact_pair)) = collision_recv.try_recv() {
+			while let Ok((collision_event, _contact_pair)) = collision_recv.try_recv() {
 				let handle1 = collision_event.collider1();
 				let handle2 = collision_event.collider2();
 

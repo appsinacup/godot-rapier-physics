@@ -100,7 +100,7 @@ bool RapierDirectSpaceState2D::_cast_motion(const RID &shape_rid, const Transfor
 
 	rapier2d::QueryExcludedInfo query_excluded_info = rapier2d::default_query_excluded_info();
 	query_excluded_info.query_collision_layer_mask = collision_mask;
-	real_t hit = rapier2d::shape_casting(space->handle, &rapier_motion, shape_info, collide_with_bodies, collide_with_areas, RapierSpace2D::_is_handle_excluded_callback, &query_excluded_info).toi;
+	real_t hit = rapier2d::shape_casting(space->handle, &rapier_motion, shape_info, collide_with_bodies, collide_with_areas, RapierSpace2D::_is_handle_excluded_callback, &query_excluded_info, false).toi;
 	*p_closest_safe = hit;
 	*p_closest_unsafe = hit;
 	return true;
@@ -124,7 +124,7 @@ bool RapierDirectSpaceState2D::_collide_shape(const RID &shape_rid, const Transf
 	int cpt = 0;
 	int array_idx = 0;
 	do {
-		rapier2d::ShapeCastResult result = rapier2d::shape_casting(space->handle, &rapier_motion, shape_info, collide_with_bodies, collide_with_areas, RapierSpace2D::_is_handle_excluded_callback, &query_excluded_info);
+		rapier2d::ShapeCastResult result = rapier2d::shape_casting(space->handle, &rapier_motion, shape_info, collide_with_bodies, collide_with_areas, RapierSpace2D::_is_handle_excluded_callback, &query_excluded_info, true);
 		if (!result.collided) {
 			break;
 		}
@@ -153,35 +153,29 @@ int RapierDirectSpaceState2D::_intersect_shape(const RID &shape_rid, const Trans
 	query_excluded_info.query_collision_layer_mask = collision_mask;
 	query_excluded_info.query_exclude = (rapier2d::Handle *)alloca((p_result_max) * sizeof(rapier2d::Handle));
 	query_excluded_info.query_exclude_size = 0;
+	rapier2d::PointHitInfo *hit_info_array = (rapier2d::PointHitInfo *)alloca(p_result_max * sizeof(rapier2d::PointHitInfo));
 
-	int cpt = 0;
-	do {
-		rapier2d::ShapeCastResult result = rapier2d::shape_casting(space->handle, &rapier_motion, shape_info, collide_with_bodies, collide_with_areas, RapierSpace2D::_is_handle_excluded_callback, &query_excluded_info);
-		if (!result.collided) {
-			break;
-		}
-		query_excluded_info.query_exclude[query_excluded_info.query_exclude_size++] = result.collider;
+	uint32_t result_count = rapier2d::intersect_shape(space->handle, shape_info, collide_with_bodies, collide_with_areas, hit_info_array, p_result_max, RapierSpace2D::_is_handle_excluded_callback, &query_excluded_info);
+	ERR_FAIL_COND_V(result_count > (uint32_t)p_result_max, 0);
 
-		ERR_CONTINUE_MSG(!rapier2d::is_user_data_valid(result.user_data), "Invalid user data");
+	for (uint32_t i = 0; i < result_count; i++) {
+		rapier2d::PointHitInfo &hit_info = hit_info_array[i];
+		PhysicsServer2DExtensionShapeResult &result = r_results[i];
+		ERR_CONTINUE(!rapier2d::is_user_data_valid(hit_info.user_data));
+
 		uint32_t shape_index = 0;
-		RapierCollisionObject2D *collision_object_2d = RapierCollisionObject2D::get_collider_user_data(result.user_data, shape_index);
-		ERR_CONTINUE_MSG(!collision_object_2d, "Invalid collision object");
+		RapierCollisionObject2D *collision_object_2d = RapierCollisionObject2D::get_collider_user_data(hit_info.user_data, shape_index);
+		ERR_CONTINUE(collision_object_2d == nullptr);
 
-		PhysicsServer2DExtensionShapeResult &result_out = r_results[cpt];
+		result.shape = shape_index;
+		result.collider_id = collision_object_2d->get_instance_id();
+		result.rid = collision_object_2d->get_rid();
 
-		result_out.shape = shape_index;
-		result_out.rid = collision_object_2d->get_rid();
-		result_out.collider_id = collision_object_2d->get_instance_id();
-
-		if (result_out.collider_id.is_valid()) {
-			result_out.collider = RapierSpace2D::_get_object_instance_hack(result_out.collider_id);
+		if (result.collider_id.is_valid()) {
+			result.collider = RapierSpace2D::_get_object_instance_hack(result.collider_id);
 		}
-
-		cpt++;
-
-	} while (cpt < p_result_max);
-
-	return cpt;
+	}
+	return result_count;
 }
 
 bool RapierDirectSpaceState2D::_rest_info(const RID &shape_rid, const Transform2D &transform, const Vector2 &motion, double margin, uint32_t collision_mask, bool collide_with_bodies, bool collide_with_areas, PhysicsServer2DExtensionShapeRestInfo *r_info) {
@@ -195,7 +189,7 @@ bool RapierDirectSpaceState2D::_rest_info(const RID &shape_rid, const Transform2
 	rapier2d::QueryExcludedInfo query_excluded_info = rapier2d::default_query_excluded_info();
 	query_excluded_info.query_collision_layer_mask = collision_mask;
 
-	rapier2d::ShapeCastResult result = rapier2d::shape_casting(space->handle, &rapier_motion, shape_info, collide_with_bodies, collide_with_areas, RapierSpace2D::_is_handle_excluded_callback, &query_excluded_info);
+	rapier2d::ShapeCastResult result = rapier2d::shape_casting(space->handle, &rapier_motion, shape_info, collide_with_bodies, collide_with_areas, RapierSpace2D::_is_handle_excluded_callback, &query_excluded_info, true);
 	if (!result.collided) {
 		return false;
 	}

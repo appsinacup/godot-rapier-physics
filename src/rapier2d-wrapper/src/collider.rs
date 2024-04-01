@@ -1,4 +1,3 @@
-use rapier2d::na::ComplexField;
 use rapier2d::na::Point2;
 use rapier2d::na::Vector2;
 use rapier2d::prelude::*;

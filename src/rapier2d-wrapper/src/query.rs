@@ -252,7 +252,7 @@ pub extern "C" fn shape_collide(pixel_motion1 : &Vector, shape_info1: ShapeInfo,
 }
 
 #[no_mangle]
-pub extern "C" fn shape_casting(world_handle : Handle, pixel_motion : &Vector, shape_info: ShapeInfo, collide_with_body: bool, collide_with_area: bool, handle_excluded_callback: QueryHandleExcludedCallback, handle_excluded_info: &QueryExcludedInfo) -> ShapeCastResult {
+pub extern "C" fn shape_casting(world_handle : Handle, pixel_motion : &Vector, shape_info: ShapeInfo, collide_with_body: bool, collide_with_area: bool, handle_excluded_callback: QueryHandleExcludedCallback, handle_excluded_info: &QueryExcludedInfo, ignore_intersecting: bool) -> ShapeCastResult {
     let motion = vector_pixels_to_meters(&pixel_motion);
     let position = vector_pixels_to_meters(&shape_info.pixel_position);
 
@@ -264,7 +264,7 @@ pub extern "C" fn shape_casting(world_handle : Handle, pixel_motion : &Vector, s
 
 	let physics_world = physics_engine.get_world(world_handle);
     
-    let shape_vel = vector![motion.x, motion.y];
+    let mut shape_vel = vector![motion.x, motion.y];
     let shape_transform = Isometry::new(vector![position.x, position.y], shape_info.rotation);
     
     let mut filter = QueryFilter::new();
@@ -286,9 +286,14 @@ pub extern "C" fn shape_casting(world_handle : Handle, pixel_motion : &Vector, s
     filter.predicate = Some(&predicate);
 
     let mut result = ShapeCastResult::new();
-    
+    let mut toi = 1.0;
+    if shape_vel.x == 0.0 && shape_vel.y == 0.0 && ignore_intersecting {
+        shape_vel.x = 1.0e-5;
+        shape_vel.y = 1.0e-5;
+        toi = Real::MAX;
+    }
     if let Some((collider_handle, hit)) = physics_world.query_pipeline.cast_shape(
-        &physics_world.rigid_body_set, &physics_world.collider_set, &shape_transform, &shape_vel, shared_shape.as_ref(), 1.0, false, filter
+        &physics_world.rigid_body_set, &physics_world.collider_set, &shape_transform, &shape_vel, shared_shape.as_ref(), toi, ignore_intersecting, filter
     ) {
         result.collided = true;
         result.toi = hit.toi;
