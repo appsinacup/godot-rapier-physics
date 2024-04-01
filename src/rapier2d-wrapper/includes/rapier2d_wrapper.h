@@ -85,6 +85,7 @@ struct WorldSettings {
 	Real sleep_angular_threshold;
 	Real sleep_time_until_sleep;
 	Real solver_prediction_distance;
+	size_t max_ccd_substeps;
 };
 
 struct PointHitInfo {
@@ -218,6 +219,7 @@ struct SimulationSettings {
 	/// Number of internal Project Gauss Seidel (PGS) iterations run at each solver iteration (default: `1`).
 	size_t num_internal_pgs_iterations;
 	Vector pixel_gravity;
+	size_t max_ccd_substeps;
 };
 
 extern "C" {
@@ -440,7 +442,8 @@ ShapeCastResult shape_casting(Handle world_handle,
 		bool collide_with_body,
 		bool collide_with_area,
 		QueryHandleExcludedCallback handle_excluded_callback,
-		const QueryExcludedInfo *handle_excluded_info);
+		const QueryExcludedInfo *handle_excluded_info,
+		bool ignore_intersecting);
 
 ShapeCastResult shape_collide(const Vector *pixel_motion1,
 		ShapeInfo shape_info1,

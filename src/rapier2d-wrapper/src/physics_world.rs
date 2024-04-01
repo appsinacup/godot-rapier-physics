@@ -178,9 +178,10 @@ impl PhysicsWorld {
 
     pub fn step(&mut self, settings : &SimulationSettings) {
         let mut integration_parameters = IntegrationParameters::default();
-
+		
         integration_parameters.dt = settings.dt;
         integration_parameters.erp = settings.erp;
+        integration_parameters.max_ccd_substeps = settings.max_ccd_substeps;
         integration_parameters.damping_ratio = settings.damping_ratio;
         integration_parameters.joint_erp = settings.joint_erp;
         integration_parameters.joint_damping_ratio = settings.joint_damping_ratio;
@@ -243,7 +244,7 @@ impl PhysicsWorld {
 		
 		if self.collision_event_callback.is_some() {
 			let callback = self.collision_event_callback.unwrap();
-			while let Ok((collision_event, contact_pair)) = collision_recv.try_recv() {
+			while let Ok((collision_event, _contact_pair)) = collision_recv.try_recv() {
 				let handle1 = collision_event.collider1();
 				let handle2 = collision_event.collider2();
 
