@@ -13,7 +13,7 @@ void RapierDampedSpringJoint2D::set_param(PhysicsServer2D::DampedSpringParam p_p
 			stiffness = p_value;
 		} break;
 	}
-	rapier2d::joint_change_sprint_params(space_handle, handle, rest_length, damping, stiffness);
+	rapier2d::joint_change_spring_params(space_handle, handle, rest_length, damping, stiffness);
 }
 
 real_t RapierDampedSpringJoint2D::get_param(PhysicsServer2D::DampedSpringParam p_param) const {

@@ -397,7 +397,7 @@ void joint_change_revolute_params(Handle world_handle,
 		Real pixel_motor_target_velocity,
 		bool motor_enabled);
 
-void joint_change_sprint_params(Handle world_handle,
+void joint_change_spring_params(Handle world_handle,
 		Handle joint_handle,
 		Real stiffness,
 		Real damping,

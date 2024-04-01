@@ -17,7 +17,7 @@ pub extern "C" fn joint_create_revolute(world_handle : Handle, body_handle_1 : H
     let mut joint = RevoluteJointBuilder::new()
     .local_anchor1(point!(anchor_1.x, anchor_1.y))
     .local_anchor2(point!(anchor_2.x, anchor_2.y))
-    .motor_model(MotorModel::AccelerationBased)
+    .motor_model(MotorModel::ForceBased)
     .contacts_enabled(!disable_collision);
     if angular_limit_enabled {
         joint = joint.limits([angular_limit_lower, angular_limit_upper]);
@@ -86,7 +86,7 @@ pub extern "C" fn joint_create_spring(world_handle : Handle, body_handle_1 : Han
 }
 
 #[no_mangle]
-pub extern "C" fn joint_change_sprint_params(world_handle : Handle, joint_handle: Handle , stiffness: Real, damping: Real, pixel_rest_length: Real){
+pub extern "C" fn joint_change_spring_params(world_handle : Handle, joint_handle: Handle , stiffness: Real, damping: Real, pixel_rest_length: Real){
     let rest_length = pixels_to_meters(pixel_rest_length);
 
     let mut physics_engine = SINGLETON.lock().unwrap();
