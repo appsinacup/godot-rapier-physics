@@ -427,6 +427,7 @@ void RapierSpace2D::step(real_t p_step) {
 	settings.dt = p_step;
 	settings.pixel_gravity.x = default_gravity_dir.x * default_gravity_value;
 	settings.pixel_gravity.y = default_gravity_dir.y * default_gravity_value;
+	settings.max_ccd_substeps = RapierProjectSettings::get_solver_max_ccd_substeps();
 	settings.allowed_linear_error = RapierProjectSettings::get_solver_allowed_linear_error();
 	settings.damping_ratio = RapierProjectSettings::get_solver_damping_ratio();
 	settings.erp = RapierProjectSettings::get_solver_erp();

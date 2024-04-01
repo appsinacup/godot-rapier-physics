@@ -181,6 +181,7 @@ impl PhysicsWorld {
 		
         integration_parameters.dt = settings.dt;
         integration_parameters.erp = settings.erp;
+        integration_parameters.max_ccd_substeps = settings.max_ccd_substeps;
         integration_parameters.damping_ratio = settings.damping_ratio;
         integration_parameters.joint_erp = settings.joint_erp;
         integration_parameters.joint_damping_ratio = settings.joint_damping_ratio;

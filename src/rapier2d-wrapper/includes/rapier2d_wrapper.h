@@ -85,6 +85,7 @@ struct WorldSettings {
 	Real sleep_angular_threshold;
 	Real sleep_time_until_sleep;
 	Real solver_prediction_distance;
+	size_t max_ccd_substeps;
 };
 
 struct PointHitInfo {
@@ -218,6 +219,7 @@ struct SimulationSettings {
 	/// Number of internal Project Gauss Seidel (PGS) iterations run at each solver iteration (default: `1`).
 	size_t num_internal_pgs_iterations;
 	Vector pixel_gravity;
+	size_t max_ccd_substeps;
 };
 
 extern "C" {

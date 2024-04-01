@@ -18,6 +18,7 @@ public:
 	static int get_solver_num_solver_iterations();
 	static int get_solver_num_additional_friction_iterations();
 	static int get_solver_num_internal_pgs_iterations();
+	static int get_solver_max_ccd_substeps();
 };
 
 #endif // RAPIER_PROJECT_SETTINGS_H

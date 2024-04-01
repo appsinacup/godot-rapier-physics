@@ -15,6 +15,7 @@ constexpr char SOLVER_PREDICTION_DISTANCE[] = "physics/rapier_2d/solver/predicti
 constexpr char SOLVER_NUM_ITERATIONS[] = "physics/rapier_2d/solver/num_iterations";
 constexpr char SOLVER_NUM_ADDITIONAL_FRICTION_ITERATIONS[] = "physics/rapier_2d/solver/num_additional_friction_iterations";
 constexpr char SOLVER_NUM_INTERNAL_PGS_ITERATIONS[] = "physics/rapier_2d/solver/num_internal_pgs_iterations";
+constexpr char SOLVER_MAX_CCD_SUBSTEPS[] = "physics/rapier_2d/solver/max_ccd_substeps";
 
 void register_setting(
 		const String &p_name,
@@ -80,6 +81,7 @@ void RapierProjectSettings::register_settings() {
 	register_setting_ranged(SOLVER_NUM_INTERNAL_PGS_ITERATIONS, 1, U"1,4,or_greater");
 	register_setting_ranged(SOLVER_NUM_ADDITIONAL_FRICTION_ITERATIONS, 4, U"1,16,or_greater");
 	register_setting_ranged(SOLVER_NUM_ITERATIONS, 4, U"1,16,or_greater");
+	register_setting_ranged(SOLVER_MAX_CCD_SUBSTEPS, 1, U"1,16,or_greater");
 }
 
 template <typename TType>
@@ -115,6 +117,9 @@ double RapierProjectSettings::get_solver_joint_damping_ratio() {
 }
 double RapierProjectSettings::get_solver_allowed_linear_error() {
 	return get_setting<double>(SOLVER_ALLOWED_LINEAR_ERROR);
+}
+int RapierProjectSettings::get_solver_max_ccd_substeps() {
+	return get_setting<int>(SOLVER_MAX_CCD_SUBSTEPS);
 }
 double RapierProjectSettings::get_solver_prediction_distance() {
 	return get_setting<double>(SOLVER_PREDICTION_DISTANCE);
