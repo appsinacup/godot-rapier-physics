@@ -41,9 +41,11 @@ pub extern "C" fn joint_change_revolute_params(world_handle : Handle, joint_hand
     assert!(joint.is_some());
     let joint = joint.unwrap().data.as_revolute_mut();
     assert!(joint.is_some());
-    let mut joint = joint.unwrap();
+    let joint = joint.unwrap();
     if motor_enabled {
-        joint = joint.set_motor_velocity(motor_target_velocity, 0.0);
+        joint.set_motor_velocity(motor_target_velocity, 0.0);
+    } else {
+        joint.set_motor_velocity(0.0, 0.0);
     }
     if angular_limit_enabled {
         joint.set_limits([angular_limit_lower, angular_limit_upper]);
@@ -81,7 +83,6 @@ pub extern "C" fn joint_create_spring(world_handle : Handle, body_handle_1 : Han
     .local_anchor1(point!(anchor_1.x, anchor_1.y))
     .local_anchor2(point!(anchor_2.x, anchor_2.y))
     .contacts_enabled(!disable_collision);
-    
 	return physics_world.insert_joint(body_handle_1, body_handle_2, joint);
 }
 
@@ -94,8 +95,8 @@ pub extern "C" fn joint_change_spring_params(world_handle : Handle, joint_handle
 
     let joint = physics_world.impulse_joint_set.get_mut(handle_to_joint_handle(joint_handle));
     assert!(joint.is_some());
-    let mut joint = joint.unwrap().data;
-    joint.set_motor_position(JointAxis::X, rest_length, stiffness, damping);
+    let spring_joint = joint.unwrap();
+    spring_joint.data.set_motor_position(JointAxis::X, rest_length, stiffness, damping);
 }
 
 #[no_mangle]
