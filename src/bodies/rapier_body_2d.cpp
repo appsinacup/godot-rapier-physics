@@ -564,6 +564,7 @@ void RapierBody2D::set_space(RapierSpace2D *p_space) {
 				if (torque != 0.0) {
 					apply_torque_impulse(torque);
 				}
+				set_continuous_collision_detection_mode(ccd_mode);
 				rapier2d::Handle space_handle = get_space()->get_handle();
 				rapier2d::Material mat;
 				mat.friction = friction;
@@ -631,8 +632,9 @@ void RapierBody2D::set_force_integration_callback(const Callable &p_callable, co
 }
 
 void RapierBody2D::apply_central_impulse(const Vector2 &p_impulse) {
-	impulse += p_impulse;
+	Vector2 mass_impulse = p_impulse * mass;
 	if (!get_space()) {
+		impulse += mass_impulse;
 		return;
 	}
 
@@ -645,14 +647,15 @@ void RapierBody2D::apply_central_impulse(const Vector2 &p_impulse) {
 	ERR_FAIL_COND(!rapier2d::is_handle_valid(space_handle));
 
 	ERR_FAIL_COND(!rapier2d::is_handle_valid(body_handle));
-	rapier2d::Vector impulse = { p_impulse.x, p_impulse.y };
+	rapier2d::Vector impulse = { mass_impulse.x, mass_impulse.y };
 	rapier2d::body_apply_impulse(space_handle, body_handle, &impulse);
 }
 
 void RapierBody2D::apply_impulse(const Vector2 &p_impulse, const Vector2 &p_position) {
-	impulse += p_impulse;
-	torque += (p_position - get_center_of_mass()).cross(p_impulse);
+	Vector2 mass_impulse = p_impulse * mass;
 	if (!get_space()) {
+		impulse += mass_impulse;
+		torque += (p_position - get_center_of_mass()).cross(mass_impulse);
 		return;
 	}
 
@@ -665,14 +668,14 @@ void RapierBody2D::apply_impulse(const Vector2 &p_impulse, const Vector2 &p_posi
 	ERR_FAIL_COND(!rapier2d::is_handle_valid(space_handle));
 
 	ERR_FAIL_COND(!rapier2d::is_handle_valid(body_handle));
-	rapier2d::Vector impulse = { p_impulse.x, p_impulse.y };
+	rapier2d::Vector impulse = { mass_impulse.x, mass_impulse.y };
 	rapier2d::Vector pos = { p_position.x, p_position.y };
 	rapier2d::body_apply_impulse_at_point(space_handle, body_handle, &impulse, &pos);
 }
 
 void RapierBody2D::apply_torque_impulse(real_t p_torque) {
-	torque += p_torque;
 	if (!get_space()) {
+		torque += p_torque;
 		return;
 	}
 
@@ -691,8 +694,8 @@ void RapierBody2D::apply_torque_impulse(real_t p_torque) {
 void RapierBody2D::apply_central_force(const Vector2 &p_force) {
 	// Note: using last delta assuming constant physics time
 	real_t last_delta = get_space()->get_last_step();
-	impulse += p_force * last_delta;
 	if (!get_space()) {
+		impulse += p_force * last_delta;
 		return;
 	}
 
@@ -712,9 +715,9 @@ void RapierBody2D::apply_central_force(const Vector2 &p_force) {
 void RapierBody2D::apply_force(const Vector2 &p_force, const Vector2 &p_position) {
 	// Note: using last delta assuming constant physics time
 	real_t last_delta = get_space()->get_last_step();
-	impulse += p_force * last_delta;
-	torque += (p_position - get_center_of_mass()).cross(p_force) * last_delta;
 	if (!get_space()) {
+		impulse += p_force * last_delta;
+		torque += (p_position - get_center_of_mass()).cross(p_force) * last_delta;
 		return;
 	}
 
@@ -734,8 +737,8 @@ void RapierBody2D::apply_force(const Vector2 &p_force, const Vector2 &p_position
 void RapierBody2D::apply_torque(real_t p_torque) {
 	// Note: using last delta assuming constant physics time
 	real_t last_delta = get_space()->get_last_step();
-	torque += p_torque * last_delta;
 	if (!get_space()) {
+		torque += p_torque * last_delta;
 		return;
 	}
 
