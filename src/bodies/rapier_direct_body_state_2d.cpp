@@ -147,6 +147,11 @@ int RapierDirectBodyState2D::_get_contact_local_shape(int p_contact_idx) const {
 	return body->contacts[p_contact_idx].local_shape;
 }
 
+Vector2 RapierDirectBodyState2D::_get_contact_local_velocity_at_position(int p_contact_idx) const {
+	ERR_FAIL_INDEX_V(p_contact_idx, body->contact_count, Vector2());
+	return body->contacts[p_contact_idx].local_velocity_at_pos;
+}
+
 RID RapierDirectBodyState2D::_get_contact_collider(int p_contact_idx) const {
 	ERR_FAIL_INDEX_V(p_contact_idx, body->contact_count, RID());
 	return body->contacts[p_contact_idx].collider;
@@ -159,6 +164,11 @@ Vector2 RapierDirectBodyState2D::_get_contact_collider_position(int p_contact_id
 uint64_t RapierDirectBodyState2D::_get_contact_collider_id(int p_contact_idx) const {
 	ERR_FAIL_INDEX_V(p_contact_idx, body->contact_count, 0);
 	return body->contacts[p_contact_idx].collider_instance_id;
+}
+
+Object *RapierDirectBodyState2D::_get_contact_collider_object(int p_contact_idx) const {
+	ERR_FAIL_INDEX_V(p_contact_idx, body->contact_count, nullptr);
+	return body->contacts[p_contact_idx].collider_object;
 }
 
 int RapierDirectBodyState2D::_get_contact_collider_shape(int p_contact_idx) const {

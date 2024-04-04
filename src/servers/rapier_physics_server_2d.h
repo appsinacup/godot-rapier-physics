@@ -149,7 +149,6 @@ public:
 
 	/* BODY API */
 
-	// create a body of a given type
 	virtual RID _body_create() override;
 
 	virtual void _body_set_space(const RID &p_body, const RID &p_space) override;
