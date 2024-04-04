@@ -367,16 +367,26 @@ bool RapierSpace2D::contact_point_callback(rapier2d::Handle world_handle, const 
 	Vector2 tangent = normal.orthogonal();
 	Vector2 impulse = contact_info->pixel_impulse * normal + contact_info->pixel_tangent_impulse * tangent;
 
+	Vector2 vel_pos1(contact_info->pixel_velocity_pos_1.x, contact_info->pixel_velocity_pos_1.y);
+	Vector2 vel_pos2(contact_info->pixel_velocity_pos_2.x, contact_info->pixel_velocity_pos_2.y);
 	if (body1->can_report_contacts()) {
 		keep_sending_contacts = true;
-		Vector2 vel_pos2(contact_info->pixel_velocity_pos_2.x, contact_info->pixel_velocity_pos_2.y);
-		body1->add_contact(pos1, -normal, depth, (int)shape1, pos2, (int)shape2, body2->get_instance_id(), body2->get_rid(), vel_pos2, impulse);
+		Object *collider2 = nullptr;
+		ObjectID instance_id2 = body2->get_instance_id();
+		if (instance_id2.is_valid()) {
+			collider2 = RapierSpace2D::_get_object_instance_hack(instance_id2);
+		}
+		body1->add_contact(pos1, -normal, depth, (int)shape1, vel_pos1, pos2, (int)shape2, instance_id2, collider2, body2->get_rid(), vel_pos2, impulse);
 	}
 
 	if (body2->can_report_contacts()) {
 		keep_sending_contacts = true;
-		Vector2 vel_pos1(contact_info->pixel_velocity_pos_1.x, contact_info->pixel_velocity_pos_1.y);
-		body2->add_contact(pos2, normal, depth, (int)shape2, pos1, (int)shape1, body1->get_instance_id(), body1->get_rid(), vel_pos1, impulse);
+		Object *collider1 = nullptr;
+		ObjectID instance_id1 = body1->get_instance_id();
+		if (instance_id1.is_valid()) {
+			collider1 = RapierSpace2D::_get_object_instance_hack(instance_id1);
+		}
+		body2->add_contact(pos2, normal, depth, (int)shape2, vel_pos2, pos1, (int)shape1, instance_id1, collider1, body1->get_rid(), vel_pos1, impulse);
 	}
 
 	return keep_sending_contacts;

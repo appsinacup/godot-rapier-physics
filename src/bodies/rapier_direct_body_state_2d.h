@@ -64,10 +64,12 @@ public:
 	virtual Vector2 _get_contact_local_position(int p_contact_idx) const override;
 	virtual Vector2 _get_contact_local_normal(int p_contact_idx) const override;
 	virtual int _get_contact_local_shape(int p_contact_idx) const override;
+	virtual Vector2 _get_contact_local_velocity_at_position(int p_contact_idx) const override;
 
 	virtual RID _get_contact_collider(int p_contact_idx) const override;
 	virtual Vector2 _get_contact_collider_position(int p_contact_idx) const override;
 	virtual uint64_t _get_contact_collider_id(int p_contact_idx) const override;
+	virtual Object *_get_contact_collider_object(int p_contact_idx) const override;
 	virtual int _get_contact_collider_shape(int p_contact_idx) const override;
 	virtual Vector2 _get_contact_impulse(int p_contact_idx) const override;
 
