@@ -19,7 +19,7 @@ bool should_skip_collision_one_dir(rapier2d::ContactResult contact, RapierShape2
 
 		if (collision_body->get_type() == RapierCollisionObject2D::TYPE_BODY) {
 			const RapierBody2D *b = collision_body;
-			if (b->get_mode() == PhysicsServer2D::BODY_MODE_KINEMATIC || b->get_mode() == PhysicsServer2D::BODY_MODE_RIGID) {
+			if (b->get_mode() >= PhysicsServer2D::BODY_MODE_KINEMATIC) {
 				//fix for moving platforms (kinematic and dynamic), margin is increased by how much it moved in the
 				//given direction
 				Vector2 lv = b->get_linear_velocity();

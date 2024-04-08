@@ -248,10 +248,6 @@ pub extern "C" fn body_set_ccd_enabled(world_handle : Handle, body_handle : Hand
 pub extern "C" fn body_set_mass_properties(world_handle : Handle, body_handle : Handle, mass : Real, pixel_inertia : Real, pixel_local_com : &Vector, wake_up : bool, force_update : bool) {
     let local_com = &vector_pixels_to_meters(pixel_local_com);
     let inertia = pixels_to_meters(pixels_to_meters(pixel_inertia));
-    let mass = mass;
-    if inertia == 0.0 || mass == 0.0{
-        return
-    }
 
     let mut physics_engine = SINGLETON.lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
