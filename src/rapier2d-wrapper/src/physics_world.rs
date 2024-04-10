@@ -1,6 +1,7 @@
 use rapier2d::crossbeam;
 use rapier2d::data::Arena;
 use rapier2d::prelude::*;
+use salva2d::integrations::rapier::FluidsPipeline;
 use std::sync::Mutex;
 use std::sync::OnceLock;
 use std::num::NonZeroUsize;
@@ -140,7 +141,12 @@ pub struct PhysicsWorld {
     pub rigid_body_set : RigidBodySet,
 
 	pub handle : Handle,
+
+	pub fluids_pipeline: FluidsPipeline,
 }
+
+const PARTICLE_RADIUS: f32 = 0.1;
+const SMOOTHING_FACTOR: f32 = 2.0;
 
 impl PhysicsWorld {
     pub fn new(settings : &WorldSettings) -> PhysicsWorld {
@@ -173,6 +179,8 @@ impl PhysicsWorld {
             collider_set : ColliderSet::new(),
 
 			handle : invalid_handle(),
+
+			fluids_pipeline: FluidsPipeline::new(PARTICLE_RADIUS, SMOOTHING_FACTOR),
         }
     }
 
@@ -206,7 +214,8 @@ impl PhysicsWorld {
 		let (collision_send, collision_recv) = crossbeam::channel::unbounded();
 		let (contact_force_send, contact_force_recv) = crossbeam::channel::unbounded();
 		let event_handler = ContactEventHandler::new(collision_send, contact_force_send);
-        self.physics_pipeline.step(
+        //self.fluids_pipeline.step(&gravity, integration_parameters.dt, &self.collider_set, &mut self.rigid_body_set);
+		self.physics_pipeline.step(
           &gravity,
           &integration_parameters,
           &mut self.island_manager,

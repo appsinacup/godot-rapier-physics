@@ -4,6 +4,7 @@ mod body;
 mod collider;
 mod convert;
 mod event_handler;
+mod fluid;
 mod handle;
 mod joint;
 mod physics_hooks;

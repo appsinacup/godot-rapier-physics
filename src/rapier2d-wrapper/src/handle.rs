@@ -1,5 +1,10 @@
+use std::any::Any;
+use std::borrow::BorrowMut;
+use std::ops::DerefMut;
+
 use rapier2d::data::Index;
 use rapier2d::prelude::*;
+use salva2d::object::FluidHandle;
 
 #[repr(C)]
 #[derive(Copy, Clone, Eq, Hash, PartialEq)]
@@ -84,6 +89,19 @@ pub fn joint_handle_to_handle(joint_handle : ImpulseJointHandle) -> Handle {
 
 pub fn handle_to_joint_handle(handle : Handle) -> ImpulseJointHandle {
     return ImpulseJointHandle::from_raw_parts(handle.id, handle.generation);
+}
+
+pub fn fluid_handle_to_handle(fluid_handle : FluidHandle) -> Handle {
+    let raw_parts : Index = fluid_handle.into();
+    return Handle {
+        id : raw_parts.0,
+        generation : raw_parts.1,
+    }
+}
+
+pub fn handle_to_fluid_handle(handle : Handle) -> FluidHandle {
+    FluidHandle::from_subset(element)
+    return FluidHandle::from_raw_parts(handle.id, handle.generation);
 }
 
 
