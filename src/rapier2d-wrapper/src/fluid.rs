@@ -68,6 +68,6 @@ pub extern "C" fn fluid_change_effect_elasticity(world_handle : Handle, index: u
     assert!(fluid.is_some());
     let fluid = fluid.unwrap();
     let elasticity: Becker2009Elasticity = Becker2009Elasticity::new(young_modulus, poisson_ratio, nonlinear_strain);
-    let force: &mut Becker2009Elasticity = fluid.nonpressure_forces[index].borrow_mut();
+    //let force: &mut Becker2009Elasticity = fluid.nonpressure_forces[index].borrow_mut();
     //let
 }

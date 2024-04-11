@@ -15,7 +15,7 @@
             alt="Chat on Discord"></a>
 </p>
 
-A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engine v4.2](https://github.com/godotengine/godot), implemented as a GDExtension.
+A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engine v4.2](https://github.com/godotengine/godot), implemented as a GDExtension. Also integrates with salva for 2d liquids.
 
 # Features
 
@@ -23,6 +23,7 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 - Single and Double float precision build.
 - SIMD (Single instruction, multiple data) build.
 - Cross-platform determinism build.
+- Fluids and liquids and squishy bodies made of particles
 
 <p align="center">
 <img src="rapier-vid.gif"/>
