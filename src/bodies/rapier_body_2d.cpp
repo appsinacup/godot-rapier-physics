@@ -960,6 +960,7 @@ void RapierBody2D::set_linear_velocity(const Vector2 &p_linear_velocity) {
 	// TODO: apply delta
 	ERR_FAIL_COND(!rapier2d::is_handle_valid(body_handle));
 	rapier2d::Vector velocity = { linear_velocity.x, linear_velocity.y };
+	linear_velocity = Vector2();
 	rapier2d::body_set_linear_velocity(space_handle, body_handle, &velocity);
 }
 
@@ -995,6 +996,7 @@ void RapierBody2D::set_angular_velocity(real_t p_angular_velocity) {
 
 	// TODO: apply delta
 	ERR_FAIL_COND(!rapier2d::is_handle_valid(body_handle));
+	angular_velocity = 0.0;
 	rapier2d::body_set_angular_velocity(space_handle, body_handle, angular_velocity);
 }
 
