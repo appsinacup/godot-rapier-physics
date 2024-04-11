@@ -2,8 +2,8 @@ use rapier2d::crossbeam;
 use rapier2d::data::Arena;
 use rapier2d::prelude::*;
 use std::sync::Mutex;
+use std::sync::OnceLock;
 use std::num::NonZeroUsize;
-use lazy_static::lazy_static;
 use crate::convert::meters_to_pixels;
 use crate::convert::vector_meters_to_pixels;
 use crate::convert::vector_pixels_to_meters;
@@ -460,14 +460,17 @@ impl PhysicsEngine {
 	}
 }
 
-lazy_static! {
-	pub static ref SINGLETON: Mutex<PhysicsEngine> = Mutex::new(PhysicsEngine::new());
+pub fn singleton() -> &'static Mutex<PhysicsEngine> {
+	static HASHMAP: OnceLock<Mutex<PhysicsEngine>> = OnceLock::new();
+	HASHMAP.get_or_init(|| {
+		Mutex::new(PhysicsEngine::new())
+	})
 }
 
 #[no_mangle]
 pub extern "C" fn world_create(settings: &WorldSettings) -> Handle {
 	let physics_world = PhysicsWorld::new(settings);
-	let mut physics_engine = SINGLETON.lock().unwrap();
+	let mut physics_engine = singleton().lock().unwrap();
 	let world_handle = physics_engine.insert_world(physics_world);
 	let physics_world = physics_engine.get_world(world_handle);
 	physics_world.handle = world_handle;
@@ -476,7 +479,7 @@ pub extern "C" fn world_create(settings: &WorldSettings) -> Handle {
 
 #[no_mangle]
 pub extern "C" fn world_destroy(world_handle : Handle) {
-	let mut physics_engine = SINGLETON.lock().unwrap();
+	let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
 	physics_world.handle = invalid_handle();
 	physics_engine.remove_world(world_handle);
@@ -484,63 +487,63 @@ pub extern "C" fn world_destroy(world_handle : Handle) {
 
 #[no_mangle]
 pub extern "C" fn world_step(world_handle : Handle, settings : &SimulationSettings) {
-	let mut physics_engine = SINGLETON.lock().unwrap();
+	let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
 	physics_world.step(settings);
 }
 
 #[no_mangle]
 pub extern "C" fn world_set_active_body_callback(world_handle : Handle, callback : ActiveBodyCallback) {
-	let mut physics_engine = SINGLETON.lock().unwrap();
+	let mut physics_engine = singleton().lock().unwrap();
 	let physics_world: &mut PhysicsWorld = physics_engine.get_world(world_handle);
 	physics_world.active_body_callback = callback;
 }
 
 #[no_mangle]
 pub extern "C" fn world_set_body_collision_filter_callback(world_handle : Handle, callback : CollisionFilterCallback) {
-	let mut physics_engine = SINGLETON.lock().unwrap();
+	let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
 	physics_world.collision_filter_body_callback = callback;
 }
 
 #[no_mangle]
 pub extern "C" fn world_set_sensor_collision_filter_callback(world_handle : Handle, callback : CollisionFilterCallback) {
-	let mut physics_engine = SINGLETON.lock().unwrap();
+	let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
 	physics_world.collision_filter_sensor_callback = callback;
 }
 
 #[no_mangle]
 pub extern "C" fn world_set_modify_contacts_callback(world_handle : Handle, callback : CollisionModifyContactsCallback) {
-	let mut physics_engine = SINGLETON.lock().unwrap();
+	let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
 	physics_world.collision_modify_contacts_callback = callback;
 }
 
 #[no_mangle]
 pub extern "C" fn world_set_collision_event_callback(world_handle : Handle, callback : CollisionEventCallback) {
-	let mut physics_engine = SINGLETON.lock().unwrap();
+	let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
 	physics_world.collision_event_callback = callback;
 }
 
 #[no_mangle]
 pub extern "C" fn world_set_contact_force_event_callback(world_handle : Handle, callback : ContactForceEventCallback) {
-	let mut physics_engine = SINGLETON.lock().unwrap();
+	let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
 	physics_world.contact_force_event_callback = callback;
 }
 
 #[no_mangle]
 pub extern "C" fn world_set_contact_point_callback(world_handle : Handle, callback : ContactPointCallback) {
-	let mut physics_engine = SINGLETON.lock().unwrap();
+	let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
 	physics_world.contact_point_callback = callback;
 }
 
 #[no_mangle]
 pub extern "C" fn world_get_active_objects_count(world_handle : Handle) -> usize {
-	let mut physics_engine = SINGLETON.lock().unwrap();
+	let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
 	return physics_world.island_manager.active_dynamic_bodies().len();
 }

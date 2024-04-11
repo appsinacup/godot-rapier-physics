@@ -131,7 +131,7 @@ pub extern "C" fn default_material() -> Material {
 
 #[no_mangle]
 pub extern "C" fn collider_create_solid(world_handle : Handle, shape_handle : Handle, mat : &Material, body_handle : Handle, user_data : &UserData) -> Handle {
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
     let shape = physics_engine.get_shape(shape_handle);
     let mut collider = ColliderBuilder::new(shape.clone()).contact_force_event_threshold(-Real::MAX).build();
     collider.set_friction(mat.friction);
@@ -148,7 +148,7 @@ pub extern "C" fn collider_create_solid(world_handle : Handle, shape_handle : Ha
 
 #[no_mangle]
 pub extern "C" fn collider_create_sensor(world_handle : Handle, shape_handle : Handle, body_handle : Handle, user_data : &UserData) -> Handle {
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
     let shape = physics_engine.get_shape(shape_handle);
     let mut collider = ColliderBuilder::new(shape.clone()).build();
     collider.set_sensor(true);
@@ -167,14 +167,14 @@ pub extern "C" fn collider_create_sensor(world_handle : Handle, shape_handle : H
 
 #[no_mangle]
 pub extern "C" fn collider_destroy(world_handle : Handle, handle : Handle) {
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     return physics_world.remove_collider(handle);
 }
 
 #[no_mangle]
 pub extern "C" fn collider_get_position(world_handle : Handle, handle : Handle) -> Vector {
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let collider_handle = handle_to_collider_handle(handle);
     let collider = physics_world.collider_set.get(collider_handle);
@@ -185,7 +185,7 @@ pub extern "C" fn collider_get_position(world_handle : Handle, handle : Handle) 
 
 #[no_mangle]
 pub extern "C" fn collider_get_angle(world_handle : Handle, handle : Handle) -> Real {
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let collider_handle = handle_to_collider_handle(handle);
     let collider = physics_world.collider_set.get(collider_handle);
@@ -198,7 +198,7 @@ pub extern "C" fn collider_set_transform(world_handle : Handle, handle : Handle,
     {   
         let position = &vector_pixels_to_meters(&shape_info.pixel_position);
 
-        let mut physics_engine = SINGLETON.lock().unwrap();
+        let mut physics_engine = singleton().lock().unwrap();
         let physics_world = physics_engine.get_world(world_handle);
         let collider_handle = handle_to_collider_handle(handle);
         let collider = physics_world.collider_set.get_mut(collider_handle);
@@ -207,7 +207,7 @@ pub extern "C" fn collider_set_transform(world_handle : Handle, handle : Handle,
         collider.set_position_wrt_parent(Isometry::new(vector![position.x, position.y], shape_info.rotation));
     }
     {
-        let mut physics_engine = SINGLETON.lock().unwrap();
+        let mut physics_engine = singleton().lock().unwrap();
         let shape = physics_engine.get_shape(shape_info.handle);
         let skewed_shape = skew_shape(shape, shape_info.skew);
         let new_shape = scale_shape(&skewed_shape, &Vector2::<Real>::new(shape_info.scale.x, shape_info.scale.y));
@@ -221,7 +221,7 @@ pub extern "C" fn collider_set_transform(world_handle : Handle, handle : Handle,
 
 #[no_mangle]
 pub extern "C" fn collider_set_collision_events_enabled(world_handle : Handle, handle : Handle, enable : bool) {
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let collider_handle = handle_to_collider_handle(handle);
     let collider = physics_world.collider_set.get_mut(collider_handle);
@@ -238,7 +238,7 @@ pub extern "C" fn collider_set_collision_events_enabled(world_handle : Handle, h
 
 #[no_mangle]
 pub extern "C" fn collider_set_contact_force_events_enabled(world_handle : Handle, handle : Handle, enable : bool) {
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let collider_handle = handle_to_collider_handle(handle);
     let collider = physics_world.collider_set.get_mut(collider_handle);

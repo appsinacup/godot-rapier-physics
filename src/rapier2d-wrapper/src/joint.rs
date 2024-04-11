@@ -11,7 +11,7 @@ pub extern "C" fn joint_create_revolute(world_handle : Handle, body_handle_1 : H
 
     let motor_target_velocity = pixels_to_meters(pixel_motor_target_velocity);
     
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
 
     let mut joint = RevoluteJointBuilder::new()
@@ -34,7 +34,7 @@ pub extern "C" fn joint_create_revolute(world_handle : Handle, body_handle_1 : H
 pub extern "C" fn joint_change_revolute_params(world_handle : Handle, joint_handle: Handle , angular_limit_lower: Real, angular_limit_upper: Real, angular_limit_enabled: bool, pixel_motor_target_velocity: Real, motor_enabled: bool){
     let motor_target_velocity = pixels_to_meters(pixel_motor_target_velocity);
 
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
 
     let joint = physics_world.impulse_joint_set.get_mut(handle_to_joint_handle(joint_handle));
@@ -58,7 +58,7 @@ pub extern "C" fn joint_create_prismatic(world_handle : Handle, body_handle_1 : 
     let anchor_2 = &vector_pixels_to_meters(pixel_anchor_2);
     let limits = &vector_pixels_to_meters(pixel_limits);
 
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
 
     let joint = PrismaticJointBuilder::new(UnitVector::new_normalize(vector![axis.x, axis.y]))
@@ -76,7 +76,7 @@ pub extern "C" fn joint_create_spring(world_handle : Handle, body_handle_1 : Han
     let anchor_2 = &vector_pixels_to_meters(pixel_anchor_2);
     let rest_length = pixels_to_meters(pixel_rest_length);
     
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
 
     let joint = SpringJointBuilder::new(rest_length, stiffness, damping)
@@ -90,7 +90,7 @@ pub extern "C" fn joint_create_spring(world_handle : Handle, body_handle_1 : Han
 pub extern "C" fn joint_change_spring_params(world_handle : Handle, joint_handle: Handle , stiffness: Real, damping: Real, pixel_rest_length: Real){
     let rest_length = pixels_to_meters(pixel_rest_length);
 
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
 
     let joint = physics_world.impulse_joint_set.get_mut(handle_to_joint_handle(joint_handle));
@@ -101,7 +101,7 @@ pub extern "C" fn joint_change_spring_params(world_handle : Handle, joint_handle
 
 #[no_mangle]
 pub extern "C" fn joint_destroy(world_handle : Handle, joint_handle : Handle) {
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
 
 	return physics_world.remove_joint(joint_handle);
@@ -109,7 +109,7 @@ pub extern "C" fn joint_destroy(world_handle : Handle, joint_handle : Handle) {
 
 #[no_mangle]
 pub extern "C" fn joint_change_disable_collision(world_handle : Handle, joint_handle: Handle , disable_collision: bool){
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
 
     let joint = physics_world.impulse_joint_set.get_mut(handle_to_joint_handle(joint_handle));

@@ -110,7 +110,7 @@ pub extern "C" fn intersect_ray(world_handle : Handle, pixel_from : &Vector, dir
     let from = vector_pixels_to_meters(&pixel_from);
     let length = pixels_to_meters(pixel_length);
 
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
 
     let ray = Ray::new(point![from.x, from.y], vector![dir.x, dir.y]);
@@ -169,7 +169,7 @@ pub extern "C" fn intersect_ray(world_handle : Handle, pixel_from : &Vector, dir
 
 #[no_mangle]
 pub extern "C" fn intersect_point(world_handle : Handle, pixel_position : &Vector,  collide_with_body: bool, collide_with_area: bool, hit_info_array : *mut PointHitInfo, hit_info_length : usize, handle_excluded_callback: QueryHandleExcludedCallback, handle_excluded_info: &QueryExcludedInfo) -> usize {
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
     let position = vector_pixels_to_meters(&pixel_position);
     let point = Point::new(position.x, position.y);
@@ -220,7 +220,7 @@ pub extern "C" fn shape_collide(pixel_motion1 : &Vector, shape_info1: ShapeInfo,
     let position1 = vector_pixels_to_meters(&shape_info1.pixel_position);
     let position2 = vector_pixels_to_meters(&shape_info2.pixel_position);
 
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
 
     let raw_shared_shape1 = physics_engine.get_shape(shape_info1.handle).clone();
     let skewed_shape1 = skew_shape(&raw_shared_shape1, shape_info1.skew);
@@ -256,7 +256,7 @@ pub extern "C" fn shape_casting(world_handle : Handle, pixel_motion : &Vector, s
     let motion = vector_pixels_to_meters(&pixel_motion);
     let position = vector_pixels_to_meters(&shape_info.pixel_position);
 
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
 
     let raw_shared_shape = physics_engine.get_shape(shape_info.handle).clone();
     let skewed_shape = skew_shape(&raw_shared_shape, shape_info.skew);
@@ -311,7 +311,7 @@ pub extern "C" fn shape_casting(world_handle : Handle, pixel_motion : &Vector, s
 #[no_mangle]
 pub extern "C" fn intersect_shape(world_handle : Handle, shape_info: ShapeInfo, collide_with_body: bool, collide_with_area: bool, hit_info_array : *mut PointHitInfo, hit_info_length : usize, handle_excluded_callback: QueryHandleExcludedCallback, handle_excluded_info: &QueryExcludedInfo) -> usize {
     let position = vector_pixels_to_meters(&shape_info.pixel_position);
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
 
     let raw_shared_shape = physics_engine.get_shape(shape_info.handle).clone();
     let skewed_shape = skew_shape(&raw_shared_shape, shape_info.skew);
@@ -367,7 +367,7 @@ pub extern "C" fn intersect_aabb(world_handle : Handle, pixel_aabb_min : &Vector
     let aabb_min = vector_pixels_to_meters(&pixel_aabb_min);
     let aabb_max = vector_pixels_to_meters(&pixel_aabb_max);
 
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
 
 	let physics_world = physics_engine.get_world(world_handle);
     
@@ -431,7 +431,7 @@ pub extern "C" fn shapes_contact(world_handle : Handle, shape_info1 : ShapeInfo,
     let position2 = vector_pixels_to_meters(&shape_info2.pixel_position);
     let margin = pixels_to_meters(pixel_margin);
 
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
     
     let physics_world = physics_engine.get_world(world_handle);
 

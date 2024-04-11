@@ -29,7 +29,7 @@ pub struct ShapeInfo {
 pub extern "C" fn shape_create_box(pixel_size : &Vector) -> Handle {
     let size = &vector_pixels_to_meters(pixel_size);
 	let shape = SharedShape::cuboid(0.5 * size.x, 0.5 * size.y);
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
 	return physics_engine.insert_shape(shape);
 }
 
@@ -42,7 +42,7 @@ pub extern "C" fn shape_create_halfspace(normal : &Vector, pixel_distance: Real)
     let mut shapes_vec = Vec::<(Isometry<Real>, SharedShape)>::new();
     shapes_vec.push((shape_position, shape));
     let shape_compound = SharedShape::compound(shapes_vec);
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
 	return physics_engine.insert_shape(shape_compound);
 }
 
@@ -50,7 +50,7 @@ pub extern "C" fn shape_create_halfspace(normal : &Vector, pixel_distance: Real)
 pub extern "C" fn shape_create_circle(pixel_radius : Real) -> Handle {
     let radius = pixels_to_meters(pixel_radius);
 	let shape = SharedShape::ball(radius);
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
 	return physics_engine.insert_shape(shape);
 }
 
@@ -75,7 +75,7 @@ pub extern "C" fn shape_create_capsule(pixel_half_height : Real, pixel_radius : 
     // overall results in a 1.33x decrease in performance
     // TODO only do this in case of static objects?
 	let shape = SharedShape::capsule_y(half_height, radius);
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
 	return physics_engine.insert_shape(shape);
 }
 
@@ -88,7 +88,7 @@ pub extern "C" fn shape_create_convex_polyline(pixel_points : &Vector, point_cou
 		return Handle::default();
 	}
     let shape = shape_data.unwrap();
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
 	return physics_engine.insert_shape(shape);
 }
 
@@ -96,12 +96,12 @@ pub extern "C" fn shape_create_convex_polyline(pixel_points : &Vector, point_cou
 pub extern "C" fn shape_create_convave_polyline(pixel_points : &Vector, point_count : usize) -> Handle {
     let points_vec = pixel_point_array_to_vec(pixel_points, point_count);
     let shape = SharedShape::polyline(points_vec, None);
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
 	return physics_engine.insert_shape(shape);
 }
 
 #[no_mangle]
 pub extern "C" fn shape_destroy(shape_handle : Handle) {
-    let mut physics_engine = SINGLETON.lock().unwrap();
+    let mut physics_engine = singleton().lock().unwrap();
 	return physics_engine.remove_shape(shape_handle);
 }
