@@ -7,11 +7,13 @@ using namespace godot;
 
 class LiquidEffect2DElasticity : public LiquidEffect2D {
 	GDCLASS(LiquidEffect2DElasticity, LiquidEffect2D);
-	real_t young_modulus;
-	real_t poisson_ratio;
-	bool nonlinear_strain;
+	real_t young_modulus = 1000.0;
+	real_t poisson_ratio = 0.3;
+	bool nonlinear_strain = true;
+
 protected:
 	static void _bind_methods();
+
 public:
 	real_t get_young_modulus() const;
 	void set_young_modulus(real_t p_young_modulus);

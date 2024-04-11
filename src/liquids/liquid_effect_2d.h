@@ -9,9 +9,10 @@ class LiquidEffect2D : public Resource {
 	GDCLASS(LiquidEffect2D, Resource);
 
 protected:
-	static void _bind_methods(){}
+	static void _bind_methods() {}
+
 public:
-	~LiquidEffect2D(){}
+	~LiquidEffect2D() {}
 };
 
 #endif // LIQUID_EFFECT_2D_H

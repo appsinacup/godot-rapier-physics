@@ -1,9 +1,9 @@
 #ifndef LIQUID_2D_H
 #define LIQUID_2D_H
 
+#include "liquid_effect_2d.h"
 #include <godot_cpp/classes/node2d.hpp>
 #include <godot_cpp/templates/vector.hpp>
-#include "liquid_effect_2d.h"
 
 using namespace godot;
 
@@ -24,8 +24,8 @@ public:
 	void set_effect(const Ref<LiquidEffect2D> &p_shape);
 	Ref<LiquidEffect2D> get_effect() const;
 
-	Liquid2D(){}
-	~Liquid2D(){}
+	Liquid2D() {}
+	~Liquid2D() {}
 
 	//void _process(double delta) override;
 };
