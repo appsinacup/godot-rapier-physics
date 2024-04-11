@@ -16,7 +16,7 @@ use crate::physics_world::*;
 
 #[no_mangle]
 pub extern "C" fn fluid_create(world_handle : Handle, density: Real, pixel_points : &Vector, point_count : usize) -> Handle {
-	let mut physics_engine = SINGLETON.lock().unwrap();
+	let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
     let particle_radius = physics_world.fluids_pipeline.liquid_world.particle_radius();
     let points = pixel_point_array_to_vec(pixel_points, point_count);
@@ -26,7 +26,7 @@ pub extern "C" fn fluid_create(world_handle : Handle, density: Real, pixel_point
 
 #[no_mangle]
 pub extern "C" fn fluid_change_density(world_handle : Handle, fluid_handle: Handle, density: Real) {
-	let mut physics_engine = SINGLETON.lock().unwrap();
+	let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
     let fluid = physics_world.fluids_pipeline.liquid_world.fluids_mut().get_mut(handle_to_fluid_handle(fluid_handle));
     assert!(fluid.is_some());
@@ -36,7 +36,7 @@ pub extern "C" fn fluid_change_density(world_handle : Handle, fluid_handle: Hand
 
 #[no_mangle]
 pub extern "C" fn fluid_change_points(world_handle : Handle, fluid_handle: Handle, pixel_points : &Vector, point_count : usize) {
-	let mut physics_engine = SINGLETON.lock().unwrap();
+	let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
     let points = pixel_point_array_to_vec(pixel_points, point_count);
     let fluid = physics_world.fluids_pipeline.liquid_world.fluids_mut().get_mut(handle_to_fluid_handle(fluid_handle));
@@ -51,7 +51,7 @@ pub extern "C" fn fluid_change_points(world_handle : Handle, fluid_handle: Handl
 
 #[no_mangle]
 pub extern "C" fn fluid_add_effect_elasticity(world_handle : Handle, fluid_handle: Handle, young_modulus: Real, poisson_ratio: Real, nonlinear_strain: bool) {
-	let mut physics_engine = SINGLETON.lock().unwrap();
+	let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
     let fluid = physics_world.fluids_pipeline.liquid_world.fluids_mut().get_mut(handle_to_fluid_handle(fluid_handle));
     assert!(fluid.is_some());
@@ -62,7 +62,7 @@ pub extern "C" fn fluid_add_effect_elasticity(world_handle : Handle, fluid_handl
 
 #[no_mangle]
 pub extern "C" fn fluid_change_effect_elasticity(world_handle : Handle, index: usize, fluid_handle: Handle, young_modulus: Real, poisson_ratio: Real, nonlinear_strain: bool) {
-	let mut physics_engine = SINGLETON.lock().unwrap();
+	let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
     let fluid = physics_world.fluids_pipeline.liquid_world.fluids_mut().get_mut(handle_to_fluid_handle(fluid_handle));
     assert!(fluid.is_some());
