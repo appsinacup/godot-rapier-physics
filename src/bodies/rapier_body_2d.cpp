@@ -461,10 +461,6 @@ Variant RapierBody2D::get_state(PhysicsServer2D::BodyState p_state) const {
 }
 
 void RapierBody2D::set_continuous_collision_detection_mode(PhysicsServer2D::CCDMode p_mode) {
-	if (ccd_mode == p_mode) {
-		return;
-	}
-
 	ERR_FAIL_COND(mode < PhysicsServer2D::BODY_MODE_RIGID);
 
 	ccd_mode = p_mode;
@@ -946,11 +942,7 @@ void RapierBody2D::on_area_updated(RapierArea2D *p_area) {
 
 void RapierBody2D::set_linear_velocity(const Vector2 &p_linear_velocity) {
 	linear_velocity = p_linear_velocity;
-	if (mode == PhysicsServer2D::BODY_MODE_STATIC) {
-		return;
-	}
-
-	if (!get_space()) {
+	if (mode == PhysicsServer2D::BODY_MODE_STATIC || !get_space()) {
 		return;
 	}
 
@@ -983,11 +975,7 @@ Vector2 RapierBody2D::get_static_linear_velocity() const {
 
 void RapierBody2D::set_angular_velocity(real_t p_angular_velocity) {
 	angular_velocity = p_angular_velocity;
-	if (mode == PhysicsServer2D::BODY_MODE_STATIC) {
-		return;
-	}
-
-	if (!get_space()) {
+	if (mode == PhysicsServer2D::BODY_MODE_STATIC || !get_space()) {
 		return;
 	}
 
