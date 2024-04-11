@@ -90,7 +90,7 @@ pub fn joint_handle_to_handle(joint_handle : ImpulseJointHandle) -> Handle {
 pub fn handle_to_joint_handle(handle : Handle) -> ImpulseJointHandle {
     return ImpulseJointHandle::from_raw_parts(handle.id, handle.generation);
 }
-
+/*
 pub fn fluid_handle_to_handle(fluid_handle : FluidHandle) -> Handle {
     let raw_parts : Index = fluid_handle.into();
     return Handle {
@@ -103,7 +103,7 @@ pub fn handle_to_fluid_handle(handle : Handle) -> FluidHandle {
     FluidHandle::from_subset(element)
     return FluidHandle::from_raw_parts(handle.id, handle.generation);
 }
-
+ */
 
 
 #[no_mangle]
