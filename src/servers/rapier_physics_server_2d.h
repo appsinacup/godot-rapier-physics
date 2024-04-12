@@ -14,10 +14,10 @@
 
 #include "../bodies/rapier_area_2d.h"
 #include "../bodies/rapier_body_2d.h"
+#include "../fluids/rapier_fluid_2d.h"
 #include "../joints/rapier_joint_2d.h"
 #include "../shapes/rapier_shape_2d.h"
 #include "../spaces/rapier_space_2d.h"
-#include "../fluids/rapier_fluid_2d.h"
 
 #include "../rapier_include.h"
 

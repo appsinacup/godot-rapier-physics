@@ -1124,7 +1124,6 @@ RID RapierPhysicsServer2D::fluid_create() {
 	return fluid_rid;
 }
 
-
 void RapierPhysicsServer2D::fluid_set_space(const RID &fluid_rid, const RID &space_rid) {
 	RapierFluid2D *fluid = fluid_owner.get_or_null(fluid_rid);
 	ERR_FAIL_COND(!fluid);
