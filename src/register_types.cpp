@@ -49,7 +49,7 @@ void initialize_rapier_2d_module(ModuleInitializationLevel p_level) {
 		} break;
 		case MODULE_INITIALIZATION_LEVEL_SCENE: {
 			RapierProjectSettings::register_settings();
-			ClassDB::register_class<FluidEffect2D>(true);
+			ClassDB::register_class<FluidEffect2D>();
 			ClassDB::register_class<FluidEffect2DElasticity>();
 
 			ClassDB::register_class<FluidEffect2DSurfaceTensionAKINCI>();

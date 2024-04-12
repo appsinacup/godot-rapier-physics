@@ -7,7 +7,7 @@ using namespace godot;
 
 class FluidEffect2DElasticity : public FluidEffect2D {
 	GDCLASS(FluidEffect2DElasticity, FluidEffect2D);
-	real_t young_modulus = 1000.0;
+	real_t young_modulus = 100.0;
 	real_t poisson_ratio = 0.3;
 	bool nonlinear_strain = true;
 
@@ -23,6 +23,10 @@ public:
 
 	bool get_nonlinear_strain() const;
 	void set_nonlinear_strain(bool p_nonlinear_strain);
+
+	FluidEffect2DElasticity() {
+		fluid_effect_type = FluidEffect2D::FLUID_EFFECT_ELASTICITY;
+	}
 };
 
 #endif // LIQUID_EFFECT_2D_ELASTICITY_H

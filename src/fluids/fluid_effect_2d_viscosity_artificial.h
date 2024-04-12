@@ -18,6 +18,9 @@ public:
 	real_t get_fluid_viscosity_coefficient() const;
 	void set_boundary_viscosity_coefficient(real_t p_boundary_viscosity_coefficient);
 	real_t get_boundary_viscosity_coefficient() const;
+	FluidEffect2DViscosityArtificial() {
+		fluid_effect_type = FluidEffect2D::FLUID_EFFECT_VISCOSITY_ARTIFICIAL;
+	}
 };
 
 #endif // LIQUID_EFFECT_2D_VISCOSITY_ARTIFICIAL_H

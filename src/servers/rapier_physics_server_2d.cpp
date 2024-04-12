@@ -1144,6 +1144,13 @@ void RapierPhysicsServer2D::fluid_set_density(const RID &p_fluid, real_t density
 	fluid->set_density(density);
 }
 
+void RapierPhysicsServer2D::fluid_set_effects(const RID &fluid_rid, const TypedArray<FluidEffect2D> &params) {
+	RapierFluid2D *fluid = fluid_owner.get_or_null(fluid_rid);
+	ERR_FAIL_COND(!fluid);
+
+	fluid->set_effects(params);
+}
+
 PackedVector2Array RapierPhysicsServer2D::fluid_get_points(const RID &fluid_rid) {
 	RapierFluid2D *fluid = fluid_owner.get_or_null(fluid_rid);
 	ERR_FAIL_COND_V(!fluid, PackedVector2Array());
@@ -1350,4 +1357,11 @@ RapierPhysicsServer2D::RapierPhysicsServer2D(bool p_using_threads) {
 
 void RapierPhysicsServer2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("fluid_create"), &RapierPhysicsServer2D::fluid_create);
+	ClassDB::bind_method(D_METHOD("fluid_set_space", "fluid_rid", "space_rid"), &RapierPhysicsServer2D::fluid_set_space);
+	ClassDB::bind_method(D_METHOD("fluid_set_points", "fluid_rid", "points"), &RapierPhysicsServer2D::fluid_set_points);
+	ClassDB::bind_method(D_METHOD("fluid_set_density", "fluid_rid", "density"), &RapierPhysicsServer2D::fluid_set_density);
+	ClassDB::bind_method(D_METHOD("fluid_set_effects", "fluid_rid", "effects"), &RapierPhysicsServer2D::fluid_set_effects);
+	ClassDB::bind_method(D_METHOD("fluid_get_points", "fluid_rid"), &RapierPhysicsServer2D::fluid_get_points);
+	ClassDB::bind_method(D_METHOD("fluid_get_velocities", "fluid_rid"), &RapierPhysicsServer2D::fluid_get_velocities);
+	ClassDB::bind_method(D_METHOD("fluid_get_accelerations", "fluid_rid"), &RapierPhysicsServer2D::fluid_get_accelerations);
 }

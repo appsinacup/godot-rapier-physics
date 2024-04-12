@@ -6,6 +6,7 @@ use std::sync::Mutex;
 use std::sync::OnceLock;
 use std::num::NonZeroUsize;
 use crate::convert::meters_to_pixels;
+use crate::convert::pixels_to_meters;
 use crate::convert::vector_meters_to_pixels;
 use crate::convert::vector_pixels_to_meters;
 use crate::event_handler::ContactEventHandler;
@@ -145,8 +146,6 @@ pub struct PhysicsWorld {
 	pub fluids_pipeline: FluidsPipeline,
 }
 
-const PARTICLE_RADIUS: f32 = 0.1;
-const SMOOTHING_FACTOR: f32 = 2.0;
 
 impl PhysicsWorld {
     pub fn new(settings : &WorldSettings) -> PhysicsWorld {
@@ -180,7 +179,7 @@ impl PhysicsWorld {
 
 			handle : invalid_handle(),
 
-			fluids_pipeline: FluidsPipeline::new(PARTICLE_RADIUS, SMOOTHING_FACTOR),
+			fluids_pipeline: FluidsPipeline::new(pixels_to_meters(settings.particle_radius), settings.smoothing_factor),
         }
     }
 
@@ -202,6 +201,8 @@ impl PhysicsWorld {
 		integration_parameters.num_internal_pgs_iterations = settings.num_internal_pgs_iterations;
 		let gravity_vector = vector_pixels_to_meters(&settings.pixel_gravity);
         let gravity = vector![gravity_vector.x, gravity_vector.y];
+		let liquid_gravity_vector = vector_pixels_to_meters(&settings.pixel_liquid_gravity);
+        let liquid_gravity = vector![liquid_gravity_vector.x, liquid_gravity_vector.y];
 
 		let physics_hooks = PhysicsHooksCollisionFilter {
 			world_handle : self.handle,
@@ -230,7 +231,7 @@ impl PhysicsWorld {
           &physics_hooks,
           &event_handler,
         );
-		self.fluids_pipeline.step(&gravity, integration_parameters.dt, &self.collider_set, &mut self.rigid_body_set);
+		self.fluids_pipeline.step(&liquid_gravity, integration_parameters.dt, &self.collider_set, &mut self.rigid_body_set);
 		
 		if self.active_body_callback.is_some() {
 			let callback = self.active_body_callback.unwrap();

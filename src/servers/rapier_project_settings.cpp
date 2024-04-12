@@ -16,6 +16,10 @@ constexpr char SOLVER_NUM_ITERATIONS[] = "physics/rapier_2d/solver/num_iteration
 constexpr char SOLVER_NUM_ADDITIONAL_FRICTION_ITERATIONS[] = "physics/rapier_2d/solver/num_additional_friction_iterations";
 constexpr char SOLVER_NUM_INTERNAL_PGS_ITERATIONS[] = "physics/rapier_2d/solver/num_internal_pgs_iterations";
 constexpr char SOLVER_MAX_CCD_SUBSTEPS[] = "physics/rapier_2d/solver/max_ccd_substeps";
+constexpr char FLUID_GRAVITY_DIR[] = "physics/rapier_2d/fluid/fluid_gravity_dir";
+constexpr char FLUID_GRAVITY_VALUE[] = "physics/rapier_2d/fluid/fluid_gravity_value";
+constexpr char FLUID_PARTICLE_RADIUS[] = "physics/rapier_2d/fluid/fluid_particle_radius";
+constexpr char FLUID_SMOOTHING_FACTOR[] = "physics/rapier_2d/fluid/fluid_smoothing_factor";
 
 void register_setting(
 		const String &p_name,
@@ -82,6 +86,10 @@ void RapierProjectSettings::register_settings() {
 	register_setting_ranged(SOLVER_NUM_ADDITIONAL_FRICTION_ITERATIONS, 4, U"1,16,or_greater");
 	register_setting_ranged(SOLVER_NUM_ITERATIONS, 4, U"1,16,or_greater");
 	register_setting_ranged(SOLVER_MAX_CCD_SUBSTEPS, 1, U"1,16,or_greater");
+	register_setting_plain(FLUID_GRAVITY_DIR, Vector2(0.0, 1.0), "");
+	register_setting_plain(FLUID_GRAVITY_VALUE, 980.0, "");
+	register_setting_ranged(FLUID_PARTICLE_RADIUS, 10.0, U"0,100,0.00001,suffix:m");
+	register_setting_ranged(FLUID_SMOOTHING_FACTOR, 2.0, U"0,10,0.00001,suffix:%");
 }
 
 template <typename TType>
@@ -132,4 +140,20 @@ int RapierProjectSettings::get_solver_num_additional_friction_iterations() {
 }
 int RapierProjectSettings::get_solver_num_internal_pgs_iterations() {
 	return get_setting<int>(SOLVER_NUM_INTERNAL_PGS_ITERATIONS);
+}
+
+Vector2 RapierProjectSettings::get_fluid_gravity_dir() {
+	return get_setting<Vector2>(FLUID_GRAVITY_DIR);
+}
+
+double RapierProjectSettings::get_fluid_gravity_value() {
+	return get_setting<double>(FLUID_GRAVITY_VALUE);
+}
+
+double RapierProjectSettings::get_fluid_particle_radius() {
+	return get_setting<double>(FLUID_PARTICLE_RADIUS);
+}
+
+double RapierProjectSettings::get_fluid_smoothing_factor() {
+	return get_setting<double>(FLUID_SMOOTHING_FACTOR);
 }

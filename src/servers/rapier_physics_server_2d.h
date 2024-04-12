@@ -19,6 +19,7 @@
 #include "../shapes/rapier_shape_2d.h"
 #include "../spaces/rapier_space_2d.h"
 
+#include "../fluids/fluid_effect_2d.h"
 #include "../rapier_include.h"
 
 using namespace godot;
@@ -275,6 +276,7 @@ public:
 	void fluid_set_space(const RID &fluid_rid, const RID &space_rid);
 	void fluid_set_points(const RID &p_fluid, PackedVector2Array points);
 	void fluid_set_density(const RID &fluid_rid, real_t density);
+	void fluid_set_effects(const RID &fluid_rid, const TypedArray<FluidEffect2D> &params);
 	PackedVector2Array fluid_get_points(const RID &fluid_rid);
 	PackedVector2Array fluid_get_velocities(const RID &fluid_rid);
 	PackedVector2Array fluid_get_accelerations(const RID &fluid_rid);

@@ -1,5 +1,4 @@
 use rapier2d::prelude::*;
-use salva2d::helper;
 use salva2d::object::*;
 use salva2d::solver::Akinci2013SurfaceTension;
 use salva2d::solver::ArtificialViscosity;
@@ -19,8 +18,7 @@ pub extern "C" fn fluid_create(world_handle : Handle, density: Real) -> HandleDo
 	let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
     let particle_radius = physics_world.fluids_pipeline.liquid_world.particle_radius();
-    let mut fluid = Fluid::new(Vec::new(), particle_radius, density);
-
+    let fluid = Fluid::new(Vec::new(), particle_radius, density);
 	return fluid_handle_to_handle(physics_world.fluids_pipeline.liquid_world.add_fluid(fluid));
 }
 

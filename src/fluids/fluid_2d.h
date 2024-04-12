@@ -14,7 +14,7 @@ private:
 	RID rid;
 	bool enabled = true;
 	real_t density = 1.0;
-	TypedArray<FluidEffect2D> effects = TypedArray<FluidEffect2D>();
+	TypedArray<FluidEffect2D> effects;
 
 	PackedVector2Array points;
 

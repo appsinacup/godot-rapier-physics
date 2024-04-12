@@ -6,6 +6,7 @@
 
 #include "../rapier_include.h"
 #include "../spaces/rapier_space_2d.h"
+#include "fluid_effect_2d.h"
 
 using namespace godot;
 
@@ -15,6 +16,7 @@ private:
 	bool enabled = true;
 	real_t density = 1.0;
 	RapierSpace2D *space;
+	TypedArray<FluidEffect2D> effects = TypedArray<FluidEffect2D>();
 	rapier2d::HandleDouble fluid_handle = rapier2d::invalid_handle_double();
 	PackedVector2Array points;
 	PackedVector2Array velocities;
@@ -25,6 +27,8 @@ public:
 	PackedVector2Array get_points();
 	PackedVector2Array get_velocities();
 	PackedVector2Array get_accelerations();
+
+	void set_effects(const TypedArray<FluidEffect2D> &params);
 
 	real_t get_density() const;
 	void set_density(real_t p_density);

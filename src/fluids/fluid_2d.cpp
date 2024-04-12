@@ -44,7 +44,7 @@ RID Fluid2D::get_rid() const {
 
 void Fluid2D::set_effects(const TypedArray<FluidEffect2D> &p_effects) {
 	effects = p_effects;
-	//_get_rapier_physics_server()->fluid_set_effects(rid, effects);
+	_get_rapier_physics_server()->fluid_set_effects(rid, effects);
 }
 
 TypedArray<FluidEffect2D> Fluid2D::get_effects() const {
@@ -86,9 +86,10 @@ void Fluid2D::_notification(int p_what) {
 		case NOTIFICATION_ENTER_TREE:
 		case NOTIFICATION_WORLD_2D_CHANGED:
 		case NOTIFICATION_TRANSFORM_CHANGED: {
-			set_points(points);
 			RID space = get_world_2d()->get_space();
 			_get_rapier_physics_server()->fluid_set_space(rid, space);
+			set_points(points);
+			//set_effects(effects);
 		} break;
 
 		case NOTIFICATION_EXIT_TREE: {

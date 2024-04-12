@@ -27,7 +27,7 @@ void FluidEffect2DElasticity::set_nonlinear_strain(bool p_nonlinear_strain) {
 void FluidEffect2DElasticity::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_young_modulus"), &FluidEffect2DElasticity::get_young_modulus);
 	ClassDB::bind_method(D_METHOD("set_young_modulus", "young_modulus"), &FluidEffect2DElasticity::set_young_modulus);
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "young_modulus", PROPERTY_HINT_RANGE, U"0,500000,or_greater"), "set_young_modulus", "get_young_modulus");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "young_modulus", PROPERTY_HINT_RANGE, U"0,1000,or_greater"), "set_young_modulus", "get_young_modulus");
 
 	ClassDB::bind_method(D_METHOD("get_poisson_ratio"), &FluidEffect2DElasticity::get_poisson_ratio);
 	ClassDB::bind_method(D_METHOD("set_poisson_ratio", "poisson_ratio"), &FluidEffect2DElasticity::set_poisson_ratio);

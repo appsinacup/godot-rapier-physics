@@ -15,6 +15,9 @@ protected:
 public:
 	void set_fluid_viscosity_coefficient(real_t p_fluid_viscosity_coefficient);
 	real_t get_fluid_viscosity_coefficient() const;
+	FluidEffect2DViscosityDFSPH() {
+		fluid_effect_type = FluidEffect2D::FLUID_EFFECT_VISCOSITY_DFSPH;
+	}
 };
 
 #endif // LIQUID_EFFECT_2D_VISCOSITY_DFSPH_H

@@ -57,6 +57,9 @@ class RapierSpace2D {
 	real_t body_angular_velocity_sleep_threshold = 0.0;
 	real_t body_time_to_sleep = 0.0;
 
+	Vector2 fluid_default_gravity_dir = Vector2(0.0, -1.0);
+	real_t fluid_default_gravity_value = -9.81;
+
 	Vector2 default_gravity_dir = Vector2(0.0, -1.0);
 	real_t default_gravity_value = -9.81;
 	real_t default_linear_damping;
