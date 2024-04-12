@@ -1144,11 +1144,32 @@ void RapierPhysicsServer2D::fluid_set_density(const RID &p_fluid, real_t density
 	fluid->set_density(density);
 }
 
-void RapierPhysicsServer2D::fluid_set_points(const RID &p_fluid, real_t density) {
+PackedVector2Array RapierPhysicsServer2D::fluid_get_points(const RID &fluid_rid) {
+	RapierFluid2D *fluid = fluid_owner.get_or_null(fluid_rid);
+	ERR_FAIL_COND_V(!fluid, PackedVector2Array());
+
+	return fluid->get_points();
+}
+
+PackedVector2Array RapierPhysicsServer2D::fluid_get_velocities(const RID &fluid_rid) {
+	RapierFluid2D *fluid = fluid_owner.get_or_null(fluid_rid);
+	ERR_FAIL_COND_V(!fluid, PackedVector2Array());
+
+	return fluid->get_velocities();
+}
+
+PackedVector2Array RapierPhysicsServer2D::fluid_get_accelerations(const RID &fluid_rid) {
+	RapierFluid2D *fluid = fluid_owner.get_or_null(fluid_rid);
+	ERR_FAIL_COND_V(!fluid, PackedVector2Array());
+
+	return fluid->get_accelerations();
+}
+
+void RapierPhysicsServer2D::fluid_set_points(const RID &p_fluid, PackedVector2Array points) {
 	RapierFluid2D *fluid = fluid_owner.get_or_null(p_fluid);
 	ERR_FAIL_COND(!fluid);
 
-	fluid->set_points(density);
+	fluid->set_points(points);
 }
 
 void RapierPhysicsServer2D::_free_rid(const RID &p_rid) {

@@ -273,7 +273,11 @@ public:
 
 	RID fluid_create();
 	void fluid_set_space(const RID &fluid_rid, const RID &space_rid);
+	void fluid_set_points(const RID &p_fluid, PackedVector2Array points);
 	void fluid_set_density(const RID &fluid_rid, real_t density);
+	PackedVector2Array fluid_get_points(const RID &fluid_rid);
+	PackedVector2Array fluid_get_velocities(const RID &fluid_rid);
+	PackedVector2Array fluid_get_accelerations(const RID &fluid_rid);
 	/* MISC */
 
 	virtual void _free_rid(const RID &p_rid) override;

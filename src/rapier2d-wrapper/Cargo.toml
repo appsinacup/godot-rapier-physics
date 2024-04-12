@@ -20,10 +20,8 @@ serde-serialize = ["rapier2d/serde-serialize", "rapier2d-f64/serde-serialize"]
 parallel = ["rapier2d/parallel", "rapier2d-f64/parallel"]
 
 [dependencies]
-rapier2d = { git = "https://github.com/dimforge/rapier", branch = "master" }
-rapier2d-f64 = { git = "https://github.com/dimforge/rapier", branch = "master"  }
-#nalgebra   = "0.32"
-#parry2d = "0.13"
+rapier2d = "0.18"
+rapier2d-f64 = "0.18"
 lazy_static = "1.4.0"
 salva2d = { git = "https://github.com/dimforge/salva", branch = "master", features = ["rapier"] }
 

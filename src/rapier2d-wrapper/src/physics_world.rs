@@ -116,7 +116,7 @@ pub struct PhysicsWorld {
     pub query_pipeline: QueryPipeline,
     pub physics_pipeline : PhysicsPipeline,
     pub island_manager : IslandManager,
-    pub broad_phase : BroadPhaseMultiSap,
+    pub broad_phase : BroadPhase,
     pub narrow_phase : NarrowPhase,
     pub impulse_joint_set : ImpulseJointSet,
     pub multibody_joint_set : MultibodyJointSet,
@@ -154,7 +154,7 @@ impl PhysicsWorld {
             query_pipeline : QueryPipeline::new(),
             physics_pipeline : PhysicsPipeline::new(),
 	        island_manager : IslandManager::new(),
-	        broad_phase : DefaultBroadPhase::new(),
+	        broad_phase : BroadPhase::new(),
 	        narrow_phase : NarrowPhase::new(),
 	        impulse_joint_set : ImpulseJointSet::new(),
 	        multibody_joint_set : MultibodyJointSet::new(),
@@ -214,7 +214,7 @@ impl PhysicsWorld {
 		let (collision_send, collision_recv) = crossbeam::channel::unbounded();
 		let (contact_force_send, contact_force_recv) = crossbeam::channel::unbounded();
 		let event_handler = ContactEventHandler::new(collision_send, contact_force_send);
-        //self.fluids_pipeline.step(&gravity, integration_parameters.dt, &self.collider_set, &mut self.rigid_body_set);
+        
 		self.physics_pipeline.step(
           &gravity,
           &integration_parameters,
@@ -230,6 +230,7 @@ impl PhysicsWorld {
           &physics_hooks,
           &event_handler,
         );
+		self.fluids_pipeline.step(&gravity, integration_parameters.dt, &self.collider_set, &mut self.rigid_body_set);
 		
 		if self.active_body_callback.is_some() {
 			let callback = self.active_body_callback.unwrap();

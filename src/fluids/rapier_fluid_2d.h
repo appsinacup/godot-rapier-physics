@@ -15,10 +15,17 @@ private:
 	bool enabled = true;
 	real_t density = 1.0;
 	RapierSpace2D *space;
-	rapier2d::Handle fluid_handle = rapier2d::invalid_handle();
+	rapier2d::HandleDouble fluid_handle = rapier2d::invalid_handle_double();
 	PackedVector2Array points;
+	PackedVector2Array velocities;
+	PackedVector2Array accelerations;
 
 public:
+	void set_points(PackedVector2Array p_points);
+	PackedVector2Array get_points();
+	PackedVector2Array get_velocities();
+	PackedVector2Array get_accelerations();
+
 	real_t get_density() const;
 	void set_density(real_t p_density);
 
