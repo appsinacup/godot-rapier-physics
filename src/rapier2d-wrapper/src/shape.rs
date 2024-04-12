@@ -4,7 +4,7 @@ use crate::handle::*;
 use crate::vector::Vector;
 use crate::physics_world::*;
 
-fn pixel_point_array_to_vec(pixel_data : &Vector, data_count : usize) -> Vec::<Point::<Real>> {
+pub fn pixel_point_array_to_vec(pixel_data : &Vector, data_count : usize) -> Vec::<Point::<Real>> {
     let mut vec = Vec::<Point::<Real>>::with_capacity(data_count);
     unsafe {
         let data_raw = std::slice::from_raw_parts(pixel_data, data_count);

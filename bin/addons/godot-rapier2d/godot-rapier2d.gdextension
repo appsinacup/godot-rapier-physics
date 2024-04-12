@@ -22,3 +22,7 @@ ios.debug = "res://addons/godot-rapier2d/bin/libphysics_server_rapier2d.ios.temp
 ios.release = "res://addons/godot-rapier2d/bin/libphysics_server_rapier2d.ios.template_release.arm64.framework"
 web.debug.wasm32 = "res://addons/godot-rapier2d/bin/libphysics_server_rapier2d.web.template_debug.wasm32.wasm"
 web.release.wasm32 = "res://addons/godot-rapier2d/bin/libphysics_server_rapier2d.web.template_release.wasm32.wasm"
+
+[icons]
+
+Fluid2D = "res://addons/godot-rapier2d/Fluid2D.svg"

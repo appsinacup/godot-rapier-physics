@@ -7,7 +7,9 @@ pub struct WorldSettings {
 	pub sleep_angular_threshold: Real,
 	pub sleep_time_until_sleep: Real,
     pub solver_prediction_distance : Real,
-    pub max_ccd_substeps: usize
+    pub max_ccd_substeps: usize,
+    pub particle_radius: Real,
+    pub smoothing_factor: Real,
 }
 
 #[no_mangle]
@@ -18,6 +20,8 @@ pub extern "C" fn default_world_settings() -> WorldSettings {
 		sleep_time_until_sleep : 1.0,
         solver_prediction_distance : 0.002,
         max_ccd_substeps: 1,
+        particle_radius: 0.1,
+        smoothing_factor: 2.0,
     }
 }
 
@@ -56,5 +60,6 @@ pub struct SimulationSettings {
     /// Number of internal Project Gauss Seidel (PGS) iterations run at each solver iteration (default: `1`).
     pub num_internal_pgs_iterations: usize,
     pub pixel_gravity : Vector,
+    pub pixel_liquid_gravity : Vector,
     pub max_ccd_substeps: usize,
 }

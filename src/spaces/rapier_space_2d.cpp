@@ -406,6 +406,9 @@ void RapierSpace2D::step(real_t p_step) {
 	default_gravity_dir = project_settings->get_setting_with_override("physics/2d/default_gravity_vector");
 	default_gravity_value = project_settings->get_setting_with_override("physics/2d/default_gravity");
 
+	fluid_default_gravity_dir = RapierProjectSettings::get_fluid_gravity_dir();
+	fluid_default_gravity_value = RapierProjectSettings::get_fluid_gravity_value();
+
 	default_linear_damping = project_settings->get_setting_with_override("physics/2d/default_linear_damp");
 	default_angular_damping = project_settings->get_setting_with_override("physics/2d/default_angular_damp");
 
@@ -434,6 +437,8 @@ void RapierSpace2D::step(real_t p_step) {
 	}
 
 	rapier2d::SimulationSettings settings;
+	settings.pixel_liquid_gravity.x = fluid_default_gravity_dir.x * fluid_default_gravity_value;
+	settings.pixel_liquid_gravity.y = fluid_default_gravity_dir.y * fluid_default_gravity_value;
 	settings.dt = p_step;
 	settings.pixel_gravity.x = default_gravity_dir.x * default_gravity_value;
 	settings.pixel_gravity.y = default_gravity_dir.y * default_gravity_value;
@@ -652,7 +657,8 @@ RapierSpace2D::RapierSpace2D() {
 	world_settings.sleep_angular_threshold = body_angular_velocity_sleep_threshold;
 	world_settings.sleep_time_until_sleep = body_time_to_sleep;
 	world_settings.solver_prediction_distance = RapierProjectSettings::get_solver_prediction_distance();
-
+	world_settings.particle_radius = RapierProjectSettings::get_fluid_particle_radius();
+	world_settings.smoothing_factor = RapierProjectSettings::get_fluid_smoothing_factor();
 	handle = rapier2d::world_create(&world_settings);
 	ERR_FAIL_COND(!is_handle_valid(handle));
 

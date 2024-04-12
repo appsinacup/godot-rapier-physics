@@ -29,15 +29,10 @@ struct Handle {
 	uint32_t generation;
 };
 
-#if defined(REAL_T_IS_DOUBLE)
-/// The scalar type used throughout this crate.
-using Real = double;
-#endif
-
-#if defined(REAL_T_IS_FLOAT)
-/// The scalar type used throughout this crate.
-using Real = float;
-#endif
+struct HandleDouble {
+	size_t id;
+	uint64_t generation;
+};
 
 #if defined(REAL_T_IS_DOUBLE)
 /// The scalar type used throughout this crate.
@@ -48,6 +43,22 @@ using Real = double;
 /// The scalar type used throughout this crate.
 using Real = float;
 #endif
+
+#if defined(REAL_T_IS_DOUBLE)
+/// The scalar type used throughout this crate.
+using Real = double;
+#endif
+
+#if defined(REAL_T_IS_FLOAT)
+/// The scalar type used throughout this crate.
+using Real = float;
+#endif
+
+/// The scalar type.
+using Real = float;
+
+/// The scalar type.
+using Real = float;
 
 struct Vector {
 	Real x;
@@ -86,6 +97,8 @@ struct WorldSettings {
 	Real sleep_time_until_sleep;
 	Real solver_prediction_distance;
 	size_t max_ccd_substeps;
+	Real particle_radius;
+	Real smoothing_factor;
 };
 
 struct PointHitInfo {
@@ -219,12 +232,15 @@ struct SimulationSettings {
 	/// Number of internal Project Gauss Seidel (PGS) iterations run at each solver iteration (default: `1`).
 	size_t num_internal_pgs_iterations;
 	Vector pixel_gravity;
+	Vector pixel_liquid_gravity;
 	size_t max_ccd_substeps;
 };
 
 extern "C" {
 
 bool are_handles_equal(Handle handle1, Handle handle2);
+
+bool are_handles_equal_double(HandleDouble handle1, HandleDouble handle2);
 
 void body_add_force(Handle world_handle, Handle body_handle, const Vector *pixel_force);
 
@@ -338,6 +354,67 @@ QueryExcludedInfo default_query_excluded_info();
 
 WorldSettings default_world_settings();
 
+void fluid_add_effect_elasticity(Handle world_handle,
+		HandleDouble fluid_handle,
+		Real young_modulus,
+		Real poisson_ratio,
+		bool nonlinear_strain);
+
+void fluid_add_effect_surface_tension_akinci(Handle world_handle,
+		HandleDouble fluid_handle,
+		Real fluid_tension_coefficient,
+		Real boundary_adhesion_coefficient);
+
+void fluid_add_effect_surface_tension_he(Handle world_handle,
+		HandleDouble fluid_handle,
+		Real fluid_tension_coefficient,
+		Real boundary_adhesion_coefficient);
+
+void fluid_add_effect_surface_tension_wcsph(Handle world_handle,
+		HandleDouble fluid_handle,
+		Real fluid_tension_coefficient,
+		Real boundary_adhesion_coefficient);
+
+void fluid_add_effect_viscosity_artificial(Handle world_handle,
+		HandleDouble fluid_handle,
+		Real fluid_viscosity_coefficient,
+		Real boundary_viscosity_coefficient);
+
+void fluid_add_effect_viscosity_dfsph(Handle world_handle,
+		HandleDouble fluid_handle,
+		Real fluid_viscosity_coefficient);
+
+void fluid_add_effect_viscosity_xsph(Handle world_handle,
+		HandleDouble fluid_handle,
+		Real fluid_viscosity_coefficient,
+		Real boundary_viscosity_coefficient);
+
+void fluid_change_density(Handle world_handle, HandleDouble fluid_handle, Real density);
+
+void fluid_change_points(Handle world_handle,
+		HandleDouble fluid_handle,
+		const Vector *pixel_points,
+		size_t point_count);
+
+void fluid_clear_effects(Handle world_handle, HandleDouble fluid_handle);
+
+HandleDouble fluid_create(Handle world_handle, Real density);
+
+void fluid_get_accelerations(Handle world_handle,
+		HandleDouble fluid_handle,
+		Vector *pixel_acceleration,
+		size_t acceleration_count);
+
+void fluid_get_points(Handle world_handle,
+		HandleDouble fluid_handle,
+		Vector *pixel_points,
+		size_t point_count);
+
+void fluid_get_velocities(Handle world_handle,
+		HandleDouble fluid_handle,
+		Vector *pixel_velocities,
+		size_t velocity_count);
+
 size_t intersect_aabb(Handle world_handle,
 		const Vector *pixel_aabb_min,
 		const Vector *pixel_aabb_max,
@@ -379,9 +456,13 @@ size_t intersect_shape(Handle world_handle,
 
 Handle invalid_handle();
 
+HandleDouble invalid_handle_double();
+
 UserData invalid_user_data();
 
 bool is_handle_valid(Handle handle);
+
+bool is_handle_valid_double(HandleDouble handle);
 
 bool is_user_data_valid(UserData user_data);
 

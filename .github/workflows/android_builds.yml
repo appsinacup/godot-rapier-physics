@@ -15,7 +15,7 @@ jobs:
         # ld: error: unable to find library -lc++
         # ld: error: cannot open crtend_so.o: No such file or directory
         arch: [{arch: "x86_64", rust: "x86_64-linux-android"}, {arch: "arm64",rust: "aarch64-linux-android"},]
-        precision: [single, double]
+        precision: [single]
         features: [simd-stable, enhanced-determinism]
         rust_features: ["simd-stable,parallel", enhanced-determinism]
 

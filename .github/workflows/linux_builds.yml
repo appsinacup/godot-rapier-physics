@@ -15,7 +15,7 @@ jobs:
         # Right now it's giving this error (x64_32):
         # /usr/include/c++/9/cstddef:49:10: fatal error: bits/c++config.h: No such file or directory 49 | #include <bits/c++config.h>
         arch: [{arch: "x86_64", rust: "x86_64-unknown-linux-gnu"}]
-        precision: [single, double]
+        precision: [single]
         features: [simd-stable, enhanced-determinism]
         rust_features: ["simd-stable,parallel", enhanced-determinism]
 

@@ -14,10 +14,12 @@
 
 #include "../bodies/rapier_area_2d.h"
 #include "../bodies/rapier_body_2d.h"
+#include "../fluids/rapier_fluid_2d.h"
 #include "../joints/rapier_joint_2d.h"
 #include "../shapes/rapier_shape_2d.h"
 #include "../spaces/rapier_space_2d.h"
 
+#include "../fluids/fluid_effect_2d.h"
 #include "../rapier_include.h"
 
 using namespace godot;
@@ -47,11 +49,12 @@ class RapierPhysicsServer2D : public PhysicsServer2DExtension {
 	mutable RID_PtrOwner<RapierArea2D, true> area_owner;
 	mutable RID_PtrOwner<RapierBody2D, true> body_owner;
 	mutable RID_PtrOwner<RapierJoint2D, true> joint_owner;
+	mutable RID_PtrOwner<RapierFluid2D, true> fluid_owner;
 
 	RID _shape_create(ShapeType p_shape);
 
 protected:
-	static void _bind_methods(){};
+	static void _bind_methods();
 
 public:
 	static RapierPhysicsServer2D *singleton;
@@ -267,6 +270,16 @@ public:
 
 	virtual JointType _joint_get_type(const RID &p_joint) const override;
 
+	/* LIQUID API */
+
+	RID fluid_create();
+	void fluid_set_space(const RID &fluid_rid, const RID &space_rid);
+	void fluid_set_points(const RID &p_fluid, PackedVector2Array points);
+	void fluid_set_density(const RID &fluid_rid, real_t density);
+	void fluid_set_effects(const RID &fluid_rid, const TypedArray<FluidEffect2D> &params);
+	PackedVector2Array fluid_get_points(const RID &fluid_rid);
+	PackedVector2Array fluid_get_velocities(const RID &fluid_rid);
+	PackedVector2Array fluid_get_accelerations(const RID &fluid_rid);
 	/* MISC */
 
 	virtual void _free_rid(const RID &p_rid) override;

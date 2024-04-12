@@ -1117,6 +1117,68 @@ PhysicsServer2D::JointType RapierPhysicsServer2D::_joint_get_type(const RID &p_j
 	return joint->get_type();
 }
 
+RID RapierPhysicsServer2D::fluid_create() {
+	RapierFluid2D *fluid = memnew(RapierFluid2D);
+	RID fluid_rid = fluid_owner.make_rid(fluid);
+	fluid->set_rid(fluid_rid);
+	return fluid_rid;
+}
+
+void RapierPhysicsServer2D::fluid_set_space(const RID &fluid_rid, const RID &space_rid) {
+	RapierFluid2D *fluid = fluid_owner.get_or_null(fluid_rid);
+	ERR_FAIL_COND(!fluid);
+
+	RapierSpace2D *space = nullptr;
+	if (space_rid.is_valid()) {
+		space = space_owner.get_or_null(space_rid);
+		ERR_FAIL_COND(!space);
+	}
+
+	fluid->set_space(space);
+};
+
+void RapierPhysicsServer2D::fluid_set_density(const RID &p_fluid, real_t density) {
+	RapierFluid2D *fluid = fluid_owner.get_or_null(p_fluid);
+	ERR_FAIL_COND(!fluid);
+
+	fluid->set_density(density);
+}
+
+void RapierPhysicsServer2D::fluid_set_effects(const RID &fluid_rid, const TypedArray<FluidEffect2D> &params) {
+	RapierFluid2D *fluid = fluid_owner.get_or_null(fluid_rid);
+	ERR_FAIL_COND(!fluid);
+
+	fluid->set_effects(params);
+}
+
+PackedVector2Array RapierPhysicsServer2D::fluid_get_points(const RID &fluid_rid) {
+	RapierFluid2D *fluid = fluid_owner.get_or_null(fluid_rid);
+	ERR_FAIL_COND_V(!fluid, PackedVector2Array());
+
+	return fluid->get_points();
+}
+
+PackedVector2Array RapierPhysicsServer2D::fluid_get_velocities(const RID &fluid_rid) {
+	RapierFluid2D *fluid = fluid_owner.get_or_null(fluid_rid);
+	ERR_FAIL_COND_V(!fluid, PackedVector2Array());
+
+	return fluid->get_velocities();
+}
+
+PackedVector2Array RapierPhysicsServer2D::fluid_get_accelerations(const RID &fluid_rid) {
+	RapierFluid2D *fluid = fluid_owner.get_or_null(fluid_rid);
+	ERR_FAIL_COND_V(!fluid, PackedVector2Array());
+
+	return fluid->get_accelerations();
+}
+
+void RapierPhysicsServer2D::fluid_set_points(const RID &p_fluid, PackedVector2Array points) {
+	RapierFluid2D *fluid = fluid_owner.get_or_null(p_fluid);
+	ERR_FAIL_COND(!fluid);
+
+	fluid->set_points(points);
+}
+
 void RapierPhysicsServer2D::_free_rid(const RID &p_rid) {
 	if (shape_owner.owns(p_rid)) {
 		RapierShape2D *shape = shape_owner.get_or_null(p_rid);
@@ -1168,6 +1230,11 @@ void RapierPhysicsServer2D::_free_rid(const RID &p_rid) {
 
 		joint_owner.free(p_rid);
 		memdelete(joint);
+	} else if (fluid_owner.owns(p_rid)) {
+		RapierFluid2D *fluid = fluid_owner.get_or_null(p_rid);
+
+		fluid_owner.free(p_rid);
+		memdelete(fluid);
 	} else {
 		ERR_FAIL_MSG("Invalid ID.");
 	}
@@ -1286,4 +1353,15 @@ RapierPhysicsServer2D::RapierPhysicsServer2D(bool p_using_threads) {
 	singleton = this;
 
 	using_threads = p_using_threads;
+}
+
+void RapierPhysicsServer2D::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("fluid_create"), &RapierPhysicsServer2D::fluid_create);
+	ClassDB::bind_method(D_METHOD("fluid_set_space", "fluid_rid", "space_rid"), &RapierPhysicsServer2D::fluid_set_space);
+	ClassDB::bind_method(D_METHOD("fluid_set_points", "fluid_rid", "points"), &RapierPhysicsServer2D::fluid_set_points);
+	ClassDB::bind_method(D_METHOD("fluid_set_density", "fluid_rid", "density"), &RapierPhysicsServer2D::fluid_set_density);
+	ClassDB::bind_method(D_METHOD("fluid_set_effects", "fluid_rid", "effects"), &RapierPhysicsServer2D::fluid_set_effects);
+	ClassDB::bind_method(D_METHOD("fluid_get_points", "fluid_rid"), &RapierPhysicsServer2D::fluid_get_points);
+	ClassDB::bind_method(D_METHOD("fluid_get_velocities", "fluid_rid"), &RapierPhysicsServer2D::fluid_get_velocities);
+	ClassDB::bind_method(D_METHOD("fluid_get_accelerations", "fluid_rid"), &RapierPhysicsServer2D::fluid_get_accelerations);
 }

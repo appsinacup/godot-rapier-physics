@@ -9,6 +9,15 @@
 #include <godot_cpp/variant/callable.hpp>
 
 #include "bodies/rapier_direct_body_state_2d.h"
+#include "fluids/fluid_2d.h"
+#include "fluids/fluid_effect_2d.h"
+#include "fluids/fluid_effect_2d_elasticity.h"
+#include "fluids/fluid_effect_2d_surface_tension_akinci.h"
+#include "fluids/fluid_effect_2d_surface_tension_he.h"
+#include "fluids/fluid_effect_2d_surface_tension_wcsph.h"
+#include "fluids/fluid_effect_2d_viscosity_artificial.h"
+#include "fluids/fluid_effect_2d_viscosity_dfsph.h"
+#include "fluids/fluid_effect_2d_viscosity_xsph.h"
 #include "servers/rapier_physics_server_2d.h"
 #include "servers/rapier_project_settings.h"
 #include "spaces/rapier_direct_space_state_2d.h"
@@ -40,6 +49,18 @@ void initialize_rapier_2d_module(ModuleInitializationLevel p_level) {
 		} break;
 		case MODULE_INITIALIZATION_LEVEL_SCENE: {
 			RapierProjectSettings::register_settings();
+			ClassDB::register_class<FluidEffect2D>();
+			ClassDB::register_class<FluidEffect2DElasticity>();
+
+			ClassDB::register_class<FluidEffect2DSurfaceTensionAKINCI>();
+			ClassDB::register_class<FluidEffect2DSurfaceTensionHE>();
+			ClassDB::register_class<FluidEffect2DSurfaceTensionWCSPH>();
+
+			ClassDB::register_class<FluidEffect2DViscosityArtificial>();
+			ClassDB::register_class<FluidEffect2DViscosityDFSPH>();
+			ClassDB::register_class<FluidEffect2DViscosityXSPH>();
+
+			ClassDB::register_class<Fluid2D>();
 		} break;
 		default: {
 		} break;

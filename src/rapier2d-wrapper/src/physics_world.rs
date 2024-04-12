@@ -1,10 +1,12 @@
 use rapier2d::crossbeam;
 use rapier2d::data::Arena;
 use rapier2d::prelude::*;
+use salva2d::integrations::rapier::FluidsPipeline;
 use std::sync::Mutex;
 use std::sync::OnceLock;
 use std::num::NonZeroUsize;
 use crate::convert::meters_to_pixels;
+use crate::convert::pixels_to_meters;
 use crate::convert::vector_meters_to_pixels;
 use crate::convert::vector_pixels_to_meters;
 use crate::event_handler::ContactEventHandler;
@@ -115,7 +117,7 @@ pub struct PhysicsWorld {
     pub query_pipeline: QueryPipeline,
     pub physics_pipeline : PhysicsPipeline,
     pub island_manager : IslandManager,
-    pub broad_phase : BroadPhaseMultiSap,
+    pub broad_phase : BroadPhase,
     pub narrow_phase : NarrowPhase,
     pub impulse_joint_set : ImpulseJointSet,
     pub multibody_joint_set : MultibodyJointSet,
@@ -140,7 +142,10 @@ pub struct PhysicsWorld {
     pub rigid_body_set : RigidBodySet,
 
 	pub handle : Handle,
+
+	pub fluids_pipeline: FluidsPipeline,
 }
+
 
 impl PhysicsWorld {
     pub fn new(settings : &WorldSettings) -> PhysicsWorld {
@@ -148,7 +153,7 @@ impl PhysicsWorld {
             query_pipeline : QueryPipeline::new(),
             physics_pipeline : PhysicsPipeline::new(),
 	        island_manager : IslandManager::new(),
-	        broad_phase : DefaultBroadPhase::new(),
+	        broad_phase : BroadPhase::new(),
 	        narrow_phase : NarrowPhase::new(),
 	        impulse_joint_set : ImpulseJointSet::new(),
 	        multibody_joint_set : MultibodyJointSet::new(),
@@ -173,6 +178,8 @@ impl PhysicsWorld {
             collider_set : ColliderSet::new(),
 
 			handle : invalid_handle(),
+
+			fluids_pipeline: FluidsPipeline::new(pixels_to_meters(settings.particle_radius), settings.smoothing_factor),
         }
     }
 
@@ -194,6 +201,8 @@ impl PhysicsWorld {
 		integration_parameters.num_internal_pgs_iterations = settings.num_internal_pgs_iterations;
 		let gravity_vector = vector_pixels_to_meters(&settings.pixel_gravity);
         let gravity = vector![gravity_vector.x, gravity_vector.y];
+		let liquid_gravity_vector = vector_pixels_to_meters(&settings.pixel_liquid_gravity);
+        let liquid_gravity = vector![liquid_gravity_vector.x, liquid_gravity_vector.y];
 
 		let physics_hooks = PhysicsHooksCollisionFilter {
 			world_handle : self.handle,
@@ -206,7 +215,8 @@ impl PhysicsWorld {
 		let (collision_send, collision_recv) = crossbeam::channel::unbounded();
 		let (contact_force_send, contact_force_recv) = crossbeam::channel::unbounded();
 		let event_handler = ContactEventHandler::new(collision_send, contact_force_send);
-        self.physics_pipeline.step(
+        
+		self.physics_pipeline.step(
           &gravity,
           &integration_parameters,
           &mut self.island_manager,
@@ -221,6 +231,7 @@ impl PhysicsWorld {
           &physics_hooks,
           &event_handler,
         );
+		self.fluids_pipeline.step(&liquid_gravity, integration_parameters.dt, &self.collider_set, &mut self.rigid_body_set);
 		
 		if self.active_body_callback.is_some() {
 			let callback = self.active_body_callback.unwrap();

@@ -1,6 +1,8 @@
 use rapier2d::na::Point2;
 use rapier2d::na::Vector2;
 use rapier2d::prelude::*;
+use salva2d::integrations::rapier::ColliderSampling;
+use salva2d::object::Boundary;
 use crate::handle::*;
 use crate::shape::ShapeInfo;
 use crate::user_data::*;
@@ -143,7 +145,17 @@ pub extern "C" fn collider_create_solid(world_handle : Handle, shape_handle : Ha
     collider.user_data = user_data.get_data();
     collider.set_active_hooks(ActiveHooks::FILTER_CONTACT_PAIRS | ActiveHooks::MODIFY_SOLVER_CONTACTS);
     let physics_world = physics_engine.get_world(world_handle);
-    return physics_world.insert_collider(collider, body_handle);
+    let handle = physics_world.insert_collider(collider, body_handle);
+    let collider_handle = handle_to_collider_handle(handle);
+    let boundary_handle = physics_world.fluids_pipeline
+        .liquid_world
+        .add_boundary(Boundary::new(Vec::new()));
+    physics_world.fluids_pipeline.coupling.register_coupling(
+        boundary_handle,
+        collider_handle,
+        ColliderSampling::DynamicContactSampling,
+    );
+    return handle
 }
 
 #[no_mangle]
