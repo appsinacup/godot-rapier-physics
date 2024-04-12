@@ -17,6 +17,7 @@
 #include "../joints/rapier_joint_2d.h"
 #include "../shapes/rapier_shape_2d.h"
 #include "../spaces/rapier_space_2d.h"
+#include "../fluids/rapier_fluid_2d.h"
 
 #include "../rapier_include.h"
 
@@ -47,11 +48,12 @@ class RapierPhysicsServer2D : public PhysicsServer2DExtension {
 	mutable RID_PtrOwner<RapierArea2D, true> area_owner;
 	mutable RID_PtrOwner<RapierBody2D, true> body_owner;
 	mutable RID_PtrOwner<RapierJoint2D, true> joint_owner;
+	mutable RID_PtrOwner<RapierFluid2D, true> fluid_owner;
 
 	RID _shape_create(ShapeType p_shape);
 
 protected:
-	static void _bind_methods(){};
+	static void _bind_methods();
 
 public:
 	static RapierPhysicsServer2D *singleton;
@@ -267,6 +269,11 @@ public:
 
 	virtual JointType _joint_get_type(const RID &p_joint) const override;
 
+	/* LIQUID API */
+
+	RID fluid_create();
+	void fluid_set_space(const RID &fluid_rid, const RID &space_rid);
+	void fluid_set_density(const RID &fluid_rid, real_t density);
 	/* MISC */
 
 	virtual void _free_rid(const RID &p_rid) override;

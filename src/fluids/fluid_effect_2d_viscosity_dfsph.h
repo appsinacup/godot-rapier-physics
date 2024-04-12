@@ -1,12 +1,12 @@
 #ifndef LIQUID_EFFECT_2D_VISCOSITY_DFSPH_H
 #define LIQUID_EFFECT_2D_VISCOSITY_DFSPH_H
 
-#include "liquid_effect_2d.h"
+#include "fluid_effect_2d.h"
 
 using namespace godot;
 
-class LiquidEffect2DViscosityDFSPH : public LiquidEffect2D {
-	GDCLASS(LiquidEffect2DViscosityDFSPH, LiquidEffect2D);
+class FluidEffect2DViscosityDFSPH : public FluidEffect2D {
+	GDCLASS(FluidEffect2DViscosityDFSPH, FluidEffect2D);
 	real_t fluid_viscosity_coefficient = 1.0;
 
 protected:

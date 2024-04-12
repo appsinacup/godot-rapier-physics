@@ -25,4 +25,4 @@ web.release.wasm32 = "res://addons/godot-rapier2d/bin/libphysics_server_rapier2d
 
 [icons]
 
-Liquid2D = "res://addons/godot-rapier2d/Liquid2D.svg"
+Fluid2D = "res://addons/godot-rapier2d/Fluid2D.svg"

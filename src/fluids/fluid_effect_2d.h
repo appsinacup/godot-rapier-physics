@@ -5,14 +5,14 @@
 
 using namespace godot;
 
-class LiquidEffect2D : public Resource {
-	GDCLASS(LiquidEffect2D, Resource);
+class FluidEffect2D : public Resource {
+	GDCLASS(FluidEffect2D, Resource);
 
 protected:
 	static void _bind_methods() {}
 
 public:
-	~LiquidEffect2D() {}
+	~FluidEffect2D() {}
 };
 
 #endif // LIQUID_EFFECT_2D_H

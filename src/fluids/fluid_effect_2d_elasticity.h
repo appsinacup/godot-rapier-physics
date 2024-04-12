@@ -1,12 +1,12 @@
 #ifndef LIQUID_EFFECT_2D_ELASTICITY_H
 #define LIQUID_EFFECT_2D_ELASTICITY_H
 
-#include "liquid_effect_2d.h"
+#include "fluid_effect_2d.h"
 
 using namespace godot;
 
-class LiquidEffect2DElasticity : public LiquidEffect2D {
-	GDCLASS(LiquidEffect2DElasticity, LiquidEffect2D);
+class FluidEffect2DElasticity : public FluidEffect2D {
+	GDCLASS(FluidEffect2DElasticity, FluidEffect2D);
 	real_t young_modulus = 1000.0;
 	real_t poisson_ratio = 0.3;
 	bool nonlinear_strain = true;

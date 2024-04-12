@@ -9,7 +9,7 @@ metadata={
 
 [deps]
 
-source_file="res://addons/godot-rapier2d/Liquid2D.svg"
+source_file="res://addons/godot-rapier2d/Fluid2D.svg"
 
 [params]
 

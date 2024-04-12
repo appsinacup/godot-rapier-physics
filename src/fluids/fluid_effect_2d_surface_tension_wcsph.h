@@ -1,12 +1,12 @@
 #ifndef LIQUID_EFFECT_2D_SURFACE_TENSION_WCSPH_H
 #define LIQUID_EFFECT_2D_SURFACE_TENSION_WCSPH_H
 
-#include "liquid_effect_2d.h"
+#include "fluid_effect_2d.h"
 
 using namespace godot;
 
-class LiquidEffect2DSurfaceTensionWCSPH : public LiquidEffect2D {
-	GDCLASS(LiquidEffect2DSurfaceTensionWCSPH, LiquidEffect2D);
+class FluidEffect2DSurfaceTensionWCSPH : public FluidEffect2D {
+	GDCLASS(FluidEffect2DSurfaceTensionWCSPH, FluidEffect2D);
 	real_t fluid_tension_coefficient = 1.0;
 	real_t boundary_adhesion_coefficient = 0.0;
 

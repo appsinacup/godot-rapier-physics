@@ -15,12 +15,11 @@ use crate::collider::*;
 use crate::physics_world::*;
 
 #[no_mangle]
-pub extern "C" fn fluid_create(world_handle : Handle, density: Real, pixel_points : &Vector, point_count : usize) -> Handle {
+pub extern "C" fn fluid_create(world_handle : Handle, density: Real) -> Handle {
 	let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
     let particle_radius = physics_world.fluids_pipeline.liquid_world.particle_radius();
-    let points = pixel_point_array_to_vec(pixel_points, point_count);
-    let fluid = Fluid::new(points, particle_radius, density);
+    let fluid = Fluid::new(Vec::new(), particle_radius, density);
 	return fluid_handle_to_handle(physics_world.fluids_pipeline.liquid_world.add_fluid(fluid));
 }
 
