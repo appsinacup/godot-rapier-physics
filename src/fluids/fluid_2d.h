@@ -29,6 +29,9 @@ public:
 	void set_density(real_t p_density);
 
 	PackedVector2Array get_points() const;
+	void set_points(PackedVector2Array p_density);
+
+	PackedVector2Array get_points() const;
 	void set_points(PackedVector2Array p_points);
 
 	void set_effect(const Ref<FluidEffect2D> &p_shape);

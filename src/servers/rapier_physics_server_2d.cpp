@@ -1144,6 +1144,13 @@ void RapierPhysicsServer2D::fluid_set_density(const RID &p_fluid, real_t density
 	fluid->set_density(density);
 }
 
+void RapierPhysicsServer2D::fluid_set_points(const RID &p_fluid, real_t density) {
+	RapierFluid2D *fluid = fluid_owner.get_or_null(p_fluid);
+	ERR_FAIL_COND(!fluid);
+
+	fluid->set_points(density);
+}
+
 void RapierPhysicsServer2D::_free_rid(const RID &p_rid) {
 	if (shape_owner.owns(p_rid)) {
 		RapierShape2D *shape = shape_owner.get_or_null(p_rid);

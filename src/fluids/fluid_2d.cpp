@@ -19,6 +19,16 @@ void Fluid2D::set_density(real_t p_density) {
 		_get_rapier_physics_server()->fluid_set_density(rid, density);
 	}
 }
+	
+PackedVector2Array Fluid2D::get_points() const {
+	return points;
+}
+void Fluid2D::set_points(PackedVector2Array p_density) {
+	if (points != p_density) {
+		points = p_density;
+		_get_rapier_physics_server()->fluid_set_points(rid, points);
+	}
+}
 
 void Fluid2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_density"), &Fluid2D::get_density);

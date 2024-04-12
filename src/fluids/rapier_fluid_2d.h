@@ -16,6 +16,7 @@ private:
 	real_t density = 1.0;
 	RapierSpace2D *space;
 	rapier2d::Handle fluid_handle = rapier2d::invalid_handle();
+	PackedVector2Array points;
 
 public:
 	real_t get_density() const;
