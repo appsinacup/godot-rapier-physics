@@ -22,7 +22,6 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 # Features
 
 - Parallel support (for non enhnanced determinism builds)
-- Single and Double float precision build.
 - SIMD (Single instruction, multiple data) build.
 - Cross-platform determinism build.
 - Fluid2D node: Fluids and squishy bodies made of particles

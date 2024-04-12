@@ -10,7 +10,7 @@ jobs:
       fail-fast: false
       matrix:
         arch:  [{arch: "universal", rust: "x86_64-apple-darwin"}]
-        precision: [single, double]
+        precision: [single]
         features: [simd-stable, enhanced-determinism]
         rust_features: ["simd-stable,parallel", enhanced-determinism]
 
