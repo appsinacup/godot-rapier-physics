@@ -89,8 +89,8 @@ void RapierProjectSettings::register_settings() {
 	register_setting_ranged(SOLVER_MAX_CCD_SUBSTEPS, 1, U"1,16,or_greater");
 	register_setting_plain(FLUID_GRAVITY_DIR, Vector2(0.0, 1.0));
 	register_setting_plain(FLUID_GRAVITY_VALUE, 980.0);
-	register_setting_ranged(FLUID_PARTICLE_RADIUS, 10.0, U"0,100,0.00001,suffix:m");
-	register_setting_ranged(FLUID_SMOOTHING_FACTOR, 2.0, U"0,10,0.00001,suffix:%");
+	register_setting_ranged(FLUID_PARTICLE_RADIUS, 10.0, U"0,100,0.00001,suffix:m", true);
+	register_setting_ranged(FLUID_SMOOTHING_FACTOR, 2.0, U"0,10,0.00001,suffix:%", true);
 	register_setting_plain(FLUID_DRAW_DEBUG, true);
 }
 
