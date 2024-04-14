@@ -20,6 +20,7 @@ constexpr char FLUID_GRAVITY_DIR[] = "physics/rapier_2d/fluid/fluid_gravity_dir"
 constexpr char FLUID_GRAVITY_VALUE[] = "physics/rapier_2d/fluid/fluid_gravity_value";
 constexpr char FLUID_PARTICLE_RADIUS[] = "physics/rapier_2d/fluid/fluid_particle_radius";
 constexpr char FLUID_SMOOTHING_FACTOR[] = "physics/rapier_2d/fluid/fluid_smoothing_factor";
+constexpr char FLUID_DRAW_DEBUG[] = "physics/rapier_2d/fluid/fluid_draw_debug";
 
 void register_setting(
 		const String &p_name,
@@ -80,16 +81,17 @@ void RapierProjectSettings::register_settings() {
 	register_setting_ranged(SOLVER_DAMPING_RATIO, 1.0, U"0.00001,1,0.00001,suffix:%");
 	register_setting_ranged(SOLVER_JOINT_ERP, 1.0, U"0.00001,1,0.00001,suffix:%");
 	register_setting_ranged(SOLVER_JOINT_DAMPING_RATIO, 1.0, U"0.0001,1,0.00001,suffix:%");
-	register_setting_ranged(SOLVER_ALLOWED_LINEAR_ERROR, 0.001, U"0,1,0.00001,suffix:m");
-	register_setting_ranged(SOLVER_PREDICTION_DISTANCE, 0.002, U"0,1,0.00001,suffix:m");
+	register_setting_ranged(SOLVER_ALLOWED_LINEAR_ERROR, 0.001, U"0,1,0.00001");
+	register_setting_ranged(SOLVER_PREDICTION_DISTANCE, 0.002, U"0,1,0.00001");
 	register_setting_ranged(SOLVER_NUM_INTERNAL_PGS_ITERATIONS, 1, U"1,4,or_greater");
 	register_setting_ranged(SOLVER_NUM_ADDITIONAL_FRICTION_ITERATIONS, 4, U"1,16,or_greater");
 	register_setting_ranged(SOLVER_NUM_ITERATIONS, 4, U"1,16,or_greater");
 	register_setting_ranged(SOLVER_MAX_CCD_SUBSTEPS, 1, U"1,16,or_greater");
-	register_setting_plain(FLUID_GRAVITY_DIR, Vector2(0.0, 1.0), "");
-	register_setting_plain(FLUID_GRAVITY_VALUE, 980.0, "");
-	register_setting_ranged(FLUID_PARTICLE_RADIUS, 10.0, U"0,100,0.00001,suffix:m");
-	register_setting_ranged(FLUID_SMOOTHING_FACTOR, 2.0, U"0,10,0.00001,suffix:%");
+	register_setting_plain(FLUID_GRAVITY_DIR, Vector2(0.0, 1.0));
+	register_setting_plain(FLUID_GRAVITY_VALUE, 980.0);
+	register_setting_ranged(FLUID_PARTICLE_RADIUS, 5.0, U"0,100,0.00001", true);
+	register_setting_ranged(FLUID_SMOOTHING_FACTOR, 2.0, U"0,10,0.00001,suffix:%", true);
+	register_setting_plain(FLUID_DRAW_DEBUG, true);
 }
 
 template <typename TType>
@@ -156,4 +158,8 @@ double RapierProjectSettings::get_fluid_particle_radius() {
 
 double RapierProjectSettings::get_fluid_smoothing_factor() {
 	return get_setting<double>(FLUID_SMOOTHING_FACTOR);
+}
+
+bool RapierProjectSettings::get_fluid_draw_debug() {
+	return get_setting<bool>(FLUID_DRAW_DEBUG);
 }
