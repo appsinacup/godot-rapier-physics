@@ -135,6 +135,10 @@ Fluid2D::Fluid2D() {
 	if (Engine::get_singleton()->is_editor_hint()) {
 		debug_draw = true;
 	}
+	if (debug_draw) {
+		set_process(true);
+		set_notify_transform(true);
+	}
 }
 
 Fluid2D::~Fluid2D() {
@@ -149,9 +153,6 @@ void Fluid2D::_notification(int p_what) {
 	RapierPhysicsServer2D *rapier_physics_server = _get_rapier_physics_server();
 	if (!rapier_physics_server) {
 		return;
-	}
-	if (debug_draw) {
-		set_process(true);
 	}
 	switch (p_what) {
 		case NOTIFICATION_PROCESS: {
