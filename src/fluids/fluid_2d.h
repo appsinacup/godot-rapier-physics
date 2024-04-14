@@ -12,8 +12,11 @@ class Fluid2D : public Node2D {
 
 private:
 	RID rid;
+	real_t radius;
 	bool enabled = true;
+	bool debug_draw = false;
 	real_t density = 1.0;
+	Color color;
 	TypedArray<FluidEffect2D> effects;
 
 	PackedVector2Array points;
@@ -32,6 +35,7 @@ public:
 	PackedVector2Array get_accelerations() const;
 	PackedVector2Array get_velocities() const;
 	PackedVector2Array get_points() const;
+	PackedVector2Array create_rectangle_points(int width, int height, Vector2 origin = Vector2());
 	void set_points(PackedVector2Array p_points);
 
 	void set_effects(const TypedArray<FluidEffect2D> &p_effects);

@@ -59,7 +59,6 @@ void initialize_rapier_2d_module(ModuleInitializationLevel p_level) {
 			ClassDB::register_class<FluidEffect2DViscosityArtificial>();
 			ClassDB::register_class<FluidEffect2DViscosityDFSPH>();
 			ClassDB::register_class<FluidEffect2DViscosityXSPH>();
-
 			ClassDB::register_class<Fluid2D>();
 		} break;
 		default: {

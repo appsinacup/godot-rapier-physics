@@ -1,11 +1,17 @@
 #include "fluid_2d.h"
 #include "../servers/rapier_physics_server_2d.h"
+#include "../servers/rapier_project_settings.h"
+#include <godot_cpp/classes/editor_settings.hpp>
+#include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/classes/project_settings.hpp>
+#include <godot_cpp/classes/rendering_server.hpp>
 #include <godot_cpp/classes/world2d.hpp>
 
 RapierPhysicsServer2D *_get_rapier_physics_server() {
-	static auto *physics_server = dynamic_cast<RapierPhysicsServer2D *>(PhysicsServer2D::get_singleton());
-	ERR_FAIL_NULL_V(physics_server, nullptr);
-
+	auto *physics_server = dynamic_cast<RapierPhysicsServer2D *>(PhysicsServer2D::get_singleton());
+	if (!physics_server) {
+		ERR_PRINT_ONCE("Fluid2D node requires Rapier2D Physics Engine. Disabling it.");
+	}
 	return physics_server;
 }
 
@@ -14,28 +20,65 @@ real_t Fluid2D::get_density() const {
 }
 
 void Fluid2D::set_density(real_t p_density) {
+	RapierPhysicsServer2D *rapier_physics_server = _get_rapier_physics_server();
+	if (!rapier_physics_server) {
+		return;
+	}
 	if (density != p_density) {
 		density = p_density;
-		_get_rapier_physics_server()->fluid_set_density(rid, density);
+		rapier_physics_server->fluid_set_density(rid, density);
 	}
 }
 
 PackedVector2Array Fluid2D::get_accelerations() const {
-	return _get_rapier_physics_server()->fluid_get_accelerations(rid);
+	RapierPhysicsServer2D *rapier_physics_server = _get_rapier_physics_server();
+	if (!rapier_physics_server) {
+		return PackedVector2Array();
+	}
+	return rapier_physics_server->fluid_get_accelerations(rid);
 }
 PackedVector2Array Fluid2D::get_velocities() const {
-	return _get_rapier_physics_server()->fluid_get_velocities(rid);
+	RapierPhysicsServer2D *rapier_physics_server = _get_rapier_physics_server();
+	if (!rapier_physics_server) {
+		return PackedVector2Array();
+	}
+	return rapier_physics_server->fluid_get_velocities(rid);
 }
 PackedVector2Array Fluid2D::get_points() const {
-	return _get_rapier_physics_server()->fluid_get_points(rid);
+	RapierPhysicsServer2D *rapier_physics_server = _get_rapier_physics_server();
+	if (!rapier_physics_server) {
+		return PackedVector2Array();
+	}
+	auto new_points = rapier_physics_server->fluid_get_points(rid);
+
+	Transform2D gl_transform = get_global_transform();
+	for (int i = 0; i < new_points.size(); i++) {
+		new_points[i] = gl_transform.xform_inv(new_points[i]);
+	}
+	return new_points;
+}
+PackedVector2Array Fluid2D::create_rectangle_points(int width, int height, Vector2 origin) {
+	PackedVector2Array new_points;
+	new_points.resize(width * height);
+	for (int i = 0; i < width; i++) {
+		for (int j = 0; j < height; j++) {
+			new_points[i + j * width] = Vector2(i * radius * 2, j * radius * 2);
+		}
+	}
+	return new_points;
 }
 void Fluid2D::set_points(PackedVector2Array p_points) {
+	RapierPhysicsServer2D *rapier_physics_server = _get_rapier_physics_server();
+	if (!rapier_physics_server) {
+		return;
+	}
 	points = p_points;
 	Transform2D gl_transform = get_global_transform();
 	for (int i = 0; i < p_points.size(); i++) {
 		p_points[i] = gl_transform.xform(p_points[i]);
 	}
-	_get_rapier_physics_server()->fluid_set_points(rid, p_points);
+	rapier_physics_server->fluid_set_points(rid, p_points);
+	queue_redraw();
 }
 
 RID Fluid2D::get_rid() const {
@@ -43,8 +86,12 @@ RID Fluid2D::get_rid() const {
 }
 
 void Fluid2D::set_effects(const TypedArray<FluidEffect2D> &p_effects) {
+	RapierPhysicsServer2D *rapier_physics_server = _get_rapier_physics_server();
+	if (!rapier_physics_server) {
+		return;
+	}
 	effects = p_effects;
-	_get_rapier_physics_server()->fluid_set_effects(rid, effects);
+	rapier_physics_server->fluid_set_effects(rid, effects);
 }
 
 TypedArray<FluidEffect2D> Fluid2D::get_effects() const {
@@ -71,29 +118,71 @@ void Fluid2D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "effects", PROPERTY_HINT_TYPE_STRING,
 						 String::num(Variant::OBJECT) + "/" + String::num(PROPERTY_HINT_RESOURCE_TYPE) + ":FluidEffect2D"),
 			"set_effects", "get_effects");
+
+	ClassDB::bind_method(D_METHOD("create_rectangle_points", "width", "height", "origin"), &Fluid2D::create_rectangle_points);
 }
 
 Fluid2D::Fluid2D() {
-	rid = _get_rapier_physics_server()->fluid_create();
+	RapierPhysicsServer2D *rapier_physics_server = _get_rapier_physics_server();
+	if (!rapier_physics_server) {
+		return;
+	}
+	rid = rapier_physics_server->fluid_create();
+	radius = RapierProjectSettings::get_fluid_particle_radius();
+	color = ProjectSettings::get_singleton()->get("debug/shapes/navigation/geometry_face_color");
+
+	debug_draw = RapierProjectSettings::get_fluid_draw_debug();
+	if (Engine::get_singleton()->is_editor_hint()) {
+		debug_draw = true;
+	}
 }
 
 Fluid2D::~Fluid2D() {
-	_get_rapier_physics_server()->free_rid(rid);
+	RapierPhysicsServer2D *rapier_physics_server = _get_rapier_physics_server();
+	if (!rapier_physics_server) {
+		return;
+	}
+	rapier_physics_server->free_rid(rid);
 }
 
 void Fluid2D::_notification(int p_what) {
+	RapierPhysicsServer2D *rapier_physics_server = _get_rapier_physics_server();
+	if (!rapier_physics_server) {
+		return;
+	}
+	if (debug_draw) {
+		set_process(true);
+	}
 	switch (p_what) {
+		case NOTIFICATION_PROCESS: {
+			if (debug_draw) {
+				points = get_points();
+				queue_redraw();
+			}
+		} break;
 		case NOTIFICATION_ENTER_TREE:
 		case NOTIFICATION_WORLD_2D_CHANGED:
-		case NOTIFICATION_TRANSFORM_CHANGED: {
+		case NOTIFICATION_TRANSFORM_CHANGED:
+		case NOTIFICATION_LOCAL_TRANSFORM_CHANGED:
+		case NOTIFICATION_TRANSLATION_CHANGED: {
 			RID space = get_world_2d()->get_space();
-			_get_rapier_physics_server()->fluid_set_space(rid, space);
+			rapier_physics_server->fluid_set_space(rid, space);
 			set_points(points);
-			//set_effects(effects);
+			if (debug_draw) {
+				queue_redraw();
+			}
 		} break;
 
 		case NOTIFICATION_EXIT_TREE: {
-			_get_rapier_physics_server()->fluid_set_space(rid, RID());
+			rapier_physics_server->fluid_set_space(rid, RID());
+		} break;
+		case NOTIFICATION_DRAW: {
+			if (debug_draw) {
+				points = get_points();
+				for (int i = 0; i < points.size(); i++) {
+					draw_rect(Rect2(points[i] - Vector2(radius / 2.0, radius / 2.0), Vector2(radius, radius)), color);
+				}
+			}
 		} break;
 	}
 }
