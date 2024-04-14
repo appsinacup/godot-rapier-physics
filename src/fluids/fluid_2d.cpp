@@ -57,7 +57,7 @@ PackedVector2Array Fluid2D::get_points() const {
 	}
 	return new_points;
 }
-PackedVector2Array Fluid2D::create_rectangle_points(int width, int height, Vector2 origin) {
+PackedVector2Array Fluid2D::create_rectangle_points(int width, int height) {
 	PackedVector2Array new_points;
 	new_points.resize(width * height);
 	for (int i = 0; i < width; i++) {
@@ -67,6 +67,20 @@ PackedVector2Array Fluid2D::create_rectangle_points(int width, int height, Vecto
 	}
 	return new_points;
 }
+PackedVector2Array Fluid2D::create_circle_points(int p_radius) {
+	PackedVector2Array new_points;
+	for (float i = -p_radius; i <= p_radius; i += 1) {
+		for (float j = -p_radius; j <= p_radius; j += 1) {
+			float x = i * radius * 2;
+			float y = j * radius * 2;
+			if (Math::sqrt(i * i + j * j) <= p_radius) {
+				new_points.append(Vector2(x, y));
+			}
+		}
+	}
+	return new_points;
+}
+
 void Fluid2D::set_points(PackedVector2Array p_points) {
 	RapierPhysicsServer2D *rapier_physics_server = _get_rapier_physics_server();
 	if (!rapier_physics_server) {
@@ -119,7 +133,8 @@ void Fluid2D::_bind_methods() {
 						 String::num(Variant::OBJECT) + "/" + String::num(PROPERTY_HINT_RESOURCE_TYPE) + ":FluidEffect2D"),
 			"set_effects", "get_effects");
 
-	ClassDB::bind_method(D_METHOD("create_rectangle_points", "width", "height", "origin"), &Fluid2D::create_rectangle_points);
+	ClassDB::bind_method(D_METHOD("create_rectangle_points", "width", "height"), &Fluid2D::create_rectangle_points);
+	ClassDB::bind_method(D_METHOD("create_circle_points", "radius"), &Fluid2D::create_circle_points);
 }
 
 Fluid2D::Fluid2D() {
