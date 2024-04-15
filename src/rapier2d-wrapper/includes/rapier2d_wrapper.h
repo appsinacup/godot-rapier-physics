@@ -400,6 +400,8 @@ void fluid_clear_effects(Handle world_handle, HandleDouble fluid_handle);
 
 HandleDouble fluid_create(Handle world_handle, Real density);
 
+void fluid_destroy(Handle world_handle, HandleDouble fluid_handle);
+
 void fluid_get_accelerations(Handle world_handle,
 		HandleDouble fluid_handle,
 		Vector *pixel_acceleration,

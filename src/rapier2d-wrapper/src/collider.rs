@@ -181,6 +181,10 @@ pub extern "C" fn collider_create_sensor(world_handle : Handle, shape_handle : H
 pub extern "C" fn collider_destroy(world_handle : Handle, handle : Handle) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
+    let collider_handle = handle_to_collider_handle(handle);
+    physics_world.fluids_pipeline.coupling.unregister_coupling(
+        collider_handle
+    );
     return physics_world.remove_collider(handle);
 }
 

@@ -15,7 +15,7 @@ private:
 	RID rid;
 	bool enabled = true;
 	real_t density = 1.0;
-	RapierSpace2D *space;
+	RapierSpace2D *space = nullptr;
 	TypedArray<FluidEffect2D> effects = TypedArray<FluidEffect2D>();
 	rapier2d::HandleDouble fluid_handle = rapier2d::invalid_handle_double();
 	PackedVector2Array points;
@@ -38,8 +38,7 @@ public:
 
 	void set_space(RapierSpace2D *p_space);
 	RapierSpace2D *get_space() const;
-
-	//void _process(double delta) override;
+	virtual ~RapierFluid2D();
 };
 
 #endif // RAPIER_LIQUID_2D_H

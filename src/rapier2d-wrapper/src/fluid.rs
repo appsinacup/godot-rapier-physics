@@ -195,3 +195,13 @@ pub extern "C" fn fluid_add_effect_viscosity_xsph(world_handle : Handle, fluid_h
     let effect: XSPHViscosity = XSPHViscosity::new(fluid_viscosity_coefficient, boundary_viscosity_coefficient);
     fluid.nonpressure_forces.push(Box::new(effect));
 }
+
+#[no_mangle]
+pub extern "C" fn fluid_destroy(world_handle : Handle, fluid_handle: HandleDouble) {
+    let mut physics_engine = singleton().lock().unwrap();
+    let physics_world = physics_engine.get_world(world_handle);
+    let fluid = physics_world.fluids_pipeline.liquid_world.fluids_mut().get_mut(handle_to_fluid_handle(fluid_handle));
+    assert!(fluid.is_some());
+    // TODO reenable after the function is fixed https://github.com/dimforge/salva/pull/37/files
+    //physics_world.fluids_pipeline.liquid_world.remove_fluid(handle_to_fluid_handle(fluid_handle));
+}
