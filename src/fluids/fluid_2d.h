@@ -16,7 +16,6 @@ private:
 	bool enabled = true;
 	bool debug_draw = false;
 	real_t density = 1.0;
-	Color color;
 	TypedArray<FluidEffect2D> effects;
 
 	PackedVector2Array points;

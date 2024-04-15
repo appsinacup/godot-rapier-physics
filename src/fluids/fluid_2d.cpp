@@ -144,7 +144,6 @@ Fluid2D::Fluid2D() {
 	}
 	rid = rapier_physics_server->fluid_create();
 	radius = RapierProjectSettings::get_fluid_particle_radius();
-	color = ProjectSettings::get_singleton()->get("debug/shapes/navigation/geometry_face_color");
 
 	debug_draw = RapierProjectSettings::get_fluid_draw_debug();
 	if (Engine::get_singleton()->is_editor_hint()) {
@@ -196,7 +195,7 @@ void Fluid2D::_notification(int p_what) {
 			if (debug_draw) {
 				points = get_points();
 				for (int i = 0; i < points.size(); i++) {
-					draw_rect(Rect2(points[i] - Vector2(radius / 2.0, radius / 2.0), Vector2(radius, radius)), color);
+					draw_rect(Rect2(points[i] - Vector2(radius / 2.0, radius / 2.0), Vector2(radius, radius)), Color::named("WHITE"));
 				}
 			}
 		} break;
