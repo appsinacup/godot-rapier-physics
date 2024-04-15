@@ -137,6 +137,18 @@ void RapierFluid2D::set_effects(const TypedArray<FluidEffect2D> &params) {
 }
 
 void RapierFluid2D::set_space(RapierSpace2D *p_space) {
+	if (space == p_space) {
+		return;
+	}
+	// remove from old space
+	if (space) {
+		rapier2d::Handle space_handle = space->get_handle();
+		ERR_FAIL_COND(!rapier2d::is_handle_valid(space_handle));
+		if (rapier2d::is_handle_valid_double(fluid_handle)) {
+			rapier2d::fluid_destroy(space_handle, fluid_handle);
+			fluid_handle = rapier2d::invalid_handle_double();
+		}
+	}
 	space = p_space;
 	if (space) {
 		rapier2d::Handle space_handle = space->get_handle();
@@ -159,4 +171,14 @@ RID RapierFluid2D::get_rid() const {
 }
 void RapierFluid2D::set_rid(RID p_rid) {
 	rid = p_rid;
+}
+
+RapierFluid2D::~RapierFluid2D() {
+	if (space) {
+		rapier2d::Handle space_handle = space->get_handle();
+		ERR_FAIL_COND(!rapier2d::is_handle_valid(space_handle));
+		if (rapier2d::is_handle_valid_double(fluid_handle)) {
+			rapier2d::fluid_destroy(space_handle, fluid_handle);
+		}
+	}
 }
