@@ -1179,6 +1179,13 @@ void RapierPhysicsServer2D::fluid_set_points(const RID &p_fluid, PackedVector2Ar
 	fluid->set_points(points);
 }
 
+void RapierPhysicsServer2D::fluid_set_points_and_velocities(const RID &p_fluid, PackedVector2Array points, PackedVector2Array velocities) {
+	RapierFluid2D *fluid = fluid_owner.get_or_null(p_fluid);
+	ERR_FAIL_COND(!fluid);
+
+	fluid->set_points_and_velocities(points, velocities);
+}
+
 void RapierPhysicsServer2D::_free_rid(const RID &p_rid) {
 	if (shape_owner.owns(p_rid)) {
 		RapierShape2D *shape = shape_owner.get_or_null(p_rid);

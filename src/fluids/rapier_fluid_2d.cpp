@@ -40,6 +40,25 @@ void RapierFluid2D::set_points(PackedVector2Array p_points) {
 		rapier2d::fluid_change_points(space_handle, fluid_handle, rapier_points, points.size());
 	}
 }
+void RapierFluid2D::set_points_and_velocities(PackedVector2Array p_points, PackedVector2Array p_velocities) {
+	points = p_points;
+	velocities = p_velocities;
+	accelerations.resize(points.size());
+	if (space) {
+		rapier2d::Handle space_handle = space->get_handle();
+		ERR_FAIL_COND(!rapier2d::is_handle_valid(space_handle));
+		ERR_FAIL_COND(!rapier2d::is_handle_valid_double(fluid_handle));
+
+		rapier2d::Vector *rapier_points = (rapier2d::Vector *)alloca(points.size() * sizeof(rapier2d::Vector));
+		rapier2d::Vector *rapier_velocities = (rapier2d::Vector *)alloca(velocities.size() * sizeof(rapier2d::Vector));
+		for (int i = 0; i < points.size(); i++) {
+			rapier_points[i] = rapier2d::Vector{ (points[i].x), (points[i].y) };
+			rapier_velocities[i] = rapier2d::Vector{ (velocities[i].x), (velocities[i].y) };
+		}
+
+		rapier2d::fluid_change_points_and_velocities(space_handle, fluid_handle, rapier_points, points.size(), rapier_velocities);
+	}
+}
 
 PackedVector2Array RapierFluid2D::get_points() {
 	if (space) {

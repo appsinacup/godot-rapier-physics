@@ -37,6 +37,7 @@ public:
 	PackedVector2Array create_rectangle_points(int width, int height);
 	PackedVector2Array create_circle_points(int p_radius);
 	void set_points(PackedVector2Array p_points);
+	void set_points_and_velocities(PackedVector2Array p_points, PackedVector2Array p_velocities);
 
 	void set_effects(const TypedArray<FluidEffect2D> &p_effects);
 	TypedArray<FluidEffect2D> get_effects() const;

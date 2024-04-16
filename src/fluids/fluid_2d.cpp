@@ -95,6 +95,20 @@ void Fluid2D::set_points(PackedVector2Array p_points) {
 	queue_redraw();
 }
 
+void Fluid2D::set_points_and_velocities(PackedVector2Array p_points, PackedVector2Array p_velocities) {
+	RapierPhysicsServer2D *rapier_physics_server = _get_rapier_physics_server();
+	if (!rapier_physics_server) {
+		return;
+	}
+	points = p_points;
+	Transform2D gl_transform = get_global_transform();
+	for (int i = 0; i < p_points.size(); i++) {
+		p_points[i] = gl_transform.xform(p_points[i]);
+	}
+	rapier_physics_server->fluid_set_points_and_velocities(rid, p_points, p_velocities);
+	queue_redraw();
+}
+
 RID Fluid2D::get_rid() const {
 	return rid;
 }
@@ -119,6 +133,7 @@ void Fluid2D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::PACKED_VECTOR2_ARRAY, "velocities"), "", "get_velocities");
 	ClassDB::bind_method(D_METHOD("get_points"), &Fluid2D::get_points);
 	ClassDB::bind_method(D_METHOD("set_points", "points"), &Fluid2D::set_points);
+	ClassDB::bind_method(D_METHOD("set_points_and_velocities", "points", "velocities"), &Fluid2D::set_points_and_velocities);
 	ADD_PROPERTY(PropertyInfo(Variant::PACKED_VECTOR2_ARRAY, "points"), "set_points", "get_points");
 
 	ClassDB::bind_method(D_METHOD("get_density"), &Fluid2D::get_density);
