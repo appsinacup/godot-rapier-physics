@@ -135,6 +135,23 @@ void Fluid2D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("create_rectangle_points", "width", "height"), &Fluid2D::create_rectangle_points);
 	ClassDB::bind_method(D_METHOD("create_circle_points", "radius"), &Fluid2D::create_circle_points);
+
+	ClassDB::bind_method(D_METHOD("set_debug_draw", "debug_draw"), &Fluid2D::set_debug_draw);
+	ClassDB::bind_method(D_METHOD("get_debug_draw"), &Fluid2D::get_debug_draw);
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "debug_draw"), "set_debug_draw", "get_debug_draw");
+}
+
+void Fluid2D::set_debug_draw(bool p_debug_draw) {
+	if (debug_draw != p_debug_draw) {
+		debug_draw = p_debug_draw;
+		set_process(debug_draw);
+		set_notify_transform(debug_draw);
+		queue_redraw();
+	}
+}
+
+bool Fluid2D::get_debug_draw() const {
+	return debug_draw;
 }
 
 Fluid2D::Fluid2D() {
@@ -144,15 +161,7 @@ Fluid2D::Fluid2D() {
 	}
 	rid = rapier_physics_server->fluid_create();
 	radius = RapierProjectSettings::get_fluid_particle_radius();
-
-	debug_draw = RapierProjectSettings::get_fluid_draw_debug();
-	if (Engine::get_singleton()->is_editor_hint()) {
-		debug_draw = true;
-	}
-	if (debug_draw) {
-		set_process(true);
-		set_notify_transform(true);
-	}
+	set_debug_draw(true);
 }
 
 Fluid2D::~Fluid2D() {
@@ -171,7 +180,6 @@ void Fluid2D::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_PROCESS: {
 			if (debug_draw) {
-				points = get_points();
 				queue_redraw();
 			}
 		} break;

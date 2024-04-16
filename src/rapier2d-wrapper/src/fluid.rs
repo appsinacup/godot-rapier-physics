@@ -41,12 +41,24 @@ pub extern "C" fn fluid_change_points(world_handle : Handle, fluid_handle: Handl
     let fluid = physics_world.fluids_pipeline.liquid_world.fluids_mut().get_mut(handle_to_fluid_handle(fluid_handle));
     assert!(fluid.is_some());
     let fluid = fluid.unwrap();
-    let velocities: Vec<_> = std::iter::repeat(salva2d::math::Vector::zeros())
+    let mut velocities: Vec<_> = std::iter::repeat(salva2d::math::Vector::zeros())
+        .take(point_count)
+        .collect();
+    let mut accelerations: Vec<_> = std::iter::repeat(salva2d::math::Vector::zeros())
         .take(point_count)
         .collect();
     fluid.positions = points.clone();
+    // copy back the velocities and accelerations that were before, if they exist
+    for i in 0..point_count {
+        if fluid.velocities.len() > i {
+            velocities[i] = fluid.velocities[i];
+        }
+        if fluid.accelerations.len() > i {
+            accelerations[i] = fluid.accelerations[i];
+        }
+    }
     fluid.velocities = velocities.clone();
-    fluid.accelerations = velocities.clone();
+    fluid.accelerations = accelerations.clone();
     fluid.volumes = std::iter::repeat(fluid.default_particle_volume())
     .take(point_count)
     .collect();

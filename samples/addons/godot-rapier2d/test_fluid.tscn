@@ -1,0 +1,86 @@
+[gd_scene load_steps=11 format=3 uid="uid://dudno1v5vtvh"]
+
+[ext_resource type="Script" path="res://Faucet.gd" id="1_omq0c"]
+[ext_resource type="Script" path="res://addons/godot-rapier2d/Fluid2DRectangle.gd" id="2_x6a0h"]
+[ext_resource type="MultiMesh" uid="uid://chnjmqlls1pdh" path="res://addons/godot-rapier2d/fluid_multi_mesh.tres" id="3_880wm"]
+[ext_resource type="Texture2D" uid="uid://bjnvmmcdjgbu6" path="res://addons/godot-rapier2d/Node2D.svg" id="4_xdgjh"]
+[ext_resource type="Script" path="res://addons/godot-rapier2d/Fluid2DRenderer.gd" id="5_2rahx"]
+
+[sub_resource type="FluidEffect2DViscosityXSPH" id="FluidEffect2DViscosityXSPH_y3smb"]
+
+[sub_resource type="FluidEffect2DSurfaceTensionAKINCI" id="FluidEffect2DSurfaceTensionAKINCI_amypy"]
+fluid_tension_coefficient = 5.0
+boundary_adhesion_coefficient = 1.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_8y86f"]
+size = Vector2(2676, 1041)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_xuw7n"]
+size = Vector2(1749, 2246)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_mdcyi"]
+radius = 72.06
+
+[node name="Node2D" type="Node2D"]
+
+[node name="Faucet" type="Node2D" parent="." node_paths=PackedStringArray("fluid")]
+position = Vector2(1468, 993)
+script = ExtResource("1_omq0c")
+fluid = NodePath("../Water")
+
+[node name="Timer" type="Timer" parent="Faucet"]
+process_callback = 0
+wait_time = 0.35
+autostart = true
+
+[node name="Water" type="Fluid2D" parent="."]
+accelerations = PackedVector2Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+velocities = PackedVector2Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+points = PackedVector2Array(0, 0, 10, 0, 20, 0, 30, 0, 40, 0, 0, 9.99994, 10, 9.99994, 20, 9.99994, 30, 9.99994, 40, 9.99994)
+density = 1000.0
+effects = Array[FluidEffect2D]([SubResource("FluidEffect2DViscosityXSPH_y3smb"), SubResource("FluidEffect2DSurfaceTensionAKINCI_amypy")])
+modulate = Color(0.654902, 0.768627, 1, 1)
+position = Vector2(1385, 880)
+script = ExtResource("2_x6a0h")
+height = 2
+width = 5
+
+[node name="Fluid2DRenderer" type="MultiMeshInstance2D" parent="Water"]
+modulate = Color(0, 0.72549, 0.596078, 1)
+position = Vector2(-220, -59)
+multimesh = ExtResource("3_880wm")
+texture = ExtResource("4_xdgjh")
+script = ExtResource("5_2rahx")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+position = Vector2(126, 282)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(-3554, 1698)
+shape = SubResource("RectangleShape2D_8y86f")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(-1170, 2352)
+shape = SubResource("RectangleShape2D_8y86f")
+
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(-245, 1809)
+shape = SubResource("RectangleShape2D_xuw7n")
+
+[node name="CollisionShape2D4" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(1811, 2357)
+shape = SubResource("RectangleShape2D_8y86f")
+
+[node name="CollisionShape2D5" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(3311, 1567)
+shape = SubResource("RectangleShape2D_8y86f")
+
+[node name="CollisionShape2D6" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(1405, 1225)
+shape = SubResource("CircleShape2D_mdcyi")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(1586, 1637)
+zoom = Vector2(0.5, 0.5)
+
+[connection signal="timeout" from="Faucet/Timer" to="Faucet" method="_on_timer_timeout"]

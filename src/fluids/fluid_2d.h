@@ -41,6 +41,9 @@ public:
 	void set_effects(const TypedArray<FluidEffect2D> &p_effects);
 	TypedArray<FluidEffect2D> get_effects() const;
 
+	void set_debug_draw(bool p_debug_draw);
+	bool get_debug_draw() const;
+
 	Fluid2D();
 	~Fluid2D();
 
