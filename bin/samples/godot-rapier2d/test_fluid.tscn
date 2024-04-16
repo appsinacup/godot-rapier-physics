@@ -1,6 +1,6 @@
 [gd_scene load_steps=16 format=3 uid="uid://dudno1v5vtvh"]
 
-[ext_resource type="Script" path="res://Faucet.gd" id="1_omq0c"]
+[ext_resource type="Script" path="res://samples/godot-rapier2d/Faucet.gd" id="1_omq0c"]
 [ext_resource type="Script" path="res://addons/godot-rapier2d/Fluid2DRectangle.gd" id="2_x6a0h"]
 [ext_resource type="MultiMesh" uid="uid://d0bhettx43xt1" path="res://addons/godot-rapier2d/fluid_multi_mesh.tres" id="3_880wm"]
 [ext_resource type="Texture2D" uid="uid://bjnvmmcdjgbu6" path="res://addons/godot-rapier2d/Node2D.svg" id="4_xdgjh"]
@@ -51,7 +51,7 @@ autostart = true
 [node name="Fluid2D" type="Fluid2D" parent="."]
 accelerations = PackedVector2Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 velocities = PackedVector2Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-points = PackedVector2Array(22, 139, 62, 139, 102, 139, 142, 139, 182, 139, 22, 179, 62, 179, 102, 179, 142, 179, 182, 179)
+points = PackedVector2Array(0, 0, 40, 0, 80, 0, 120, 0, 160, 0, 0, 40, 40, 40, 80, 40, 120, 40, 160, 40)
 density = 100.0
 effects = Array[FluidEffect2D]([SubResource("FluidEffect2DViscosityXSPH_y3smb"), SubResource("FluidEffect2DSurfaceTensionAKINCI_amypy")])
 debug_draw = false

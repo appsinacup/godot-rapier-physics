@@ -1,5 +1,6 @@
 # Ignore everything in bin folder by default
 bin/addons/godot-rapier2d/bin/*
+bin/.godot/**
 bin/samples/godot-rapier2d/addons/**
 
 !bin/addons/godot-rapier2d/bin/libphysics_server_rapier2d.macos.template_debug.framework/Resources/Info.plist

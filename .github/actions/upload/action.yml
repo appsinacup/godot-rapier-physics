@@ -18,4 +18,5 @@ runs:
         name: godot-rapier-2d-${{ inputs.precision }}-${{ inputs.features }}
         path: |
           ${{ github.workspace }}/bin/**
+          !${{ github.workspace }}/bin/project.godot
         retention-days: 14
