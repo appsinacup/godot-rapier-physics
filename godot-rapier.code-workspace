@@ -31,7 +31,9 @@
 			"__locale": "cpp",
 			"string": "cpp",
 			"string_view": "cpp",
-			"__config": "cpp"
+			"__config": "cpp",
+			"deque": "cpp",
+			"list": "cpp"
 		}
 	},
 	"launch": {
@@ -51,6 +53,22 @@
 					"${workspaceFolder:godot-rapier-2d}/Godot-Physics-Tests",
 					"--debug-collisions",
 					"test.tscn"
+				]
+			},
+			{
+				"name": "Launch Fluid",
+				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.arm64",
+				"type": "cppdbg",
+				"request": "launch",
+				"cwd": "${workspaceFolder:godot-rapier-2d}",
+				"osx": {
+					"MIMode": "lldb"
+				},
+				"args": [
+					"--path",
+					"${workspaceFolder:godot-rapier-2d}/samples/godot-rapier2d",
+					"--debug-collisions",
+					"test_fluid.tscn"
 				]
 			}
 		]

@@ -24,6 +24,7 @@ private:
 
 public:
 	void set_points(PackedVector2Array p_points);
+	void set_points_and_velocities(PackedVector2Array p_points, PackedVector2Array p_velocities);
 	PackedVector2Array get_points();
 	PackedVector2Array get_velocities();
 	PackedVector2Array get_accelerations();

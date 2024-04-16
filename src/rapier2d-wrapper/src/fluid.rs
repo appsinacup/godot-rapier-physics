@@ -7,11 +7,25 @@ use salva2d::solver::DFSPHViscosity;
 use salva2d::solver::He2014SurfaceTension;
 use salva2d::solver::WCSPHSurfaceTension;
 use salva2d::solver::XSPHViscosity;
+use salva2d::math::Vector as SalvaVector;
 use crate::convert::*;
 use crate::handle::*;
 use crate::vector::Vector;
 use crate::physics_world::*;
 use crate::shape::*;
+
+pub fn pixel_vector_array_to_vec(pixel_data : &Vector, data_count : usize) -> Vec<SalvaVector<Real>> {
+    let mut vec = Vec::<SalvaVector::<Real>>::with_capacity(data_count);
+    unsafe {
+        let data_raw = std::slice::from_raw_parts(pixel_data, data_count);
+        for pixel_point in data_raw {
+            let point = &vector_pixels_to_meters(pixel_point);
+            let salva_vector = SalvaVector::<Real>::new(point.x, point.y);
+            vec.push(salva_vector);
+        }
+    }
+    return vec;
+}
 
 #[no_mangle]
 pub extern "C" fn fluid_create(world_handle : Handle, density: Real) -> HandleDouble {
@@ -34,6 +48,32 @@ pub extern "C" fn fluid_change_density(world_handle : Handle, fluid_handle: Hand
 }
 
 #[no_mangle]
+pub extern "C" fn fluid_change_points_and_velocities(world_handle : Handle, fluid_handle: HandleDouble, pixel_points : &Vector, point_count : usize, velocity_points : &Vector) {
+	let mut physics_engine = singleton().lock().unwrap();
+	let physics_world = physics_engine.get_world(world_handle);
+    let points = pixel_point_array_to_vec(pixel_points, point_count);
+    let velocities = pixel_vector_array_to_vec(velocity_points, point_count);
+    let fluid = physics_world.fluids_pipeline.liquid_world.fluids_mut().get_mut(handle_to_fluid_handle(fluid_handle));
+    assert!(fluid.is_some());
+    let fluid = fluid.unwrap();
+    let mut accelerations: Vec<_> = std::iter::repeat(salva2d::math::Vector::zeros())
+        .take(point_count)
+        .collect();
+    fluid.positions = points.clone();
+    // copy back the accelerations that were before, if they exist
+    for i in 0..point_count {
+        if fluid.accelerations.len() > i {
+            accelerations[i] = fluid.accelerations[i];
+        }
+    }
+    fluid.velocities = velocities.clone();
+    fluid.accelerations = accelerations.clone();
+    fluid.volumes = std::iter::repeat(fluid.default_particle_volume())
+    .take(point_count)
+    .collect();
+}
+
+#[no_mangle]
 pub extern "C" fn fluid_change_points(world_handle : Handle, fluid_handle: HandleDouble, pixel_points : &Vector, point_count : usize) {
 	let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
@@ -41,12 +81,24 @@ pub extern "C" fn fluid_change_points(world_handle : Handle, fluid_handle: Handl
     let fluid = physics_world.fluids_pipeline.liquid_world.fluids_mut().get_mut(handle_to_fluid_handle(fluid_handle));
     assert!(fluid.is_some());
     let fluid = fluid.unwrap();
-    let velocities: Vec<_> = std::iter::repeat(salva2d::math::Vector::zeros())
+    let mut velocities: Vec<_> = std::iter::repeat(salva2d::math::Vector::zeros())
+        .take(point_count)
+        .collect();
+    let mut accelerations: Vec<_> = std::iter::repeat(salva2d::math::Vector::zeros())
         .take(point_count)
         .collect();
     fluid.positions = points.clone();
+    // copy back the velocities and accelerations that were before, if they exist
+    for i in 0..point_count {
+        if fluid.velocities.len() > i {
+            velocities[i] = fluid.velocities[i];
+        }
+        if fluid.accelerations.len() > i {
+            accelerations[i] = fluid.accelerations[i];
+        }
+    }
     fluid.velocities = velocities.clone();
-    fluid.accelerations = velocities.clone();
+    fluid.accelerations = accelerations.clone();
     fluid.volumes = std::iter::repeat(fluid.default_particle_volume())
     .take(point_count)
     .collect();

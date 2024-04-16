@@ -396,6 +396,12 @@ void fluid_change_points(Handle world_handle,
 		const Vector *pixel_points,
 		size_t point_count);
 
+void fluid_change_points_and_velocities(Handle world_handle,
+		HandleDouble fluid_handle,
+		const Vector *pixel_points,
+		size_t point_count,
+		const Vector *velocity_points);
+
 void fluid_clear_effects(Handle world_handle, HandleDouble fluid_handle);
 
 HandleDouble fluid_create(Handle world_handle, Real density);

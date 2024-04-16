@@ -275,6 +275,7 @@ public:
 	RID fluid_create();
 	void fluid_set_space(const RID &fluid_rid, const RID &space_rid);
 	void fluid_set_points(const RID &p_fluid, PackedVector2Array points);
+	void fluid_set_points_and_velocities(const RID &p_fluid, PackedVector2Array points, PackedVector2Array velocities);
 	void fluid_set_density(const RID &fluid_rid, real_t density);
 	void fluid_set_effects(const RID &fluid_rid, const TypedArray<FluidEffect2D> &params);
 	PackedVector2Array fluid_get_points(const RID &fluid_rid);

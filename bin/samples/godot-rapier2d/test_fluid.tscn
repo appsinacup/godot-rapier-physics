@@ -1,0 +1,172 @@
+[gd_scene load_steps=18 format=3 uid="uid://dudno1v5vtvh"]
+
+[ext_resource type="Script" path="res://samples/godot-rapier2d/Faucet.gd" id="1_omq0c"]
+[ext_resource type="Script" path="res://addons/godot-rapier2d/Fluid2DRectangle.gd" id="2_x6a0h"]
+[ext_resource type="MultiMesh" uid="uid://d0bhettx43xt1" path="res://addons/godot-rapier2d/fluid_multi_mesh.tres" id="3_880wm"]
+[ext_resource type="Texture2D" uid="uid://bjnvmmcdjgbu6" path="res://addons/godot-rapier2d/Node2D.svg" id="4_xdgjh"]
+[ext_resource type="Script" path="res://addons/godot-rapier2d/Fluid2DRenderer.gd" id="5_2rahx"]
+
+[sub_resource type="FluidEffect2DViscosityXSPH" id="FluidEffect2DViscosityXSPH_y3smb"]
+fluid_viscosity_coefficient = 0.3
+
+[sub_resource type="FluidEffect2DSurfaceTensionAKINCI" id="FluidEffect2DSurfaceTensionAKINCI_amypy"]
+fluid_tension_coefficient = 10.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_8y86f"]
+size = Vector2(2676, 1041)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_xuw7n"]
+size = Vector2(1749, 1004)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_c23gn"]
+size = Vector2(1177, 182.5)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_sd5wa"]
+size = Vector2(521.5, 914.5)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_os3ki"]
+size = Vector2(1521, 2437.5)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_mdcyi"]
+radius = 72.06
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_4bdhm"]
+size = Vector2(286, 678)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vhhvt"]
+size = Vector2(858, 333)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_k12t3"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_q8nq7"]
+size = Vector2(44, 303)
+
+[node name="Node2D" type="Node2D"]
+
+[node name="Faucet" type="Node2D" parent="." node_paths=PackedStringArray("fluid")]
+position = Vector2(1468, 993)
+script = ExtResource("1_omq0c")
+fluid = NodePath("../Fluid2D")
+
+[node name="Timer" type="Timer" parent="Faucet"]
+process_callback = 0
+wait_time = 0.05
+autostart = true
+
+[node name="Fluid2D" type="Fluid2D" parent="."]
+accelerations = PackedVector2Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+velocities = PackedVector2Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+points = PackedVector2Array(0, 0, 40, 0, 80, 0, 120, 0, 160, 0, 0, 40, 40, 40, 80, 40, 120, 40, 160, 40)
+density = 200.0
+effects = Array[FluidEffect2D]([SubResource("FluidEffect2DViscosityXSPH_y3smb"), SubResource("FluidEffect2DSurfaceTensionAKINCI_amypy")])
+debug_draw = false
+modulate = Color(0.654902, 0.768627, 1, 1)
+position = Vector2(1480, 680)
+script = ExtResource("2_x6a0h")
+height = 2
+width = 5
+
+[node name="Fluid2DRenderer" type="MultiMeshInstance2D" parent="Fluid2D"]
+modulate = Color(0.380392, 0.576471, 1, 1)
+position = Vector2(-220, -59)
+multimesh = ExtResource("3_880wm")
+texture = ExtResource("4_xdgjh")
+script = ExtResource("5_2rahx")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+position = Vector2(126, 282)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(-3554, 1698)
+shape = SubResource("RectangleShape2D_8y86f")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(-1170, 2352)
+shape = SubResource("RectangleShape2D_8y86f")
+
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(-245, 2430)
+shape = SubResource("RectangleShape2D_xuw7n")
+
+[node name="CollisionShape2D8" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(-1114, 1509)
+shape = SubResource("RectangleShape2D_xuw7n")
+
+[node name="CollisionShape2D9" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(282, 1097.75)
+shape = SubResource("RectangleShape2D_c23gn")
+
+[node name="CollisionShape2D10" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(282, 1411)
+shape = SubResource("RectangleShape2D_c23gn")
+
+[node name="CollisionShape2D11" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(869, 2149)
+rotation = 0.563727
+shape = SubResource("RectangleShape2D_c23gn")
+
+[node name="CollisionShape2D4" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(1824, 2579)
+shape = SubResource("RectangleShape2D_8y86f")
+
+[node name="CollisionShape2D5" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(2171.25, 1708.25)
+shape = SubResource("RectangleShape2D_sd5wa")
+
+[node name="CollisionShape2D7" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(3748.5, 1752.75)
+shape = SubResource("RectangleShape2D_os3ki")
+
+[node name="CollisionShape2D6" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(1405, 1225)
+shape = SubResource("CircleShape2D_mdcyi")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(1586, 1637)
+zoom = Vector2(0.5, 0.5)
+
+[node name="StaticBody2D2" type="StaticBody2D" parent="."]
+position = Vector2(1574, 643)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D2"]
+position = Vector2(-333, -38)
+shape = SubResource("RectangleShape2D_4bdhm")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="StaticBody2D2"]
+position = Vector2(-45, -277)
+shape = SubResource("RectangleShape2D_vhhvt")
+
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="StaticBody2D2"]
+position = Vector2(225, -65)
+shape = SubResource("RectangleShape2D_4bdhm")
+
+[node name="Label" type="Label" parent="."]
+offset_left = 1316.0
+offset_top = 987.0
+offset_right = 1903.0
+offset_bottom = 1042.0
+theme_override_font_sizes/font_size = 80
+text = "Rapier2D Fluid using Salva2D"
+
+[node name="StaticBody2D3" type="StaticBody2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D3"]
+position = Vector2(1380, 1879)
+shape = SubResource("CircleShape2D_k12t3")
+
+[node name="PinJoint2D" type="PinJoint2D" parent="."]
+position = Vector2(1384, 1875)
+node_a = NodePath("../StaticBody2D3")
+node_b = NodePath("../RigidBody2D")
+motor_enabled = true
+motor_target_velocity = 872.665
+
+[node name="RigidBody2D" type="RigidBody2D" parent="."]
+position = Vector2(1363, 1874)
+mass = 200.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D"]
+position = Vector2(12, 141.5)
+shape = SubResource("RectangleShape2D_q8nq7")
+
+[connection signal="timeout" from="Faucet/Timer" to="Faucet" method="_on_timer_timeout"]

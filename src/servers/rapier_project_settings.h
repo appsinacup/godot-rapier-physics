@@ -27,7 +27,6 @@ public:
 	static double get_fluid_gravity_value();
 	static double get_fluid_smoothing_factor();
 	static double get_fluid_particle_radius();
-	static bool get_fluid_draw_debug();
 };
 
 #endif // RAPIER_PROJECT_SETTINGS_H

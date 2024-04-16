@@ -95,6 +95,20 @@ void Fluid2D::set_points(PackedVector2Array p_points) {
 	queue_redraw();
 }
 
+void Fluid2D::set_points_and_velocities(PackedVector2Array p_points, PackedVector2Array p_velocities) {
+	RapierPhysicsServer2D *rapier_physics_server = _get_rapier_physics_server();
+	if (!rapier_physics_server) {
+		return;
+	}
+	points = p_points;
+	Transform2D gl_transform = get_global_transform();
+	for (int i = 0; i < p_points.size(); i++) {
+		p_points[i] = gl_transform.xform(p_points[i]);
+	}
+	rapier_physics_server->fluid_set_points_and_velocities(rid, p_points, p_velocities);
+	queue_redraw();
+}
+
 RID Fluid2D::get_rid() const {
 	return rid;
 }
@@ -119,6 +133,7 @@ void Fluid2D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::PACKED_VECTOR2_ARRAY, "velocities"), "", "get_velocities");
 	ClassDB::bind_method(D_METHOD("get_points"), &Fluid2D::get_points);
 	ClassDB::bind_method(D_METHOD("set_points", "points"), &Fluid2D::set_points);
+	ClassDB::bind_method(D_METHOD("set_points_and_velocities", "points", "velocities"), &Fluid2D::set_points_and_velocities);
 	ADD_PROPERTY(PropertyInfo(Variant::PACKED_VECTOR2_ARRAY, "points"), "set_points", "get_points");
 
 	ClassDB::bind_method(D_METHOD("get_density"), &Fluid2D::get_density);
@@ -135,6 +150,23 @@ void Fluid2D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("create_rectangle_points", "width", "height"), &Fluid2D::create_rectangle_points);
 	ClassDB::bind_method(D_METHOD("create_circle_points", "radius"), &Fluid2D::create_circle_points);
+
+	ClassDB::bind_method(D_METHOD("set_debug_draw", "debug_draw"), &Fluid2D::set_debug_draw);
+	ClassDB::bind_method(D_METHOD("get_debug_draw"), &Fluid2D::get_debug_draw);
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "debug_draw"), "set_debug_draw", "get_debug_draw");
+}
+
+void Fluid2D::set_debug_draw(bool p_debug_draw) {
+	if (debug_draw != p_debug_draw) {
+		debug_draw = p_debug_draw;
+		set_process(debug_draw);
+		set_notify_transform(debug_draw);
+		queue_redraw();
+	}
+}
+
+bool Fluid2D::get_debug_draw() const {
+	return debug_draw;
 }
 
 Fluid2D::Fluid2D() {
@@ -144,15 +176,7 @@ Fluid2D::Fluid2D() {
 	}
 	rid = rapier_physics_server->fluid_create();
 	radius = RapierProjectSettings::get_fluid_particle_radius();
-
-	debug_draw = RapierProjectSettings::get_fluid_draw_debug();
-	if (Engine::get_singleton()->is_editor_hint()) {
-		debug_draw = true;
-	}
-	if (debug_draw) {
-		set_process(true);
-		set_notify_transform(true);
-	}
+	set_debug_draw(true);
 }
 
 Fluid2D::~Fluid2D() {
@@ -171,7 +195,6 @@ void Fluid2D::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_PROCESS: {
 			if (debug_draw) {
-				points = get_points();
 				queue_redraw();
 			}
 		} break;
