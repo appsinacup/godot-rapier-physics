@@ -19,16 +19,18 @@
 
 A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engine v4.2](https://github.com/godotengine/godot), implemented as a GDExtension. Also integrates with salva for 2d fluids.
 
-# Features
-
-- Parallel support (for non enhnanced determinism builds)
-- SIMD (Single instruction, multiple data) build.
-- Better physics stability.
-- Fluids with surface tension, viscousity and elastic liquids.
-
 <p align="center">
 <img src="rapier-vid.gif"/>
 </p>
+
+# Features
+
+- Parallel support and SIMD build for better performance.
+- Better physics stability.
+- Fluids with surface tension, viscosity and elasticity.
+- *DISABLED* 32 bits and 64 bits support.
+- *DISABLED* Cross platform determinism.
+
 
 <p align="center">
 <img src="Fluid2d.gif"/>
@@ -39,6 +41,7 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 - SeparationRay2D missing [issues/5](https://github.com/appsinacup/godot-rapier-2d/issues/5)
 - Web exports not working [issues/23](https://github.com/appsinacup/godot-rapier-2d/issues/23)
 - Cross platform determinism isn't working [issues/47](https://github.com/appsinacup/godot-rapier-2d/issues/47)
+- Double build isn't working [issues/61](https://github.com/appsinacup/godot-rapier-2d/issues/61)
 
 # Supported Platforms
 
@@ -47,7 +50,7 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 - Linux (x86_64)
 - Android (x86_64, arm64)
 - iOS (arm64)
-- Web (wasm32)
+- *DISABLED* Web (wasm32)
 
 # Installation
 
@@ -58,6 +61,10 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 - Build it yourself. Read more about it in the [documentation](DOCUMENTATION.md).
 
 After installing, go to `Advanced Settings` -> `Physics` -> `2D`. Change `Physics Engine` to `Rapier2D`.
+
+# Samples
+
+After installing the addon, the samples are in the `samples/godot-rapier2d` folder. In order to run them, you have to enable the physics engine for some extra features to work (eg. fluids) as described above.
 
 # Contribute
 

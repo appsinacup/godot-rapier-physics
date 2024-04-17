@@ -389,6 +389,12 @@ void fluid_add_effect_viscosity_xsph(Handle world_handle,
 		Real fluid_viscosity_coefficient,
 		Real boundary_viscosity_coefficient);
 
+void fluid_add_points_and_velocities(Handle world_handle,
+		HandleDouble fluid_handle,
+		const Vector *pixel_points,
+		size_t point_count,
+		const Vector *velocity_points);
+
 void fluid_change_density(Handle world_handle, HandleDouble fluid_handle, Real density);
 
 void fluid_change_points(Handle world_handle,
@@ -405,6 +411,11 @@ void fluid_change_points_and_velocities(Handle world_handle,
 void fluid_clear_effects(Handle world_handle, HandleDouble fluid_handle);
 
 HandleDouble fluid_create(Handle world_handle, Real density);
+
+void fluid_delete_points(Handle world_handle,
+		HandleDouble fluid_handle,
+		const size_t *indexes,
+		size_t indexes_count);
 
 void fluid_destroy(Handle world_handle, HandleDouble fluid_handle);
 

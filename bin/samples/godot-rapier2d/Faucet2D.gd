@@ -1,6 +1,7 @@
+class_name Faucet2D
 extends Node2D
 
-@export var fluid :Fluid2D
+@export var fluid : Fluid2D
 
 var points: PackedVector2Array
 var velocities: PackedVector2Array
@@ -13,5 +14,4 @@ func _ready():
 func _on_timer_timeout():
 	if len(fluid.points) > 2000:
 		return
-	fluid.set_points_and_velocities(fluid.points+points, fluid.velocities+velocities)
-	print(len(fluid.points))
+	fluid.add_points_and_velocities(points, velocities)
