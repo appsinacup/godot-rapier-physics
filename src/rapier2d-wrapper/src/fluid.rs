@@ -133,14 +133,12 @@ pub extern "C" fn fluid_add_points_and_velocities(world_handle : Handle, fluid_h
     let fluid = physics_world.fluids_pipeline.liquid_world.fluids_mut().get_mut(handle_to_fluid_handle(fluid_handle));
     assert!(fluid.is_some());
     let fluid = fluid.unwrap();
-    let mut points = pixel_point_array_to_vec(pixel_points, point_count);
-    let mut velocities = pixel_vector_array_to_vec(velocity_points, point_count);
+    let points = pixel_point_array_to_vec(pixel_points, point_count);
+    let velocities = pixel_vector_array_to_vec(velocity_points, point_count);
     // add old positions from fluid
-    points.extend_from_slice(&fluid.positions);
-    velocities.extend_from_slice(&fluid.velocities);
-    let new_point_count = points.len();
-    fluid.positions = points;
-    fluid.velocities = velocities;
+    fluid.positions.extend_from_slice(&points);
+    fluid.velocities.extend_from_slice(&velocities);
+    let new_point_count = fluid.positions.len();
     let mut accelerations: Vec<_> = std::iter::repeat(salva2d::math::Vector::zeros())
         .take(new_point_count)
         .collect();

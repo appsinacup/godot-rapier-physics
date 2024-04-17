@@ -5,8 +5,8 @@
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/classes/rendering_server.hpp>
-#include <godot_cpp/classes/world2d.hpp>
 #include <godot_cpp/classes/time.hpp>
+#include <godot_cpp/classes/world2d.hpp>
 
 RapierPhysicsServer2D *_get_rapier_physics_server() {
 	auto *physics_server = dynamic_cast<RapierPhysicsServer2D *>(PhysicsServer2D::get_singleton());
@@ -104,7 +104,7 @@ void Fluid2D::set_points(PackedVector2Array p_points) {
 	int old_times = create_times.size();
 	create_times.resize(p_points.size());
 	uint64_t ticks = Time::get_singleton()->get_ticks_msec();
-	for (int i=old_times; i<p_points.size(); i++) {
+	for (int i = old_times; i < p_points.size(); i++) {
 		create_times[i] = ticks;
 	}
 	Transform2D gl_transform = get_global_transform();
@@ -122,10 +122,9 @@ void Fluid2D::add_points_and_velocities(PackedVector2Array p_points, PackedVecto
 	}
 	points.append_array(p_points);
 	int old_times = create_times.size();
-	create_times.resize(points.size());
 	uint64_t ticks = Time::get_singleton()->get_ticks_msec();
-	for (int i=old_times; i<create_times.size(); i++) {
-		create_times[i] = ticks;
+	for (int i = old_times; i < points.size(); i++) {
+		create_times.append(ticks);
 	}
 	Transform2D gl_transform = get_global_transform();
 	for (int i = 0; i < p_points.size(); i++) {
@@ -143,7 +142,7 @@ void Fluid2D::set_points_and_velocities(PackedVector2Array p_points, PackedVecto
 	points = p_points;
 	int old_times = create_times.size();
 	create_times.resize(p_points.size());
-	for (int i=old_times; i<p_points.size(); i++) {
+	for (int i = old_times; i < p_points.size(); i++) {
 		create_times[i] = Time::get_singleton()->get_ticks_msec();
 	}
 	Transform2D gl_transform = get_global_transform();
@@ -159,11 +158,11 @@ void Fluid2D::delete_points(PackedInt32Array p_indices) {
 	if (!rapier_physics_server) {
 		return;
 	}
+	rapier_physics_server->fluid_delete_points(rid, p_indices);
 	for (int i = 0; i < p_indices.size(); i++) {
 		points.remove_at(p_indices[i]);
 		create_times.remove_at(p_indices[i]);
 	}
-	rapier_physics_server->fluid_delete_points(rid, p_indices);
 	queue_redraw();
 }
 
@@ -275,7 +274,7 @@ void Fluid2D::_notification(int p_what) {
 				queue_redraw();
 			}
 			ticks++;
-			if (ticks % 60 == 0) { 
+			if (ticks % 60 == 0) {
 				_delete_old_particles();
 			}
 		} break;

@@ -80,8 +80,6 @@ void RapierFluid2D::add_points_and_velocities(PackedVector2Array p_points, Packe
 	}
 }
 
-
-
 void RapierFluid2D::delete_points(PackedInt32Array p_indices) {
 	if (space) {
 		size_t *rapier_indexes = (size_t *)alloca(p_indices.size() * sizeof(size_t));
@@ -98,7 +96,6 @@ void RapierFluid2D::delete_points(PackedInt32Array p_indices) {
 		rapier2d::fluid_delete_points(space_handle, fluid_handle, rapier_indexes, p_indices.size());
 	}
 }
-
 
 PackedVector2Array RapierFluid2D::get_points() {
 	if (space) {

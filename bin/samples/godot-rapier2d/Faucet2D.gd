@@ -12,9 +12,6 @@ func _ready():
 	velocities.fill(Vector2(0, 980))
 
 func _on_timer_timeout():
-	if len(fluid.points) > 4000:
+	if len(fluid.points) > 2000:
 		return
 	fluid.add_points_and_velocities(points, velocities)
-	#print(len(fluid.points))
-	#print(len(fluid.get_create_times()))
-	#print(fluid.get_create_times())

@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3 uid="uid://dudno1v5vtvh"]
+[gd_scene load_steps=20 format=3 uid="uid://dudno1v5vtvh"]
 
 [ext_resource type="Script" path="res://samples/godot-rapier2d/Faucet2D.gd" id="1_omq0c"]
 [ext_resource type="Script" path="res://addons/godot-rapier2d/Fluid2DRectangle.gd" id="2_x6a0h"]
@@ -46,8 +46,6 @@ size = Vector2(44, 260)
 radius = 75.0
 height = 200.0
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_52dqp"]
-
 [node name="Node2D" type="Node2D"]
 
 [node name="Faucet" type="Node2D" parent="." node_paths=PackedStringArray("fluid")]
@@ -60,8 +58,8 @@ wait_time = 0.05
 autostart = true
 
 [node name="Fluid2D" type="Fluid2D" parent="."]
-points = PackedVector2Array(0, 0, 40, 0, 80, 0, 120, 0, 160, 0, 0, 40, 40, 40, 80, 40, 120, 40, 160, 40)
 density = 200.0
+lifetime = 20.0
 effects = Array[FluidEffect2D]([SubResource("FluidEffect2DViscosityXSPH_y3smb"), SubResource("FluidEffect2DSurfaceTensionAKINCI_amypy")])
 debug_draw = false
 modulate = Color(0.654902, 0.768627, 1, 1)
@@ -75,7 +73,7 @@ position = Vector2(-220, -59)
 multimesh = ExtResource("3_880wm")
 texture = ExtResource("4_xdgjh")
 script = ExtResource("5_2rahx")
-color = Color(0.380392, 0.576471, 1, 1)
+color = Color(0.552941, 0.701961, 1, 1)
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
 position = Vector2(126, 282)
@@ -220,14 +218,5 @@ script = ExtResource("6_wpnii")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D"]
 shape = SubResource("CapsuleShape2D_re251")
-
-[node name="RigidBody2D" type="Area2D" parent="."]
-position = Vector2(290, 63)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D"]
-position = Vector2(63, 31)
-shape = SubResource("CircleShape2D_52dqp")
-disabled = true
-one_way_collision = true
 
 [connection signal="timeout" from="Faucet/Timer" to="Faucet" method="_on_timer_timeout"]
