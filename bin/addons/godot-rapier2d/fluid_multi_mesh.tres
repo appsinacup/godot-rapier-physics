@@ -15,4 +15,5 @@ _surfaces = [{
 }]
 
 [resource]
+use_colors = true
 mesh = SubResource("ArrayMesh_gi4ki")

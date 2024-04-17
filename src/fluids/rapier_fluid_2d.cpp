@@ -60,6 +60,46 @@ void RapierFluid2D::set_points_and_velocities(PackedVector2Array p_points, Packe
 	}
 }
 
+void RapierFluid2D::add_points_and_velocities(PackedVector2Array p_points, PackedVector2Array p_velocities) {
+	points.append_array(p_points);
+	velocities.append_array(p_velocities);
+	accelerations.resize(points.size());
+	if (space) {
+		rapier2d::Handle space_handle = space->get_handle();
+		ERR_FAIL_COND(!rapier2d::is_handle_valid(space_handle));
+		ERR_FAIL_COND(!rapier2d::is_handle_valid_double(fluid_handle));
+
+		rapier2d::Vector *rapier_points = (rapier2d::Vector *)alloca(p_points.size() * sizeof(rapier2d::Vector));
+		rapier2d::Vector *rapier_velocities = (rapier2d::Vector *)alloca(p_velocities.size() * sizeof(rapier2d::Vector));
+		for (int i = 0; i < p_points.size(); i++) {
+			rapier_points[i] = rapier2d::Vector{ (p_points[i].x), (p_points[i].y) };
+			rapier_velocities[i] = rapier2d::Vector{ (p_velocities[i].x), (p_velocities[i].y) };
+		}
+
+		rapier2d::fluid_add_points_and_velocities(space_handle, fluid_handle, rapier_points, p_points.size(), rapier_velocities);
+	}
+}
+
+
+
+void RapierFluid2D::delete_points(PackedInt32Array p_indices) {
+	if (space) {
+		size_t *rapier_indexes = (size_t *)alloca(p_indices.size() * sizeof(size_t));
+
+		for (int i = 0; i < p_indices.size(); i++) {
+			rapier_indexes[i] = p_indices[i];
+			points.remove_at(p_indices[i]);
+			velocities.remove_at(p_indices[i]);
+			accelerations.remove_at(p_indices[i]);
+		}
+		rapier2d::Handle space_handle = space->get_handle();
+		ERR_FAIL_COND(!rapier2d::is_handle_valid(space_handle));
+		ERR_FAIL_COND(!rapier2d::is_handle_valid_double(fluid_handle));
+		rapier2d::fluid_delete_points(space_handle, fluid_handle, rapier_indexes, p_indices.size());
+	}
+}
+
+
 PackedVector2Array RapierFluid2D::get_points() {
 	if (space) {
 		rapier2d::Handle space_handle = space->get_handle();

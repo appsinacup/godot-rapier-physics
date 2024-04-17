@@ -33,7 +33,15 @@
 			"string_view": "cpp",
 			"__config": "cpp",
 			"deque": "cpp",
-			"list": "cpp"
+			"list": "cpp",
+			"__hash_table": "cpp",
+			"__split_buffer": "cpp",
+			"__tree": "cpp",
+			"array": "cpp",
+			"initializer_list": "cpp",
+			"queue": "cpp",
+			"span": "cpp",
+			"stack": "cpp"
 		}
 	},
 	"launch": {
@@ -66,9 +74,9 @@
 				},
 				"args": [
 					"--path",
-					"${workspaceFolder:godot-rapier-2d}/samples/godot-rapier2d",
+					"${workspaceFolder:godot-rapier-2d}/bin",
 					"--debug-collisions",
-					"test_fluid.tscn"
+					"samples/godot-rapier2d/test_fluid.tscn"
 				]
 			}
 		]

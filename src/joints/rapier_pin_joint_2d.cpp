@@ -13,7 +13,6 @@ void RapierPinJoint2D::set_param(PhysicsServer2D::PinJointParam p_param, real_t 
 			motor_target_velocity = p_value;
 		} break;
 		case PhysicsServer2D::PIN_JOINT_SOFTNESS: {
-			WARN_PRINT_ONCE("PIN_JOINT_SOFTNESS is unused");
 			return;
 		}
 	}
@@ -34,7 +33,6 @@ real_t RapierPinJoint2D::get_param(PhysicsServer2D::PinJointParam p_param) const
 			return motor_target_velocity;
 		}
 		case PhysicsServer2D::PIN_JOINT_SOFTNESS: {
-			WARN_PRINT_ONCE("PIN_JOINT_SOFTNESS is unused");
 			return 0.0;
 		}
 	}
