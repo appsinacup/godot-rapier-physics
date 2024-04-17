@@ -19,10 +19,6 @@ void RapierCollisionObject2D::add_shape(RapierShape2D *p_shape, const Transform2
 	shapes.push_back(shape);
 	p_shape->add_owner(this);
 
-	//if (!pending_shape_update_list.in_list()) {
-	//	RapierPhysicsServer2D::singleton->pending_shape_update_list.add(&pending_shape_update_list);
-	//}
-
 	if (space) {
 		_shapes_changed();
 	}
@@ -45,10 +41,6 @@ void RapierCollisionObject2D::set_shape(int p_index, RapierShape2D *p_shape) {
 		_update_shape_transform(shape);
 	}
 
-	//if (!pending_shape_update_list.in_list()) {
-	//	RapierPhysicsServer2D::singleton->pending_shape_update_list.add(&pending_shape_update_list);
-	//}
-
 	if (space) {
 		_shapes_changed();
 	}
@@ -61,10 +53,6 @@ void RapierCollisionObject2D::set_shape_transform(int p_index, const Transform2D
 	shape.xform = p_transform;
 
 	_update_shape_transform(shape);
-
-	//if (!pending_shape_update_list.in_list()) {
-	//	RapierPhysicsServer2D::singleton->pending_shape_update_list.add(&pending_shape_update_list);
-	//}
 
 	if (space) {
 		_shapes_changed();
@@ -87,22 +75,6 @@ void RapierCollisionObject2D::set_shape_disabled(int p_index, bool p_disabled) {
 		_create_shape(shape, p_index);
 		_update_shape_transform(shape);
 	}
-
-	// if (p_disabled && shape.bpid != 0) {
-	// 	space->get_broadphase()->remove(shape.bpid);
-	// 	shape.bpid = 0;
-	// 	if (!pending_shape_update_list.in_list()) {
-	// 		RapierPhysicsServer2D::singleton->pending_shape_update_list.add(&pending_shape_update_list);
-	// 	}
-	// } else if (!p_disabled && shape.bpid == 0) {
-	// 	if (!pending_shape_update_list.in_list()) {
-	// 		RapierPhysicsServer2D::singleton->pending_shape_update_list.add(&pending_shape_update_list);
-	// 	}
-	// }
-
-	//if (!pending_shape_update_list.in_list()) {
-	//	RapierPhysicsServer2D::singleton->pending_shape_update_list.add(&pending_shape_update_list);
-	//}
 
 	if (space) {
 		_shapes_changed();
@@ -131,10 +103,6 @@ void RapierCollisionObject2D::remove_shape(int p_index) {
 
 	shape.shape->remove_owner(this);
 	shapes.remove_at(p_index);
-
-	//if (!pending_shape_update_list.in_list()) {
-	//	RapierPhysicsServer2D::singleton->pending_shape_update_list.add(&pending_shape_update_list);
-	//}
 
 	if (space) {
 		_shapes_changed();
@@ -232,7 +200,7 @@ void RapierCollisionObject2D::_destroy_shape(Shape &shape, uint32_t p_shape_inde
 }
 
 void RapierCollisionObject2D::_update_shape_transform(const Shape &shape) {
-	if (!space) {
+	if (!space || shape.disabled) {
 		return;
 	}
 
@@ -355,6 +323,5 @@ void RapierCollisionObject2D::_shape_changed(RapierShape2D *p_shape) {
 }
 
 RapierCollisionObject2D::RapierCollisionObject2D(Type p_type) {
-	//: pending_shape_update_list(this) {
 	type = p_type;
 }

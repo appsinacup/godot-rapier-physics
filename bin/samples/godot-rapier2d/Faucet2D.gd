@@ -15,6 +15,6 @@ func _on_timer_timeout():
 	if len(fluid.points) > 4000:
 		return
 	fluid.add_points_and_velocities(points, velocities)
-	print(len(fluid.points))
-	print(len(fluid.get_create_times()))
-	print(fluid.get_create_times())
+	#print(len(fluid.points))
+	#print(len(fluid.get_create_times()))
+	#print(fluid.get_create_times())
