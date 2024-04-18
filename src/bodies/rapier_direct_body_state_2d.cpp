@@ -5,22 +5,23 @@
 #include "rapier_body_2d.h"
 
 Vector2 RapierDirectBodyState2D::_get_total_gravity() const {
-	ERR_FAIL_COND_V(body->get_space(), Vector2());
 	if (body->using_area_gravity) {
 		return body->total_gravity;
 	} else {
-		Vector2 default_gravity = body->get_space()->get_default_area_param(PhysicsServer2D::AREA_PARAM_GRAVITY);
-		return body->gravity_scale * default_gravity;
+		ERR_FAIL_COND_V(!body->get_space(), Vector2());
+		real_t default_gravity = body->get_space()->get_default_area_param(PhysicsServer2D::AREA_PARAM_GRAVITY);
+		Vector2 default_gravity_vector = body->get_space()->get_default_area_param(PhysicsServer2D::AREA_PARAM_GRAVITY_VECTOR);
+		return body->gravity_scale * default_gravity_vector * default_gravity;
 	}
 }
 
 double RapierDirectBodyState2D::_get_total_angular_damp() const {
-	ERR_FAIL_COND_V(body->get_space(), 0.0);
+	ERR_FAIL_COND_V(!body->get_space(), 0.0);
 	return body->total_angular_damping;
 }
 
 double RapierDirectBodyState2D::_get_total_linear_damp() const {
-	ERR_FAIL_COND_V(body->get_space(), 0.0);
+	ERR_FAIL_COND_V(!body->get_space(), 0.0);
 	return body->total_linear_damping;
 }
 
