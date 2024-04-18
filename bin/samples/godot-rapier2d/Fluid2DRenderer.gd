@@ -4,7 +4,10 @@ extends MultiMeshInstance2D
 @onready var fluid :Fluid2D = get_parent()
 @export var color: Color
 
-func _process(delta):
+func _ready():
+	multimesh = multimesh.duplicate(true)
+
+func _process(_delta):
 	var index = 0
 	multimesh.instance_count = fluid.points.size()
 	var points = fluid.points
