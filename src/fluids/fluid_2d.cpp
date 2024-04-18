@@ -237,7 +237,6 @@ Fluid2D::Fluid2D() {
 	}
 	rid = rapier_physics_server->fluid_create();
 	radius = RapierProjectSettings::get_fluid_particle_radius();
-	set_debug_draw(true);
 }
 
 Fluid2D::~Fluid2D() {
@@ -249,6 +248,9 @@ Fluid2D::~Fluid2D() {
 }
 
 void Fluid2D::_delete_old_particles() {
+	if (lifetime <= 0.0) {
+		return;
+	}
 	uint64_t ticks = Time::get_singleton()->get_ticks_msec();
 	PackedInt32Array to_remove;
 	for (int i = 0; i < create_times.size(); i++) {
