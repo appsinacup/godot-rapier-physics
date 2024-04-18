@@ -15,6 +15,8 @@ func _process(delta):
 		var created_at = create_times[i]
 		var life_remain = fluid.lifetime - (current_time - created_at) / 1000.0 + 0.5
 		var new_transform: Transform2D = Transform2D()
+		if fluid.lifetime == 0:
+			life_remain = 1
 		var new_color : Color = Color(color, life_remain)
 		new_transform.origin = point - position
 		multimesh.set_instance_transform_2d(index, new_transform)

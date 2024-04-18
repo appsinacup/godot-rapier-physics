@@ -17,7 +17,3 @@ config/features=PackedStringArray("4.2", "Forward Plus")
 
 window/size/viewport_width=1920
 window/size/viewport_height=1080
-
-[physics]
-
-2d/physics_engine="Rapier2D"

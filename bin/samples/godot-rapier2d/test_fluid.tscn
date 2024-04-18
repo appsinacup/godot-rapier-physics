@@ -1,10 +1,11 @@
-[gd_scene load_steps=20 format=3 uid="uid://dudno1v5vtvh"]
+[gd_scene load_steps=21 format=3 uid="uid://dudno1v5vtvh"]
 
 [ext_resource type="Script" path="res://samples/godot-rapier2d/Faucet2D.gd" id="1_omq0c"]
 [ext_resource type="Script" path="res://addons/godot-rapier2d/Fluid2DRectangle.gd" id="2_x6a0h"]
 [ext_resource type="MultiMesh" uid="uid://d0bhettx43xt1" path="res://addons/godot-rapier2d/fluid_multi_mesh.tres" id="3_880wm"]
 [ext_resource type="Texture2D" uid="uid://bjnvmmcdjgbu6" path="res://addons/godot-rapier2d/Node2D.svg" id="4_xdgjh"]
 [ext_resource type="Script" path="res://addons/godot-rapier2d/Fluid2DRenderer.gd" id="5_2rahx"]
+[ext_resource type="Script" path="res://samples/godot-rapier2d/RigidBody2D.gd" id="6_bfvru"]
 [ext_resource type="Script" path="res://samples/godot-rapier2d/CharacterBody2D.gd" id="6_wpnii"]
 
 [sub_resource type="FluidEffect2DViscosityXSPH" id="FluidEffect2DViscosityXSPH_y3smb"]
@@ -59,7 +60,6 @@ autostart = true
 
 [node name="Fluid2D" type="Fluid2D" parent="."]
 density = 200.0
-lifetime = 20.0
 effects = Array[FluidEffect2D]([SubResource("FluidEffect2DViscosityXSPH_y3smb"), SubResource("FluidEffect2DSurfaceTensionAKINCI_amypy")])
 debug_draw = false
 modulate = Color(0.654902, 0.768627, 1, 1)
@@ -201,6 +201,9 @@ motor_target_velocity = 349.066
 [node name="RigidBody2D" type="RigidBody2D" parent="PinJoint2D2"]
 position = Vector2(-21, -1)
 mass = 400.0
+max_contacts_reported = 4
+contact_monitor = true
+script = ExtResource("6_bfvru")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PinJoint2D2/RigidBody2D"]
 position = Vector2(24, 122)
@@ -220,3 +223,4 @@ script = ExtResource("6_wpnii")
 shape = SubResource("CapsuleShape2D_re251")
 
 [connection signal="timeout" from="Faucet/Timer" to="Faucet" method="_on_timer_timeout"]
+[connection signal="body_entered" from="PinJoint2D2/RigidBody2D" to="PinJoint2D2/RigidBody2D" method="_on_body_entered"]
