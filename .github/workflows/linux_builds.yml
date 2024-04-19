@@ -27,7 +27,7 @@ jobs:
 
       - name: Fix 32bit and arm64 libs
         run: |
-          sudo apt-get install gcc-multilib g++-multilib
+          sudo apt-get install gcc-multilib g++-multilib --fix-missing
 
       - name: Build ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/build
