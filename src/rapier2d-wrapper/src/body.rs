@@ -325,8 +325,9 @@ pub extern "C" fn body_apply_impulse_at_point(world_handle : Handle, body_handle
     assert!(body.is_some());
     let mut local_point = point![point.x, point.y];
     let body = body.unwrap();
+    let impulse = vector!(impulse.x, impulse.y) * body.mass();
     local_point += body.center_of_mass().coords;
-    body.apply_impulse_at_point(vector!(impulse.x, impulse.y), local_point, true);
+    body.apply_impulse_at_point(impulse, local_point, true);
 }
 
 #[no_mangle]
