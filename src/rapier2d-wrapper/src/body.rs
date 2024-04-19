@@ -144,8 +144,13 @@ pub extern "C" fn body_update_material(world_handle : Handle, body_handle : Hand
     assert!(body.is_some());
     for collider in body.unwrap().colliders() {
         if let Some(col) = physics_world.collider_set.get_mut(*collider) {
-            col.set_friction(mat.friction);
-            col.set_restitution(mat.restitution);
+            // TODO update when https://github.com/dimforge/rapier/issues/622 is fixed
+            if mat.friction >= 0.0 {
+                col.set_friction(mat.friction);
+            }
+            if mat.restitution >= 0.0 {
+                col.set_restitution(mat.restitution);
+            }
         }
     }
 }

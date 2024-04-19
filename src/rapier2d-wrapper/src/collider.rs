@@ -136,8 +136,13 @@ pub extern "C" fn collider_create_solid(world_handle : Handle, shape_handle : Ha
     let mut physics_engine = singleton().lock().unwrap();
     let shape = physics_engine.get_shape(shape_handle);
     let mut collider = ColliderBuilder::new(shape.clone()).contact_force_event_threshold(-Real::MAX).build();
-    collider.set_friction(mat.friction);
-    collider.set_restitution(mat.restitution);
+    // TODO update when https://github.com/dimforge/rapier/issues/622 is fixed
+    if mat.friction >= 0.0 {
+        collider.set_friction(mat.friction);
+    }
+    if mat.restitution >= 0.0 {
+        collider.set_restitution(mat.restitution);
+    }
     collider.set_friction_combine_rule(CoefficientCombineRule::Multiply);
     collider.set_restitution_combine_rule(CoefficientCombineRule::Max);
     collider.set_density(0.0);
