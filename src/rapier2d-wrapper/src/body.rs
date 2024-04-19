@@ -144,8 +144,13 @@ pub extern "C" fn body_update_material(world_handle : Handle, body_handle : Hand
     assert!(body.is_some());
     for collider in body.unwrap().colliders() {
         if let Some(col) = physics_world.collider_set.get_mut(*collider) {
-            col.set_friction(mat.friction);
-            col.set_restitution(mat.restitution);
+            // TODO update when https://github.com/dimforge/rapier/issues/622 is fixed
+            if mat.friction >= 0.0 {
+                col.set_friction(mat.friction);
+            }
+            if mat.restitution >= 0.0 {
+                col.set_restitution(mat.restitution);
+            }
         }
     }
 }
@@ -310,7 +315,9 @@ pub extern "C" fn body_apply_impulse(world_handle : Handle, body_handle : Handle
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     let body = physics_world.rigid_body_set.get_mut(rigid_body_handle);
     assert!(body.is_some());
-    body.unwrap().apply_impulse(vector!(impulse.x, impulse.y), true);
+    let body = body.unwrap();
+    let impulse = vector!(impulse.x, impulse.y);
+    body.apply_impulse(impulse, true);
 }
 
 #[no_mangle]
@@ -325,8 +332,9 @@ pub extern "C" fn body_apply_impulse_at_point(world_handle : Handle, body_handle
     assert!(body.is_some());
     let mut local_point = point![point.x, point.y];
     let body = body.unwrap();
+    let impulse = vector!(impulse.x, impulse.y);
     local_point += body.center_of_mass().coords;
-    body.apply_impulse_at_point(vector!(impulse.x, impulse.y), local_point, true);
+    body.apply_impulse_at_point(impulse, local_point, true);
 }
 
 #[no_mangle]
