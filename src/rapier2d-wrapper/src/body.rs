@@ -310,7 +310,9 @@ pub extern "C" fn body_apply_impulse(world_handle : Handle, body_handle : Handle
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     let body = physics_world.rigid_body_set.get_mut(rigid_body_handle);
     assert!(body.is_some());
-    body.unwrap().apply_impulse(vector!(impulse.x, impulse.y), true);
+    let body = body.unwrap();
+    let impulse = vector!(impulse.x, impulse.y) * body.mass();
+    body.apply_impulse(impulse, true);
 }
 
 #[no_mangle]
