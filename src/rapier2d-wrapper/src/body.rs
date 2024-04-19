@@ -316,7 +316,7 @@ pub extern "C" fn body_apply_impulse(world_handle : Handle, body_handle : Handle
     let body = physics_world.rigid_body_set.get_mut(rigid_body_handle);
     assert!(body.is_some());
     let body = body.unwrap();
-    let impulse = vector!(impulse.x, impulse.y) * body.mass();
+    let impulse = vector!(impulse.x, impulse.y);
     body.apply_impulse(impulse, true);
 }
 
@@ -332,7 +332,7 @@ pub extern "C" fn body_apply_impulse_at_point(world_handle : Handle, body_handle
     assert!(body.is_some());
     let mut local_point = point![point.x, point.y];
     let body = body.unwrap();
-    let impulse = vector!(impulse.x, impulse.y) * body.mass();
+    let impulse = vector!(impulse.x, impulse.y);
     local_point += body.center_of_mass().coords;
     body.apply_impulse_at_point(impulse, local_point, true);
 }
