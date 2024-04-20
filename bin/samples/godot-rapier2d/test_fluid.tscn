@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://dudno1v5vtvh"]
+[gd_scene load_steps=16 format=3 uid="uid://dudno1v5vtvh"]
 
 [ext_resource type="Script" path="res://samples/godot-rapier2d/Faucet2D.gd" id="1_omq0c"]
 [ext_resource type="MultiMesh" uid="uid://d0bhettx43xt1" path="res://samples/godot-rapier2d/fluid_multi_mesh.tres" id="3_880wm"]
@@ -33,17 +33,10 @@ size = Vector2(80, 260)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_k12t3"]
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_y42gw"]
-noise_type = 4
-fractal_gain = 0.59
-domain_warp_enabled = true
-domain_warp_type = 1
+[sub_resource type="GDScript" id="GDScript_0oosp"]
+script/source = "extends SubViewport
 
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_4as7b"]
-generate_mipmaps = false
-seamless = true
-normalize = false
-noise = SubResource("FastNoiseLite_y42gw")
+"
 
 [node name="Node2D" type="Node2D"]
 
@@ -52,7 +45,6 @@ points = PackedVector2Array(1827, 1651, 1867, 1651, 1907, 1651, 1947, 1651, 1987
 density = 80.0
 lifetime = 20.0
 effects = Array[FluidEffect2D]([SubResource("FluidEffect2DSurfaceTensionAKINCI_iggvj")])
-debug_draw = false
 modulate = Color(0.654902, 0.768627, 1, 1)
 position = Vector2(414, -1750)
 script = ExtResource("1_omq0c")
@@ -62,19 +54,11 @@ max_particles = 1500
 wait_time = 0.1
 autostart = true
 
-[node name="Fluid2DRenderer" type="MultiMeshInstance2D" parent="Water"]
-position = Vector2(-220, -59)
-multimesh = ExtResource("3_880wm")
-texture = ExtResource("3_py844")
-script = ExtResource("5_2rahx")
-color = Color(1, 0, 1, 1)
-
 [node name="Water2" type="Fluid2D" parent="."]
 points = PackedVector2Array(1827, 1651, 1867, 1651, 1907, 1651, 1947, 1651, 1987, 1651, 1827, 1691, 1867, 1691, 1907, 1691, 1947, 1691, 1987, 1691)
 density = 80.0
 lifetime = 20.0
 effects = Array[FluidEffect2D]([SubResource("FluidEffect2DSurfaceTensionAKINCI_iggvj")])
-debug_draw = false
 modulate = Color(0.654902, 0.768627, 1, 1)
 position = Vector2(-3485, -1736)
 script = ExtResource("1_omq0c")
@@ -83,13 +67,6 @@ max_particles = 1500
 [node name="Timer" type="Timer" parent="Water2"]
 wait_time = 0.1
 autostart = true
-
-[node name="Fluid2DRenderer" type="MultiMeshInstance2D" parent="Water2"]
-position = Vector2(-220, -59)
-multimesh = ExtResource("3_880wm")
-texture = ExtResource("3_py844")
-script = ExtResource("5_2rahx")
-color = Color(1, 0, 1, 1)
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
 position = Vector2(126, 282)
@@ -257,6 +234,40 @@ position = Vector2(-1384, -1875)
 position = Vector2(1380, 1879)
 shape = SubResource("CircleShape2D_k12t3")
 
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="CanvasLayer"]
+material = ExtResource("6_2yb6s")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="CanvasLayer/SubViewportContainer"]
+transparent_bg = true
+size = Vector2i(1920, 1080)
+script = SubResource("GDScript_0oosp")
+
+[node name="Fluid2DRenderer" type="MultiMeshInstance2D" parent="CanvasLayer/SubViewportContainer/SubViewport" node_paths=PackedStringArray("fluid")]
+multimesh = ExtResource("3_880wm")
+texture = ExtResource("3_py844")
+script = ExtResource("5_2rahx")
+fluid = NodePath("../../../../Water")
+color = Color(1, 1, 1, 1)
+
+[node name="Fluid2DRenderer2" type="MultiMeshInstance2D" parent="CanvasLayer/SubViewportContainer/SubViewport" node_paths=PackedStringArray("fluid")]
+multimesh = ExtResource("3_880wm")
+texture = ExtResource("3_py844")
+script = ExtResource("5_2rahx")
+fluid = NodePath("../../../../Water2")
+color = Color(1, 1, 1, 1)
+
+[node name="Camera2D" type="Camera2D" parent="CanvasLayer/SubViewportContainer/SubViewport"]
+position = Vector2(521, 1448)
+zoom = Vector2(0.3, 0.3)
+
 [node name="Label" type="Label" parent="."]
 offset_left = -2020.0
 offset_top = 2424.0
@@ -269,17 +280,6 @@ text = "Godot Rapier2D Fluid"
 z_index = -100
 color = Color(0.345098, 0.541176, 1, 1)
 polygon = PackedVector2Array(-5417, -1545, 6372, -1559, 6316, 5057, -5249, 4917)
-
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
-
-[node name="Water" type="TextureRect" parent="CanvasLayer"]
-material = ExtResource("6_2yb6s")
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = SubResource("NoiseTexture2D_4as7b")
 
 [connection signal="timeout" from="Water/Timer" to="Water" method="_on_timer_timeout"]
 [connection signal="timeout" from="Water2/Timer" to="Water2" method="_on_timer_timeout"]

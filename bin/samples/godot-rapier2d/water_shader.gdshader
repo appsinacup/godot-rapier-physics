@@ -7,18 +7,17 @@ uniform vec4 test_color: source_color = vec4(1,0,1,1);
 uniform float speed = 0.1; // Speed of movement
 uniform float amplitude = 0.1; // Amplitude of movement
 
-uniform sampler2D screen_texture: hint_screen_texture, filter_linear_mipmap;
+uniform sampler2D water_texture;
 
 void fragment(){
 	float displacement = sin(TIME * speed) * amplitude;
-	vec4 screen_tex = textureLod(screen_texture, SCREEN_UV, 2.5).rgba;
+	vec4 screen_tex = texture(TEXTURE, SCREEN_UV).rgba;
 	
-	// check if the color is pink i.e ff00ff
-	// if it is set it to the new color else set it to transparent
-	float color_distance = distance(test_color.rgb, screen_tex.rgb);
-	if (color_distance < threshold) {
-		COLOR = texture(TEXTURE, SCREEN_UV + displacement).rgba * water_color;
-		COLOR.a = (1.0-color_distance) * 100.0;
+
+	float color_distance = screen_tex.r;
+	if (color_distance > threshold) {
+		COLOR = texture(water_texture, SCREEN_UV + displacement).rgba * water_color;
+		COLOR.a = (color_distance - threshold) * 2.0;
 	} else {
 		COLOR = vec4(0.0);
 	}
