@@ -11,7 +11,7 @@ uniform sampler2D screen_texture: hint_screen_texture, filter_linear_mipmap;
 
 void fragment(){
 	float displacement = sin(TIME * speed) * amplitude;
-	vec4 screen_tex = textureLod(screen_texture, SCREEN_UV, 1.5).rgba;
+	vec4 screen_tex = textureLod(screen_texture, SCREEN_UV, 2.5).rgba;
 	
 	// check if the color is pink i.e ff00ff
 	// if it is set it to the new color else set it to transparent

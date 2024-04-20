@@ -33,7 +33,7 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 
 
 <p align="center">
-<img src="Fluid2d.gif"/>
+<img src="fluid_shader.gif"/>
 </p>
 
 # Limitations
