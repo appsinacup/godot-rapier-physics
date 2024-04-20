@@ -1,42 +1,23 @@
-[gd_scene load_steps=26 format=3 uid="uid://dudno1v5vtvh"]
+[gd_scene load_steps=17 format=3 uid="uid://dudno1v5vtvh"]
 
-[ext_resource type="Script" path="res://samples/godot-rapier2d/Fluid2DRectangle.gd" id="1_e1otf"]
 [ext_resource type="Script" path="res://samples/godot-rapier2d/Faucet2D.gd" id="1_omq0c"]
 [ext_resource type="MultiMesh" uid="uid://d0bhettx43xt1" path="res://samples/godot-rapier2d/fluid_multi_mesh.tres" id="3_880wm"]
-[ext_resource type="Texture2D" uid="uid://bjnvmmcdjgbu6" path="res://samples/godot-rapier2d/Circle2D.svg" id="4_xdgjh"]
+[ext_resource type="Texture2D" uid="uid://cho3shol3rky2" path="res://samples/godot-rapier2d/Radial2D.svg" id="3_py844"]
 [ext_resource type="Script" path="res://samples/godot-rapier2d/Fluid2DRenderer.gd" id="5_2rahx"]
-[ext_resource type="Script" path="res://samples/godot-rapier2d/CharacterBody2D.gd" id="6_wpnii"]
-
-[sub_resource type="FluidEffect2DElasticity" id="FluidEffect2DElasticity_gi1q1"]
-young_modulus = 500.0
-
-[sub_resource type="FluidEffect2DViscosityXSPH" id="FluidEffect2DViscosityXSPH_0ekn6"]
-fluid_viscosity_coefficient = 2.0
-
-[sub_resource type="FluidEffect2DViscosityXSPH" id="FluidEffect2DViscosityXSPH_y3smb"]
-fluid_viscosity_coefficient = 2.0
-boundary_viscosity_coefficient = 1.0
-
-[sub_resource type="FluidEffect2DSurfaceTensionAKINCI" id="FluidEffect2DSurfaceTensionAKINCI_amypy"]
-fluid_tension_coefficient = 20.0
-boundary_adhesion_coefficient = 1.0
-
-[sub_resource type="FluidEffect2DViscosityDFSPH" id="FluidEffect2DViscosityDFSPH_obd7j"]
-
-[sub_resource type="FluidEffect2DViscosityArtificial" id="FluidEffect2DViscosityArtificial_srhy6"]
-fluid_viscosity_coefficient = 0.1
+[ext_resource type="Material" uid="uid://clnmfvqslf2ka" path="res://samples/godot-rapier2d/water_shader.tres" id="6_2yb6s"]
 
 [sub_resource type="FluidEffect2DSurfaceTensionAKINCI" id="FluidEffect2DSurfaceTensionAKINCI_iggvj"]
-fluid_tension_coefficient = 20.0
+fluid_tension_coefficient = 10.0
+boundary_adhesion_coefficient = 10.0
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8y86f"]
 size = Vector2(2676, 1041)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_xuw7n"]
-size = Vector2(1749, 1004)
+size = Vector2(1722.94, 828)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_c23gn"]
-size = Vector2(1177, 182.5)
+size = Vector2(1177, 323.25)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sd5wa"]
 size = Vector2(521.5, 914.5)
@@ -47,80 +28,35 @@ size = Vector2(1521, 2437.5)
 [sub_resource type="CircleShape2D" id="CircleShape2D_mdcyi"]
 radius = 72.06
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_4bdhm"]
-size = Vector2(286, 678)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_vhhvt"]
-size = Vector2(858, 333)
-
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_q8nq7"]
-size = Vector2(44, 260)
+size = Vector2(80, 260)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_k12t3"]
 
-[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_re251"]
-radius = 75.0
-height = 200.0
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_y42gw"]
+noise_type = 4
+fractal_gain = 0.59
+domain_warp_enabled = true
+domain_warp_type = 1
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_qrb8s"]
-radius = 100.0
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_4as7b"]
+generate_mipmaps = false
+seamless = true
+normalize = false
+noise = SubResource("FastNoiseLite_y42gw")
 
 [node name="Node2D" type="Node2D"]
 
-[node name="Elastic" type="Fluid2D" parent="."]
-points = PackedVector2Array(0, 3.05176e-05, 40, 3.05176e-05, 80.0002, 3.05176e-05, 120, 3.05176e-05, 160, 3.05176e-05, 200, 3.05176e-05, 240, 3.05176e-05, 280, 3.05176e-05, 320, 3.05176e-05, 360, 3.05176e-05, 0, 40, 40, 40, 80.0002, 40, 120, 40, 160, 40, 200, 40, 240, 40, 280, 40, 320, 40, 360, 40, 0, 79.9999, 40, 79.9999, 80.0002, 79.9999, 120, 79.9999, 160, 79.9999, 200, 79.9999, 240, 79.9999, 280, 79.9999, 320, 79.9999, 360, 79.9999, 0, 120, 40, 120, 80.0002, 120, 120, 120, 160, 120, 200, 120, 240, 120, 280, 120, 320, 120, 360, 120, 0, 160, 40, 160, 80.0002, 160, 120, 160, 160, 160, 200, 160, 240, 160, 280, 160, 320, 160, 360, 160, 0, 200, 40, 200, 80.0002, 200, 120, 200, 160, 200, 200, 200, 240, 200, 280, 200, 320, 200, 360, 200, 0, 240, 40, 240, 80.0002, 240, 120, 240, 160, 240, 200, 240, 240, 240, 280, 240, 320, 240, 360, 240, 0, 280, 40, 280, 80.0002, 280, 120, 280, 160, 280, 200, 280, 240, 280, 280, 280, 320, 280, 360, 280, 0, 320, 40, 320, 80.0002, 320, 120, 320, 160, 320, 200, 320, 240, 320, 280, 320, 320, 320, 360, 320, 0, 360, 40, 360, 80.0002, 360, 120, 360, 160, 360, 200, 360, 240, 360, 280, 360, 320, 360, 360, 360)
-density = 4.0
-effects = Array[FluidEffect2D]([SubResource("FluidEffect2DElasticity_gi1q1"), SubResource("FluidEffect2DViscosityXSPH_0ekn6")])
-debug_draw = true
-position = Vector2(-1196, 276)
-script = ExtResource("1_e1otf")
-
-[node name="Dirt" type="Fluid2D" parent="."]
-points = PackedVector2Array(0, 0, 39.9996, 0, 80.0002, 0, 120, 0, 160, 0, 0, 40, 39.9996, 40, 80.0002, 40, 120, 40, 160, 40)
-density = 100.0
-effects = Array[FluidEffect2D]([SubResource("FluidEffect2DViscosityXSPH_y3smb"), SubResource("FluidEffect2DSurfaceTensionAKINCI_amypy")])
-modulate = Color(0.654902, 0.768627, 1, 1)
-position = Vector2(1454, 594)
-script = ExtResource("1_omq0c")
-
-[node name="Timer" type="Timer" parent="Dirt"]
-wait_time = 0.1
-autostart = true
-
-[node name="Fluid2DRenderer" type="MultiMeshInstance2D" parent="Dirt"]
-position = Vector2(-220, -59)
-multimesh = ExtResource("3_880wm")
-texture = ExtResource("4_xdgjh")
-script = ExtResource("5_2rahx")
-color = Color(0.905882, 0.65098, 0.2, 1)
-
-[node name="Sugar" type="Fluid2D" parent="."]
-points = PackedVector2Array(9.15527e-05, -0.000244141, 39.9996, -0.000244141, 80.0004, -0.000244141, 120, -0.000244141, 160, -0.000244141, 9.15527e-05, 40, 39.9996, 40, 80.0004, 40, 120, 40, 160, 40)
-density = 2.0
-effects = Array[FluidEffect2D]([SubResource("FluidEffect2DViscosityDFSPH_obd7j")])
-modulate = Color(0.654902, 0.768627, 1, 1)
-position = Vector2(222, -1261)
-script = ExtResource("1_omq0c")
-max_particles = 300
-
-[node name="Timer" type="Timer" parent="Sugar"]
-wait_time = 0.1
-autostart = true
-
-[node name="Fluid2DRenderer" type="MultiMeshInstance2D" parent="Sugar"]
-position = Vector2(-220, -59)
-multimesh = ExtResource("3_880wm")
-texture = ExtResource("4_xdgjh")
-script = ExtResource("5_2rahx")
-color = Color(1, 0.368627, 0.886275, 1)
-
 [node name="Water" type="Fluid2D" parent="."]
 points = PackedVector2Array(1827, 1651, 1867, 1651, 1907, 1651, 1947, 1651, 1987, 1651, 1827, 1691, 1867, 1691, 1907, 1691, 1947, 1691, 1987, 1691)
-density = 40.0
-effects = Array[FluidEffect2D]([SubResource("FluidEffect2DViscosityArtificial_srhy6"), SubResource("FluidEffect2DSurfaceTensionAKINCI_iggvj")])
+density = 80.0
+lifetime = 20.0
+effects = Array[FluidEffect2D]([SubResource("FluidEffect2DSurfaceTensionAKINCI_iggvj")])
+debug_draw = false
 modulate = Color(0.654902, 0.768627, 1, 1)
-position = Vector2(950, -1455)
+position = Vector2(414, -1750)
 script = ExtResource("1_omq0c")
+max_particles = 1500
 
 [node name="Timer" type="Timer" parent="Water"]
 wait_time = 0.1
@@ -129,9 +65,31 @@ autostart = true
 [node name="Fluid2DRenderer" type="MultiMeshInstance2D" parent="Water"]
 position = Vector2(-220, -59)
 multimesh = ExtResource("3_880wm")
-texture = ExtResource("4_xdgjh")
+texture = ExtResource("3_py844")
 script = ExtResource("5_2rahx")
-color = Color(0, 0.796078, 0.866667, 1)
+color = Color(1, 0, 1, 1)
+
+[node name="Water2" type="Fluid2D" parent="."]
+points = PackedVector2Array(1827, 1651, 1867, 1651, 1907, 1651, 1947, 1651, 1987, 1651, 1827, 1691, 1867, 1691, 1907, 1691, 1947, 1691, 1987, 1691)
+density = 80.0
+lifetime = 20.0
+effects = Array[FluidEffect2D]([SubResource("FluidEffect2DSurfaceTensionAKINCI_iggvj")])
+debug_draw = false
+modulate = Color(0.654902, 0.768627, 1, 1)
+position = Vector2(-3485, -1736)
+script = ExtResource("1_omq0c")
+max_particles = 1500
+
+[node name="Timer" type="Timer" parent="Water2"]
+wait_time = 0.1
+autostart = true
+
+[node name="Fluid2DRenderer" type="MultiMeshInstance2D" parent="Water2"]
+position = Vector2(-220, -59)
+multimesh = ExtResource("3_880wm")
+texture = ExtResource("3_py844")
+script = ExtResource("5_2rahx")
+color = Color(1, 0, 1, 1)
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
 position = Vector2(126, 282)
@@ -164,11 +122,11 @@ position = Vector2(-1170, 2352)
 shape = SubResource("RectangleShape2D_8y86f")
 
 [node name="CollisionShape2D3" type="CollisionShape2D" parent="StaticBody2D"]
-position = Vector2(-245, 2430)
+position = Vector2(-119, 2413)
 shape = SubResource("RectangleShape2D_xuw7n")
 
 [node name="CollisionShape2D8" type="CollisionShape2D" parent="StaticBody2D"]
-position = Vector2(-1451, 1502)
+position = Vector2(-1371, 1261)
 shape = SubResource("RectangleShape2D_xuw7n")
 
 [node name="CollisionShape2D9" type="CollisionShape2D" parent="StaticBody2D"]
@@ -179,20 +137,8 @@ shape = SubResource("RectangleShape2D_c23gn")
 position = Vector2(3394, 1126)
 shape = SubResource("RectangleShape2D_c23gn")
 
-[node name="CollisionShape2D19" type="CollisionShape2D" parent="StaticBody2D"]
-position = Vector2(3272, 567)
-shape = SubResource("RectangleShape2D_c23gn")
-
-[node name="CollisionShape2D20" type="CollisionShape2D" parent="StaticBody2D"]
-position = Vector2(3497, 91)
-shape = SubResource("RectangleShape2D_c23gn")
-
 [node name="CollisionShape2D10" type="CollisionShape2D" parent="StaticBody2D"]
-position = Vector2(282, 1411)
-shape = SubResource("RectangleShape2D_c23gn")
-
-[node name="CollisionShape2D17" type="CollisionShape2D" parent="StaticBody2D"]
-position = Vector2(3716, 1526)
+position = Vector2(316, 1374)
 shape = SubResource("RectangleShape2D_c23gn")
 
 [node name="CollisionShape2D11" type="CollisionShape2D" parent="StaticBody2D"]
@@ -221,32 +167,49 @@ shape = SubResource("RectangleShape2D_os3ki")
 position = Vector2(1405, 1225)
 shape = SubResource("CircleShape2D_mdcyi")
 
+[node name="CollisionShape2D21" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(1609, 1062)
+shape = SubResource("CircleShape2D_mdcyi")
+
+[node name="CollisionShape2D22" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(1354, 916)
+shape = SubResource("CircleShape2D_mdcyi")
+
+[node name="CollisionShape2D23" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(1609, 742)
+shape = SubResource("CircleShape2D_mdcyi")
+
+[node name="CollisionShape2D24" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(1317, 581)
+shape = SubResource("CircleShape2D_mdcyi")
+
+[node name="CollisionShape2D25" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(1564, 411)
+shape = SubResource("CircleShape2D_mdcyi")
+
+[node name="CollisionShape2D26" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(1646, 1402)
+shape = SubResource("CircleShape2D_mdcyi")
+
+[node name="CollisionShape2D27" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(1693, 1717)
+shape = SubResource("CircleShape2D_mdcyi")
+
+[node name="CollisionShape2D28" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(2588, 1067)
+shape = SubResource("CircleShape2D_mdcyi")
+
+[node name="CollisionShape2D29" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(2258, 1009)
+shape = SubResource("CircleShape2D_mdcyi")
+
+[node name="CollisionShape2D30" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(1962, 953)
+shape = SubResource("CircleShape2D_mdcyi")
+
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(521, 1448)
 zoom = Vector2(0.3, 0.3)
-
-[node name="StaticBody2D2" type="StaticBody2D" parent="."]
-position = Vector2(1574, 643)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D2"]
-position = Vector2(-333, -38)
-shape = SubResource("RectangleShape2D_4bdhm")
-
-[node name="CollisionShape2D2" type="CollisionShape2D" parent="StaticBody2D2"]
-position = Vector2(-45, -277)
-shape = SubResource("RectangleShape2D_vhhvt")
-
-[node name="CollisionShape2D3" type="CollisionShape2D" parent="StaticBody2D2"]
-position = Vector2(225, -65)
-shape = SubResource("RectangleShape2D_4bdhm")
-
-[node name="Label" type="Label" parent="."]
-offset_left = 1316.0
-offset_top = 987.0
-offset_right = 1903.0
-offset_bottom = 1042.0
-theme_override_font_sizes/font_size = 80
-text = "Rapier2D Fluid using Salva2D"
 
 [node name="PinJoint2D" type="PinJoint2D" parent="."]
 position = Vector2(1384, 1875)
@@ -294,23 +257,30 @@ position = Vector2(-1384, -1875)
 position = Vector2(1380, 1879)
 shape = SubResource("CircleShape2D_k12t3")
 
-[node name="CharacterBody2D" type="CharacterBody2D" parent="."]
-script = ExtResource("6_wpnii")
+[node name="Label" type="Label" parent="."]
+offset_left = -2020.0
+offset_top = 2424.0
+offset_right = 3429.0
+offset_bottom = 3106.0
+theme_override_font_sizes/font_size = 500
+text = "Godot Rapier2D Fluid"
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D"]
-shape = SubResource("CapsuleShape2D_re251")
+[node name="Polygon2D" type="Polygon2D" parent="."]
+z_index = -100
+color = Color(0.345098, 0.541176, 1, 1)
+polygon = PackedVector2Array(-5417, -1545, 6372, -1559, 6316, 5057, -5249, 4917)
 
-[node name="Polygon2D" type="Polygon2D" parent="CharacterBody2D"]
-polygon = PackedVector2Array(15, 97, -66, 64, -74, -38, -31, -92, 45, -85, 78, -18, 72, 59)
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
 
-[node name="RigidBody2D" type="RigidBody2D" parent="."]
-position = Vector2(1890, 2216)
-mass = 200.0
+[node name="Water" type="TextureRect" parent="CanvasLayer"]
+material = ExtResource("6_2yb6s")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("NoiseTexture2D_4as7b")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D"]
-shape = SubResource("CircleShape2D_qrb8s")
-
-[connection signal="timeout" from="Dirt/Timer" to="Dirt" method="_on_timer_timeout"]
-[connection signal="timeout" from="Sugar/Timer" to="Sugar" method="_on_timer_timeout"]
 [connection signal="timeout" from="Water/Timer" to="Water" method="_on_timer_timeout"]
+[connection signal="timeout" from="Water2/Timer" to="Water2" method="_on_timer_timeout"]
 [connection signal="body_entered" from="PinJoint2D2/RigidBody2D" to="PinJoint2D2/RigidBody2D" method="_on_body_entered"]

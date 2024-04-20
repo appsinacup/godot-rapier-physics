@@ -1,0 +1,11 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://clnmfvqslf2ka"]
+
+[ext_resource type="Shader" path="res://samples/godot-rapier2d/water_shader.gdshader" id="1_idpys"]
+
+[resource]
+shader = ExtResource("1_idpys")
+shader_parameter/threshold = 0.83
+shader_parameter/water_color = Color(0, 1, 1, 1)
+shader_parameter/test_color = Color(1, 0, 1, 1)
+shader_parameter/speed = 0.1
+shader_parameter/amplitude = 0.1

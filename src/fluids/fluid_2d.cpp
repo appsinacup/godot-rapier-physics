@@ -68,6 +68,7 @@ PackedVector2Array Fluid2D::get_points() const {
 	}
 	return new_points;
 }
+
 PackedFloat32Array Fluid2D::get_create_times() const {
 	return create_times;
 }
@@ -220,10 +221,10 @@ void Fluid2D::_bind_methods() {
 void Fluid2D::set_debug_draw(bool p_debug_draw) {
 	if (debug_draw != p_debug_draw) {
 		debug_draw = p_debug_draw;
-		set_process(debug_draw || lifetime > 0.0);
-		set_notify_transform(debug_draw);
-		queue_redraw();
 	}
+	set_process(debug_draw || lifetime > 0.0);
+	set_notify_transform(debug_draw);
+	queue_redraw();
 }
 
 bool Fluid2D::get_debug_draw() const {
@@ -269,14 +270,12 @@ void Fluid2D::_notification(int p_what) {
 	if (!rapier_physics_server) {
 		return;
 	}
-	static int ticks = 0;
 	switch (p_what) {
 		case NOTIFICATION_PROCESS: {
 			if (debug_draw) {
 				queue_redraw();
 			}
-			ticks++;
-			if (ticks % 60 == 0) {
+			if (!Engine::get_singleton()->is_editor_hint()) {
 				_delete_old_particles();
 			}
 		} break;
