@@ -23,7 +23,7 @@ noise = SubResource("FastNoiseLite_t8jc5")
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_6w0ys"]
 shader = ExtResource("3_etfmw")
 shader_parameter/threshold = 0.85
-shader_parameter/water_color = Color(0, 0.819608, 0.898039, 0.701961)
+shader_parameter/water_color = Color(0, 0.639216, 0.996078, 0.615686)
 shader_parameter/test_color = Color(1, 0, 1, 1)
 shader_parameter/speed = 0.1
 shader_parameter/amplitude = 0.1
