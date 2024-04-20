@@ -1,0 +1,6 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://bqlf4a1x3nc4g"]
+
+[ext_resource type="Shader" path="res://samples/godot-rapier2d/water_shader.gdshader" id="1_yyqwv"]
+
+[resource]
+shader = ExtResource("1_yyqwv")

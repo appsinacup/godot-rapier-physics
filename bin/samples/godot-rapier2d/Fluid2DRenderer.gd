@@ -23,5 +23,5 @@ func _process(_delta):
 		var new_color : Color = Color(color, life_remain)
 		new_transform.origin = point - position
 		multimesh.set_instance_transform_2d(index, new_transform)
-		multimesh.set_instance_color(index, new_color)
+		multimesh.set_instance_color(index, color)
 		index += 1
