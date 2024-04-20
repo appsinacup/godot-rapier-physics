@@ -21,6 +21,7 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 
 <p align="center">
 <img src="rapier-vid.gif"/>
+<img src="fluid_shader.gif"/>
 </p>
 
 # Features
@@ -30,11 +31,6 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 - Fluids with surface tension, viscosity and elasticity.
 - *DISABLED* 32 bits and 64 bits support.
 - *DISABLED* Cross platform determinism.
-
-
-<p align="center">
-<img src="fluid_shader.gif"/>
-</p>
 
 # Limitations
 
