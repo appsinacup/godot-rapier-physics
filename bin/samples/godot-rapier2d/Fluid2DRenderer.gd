@@ -17,8 +17,7 @@ func _process(_delta):
 	for i in points.size():
 		var point = points[i]
 		var created_at = create_times[i]
-		var new_transform: Transform2D = Transform2D(0, Vector2(5, 5), 0, point - position)
-		new_transform.origin = point - position
+		var new_transform: Transform2D = Transform2D(0, Vector2(5, 5), 0, point)
 		multimesh.set_instance_transform_2d(index, new_transform)
 		multimesh.set_instance_color(index, color)
 		index += 1
