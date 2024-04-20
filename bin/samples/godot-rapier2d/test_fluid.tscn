@@ -1,14 +1,41 @@
-[gd_scene load_steps=15 format=3 uid="uid://dudno1v5vtvh"]
+[gd_scene load_steps=19 format=3 uid="uid://dudno1v5vtvh"]
 
 [ext_resource type="Script" path="res://samples/godot-rapier2d/Faucet2D.gd" id="1_omq0c"]
-[ext_resource type="MultiMesh" uid="uid://d0bhettx43xt1" path="res://samples/godot-rapier2d/fluid_multi_mesh.tres" id="3_880wm"]
-[ext_resource type="Texture2D" uid="uid://cho3shol3rky2" path="res://samples/godot-rapier2d/Radial2D.svg" id="3_py844"]
-[ext_resource type="Script" path="res://samples/godot-rapier2d/Fluid2DRenderer.gd" id="5_2rahx"]
-[ext_resource type="Material" uid="uid://clnmfvqslf2ka" path="res://samples/godot-rapier2d/water_shader.tres" id="6_2yb6s"]
+[ext_resource type="PackedScene" uid="uid://chujsborpvqgu" path="res://samples/godot-rapier2d/fluid_2d_shader.tscn" id="2_uoda0"]
+[ext_resource type="Shader" path="res://samples/godot-rapier2d/water_shader.gdshader" id="3_etfmw"]
 
 [sub_resource type="FluidEffect2DSurfaceTensionAKINCI" id="FluidEffect2DSurfaceTensionAKINCI_iggvj"]
 fluid_tension_coefficient = 10.0
-boundary_adhesion_coefficient = 10.0
+
+[sub_resource type="FluidEffect2DViscosityArtificial" id="FluidEffect2DViscosityArtificial_dqv47"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_t8jc5"]
+noise_type = 4
+domain_warp_enabled = true
+domain_warp_type = 1
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_j6i71"]
+generate_mipmaps = false
+seamless = true
+normalize = false
+noise = SubResource("FastNoiseLite_t8jc5")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_6w0ys"]
+shader = ExtResource("3_etfmw")
+shader_parameter/threshold = 0.85
+shader_parameter/water_color = Color(0, 0.819608, 0.898039, 0.701961)
+shader_parameter/test_color = Color(1, 0, 1, 1)
+shader_parameter/speed = 0.1
+shader_parameter/amplitude = 0.1
+shader_parameter/water_texture = SubResource("NoiseTexture2D_j6i71")
+
+[sub_resource type="FluidEffect2DSurfaceTensionAKINCI" id="FluidEffect2DSurfaceTensionAKINCI_kud64"]
+fluid_tension_coefficient = 30.0
+boundary_adhesion_coefficient = 30.0
+
+[sub_resource type="FluidEffect2DViscosityXSPH" id="FluidEffect2DViscosityXSPH_8d0tk"]
+fluid_viscosity_coefficient = 2.0
+boundary_viscosity_coefficient = 2.0
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8y86f"]
 size = Vector2(2676, 1041)
@@ -37,9 +64,9 @@ size = Vector2(80, 260)
 
 [node name="Water" type="Fluid2D" parent="."]
 points = PackedVector2Array(1827, 1651, 1867, 1651, 1907, 1651, 1947, 1651, 1987, 1651, 1827, 1691, 1867, 1691, 1907, 1691, 1947, 1691, 1987, 1691)
-density = 80.0
+density = 60.0
 lifetime = 20.0
-effects = Array[FluidEffect2D]([SubResource("FluidEffect2DSurfaceTensionAKINCI_iggvj")])
+effects = Array[FluidEffect2D]([SubResource("FluidEffect2DSurfaceTensionAKINCI_iggvj"), SubResource("FluidEffect2DViscosityArtificial_dqv47")])
 modulate = Color(0.654902, 0.768627, 1, 1)
 position = Vector2(414, -1750)
 script = ExtResource("1_omq0c")
@@ -49,19 +76,28 @@ max_particles = 1500
 wait_time = 0.1
 autostart = true
 
-[node name="Water2" type="Fluid2D" parent="."]
+[node name="WaterShader" parent="." node_paths=PackedStringArray("camera", "fluid") instance=ExtResource("2_uoda0")]
+camera = NodePath("../Camera2D")
+fluid = NodePath("../Water")
+water_material = SubResource("ShaderMaterial_6w0ys")
+
+[node name="Mud" type="Fluid2D" parent="."]
 points = PackedVector2Array(1827, 1651, 1867, 1651, 1907, 1651, 1947, 1651, 1987, 1651, 1827, 1691, 1867, 1691, 1907, 1691, 1947, 1691, 1987, 1691)
 density = 80.0
 lifetime = 20.0
-effects = Array[FluidEffect2D]([SubResource("FluidEffect2DSurfaceTensionAKINCI_iggvj")])
+effects = Array[FluidEffect2D]([SubResource("FluidEffect2DSurfaceTensionAKINCI_kud64"), SubResource("FluidEffect2DViscosityXSPH_8d0tk")])
 modulate = Color(0.654902, 0.768627, 1, 1)
 position = Vector2(-3485, -1736)
 script = ExtResource("1_omq0c")
 max_particles = 1500
 
-[node name="Timer" type="Timer" parent="Water2"]
+[node name="Timer" type="Timer" parent="Mud"]
 wait_time = 0.1
 autostart = true
+
+[node name="MudShader" parent="." node_paths=PackedStringArray("camera", "fluid") instance=ExtResource("2_uoda0")]
+camera = NodePath("../Camera2D")
+fluid = NodePath("../Mud")
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
 position = Vector2(126, 282)
@@ -180,7 +216,7 @@ position = Vector2(1962, 953)
 shape = SubResource("CircleShape2D_mdcyi")
 
 [node name="Camera2D" type="Camera2D" parent="."]
-position = Vector2(-1895, 1427)
+position = Vector2(384, 1587)
 zoom = Vector2(0.3, 0.3)
 
 [node name="PinJoint2D" type="PinJoint2D" parent="."]
@@ -229,34 +265,6 @@ position = Vector2(-1384, -1875)
 position = Vector2(1380, 1879)
 shape = SubResource("CircleShape2D_k12t3")
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
-
-[node name="SubViewportContainer" type="SubViewportContainer" parent="CanvasLayer"]
-material = ExtResource("6_2yb6s")
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-stretch = true
-
-[node name="SubViewport" type="SubViewport" parent="CanvasLayer/SubViewportContainer"]
-transparent_bg = true
-handle_input_locally = false
-size = Vector2i(1920, 1080)
-render_target_update_mode = 4
-
-[node name="Fluid2DRenderer" type="MultiMeshInstance2D" parent="CanvasLayer/SubViewportContainer/SubViewport" node_paths=PackedStringArray("fluid")]
-multimesh = ExtResource("3_880wm")
-texture = ExtResource("3_py844")
-script = ExtResource("5_2rahx")
-fluid = NodePath("../../../../Water")
-color = Color(1, 1, 1, 1)
-
-[node name="Camera2D" type="Camera2D" parent="CanvasLayer/SubViewportContainer/SubViewport"]
-position = Vector2(521, 1448)
-zoom = Vector2(0.3, 0.3)
-
 [node name="Label" type="Label" parent="."]
 offset_left = -2020.0
 offset_top = 2424.0
@@ -267,9 +275,9 @@ text = "Godot Rapier2D Fluid"
 
 [node name="Polygon2D" type="Polygon2D" parent="."]
 z_index = -100
-color = Color(0, 0.831373, 0.552941, 1)
+color = Color(0.913725, 0.698039, 0.0235294, 1)
 polygon = PackedVector2Array(-5417, -1545, 6372, -1559, 6316, 5057, -5249, 4917)
 
 [connection signal="timeout" from="Water/Timer" to="Water" method="_on_timer_timeout"]
-[connection signal="timeout" from="Water2/Timer" to="Water2" method="_on_timer_timeout"]
+[connection signal="timeout" from="Mud/Timer" to="Mud" method="_on_timer_timeout"]
 [connection signal="body_entered" from="PinJoint2D2/RigidBody2D" to="PinJoint2D2/RigidBody2D" method="_on_body_entered"]
