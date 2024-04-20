@@ -12,12 +12,10 @@ uniform sampler2D water_texture;
 void fragment(){
 	float displacement = sin(TIME * speed) * amplitude;
 	vec4 screen_tex = texture(TEXTURE, SCREEN_UV).rgba;
-	
 
 	float color_distance = screen_tex.r;
 	if (color_distance > threshold) {
 		COLOR = texture(water_texture, SCREEN_UV + displacement).rgba * water_color;
-		COLOR.a = (color_distance - threshold) * 2.0;
 	} else {
 		COLOR = vec4(0.0);
 	}

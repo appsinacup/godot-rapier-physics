@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://dudno1v5vtvh"]
+[gd_scene load_steps=15 format=3 uid="uid://dudno1v5vtvh"]
 
 [ext_resource type="Script" path="res://samples/godot-rapier2d/Faucet2D.gd" id="1_omq0c"]
 [ext_resource type="MultiMesh" uid="uid://d0bhettx43xt1" path="res://samples/godot-rapier2d/fluid_multi_mesh.tres" id="3_880wm"]
@@ -32,11 +32,6 @@ radius = 72.06
 size = Vector2(80, 260)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_k12t3"]
-
-[sub_resource type="GDScript" id="GDScript_0oosp"]
-script/source = "extends SubViewport
-
-"
 
 [node name="Node2D" type="Node2D"]
 
@@ -185,7 +180,7 @@ position = Vector2(1962, 953)
 shape = SubResource("CircleShape2D_mdcyi")
 
 [node name="Camera2D" type="Camera2D" parent="."]
-position = Vector2(521, 1448)
+position = Vector2(-1895, 1427)
 zoom = Vector2(0.3, 0.3)
 
 [node name="PinJoint2D" type="PinJoint2D" parent="."]
@@ -247,21 +242,15 @@ stretch = true
 
 [node name="SubViewport" type="SubViewport" parent="CanvasLayer/SubViewportContainer"]
 transparent_bg = true
+handle_input_locally = false
 size = Vector2i(1920, 1080)
-script = SubResource("GDScript_0oosp")
+render_target_update_mode = 4
 
 [node name="Fluid2DRenderer" type="MultiMeshInstance2D" parent="CanvasLayer/SubViewportContainer/SubViewport" node_paths=PackedStringArray("fluid")]
 multimesh = ExtResource("3_880wm")
 texture = ExtResource("3_py844")
 script = ExtResource("5_2rahx")
 fluid = NodePath("../../../../Water")
-color = Color(1, 1, 1, 1)
-
-[node name="Fluid2DRenderer2" type="MultiMeshInstance2D" parent="CanvasLayer/SubViewportContainer/SubViewport" node_paths=PackedStringArray("fluid")]
-multimesh = ExtResource("3_880wm")
-texture = ExtResource("3_py844")
-script = ExtResource("5_2rahx")
-fluid = NodePath("../../../../Water2")
 color = Color(1, 1, 1, 1)
 
 [node name="Camera2D" type="Camera2D" parent="CanvasLayer/SubViewportContainer/SubViewport"]
@@ -278,7 +267,7 @@ text = "Godot Rapier2D Fluid"
 
 [node name="Polygon2D" type="Polygon2D" parent="."]
 z_index = -100
-color = Color(0.345098, 0.541176, 1, 1)
+color = Color(0, 0.831373, 0.552941, 1)
 polygon = PackedVector2Array(-5417, -1545, 6372, -1559, 6316, 5057, -5249, 4917)
 
 [connection signal="timeout" from="Water/Timer" to="Water" method="_on_timer_timeout"]
