@@ -2,24 +2,27 @@
 
 [ext_resource type="Script" path="res://samples/godot-rapier2d/Faucet2D.gd" id="1_omq0c"]
 [ext_resource type="MultiMesh" uid="uid://d0bhettx43xt1" path="res://samples/godot-rapier2d/fluid_multi_mesh.tres" id="3_880wm"]
-[ext_resource type="Texture2D" uid="uid://bjnvmmcdjgbu6" path="res://samples/godot-rapier2d/Circle2D.svg" id="4_xdgjh"]
+[ext_resource type="Texture2D" uid="uid://cho3shol3rky2" path="res://samples/godot-rapier2d/Radial2D.svg" id="3_py844"]
 [ext_resource type="Script" path="res://samples/godot-rapier2d/Fluid2DRenderer.gd" id="5_2rahx"]
+[ext_resource type="Material" uid="uid://clnmfvqslf2ka" path="res://samples/godot-rapier2d/water_shader.tres" id="6_2yb6s"]
 [ext_resource type="Script" path="res://samples/godot-rapier2d/CharacterBody2D.gd" id="6_wpnii"]
-[ext_resource type="Material" uid="uid://bqlf4a1x3nc4g" path="res://samples/godot-rapier2d/water_shader.tres" id="7_ff8kc"]
+[ext_resource type="Shader" path="res://samples/godot-rapier2d/water_shader.gdshader" id="7_a3vmw"]
 
 [sub_resource type="FluidEffect2DViscosityXSPH" id="FluidEffect2DViscosityXSPH_y3smb"]
 fluid_viscosity_coefficient = 2.0
-boundary_viscosity_coefficient = 1.0
+boundary_viscosity_coefficient = 2.0
 
 [sub_resource type="FluidEffect2DSurfaceTensionAKINCI" id="FluidEffect2DSurfaceTensionAKINCI_amypy"]
-fluid_tension_coefficient = 20.0
-boundary_adhesion_coefficient = 1.0
+fluid_tension_coefficient = 40.0
+boundary_adhesion_coefficient = 40.0
 
 [sub_resource type="FluidEffect2DViscosityArtificial" id="FluidEffect2DViscosityArtificial_srhy6"]
-fluid_viscosity_coefficient = 0.1
+fluid_viscosity_coefficient = 0.05
+boundary_viscosity_coefficient = 0.05
 
 [sub_resource type="FluidEffect2DSurfaceTensionAKINCI" id="FluidEffect2DSurfaceTensionAKINCI_iggvj"]
-fluid_tension_coefficient = 20.0
+fluid_tension_coefficient = 30.0
+boundary_adhesion_coefficient = 30.0
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8y86f"]
 size = Vector2(2676, 1041)
@@ -39,12 +42,6 @@ size = Vector2(1521, 2437.5)
 [sub_resource type="CircleShape2D" id="CircleShape2D_mdcyi"]
 radius = 72.06
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_4bdhm"]
-size = Vector2(286, 678)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_vhhvt"]
-size = Vector2(858, 333)
-
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_q8nq7"]
 size = Vector2(44, 260)
 
@@ -58,19 +55,32 @@ height = 200.0
 radius = 100.0
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_y42gw"]
+noise_type = 4
+fractal_gain = 0.59
 domain_warp_enabled = true
-domain_warp_type = 2
+domain_warp_type = 1
 
 [sub_resource type="NoiseTexture2D" id="NoiseTexture2D_4as7b"]
+generate_mipmaps = false
+seamless = true
+normalize = false
 noise = SubResource("FastNoiseLite_y42gw")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_cnvam"]
+shader = ExtResource("7_a3vmw")
+shader_parameter/threshold = 0.8
+shader_parameter/water_color = Color(1, 0.811765, 0.368627, 1)
+shader_parameter/test_color = Color(1, 0, 1, 1)
+shader_parameter/speed = 0.1
+shader_parameter/amplitude = 0.1
 
 [node name="Node2D" type="Node2D"]
 
 [node name="Dirt" type="Fluid2D" parent="."]
-points = PackedVector2Array(0, 0, 39.9996, 0, 80.0002, 0, 120, 0, 160, 0, 0, 40, 39.9996, 40, 80.0002, 40, 120, 40, 160, 40)
-density = 100.0
+points = PackedVector2Array(0, -1.90735e-05, 39.9996, -1.90735e-05, 80.0002, -1.90735e-05, 120, -1.90735e-05, 160, -1.90735e-05, 0, 40, 39.9996, 40, 80.0002, 40, 120, 40, 160, 40)
+density = 80.0
 effects = Array[FluidEffect2D]([SubResource("FluidEffect2DViscosityXSPH_y3smb"), SubResource("FluidEffect2DSurfaceTensionAKINCI_amypy")])
-position = Vector2(1454, 594)
+position = Vector2(1418, 44)
 script = ExtResource("1_omq0c")
 
 [node name="Timer" type="Timer" parent="Dirt"]
@@ -80,16 +90,16 @@ autostart = true
 [node name="Fluid2DRenderer" type="MultiMeshInstance2D" parent="Dirt"]
 position = Vector2(-220, -59)
 multimesh = ExtResource("3_880wm")
-texture = ExtResource("4_xdgjh")
+texture = ExtResource("3_py844")
 script = ExtResource("5_2rahx")
 color = Color(1, 0, 1, 1)
 
 [node name="Water" type="Fluid2D" parent="."]
 points = PackedVector2Array(1827, 1651, 1867, 1651, 1907, 1651, 1947, 1651, 1987, 1651, 1827, 1691, 1867, 1691, 1907, 1691, 1947, 1691, 1987, 1691)
-density = 40.0
+density = 80.0
 effects = Array[FluidEffect2D]([SubResource("FluidEffect2DViscosityArtificial_srhy6"), SubResource("FluidEffect2DSurfaceTensionAKINCI_iggvj")])
 modulate = Color(0.654902, 0.768627, 1, 1)
-position = Vector2(950, -1455)
+position = Vector2(414, -1750)
 script = ExtResource("1_omq0c")
 
 [node name="Timer" type="Timer" parent="Water"]
@@ -99,9 +109,28 @@ autostart = true
 [node name="Fluid2DRenderer" type="MultiMeshInstance2D" parent="Water"]
 position = Vector2(-220, -59)
 multimesh = ExtResource("3_880wm")
-texture = ExtResource("4_xdgjh")
+texture = ExtResource("3_py844")
 script = ExtResource("5_2rahx")
-color = Color(0, 0.796078, 0.866667, 1)
+color = Color(1, 0, 0, 1)
+
+[node name="Water2" type="Fluid2D" parent="."]
+points = PackedVector2Array(1827, 1651, 1867, 1651, 1907, 1651, 1947, 1651, 1987, 1651, 1827, 1691, 1867, 1691, 1907, 1691, 1947, 1691, 1987, 1691)
+density = 80.0
+effects = Array[FluidEffect2D]([SubResource("FluidEffect2DViscosityArtificial_srhy6"), SubResource("FluidEffect2DSurfaceTensionAKINCI_iggvj")])
+modulate = Color(0.654902, 0.768627, 1, 1)
+position = Vector2(-3485, -1736)
+script = ExtResource("1_omq0c")
+
+[node name="Timer" type="Timer" parent="Water2"]
+wait_time = 0.1
+autostart = true
+
+[node name="Fluid2DRenderer" type="MultiMeshInstance2D" parent="Water2"]
+position = Vector2(-220, -59)
+multimesh = ExtResource("3_880wm")
+texture = ExtResource("3_py844")
+script = ExtResource("5_2rahx")
+color = Color(1, 0, 0, 1)
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
 position = Vector2(126, 282)
@@ -195,29 +224,6 @@ shape = SubResource("CircleShape2D_mdcyi")
 position = Vector2(521, 1448)
 zoom = Vector2(0.3, 0.3)
 
-[node name="StaticBody2D2" type="StaticBody2D" parent="."]
-position = Vector2(1574, 643)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D2"]
-position = Vector2(-333, -38)
-shape = SubResource("RectangleShape2D_4bdhm")
-
-[node name="CollisionShape2D2" type="CollisionShape2D" parent="StaticBody2D2"]
-position = Vector2(-45, -277)
-shape = SubResource("RectangleShape2D_vhhvt")
-
-[node name="CollisionShape2D3" type="CollisionShape2D" parent="StaticBody2D2"]
-position = Vector2(225, -65)
-shape = SubResource("RectangleShape2D_4bdhm")
-
-[node name="Label" type="Label" parent="."]
-offset_left = 1316.0
-offset_top = 987.0
-offset_right = 1903.0
-offset_bottom = 1042.0
-theme_override_font_sizes/font_size = 80
-text = "Rapier2D Fluid using Salva2D"
-
 [node name="PinJoint2D" type="PinJoint2D" parent="."]
 position = Vector2(1384, 1875)
 node_a = NodePath("StaticBody2D3")
@@ -282,8 +288,17 @@ shape = SubResource("CircleShape2D_qrb8s")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
-[node name="TextureRect" type="TextureRect" parent="CanvasLayer"]
-material = ExtResource("7_ff8kc")
+[node name="Water" type="TextureRect" parent="CanvasLayer"]
+material = ExtResource("6_2yb6s")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("NoiseTexture2D_4as7b")
+
+[node name="Dirt" type="TextureRect" parent="CanvasLayer"]
+material = SubResource("ShaderMaterial_cnvam")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -293,4 +308,5 @@ texture = SubResource("NoiseTexture2D_4as7b")
 
 [connection signal="timeout" from="Dirt/Timer" to="Dirt" method="_on_timer_timeout"]
 [connection signal="timeout" from="Water/Timer" to="Water" method="_on_timer_timeout"]
+[connection signal="timeout" from="Water2/Timer" to="Water2" method="_on_timer_timeout"]
 [connection signal="body_entered" from="PinJoint2D2/RigidBody2D" to="PinJoint2D2/RigidBody2D" method="_on_body_entered"]
