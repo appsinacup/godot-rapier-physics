@@ -113,16 +113,39 @@ pub extern "C" fn fluid_delete_points(world_handle : Handle, fluid_handle: Handl
     let fluid = fluid.unwrap();
     unsafe {
         let indexes_raw = std::slice::from_raw_parts(indexes, indexes_count);
-        for i in 0..indexes_raw.len() {
-            let index_raw = indexes_raw[i];
-            if fluid.positions.len() <= index_raw {
+        // create mask from array of indexes
+        let mut mask = vec![false; fluid.positions.len()];
+        for i in 0..indexes_count {
+            if fluid.positions.len() <= indexes_raw[i] {
                 continue;
             }
-            fluid.positions.remove(index_raw);
-            fluid.velocities.remove(index_raw);
-            fluid.accelerations.remove(index_raw);
-            fluid.volumes.remove(index_raw);
+            mask[indexes_raw[i]] = true;
         }
+        let mut i = 0;
+        // remove all points that are not in the mask
+        fluid.positions.retain(|_| {
+            let delete = mask[i];
+            i += 1;
+            !delete
+        });
+        let mut i = 0;
+        fluid.velocities.retain(|_| {
+            let delete = mask[i];
+            i += 1;
+            !delete
+        });
+        let mut i = 0;
+        fluid.accelerations.retain(|_| {
+            let delete = mask[i];
+            i += 1;
+            !delete
+        });
+        let mut i = 0;
+        fluid.volumes.retain(|_| {
+            let delete = mask[i];
+            i += 1;
+            !delete
+        });
     }
 }
 
