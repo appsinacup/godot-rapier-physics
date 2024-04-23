@@ -530,8 +530,7 @@ Handle shape_create_halfspace(const Vector *normal, Real pixel_distance);
 
 void shape_destroy(Handle shape_handle);
 
-ContactResult shapes_contact(Handle world_handle,
-		ShapeInfo shape_info1,
+ContactResult shapes_contact(ShapeInfo shape_info1,
 		ShapeInfo shape_info2,
 		Real pixel_margin);
 

@@ -41,7 +41,6 @@ pub extern "C" fn body_create(world_handle : Handle, pixel_pos : &Vector, rot : 
         }
     }
 	// let default values better
-    let activation = rigid_body.activation_mut();
     set_rigid_body_properties_internal(&mut rigid_body, pixel_pos, rot, true);
 	rigid_body.user_data = user_data.get_data();
     let body_handle = physics_world.rigid_body_set.insert(rigid_body);
@@ -211,9 +210,7 @@ pub extern "C" fn body_set_can_sleep(world_handle : Handle, body_handle : Handle
     assert!(body.is_some());
     let body = body.unwrap();
     
-    if can_sleep && body.activation().angular_threshold == -1.0 {
-		let activation = body.activation_mut();
-    } else if !can_sleep && body.activation().angular_threshold != -1.0 {
+    if !can_sleep && body.activation().angular_threshold != -1.0 {
 		let activation = body.activation_mut();
         activation.angular_threshold = -1.0;
         activation.linear_threshold = -1.0;
