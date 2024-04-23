@@ -443,12 +443,6 @@ void RapierSpace2D::step(real_t p_step) {
 	settings.pixel_gravity.x = default_gravity_dir.x * default_gravity_value;
 	settings.pixel_gravity.y = default_gravity_dir.y * default_gravity_value;
 	settings.max_ccd_substeps = RapierProjectSettings::get_solver_max_ccd_substeps();
-	settings.allowed_linear_error = RapierProjectSettings::get_solver_allowed_linear_error();
-	settings.damping_ratio = RapierProjectSettings::get_solver_damping_ratio();
-	settings.erp = RapierProjectSettings::get_solver_erp();
-	settings.joint_damping_ratio = RapierProjectSettings::get_solver_joint_damping_ratio();
-	settings.joint_erp = RapierProjectSettings::get_solver_joint_erp();
-	settings.prediction_distance = RapierProjectSettings::get_solver_prediction_distance();
 	settings.num_additional_friction_iterations = RapierProjectSettings::get_solver_num_additional_friction_iterations();
 	settings.num_internal_pgs_iterations = RapierProjectSettings::get_solver_num_internal_pgs_iterations();
 	settings.num_solver_iterations = RapierProjectSettings::get_solver_num_solver_iterations();
@@ -656,7 +650,6 @@ RapierSpace2D::RapierSpace2D() {
 	world_settings.sleep_linear_threshold = body_linear_velocity_sleep_threshold;
 	world_settings.sleep_angular_threshold = body_angular_velocity_sleep_threshold;
 	world_settings.sleep_time_until_sleep = body_time_to_sleep;
-	world_settings.solver_prediction_distance = RapierProjectSettings::get_solver_prediction_distance();
 	world_settings.particle_radius = RapierProjectSettings::get_fluid_particle_radius();
 	world_settings.smoothing_factor = RapierProjectSettings::get_fluid_smoothing_factor();
 	handle = rapier2d::world_create(&world_settings);
