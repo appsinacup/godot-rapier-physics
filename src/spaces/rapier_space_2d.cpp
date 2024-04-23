@@ -519,13 +519,10 @@ void RapierSpace2D::set_param(PhysicsServer2D::SpaceParameter p_param, real_t p_
 			contact_bias = p_value;
 			break;
 		case PhysicsServer2D::SPACE_PARAM_BODY_LINEAR_VELOCITY_SLEEP_THRESHOLD:
-			body_linear_velocity_sleep_threshold = p_value;
 			break;
 		case PhysicsServer2D::SPACE_PARAM_BODY_ANGULAR_VELOCITY_SLEEP_THRESHOLD:
-			body_angular_velocity_sleep_threshold = p_value;
 			break;
 		case PhysicsServer2D::SPACE_PARAM_BODY_TIME_TO_SLEEP:
-			body_time_to_sleep = p_value;
 			break;
 		case PhysicsServer2D::SPACE_PARAM_CONSTRAINT_DEFAULT_BIAS:
 			constraint_bias = p_value;
@@ -547,11 +544,11 @@ real_t RapierSpace2D::get_param(PhysicsServer2D::SpaceParameter p_param) const {
 		case PhysicsServer2D::SPACE_PARAM_CONTACT_DEFAULT_BIAS:
 			return contact_bias;
 		case PhysicsServer2D::SPACE_PARAM_BODY_LINEAR_VELOCITY_SLEEP_THRESHOLD:
-			return body_linear_velocity_sleep_threshold;
+			return 0.0;
 		case PhysicsServer2D::SPACE_PARAM_BODY_ANGULAR_VELOCITY_SLEEP_THRESHOLD:
-			return body_angular_velocity_sleep_threshold;
+			return 0.0;
 		case PhysicsServer2D::SPACE_PARAM_BODY_TIME_TO_SLEEP:
-			return body_time_to_sleep;
+			return 0.0;
 		case PhysicsServer2D::SPACE_PARAM_CONSTRAINT_DEFAULT_BIAS:
 			return constraint_bias;
 		case PhysicsServer2D::SPACE_PARAM_SOLVER_ITERATIONS:
@@ -631,9 +628,6 @@ RapierSpace2D::RapierSpace2D() {
 	int physics_fps = project_settings->get_setting_with_override("physics/common/physics_ticks_per_second");
 	last_step = physics_fps ? 1.0f / (real_t)physics_fps : 0.001f;
 
-	body_linear_velocity_sleep_threshold = project_settings->get_setting_with_override("physics/2d/sleep_threshold_linear");
-	body_angular_velocity_sleep_threshold = project_settings->get_setting_with_override("physics/2d/sleep_threshold_angular");
-	body_time_to_sleep = project_settings->get_setting_with_override("physics/2d/time_before_sleep");
 	solver_iterations = project_settings->get_setting_with_override("physics/2d/solver/solver_iterations");
 	contact_recycle_radius = project_settings->get_setting_with_override("physics/2d/solver/contact_recycle_radius");
 	contact_max_separation = project_settings->get_setting_with_override("physics/2d/solver/contact_max_separation");
@@ -647,9 +641,6 @@ RapierSpace2D::RapierSpace2D() {
 	ERR_FAIL_COND(is_handle_valid(handle));
 
 	rapier2d::WorldSettings world_settings = rapier2d::default_world_settings();
-	world_settings.sleep_linear_threshold = body_linear_velocity_sleep_threshold;
-	world_settings.sleep_angular_threshold = body_angular_velocity_sleep_threshold;
-	world_settings.sleep_time_until_sleep = body_time_to_sleep;
 	world_settings.particle_radius = RapierProjectSettings::get_fluid_particle_radius();
 	world_settings.smoothing_factor = RapierProjectSettings::get_fluid_smoothing_factor();
 	handle = rapier2d::world_create(&world_settings);

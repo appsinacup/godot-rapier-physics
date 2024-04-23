@@ -3,9 +3,6 @@ use crate::vector::Vector;
 
 #[repr(C)]
 pub struct WorldSettings {
-	pub sleep_linear_threshold: Real,
-	pub sleep_angular_threshold: Real,
-	pub sleep_time_until_sleep: Real,
     pub max_ccd_substeps: usize,
     pub particle_radius: Real,
     pub smoothing_factor: Real,
@@ -14,9 +11,6 @@ pub struct WorldSettings {
 #[no_mangle]
 pub extern "C" fn default_world_settings() -> WorldSettings {
     WorldSettings {
-		sleep_linear_threshold : 0.1,
-		sleep_angular_threshold : 0.1,
-		sleep_time_until_sleep : 1.0,
         max_ccd_substeps: 1,
         particle_radius: 0.1,
         smoothing_factor: 2.0,

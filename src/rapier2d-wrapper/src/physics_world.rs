@@ -123,10 +123,6 @@ pub struct PhysicsWorld {
     pub multibody_joint_set : MultibodyJointSet,
     pub ccd_solver : CCDSolver,
 	
-	pub sleep_linear_threshold: Real,
-	pub sleep_angular_threshold: Real,
-	pub sleep_time_until_sleep: Real,
-	
 	pub active_body_callback : ActiveBodyCallback,
 	pub collision_filter_body_callback : CollisionFilterCallback,
 	pub collision_filter_sensor_callback : CollisionFilterCallback,
@@ -157,10 +153,6 @@ impl PhysicsWorld {
 	        impulse_joint_set : ImpulseJointSet::new(),
 	        multibody_joint_set : MultibodyJointSet::new(),
 	        ccd_solver : CCDSolver::new(),
-    
-			sleep_linear_threshold : settings.sleep_linear_threshold,
-			sleep_angular_threshold : settings.sleep_angular_threshold,
-			sleep_time_until_sleep : settings.sleep_time_until_sleep,
     
 			active_body_callback : None,
 			collision_filter_body_callback : None,

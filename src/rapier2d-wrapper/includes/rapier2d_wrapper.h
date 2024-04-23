@@ -82,9 +82,6 @@ struct QueryExcludedInfo {
 };
 
 struct WorldSettings {
-	Real sleep_linear_threshold;
-	Real sleep_angular_threshold;
-	Real sleep_time_until_sleep;
 	size_t max_ccd_substeps;
 	Real particle_radius;
 	Real smoothing_factor;

@@ -53,10 +53,6 @@ class RapierSpace2D {
 	real_t contact_bias = 0.0;
 	real_t constraint_bias = 0.0;
 
-	real_t body_linear_velocity_sleep_threshold = 0.0;
-	real_t body_angular_velocity_sleep_threshold = 0.0;
-	real_t body_time_to_sleep = 0.0;
-
 	Vector2 fluid_default_gravity_dir = Vector2(0.0, -1.0);
 	real_t fluid_default_gravity_value = -9.81;
 
@@ -128,9 +124,6 @@ public:
 	_FORCE_INLINE_ real_t get_contact_max_allowed_penetration() const { return contact_max_allowed_penetration; }
 	_FORCE_INLINE_ real_t get_contact_bias() const { return contact_bias; }
 	_FORCE_INLINE_ real_t get_constraint_bias() const { return constraint_bias; }
-	_FORCE_INLINE_ real_t get_body_linear_velocity_sleep_threshold() const { return body_linear_velocity_sleep_threshold; }
-	_FORCE_INLINE_ real_t get_body_angular_velocity_sleep_threshold() const { return body_angular_velocity_sleep_threshold; }
-	_FORCE_INLINE_ real_t get_body_time_to_sleep() const { return body_time_to_sleep; }
 
 	void step(real_t p_step);
 	void call_queries();
