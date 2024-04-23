@@ -11,16 +11,6 @@ enum class BodyType {
 	Static,
 };
 
-#if !defined(DEFINE_SPIN_NO_STD)
-template <typename T = void>
-struct Lazy;
-#endif
-
-#if defined(DEFINE_SPIN_NO_STD)
-template <typename T = void>
-struct Lazy;
-#endif
-
 /// A feature id where the feature type is packed into the same value as the feature index.
 struct PackedFeatureId;
 
@@ -92,10 +82,6 @@ struct QueryExcludedInfo {
 };
 
 struct WorldSettings {
-	Real sleep_linear_threshold;
-	Real sleep_angular_threshold;
-	Real sleep_time_until_sleep;
-	Real solver_prediction_distance;
 	size_t max_ccd_substeps;
 	Real particle_radius;
 	Real smoothing_factor;
@@ -205,26 +191,6 @@ using CollisionModifyContactsCallback = OneWayDirection (*)(Handle world_handle,
 struct SimulationSettings {
 	/// The timestep length (default: `1.0 / 60.0`)
 	Real dt;
-	/// 0-1: multiplier for how much of the constraint violation (e.g. contact penetration)
-	/// will be compensated for during the velocity solve.
-	/// (default `0.8`).
-	Real erp;
-	/// 0-1: the damping ratio used by the springs for Baumgarte constraints stabilization.
-	/// Lower values make the constraints more compliant (more "springy", allowing more visible penetrations
-	/// before stabilization).
-	/// (default `0.25`).
-	Real damping_ratio;
-	/// 0-1: multiplier for how much of the joint violation
-	/// will be compensated for during the velocity solve.
-	/// (default `1.0`).
-	Real joint_erp;
-	/// The fraction of critical damping applied to the joint for constraints regularization.
-	/// (default `0.25`).
-	Real joint_damping_ratio;
-	/// Amount of penetration the engine wont attempt to correct (default: `0.001m`).
-	Real allowed_linear_error;
-	/// The maximal distance separating two objects that will generate predictive contacts (default: `0.002`).
-	Real prediction_distance;
 	/// The number of solver iterations run by the constraints solver for calculating forces (default: `4`).
 	size_t num_solver_iterations;
 	/// Number of addition friction resolution iteration run during the last solver sub-step (default: `4`).

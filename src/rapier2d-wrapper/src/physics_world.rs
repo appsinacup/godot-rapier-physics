@@ -123,11 +123,6 @@ pub struct PhysicsWorld {
     pub multibody_joint_set : MultibodyJointSet,
     pub ccd_solver : CCDSolver,
 	
-	pub sleep_linear_threshold: Real,
-	pub sleep_angular_threshold: Real,
-	pub sleep_time_until_sleep: Real,
-    pub solver_prediction_distance : Real,
-	
 	pub active_body_callback : ActiveBodyCallback,
 	pub collision_filter_body_callback : CollisionFilterCallback,
 	pub collision_filter_sensor_callback : CollisionFilterCallback,
@@ -159,11 +154,6 @@ impl PhysicsWorld {
 	        multibody_joint_set : MultibodyJointSet::new(),
 	        ccd_solver : CCDSolver::new(),
     
-			sleep_linear_threshold : settings.sleep_linear_threshold,
-			sleep_angular_threshold : settings.sleep_angular_threshold,
-			sleep_time_until_sleep : settings.sleep_time_until_sleep,
-            solver_prediction_distance :settings.solver_prediction_distance,
-    
 			active_body_callback : None,
 			collision_filter_body_callback : None,
 			collision_filter_sensor_callback : None,
@@ -187,13 +177,7 @@ impl PhysicsWorld {
         let mut integration_parameters = IntegrationParameters::default();
 		
         integration_parameters.dt = settings.dt;
-        integration_parameters.erp = settings.erp;
         integration_parameters.max_ccd_substeps = settings.max_ccd_substeps;
-        integration_parameters.damping_ratio = settings.damping_ratio;
-        integration_parameters.joint_erp = settings.joint_erp;
-        integration_parameters.joint_damping_ratio = settings.joint_damping_ratio;
-        integration_parameters.allowed_linear_error = settings.allowed_linear_error;
-        integration_parameters.prediction_distance = settings.prediction_distance;
 		if settings.num_solver_iterations > 0 {
 			integration_parameters.num_solver_iterations = NonZeroUsize::new(settings.num_solver_iterations).unwrap();
 		}
@@ -331,7 +315,7 @@ impl PhysicsWorld {
 							}
 							contact_info.pixel_distance = meters_to_pixels(contact_point.dist);
 							contact_info.pixel_impulse = meters_to_pixels(contact_point.data.impulse);
-							contact_info.pixel_tangent_impulse = meters_to_pixels(contact_point.data.tangent_impulse);
+							contact_info.pixel_tangent_impulse = meters_to_pixels(contact_point.data.tangent_impulse.x);
 							
 							send_contact_points = contact_callback(self.handle, &contact_info, &event_info);
 							if !send_contact_points {

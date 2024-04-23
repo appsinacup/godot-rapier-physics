@@ -42,9 +42,6 @@ pub extern "C" fn body_create(world_handle : Handle, pixel_pos : &Vector, rot : 
     }
 	// let default values better
     let activation = rigid_body.activation_mut();
-	activation.time_until_sleep = physics_world.sleep_time_until_sleep;
-    activation.linear_threshold = pixels_to_meters(physics_world.sleep_linear_threshold);
-    activation.angular_threshold = physics_world.sleep_angular_threshold;
     set_rigid_body_properties_internal(&mut rigid_body, pixel_pos, rot, true);
 	rigid_body.user_data = user_data.get_data();
     let body_handle = physics_world.rigid_body_set.insert(rigid_body);
@@ -216,8 +213,6 @@ pub extern "C" fn body_set_can_sleep(world_handle : Handle, body_handle : Handle
     
     if can_sleep && body.activation().angular_threshold == -1.0 {
 		let activation = body.activation_mut();
-        activation.angular_threshold = physics_world.sleep_angular_threshold;
-        activation.linear_threshold = physics_world.sleep_linear_threshold;
     } else if !can_sleep && body.activation().angular_threshold != -1.0 {
 		let activation = body.activation_mut();
         activation.angular_threshold = -1.0;

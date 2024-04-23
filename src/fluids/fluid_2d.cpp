@@ -215,6 +215,7 @@ void Fluid2D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_debug_draw", "debug_draw"), &Fluid2D::set_debug_draw);
 	ClassDB::bind_method(D_METHOD("get_debug_draw"), &Fluid2D::get_debug_draw);
+	ClassDB::bind_method(D_METHOD("delete_points", "indices"), &Fluid2D::delete_points);
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "debug_draw"), "set_debug_draw", "get_debug_draw");
 }
 

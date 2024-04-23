@@ -432,10 +432,8 @@ pub extern "C" fn shapes_contact(world_handle : Handle, shape_info1 : ShapeInfo,
     let margin = pixels_to_meters(pixel_margin);
 
     let mut physics_engine = singleton().lock().unwrap();
-    
-    let physics_world = physics_engine.get_world(world_handle);
 
-    let prediction = Real::max(physics_world.solver_prediction_distance, margin);
+    let prediction = Real::max(0.002, margin);
 
     let raw_shared_shape1 = physics_engine.get_shape(shape_info1.handle).clone();
     let skewed_shape1 = skew_shape(&raw_shared_shape1, shape_info1.skew);
