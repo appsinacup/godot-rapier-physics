@@ -212,7 +212,7 @@ pub extern "C" fn body_set_can_sleep(world_handle : Handle, body_handle : Handle
     
     if !can_sleep && body.activation().angular_threshold != -1.0 {
 		let activation = body.activation_mut();
-        activation.normalized_angular_threshold = -1.0;
+        activation.angular_threshold = -1.0;
         activation.normalized_linear_threshold = -1.0;
     }
 
