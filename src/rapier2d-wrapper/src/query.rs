@@ -1,8 +1,5 @@
 use rapier2d::na::Vector2;
 use rapier2d::parry;
-use rapier2d::parry::query::NonlinearRigidMotion;
-use parry::query::DefaultQueryDispatcher;
-use rapier2d::parry::query::QueryDispatcher;
 use rapier2d::prelude::*;
 use crate::convert::meters_to_pixels;
 use crate::convert::pixels_to_meters;
@@ -215,8 +212,14 @@ pub extern "C" fn intersect_point(world_handle : Handle, pixel_position : &Vecto
 
 #[no_mangle]
 pub extern "C" fn shape_collide(pixel_motion1 : &Vector, shape_info1: ShapeInfo, pixel_motion2 : &Vector, shape_info2: ShapeInfo) -> ShapeCastResult {
-    let motion1 = vector_pixels_to_meters(&pixel_motion1);
-    let motion2 = vector_pixels_to_meters(&pixel_motion2);
+    let mut motion1 = vector_pixels_to_meters(&pixel_motion1);
+    let mut motion2 = vector_pixels_to_meters(&pixel_motion2);
+    if motion1.x == 0.0 && motion1.y == 0.0 {
+        motion1.x = 1e-5;
+    }
+    if motion2.x == 0.0 && motion2.y == 0.0 {
+        motion2.x = 1e-5;
+    }
     let position1 = vector_pixels_to_meters(&shape_info1.pixel_position);
     let position2 = vector_pixels_to_meters(&shape_info2.pixel_position);
 
@@ -225,7 +228,7 @@ pub extern "C" fn shape_collide(pixel_motion1 : &Vector, shape_info1: ShapeInfo,
     let raw_shared_shape1 = physics_engine.get_shape(shape_info1.handle).clone();
     let skewed_shape1 = skew_shape(&raw_shared_shape1, shape_info1.skew);
     let shared_shape1 = scale_shape(&skewed_shape1, &Vector2::<Real>::new(shape_info1.scale.x, shape_info1.scale.y));
-    let raw_shared_shape2 = physics_engine.get_shape(shape_info1.handle).clone();
+    let raw_shared_shape2 = physics_engine.get_shape(shape_info2.handle).clone();
     let skewed_shape2 = skew_shape(&raw_shared_shape2, shape_info2.skew);
     let shared_shape2 = scale_shape(&skewed_shape2, &Vector2::<Real>::new(shape_info2.scale.x, shape_info2.scale.y));
     
@@ -233,19 +236,16 @@ pub extern "C" fn shape_collide(pixel_motion1 : &Vector, shape_info1: ShapeInfo,
     let shape_vel2 = vector![motion2.x, motion2.y];
     let shape_transform1 = Isometry::new(vector![position1.x, position1.y], shape_info1.rotation);
     let shape_transform2 = Isometry::new(vector![position2.x, position2.y], shape_info2.rotation);
-    let shape_nonlin1 = NonlinearRigidMotion::new(shape_transform1, Point::default(), shape_vel1, 0.0);
-    let shape_nonlin2 = NonlinearRigidMotion::new(shape_transform2, Point::default(), shape_vel2, 0.0);
     let mut result = ShapeCastResult::new();
-    let dispatcher = DefaultQueryDispatcher;
-    let toi_result = dispatcher.nonlinear_time_of_impact(&shape_nonlin1, shared_shape1.as_ref(), &shape_nonlin2, shared_shape2.as_ref(), 0.0, 1.0, true);
+    let toi_result = parry::query::time_of_impact(&shape_transform1, &shape_vel1, shared_shape1.as_ref(), &shape_transform2, &shape_vel2, shared_shape2.as_ref(), 1.0, false);
     assert!(toi_result.is_ok());
     if let Some(hit) = toi_result.unwrap() {
         result.collided = true;
         result.toi = hit.toi;
-        result.pixel_witness1 = vector_meters_to_pixels(&Vector{ x: hit.witness1.x, y: hit.witness1.y });
-        result.pixel_witness2 = vector_meters_to_pixels(&Vector{ x: hit.witness2.x, y: hit.witness2.y });
         result.normal1 = Vector{ x: hit.normal1.x, y: hit.normal1.y };
         result.normal2 = Vector{ x: hit.normal2.x, y: hit.normal2.y };
+        result.pixel_witness1 = vector_meters_to_pixels(&Vector{ x: hit.witness1.x, y: hit.witness1.y });
+        result.pixel_witness2 = vector_meters_to_pixels(&Vector{ x: hit.witness2.x, y: hit.witness2.y });
         return result;
     }
     return result;
@@ -263,8 +263,8 @@ pub extern "C" fn shape_casting(world_handle : Handle, pixel_motion : &Vector, s
     let shared_shape = scale_shape(&skewed_shape, &Vector2::<Real>::new(shape_info.scale.x, shape_info.scale.y));
 
 	let physics_world = physics_engine.get_world(world_handle);
-    
     let mut shape_vel = vector![motion.x, motion.y];
+    
     let shape_transform = Isometry::new(vector![position.x, position.y], shape_info.rotation);
     
     let mut filter = QueryFilter::new();
@@ -286,24 +286,24 @@ pub extern "C" fn shape_casting(world_handle : Handle, pixel_motion : &Vector, s
     filter.predicate = Some(&predicate);
 
     let mut result = ShapeCastResult::new();
-    let mut toi = 1.0;
-    if shape_vel.x == 0.0 && shape_vel.y == 0.0 && ignore_intersecting {
-        shape_vel.x = 1.0e-5;
-        shape_vel.y = 1.0e-5;
-        toi = Real::MAX;
+    if shape_vel.x == 0.0 && shape_vel.y == 0.0 {
+        shape_vel.x = 1e-5;
     }
     if let Some((collider_handle, hit)) = physics_world.query_pipeline.cast_shape(
-        &physics_world.rigid_body_set, &physics_world.collider_set, &shape_transform, &shape_vel, shared_shape.as_ref(), toi, ignore_intersecting, filter
+        &physics_world.rigid_body_set, &physics_world.collider_set, &shape_transform, &shape_vel, shared_shape.as_ref(), 1.0, ignore_intersecting, filter
     ) {
         result.collided = true;
         result.toi = hit.toi;
-        result.pixel_witness1 = vector_meters_to_pixels(&Vector{ x: hit.witness1.x, y: hit.witness1.y });
-        result.pixel_witness2 = vector_meters_to_pixels(&Vector{ x: hit.witness2.x, y: hit.witness2.y });
         result.normal1 = Vector{ x: hit.normal1.x, y: hit.normal1.y };
         result.normal2 = Vector{ x: hit.normal2.x, y: hit.normal2.y };
         result.collider = collider_handle_to_handle(collider_handle);
         result.user_data = physics_world.get_collider_user_data(collider_handle);
-        return result;
+        // first is world space
+        let witness1 = hit.witness1;
+        // second is local space
+        let witness2 = shape_transform.transform_point(&hit.witness2);
+        result.pixel_witness1 = vector_meters_to_pixels(&Vector{ x: witness1.x, y: witness1.y });
+        result.pixel_witness2 = vector_meters_to_pixels(&Vector{ x: witness2.x, y: witness2.y });
     }
     return result;
 }
@@ -433,7 +433,8 @@ pub extern "C" fn shapes_contact(shape_info1 : ShapeInfo, shape_info2 : ShapeInf
 
     let mut physics_engine = singleton().lock().unwrap();
 
-    let prediction = Real::max(0.002, margin);
+    //let prediction = Real::max(0.002, margin);
+    let prediction = margin;
 
     let raw_shared_shape1 = physics_engine.get_shape(shape_info1.handle).clone();
     let skewed_shape1 = skew_shape(&raw_shared_shape1, shape_info1.skew);
@@ -458,10 +459,10 @@ pub extern "C" fn shapes_contact(shape_info1 : ShapeInfo, shape_info2 : ShapeInf
             result.within_margin = true;
         }
         result.collided = true;
-        result.pixel_point1 = vector_meters_to_pixels(&Vector{ x: contact.point1.x + prediction * contact.normal1.x, y: contact.point1.y + prediction * contact.normal1.y });
-        result.pixel_point2 = vector_meters_to_pixels(&Vector{ x: contact.point2.x, y: contact.point2.y });
         result.normal1 = Vector{ x: contact.normal1.x, y: contact.normal1.y };
         result.normal2 = Vector{ x: contact.normal2.x, y: contact.normal2.y };
+        result.pixel_point1 = vector_meters_to_pixels(&Vector{ x: contact.point1.x + prediction * contact.normal1.x, y: contact.point1.y + prediction * contact.normal1.y });
+        result.pixel_point2 = vector_meters_to_pixels(&Vector{ x: contact.point2.x, y: contact.point2.y });
         return result;
     }
     return result;

@@ -142,7 +142,7 @@ bool RapierPhysicsServer2D::_shape_collide(const RID &p_shape_A, const Transform
 	rapier2d::QueryExcludedInfo query_excluded_info = rapier2d::default_query_excluded_info();
 
 	int array_idx = 0;
-	rapier2d::ShapeCastResult result = rapier2d::shape_collide(&rapier_A_motion, shape_A_info, &rapier_A_motion, shape_A_info);
+	rapier2d::ShapeCastResult result = rapier2d::shape_collide(&rapier_A_motion, shape_A_info, &rapier_B_motion, shape_B_info);
 	if (!result.collided) {
 		return false;
 	}
