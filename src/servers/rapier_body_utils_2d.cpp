@@ -191,7 +191,7 @@ void RapierBodyUtils2D::cast_motion(const RapierSpace2D &p_space, RapierBody2D &
 			if (step_contact.collided && !step_contact.within_margin) {
 				if (body_shape->allows_one_way_collision() && collision_body->is_shape_set_as_one_way_collision(shape_index)) {
 					Vector2 direction = col_shape_transform.columns[1].normalized();
-					if (p_motion.normalized().dot(direction) < 0) {
+					if (p_motion.normalized().dot(direction) <= 0) {
 						continue;
 					}
 				}
