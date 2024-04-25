@@ -1,8 +1,5 @@
 use rapier2d::na::Vector2;
 use rapier2d::parry;
-use rapier2d::parry::query::NonlinearRigidMotion;
-use parry::query::DefaultQueryDispatcher;
-use rapier2d::parry::query::QueryDispatcher;
 use rapier2d::prelude::*;
 use crate::convert::meters_to_pixels;
 use crate::convert::pixels_to_meters;
@@ -216,13 +213,13 @@ pub extern "C" fn intersect_point(world_handle : Handle, pixel_position : &Vecto
 #[no_mangle]
 pub extern "C" fn shape_collide(pixel_motion1 : &Vector, shape_info1: ShapeInfo, pixel_motion2 : &Vector, shape_info2: ShapeInfo) -> ShapeCastResult {
     let mut motion1 = vector_pixels_to_meters(&pixel_motion1);
+    let mut motion2 = vector_pixels_to_meters(&pixel_motion2);
     if motion1.x == 0.0 && motion1.y == 0.0 {
         motion1.x = 1e-5;
     }
     if motion2.x == 0.0 && motion2.y == 0.0 {
         motion2.x = 1e-5;
     }
-    let motion2 = vector_pixels_to_meters(&pixel_motion2);
     let position1 = vector_pixels_to_meters(&shape_info1.pixel_position);
     let position2 = vector_pixels_to_meters(&shape_info2.pixel_position);
 
