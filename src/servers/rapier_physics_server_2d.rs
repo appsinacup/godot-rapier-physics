@@ -1,7 +1,10 @@
 use std::collections::{HashMap, HashSet};
 
+use godot::engine::native::PhysicsServer2DExtensionMotionResult;
 use godot::{engine, prelude::*};
 use godot::engine::{IPhysicsServer2DExtension};
+
+use std::ffi::c_void;
 
 #[derive(GodotClass)]
 #[class(base=PhysicsServer2DExtension, init)]
@@ -41,6 +44,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     }
     fn shape_set_custom_solver_bias(&mut self, shape: Rid, bias: f32,) {
     }
+    
     fn shape_get_type(&self, shape: Rid,) -> engine::physics_server_2d::ShapeType {
         engine::physics_server_2d::ShapeType::CUSTOM
     }
@@ -49,6 +53,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     }
     fn shape_get_custom_solver_bias(&self, shape: Rid,) -> f32 {
         0.0
+    }
+    unsafe fn shape_collide(&mut self, shape_A: Rid, xform_A: Transform2D, motion_A: Vector2, shape_B: Rid, xform_B: Transform2D, motion_B: Vector2, results: * mut c_void, result_max: i32, result_count: * mut i32,) -> bool {
+        false
     }
     fn space_create(&mut self,) -> Rid {
         Rid::Invalid
@@ -275,10 +282,16 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     }
     fn body_set_force_integration_callback(&mut self, body: Rid, callable: Callable, userdata: Variant,) {
     }
+    unsafe fn body_collide_shape(&mut self, body: Rid, body_shape: i32, shape: Rid, shape_xform: Transform2D, motion: Vector2, results: * mut c_void, result_max: i32, result_count: * mut i32,) -> bool {
+        false
+    }
     fn body_set_pickable(&mut self, body: Rid, pickable: bool,) {
     }
     fn body_get_direct_state(&mut self, body: Rid,) -> Option < Gd < engine::PhysicsDirectBodyState2D > > {
         None
+    }
+    unsafe fn body_test_motion(&self, body: Rid, from: Transform2D, motion: Vector2, margin: f32, collide_separation_ray: bool, recovery_as_collision: bool, result: * mut PhysicsServer2DExtensionMotionResult,) -> bool {
+        false
     }
     fn joint_create(&mut self,) -> Rid {
         Rid::Invalid
