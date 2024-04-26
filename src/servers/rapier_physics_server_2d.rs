@@ -11,6 +11,7 @@ use std::ffi::c_void;
 pub struct RapierPhysicsServer2D {
     active_spaces: HashSet<Rid>,
     active: bool,
+    [#default(false)]
     flushing_queries: bool,
 }
 
@@ -54,9 +55,10 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn shape_get_custom_solver_bias(&self, shape: Rid,) -> f32 {
         0.0
     }
-    unsafe fn shape_collide(&mut self, shape_A: Rid, xform_A: Transform2D, motion_A: Vector2, shape_B: Rid, xform_B: Transform2D, motion_B: Vector2, results: * mut c_void, result_max: i32, result_count: * mut i32,) -> bool {
-        false
-    }
+    // TODO
+    //unsafe fn shape_collide(&mut self, shape_A: Rid, xform_A: Transform2D, motion_A: Vector2, shape_B: Rid, xform_B: Transform2D, motion_B: Vector2, results: * mut c_void, result_max: i32, result_count: * mut i32,) -> bool {
+    //    false
+    //}
     fn space_create(&mut self,) -> Rid {
         Rid::Invalid
     }
@@ -282,9 +284,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     }
     fn body_set_force_integration_callback(&mut self, body: Rid, callable: Callable, userdata: Variant,) {
     }
-    unsafe fn body_collide_shape(&mut self, body: Rid, body_shape: i32, shape: Rid, shape_xform: Transform2D, motion: Vector2, results: * mut c_void, result_max: i32, result_count: * mut i32,) -> bool {
-        false
-    }
+    // TODO
+    //unsafe fn body_collide_shape(&mut self, body: Rid, body_shape: i32, shape: Rid, shape_xform: Transform2D, motion: Vector2, results: * mut c_void, result_max: i32, result_count: * mut i32,) -> bool {
+    //}
     fn body_set_pickable(&mut self, body: Rid, pickable: bool,) {
     }
     fn body_get_direct_state(&mut self, body: Rid,) -> Option < Gd < engine::PhysicsDirectBodyState2D > > {
