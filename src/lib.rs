@@ -1,14 +1,14 @@
+mod rapier2d;
 mod servers;
+mod shapes;
 use godot::prelude::*;
 
 #[derive(GodotClass)]
 #[class(base=Object, init)]
-pub struct RapierPhysics2DExtensionLibrary {
-}
+pub struct RapierPhysics2DExtensionLibrary {}
 
 #[gdextension]
 unsafe impl ExtensionLibrary for RapierPhysics2DExtensionLibrary {
-
     fn min_level() -> InitLevel {
         InitLevel::Scene
     }
