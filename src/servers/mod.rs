@@ -1,4 +1,4 @@
-use godot::{engine::{Engine, PhysicsServer2DManager}, prelude::*};
+use godot::{engine::{PhysicsServer2DManager}, prelude::*};
 
 use crate::servers::rapier_physics_server_factory_2d::*;
 
