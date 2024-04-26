@@ -76,7 +76,7 @@
 					"--path",
 					"${workspaceFolder:godot-rapier-2d}/bin",
 					"--debug-collisions",
-					"samples/godot-rapier2d/test_fluid.tscn"
+					"samples/godot-rapier2d/test.tscn"
 				]
 			}
 		]
