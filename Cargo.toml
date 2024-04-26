@@ -11,6 +11,3 @@ crate-type = ["cdylib"]
 
 [dependencies]
 godot = { git = "https://github.com/godot-rust/gdext", branch = "master" }
-
-[profile.dev.package.rapier3d]
-opt-level = 3
