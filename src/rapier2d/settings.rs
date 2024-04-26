@@ -1,5 +1,5 @@
+use crate::rapier2d::vector::Vector;
 use rapier2d::prelude::*;
-use crate::vector::Vector;
 
 #[repr(C)]
 pub struct WorldSettings {
@@ -28,7 +28,7 @@ pub struct SimulationSettings {
     pub num_additional_friction_iterations: usize,
     /// Number of internal Project Gauss Seidel (PGS) iterations run at each solver iteration (default: `1`).
     pub num_internal_pgs_iterations: usize,
-    pub pixel_gravity : Vector,
-    pub pixel_liquid_gravity : Vector,
+    pub pixel_gravity: Vector,
+    pub pixel_liquid_gravity: Vector,
     pub max_ccd_substeps: usize,
 }

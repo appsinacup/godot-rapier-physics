@@ -2,16 +2,16 @@ use rapier2d::na::Vector2;
 use rapier2d::parry;
 use rapier2d::parry::query::ShapeCastOptions;
 use rapier2d::prelude::*;
-use crate::convert::meters_to_pixels;
-use crate::convert::pixels_to_meters;
-use crate::convert::vector_meters_to_pixels;
-use crate::convert::vector_pixels_to_meters;
-use crate::handle::*;
-use crate::user_data::*;
-use crate::physics_world::*;
-use crate::vector::Vector;
-use crate::collider::*;
-use crate::shape::*;
+use crate::rapier2d::convert::meters_to_pixels;
+use crate::rapier2d::convert::pixels_to_meters;
+use crate::rapier2d::convert::vector_meters_to_pixels;
+use crate::rapier2d::convert::vector_pixels_to_meters;
+use crate::rapier2d::handle::*;
+use crate::rapier2d::user_data::*;
+use crate::rapier2d::physics_world::*;
+use crate::rapier2d::vector::Vector;
+use crate::rapier2d::collider::*;
+use crate::rapier2d::shape::*;
 
 #[repr(C)]
 pub struct RayHitInfo {
