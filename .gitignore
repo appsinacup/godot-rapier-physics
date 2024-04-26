@@ -2,6 +2,7 @@
 bin/addons/godot-rapier2d/bin/*
 bin/.godot/**
 bin/samples/godot-rapier2d/addons/**
+target
 
 !bin/addons/godot-rapier2d/bin/libphysics_server_rapier2d.macos.template_debug.framework/Resources/Info.plist
 !bin/addons/godot-rapier2d/bin/libphysics_server_rapier2d.macos.template_release.framework/Resources/Info.plist
