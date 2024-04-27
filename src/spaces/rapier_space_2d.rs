@@ -1,25 +1,22 @@
 use std::collections::HashMap;
-
-use godot::{builtin::{Rid, Vector2}, engine::native::ObjectId, obj::Gd};
-
-use crate::{bodies::rapier_collision_object_2d::Type, rapier2d::handle::{invalid_handle, Handle}};
+use godot::{engine::native::ObjectId, prelude::*};
+use crate::{bodies::{rapier_area_2d::RapierArea2D, rapier_body_2d::RapierBody2D, rapier_collision_object_2d::{CollisionObjectType, RapierCollisionObject2D}}, rapier2d::{handle::Handle, physics_hooks::{CollisionFilterInfo, OneWayDirection}, physics_world::{ActiveBodyInfo, CollisionEventInfo, ContactForceEventInfo, ContactPointInfo}, query::QueryExcludedInfo, user_data::UserData}};
 
 use super::rapier_direct_space_state_2d::RapierDirectSpaceState2D;
 
 pub struct RapierSpace2D {
-    // Add fields here
     direct_access: Option<Gd<RapierDirectSpaceState2D>>,
     rid: Rid,
     handle: Handle,
     removed_colliders: HashMap<u32, RemovedColliderInfo>,
-    active_list: Vec<Rid>,
-    mass_properties_update_list: Vec<Rid>,
-    gravity_update_list: Vec<Rid>,
-    state_query_list: Vec<Rid>,
-    monitor_query_list: Vec<Rid>,
-    area_update_list: Vec<Rid>,
-    body_area_update_list: Vec<Rid>,
-    solver_iterations: u32,
+    active_list: Vec<RapierBody2D>,
+    mass_properties_update_list: Vec<RapierBody2D>,
+    gravity_update_list: Vec<RapierBody2D>,
+    state_query_list: Vec<RapierBody2D>,
+    monitor_query_list: Vec<RapierArea2D>,
+    area_update_list: Vec<RapierArea2D>,
+    body_area_update_list: Vec<RapierBody2D>,
+    solver_iterations: i32,
     contact_recycle_radius: f32,
     contact_max_separation: f32,
     contact_max_allowed_penetration: f32,
@@ -36,51 +33,117 @@ pub struct RapierSpace2D {
     island_count: i32,
     active_objects: i32,
     collision_pairs: i32,
-    contact_debug: Vec<Vector2>,
+    contact_debug: PackedVector2Array,
     contact_debug_count: i32,
 }
 
+impl RapierSpace2D {
+    fn get_handle(&self) -> Handle {
+        self.handle
+    }
+
+    fn set_rid(&mut self, rid: Rid) {
+        self.rid = rid;
+    }
+
+    fn get_rid(&self) -> Rid {
+        self.rid
+    }
+}
+
+// Define helper structs
 struct RemovedColliderInfo {
     rid: Rid,
     instance_id: ObjectId,
     shape_index: u32,
-    type_: Type,
+    collision_object_type: CollisionObjectType,
 }
 
+struct CollidersInfo {
+    shape1: u32,
+    object1: Option<RapierCollisionObject2D>,
+    shape2: u32,
+    object2: Option<RapierCollisionObject2D>,
+}
+
+// Implement callbacks
 impl RapierSpace2D {
-    pub fn new() -> Self {
-        // Initialize fields here
-        Self {
-            direct_access: None,
-            rid: Rid::Invalid,
-            handle: invalid_handle(),
-            removed_colliders: HashMap::new(),
-            active_list: Vec::new(),
-            mass_properties_update_list: Vec::new(),
-            gravity_update_list: Vec::new(),
-            state_query_list: Vec::new(),
-            monitor_query_list: Vec::new(),
-            area_update_list: Vec::new(),
-            body_area_update_list: Vec::new(),
-            solver_iterations: 0,
-            contact_recycle_radius: 0.0,
-            contact_max_separation: 0.0,
-            contact_max_allowed_penetration: 0.0,
-            contact_bias: 0.0,
-            constraint_bias: 0.0,
-            fluid_default_gravity_dir: Vector2::new(0.0, -1.0),
-            fluid_default_gravity_value: -9.81,
-            default_gravity_dir: Vector2::new(0.0, -1.0),
-            default_gravity_value: -9.81,
-            default_linear_damping: 0.0,
-            default_angular_damping: 0.0,
-            locked: false,
-            last_step: 0.001,
-            island_count: 0,
-            active_objects: 0,
-            collision_pairs: 0,
-            contact_debug: Vec::new(),
-            contact_debug_count: 0,
+    fn active_body_callback(world_handle: Handle, active_body_info: &ActiveBodyInfo) {
+        // Implement callback logic
+    }
+
+    fn collision_filter_common_callback(
+        world_handle: Handle,
+        filter_info: &CollisionFilterInfo,
+        r_colliders_info: &mut CollidersInfo,
+    ) -> bool {
+        // Implement callback logic
+        false
+    }
+
+    fn collision_filter_body_callback(
+        world_handle: Handle,
+        filter_info: &CollisionFilterInfo,
+    ) -> bool {
+        // Implement callback logic
+        false
+    }
+
+    fn collision_filter_sensor_callback(
+        world_handle: Handle,
+        filter_info: &CollisionFilterInfo,
+    ) -> bool {
+        // Implement callback logic
+        false
+    }
+
+    fn collision_modify_contacts_callback(
+        world_handle: Handle,
+        filter_info: &CollisionFilterInfo,
+    ) -> OneWayDirection {
+        // Implement callback logic
+        OneWayDirection{
+            body1: false,
+            body2: false,
+            pixel_body1_margin: 0.0,
+            pixel_body2_margin: 0.0,
+            last_timestep: 0.0,
         }
+    }
+
+    fn collision_event_callback(world_handle: Handle, event_info: &CollisionEventInfo) {
+        // Implement callback logic
+    }
+
+    fn contact_force_event_callback(
+        world_handle: Handle,
+        event_info: &ContactForceEventInfo,
+    ) -> bool {
+        // Implement callback logic
+        false
+    }
+
+    fn contact_point_callback(
+        world_handle: Handle,
+        contact_info: &ContactPointInfo,
+        event_info: &ContactForceEventInfo,
+    ) -> bool {
+        // Implement callback logic
+        false
+    }
+
+    fn _is_handle_excluded_callback(
+        world_handle: Handle,
+        collider_handle: Handle,
+        collider: &UserData,
+        handle_excluded_info: &QueryExcludedInfo,
+    ) -> bool {
+        // Implement callback logic
+        false
+    }
+
+    fn _get_object_instance_hack(p_object_id: u64) -> Option<Object> {
+        // Implement hack logic
+        None
     }
 }

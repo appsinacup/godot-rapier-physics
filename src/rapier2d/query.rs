@@ -14,28 +14,28 @@ use crate::rapier2d::shape::*;
 
 #[repr(C)]
 pub struct RayHitInfo {
-    pixel_position: Vector,
-    normal: Vector,
-    collider: Handle,
-    user_data: UserData,
+    pub pixel_position: Vector,
+    pub normal: Vector,
+    pub collider: Handle,
+    pub user_data: UserData,
 }
 
 #[repr(C)]
 pub struct PointHitInfo {
-    collider: Handle,
-    user_data: UserData,
+    pub collider: Handle,
+    pub user_data: UserData,
 }
 
 #[repr(C)]
 pub struct ShapeCastResult {
-    collided: bool,
-    toi : Real,
-    pixel_witness1 : Vector,
-    pixel_witness2 : Vector,
-    normal1 : Vector,
-    normal2 : Vector,
-    collider: Handle,
-    user_data: UserData
+    pub collided: bool,
+    pub toi : Real,
+    pub pixel_witness1 : Vector,
+    pub pixel_witness2 : Vector,
+    pub normal1 : Vector,
+    pub normal2 : Vector,
+    pub collider: Handle,
+    pub user_data: UserData
 }
 
 impl ShapeCastResult {
@@ -55,13 +55,13 @@ impl ShapeCastResult {
 
 #[repr(C)]
 pub struct ContactResult {
-    collided: bool,
-    within_margin: bool,
-    pixel_distance: Real,
-    pixel_point1 : Vector,
-    pixel_point2 : Vector,
-    normal1 : Vector,
-    normal2 : Vector
+    pub collided: bool,
+    pub within_margin: bool,
+    pub pixel_distance: Real,
+    pub pixel_point1 : Vector,
+    pub pixel_point2 : Vector,
+    pub normal1 : Vector,
+    pub normal2 : Vector
 }
 
 impl ContactResult {
@@ -80,13 +80,13 @@ impl ContactResult {
 
 #[repr(C)]
 pub struct QueryExcludedInfo {
-    query_collision_layer_mask: u32,
-    query_canvas_instance_id: u64,
+    pub query_collision_layer_mask: u32,
+    pub query_canvas_instance_id: u64,
     // Pointer to array of objects
-    query_exclude: * mut Handle,
+    pub query_exclude: * mut Handle,
     // Size of query_exclude array
-    query_exclude_size: u32,
-    query_exclude_body: i64,
+    pub query_exclude_size: u32,
+    pub query_exclude_body: i64,
 }
 
 #[no_mangle]

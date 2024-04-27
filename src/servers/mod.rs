@@ -3,9 +3,9 @@ use godot::{engine::{PhysicsServer2DManager}, prelude::*};
 use crate::servers::rapier_physics_server_factory_2d::*;
 
 mod rapier_physics_server_2d;
-mod rapier_physics_singleton_2d;
 mod rapier_physics_server_factory_2d;
 mod rapier_project_settings;
+mod rapier_body_utils_2d;
 
 pub fn register() {
     let mut manager = PhysicsServer2DManager::singleton();

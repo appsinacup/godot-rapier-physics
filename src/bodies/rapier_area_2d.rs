@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
-use godot::{builtin::{Rid, Variant, Vector2}, engine::physics_server_2d::{AreaParameter, AreaSpaceOverrideMode}};
+use godot::{builtin::{Callable, Rid, Variant, Vector2}, engine::physics_server_2d::{AreaParameter, AreaSpaceOverrideMode}};
 
 use crate::rapier2d::handle::Handle;
 
-use crate::bodies::rapier_collision_object_2d::Type;
+use crate::bodies::rapier_collision_object_2d::CollisionObjectType;
 
 pub struct RapierArea2D {
     gravity_override_mode: AreaSpaceOverrideMode,
@@ -18,12 +18,12 @@ pub struct RapierArea2D {
     angular_damp: f32,
     priority: i32,
     monitorable: bool,
-    monitor_callback: Option<Box<dyn Fn()>>,
-    area_monitor_callback: Option<Box<dyn Fn()>>,
+    monitor_callback: Callable,
+    area_monitor_callback: Callable,
     monitored_objects: HashMap<u64, MonitorInfo>,
     detected_bodies: HashMap<Rid, BodyRefCount>,
-    monitor_query_list: Vec<RapierArea2D>,
-    area_override_update_list: Vec<RapierArea2D>,
+    monitor_query_list: Vec<Rid>,
+    area_override_update_list: Vec<Rid>,
 }
 
 impl RapierArea2D {
@@ -40,8 +40,8 @@ impl RapierArea2D {
             angular_damp: 1.0,
             priority: 0,
             monitorable: false,
-            monitor_callback: None,
-            area_monitor_callback: None,
+            monitor_callback: Callable::invalid(),
+            area_monitor_callback: Callable::invalid(),
             monitored_objects: HashMap::new(),
             detected_bodies: HashMap::new(),
             monitor_query_list: Vec::new(),
@@ -75,20 +75,20 @@ impl RapierArea2D {
         self.angular_damping_override_mode != AreaSpaceOverrideMode::DISABLED
     }
 
-    pub fn set_monitor_callback(&mut self, callback: Box<dyn Fn()>) {
-        self.monitor_callback = Some(callback);
+    pub fn set_monitor_callback(&mut self, callback: Callable) {
+        self.monitor_callback = callback;
     }
 
     pub fn has_monitor_callback(&self) -> bool {
-        self.monitor_callback.is_some()
+        self.monitor_callback.is_valid()
     }
 
-    pub fn set_area_monitor_callback(&mut self, callback: Box<dyn Fn()>) {
-        self.area_monitor_callback = Some(callback);
+    pub fn set_area_monitor_callback(&mut self, callback: Callable) {
+        self.area_monitor_callback = callback;
     }
 
     pub fn has_area_monitor_callback(&self) -> bool {
-        self.area_monitor_callback.is_some()
+        self.area_monitor_callback.is_valid()
     }
 
     pub fn set_param(&mut self, param: AreaParameter, value: Variant) {
@@ -183,7 +183,7 @@ struct MonitorInfo {
     instance_id: u64,
     object_shape_index: u32,
     area_shape_index: u32,
-    type_: Type,
+    collision_object_type: CollisionObjectType,
     state: i32,
 }
 

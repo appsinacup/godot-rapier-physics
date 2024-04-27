@@ -1,14 +1,14 @@
+use crate::spaces::rapier_space_2d::RapierSpace2D;
 use godot::{
     engine::{IPhysicsDirectSpaceState2DExtension, PhysicsDirectSpaceState2DExtension},
     prelude::*,
 };
-
-use crate::spaces::rapier_space_2d::RapierSpace2D;
+use std::{cell::RefCell, rc::Rc};
 
 #[derive(GodotClass)]
 #[class(base=PhysicsDirectSpaceState2DExtension)]
 pub struct RapierDirectSpaceState2D {
-    space: Rid,
+    space: Option<Rc<RefCell<RapierSpace2D>>>,
 
     base: Base<PhysicsDirectSpaceState2DExtension>,
 }
@@ -16,10 +16,7 @@ pub struct RapierDirectSpaceState2D {
 #[godot_api]
 impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
     fn init(base: Base<PhysicsDirectSpaceState2DExtension>) -> Self {
-        Self {
-            space: Rid::Invalid,
-            base,
-        }
+        Self { space: None, base }
     }
 
     unsafe fn intersect_ray(

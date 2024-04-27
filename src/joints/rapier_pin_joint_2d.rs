@@ -1,7 +1,8 @@
-use crate::joints::rapier_joint_2d::IRapierJoint2D;
 use godot::log::godot_warn;
 use godot::obj::EngineEnum;
 use godot::{builtin::Rid, engine::physics_server_2d};
+use crate::rapier2d::handle::{self, invalid_handle, Handle};
+use crate::joints::rapier_joint_2d::IRapierJoint2D;
 
 use super::rapier_joint_2d::RapierJointBase2D;
 pub struct RapierPinJoint2D {

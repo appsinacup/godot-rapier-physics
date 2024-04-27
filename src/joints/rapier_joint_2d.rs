@@ -1,5 +1,7 @@
-use crate::rapier2d::handle::{invalid_handle, Handle};
 use godot::{builtin::Rid, engine::physics_server_2d};
+
+use crate::rapier2d::handle::{invalid_handle, Handle};
+
 
 pub trait IRapierJoint2D {
     fn get_type(&self) -> physics_server_2d::JointType;
