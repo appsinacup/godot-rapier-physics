@@ -1,6 +1,10 @@
+mod joints;
 mod rapier2d;
 mod servers;
 mod shapes;
+mod spaces;
+mod bodies;
+mod fluids;
 use godot::prelude::*;
 
 #[derive(GodotClass)]
