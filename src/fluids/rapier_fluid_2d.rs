@@ -17,8 +17,8 @@ pub struct RapierFluid2D {
     accelerations: Vec<Vector2>,
 }
 
-impl RapierFluid2D {
-    pub fn new() -> Self {
+impl Default for RapierFluid2D {
+    fn default() -> Self {
         Self {
             rid: Rid::Invalid,
             enabled: true,
@@ -31,6 +31,9 @@ impl RapierFluid2D {
             accelerations: Vec::new(),
         }
     }
+}
+
+impl RapierFluid2D {
 
     pub fn set_points(&mut self, points: Vec<Vector2>) {
         self.points = points;

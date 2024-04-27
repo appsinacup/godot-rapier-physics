@@ -26,8 +26,8 @@ pub struct RapierArea2D {
     area_override_update_list: Vec<Rid>,
 }
 
-impl RapierArea2D {
-    pub fn new() -> Self {
+impl Default for RapierArea2D {
+    fn default() -> Self {
         Self {
             gravity_override_mode: AreaSpaceOverrideMode::DISABLED,
             linear_damping_override_mode: AreaSpaceOverrideMode::DISABLED,
@@ -48,6 +48,9 @@ impl RapierArea2D {
             area_override_update_list: Vec::new(),
         }
     }
+}
+
+impl RapierArea2D {
 
     pub fn on_body_enter(&mut self, collider_handle: Handle, body: Rid, body_shape: u32, area_collider_handle: Handle, area_shape: u32) {
         // Implementation needed

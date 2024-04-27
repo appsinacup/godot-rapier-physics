@@ -27,6 +27,15 @@ pub struct RapierShapeBase2D {
 }
 
 impl RapierShapeBase2D {
+    pub fn new(rid: Rid) -> Self {
+        Self {
+            rid,
+            aabb: Rect2::default(),
+            configured: false,
+            owners_count: HashMap::new(),
+            owners: HashMap::new(),
+        }
+    }
     pub fn configure(&mut self, aabb: Rect2) {
         self.aabb = aabb;
         self.configured = true;

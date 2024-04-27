@@ -17,8 +17,8 @@ pub struct CollisionObjectShape {
     collider_handle: Handle,
 }
 
-impl CollisionObjectShape {
-    pub fn new() -> Self {
+impl Default for CollisionObjectShape {
+    fn default() -> Self {
         Self {
             xform: Transform2D::default(),
             shape: None,

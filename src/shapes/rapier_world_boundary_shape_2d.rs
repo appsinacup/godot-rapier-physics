@@ -12,6 +12,17 @@ pub struct RapierWorldBoundaryShape2D {
     pub base: RapierShapeBase2D,
 }
 
+impl RapierWorldBoundaryShape2D {
+    pub fn new(rid: Rid) -> Self {
+        Self {
+            normal: Vector2::new(0.0, 0.0),
+            d: 0.0,
+            handle: invalid_handle(),
+            base: RapierShapeBase2D::new(rid),
+        }
+    }
+}
+
 impl IRapierShape2D for RapierWorldBoundaryShape2D {
     fn create_rapier_shape(&mut self) -> Handle {
         let v = Vector {
