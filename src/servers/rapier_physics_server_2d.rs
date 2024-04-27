@@ -12,7 +12,7 @@ use std::ffi::c_void;
 pub struct RapierPhysicsServer2D {
     active_spaces: HashSet<Rid>,
 
-    shape_owner: HashMap<Rid, RapierShape2D>,
+    //shape_owner: HashMap<Rid, RapierShape2D>,
     //space_owner: HashMap<Rid, RapierSpace2D>,
     //area_owner: HashMap<Rid, RapierArea2D>,
     //body_owner: HashMap<Rid, RapierBody2D>,
