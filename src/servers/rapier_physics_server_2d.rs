@@ -11,13 +11,12 @@ use std::ffi::c_void;
 #[class(base=PhysicsServer2DExtension, init)]
 pub struct RapierPhysicsServer2D {
     active_spaces: HashSet<Rid>,
+    shapes: HashSet<Rid>,
+    bodies: HashSet<Rid>,
+    areas: HashSet<Rid>,
+    joints: HashSet<Rid>,
+    fluids: HashSet<Rid>,
 
-    //shape_owner: HashMap<Rid, RapierShape2D>,
-    //space_owner: HashMap<Rid, RapierSpace2D>,
-    //area_owner: HashMap<Rid, RapierArea2D>,
-    //body_owner: HashMap<Rid, RapierBody2D>,
-    //joint_owner: HashMap<Rid, RapierJoint2D>,
-    //fluid_owner: HashMap<Rid, RapierFluid2D>,
     active: bool,
     flushing_queries: bool,
     doing_sync: bool,
