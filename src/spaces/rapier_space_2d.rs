@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::{Arc, Mutex}};
 use godot::{engine::native::ObjectId, prelude::*};
 use crate::{bodies::{rapier_area_2d::RapierArea2D, rapier_body_2d::RapierBody2D, rapier_collision_object_2d::{CollisionObjectType, RapierCollisionObject2D}}, rapier2d::{handle::Handle, physics_hooks::{CollisionFilterInfo, OneWayDirection}, physics_world::{ActiveBodyInfo, CollisionEventInfo, ContactForceEventInfo, ContactPointInfo}, query::QueryExcludedInfo, user_data::UserData}};
 

@@ -1,29 +1,19 @@
-use self::rapier_shape_2d::IRapierShape2D;
-use crate::bodies::rapier_area_2d::RapierArea2D;
-use crate::bodies::rapier_body_2d::RapierBody2D;
-use crate::fluids::rapier_fluid_2d::RapierFluid2D;
-use crate::joints::rapier_joint_2d::IRapierJoint2D;
+use self::rapier_world_boundary_shape_2d::RapierWorldBoundaryShape2D;
 use crate::shapes::*;
-use crate::spaces::rapier_space_2d::RapierSpace2D;
 use godot::engine::native::PhysicsServer2DExtensionMotionResult;
+use godot::engine::utilities::{rid_allocate_id, rid_from_int64};
 use godot::engine::IPhysicsServer2DExtension;
 use godot::{engine, prelude::*};
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::ffi::c_void;
-use std::rc::Rc;
+
+use super::rapier_physics_singleton_2d::physics_singleton;
 
 #[derive(GodotClass)]
 #[class(base=PhysicsServer2DExtension, init)]
 pub struct RapierPhysicsServer2D {
     active_spaces: HashSet<Rid>,
-
-    shapes: HashMap<Rid, Rc<RefCell<dyn IRapierShape2D>>>,
-    spaces: HashMap<Rid, Rc<RefCell<RapierSpace2D>>>,
-    areas: HashMap<Rid, Rc<RefCell<RapierArea2D>>>,
-    bodies: HashMap<Rid, Rc<RefCell<RapierBody2D>>>,
-    joints: HashMap<Rid, Rc<RefCell<dyn IRapierJoint2D>>>,
-    fluids: HashMap<Rid, Rc<RefCell<RapierFluid2D>>>,
 
     active: bool,
     flushing_queries: bool,
@@ -33,9 +23,17 @@ pub struct RapierPhysicsServer2D {
 #[godot_api]
 impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn world_boundary_shape_create(&mut self) -> Rid {
-        Rid::Invalid
+        let rid = rid_from_int64(rid_allocate_id());
+        let shape = RapierWorldBoundaryShape2D::new(rid);
+        physics_singleton()
+            .lock()
+            .unwrap()
+            .shapes
+            .insert(rid, Box::new(shape));
+        rid
     }
     fn separation_ray_shape_create(&mut self) -> Rid {
+        let rid = rid_from_int64(rid_allocate_id());
         Rid::Invalid
     }
     fn segment_shape_create(&mut self) -> Rid {
