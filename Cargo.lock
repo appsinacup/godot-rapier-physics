@@ -195,7 +195,7 @@ checksum = "9e05e7e6723e3455f4818c7b26e855439f7546cf617ef669d1adedb8669e5cb9"
 [[package]]
 name = "godot"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#2e14deb348503c3486b00f4817d2e151b75c15ce"
+source = "git+https://github.com/lilizoey/gdextension?branch=fix/init-level-registration#e973c056d7b25d24e01ab846af8c352e5092144c"
 dependencies = [
  "godot-core",
  "godot-macros",
@@ -204,7 +204,7 @@ dependencies = [
 [[package]]
 name = "godot-bindings"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#2e14deb348503c3486b00f4817d2e151b75c15ce"
+source = "git+https://github.com/lilizoey/gdextension?branch=fix/init-level-registration#e973c056d7b25d24e01ab846af8c352e5092144c"
 dependencies = [
  "godot4-prebuilt",
 ]
@@ -212,12 +212,12 @@ dependencies = [
 [[package]]
 name = "godot-cell"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#2e14deb348503c3486b00f4817d2e151b75c15ce"
+source = "git+https://github.com/lilizoey/gdextension?branch=fix/init-level-registration#e973c056d7b25d24e01ab846af8c352e5092144c"
 
 [[package]]
 name = "godot-codegen"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#2e14deb348503c3486b00f4817d2e151b75c15ce"
+source = "git+https://github.com/lilizoey/gdextension?branch=fix/init-level-registration#e973c056d7b25d24e01ab846af8c352e5092144c"
 dependencies = [
  "godot-bindings",
  "godot-fmt",
@@ -231,7 +231,7 @@ dependencies = [
 [[package]]
 name = "godot-core"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#2e14deb348503c3486b00f4817d2e151b75c15ce"
+source = "git+https://github.com/lilizoey/gdextension?branch=fix/init-level-registration#e973c056d7b25d24e01ab846af8c352e5092144c"
 dependencies = [
  "glam",
  "godot-bindings",
@@ -243,7 +243,7 @@ dependencies = [
 [[package]]
 name = "godot-ffi"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#2e14deb348503c3486b00f4817d2e151b75c15ce"
+source = "git+https://github.com/lilizoey/gdextension?branch=fix/init-level-registration#e973c056d7b25d24e01ab846af8c352e5092144c"
 dependencies = [
  "gensym",
  "godot-bindings",
@@ -255,7 +255,7 @@ dependencies = [
 [[package]]
 name = "godot-fmt"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#2e14deb348503c3486b00f4817d2e151b75c15ce"
+source = "git+https://github.com/lilizoey/gdextension?branch=fix/init-level-registration#e973c056d7b25d24e01ab846af8c352e5092144c"
 dependencies = [
  "proc-macro2",
 ]
@@ -263,7 +263,7 @@ dependencies = [
 [[package]]
 name = "godot-macros"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#2e14deb348503c3486b00f4817d2e151b75c15ce"
+source = "git+https://github.com/lilizoey/gdextension?branch=fix/init-level-registration#e973c056d7b25d24e01ab846af8c352e5092144c"
 dependencies = [
  "godot-bindings",
  "proc-macro2",
@@ -294,9 +294,9 @@ checksum = "8a9ee70c43aaf417c914396645a0fa852624801b24ebb7ae78fe8272889ac888"
 
 [[package]]
 name = "hashbrown"
-version = "0.14.3"
+version = "0.14.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "290f1a1d9242c78d09ce40a5e87e7554ee637af1351968159f4952f028f75604"
+checksum = "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1"
 dependencies = [
  "ahash",
  "allocator-api2",
@@ -499,7 +499,29 @@ dependencies = [
 [[package]]
 name = "parry2d"
 version = "0.13.7"
-source = "git+https://github.com/dimforge/parry?branch=internal-edges-rework#2d541212b6f5f483168d8127e537c17822d66f32"
+source = "git+https://github.com/dimforge/parry?branch=internal-edges-rework#da1702e9a8393231436add60fe69f10b1c0feb37"
+dependencies = [
+ "approx",
+ "arrayvec",
+ "bitflags",
+ "downcast-rs",
+ "either",
+ "log",
+ "nalgebra",
+ "num-derive",
+ "num-traits",
+ "rustc-hash",
+ "simba",
+ "slab",
+ "smallvec",
+ "spade",
+]
+
+[[package]]
+name = "parry2d"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "01f3043b90f5beca6b83c5710298b6c867113e8f2fb1077c5cc60cd41697f50d"
 dependencies = [
  "approx",
  "arrayvec",
@@ -521,8 +543,9 @@ dependencies = [
 
 [[package]]
 name = "parry2d-f64"
-version = "0.13.7"
-source = "git+https://github.com/dimforge/parry?branch=internal-edges-rework#2d541212b6f5f483168d8127e537c17822d66f32"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c5cac7755db75178a59417976c6780dc8cec3718a8990f204572a2e04bfacdf"
 dependencies = [
  "approx",
  "arrayvec",
@@ -569,7 +592,7 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.18.0"
-source = "git+https://github.com/dimforge/rapier?branch=stability-improvements#a967241683c898647429f16832813172a9dc3a51"
+source = "git+https://github.com/dimforge/rapier?branch=stability-improvements#5a38796f461015c23459d131cc8a2e8fc7f32bc2"
 dependencies = [
  "approx",
  "arrayvec",
@@ -582,7 +605,7 @@ dependencies = [
  "num-derive",
  "num-traits",
  "ordered-float",
- "parry2d",
+ "parry2d 0.14.0",
  "rayon",
  "rustc-hash",
  "serde",
@@ -593,7 +616,7 @@ dependencies = [
 [[package]]
 name = "rapier2d-f64"
 version = "0.18.0"
-source = "git+https://github.com/dimforge/rapier?branch=stability-improvements#a967241683c898647429f16832813172a9dc3a51"
+source = "git+https://github.com/dimforge/rapier?branch=stability-improvements#5a38796f461015c23459d131cc8a2e8fc7f32bc2"
 dependencies = [
  "approx",
  "arrayvec",
@@ -702,24 +725,24 @@ dependencies = [
  "itertools",
  "nalgebra",
  "num-traits",
- "parry2d",
+ "parry2d 0.13.7",
  "rapier2d",
 ]
 
 [[package]]
 name = "serde"
-version = "1.0.198"
+version = "1.0.199"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9846a40c979031340571da2545a4e5b7c4163bdae79b301d5f86d03979451fcc"
+checksum = "0c9f6e76df036c77cd94996771fb40db98187f096dd0b9af39c6c6e452ba966a"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.198"
+version = "1.0.199"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e88edab869b01783ba905e7d0153f9fc1a6505a96e4ad3018011eedb838566d9"
+checksum = "11bd257a6541e141e42ca6d24ae26f7714887b47e89aa739099104c7e4d3b7fc"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -762,7 +785,7 @@ version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "61addf9117b11d1f5b4bf6fe94242ba25f59d2d4b2080544b771bd647024fd00"
 dependencies = [
- "hashbrown 0.14.3",
+ "hashbrown 0.14.5",
  "num-traits",
  "robust",
  "smallvec",
@@ -868,3 +891,8 @@ dependencies = [
  "quote",
  "syn 2.0.60",
 ]
+
+[[patch.unused]]
+name = "parry2d-f64"
+version = "0.13.7"
+source = "git+https://github.com/dimforge/parry?branch=internal-edges-rework#da1702e9a8393231436add60fe69f10b1c0feb37"

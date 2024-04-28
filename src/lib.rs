@@ -19,8 +19,10 @@ unsafe impl ExtensionLibrary for RapierPhysics2DExtensionLibrary {
     fn on_level_init(level: InitLevel) {
         match level {
             InitLevel::Scene => {
-                servers::register_server();
                 servers::register_scene();
+            //}
+            //InitLevel::Servers => {
+                servers::register_server();
             }
             _ => (),
         }
@@ -30,6 +32,8 @@ unsafe impl ExtensionLibrary for RapierPhysics2DExtensionLibrary {
         match level {
             InitLevel::Scene => {
                 servers::unregister_scene();
+            //}
+            //InitLevel::Servers => {
                 servers::unregister_server();
             }
             _ => (),

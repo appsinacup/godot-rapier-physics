@@ -6,6 +6,7 @@ use crate::shapes::rapier_rectangle_shape_2d::RapierRectangleShape2D;
 use crate::shapes::rapier_segment_shape_2d::RapierSegmentShape2D;
 use crate::shapes::rapier_separation_ray_shape_2d::RapierSeparationRayShape2D;
 use crate::shapes::rapier_world_boundary_shape_2d::RapierWorldBoundaryShape2D;
+use crate::spaces::rapier_space_2d::RapierSpace2D;
 use godot::engine::native::PhysicsServer2DExtensionMotionResult;
 use godot::engine::utilities::{rid_allocate_id, rid_from_int64};
 use godot::engine::IPhysicsServer2DExtension;
@@ -111,16 +112,26 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn shape_get_custom_solver_bias(&self, shape: Rid) -> f32 {
         0.0
     }
-    // TODO
-    //unsafe fn shape_collide(&mut self, shape_A: Rid, xform_A: Transform2D, motion_A: Vector2, shape_B: Rid, xform_B: Transform2D, motion_B: Vector2, results: * mut c_void, result_max: i32, result_count: * mut i32,) -> bool {
-    //    false
-    //}
-    fn space_create(&mut self) -> Rid {
-        Rid::Invalid
-    }
-    fn space_set_active(&mut self, space: Rid, active: bool) {}
-    fn space_is_active(&self, space: Rid) -> bool {
+    unsafe fn shape_collide(&mut self, shape_A: Rid, xform_A: Transform2D, motion_A: Vector2, shape_B: Rid, xform_B: Transform2D, motion_B: Vector2, results: * mut c_void, result_max: i32, result_count: * mut i32,) -> bool {
         false
+    }
+    fn space_create(&mut self) -> Rid {
+        let rid = rid_from_int64(rid_allocate_id());
+        let space = RapierSpace2D::new(rid);
+        physics_singleton().lock().unwrap().spaces.insert(rid, Box::new(space));
+        rid
+    }
+    fn space_set_active(&mut self, space: Rid, active: bool) {
+        if space.is_valid() {
+            if active {
+                self.active_spaces.insert(space);
+            } else {
+                self.active_spaces.remove(&space);
+            }
+        }
+    }
+    fn space_is_active(&self, space: Rid) -> bool {
+        self.active_spaces.contains(&space)
     }
     fn space_set_param(
         &mut self,
@@ -128,21 +139,53 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         param: engine::physics_server_2d::SpaceParameter,
         value: f32,
     ) {
+        let mut lock = physics_singleton().lock().unwrap();
+        let space = lock.spaces.get_mut(&space);
+        if let Some(space) = space {
+            space.set_param(param, value);
+        }
     }
     fn space_get_param(&self, space: Rid, param: engine::physics_server_2d::SpaceParameter) -> f32 {
+        let lock = physics_singleton().lock().unwrap();
+        let space = lock.spaces.get(&space);
+        if let Some(space) = space {
+            return space.get_param(param);
+        }
         0.0
     }
     fn space_get_direct_state(
         &mut self,
         space: Rid,
     ) -> Option<Gd<engine::PhysicsDirectSpaceState2D>> {
-        None
+        let mut lock = physics_singleton().lock().unwrap();
+        let space = lock.spaces.get_mut(&space);
+        if let Some(space) = space {
+            return space.get_direct_state();
+        }
+        return None;
+        //ERR_FAIL_COND_V_MSG((using_threads && !doing_sync) || space->is_locked(), nullptr, "Space state is inaccessible right now, wait for iteration or physics process notification.");
     }
-    fn space_set_debug_contacts(&mut self, space: Rid, max_contacts: i32) {}
+    fn space_set_debug_contacts(&mut self, space: Rid, max_contacts: i32) {
+        let mut lock = physics_singleton().lock().unwrap();
+        let space = lock.spaces.get_mut(&space);
+        if let Some(space) = space {
+            return space.set_debug_contacts(max_contacts);
+        }
+    }
     fn space_get_contacts(&self, space: Rid) -> PackedVector2Array {
+        let mut lock = physics_singleton().lock().unwrap();
+        let space = lock.spaces.get_mut(&space);
+        if let Some(space) = space {
+            return space.get_debug_contacts();
+        }
         PackedVector2Array::new()
     }
     fn space_get_contact_count(&self, space: Rid) -> i32 {
+        let mut lock = physics_singleton().lock().unwrap();
+        let space = lock.spaces.get_mut(&space);
+        if let Some(space) = space {
+            return space.get_debug_contact_count();
+        }
         0
     }
     fn area_create(&mut self) -> Rid {
@@ -339,9 +382,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         userdata: Variant,
     ) {
     }
-    // TODO
-    //unsafe fn body_collide_shape(&mut self, body: Rid, body_shape: i32, shape: Rid, shape_xform: Transform2D, motion: Vector2, results: * mut c_void, result_max: i32, result_count: * mut i32,) -> bool {
-    //}
+    unsafe fn body_collide_shape(&mut self, body: Rid, body_shape: i32, shape: Rid, shape_xform: Transform2D, motion: Vector2, results: * mut c_void, result_max: i32, result_count: * mut i32,) -> bool {
+        false
+    }
     fn body_set_pickable(&mut self, body: Rid, pickable: bool) {}
     fn body_get_direct_state(&mut self, body: Rid) -> Option<Gd<engine::PhysicsDirectBodyState2D>> {
         None
