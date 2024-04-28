@@ -13,7 +13,7 @@ use godot::{engine, prelude::*};
 use std::collections::HashSet;
 use std::ffi::c_void;
 
-use super::rapier_physics_singleton_2d::{physics_shapes_singleton, physics_shapes_singleton_mutex_guard};
+use super::rapier_physics_singleton_2d::physics_singleton;
 
 #[derive(GodotClass)]
 #[class(base=PhysicsServer2DExtension, init)]
@@ -30,55 +30,54 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn world_boundary_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierWorldBoundaryShape2D::new(rid);
-        physics_shapes_singleton_mutex_guard().insert(rid, Box::new(shape));
+        physics_singleton().lock().unwrap().shapes.insert(rid, Box::new(shape));
         rid
     }
     fn separation_ray_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierSeparationRayShape2D::new(rid);
-        physics_shapes_singleton_mutex_guard().insert(rid, Box::new(shape));
+        physics_singleton().lock().unwrap().shapes.insert(rid, Box::new(shape));
         rid
     }
     fn segment_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierSegmentShape2D::new(rid);
-        physics_shapes_singleton_mutex_guard().insert(rid, Box::new(shape));
+        physics_singleton().lock().unwrap().shapes.insert(rid, Box::new(shape));
         rid
     }
     fn circle_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierCircleShape2D::new(rid);
-        physics_shapes_singleton_mutex_guard().insert(rid, Box::new(shape));
+        physics_singleton().lock().unwrap().shapes.insert(rid, Box::new(shape));
         rid
     }
     fn rectangle_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierRectangleShape2D::new(rid);
-        physics_shapes_singleton_mutex_guard().insert(rid, Box::new(shape));
+        physics_singleton().lock().unwrap().shapes.insert(rid, Box::new(shape));
         rid
     }
     fn capsule_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierCapsuleShape2D::new(rid);
-        physics_shapes_singleton_mutex_guard().insert(rid, Box::new(shape));
+        physics_singleton().lock().unwrap().shapes.insert(rid, Box::new(shape));
         rid
     }
     fn convex_polygon_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierConvexPolygonShape2D::new(rid);
-        physics_shapes_singleton_mutex_guard().insert(rid, Box::new(shape));
+        physics_singleton().lock().unwrap().shapes.insert(rid, Box::new(shape));
         rid
     }
     fn concave_polygon_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierConcavePolygonShape2D::new(rid);
-        physics_shapes_singleton_mutex_guard().insert(rid, Box::new(shape));
+        physics_singleton().lock().unwrap().shapes.insert(rid, Box::new(shape));
         rid
     }
     fn shape_set_data(&mut self, shape: Rid, data: Variant) {
-        let binding = physics_shapes_singleton();
-        let mut binding = binding.lock().unwrap();
-        let shape = binding.get_mut(&shape);
+        let mut binding = physics_singleton().lock().unwrap();
+        let shape = binding.shapes.get_mut(&shape);
         if let Some(shape) = shape {
             shape.set_data(data);
         } else {
@@ -90,8 +89,8 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     }
 
     fn shape_get_type(&self, shape: Rid) -> engine::physics_server_2d::ShapeType {
-        let binding = physics_shapes_singleton_mutex_guard();
-        let shape = binding.get(&shape);
+        let lock = physics_singleton().lock().unwrap();
+        let shape = lock.shapes.get(&shape);
         if let Some(shape) = shape {
             shape.get_type()
         } else {
@@ -100,8 +99,8 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         }
     }
     fn shape_get_data(&self, shape: Rid) -> Variant {
-        let binding = physics_shapes_singleton_mutex_guard();
-        let shape = binding.get(&shape);
+        let lock = physics_singleton().lock().unwrap();
+        let shape = lock.shapes.get(&shape);
         if let Some(shape) = shape {
             shape.get_data()
         } else {

@@ -1,11 +1,12 @@
-use crate::{
-    rapier2d::handle::Handle,
-    servers::rapier_physics_singleton_2d::physics_collision_objects_singleton_mutex_guard,
-};
+use crate::{rapier2d::{
+    handle::{invalid_handle, Handle},
+    shape::shape_destroy,
+}, servers::rapier_physics_singleton_2d::physics_singleton};
 use godot::{engine::physics_server_2d::ShapeType, prelude::*};
 use std::collections::HashMap;
 
 pub trait IRapierShape2D {
+    fn get_base(&self) -> &RapierShapeBase2D;
     fn get_type(&self) -> ShapeType;
     fn get_moment_of_inertia(&self, mass: f32, scale: Vector2) -> f32;
     fn allows_one_way_collision(&self) -> bool;
@@ -13,7 +14,6 @@ pub trait IRapierShape2D {
     fn set_data(&mut self, data: Variant);
     fn get_data(&self) -> Variant;
     fn get_rapier_shape(&mut self) -> Handle;
-    fn destroy_rapier_shape(&mut self);
 }
 
 pub struct RapierShapeBase2D {
@@ -21,6 +21,7 @@ pub struct RapierShapeBase2D {
     aabb: Rect2,
     configured: bool,
     owners: HashMap<Rid, i32>,
+    handle: Handle,
 }
 
 impl RapierShapeBase2D {
@@ -30,16 +31,24 @@ impl RapierShapeBase2D {
             aabb: Rect2::default(),
             configured: false,
             owners: HashMap::new(),
+            handle: invalid_handle(),
         }
+    }
+    pub fn set_handle(&mut self, handle: Handle) {
+        self.handle = handle;
+    }
+    pub fn get_handle(&self) -> Handle {
+        self.handle
     }
     pub fn configure(&mut self, aabb: Rect2) {
         self.aabb = aabb;
         self.configured = true;
         for (owner, _) in self.owners.iter() {
-            let guard = physics_collision_objects_singleton_mutex_guard();
-            let owner = guard.get(owner);
+            let lock = physics_singleton().lock().unwrap();
+            let owner = lock.collision_objects.get(owner);
             if let Some(owner) = owner {
-                owner.shape_changed(self.rid);
+                // TODO
+                //owner.shape_changed(self.rid);
             }
         }
     }
@@ -74,12 +83,22 @@ impl RapierShapeBase2D {
     pub fn get_rid(&self) -> Rid {
         self.rid
     }
+
+    fn destroy_rapier_shape(&mut self) {
+        if self.handle.is_valid() {
+            shape_destroy(self.handle);
+            self.handle = invalid_handle();
+        }
+    }
 }
 
 impl Drop for RapierShapeBase2D {
     fn drop(&mut self) {
         if self.owners.len() > 0 {
             godot_error!("RapierShapeBase2D leaked {} owners", self.owners.len());
+        }
+        if self.handle.is_valid() {
+            self.destroy_rapier_shape();
         }
     }
 }

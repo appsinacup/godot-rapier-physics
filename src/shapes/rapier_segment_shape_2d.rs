@@ -1,5 +1,5 @@
-use crate::rapier2d::handle::{invalid_handle, Handle};
-use crate::rapier2d::shape::{shape_create_convex_polyline, shape_destroy};
+use crate::rapier2d::handle::Handle;
+use crate::rapier2d::shape::shape_create_convex_polyline;
 use crate::rapier2d::vector::Vector;
 use crate::shapes::rapier_shape_2d::{IRapierShape2D, RapierShapeBase2D};
 use godot::{engine::physics_server_2d::ShapeType, prelude::*};
@@ -8,8 +8,6 @@ pub struct RapierSegmentShape2D {
     a: Vector2,
     b: Vector2,
     n: Vector2,
-    handle: Handle,
-
     pub base: RapierShapeBase2D,
 }
 
@@ -19,14 +17,15 @@ impl RapierSegmentShape2D {
             a: Vector2::ZERO,
             b: Vector2::ZERO,
             n: Vector2::ZERO,
-            handle: invalid_handle(),
-
             base: RapierShapeBase2D::new(rid),
         }
     }
 }
 
 impl IRapierShape2D for RapierSegmentShape2D {
+    fn get_base(&self) -> &RapierShapeBase2D {
+        &self.base
+    }
     fn get_type(&self) -> ShapeType {
         ShapeType::SEGMENT
     }
@@ -87,22 +86,10 @@ impl IRapierShape2D for RapierSegmentShape2D {
     }
 
     fn get_rapier_shape(&mut self) -> Handle {
-        if !self.handle.is_valid() {
-            self.handle = self.create_rapier_shape();
+        if !self.base.get_handle().is_valid() {
+            let handle = self.create_rapier_shape();
+            self.base.set_handle(handle);
         }
-        self.handle
-    }
-
-    fn destroy_rapier_shape(&mut self) {
-        if self.handle.is_valid() {
-            shape_destroy(self.handle);
-            self.handle = invalid_handle();
-        }
-    }
-}
-
-impl Drop for RapierSegmentShape2D {
-    fn drop(&mut self) {
-        self.destroy_rapier_shape();
+        self.base.get_handle()
     }
 }
