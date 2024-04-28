@@ -24,12 +24,20 @@ impl RapierSeparationRayShape2D {
 }
 
 impl IRapierShape2D for RapierSeparationRayShape2D {
-    fn create_rapier_shape(&mut self) -> Handle {
-        return invalid_handle();
-    }
-
     fn get_type(&self) -> ShapeType {
         ShapeType::SEPARATION_RAY
+    }
+
+    fn get_moment_of_inertia(&self, _mass: f32, _scale: Vector2) -> f32 {
+        0.0
+    }
+
+    fn allows_one_way_collision(&self) -> bool {
+        false
+    }
+
+    fn create_rapier_shape(&mut self) -> Handle {
+        return invalid_handle();
     }
 
     fn set_data(&mut self, data: Variant) {
@@ -47,10 +55,6 @@ impl IRapierShape2D for RapierSeparationRayShape2D {
         dictionary.set("length", self.length);
         dictionary.set("slide_on_slope", self.slide_on_slope);
         return dictionary.to_variant();
-    }
-
-    fn get_moment_of_inertia(&self, _mass: f32, _scale: Vector2) -> f32 {
-        0.0
     }
 
     fn get_rapier_shape(&mut self) -> Handle {

@@ -24,16 +24,24 @@ impl RapierWorldBoundaryShape2D {
 }
 
 impl IRapierShape2D for RapierWorldBoundaryShape2D {
+    fn get_type(&self) -> ShapeType {
+        ShapeType::WORLD_BOUNDARY
+    }
+
+    fn get_moment_of_inertia(&self, _mass: f32, _scale: Vector2) -> f32 {
+        0.0
+    }
+
+    fn allows_one_way_collision(&self) -> bool {
+        true
+    }
+
     fn create_rapier_shape(&mut self) -> Handle {
         let v = Vector {
             x: self.normal.x,
             y: -self.normal.y,
         };
         return shape_create_halfspace(&v, -self.d);
-    }
-
-    fn get_type(&self) -> ShapeType {
-        ShapeType::WORLD_BOUNDARY
     }
 
     fn set_data(&mut self, data: Variant) {
@@ -59,10 +67,6 @@ impl IRapierShape2D for RapierWorldBoundaryShape2D {
         arr.push(self.normal.to_variant());
         arr.push(self.d.to_variant());
         return arr.to_variant();
-    }
-
-    fn get_moment_of_inertia(&self, _mass: f32, _scale: Vector2) -> f32 {
-        0.0
     }
 
     fn get_rapier_shape(&mut self) -> Handle {

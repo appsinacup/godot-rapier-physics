@@ -1,8 +1,43 @@
-[gd_scene load_steps=2 format=3 uid="uid://d4exls53gi0df"]
+[gd_scene load_steps=9 format=3 uid="uid://d4exls53gi0df"]
 
 [sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_ksyen"]
+
+[sub_resource type="SegmentShape2D" id="SegmentShape2D_y8upg"]
+
+[sub_resource type="SeparationRayShape2D" id="SeparationRayShape2D_vaull"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_r2n1f"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_22mdm"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_34k7m"]
+
+[sub_resource type="ConvexPolygonShape2D" id="ConvexPolygonShape2D_jwja1"]
+
+[sub_resource type="ConcavePolygonShape2D" id="ConcavePolygonShape2D_as152"]
 
 [node name="Test" type="Node2D"]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("WorldBoundaryShape2D_ksyen")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="."]
+shape = SubResource("SegmentShape2D_y8upg")
+
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="."]
+shape = SubResource("SeparationRayShape2D_vaull")
+
+[node name="CollisionShape2D4" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_r2n1f")
+
+[node name="CollisionShape2D5" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_22mdm")
+
+[node name="CollisionShape2D6" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_34k7m")
+
+[node name="CollisionShape2D7" type="CollisionShape2D" parent="."]
+shape = SubResource("ConvexPolygonShape2D_jwja1")
+
+[node name="CollisionShape2D8" type="CollisionShape2D" parent="."]
+shape = SubResource("ConcavePolygonShape2D_as152")
