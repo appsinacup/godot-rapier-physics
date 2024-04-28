@@ -8,18 +8,16 @@ pub struct RapierDampedSpringJoint2D {
     rest_length: f32,
     damping: f32,
     stiffness: f32,
-
     base: RapierJointBase2D,
 }
 
 impl RapierDampedSpringJoint2D {
-    pub fn new(body_a_rid: Rid, body_b_rid: Option<Rid>) -> Self {
+    pub fn new(rid: Rid, body_a: Rid, body_b: Rid) -> Self {
         Self {
             rest_length: 0.0,
             damping: 0.0,
             stiffness: 0.0,
-
-            base: RapierJointBase2D::new(body_a_rid, body_b_rid),
+            base: RapierJointBase2D::new(rid, body_a, body_b),
         }
     }
 
@@ -56,5 +54,8 @@ impl RapierDampedSpringJoint2D {
 impl IRapierJoint2D for RapierDampedSpringJoint2D {
     fn get_type(&self) -> physics_server_2d::JointType {
         physics_server_2d::JointType::DAMPED_SPRING
+    }
+    fn get_base(&self) -> &RapierJointBase2D {
+        &self.base
     }
 }

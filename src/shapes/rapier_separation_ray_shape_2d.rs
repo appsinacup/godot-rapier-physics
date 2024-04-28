@@ -1,13 +1,10 @@
 use crate::rapier2d::handle::{invalid_handle, Handle};
-use crate::rapier2d::shape::shape_destroy;
 use crate::shapes::rapier_shape_2d::{IRapierShape2D, RapierShapeBase2D};
 use godot::{engine::physics_server_2d::ShapeType, prelude::*};
 
 pub struct RapierSeparationRayShape2D {
     length: f32,
     slide_on_slope: bool,
-    handle: Handle,
-
     pub base: RapierShapeBase2D,
 }
 
@@ -16,14 +13,15 @@ impl RapierSeparationRayShape2D {
         Self {
             length: 0.0,
             slide_on_slope: false,
-            handle: invalid_handle(),
-
             base: RapierShapeBase2D::new(rid),
         }
     }
 }
 
 impl IRapierShape2D for RapierSeparationRayShape2D {
+    fn get_base(&self) -> &RapierShapeBase2D {
+        &self.base
+    }
     fn get_type(&self) -> ShapeType {
         ShapeType::SEPARATION_RAY
     }
@@ -58,19 +56,10 @@ impl IRapierShape2D for RapierSeparationRayShape2D {
     }
 
     fn get_rapier_shape(&mut self) -> Handle {
-        self.handle
-    }
-
-    fn destroy_rapier_shape(&mut self) {
-        if self.handle.is_valid() {
-            shape_destroy(self.handle);
-            self.handle = invalid_handle();
+        if !self.base.get_handle().is_valid() {
+            let handle = self.create_rapier_shape();
+            self.base.set_handle(handle);
         }
-    }
-}
-
-impl Drop for RapierSeparationRayShape2D {
-    fn drop(&mut self) {
-        self.destroy_rapier_shape();
+        self.base.get_handle()
     }
 }

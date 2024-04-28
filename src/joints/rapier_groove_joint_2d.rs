@@ -7,9 +7,9 @@ pub struct RapierGrooveJoint2D {
 }
 
 impl RapierGrooveJoint2D {
-    pub fn new(body_a_rid: Rid, body_b_rid: Option<Rid>) -> Self {
+    pub fn new(rid: Rid, body_a: Rid, body_b: Rid) -> Self {
         Self {
-            base: RapierJointBase2D::new(body_a_rid, body_b_rid),
+            base: RapierJointBase2D::new(rid, body_a, body_b),
         }
     }
 }
@@ -17,5 +17,9 @@ impl RapierGrooveJoint2D {
 impl IRapierJoint2D for RapierGrooveJoint2D {
     fn get_type(&self) -> physics_server_2d::JointType {
         physics_server_2d::JointType::GROOVE
+    }
+    
+    fn get_base(&self) -> &RapierJointBase2D {
+        &self.base
     }
 }

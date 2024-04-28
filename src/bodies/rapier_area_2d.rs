@@ -6,6 +6,8 @@ use crate::rapier2d::handle::Handle;
 
 use crate::bodies::rapier_collision_object_2d::CollisionObjectType;
 
+use super::rapier_collision_object_2d::RapierCollisionObject2D;
+
 pub struct RapierArea2D {
     gravity_override_mode: AreaSpaceOverrideMode,
     linear_damping_override_mode: AreaSpaceOverrideMode,
@@ -24,6 +26,7 @@ pub struct RapierArea2D {
     detected_bodies: HashMap<Rid, BodyRefCount>,
     monitor_query_list: Vec<Rid>,
     area_override_update_list: Vec<Rid>,
+    base: RapierCollisionObject2D,
 }
 
 impl Default for RapierArea2D {
@@ -46,6 +49,7 @@ impl Default for RapierArea2D {
             detected_bodies: HashMap::new(),
             monitor_query_list: Vec::new(),
             area_override_update_list: Vec::new(),
+            base: RapierCollisionObject2D::new(CollisionObjectType::Area),
         }
     }
 }

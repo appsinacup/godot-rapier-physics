@@ -1,5 +1,5 @@
 use crate::rapier2d::handle::{invalid_handle, Handle};
-use crate::rapier2d::shape::{shape_create_concave_polyline, shape_destroy};
+use crate::rapier2d::shape::shape_create_concave_polyline;
 use crate::rapier2d::vector::Vector;
 use crate::shapes::rapier_shape_2d::{IRapierShape2D, RapierShapeBase2D};
 use godot::engine::physics_server_2d::ShapeType;
@@ -8,7 +8,6 @@ use godot::prelude::*;
 pub struct RapierConcavePolygonShape2D {
     points: Vec<Vector2>,
     segments: Vec<[i32; 2]>,
-    handle: Handle,
     pub base: RapierShapeBase2D,
 }
 
@@ -17,7 +16,6 @@ impl RapierConcavePolygonShape2D {
         Self {
             points: Vec::new(),
             segments: Vec::new(),
-            handle: invalid_handle(),
             base: RapierShapeBase2D::new(rid),
         }
     }
@@ -36,6 +34,9 @@ fn find_or_insert_point(points: &mut Vec<Vector2>, new_point: Vector2) -> usize 
 }
 
 impl IRapierShape2D for RapierConcavePolygonShape2D {
+    fn get_base(&self) -> &RapierShapeBase2D {
+        &self.base
+    }
     fn get_type(&self) -> ShapeType {
         ShapeType::CONCAVE_POLYGON
     }
@@ -129,22 +130,10 @@ impl IRapierShape2D for RapierConcavePolygonShape2D {
     }
 
     fn get_rapier_shape(&mut self) -> Handle {
-        if !self.handle.is_valid() {
-            self.handle = self.create_rapier_shape();
+        if !self.base.get_handle().is_valid() {
+            let handle = self.create_rapier_shape();
+            self.base.set_handle(handle);
         }
-        self.handle
-    }
-
-    fn destroy_rapier_shape(&mut self) {
-        if self.handle.is_valid() {
-            shape_destroy(self.handle);
-            self.handle = invalid_handle();
-        }
-    }
-}
-
-impl Drop for RapierConcavePolygonShape2D {
-    fn drop(&mut self) {
-        self.destroy_rapier_shape();
+        self.base.get_handle()
     }
 }

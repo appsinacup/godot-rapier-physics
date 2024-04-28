@@ -4,6 +4,20 @@ use crate::{bodies::{rapier_area_2d::RapierArea2D, rapier_body_2d::RapierBody2D,
 
 use super::rapier_direct_space_state_2d::RapierDirectSpaceState2D;
 
+struct RemovedColliderInfo {
+    rid: Rid,
+    instance_id: ObjectId,
+    shape_index: u32,
+    collision_object_type: CollisionObjectType,
+}
+
+struct CollidersInfo {
+    shape1: u32,
+    object1: Option<RapierCollisionObject2D>,
+    shape2: u32,
+    object2: Option<RapierCollisionObject2D>,
+}
+
 pub struct RapierSpace2D {
     direct_access: Option<Gd<RapierDirectSpaceState2D>>,
     rid: Rid,
@@ -49,25 +63,7 @@ impl RapierSpace2D {
     fn get_rid(&self) -> Rid {
         self.rid
     }
-}
-
-// Define helper structs
-struct RemovedColliderInfo {
-    rid: Rid,
-    instance_id: ObjectId,
-    shape_index: u32,
-    collision_object_type: CollisionObjectType,
-}
-
-struct CollidersInfo {
-    shape1: u32,
-    object1: Option<RapierCollisionObject2D>,
-    shape2: u32,
-    object2: Option<RapierCollisionObject2D>,
-}
-
-// Implement callbacks
-impl RapierSpace2D {
+    
     fn active_body_callback(world_handle: Handle, active_body_info: &ActiveBodyInfo) {
         // Implement callback logic
     }
