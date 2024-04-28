@@ -49,7 +49,7 @@ pub struct RapierBody2D {
 }
 
 impl RapierBody2D {
-    pub fn new() -> Self {
+    pub fn new(rid: Rid) -> Self {
         Self {
             linear_damping_mode: BodyDampMode::COMBINE,
             angular_damping_mode: BodyDampMode::COMBINE,
@@ -84,7 +84,7 @@ impl RapierBody2D {
             to_add_angular_velocity: 0.0,
             to_add_linear_velocity: Vector2::ZERO,
             sleep: false,
-            base: RapierCollisionObject2D::new(CollisionObjectType::Body)
+            base: RapierCollisionObject2D::new(rid, CollisionObjectType::Body)
         }
     }
     
@@ -125,5 +125,12 @@ struct Contact {
 impl IRapierCollisionObject2D for RapierBody2D {
     fn get_base(&self) -> &RapierCollisionObject2D {
         &self.base
+    }
+
+    fn set_space(&mut self, space: Rid) {
+    }
+
+    fn get_space(&self) -> Rid {
+        self.get_base().get_space()
     }
 }
