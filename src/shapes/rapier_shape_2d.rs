@@ -47,8 +47,7 @@ impl RapierShapeBase2D {
             let lock = physics_singleton().lock().unwrap();
             let owner = lock.collision_objects.get(owner);
             if let Some(owner) = owner {
-                // TODO
-                //owner.shape_changed(self.rid);
+                owner.get_base().shape_changed(self.rid);
             }
         }
     }

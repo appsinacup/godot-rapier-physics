@@ -72,6 +72,8 @@ impl RapierCollisionObject2D {
             area_detection_counter: 0,
         }
     }
+    pub fn shape_changed(&self, shape: Rid) {
+    }
 
 /*
     fn _create_shape(&mut self, shape: &CollisionObjectShape, p_shape_index: u32) {

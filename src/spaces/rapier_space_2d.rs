@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::{Arc, Mutex}};
-use godot::{engine::native::ObjectId, prelude::*};
-use crate::{bodies::{rapier_area_2d::RapierArea2D, rapier_body_2d::RapierBody2D, rapier_collision_object_2d::{CollisionObjectType, RapierCollisionObject2D}}, rapier2d::{handle::Handle, physics_hooks::{CollisionFilterInfo, OneWayDirection}, physics_world::{ActiveBodyInfo, CollisionEventInfo, ContactForceEventInfo, ContactPointInfo}, query::QueryExcludedInfo, user_data::UserData}};
+use godot::{engine::{native::ObjectId, physics_server_2d, PhysicsDirectSpaceState2D}, prelude::*};
+use crate::{bodies::{rapier_area_2d::RapierArea2D, rapier_body_2d::RapierBody2D, rapier_collision_object_2d::{CollisionObjectType, RapierCollisionObject2D}}, rapier2d::{handle::{invalid_handle, Handle}, physics_hooks::{CollisionFilterInfo, OneWayDirection}, physics_world::{ActiveBodyInfo, CollisionEventInfo, ContactForceEventInfo, ContactPointInfo}, query::QueryExcludedInfo, user_data::UserData}};
 
 use super::rapier_direct_space_state_2d::RapierDirectSpaceState2D;
 
@@ -19,7 +19,7 @@ struct CollidersInfo {
 }
 
 pub struct RapierSpace2D {
-    direct_access: Option<Gd<RapierDirectSpaceState2D>>,
+    direct_access: Option<Gd<PhysicsDirectSpaceState2D>>,
     rid: Rid,
     handle: Handle,
     removed_colliders: HashMap<u32, RemovedColliderInfo>,
@@ -52,12 +52,60 @@ pub struct RapierSpace2D {
 }
 
 impl RapierSpace2D {
-    fn get_handle(&self) -> Handle {
+    pub fn new(rid: Rid) -> Self {
+        Self {
+            direct_access: None,
+            rid,
+            handle: invalid_handle(),
+            removed_colliders: HashMap::new(),
+            active_list: Vec::new(),
+            mass_properties_update_list: Vec::new(),
+            gravity_update_list: Vec::new(),
+            state_query_list: Vec::new(),
+            monitor_query_list: Vec::new(),
+            area_update_list: Vec::new(),
+            body_area_update_list: Vec::new(),
+            solver_iterations: 8,
+            contact_recycle_radius: 0.0,
+            contact_max_separation: 0.0,
+            contact_max_allowed_penetration: 0.0,
+            contact_bias: 0.0,
+            constraint_bias: 0.0,
+            fluid_default_gravity_dir: Vector2::ZERO,
+            fluid_default_gravity_value: 0.0,
+            default_gravity_dir: Vector2::ZERO,
+            default_gravity_value: 0.0,
+            default_linear_damping: 0.0,
+            default_angular_damping: 0.0,
+            locked: false,
+            last_step: 0.0,
+            island_count: 0,
+            active_objects: 0,
+            collision_pairs: 0,
+            contact_debug: PackedVector2Array::new(),
+            contact_debug_count: 0,
+        }
+    }
+    pub fn get_handle(&self) -> Handle {
         self.handle
     }
 
-    fn set_rid(&mut self, rid: Rid) {
-        self.rid = rid;
+    pub fn set_param(&mut self, param: physics_server_2d::SpaceParameter, value: f32) {
+        match param {
+            physics_server_2d::SpaceParameter::SOLVER_ITERATIONS => {
+                self.solver_iterations = value as i32;
+            }
+            _ => {}
+        }
+    }
+    
+    pub fn get_param(&self, param: physics_server_2d::SpaceParameter) -> f32 {
+        match param {
+            physics_server_2d::SpaceParameter::SOLVER_ITERATIONS => {
+                self.solver_iterations as f32
+            }
+            _ => 0.0
+        }
     }
 
     fn get_rid(&self) -> Rid {
@@ -141,5 +189,23 @@ impl RapierSpace2D {
     fn _get_object_instance_hack(p_object_id: u64) -> Option<Object> {
         // Implement hack logic
         None
+    }
+
+    pub fn get_direct_state(&mut self) -> Option<Gd<PhysicsDirectSpaceState2D>> {
+        if self.direct_access.is_none() {
+            let direct_space_state = RapierDirectSpaceState2D::new_alloc();
+            self.direct_access = Some(direct_space_state.upcast());
+        }
+        self.direct_access.clone()
+    }
+
+    pub fn set_debug_contacts(&mut self, max_contacts: i32) {
+    }
+
+    pub fn get_debug_contacts(&self) -> PackedVector2Array {
+        PackedVector2Array::new()
+    }
+    pub fn get_debug_contact_count(&self) -> i32 {
+        0
     }
 }

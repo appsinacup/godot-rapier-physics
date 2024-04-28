@@ -29,7 +29,6 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         hit_from_inside: bool,
         result: *mut godot::engine::native::PhysicsServer2DExtensionRayResult,
     ) -> bool {
-        godot_error!("RapierDirectSpaceState2D::intersect_ray not implemented");
         false
     }
 
@@ -43,7 +42,6 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         results: *mut godot::engine::native::PhysicsServer2DExtensionShapeResult,
         max_results: i32,
     ) -> i32 {
-        godot_error!("RapierDirectSpaceState2D::intersect_point not implemented");
         0
     }
 
@@ -59,17 +57,39 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         result: *mut godot::engine::native::PhysicsServer2DExtensionShapeResult,
         max_results: i32,
     ) -> i32 {
-        godot_error!("RapierDirectSpaceState2D::intersect_shape not implemented");
         0
     }
 
-    //unsafe fn cast_motion(&mut self, shape_rid: Rid, transform: Transform2D, motion: Vector2, margin: f32, collision_mask: u32, collide_with_bodies: bool, collide_with_areas: bool, closest_safe: * mut f64, closest_unsafe: * mut f64,) -> bool {
-    //    unimplemented !()
-    //}
+    unsafe fn cast_motion(
+        &mut self,
+        shape_rid: Rid,
+        transform: Transform2D,
+        motion: Vector2,
+        margin: f32,
+        collision_mask: u32,
+        collide_with_bodies: bool,
+        collide_with_areas: bool,
+        closest_safe: *mut f64,
+        closest_unsafe: *mut f64,
+    ) -> bool {
+        unimplemented!()
+    }
 
-    //unsafe fn collide_shape(&mut self, shape_rid: Rid, transform: Transform2D, motion: Vector2, margin: f32, collision_mask: u32, collide_with_bodies: bool, collide_with_areas: bool, results: * mut std::ffi::c_void, max_results: i32, result_count: * mut i32,) -> bool {
-    //    unimplemented !()
-    //}
+    unsafe fn collide_shape(
+        &mut self,
+        shape_rid: Rid,
+        transform: Transform2D,
+        motion: Vector2,
+        margin: f32,
+        collision_mask: u32,
+        collide_with_bodies: bool,
+        collide_with_areas: bool,
+        results: *mut std::ffi::c_void,
+        max_results: i32,
+        result_count: *mut i32,
+    ) -> bool {
+        false
+    }
 
     unsafe fn rest_info(
         &mut self,
@@ -82,7 +102,6 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         collide_with_areas: bool,
         rest_info: *mut godot::engine::native::PhysicsServer2DExtensionShapeRestInfo,
     ) -> bool {
-        godot_error!("RapierDirectSpaceState2D::rest_info not implemented");
         false
     }
 }
