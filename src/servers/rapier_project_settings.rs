@@ -1,4 +1,7 @@
-use godot::{builtin::{meta::ToGodot, Dictionary, Variant, Vector2}, engine::{global::PropertyHint, ProjectSettings}};
+use godot::{
+    builtin::{meta::ToGodot, Dictionary, Variant, Vector2},
+    engine::{global::PropertyHint, ProjectSettings},
+};
 
 const SOLVER_NUM_ITERATIONS: &str = "physics/rapier_2d/solver/num_iterations";
 const SOLVER_NUM_ADDITIONAL_FRICTION_ITERATIONS: &str =
@@ -43,12 +46,19 @@ fn register_setting_plain(p_name: &str, p_value: Variant, p_needs_restart: bool)
     register_setting(p_name, p_value, p_needs_restart, PropertyHint::NONE, "");
 }
 
-fn register_setting_hinted(p_name: &str, p_value: Variant, p_hint_string: &str, p_needs_restart: bool) {
-    register_setting(p_name, p_value, p_needs_restart, PropertyHint::NONE, p_hint_string);
-}
-
-fn register_setting_ranged(p_name: &str, p_value: Variant, p_hint_string: &str, p_needs_restart: bool) {
-    register_setting(p_name, p_value, p_needs_restart, PropertyHint::RANGE, p_hint_string);
+fn register_setting_ranged(
+    p_name: &str,
+    p_value: Variant,
+    p_hint_string: &str,
+    p_needs_restart: bool,
+) {
+    register_setting(
+        p_name,
+        p_value,
+        p_needs_restart,
+        PropertyHint::RANGE,
+        p_hint_string,
+    );
 }
 
 #[derive(Debug)]
@@ -56,19 +66,48 @@ pub struct RapierProjectSettings;
 
 impl RapierProjectSettings {
     pub fn register_settings() {
-        register_setting_ranged(SOLVER_NUM_INTERNAL_PGS_ITERATIONS, Variant::from(1), "1,4,or_greater", false);
+        register_setting_ranged(
+            SOLVER_NUM_INTERNAL_PGS_ITERATIONS,
+            Variant::from(1),
+            "1,4,or_greater",
+            false,
+        );
         register_setting_ranged(
             SOLVER_NUM_ADDITIONAL_FRICTION_ITERATIONS,
             Variant::from(4),
             "1,16,or_greater",
             false,
         );
-        register_setting_ranged(SOLVER_NUM_ITERATIONS, Variant::from(4), "1,16,or_greater", false);
-        register_setting_ranged(SOLVER_MAX_CCD_SUBSTEPS, Variant::from(1), "1,16,or_greater", false);
-        register_setting_plain(FLUID_GRAVITY_DIR, Variant::from(Vector2::new(0.0, 1.0)), false);
+        register_setting_ranged(
+            SOLVER_NUM_ITERATIONS,
+            Variant::from(4),
+            "1,16,or_greater",
+            false,
+        );
+        register_setting_ranged(
+            SOLVER_MAX_CCD_SUBSTEPS,
+            Variant::from(1),
+            "1,16,or_greater",
+            false,
+        );
+        register_setting_plain(
+            FLUID_GRAVITY_DIR,
+            Variant::from(Vector2::new(0.0, 1.0)),
+            false,
+        );
         register_setting_plain(FLUID_GRAVITY_VALUE, Variant::from(980.0), false);
-        register_setting_ranged(FLUID_PARTICLE_RADIUS, Variant::from(20.0), "0,100,0.00001", true);
-        register_setting_ranged(FLUID_SMOOTHING_FACTOR, Variant::from(2.0), "0,10,0.00001,suffix:%", true);
+        register_setting_ranged(
+            FLUID_PARTICLE_RADIUS,
+            Variant::from(20.0),
+            "0,100,0.00001",
+            true,
+        );
+        register_setting_ranged(
+            FLUID_SMOOTHING_FACTOR,
+            Variant::from(2.0),
+            "0,10,0.00001,suffix:%",
+            true,
+        );
     }
 
     fn get_setting_bool(p_setting: &str) -> bool {
