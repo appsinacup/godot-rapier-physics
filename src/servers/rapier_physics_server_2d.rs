@@ -1,3 +1,4 @@
+use crate::bodies::rapier_area_2d::RapierArea2D;
 use crate::shapes::rapier_capsule_shape_2d::RapierCapsuleShape2D;
 use crate::shapes::rapier_circle_shape_2d::RapierCircleShape2D;
 use crate::shapes::rapier_concave_polygon_shape_2d::RapierConcavePolygonShape2D;
@@ -31,49 +32,81 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn world_boundary_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierWorldBoundaryShape2D::new(rid);
-        physics_singleton().lock().unwrap().shapes.insert(rid, Box::new(shape));
+        physics_singleton()
+            .lock()
+            .unwrap()
+            .shapes
+            .insert(rid, Box::new(shape));
         rid
     }
     fn separation_ray_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierSeparationRayShape2D::new(rid);
-        physics_singleton().lock().unwrap().shapes.insert(rid, Box::new(shape));
+        physics_singleton()
+            .lock()
+            .unwrap()
+            .shapes
+            .insert(rid, Box::new(shape));
         rid
     }
     fn segment_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierSegmentShape2D::new(rid);
-        physics_singleton().lock().unwrap().shapes.insert(rid, Box::new(shape));
+        physics_singleton()
+            .lock()
+            .unwrap()
+            .shapes
+            .insert(rid, Box::new(shape));
         rid
     }
     fn circle_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierCircleShape2D::new(rid);
-        physics_singleton().lock().unwrap().shapes.insert(rid, Box::new(shape));
+        physics_singleton()
+            .lock()
+            .unwrap()
+            .shapes
+            .insert(rid, Box::new(shape));
         rid
     }
     fn rectangle_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierRectangleShape2D::new(rid);
-        physics_singleton().lock().unwrap().shapes.insert(rid, Box::new(shape));
+        physics_singleton()
+            .lock()
+            .unwrap()
+            .shapes
+            .insert(rid, Box::new(shape));
         rid
     }
     fn capsule_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierCapsuleShape2D::new(rid);
-        physics_singleton().lock().unwrap().shapes.insert(rid, Box::new(shape));
+        physics_singleton()
+            .lock()
+            .unwrap()
+            .shapes
+            .insert(rid, Box::new(shape));
         rid
     }
     fn convex_polygon_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierConvexPolygonShape2D::new(rid);
-        physics_singleton().lock().unwrap().shapes.insert(rid, Box::new(shape));
+        physics_singleton()
+            .lock()
+            .unwrap()
+            .shapes
+            .insert(rid, Box::new(shape));
         rid
     }
     fn concave_polygon_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierConcavePolygonShape2D::new(rid);
-        physics_singleton().lock().unwrap().shapes.insert(rid, Box::new(shape));
+        physics_singleton()
+            .lock()
+            .unwrap()
+            .shapes
+            .insert(rid, Box::new(shape));
         rid
     }
     fn shape_set_data(&mut self, shape: Rid, data: Variant) {
@@ -112,13 +145,28 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn shape_get_custom_solver_bias(&self, shape: Rid) -> f32 {
         0.0
     }
-    unsafe fn shape_collide(&mut self, shape_A: Rid, xform_A: Transform2D, motion_A: Vector2, shape_B: Rid, xform_B: Transform2D, motion_B: Vector2, results: * mut c_void, result_max: i32, result_count: * mut i32,) -> bool {
+    unsafe fn shape_collide(
+        &mut self,
+        shape_A: Rid,
+        xform_A: Transform2D,
+        motion_A: Vector2,
+        shape_B: Rid,
+        xform_B: Transform2D,
+        motion_B: Vector2,
+        results: *mut c_void,
+        result_max: i32,
+        result_count: *mut i32,
+    ) -> bool {
         false
     }
     fn space_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let space = RapierSpace2D::new(rid);
-        physics_singleton().lock().unwrap().spaces.insert(rid, Box::new(space));
+        physics_singleton()
+            .lock()
+            .unwrap()
+            .spaces
+            .insert(rid, Box::new(space));
         rid
     }
     fn space_set_active(&mut self, space: Rid, active: bool) {
@@ -189,10 +237,25 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         0
     }
     fn area_create(&mut self) -> Rid {
-        Rid::Invalid
+        let mut lock = physics_singleton().lock().unwrap();
+        let rid = rid_from_int64(rid_allocate_id());
+        let area = RapierArea2D::new(rid);
+        lock.collision_objects.insert(rid, Box::new(area));
+        rid
     }
-    fn area_set_space(&mut self, area: Rid, space: Rid) {}
+    fn area_set_space(&mut self, area: Rid, space: Rid) {
+        let mut lock = physics_singleton().lock().unwrap();
+        let area = lock.collision_objects.get_mut(&area);
+        if let Some(area) = area {
+            area.set_space(space);
+        }
+    }
     fn area_get_space(&self, area: Rid) -> Rid {
+        let mut lock = physics_singleton().lock().unwrap();
+        let area = lock.collision_objects.get_mut(&area);
+        if let Some(area) = area {
+            return area.get_space();
+        }
         Rid::Invalid
     }
     fn area_add_shape(&mut self, area: Rid, shape: Rid, transform: Transform2D, disabled: bool) {}
@@ -382,7 +445,17 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         userdata: Variant,
     ) {
     }
-    unsafe fn body_collide_shape(&mut self, body: Rid, body_shape: i32, shape: Rid, shape_xform: Transform2D, motion: Vector2, results: * mut c_void, result_max: i32, result_count: * mut i32,) -> bool {
+    unsafe fn body_collide_shape(
+        &mut self,
+        body: Rid,
+        body_shape: i32,
+        shape: Rid,
+        shape_xform: Transform2D,
+        motion: Vector2,
+        results: *mut c_void,
+        result_max: i32,
+        result_count: *mut i32,
+    ) -> bool {
         false
     }
     fn body_set_pickable(&mut self, body: Rid, pickable: bool) {}

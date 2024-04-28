@@ -4,6 +4,8 @@ use crate::{rapier2d::{body::{body_get_angle, body_get_position}, collider::Mate
 
 pub trait IRapierCollisionObject2D {
     fn get_base(&self) -> &RapierCollisionObject2D;
+    fn set_space(&mut self, space: Rid);
+    fn get_space(&self) -> Rid;
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -53,7 +55,7 @@ pub struct RapierCollisionObject2D {
 }
 
 impl RapierCollisionObject2D {
-    pub fn new(p_type: CollisionObjectType) -> Self {
+    pub fn new(rid: Rid, p_type: CollisionObjectType) -> Self {
         Self {
             collision_object_type: p_type,
             rid: Rid::Invalid,
@@ -73,6 +75,10 @@ impl RapierCollisionObject2D {
         }
     }
     pub fn shape_changed(&self, shape: Rid) {
+    }
+
+    pub fn get_space(&self) -> Rid {
+        self.space
     }
 
 /*

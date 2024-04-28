@@ -1,12 +1,16 @@
-use std::collections::HashMap;
-
-use godot::{builtin::{Callable, Rid, Variant, Vector2}, engine::physics_server_2d::{AreaParameter, AreaSpaceOverrideMode}};
-
-use crate::rapier2d::handle::Handle;
-
 use crate::bodies::rapier_collision_object_2d::CollisionObjectType;
-
-use super::rapier_collision_object_2d::RapierCollisionObject2D;
+use crate::bodies::rapier_collision_object_2d::{
+    IRapierCollisionObject2D, RapierCollisionObject2D,
+};
+use crate::rapier2d::handle::Handle;
+use godot::{
+    builtin::{Callable, Rid, Variant, Vector2},
+    engine::{
+        physics_server_2d::{AreaParameter, AreaSpaceOverrideMode},
+        ICollisionObject2D,
+    },
+};
+use std::collections::HashMap;
 
 pub struct RapierArea2D {
     gravity_override_mode: AreaSpaceOverrideMode,
@@ -29,18 +33,18 @@ pub struct RapierArea2D {
     base: RapierCollisionObject2D,
 }
 
-impl Default for RapierArea2D {
-    fn default() -> Self {
+impl RapierArea2D {
+    pub fn new(rid: Rid) -> Self {
         Self {
             gravity_override_mode: AreaSpaceOverrideMode::DISABLED,
             linear_damping_override_mode: AreaSpaceOverrideMode::DISABLED,
             angular_damping_override_mode: AreaSpaceOverrideMode::DISABLED,
-            gravity: 9.80665,
-            gravity_vector: Vector2::new(0.0, -1.0),
+            gravity: 0.0,
+            gravity_vector: Vector2::new(0.0, 0.0),
             gravity_is_point: false,
             gravity_point_unit_distance: 0.0,
-            linear_damp: 0.1,
-            angular_damp: 1.0,
+            linear_damp: 0.0,
+            angular_damp: 0.0,
             priority: 0,
             monitorable: false,
             monitor_callback: Callable::invalid(),
@@ -49,26 +53,52 @@ impl Default for RapierArea2D {
             detected_bodies: HashMap::new(),
             monitor_query_list: Vec::new(),
             area_override_update_list: Vec::new(),
-            base: RapierCollisionObject2D::new(CollisionObjectType::Area),
+            base: RapierCollisionObject2D::new(rid, CollisionObjectType::Area),
         }
     }
-}
 
-impl RapierArea2D {
-
-    pub fn on_body_enter(&mut self, collider_handle: Handle, body: Rid, body_shape: u32, area_collider_handle: Handle, area_shape: u32) {
+    pub fn on_body_enter(
+        &mut self,
+        collider_handle: Handle,
+        body: Rid,
+        body_shape: u32,
+        area_collider_handle: Handle,
+        area_shape: u32,
+    ) {
         // Implementation needed
     }
 
-    pub fn on_body_exit(&mut self, collider_handle: Handle, body: Rid, body_shape: u32, area_collider_handle: Handle, area_shape: u32, update_detection: bool) {
+    pub fn on_body_exit(
+        &mut self,
+        collider_handle: Handle,
+        body: Rid,
+        body_shape: u32,
+        area_collider_handle: Handle,
+        area_shape: u32,
+        update_detection: bool,
+    ) {
         // Implementation needed
     }
 
-    pub fn on_area_enter(&mut self, collider_handle: Handle, other_area: Rid, other_area_shape: u32,  area_collider_handle: Handle, area_shape: u32) {
+    pub fn on_area_enter(
+        &mut self,
+        collider_handle: Handle,
+        other_area: Rid,
+        other_area_shape: u32,
+        area_collider_handle: Handle,
+        area_shape: u32,
+    ) {
         // Implementation needed
     }
 
-    pub fn on_area_exit(&mut self, collider_handle: Handle, other_area: Rid, other_area_shape: u32, area_collider_handle: Handle, area_shape: u32) {
+    pub fn on_area_exit(
+        &mut self,
+        collider_handle: Handle,
+        other_area: Rid,
+        other_area_shape: u32,
+        area_collider_handle: Handle,
+        area_shape: u32,
+    ) {
         // Implementation needed
     }
 
@@ -77,9 +107,9 @@ impl RapierArea2D {
     }
 
     pub fn has_any_space_override(&self) -> bool {
-        self.gravity_override_mode != AreaSpaceOverrideMode::DISABLED ||
-        self.linear_damping_override_mode != AreaSpaceOverrideMode::DISABLED ||
-        self.angular_damping_override_mode != AreaSpaceOverrideMode::DISABLED
+        self.gravity_override_mode != AreaSpaceOverrideMode::DISABLED
+            || self.linear_damping_override_mode != AreaSpaceOverrideMode::DISABLED
+            || self.angular_damping_override_mode != AreaSpaceOverrideMode::DISABLED
     }
 
     pub fn set_monitor_callback(&mut self, callback: Callable) {
@@ -185,6 +215,17 @@ impl RapierArea2D {
     }
 }
 
+impl IRapierCollisionObject2D for RapierArea2D {
+    fn get_base(&self) -> &RapierCollisionObject2D {
+        &self.base
+    }
+    fn set_space(&mut self, space: Rid) {}
+
+    fn get_space(&self) -> Rid {
+        self.get_base().get_space()
+    }
+}
+
 struct MonitorInfo {
     rid: Rid,
     instance_id: u64,
@@ -197,4 +238,3 @@ struct MonitorInfo {
 struct BodyRefCount {
     count: u32,
 }
-
