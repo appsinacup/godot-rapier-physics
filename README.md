@@ -54,7 +54,7 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 
 - Manual: Download the github release and move only the `addons` folder into your project `addons` folder.
 
-- Build it yourself. Read more about it in the [documentation](DOCUMENTATION.md).
+- Build it yourself. Read more about it in the [contribute file](CONTRIBUTE.md).
 
 After installing, go to `Advanced Settings` -> `Physics` -> `2D`. Change `Physics Engine` to `Rapier2D`.
 
