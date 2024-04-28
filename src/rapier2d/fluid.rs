@@ -14,15 +14,12 @@ use salva2d::solver::He2014SurfaceTension;
 use salva2d::solver::WCSPHSurfaceTension;
 use salva2d::solver::XSPHViscosity;
 
-pub fn pixel_vector_array_to_vec(pixel_data: &Vector, data_count: usize) -> Vec<SalvaVector<Real>> {
-    let mut vec = Vec::<SalvaVector<Real>>::with_capacity(data_count);
-    unsafe {
-        let data_raw = std::slice::from_raw_parts(pixel_data, data_count);
-        for pixel_point in data_raw {
-            let point = &vector_pixels_to_meters(pixel_point);
-            let salva_vector = SalvaVector::<Real>::new(point.x, point.y);
-            vec.push(salva_vector);
-        }
+pub fn pixel_vector_array_to_vec(pixel_data: Vec<Vector>) -> Vec<SalvaVector<Real>> {
+    let mut vec = Vec::<SalvaVector<Real>>::with_capacity(pixel_data.len());
+    for pixel_point in pixel_data {
+        let point = &vector_pixels_to_meters(&pixel_point);
+        let salva_vector = SalvaVector::<Real>::new(point.x, point.y);
+        vec.push(salva_vector);
     }
     return vec;
 }
@@ -58,14 +55,13 @@ pub extern "C" fn fluid_change_density(
 pub extern "C" fn fluid_change_points_and_velocities(
     world_handle: Handle,
     fluid_handle: HandleDouble,
-    pixel_points: &Vector,
-    point_count: usize,
-    velocity_points: &Vector,
+    pixel_points: Vec<Vector>,
+    velocity_points: Vec<Vector>,
 ) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
-    let points = pixel_point_array_to_vec(pixel_points, point_count);
-    let velocities = pixel_vector_array_to_vec(velocity_points, point_count);
+    let points = pixel_point_array_to_vec(pixel_points);
+    let velocities = pixel_vector_array_to_vec(velocity_points);
     let fluid = physics_world
         .fluids_pipeline
         .liquid_world
@@ -73,12 +69,13 @@ pub extern "C" fn fluid_change_points_and_velocities(
         .get_mut(handle_to_fluid_handle(fluid_handle));
     assert!(fluid.is_some());
     let fluid = fluid.unwrap();
+    let points_len = points.len();
     let mut accelerations: Vec<_> = std::iter::repeat(salva2d::math::Vector::zeros())
-        .take(point_count)
+        .take(points_len)
         .collect();
     fluid.positions = points;
     // copy back the accelerations that were before, if they exist
-    for i in 0..point_count {
+    for i in 0..fluid.accelerations.len() {
         if fluid.accelerations.len() > i {
             accelerations[i] = fluid.accelerations[i];
         }
@@ -86,7 +83,7 @@ pub extern "C" fn fluid_change_points_and_velocities(
     fluid.velocities = velocities;
     fluid.accelerations = accelerations;
     fluid.volumes = std::iter::repeat(fluid.default_particle_volume())
-        .take(point_count)
+        .take(points_len)
         .collect();
 }
 
@@ -94,12 +91,12 @@ pub extern "C" fn fluid_change_points_and_velocities(
 pub extern "C" fn fluid_change_points(
     world_handle: Handle,
     fluid_handle: HandleDouble,
-    pixel_points: &Vector,
-    point_count: usize,
+    pixel_points: Vec<Vector>,
 ) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
-    let points = pixel_point_array_to_vec(pixel_points, point_count);
+    let points = pixel_point_array_to_vec(pixel_points);
+    let point_count = points.len();
     let fluid = physics_world
         .fluids_pipeline
         .liquid_world
@@ -188,9 +185,8 @@ pub extern "C" fn fluid_delete_points(
 pub extern "C" fn fluid_add_points_and_velocities(
     world_handle: Handle,
     fluid_handle: HandleDouble,
-    pixel_points: &Vector,
-    point_count: usize,
-    velocity_points: &Vector,
+    pixel_points: Vec<Vector>,
+    velocity_points: Vec<Vector>,
 ) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
@@ -201,8 +197,9 @@ pub extern "C" fn fluid_add_points_and_velocities(
         .get_mut(handle_to_fluid_handle(fluid_handle));
     assert!(fluid.is_some());
     let fluid = fluid.unwrap();
-    let points = pixel_point_array_to_vec(pixel_points, point_count);
-    let velocities = pixel_vector_array_to_vec(velocity_points, point_count);
+    let points = pixel_point_array_to_vec(pixel_points);
+    let velocities = pixel_vector_array_to_vec(velocity_points);
+    let point_count = points.len();
     // add old positions from fluid
     fluid.positions.extend_from_slice(&points);
     fluid.velocities.extend_from_slice(&velocities);

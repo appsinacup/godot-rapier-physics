@@ -1,7 +1,5 @@
 use godot::{builtin::{meta::ToGodot, Dictionary, Variant, Vector2}, engine::{global::PropertyHint, ProjectSettings}};
 
-const RUN_ON_SEPARATE_THREAD: &str = "physics/2d/run_on_separate_thread";
-const MAX_THREADS: &str = "threading/worker_pool/max_threads";
 const SOLVER_NUM_ITERATIONS: &str = "physics/rapier_2d/solver/num_iterations";
 const SOLVER_NUM_ADDITIONAL_FRICTION_ITERATIONS: &str =
     "physics/rapier_2d/solver/num_additional_friction_iterations";
@@ -92,14 +90,6 @@ impl RapierProjectSettings {
         let project_settings = ProjectSettings::singleton();
         let setting_value = project_settings.get_setting_with_override(p_setting.into());
         return setting_value.to::<Vector2>();
-    }
-
-    pub fn should_run_on_separate_thread() -> bool {
-        RapierProjectSettings::get_setting_bool(RUN_ON_SEPARATE_THREAD)
-    }
-
-    pub fn get_max_threads() -> i64 {
-        RapierProjectSettings::get_setting_int(MAX_THREADS)
     }
 
     pub fn get_solver_max_ccd_substeps() -> i64 {
