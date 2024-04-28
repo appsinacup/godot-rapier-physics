@@ -27,6 +27,18 @@ impl RapierSegmentShape2D {
 }
 
 impl IRapierShape2D for RapierSegmentShape2D {
+    fn get_type(&self) -> ShapeType {
+        ShapeType::SEGMENT
+    }
+
+    fn get_moment_of_inertia(&self, mass: f32, scale: Vector2) -> f32 {
+        mass * (self.a.distance_to(self.b) * scale.length_squared()) / 12.0
+    }
+
+    fn allows_one_way_collision(&self) -> bool {
+        true
+    }
+
     fn create_rapier_shape(&mut self) -> Handle {
         let direction = self.b - self.a;
         let direction_normalized = direction.normalized();
@@ -46,10 +58,6 @@ impl IRapierShape2D for RapierSegmentShape2D {
         ];
 
         return shape_create_convex_polyline(rapier_points.to_vec());
-    }
-
-    fn get_type(&self) -> ShapeType {
-        ShapeType::SEGMENT
     }
 
     fn set_data(&mut self, data: Variant) {
@@ -76,10 +84,6 @@ impl IRapierShape2D for RapierSegmentShape2D {
         let mut r = Rect2::new(self.a, self.b - self.a);
         r.size = self.b - self.a;
         return r.to_variant();
-    }
-
-    fn get_moment_of_inertia(&self, mass: f32, scale: Vector2) -> f32 {
-        mass * (self.a.distance_to(self.b) * scale.length_squared()) / 12.0
     }
 
     fn get_rapier_shape(&mut self) -> Handle {

@@ -23,13 +23,22 @@ impl RapierRectangleShape2D {
 }
 
 impl IRapierShape2D for RapierRectangleShape2D {
+    fn get_type(&self) -> ShapeType {
+        ShapeType::SEGMENT
+    }
+
+    fn get_moment_of_inertia(&self, mass: f32, scale: Vector2) -> f32 {
+        let he2 = self.half_extents * 2.0 * scale;
+        mass * he2.dot(he2) / 12.0
+    }
+
+    fn allows_one_way_collision(&self) -> bool {
+        true
+    }
+
     fn create_rapier_shape(&mut self) -> Handle {
         let v = Vector::new(self.half_extents.x * 2.0, self.half_extents.y * 2.0);
         shape_create_box(&v)
-    }
-
-    fn get_type(&self) -> ShapeType {
-        ShapeType::SEGMENT
     }
 
     fn set_data(&mut self, data: Variant) {
@@ -51,11 +60,6 @@ impl IRapierShape2D for RapierRectangleShape2D {
 
     fn get_data(&self) -> Variant {
         self.half_extents.to_variant()
-    }
-
-    fn get_moment_of_inertia(&self, mass: f32, scale: Vector2) -> f32 {
-        let he2 = self.half_extents * 2.0 * scale;
-        mass * he2.dot(he2) / 12.0
     }
 
     fn get_rapier_shape(&mut self) -> Handle {

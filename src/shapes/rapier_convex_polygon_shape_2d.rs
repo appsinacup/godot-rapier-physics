@@ -28,21 +28,36 @@ impl RapierConvexPolygonShape2D {
 }
 
 impl IRapierShape2D for RapierConvexPolygonShape2D {
+    fn get_type(&self) -> ShapeType {
+        ShapeType::CONVEX_POLYGON
+    }
+
+    fn get_moment_of_inertia(&self, mass: f32, scale: Vector2) -> f32 {
+        if self.points.len() < 3 {
+            return 0.0;
+        }
+        let mut aabb_new = Rect2::new(Vector2::ZERO, Vector2::ZERO);
+        for point in self.points.iter() {
+            aabb_new = aabb_new.expand(point.pos * scale);
+        }
+        mass * aabb_new.size.dot(aabb_new.size) / 12.0
+    }
+
+    fn allows_one_way_collision(&self) -> bool {
+        true
+    }
+
     fn create_rapier_shape(&mut self) -> Handle {
         if self.points.len() >= 3 {
             let mut rapier_points = Vec::with_capacity(self.points.len());
             for point in self.points.iter() {
                 rapier_points.push(Vector::new(point.pos.x, point.pos.y));
             }
-            return shape_create_convex_polyline(rapier_points);
+            shape_create_convex_polyline(rapier_points)
         } else {
             godot_error!("ConvexPolygon2D must have at least three point");
             invalid_handle()
         }
-    }
-
-    fn get_type(&self) -> ShapeType {
-        ShapeType::CONVEX_POLYGON
     }
 
     fn set_data(&mut self, data: Variant) {
@@ -100,18 +115,7 @@ impl IRapierShape2D for RapierConvexPolygonShape2D {
         for point in self.points.iter() {
             arr.push(point.pos);
         }
-        return arr.to_variant();
-    }
-
-    fn get_moment_of_inertia(&self, mass: f32, scale: Vector2) -> f32 {
-        if self.points.len() < 3 {
-            return 0.0;
-        }
-        let mut aabb_new = Rect2::new(Vector2::ZERO, Vector2::ZERO);
-        for point in self.points.iter() {
-            aabb_new = aabb_new.expand(point.pos * scale);
-        }
-        return mass * aabb_new.size.dot(aabb_new.size) / 12.0;
+        arr.to_variant()
     }
 
     fn get_rapier_shape(&mut self) -> Handle {

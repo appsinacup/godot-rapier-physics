@@ -3,12 +3,11 @@ use crate::rapier2d::shape::{shape_create_concave_polyline, shape_destroy};
 use crate::rapier2d::vector::Vector;
 use crate::shapes::rapier_shape_2d::{IRapierShape2D, RapierShapeBase2D};
 use godot::engine::physics_server_2d::ShapeType;
-use godot::{
-    prelude::*,
-};
+use godot::prelude::*;
 
 pub struct RapierConcavePolygonShape2D {
     points: Vec<Vector2>,
+    segments: Vec<[i32; 2]>,
     handle: Handle,
     pub base: RapierShapeBase2D,
 }
@@ -17,13 +16,38 @@ impl RapierConcavePolygonShape2D {
     pub fn new(rid: Rid) -> Self {
         Self {
             points: Vec::new(),
+            segments: Vec::new(),
             handle: invalid_handle(),
             base: RapierShapeBase2D::new(rid),
         }
     }
 }
 
+fn find_or_insert_point(points: &mut Vec<Vector2>, new_point: Vector2) -> usize {
+    for (idx, &point) in points.iter().enumerate() {
+        if point.distance_squared_to(new_point) < 1e-4 {
+            return idx;
+        }
+    }
+    // If the point is not found, add it to the vector and return its index
+    let idx = points.len();
+    points.push(new_point);
+    idx
+}
+
 impl IRapierShape2D for RapierConcavePolygonShape2D {
+    fn get_type(&self) -> ShapeType {
+        ShapeType::CONCAVE_POLYGON
+    }
+
+    fn get_moment_of_inertia(&self, _mass: f32, _scale: Vector2) -> f32 {
+        0.0
+    }
+
+    fn allows_one_way_collision(&self) -> bool {
+        true
+    }
+
     fn create_rapier_shape(&mut self) -> Handle {
         if self.points.len() >= 3 {
             let point_count = self.points.len();
@@ -31,6 +55,8 @@ impl IRapierShape2D for RapierConcavePolygonShape2D {
             for i in 0..point_count {
                 rapier_points[i] = Vector::new(self.points[i].x, self.points[i].y);
             }
+            // Close the polyline shape
+            rapier_points[point_count] = Vector::new(rapier_points[0].x, rapier_points[0].y);
             return shape_create_concave_polyline(rapier_points);
         } else {
             godot_error!("ConcavePolygon2D must have at least three point");
@@ -38,79 +64,68 @@ impl IRapierShape2D for RapierConcavePolygonShape2D {
         }
     }
 
-    fn get_type(&self) -> ShapeType {
-        ShapeType::CONCAVE_POLYGON
-    }
-
     fn set_data(&mut self, data: Variant) {
+        let mut aabb = Rect2::default();
+
         match data.get_type() {
             VariantType::PackedVector2Array => {
                 let arr: PackedVector2Array = data.to();
-                let size = arr.len();
-                assert!(size > 0);
-                self.point_count = size;
-                self.points = Vec::with_capacity(size);
-
-                for i in 0..size {
-                    self.points[i] = Point {
-                        pos: arr.get(i),
-                        normal: Vector2::ZERO,
-                    };
+                let len = arr.len();
+                if len % 2 != 0 {
+                    godot_error!("ConcavePolygon2D must have an even number of points");
+                    return;
                 }
 
-                for i in 0..size {
-                    let p = self.points[i].pos;
-                    let pn = self.points[(i + 1) % size].pos;
-                    self.points[i].normal = (pn - p).orthogonal().normalized();
+                self.segments.clear();
+                self.points.clear();
+
+                if len == 0 {
+                    self.base.configure(aabb);
+                    return;
                 }
-            }
-            VariantType::PackedFloat32Array | VariantType::PackedFloat64Array => {
-                let arr:PackedFloat32Array = data.to();
+                for i in (0..len).step_by(2) {
+                    let p1 = arr.get(i);
+                    let p2 = arr.get(i + 1);
 
-                let size = arr.len() / 4;
-                assert!(size > 0);
-                self.point_count = size;
-                self.points = Vec::with_capacity(size);
+                    // Find or insert the points into the `points` vector
+                    let idx_p1 = find_or_insert_point(&mut self.points, p1);
+                    let idx_p2 = find_or_insert_point(&mut self.points, p2);
 
-                for i in 0..size {
-                    let idx = i << 2;
-                    self.points[i] = Point {
-                        pos: Vector2::new(arr.get(idx), arr.get(idx + 1)),
-                        normal: Vector2::new(arr.get(idx + 2), arr.get(idx + 3)),
-                    };
+                    // Create the segment with the indices of the points
+                    let s = [idx_p1 as i32, idx_p2 as i32];
+                    self.segments.push(s);
+                }
+
+                for &p in self.points.iter() {
+                    aabb = aabb.expand(p);
                 }
             }
-            _ => godot_error!("Invalid data type for RapierConcavePolygonShape2D"),
-        }
-        if self.point_count < 3 {
-            godot_error!("ConcavePolygon2D must have at least three point");
-            return;
-        }
-        let mut aabb = Rect2::new(Vector2::ZERO, Vector2::ZERO);
-        for point in self.points.iter() {
-            aabb = aabb.expand(point.pos);
+            _ => {
+                // Handle dictionary with arrays
+                godot_error!("ConcavePolygon2D must be a PackedVector2Array");
+                return;
+            }
         }
 
         self.base.configure(aabb);
     }
 
     fn get_data(&self) -> Variant {
-        let mut arr = PackedVector2Array::new();
-        for point in self.points.iter() {
-            arr.push(point.pos);
+        let len = self.segments.len();
+        if len == 0 {
+            return Variant::nil();
         }
-        return arr.to_variant();
-    }
 
-    fn get_moment_of_inertia(&self, mass: f32, scale: Vector2) -> f32 {
-        if self.point_count < 3 {
-            return 0.0;
+        let mut rsegments = PackedVector2Array::new();
+        rsegments.resize(len * 2);
+        for i in 0..len {
+            let idx0 = self.segments[i][0] as usize;
+            let idx1 = self.segments[i][1] as usize;
+            rsegments.set((i << 1) + 0, self.points[idx0]);
+            rsegments.set((i << 1) + 1, self.points[idx1]);
         }
-        let mut aabb_new = Rect2::new(Vector2::ZERO, Vector2::ZERO);
-        for point in self.points.iter() {
-            aabb_new = aabb_new.expand(point.pos * scale);
-        }
-        return mass * aabb_new.size.dot(aabb_new.size) / 12.0;
+
+        rsegments.to_variant()
     }
 
     fn get_rapier_shape(&mut self) -> Handle {

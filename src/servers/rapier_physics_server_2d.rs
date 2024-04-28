@@ -1,3 +1,10 @@
+use crate::shapes::rapier_capsule_shape_2d::RapierCapsuleShape2D;
+use crate::shapes::rapier_circle_shape_2d::RapierCircleShape2D;
+use crate::shapes::rapier_concave_polygon_shape_2d::RapierConcavePolygonShape2D;
+use crate::shapes::rapier_convex_polygon_shape_2d::RapierConvexPolygonShape2D;
+use crate::shapes::rapier_rectangle_shape_2d::RapierRectangleShape2D;
+use crate::shapes::rapier_segment_shape_2d::RapierSegmentShape2D;
+use crate::shapes::rapier_separation_ray_shape_2d::RapierSeparationRayShape2D;
 use crate::shapes::rapier_world_boundary_shape_2d::RapierWorldBoundaryShape2D;
 use godot::engine::native::PhysicsServer2DExtensionMotionResult;
 use godot::engine::utilities::{rid_allocate_id, rid_from_int64};
@@ -6,7 +13,7 @@ use godot::{engine, prelude::*};
 use std::collections::HashSet;
 use std::ffi::c_void;
 
-use super::rapier_physics_singleton_2d::{physics_singleton, physics_singleton_mutex_guard};
+use super::rapier_physics_singleton_2d::{physics_shapes_singleton, physics_shapes_singleton_mutex_guard};
 
 #[derive(GodotClass)]
 #[class(base=PhysicsServer2DExtension, init)]
@@ -23,45 +30,84 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn world_boundary_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierWorldBoundaryShape2D::new(rid);
-        physics_singleton_mutex_guard()
-            .shapes
-            .insert(rid, Box::new(shape));
+        physics_shapes_singleton_mutex_guard().insert(rid, Box::new(shape));
         rid
     }
     fn separation_ray_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierSeparationRayShape2D::new(rid);
-        physics_singleton_mutex_guard()
-            .shapes
-            .insert(rid, Box::new(shape));
+        physics_shapes_singleton_mutex_guard().insert(rid, Box::new(shape));
         rid
     }
     fn segment_shape_create(&mut self) -> Rid {
-        Rid::Invalid
+        let rid = rid_from_int64(rid_allocate_id());
+        let shape = RapierSegmentShape2D::new(rid);
+        physics_shapes_singleton_mutex_guard().insert(rid, Box::new(shape));
+        rid
     }
     fn circle_shape_create(&mut self) -> Rid {
-        Rid::Invalid
+        let rid = rid_from_int64(rid_allocate_id());
+        let shape = RapierCircleShape2D::new(rid);
+        physics_shapes_singleton_mutex_guard().insert(rid, Box::new(shape));
+        rid
     }
     fn rectangle_shape_create(&mut self) -> Rid {
-        Rid::Invalid
+        let rid = rid_from_int64(rid_allocate_id());
+        let shape = RapierRectangleShape2D::new(rid);
+        physics_shapes_singleton_mutex_guard().insert(rid, Box::new(shape));
+        rid
     }
     fn capsule_shape_create(&mut self) -> Rid {
-        Rid::Invalid
+        let rid = rid_from_int64(rid_allocate_id());
+        let shape = RapierCapsuleShape2D::new(rid);
+        physics_shapes_singleton_mutex_guard().insert(rid, Box::new(shape));
+        rid
     }
     fn convex_polygon_shape_create(&mut self) -> Rid {
-        Rid::Invalid
+        let rid = rid_from_int64(rid_allocate_id());
+        let shape = RapierConvexPolygonShape2D::new(rid);
+        physics_shapes_singleton_mutex_guard().insert(rid, Box::new(shape));
+        rid
     }
     fn concave_polygon_shape_create(&mut self) -> Rid {
-        Rid::Invalid
+        let rid = rid_from_int64(rid_allocate_id());
+        let shape = RapierConcavePolygonShape2D::new(rid);
+        physics_shapes_singleton_mutex_guard().insert(rid, Box::new(shape));
+        rid
     }
-    fn shape_set_data(&mut self, shape: Rid, data: Variant) {}
-    fn shape_set_custom_solver_bias(&mut self, shape: Rid, bias: f32) {}
+    fn shape_set_data(&mut self, shape: Rid, data: Variant) {
+        let binding = physics_shapes_singleton();
+        let mut binding = binding.lock().unwrap();
+        let shape = binding.get_mut(&shape);
+        if let Some(shape) = shape {
+            shape.set_data(data);
+        } else {
+            godot_error!("Shape not found");
+        }
+    }
+    fn shape_set_custom_solver_bias(&mut self, shape: Rid, bias: f32) {
+        godot_warn!("shape_set_custom_solver_bias is unused by Rapier");
+    }
 
     fn shape_get_type(&self, shape: Rid) -> engine::physics_server_2d::ShapeType {
-        engine::physics_server_2d::ShapeType::CUSTOM
+        let binding = physics_shapes_singleton_mutex_guard();
+        let shape = binding.get(&shape);
+        if let Some(shape) = shape {
+            shape.get_type()
+        } else {
+            godot_error!("Shape not found");
+            engine::physics_server_2d::ShapeType::CUSTOM
+        }
     }
     fn shape_get_data(&self, shape: Rid) -> Variant {
-        Variant::nil()
+        let binding = physics_shapes_singleton_mutex_guard();
+        let shape = binding.get(&shape);
+        if let Some(shape) = shape {
+            shape.get_data()
+        } else {
+            godot_error!("Shape not found");
+            Variant::nil()
+        }
     }
     fn shape_get_custom_solver_bias(&self, shape: Rid) -> f32 {
         0.0

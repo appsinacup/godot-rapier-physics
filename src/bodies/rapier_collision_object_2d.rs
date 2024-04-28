@@ -2,6 +2,11 @@ use std::{cell::RefCell, rc::Rc};
 use godot::{builtin::{Rid, Transform2D, Vector2}, engine::{native::ObjectId, physics_server_2d}};
 use crate::{rapier2d::{body::{body_get_angle, body_get_position}, collider::Material, handle::{invalid_handle, is_handle_valid, Handle}}, shapes::rapier_shape_2d::IRapierShape2D, spaces::rapier_space_2d::RapierSpace2D};
 
+pub trait IRapierCollisionObject2D {
+    fn shape_changed(&self, shape: Rid);
+    fn remove_shape(&self, shape: Rid);
+}
+
 #[derive(Clone, Copy, Debug)]
 pub enum CollisionObjectType {
     Area,
