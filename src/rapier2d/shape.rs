@@ -4,16 +4,13 @@ use crate::rapier2d::physics_world::*;
 use crate::rapier2d::vector::Vector;
 use rapier2d::prelude::*;
 
-pub fn pixel_point_array_to_vec(pixel_data: &Vector, data_count: usize) -> Vec<Point<Real>> {
-    let mut vec = Vec::<Point<Real>>::with_capacity(data_count);
-    unsafe {
-        let data_raw = std::slice::from_raw_parts(pixel_data, data_count);
-        for pixel_point in data_raw {
-            let point = &vector_pixels_to_meters(pixel_point);
-            vec.push(Point::<Real> {
-                coords: vector![point.x, point.y],
-            });
-        }
+pub fn pixel_point_array_to_vec(pixel_data: Vec<Vector>) -> Vec<Point<Real>> {
+    let mut vec = Vec::<Point<Real>>::with_capacity(pixel_data.len());
+    for pixel_point in pixel_data {
+        let point = &vector_pixels_to_meters(&pixel_point);
+        vec.push(Point::<Real> {
+            coords: vector![point.x, point.y],
+        });
     }
     return vec;
 }
@@ -68,10 +65,9 @@ pub extern "C" fn shape_create_capsule(pixel_half_height: Real, pixel_radius: Re
 
 #[no_mangle]
 pub extern "C" fn shape_create_convex_polyline(
-    pixel_points: &Vector,
-    point_count: usize,
+    pixel_points: Vec<Vector>,
 ) -> Handle {
-    let points_vec = pixel_point_array_to_vec(pixel_points, point_count);
+    let points_vec = pixel_point_array_to_vec(pixel_points);
     let shape_data = SharedShape::convex_polyline(points_vec);
     if shape_data.is_none() {
         return Handle::default();
@@ -82,11 +78,10 @@ pub extern "C" fn shape_create_convex_polyline(
 }
 
 #[no_mangle]
-pub extern "C" fn shape_create_convave_polyline(
-    pixel_points: &Vector,
-    point_count: usize,
+pub extern "C" fn shape_create_concave_polyline(
+    pixel_points: Vec<Vector>,
 ) -> Handle {
-    let points_vec = pixel_point_array_to_vec(pixel_points, point_count);
+    let points_vec = pixel_point_array_to_vec(pixel_points);
     let shape = SharedShape::polyline(points_vec, None);
     let mut physics_engine = singleton().lock().unwrap();
     return physics_engine.insert_shape(shape);

@@ -1,14 +1,12 @@
-use self::rapier_world_boundary_shape_2d::RapierWorldBoundaryShape2D;
-use crate::shapes::*;
+use crate::shapes::rapier_world_boundary_shape_2d::RapierWorldBoundaryShape2D;
 use godot::engine::native::PhysicsServer2DExtensionMotionResult;
 use godot::engine::utilities::{rid_allocate_id, rid_from_int64};
 use godot::engine::IPhysicsServer2DExtension;
 use godot::{engine, prelude::*};
-use std::cell::RefCell;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::ffi::c_void;
 
-use super::rapier_physics_singleton_2d::physics_singleton;
+use super::rapier_physics_singleton_2d::{physics_singleton, physics_singleton_mutex_guard};
 
 #[derive(GodotClass)]
 #[class(base=PhysicsServer2DExtension, init)]
@@ -25,16 +23,18 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn world_boundary_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierWorldBoundaryShape2D::new(rid);
-        physics_singleton()
-            .lock()
-            .unwrap()
+        physics_singleton_mutex_guard()
             .shapes
             .insert(rid, Box::new(shape));
         rid
     }
     fn separation_ray_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
-        Rid::Invalid
+        let shape = RapierSeparationRayShape2D::new(rid);
+        physics_singleton_mutex_guard()
+            .shapes
+            .insert(rid, Box::new(shape));
+        rid
     }
     fn segment_shape_create(&mut self) -> Rid {
         Rid::Invalid

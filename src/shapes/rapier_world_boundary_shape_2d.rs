@@ -15,7 +15,7 @@ pub struct RapierWorldBoundaryShape2D {
 impl RapierWorldBoundaryShape2D {
     pub fn new(rid: Rid) -> Self {
         Self {
-            normal: Vector2::new(0.0, 0.0),
+            normal: Vector2::ZERO,
             d: 0.0,
             handle: invalid_handle(),
             base: RapierShapeBase2D::new(rid),

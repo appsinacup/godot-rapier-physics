@@ -10,8 +10,6 @@ protected:
 	virtual rapier2d::Handle create_rapier_shape() const override;
 
 public:
-	_FORCE_INLINE_ const Vector2 &get_half_extents() const { return half_extents; }
-
 	virtual PhysicsServer2D::ShapeType get_type() const override { return PhysicsServer2D::SHAPE_RECTANGLE; }
 
 	virtual void set_data(const Variant &p_data) override;

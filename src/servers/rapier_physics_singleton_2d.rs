@@ -6,7 +6,7 @@ use crate::shapes::rapier_shape_2d::IRapierShape2D;
 use crate::spaces::rapier_space_2d::RapierSpace2D;
 use godot::builtin::Rid;
 use std::collections::HashMap;
-use std::sync::{Mutex, OnceLock};
+use std::sync::{Mutex, MutexGuard, OnceLock};
 
 pub struct RapierPhysicsSingleton2D {
     pub shapes: HashMap<Rid, Box<dyn IRapierShape2D>>,
@@ -35,4 +35,8 @@ unsafe impl Send for RapierPhysicsSingleton2D {}
 pub fn physics_singleton() -> &'static Mutex<RapierPhysicsSingleton2D> {
     static HOLDER: OnceLock<Mutex<RapierPhysicsSingleton2D>> = OnceLock::new();
     HOLDER.get_or_init(|| Mutex::new(RapierPhysicsSingleton2D::new()))
+}
+
+pub fn physics_singleton_mutex_guard() -> MutexGuard<'static, RapierPhysicsSingleton2D> {
+    physics_singleton().lock().unwrap()
 }

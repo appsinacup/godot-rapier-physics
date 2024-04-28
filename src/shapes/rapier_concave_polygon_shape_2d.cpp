@@ -9,7 +9,7 @@ rapier2d::Handle RapierConcavePolygonShape2D::create_rapier_shape() const {
 	}
 	// In order to close the polyline shape
 	rapier_points[point_count] = rapier_points[0];
-	return rapier2d::shape_create_convave_polyline(rapier_points, point_count + 1);
+	return rapier2d::shape_create_concave_polyline(rapier_points, point_count + 1);
 }
 
 void RapierConcavePolygonShape2D::set_data(const Variant &p_data) {
