@@ -1,27 +1,26 @@
-use std::{collections::HashMap, sync::{Arc, Mutex}};
-use godot::{engine::{native::ObjectId, physics_server_2d, PhysicsDirectSpaceState2D, ProjectSettings}, prelude::*};
-use crate::{bodies::{rapier_area_2d::RapierArea2D, rapier_body_2d::RapierBody2D, rapier_collision_object_2d::{CollisionObjectType, IRapierCollisionObject2D, RapierCollisionObject2D}}, rapier2d::{handle::{invalid_handle, Handle}, physics_hooks::{CollisionFilterInfo, OneWayDirection}, physics_world::{world_create, world_set_active_body_callback, world_set_body_collision_filter_callback, world_set_collision_event_callback, world_set_contact_force_event_callback, world_set_contact_point_callback, world_set_modify_contacts_callback, world_set_sensor_collision_filter_callback, ActiveBodyInfo, CollisionEventInfo, ContactForceEventInfo, ContactPointInfo}, query::QueryExcludedInfo, settings::default_world_settings, user_data::{is_user_data_valid, UserData}}, servers::{rapier_physics_singleton_2d::physics_singleton, rapier_project_settings::RapierProjectSettings}};
+use std::collections::HashMap;
+use godot::{engine::{native::{ObjectId, PhysicsServer2DExtensionMotionResult}, physics_server_2d, PhysicsDirectSpaceState2D, ProjectSettings}, prelude::*};
+use crate::{bodies::{rapier_area_2d::RapierArea2D, rapier_body_2d::RapierBody2D, rapier_collision_object_2d::{CollisionObjectType, IRapierCollisionObject2D, RapierCollisionObject2D}}, rapier2d::{handle::{invalid_handle, Handle}, physics_hooks::{CollisionFilterInfo, OneWayDirection}, physics_world::{world_create, world_set_active_body_callback, world_set_body_collision_filter_callback, world_set_collision_event_callback, world_set_contact_force_event_callback, world_set_contact_point_callback, world_set_modify_contacts_callback, world_set_sensor_collision_filter_callback, ActiveBodyInfo, CollisionEventInfo, ContactForceEventInfo, ContactPointInfo}, query::{PointHitInfo, QueryExcludedInfo}, settings::default_world_settings, user_data::{is_user_data_valid, UserData}}, servers::{rapier_physics_singleton_2d::physics_singleton, rapier_project_settings::RapierProjectSettings}};
+use crate::spaces::rapier_direct_space_state_2d::RapierDirectSpaceState2D;
 
-use super::rapier_direct_space_state_2d::RapierDirectSpaceState2D;
+const TEST_MOTION_MARGIN: real = 1e-4;
 
-const TEST_MOTION_MARGIN: real = 0.0001;
-
-struct RemovedColliderInfo {
-    rid: Rid,
-    instance_id: InstanceId,
-    shape_index: u32,
-    collision_object_type: CollisionObjectType,
+pub struct RemovedColliderInfo {
+    pub rid: Rid,
+    pub instance_id: InstanceId,
+    pub shape_index: u32,
+    pub collision_object_type: CollisionObjectType,
 }
 
-struct CollidersInfo {
-    shape1: u32,
-    object1: Option<RapierCollisionObject2D>,
-    shape2: u32,
-    object2: Option<RapierCollisionObject2D>,
+pub struct CollidersInfo {
+    pub shape1: u32,
+    pub object1: Option<RapierCollisionObject2D>,
+    pub shape2: u32,
+    pub object2: Option<RapierCollisionObject2D>,
 }
 
 pub struct RapierSpace2D {
-    direct_access: Option<Gd<PhysicsDirectSpaceState2D>>,
+    direct_access: Gd<PhysicsDirectSpaceState2D>,
     rid: Rid,
     handle: Handle,
     removed_colliders: HashMap<u32, RemovedColliderInfo>,
@@ -58,7 +57,7 @@ impl RapierSpace2D {
         let project_settings = ProjectSettings::singleton();
 
         let physics_fps = project_settings.get_setting_with_override("physics/common/physics_ticks_per_second".into());
-        let mut last_step = 0.001;
+        let mut last_step = 1e-3;
         if !physics_fps.is_nil() {
             last_step = 1.0 / (physics_fps.to::<i32>() as f32);
         }
@@ -87,7 +86,7 @@ impl RapierSpace2D {
         world_set_contact_force_event_callback(handle, Some(RapierSpace2D::contact_force_event_callback));
         world_set_contact_point_callback(handle, Some(RapierSpace2D::contact_point_callback));
         Self {
-            direct_access: None,
+            direct_access,
             rid,
             handle,
             removed_colliders: HashMap::new(),
@@ -227,11 +226,11 @@ impl RapierSpace2D {
         false
     }
 
-	static Object *_get_object_instance_hack(uint64_t p_object_id) {
-		return reinterpret_cast<Object *>((GodotObject *)(internal::gdextension_interface_object_get_instance_from_id(p_object_id)));
+	pub fn _get_object_instance_hack(instance_id: InstanceId) -> &'static Object{
+        return &Gd::from_instance_id(instance_id);
 	}
 
-	pub fn get_handle(&self) -> Handle { return handle; }
+	pub fn get_handle(&self) -> Handle { return self.handle; }
 
 	pub fn set_rid(&mut self, p_rid: Rid) { self.rid = p_rid; }
 
@@ -338,20 +337,13 @@ impl RapierSpace2D {
         return self.contact_debug_count
     }
 
-    pub fn get_direct_state(&mut self) -> Option<Gd<PhysicsDirectSpaceState2D>> {
-        if self.direct_access.is_none() {
-            let direct_space_state = RapierDirectSpaceState2D::new_alloc();
-            self.direct_access = Some(direct_space_state.upcast());
-        }
-        self.direct_access.clone()
+    pub fn get_direct_state(&mut self) -> Gd<PhysicsDirectSpaceState2D> {
+        self.direct_access.upcast()
     }
 
-	pub fn test_body_motion(&self, body: Rid, from: Transform2D, motion: Vector2, margin: double, collide_separation_ray: bool, recovery_as_collision: bool, result: &PhysicsServer2DExtensionMotionResult) -> bool {
-
+	pub fn test_body_motion(&self, body: Rid, from: Transform2D, motion: Vector2, margin: f64, collide_separation_ray: bool, recovery_as_collision: bool, result: &PhysicsServer2DExtensionMotionResult) -> bool {
     }
 
 	pub fn rapier_intersect_aabb(&self, aabb: Rect2, collision_mask: u32, collide_with_bodies: bool, collide_with_areas: bool, results: &PointHitInfo, max_results: i32, result_count: &i32, exclude_body: Rid) -> i32 {
-
     }
-
 }

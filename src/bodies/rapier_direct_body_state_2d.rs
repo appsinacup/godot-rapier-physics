@@ -1,5 +1,9 @@
 use godot::{engine::{IPhysicsDirectBodyState2DExtension, PhysicsDirectBodyState2DExtension, PhysicsDirectSpaceState2D}, prelude::*};
 
+use crate::servers::rapier_physics_singleton_2d::physics_singleton;
+
+use super::{rapier_body_2d::RapierBody2D, rapier_collision_object_2d::CollisionObjectType};
+
 #[derive(GodotClass)]
 #[class(base=PhysicsDirectBodyState2DExtension)]
 pub struct RapierDirectBodyState2D {
@@ -8,7 +12,9 @@ pub struct RapierDirectBodyState2D {
     base: Base<PhysicsDirectBodyState2DExtension>,
 }
 
+#[godot_api]
 impl RapierDirectBodyState2D {
+    #[func]
     pub fn set_body(&mut self, body: Rid) {
         self.body = body;
     }
@@ -24,7 +30,15 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
     
     fn get_total_gravity(&self,) -> Vector2 {
-        Vector2::default()
+        physics_singleton()
+        if (body.using_area_gravity) {
+            return body->total_gravity;
+        } else {
+            ERR_FAIL_COND_V(!body->get_space(), Vector2());
+            real_t default_gravity = body->get_space()->get_default_area_param(PhysicsServer2D::AREA_PARAM_GRAVITY);
+            Vector2 default_gravity_vector = body->get_space()->get_default_area_param(PhysicsServer2D::AREA_PARAM_GRAVITY_VECTOR);
+            return body->gravity_scale * default_gravity_vector * default_gravity;
+        }
     }
     
     fn get_total_linear_damp(&self,) -> f32 {

@@ -183,7 +183,13 @@ impl RapierBody2D {
 	pub fn set_force_integration_callback(&mut self, callable: Callable, udata: Variant) {
     }
 
-	pub fn get_direct_state(&self) -> Option<Gd<RapierDirectBodyState2D>> {
+	pub fn get_direct_state(&self) -> &Option<Gd<RapierDirectBodyState2D>> {
+        if self.direct_state.is_none() {
+            let direct_space_state = RapierDirectBodyState2D::new_alloc();
+            direct_space_state.set_body(self.rid);
+            self.direct_state = Some(direct_space_state.upcast());
+        }
+        &self.direct_state
     }
 
 	pub fn add_area(&mut self, area: Rid) {

@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 use godot::{builtin::{real, Rid, Transform2D, Vector2}, engine::{native::ObjectId, physics_server_2d}, obj::InstanceId};
-use crate::{rapier2d::{body::{body_get_angle, body_get_position, body_set_transform}, collider::{collider_create_sensor, collider_create_solid, collider_destroy, Material}, handle::{invalid_handle, is_handle_valid, Handle}, user_data::UserData, vector::Vector}, servers::rapier_physics_singleton_2d::physics_singleton, shapes::rapier_shape_2d::IRapierShape2D, spaces::rapier_space_2d::RapierSpace2D};
+use crate::{rapier2d::{body::{body_get_angle, body_get_position, body_set_transform}, collider::{collider_create_sensor, collider_create_solid, collider_destroy, Material}, handle::{invalid_handle, is_handle_valid, Handle}, shape::ShapeInfo, user_data::UserData, vector::Vector}, servers::rapier_physics_singleton_2d::physics_singleton, shapes::rapier_shape_2d::IRapierShape2D, spaces::rapier_space_2d::RapierSpace2D};
 
 pub trait IRapierCollisionObject2D {
     fn get_base(&self) -> &RapierCollisionObject2D;
@@ -143,8 +143,8 @@ impl RapierCollisionObject2D {
                 shape: shape.shape.get_rapier_shape(),
                 position,
                 angle,
-                skew: shape.xform.get_skew(),
-                scale: Vector::new(shape.xform.get_scale().x, shape.xform.get_scale().y),
+                skew: shape.xform.skew,
+                scale: Vector::new(shape.xform.scale.x, shape.xform.scale.y),
             };
             collider_set_transform(space_handle, shape.collider_handle, shape_info);
         }
