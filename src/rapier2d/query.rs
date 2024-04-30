@@ -89,8 +89,7 @@ pub struct QueryExcludedInfo {
     pub query_exclude_body: i64,
 }
 
-#[no_mangle]
-pub extern "C" fn default_query_excluded_info() -> QueryExcludedInfo {
+pub fn default_query_excluded_info() -> QueryExcludedInfo {
     QueryExcludedInfo {
         query_collision_layer_mask: 0,
         query_canvas_instance_id: 0,
@@ -100,10 +99,9 @@ pub extern "C" fn default_query_excluded_info() -> QueryExcludedInfo {
     }
 }
 
-type QueryHandleExcludedCallback = Option<extern "C" fn(world_handle : Handle, collider_handle : Handle, user_data : &UserData, handle_excluded_info: &QueryExcludedInfo) -> bool>;
+type QueryHandleExcludedCallback = Option<fn(world_handle : Handle, collider_handle : Handle, user_data : &UserData, handle_excluded_info: &QueryExcludedInfo) -> bool>;
 
-#[no_mangle]
-pub extern "C" fn intersect_ray(world_handle : Handle, pixel_from : &Vector, dir : &Vector, pixel_length: Real, collide_with_body: bool, collide_with_area: bool, hit_from_inside: bool, hit_info : &mut RayHitInfo, handle_excluded_callback: QueryHandleExcludedCallback, handle_excluded_info: &QueryExcludedInfo) -> bool {
+pub fn intersect_ray(world_handle : Handle, pixel_from : &Vector, dir : &Vector, pixel_length: Real, collide_with_body: bool, collide_with_area: bool, hit_from_inside: bool, hit_info : &mut RayHitInfo, handle_excluded_callback: QueryHandleExcludedCallback, handle_excluded_info: &QueryExcludedInfo) -> bool {
     let from = vector_pixels_to_meters(&pixel_from);
     let length = pixels_to_meters(pixel_length);
 
@@ -164,8 +162,7 @@ pub extern "C" fn intersect_ray(world_handle : Handle, pixel_from : &Vector, dir
     return result;
 }
 
-#[no_mangle]
-pub extern "C" fn intersect_point(world_handle : Handle, pixel_position : &Vector,  collide_with_body: bool, collide_with_area: bool, hit_info_array : *mut PointHitInfo, hit_info_length : usize, handle_excluded_callback: QueryHandleExcludedCallback, handle_excluded_info: &QueryExcludedInfo) -> usize {
+pub fn intersect_point(world_handle : Handle, pixel_position : &Vector,  collide_with_body: bool, collide_with_area: bool, hit_info_array : *mut PointHitInfo, hit_info_length : usize, handle_excluded_callback: QueryHandleExcludedCallback, handle_excluded_info: &QueryExcludedInfo) -> usize {
     let mut physics_engine = singleton().lock().unwrap();
 	let physics_world = physics_engine.get_world(world_handle);
     let position = vector_pixels_to_meters(&pixel_position);
@@ -210,8 +207,7 @@ pub extern "C" fn intersect_point(world_handle : Handle, pixel_position : &Vecto
     return cpt_hit;
 }
 
-#[no_mangle]
-pub extern "C" fn shape_collide(pixel_motion1 : &Vector, shape_info1: ShapeInfo, pixel_motion2 : &Vector, shape_info2: ShapeInfo) -> ShapeCastResult {
+pub fn shape_collide(pixel_motion1 : &Vector, shape_info1: ShapeInfo, pixel_motion2 : &Vector, shape_info2: ShapeInfo) -> ShapeCastResult {
     let mut motion1 = vector_pixels_to_meters(&pixel_motion1);
     let mut motion2 = vector_pixels_to_meters(&pixel_motion2);
     if motion1.x == 0.0 && motion1.y == 0.0 {
@@ -251,8 +247,7 @@ pub extern "C" fn shape_collide(pixel_motion1 : &Vector, shape_info1: ShapeInfo,
     return result;
 }
 
-#[no_mangle]
-pub extern "C" fn shape_casting(world_handle : Handle, pixel_motion : &Vector, shape_info: ShapeInfo, collide_with_body: bool, collide_with_area: bool, handle_excluded_callback: QueryHandleExcludedCallback, handle_excluded_info: &QueryExcludedInfo, ignore_intersecting: bool) -> ShapeCastResult {
+pub fn shape_casting(world_handle : Handle, pixel_motion : &Vector, shape_info: ShapeInfo, collide_with_body: bool, collide_with_area: bool, handle_excluded_callback: QueryHandleExcludedCallback, handle_excluded_info: &QueryExcludedInfo, ignore_intersecting: bool) -> ShapeCastResult {
     let motion = vector_pixels_to_meters(&pixel_motion);
     let position = vector_pixels_to_meters(&shape_info.pixel_position);
 
@@ -308,8 +303,7 @@ pub extern "C" fn shape_casting(world_handle : Handle, pixel_motion : &Vector, s
     return result;
 }
 
-#[no_mangle]
-pub extern "C" fn intersect_shape(world_handle : Handle, shape_info: ShapeInfo, collide_with_body: bool, collide_with_area: bool, hit_info_array : *mut PointHitInfo, hit_info_length : usize, handle_excluded_callback: QueryHandleExcludedCallback, handle_excluded_info: &QueryExcludedInfo) -> usize {
+pub fn intersect_shape(world_handle : Handle, shape_info: ShapeInfo, collide_with_body: bool, collide_with_area: bool, hit_info_array : *mut PointHitInfo, hit_info_length : usize, handle_excluded_callback: QueryHandleExcludedCallback, handle_excluded_info: &QueryExcludedInfo) -> usize {
     let position = vector_pixels_to_meters(&shape_info.pixel_position);
     let mut physics_engine = singleton().lock().unwrap();
 
@@ -362,8 +356,7 @@ pub extern "C" fn intersect_shape(world_handle : Handle, shape_info: ShapeInfo, 
     return cpt_hit;
 }
 
-#[no_mangle]
-pub extern "C" fn intersect_aabb(world_handle : Handle, pixel_aabb_min : &Vector, pixel_aabb_max : &Vector, collide_with_body: bool, collide_with_area: bool, hit_info_array : *mut PointHitInfo, hit_info_length : usize, handle_excluded_callback: QueryHandleExcludedCallback, handle_excluded_info: &QueryExcludedInfo) -> usize {
+pub fn intersect_aabb(world_handle : Handle, pixel_aabb_min : &Vector, pixel_aabb_max : &Vector, collide_with_body: bool, collide_with_area: bool, hit_info_array : *mut PointHitInfo, hit_info_length : usize, handle_excluded_callback: QueryHandleExcludedCallback, handle_excluded_info: &QueryExcludedInfo) -> usize {
     let aabb_min = vector_pixels_to_meters(&pixel_aabb_min);
     let aabb_max = vector_pixels_to_meters(&pixel_aabb_max);
 
@@ -425,8 +418,7 @@ pub extern "C" fn intersect_aabb(world_handle : Handle, pixel_aabb_min : &Vector
     return cpt_hit;
 }
 
-#[no_mangle]
-pub extern "C" fn shapes_contact(shape_info1 : ShapeInfo, shape_info2 : ShapeInfo, pixel_margin: Real) -> ContactResult {
+pub fn shapes_contact(shape_info1 : ShapeInfo, shape_info2 : ShapeInfo, pixel_margin: Real) -> ContactResult {
     let position1 = vector_pixels_to_meters(&shape_info1.pixel_position);
     let position2 = vector_pixels_to_meters(&shape_info2.pixel_position);
     let margin = pixels_to_meters(pixel_margin);

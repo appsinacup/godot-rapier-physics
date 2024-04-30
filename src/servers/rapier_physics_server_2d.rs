@@ -1,4 +1,5 @@
 use crate::bodies::rapier_area_2d::RapierArea2D;
+use crate::rapier2d::handle::Handle;
 use crate::shapes::rapier_capsule_shape_2d::RapierCapsuleShape2D;
 use crate::shapes::rapier_circle_shape_2d::RapierCircleShape2D;
 use crate::shapes::rapier_concave_polygon_shape_2d::RapierConcavePolygonShape2D;
@@ -12,7 +13,7 @@ use godot::engine::native::PhysicsServer2DExtensionMotionResult;
 use godot::engine::utilities::{rid_allocate_id, rid_from_int64};
 use godot::engine::IPhysicsServer2DExtension;
 use godot::{engine, prelude::*};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::ffi::c_void;
 
 use super::rapier_physics_singleton_2d::physics_singleton;
@@ -20,8 +21,6 @@ use super::rapier_physics_singleton_2d::physics_singleton;
 #[derive(GodotClass)]
 #[class(base=PhysicsServer2DExtension, init)]
 pub struct RapierPhysicsServer2D {
-    active_spaces: HashSet<Rid>,
-
     active: bool,
     flushing_queries: bool,
     doing_sync: bool,
@@ -169,17 +168,23 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             .insert(rid, Box::new(space));
         rid
     }
-    fn space_set_active(&mut self, space: Rid, active: bool) {
-        if space.is_valid() {
-            if active {
-                self.active_spaces.insert(space);
-            } else {
-                self.active_spaces.remove(&space);
-            }
+    fn space_set_active(&mut self, space_rid: Rid, active: bool) {
+        let mut lock = physics_singleton().lock().unwrap();
+        let space = lock.spaces.get(&space_rid);
+        let handle = space.unwrap().get_handle();
+        if active {
+            lock.active_spaces.insert(handle, space_rid);
+        } else {
+            lock.active_spaces.remove(&handle);
         }
     }
     fn space_is_active(&self, space: Rid) -> bool {
-        self.active_spaces.contains(&space)
+        let lock = physics_singleton().lock().unwrap();
+        let space = lock.spaces.get(&space);
+        if let Some(space) = space {
+            return lock.active_spaces.contains_key(&space.get_handle())
+        }
+        false
     }
     fn space_set_param(
         &mut self,

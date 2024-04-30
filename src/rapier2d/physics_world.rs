@@ -18,8 +18,8 @@ use std::sync::OnceLock;
 
 #[repr(C)]
 pub struct ActiveBodyInfo {
-    body_handle: Handle,
-    body_user_data: UserData,
+    pub body_handle: Handle,
+    pub body_user_data: UserData,
 }
 
 impl ActiveBodyInfo {
@@ -59,15 +59,15 @@ impl ContactPointInfo {
 }
 
 type ActiveBodyCallback =
-    Option<extern "C" fn(world_handle: Handle, active_body_info: &ActiveBodyInfo)>;
+    Option<fn(world_handle: Handle, active_body_info: &ActiveBodyInfo)>;
 
 type CollisionEventCallback =
-    Option<extern "C" fn(world_handle: Handle, event_info: &CollisionEventInfo)>;
+    Option<fn(world_handle: Handle, event_info: &CollisionEventInfo)>;
 
 type ContactForceEventCallback =
-    Option<extern "C" fn(world_handle: Handle, event_info: &ContactForceEventInfo) -> bool>;
+    Option<fn(world_handle: Handle, event_info: &ContactForceEventInfo) -> bool>;
 type ContactPointCallback = Option<
-    extern "C" fn(
+    fn(
         world_handle: Handle,
         contact_info: &ContactPointInfo,
         event_info: &ContactForceEventInfo,
@@ -527,8 +527,7 @@ pub fn singleton() -> &'static Mutex<PhysicsEngine> {
     HASHMAP.get_or_init(|| Mutex::new(PhysicsEngine::new()))
 }
 
-#[no_mangle]
-pub extern "C" fn world_create(settings: &WorldSettings) -> Handle {
+pub fn world_create(settings: &WorldSettings) -> Handle {
     let physics_world = PhysicsWorld::new(settings);
     let mut physics_engine = singleton().lock().unwrap();
     let world_handle = physics_engine.insert_world(physics_world);
@@ -537,23 +536,20 @@ pub extern "C" fn world_create(settings: &WorldSettings) -> Handle {
     return world_handle;
 }
 
-#[no_mangle]
-pub extern "C" fn world_destroy(world_handle: Handle) {
+pub fn world_destroy(world_handle: Handle) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     physics_world.handle = invalid_handle();
     physics_engine.remove_world(world_handle);
 }
 
-#[no_mangle]
-pub extern "C" fn world_step(world_handle: Handle, settings: &SimulationSettings) {
+pub fn world_step(world_handle: Handle, settings: &SimulationSettings) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     physics_world.step(settings);
 }
 
-#[no_mangle]
-pub extern "C" fn world_set_active_body_callback(
+pub fn world_set_active_body_callback(
     world_handle: Handle,
     callback: ActiveBodyCallback,
 ) {
@@ -562,8 +558,7 @@ pub extern "C" fn world_set_active_body_callback(
     physics_world.active_body_callback = callback;
 }
 
-#[no_mangle]
-pub extern "C" fn world_set_body_collision_filter_callback(
+pub fn world_set_body_collision_filter_callback(
     world_handle: Handle,
     callback: CollisionFilterCallback,
 ) {
@@ -572,8 +567,7 @@ pub extern "C" fn world_set_body_collision_filter_callback(
     physics_world.collision_filter_body_callback = callback;
 }
 
-#[no_mangle]
-pub extern "C" fn world_set_sensor_collision_filter_callback(
+pub fn world_set_sensor_collision_filter_callback(
     world_handle: Handle,
     callback: CollisionFilterCallback,
 ) {
@@ -582,8 +576,7 @@ pub extern "C" fn world_set_sensor_collision_filter_callback(
     physics_world.collision_filter_sensor_callback = callback;
 }
 
-#[no_mangle]
-pub extern "C" fn world_set_modify_contacts_callback(
+pub fn world_set_modify_contacts_callback(
     world_handle: Handle,
     callback: CollisionModifyContactsCallback,
 ) {
@@ -592,8 +585,7 @@ pub extern "C" fn world_set_modify_contacts_callback(
     physics_world.collision_modify_contacts_callback = callback;
 }
 
-#[no_mangle]
-pub extern "C" fn world_set_collision_event_callback(
+pub fn world_set_collision_event_callback(
     world_handle: Handle,
     callback: CollisionEventCallback,
 ) {
@@ -602,8 +594,7 @@ pub extern "C" fn world_set_collision_event_callback(
     physics_world.collision_event_callback = callback;
 }
 
-#[no_mangle]
-pub extern "C" fn world_set_contact_force_event_callback(
+pub fn world_set_contact_force_event_callback(
     world_handle: Handle,
     callback: ContactForceEventCallback,
 ) {
@@ -612,8 +603,7 @@ pub extern "C" fn world_set_contact_force_event_callback(
     physics_world.contact_force_event_callback = callback;
 }
 
-#[no_mangle]
-pub extern "C" fn world_set_contact_point_callback(
+pub fn world_set_contact_point_callback(
     world_handle: Handle,
     callback: ContactPointCallback,
 ) {
@@ -622,8 +612,7 @@ pub extern "C" fn world_set_contact_point_callback(
     physics_world.contact_point_callback = callback;
 }
 
-#[no_mangle]
-pub extern "C" fn world_get_active_objects_count(world_handle: Handle) -> usize {
+pub fn world_get_active_objects_count(world_handle: Handle) -> usize {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     return physics_world.island_manager.active_dynamic_bodies().len();

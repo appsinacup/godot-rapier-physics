@@ -4,8 +4,7 @@ use crate::rapier2d::physics_world::*;
 use crate::rapier2d::vector::Vector;
 use rapier2d::prelude::*;
 
-#[no_mangle]
-pub extern "C" fn joint_create_revolute(
+pub fn joint_create_revolute(
     world_handle: Handle,
     body_handle_1: Handle,
     body_handle_2: Handle,
@@ -41,8 +40,7 @@ pub extern "C" fn joint_create_revolute(
     return physics_world.insert_joint(body_handle_1, body_handle_2, joint);
 }
 
-#[no_mangle]
-pub extern "C" fn joint_change_revolute_params(
+pub fn joint_change_revolute_params(
     world_handle: Handle,
     joint_handle: Handle,
     angular_limit_lower: Real,
@@ -73,8 +71,7 @@ pub extern "C" fn joint_change_revolute_params(
     }
 }
 
-#[no_mangle]
-pub extern "C" fn joint_create_prismatic(
+pub fn joint_create_prismatic(
     world_handle: Handle,
     body_handle_1: Handle,
     body_handle_2: Handle,
@@ -100,8 +97,7 @@ pub extern "C" fn joint_create_prismatic(
     return physics_world.insert_joint(body_handle_1, body_handle_2, joint);
 }
 
-#[no_mangle]
-pub extern "C" fn joint_create_spring(
+pub fn joint_create_spring(
     world_handle: Handle,
     body_handle_1: Handle,
     body_handle_2: Handle,
@@ -126,8 +122,7 @@ pub extern "C" fn joint_create_spring(
     return physics_world.insert_joint(body_handle_1, body_handle_2, joint);
 }
 
-#[no_mangle]
-pub extern "C" fn joint_change_spring_params(
+pub fn joint_change_spring_params(
     world_handle: Handle,
     joint_handle: Handle,
     stiffness: Real,
@@ -149,16 +144,14 @@ pub extern "C" fn joint_change_spring_params(
         .set_motor_position(JointAxis::X, rest_length, stiffness, damping);
 }
 
-#[no_mangle]
-pub extern "C" fn joint_destroy(world_handle: Handle, joint_handle: Handle) {
+pub fn joint_destroy(world_handle: Handle, joint_handle: Handle) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
 
     return physics_world.remove_joint(joint_handle);
 }
 
-#[no_mangle]
-pub extern "C" fn joint_change_disable_collision(
+pub fn joint_change_disable_collision(
     world_handle: Handle,
     joint_handle: Handle,
     disable_collision: bool,

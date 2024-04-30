@@ -5,6 +5,15 @@ pub struct UserData {
     pub part2: u64,
 }
 
+impl Default for UserData {
+    fn default() -> Self {
+        UserData {
+            part1: 0,
+            part2: 0,
+        }
+    }
+}
+
 impl UserData {
     pub fn new(data: u128) -> UserData {
         let data2: u128 = data >> 64;
@@ -26,15 +35,13 @@ impl UserData {
     }
 }
 
-#[no_mangle]
-pub extern "C" fn invalid_user_data() -> UserData {
+pub fn invalid_user_data() -> UserData {
     UserData {
         part1: u64::MAX,
         part2: u64::MAX,
     }
 }
 
-#[no_mangle]
-pub extern "C" fn is_user_data_valid(user_data: UserData) -> bool {
+pub fn is_user_data_valid(user_data: UserData) -> bool {
     return user_data.is_valid();
 }

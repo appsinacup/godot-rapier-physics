@@ -1,6 +1,7 @@
 use crate::bodies::rapier_collision_object_2d::IRapierCollisionObject2D;
 use crate::fluids::rapier_fluid_2d::RapierFluid2D;
 use crate::joints::rapier_joint_2d::IRapierJoint2D;
+use crate::rapier2d::handle::Handle;
 use crate::shapes::rapier_shape_2d::IRapierShape2D;
 use crate::spaces::rapier_space_2d::RapierSpace2D;
 use godot::builtin::Rid;
@@ -13,12 +14,14 @@ pub struct RapierPhysicsSingleton2D {
     pub collision_objects: HashMap<Rid, Box<dyn IRapierCollisionObject2D>>,
     pub joints: HashMap<Rid, Box<dyn IRapierJoint2D>>,
     pub fluids: HashMap<Rid, Box<RapierFluid2D>>,
+    pub active_spaces: HashMap<Handle, Rid>,
 }
 impl RapierPhysicsSingleton2D {
     pub fn new() -> RapierPhysicsSingleton2D {
         RapierPhysicsSingleton2D {
             shapes: HashMap::new(),
             spaces: HashMap::new(),
+            active_spaces: HashMap::new(),
             collision_objects: HashMap::new(),
             joints: HashMap::new(),
             fluids: HashMap::new(),

@@ -1,13 +1,13 @@
-use godot::{engine::{PhysicsServer2DManager}, prelude::*};
+use godot::{engine::PhysicsServer2DManager, prelude::*};
 
 use crate::servers::rapier_physics_server_factory_2d::*;
 use crate::servers::rapier_project_settings::RapierProjectSettings;
 
-mod rapier_physics_server_2d;
-mod rapier_physics_server_factory_2d;
-mod rapier_project_settings;
-mod rapier_body_utils_2d;
+pub mod rapier_body_utils_2d;
+pub mod rapier_physics_server_2d;
+pub mod rapier_physics_server_factory_2d;
 pub mod rapier_physics_singleton_2d;
+pub mod rapier_project_settings;
 
 pub fn register_server() {
     let mut manager = PhysicsServer2DManager::singleton();

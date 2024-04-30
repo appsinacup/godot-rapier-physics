@@ -125,7 +125,7 @@ impl RapierProjectSettings {
         let setting_value = project_settings.get_setting_with_override(p_setting.into());
         return setting_value.to::<f64>();
     }
-    fn get_setting_Vector2(p_setting: &str) -> Vector2 {
+    fn get_setting_vector2(p_setting: &str) -> Vector2 {
         let project_settings = ProjectSettings::singleton();
         let setting_value = project_settings.get_setting_with_override(p_setting.into());
         return setting_value.to::<Vector2>();
@@ -148,7 +148,7 @@ impl RapierProjectSettings {
     }
 
     pub fn get_fluid_gravity_dir() -> Vector2 {
-        RapierProjectSettings::get_setting_Vector2(FLUID_GRAVITY_DIR)
+        RapierProjectSettings::get_setting_vector2(FLUID_GRAVITY_DIR)
     }
 
     pub fn get_fluid_gravity_value() -> f64 {
