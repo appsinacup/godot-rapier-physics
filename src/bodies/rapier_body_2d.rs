@@ -1,29 +1,50 @@
 
 use godot::engine::native::ObjectId;
-// Import necessary libraries
 use godot::prelude::*;
-use godot::engine::physics_server_2d::{BodyDampMode, BodyMode, BodyState, CcdMode};
+use godot::engine::physics_server_2d::{BodyDampMode, BodyMode, BodyParameter, BodyState, CcdMode};
 use std::collections::HashSet;
-
 use crate::bodies::rapier_collision_object_2d::IRapierCollisionObject2D;
 use crate::bodies::rapier_collision_object_2d::RapierCollisionObject2D;
+use crate::bodies::rapier_collision_object_2d::CollisionObjectType;
+use crate::rapier2d::collider::Material;
+use crate::rapier2d::handle::Handle;
 
-use super::rapier_collision_object_2d::CollisionObjectType;
+use super::rapier_direct_body_state_2d::RapierDirectBodyState2D;
+
+struct Contact {
+    local_pos: Vector2,
+    local_normal: Vector2,
+    depth: real,
+    local_shape: i32,
+    collider_pos: Vector2,
+    collider_shape: i32,
+    collider_instance_id: ObjectId,
+    collider_object: Option<Object>,
+    collider: Rid,
+    local_velocity_at_pos: Vector2,
+    collider_velocity_at_pos: Vector2,
+    impulse: Vector2,
+}
+
+struct ForceIntegrationCallbackData {
+    callable: Callable,
+    udata: Variant,
+}
 
 // Define the RapierBody2D struct
 pub struct RapierBody2D {
     linear_damping_mode: BodyDampMode,
     angular_damping_mode: BodyDampMode,
-    linear_damping: f32,
-    angular_damping: f32,
-    total_linear_damping: f32,
-    total_angular_damping: f32,
+    linear_damping: real,
+    angular_damping: real,
+    total_linear_damping: real,
+    total_angular_damping: real,
     total_gravity: Vector2,
-    gravity_scale: f32,
-    bounce: f32,
-    friction: f32,
-    mass: f32,
-    inertia: f32,
+    gravity_scale: real,
+    bounce: real,
+    friction: real,
+    mass: real,
+    inertia: real,
     center_of_mass: Vector2,
     calculate_inertia: bool,
     calculate_center_of_mass: bool,
@@ -39,12 +60,23 @@ pub struct RapierBody2D {
     constant_force: Vector2,
     linear_velocity: Vector2,
     impulse: Vector2,
-    torque: f32,
-    angular_velocity: f32,
-    constant_torque: f32,
-    to_add_angular_velocity: f32,
+    torque: real,
+    angular_velocity: real,
+    constant_torque: real,
+    to_add_angular_velocity: real,
     to_add_linear_velocity: Vector2,
     sleep: bool,
+    active_list: Vec<Rid>,
+    mass_properties_update_list: Vec<Rid>,
+    gravity_update_list: Vec<Rid>,
+    areas: Vec<Rid>,
+    area_override_update_list: Vec<Rid>,
+    contacts: Vec<Contact>,
+    contact_count: i32,
+    body_state_callback: Callable,
+    fi_callback_data: ForceIntegrationCallbackData,
+    direct_state: Option<Gd<RapierDirectBodyState2D>>,
+    direct_state_query_list: Vec<Rid>,
     base: RapierCollisionObject2D
 }
 
@@ -84,15 +116,107 @@ impl RapierBody2D {
             to_add_angular_velocity: 0.0,
             to_add_linear_velocity: Vector2::ZERO,
             sleep: false,
+            active_list: Vec::new(),
+            mass_properties_update_list: Vec::new(),
+            gravity_update_list: Vec::new(),
+            areas: Vec::new(),
+            area_override_update_list: Vec::new(),
+            contacts: Vec::new(),
+            contact_count: 0,
+            body_state_callback: Callable::invalid(),
+            fi_callback_data: ForceIntegrationCallbackData {
+                callable: Callable::invalid(),
+                udata: Variant::nil(),
+            },
+            direct_state: None,
+            direct_state_query_list: Vec::new(),
             base: RapierCollisionObject2D::new(rid, CollisionObjectType::Body)
         }
     }
-    
+
+	fn _apply_linear_damping(&self, new_value: real, apply_default: bool) {
+
+    }
+
+	fn _apply_angular_damping(&self, new_value: real, apply_default: bool) {
+
+    }
+
+	fn _apply_gravity_scale(&self, new_value: real) {
+
+    }
+
+	fn _init_material(&self, mat: &Material) {
+        
+    }
+	fn _init_collider(&self, collider_handle: Handle) {
+        
+    }
+
+	pub fn to_add_static_constant_linear_velocity(&mut self, linear_velocity: Vector2) {
+        self.to_add_linear_velocity = linear_velocity;
+    }
+	pub fn to_add_static_constant_angular_velocity(&mut self, angular_velocity: real) {
+        self.to_add_angular_velocity = angular_velocity;
+    }
+
+    pub fn set_linear_velocity(&mut self, linear_velocity: &Vector2) {
+
+    }
+	pub fn get_linear_velocity(&self) -> Vector2 {
+
+    }
+	pub fn get_static_linear_velocity(&self) -> Vector2 {
+    }
+
+	pub fn set_angular_velocity(&self, angular_velocity: real) {
+    }
+	pub fn get_angular_velocity(&self) -> real {
+
+    }
+	pub fn get_static_angular_velocity(&self) -> real {
+    }
+
+	pub fn set_state_sync_callback(&mut self, callable: Callable) {
+
+    }
+	pub fn set_force_integration_callback(&mut self, callable: Callable, udata: Variant) {
+    }
+
+	pub fn get_direct_state(&self) -> Option<Gd<RapierDirectBodyState2D>> {
+    }
+
+	pub fn add_area(&mut self, area: Rid) {
+
+    }
+	pub fn remove_area(&mut self, area: Rid) {
+
+    }
+	pub fn on_area_updated(&mut self, area: Rid) {
+
+    }
+
+	pub fn update_area_override(&self) {
+
+    }
+	pub fn update_gravity(&mut self, step: real) {
+
+    }
+
+	pub fn set_max_contacts_reported(&mut self, size: i32) {
+		self.contacts.resize(size);
+		self.contact_count = 0;
+	}
+	pub fn reset_contact_count(&mut self) {
+		self.contact_count = 0;
+	}
+	pub fn get_max_contacts_reported(&self) -> i32 { return self.contacts.len(); }
+	pub fn can_report_contacts(&self) -> bool { return !self.contacts.is_empty(); }
     fn add_contact(
         &mut self,
         local_pos: Vector2,
         local_normal: Vector2,
-        depth: f32,
+        depth: real,
         local_shape: i32,
         local_velocity_at_pos: Vector2,
         collider_pos: Vector2,
@@ -104,22 +228,147 @@ impl RapierBody2D {
         impulse: Vector2,
     ) {
     }
-}
 
-// Define the Contact struct
-struct Contact {
-    local_pos: Vector2,
-    local_normal: Vector2,
-    depth: f32,
-    local_shape: i32,
-    collider_pos: Vector2,
-    collider_shape: i32,
-    collider_instance_id: ObjectId,
-    collider_object: Option<Object>,
-    collider: Rid,
-    local_velocity_at_pos: Vector2,
-    collider_velocity_at_pos: Vector2,
-    impulse: Vector2,
+	pub fn add_exception(&mut self,exception: Rid) { self.exceptions.insert(exception); }
+	pub fn remove_exception(&mut self,exception: Rid) { self.exceptions.erase(exception); }
+	pub fn has_exception(&mut self,exception: Rid) -> bool { return self.exceptions.has(exception); }
+	pub fn get_exceptions(&self) -> HashSet<Rid> { return self.exceptions; }
+
+	pub fn set_omit_force_integration(&mut self,omit_force_integration: bool) { self.omit_force_integration = omit_force_integration; }
+	pub fn get_omit_force_integration(&self) -> bool { return self.omit_force_integration; }
+
+	pub fn apply_central_impulse(&self, impulse: Vector2) {
+        
+    }
+
+	pub fn apply_impulse(&self,impulse: Vector2, position: Vector2) {
+
+    }
+
+	pub fn apply_torque_impulse(&self, torque: real) {
+
+    }
+
+	pub fn apply_central_force(&self, force: Vector2) {
+
+    }
+
+	pub fn apply_force(&self, force: Vector2, position: Vector2) {
+        
+    }
+
+	pub fn apply_torque(&self, torque: real) {
+
+    }
+
+	pub fn add_constant_central_force(&self, force: Vector2) {
+
+    }
+
+	pub fn add_constant_force(&self, force: Vector2, position: Vector2) {
+
+    }
+
+	pub fn add_constant_torque(&self, torque: real) {
+
+    }
+
+	pub fn set_constant_force(&self, force: Vector2) {
+
+    }
+	pub fn get_constant_force(&self) -> Vector2 {
+    }
+
+	pub fn set_constant_torque(&self, torque: real) {
+
+    }
+	pub fn get_constant_torque(&self) -> real{
+
+    }
+
+	pub fn set_active(&self, active: bool) {
+
+    }
+	pub fn is_active(&self) -> bool { return self.active; }
+
+	pub fn set_can_sleep(&self, can_sleep: bool) {
+
+    }
+
+    pub fn on_marked_active(&self) {
+        if (self.base.mode == BodyMode::STATIC) {
+            return;
+        }
+        self.marked_active = true;
+        if (!self.active) {
+            self.active = true;
+            get_space().body_add_to_active_list(self.base.get_rid());
+        }
+    }
+	pub fn on_update_active(&self) {
+    }
+
+	pub fn wakeup(&self) {
+    }
+	pub fn force_sleep(&self) {
+    }
+
+	pub fn set_param(&mut self, param: BodyParameter,  value: Variant) {
+    }
+	pub fn get_param(&self, param: BodyParameter) -> Variant{
+    }
+
+    pub fn set_mode(&mut self, mode: BodyMode) {
+    }
+	pub fn get_mode(&self) -> BodyMode {
+    }
+
+	pub fn set_state(&mut self, state: BodyState, variant: Variant) {
+    }
+
+	pub fn get_state(&self, state: BodyState) -> Variant {
+    }
+
+	pub fn set_continuous_collision_detection_mode(&mut self, mode: CcdMode) {
+    }
+	pub fn get_continuous_collision_detection_mode(&self) -> CcdMode { return self.ccd_mode; }
+
+	pub fn update_mass_properties(&mut self, force_update: bool) {
+    }
+	pub fn reset_mass_properties(&mut self) {
+    }
+
+	pub fn get_center_of_mass(&self) -> Vector2 { return self.center_of_mass; }
+	pub fn get_mass(&self) -> real { return self.mass; }
+	pub fn get_inv_mass(&self) -> real { 
+        if self.mass != 0.0 {
+            return 1.0 / self.mass;
+        }
+        return 0.0
+    }
+	pub fn get_inertia(&self) -> real { return self.inertia; }
+	pub fn get_inv_inertia(&self) -> real { 
+        if self.inertia != 0.0 {
+            return 1.0 / self.inertia;
+        }
+        return 0.0
+    }
+	pub fn get_friction(&self) -> real { return self.friction; }
+	pub fn get_bounce(&self) -> real { return self.bounce; }
+
+	pub fn get_velocity_at_local_point(&self, rel_pos: Vector2) -> Vector2 {
+		let linear_velocity = self.get_linear_velocity();
+		let angular_velocity = self.get_angular_velocity();
+		return linear_velocity + Vector2::new(-angular_velocity * (rel_pos.y - self.center_of_mass.y), angular_velocity * (rel_pos.x - self.center_of_mass.x));
+	}
+
+	pub fn call_queries(&self) {
+
+    }
+
+	fn get_aabb(&self) -> Rect2{
+
+    }
 }
 
 impl IRapierCollisionObject2D for RapierBody2D {
@@ -128,9 +377,5 @@ impl IRapierCollisionObject2D for RapierBody2D {
     }
 
     fn set_space(&mut self, space: Rid) {
-    }
-
-    fn get_space(&self) -> Rid {
-        self.get_base().get_space()
     }
 }

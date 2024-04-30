@@ -125,8 +125,7 @@ pub struct Material {
     pub restitution: Real,
 }
 
-#[no_mangle]
-pub extern "C" fn default_material() -> Material {
+pub fn default_material() -> Material {
     Material {
         friction: 1.0,
         restitution: 0.0,
@@ -144,8 +143,7 @@ fn shape_is_halfspace(shape: &SharedShape) -> bool {
     shape.shape_type() == ShapeType::HalfSpace
 }
 
-#[no_mangle]
-pub extern "C" fn collider_create_solid(
+pub fn collider_create_solid(
     world_handle: Handle,
     shape_handle: Handle,
     mat: &Material,
@@ -187,8 +185,7 @@ pub extern "C" fn collider_create_solid(
     return handle
 }
 
-#[no_mangle]
-pub extern "C" fn collider_create_sensor(
+pub fn collider_create_sensor(
     world_handle: Handle,
     shape_handle: Handle,
     body_handle: Handle,
@@ -211,8 +208,7 @@ pub extern "C" fn collider_create_sensor(
     return physics_world.insert_collider(collider, body_handle);
 }
 
-#[no_mangle]
-pub extern "C" fn collider_destroy(world_handle: Handle, handle: Handle) {
+pub fn collider_destroy(world_handle: Handle, handle: Handle) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let collider_handle = handle_to_collider_handle(handle);
@@ -223,8 +219,7 @@ pub extern "C" fn collider_destroy(world_handle: Handle, handle: Handle) {
     return physics_world.remove_collider(handle);
 }
 
-#[no_mangle]
-pub extern "C" fn collider_get_position(world_handle: Handle, handle: Handle) -> Vector {
+pub fn collider_get_position(world_handle: Handle, handle: Handle) -> Vector {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let collider_handle = handle_to_collider_handle(handle);
@@ -237,8 +232,7 @@ pub extern "C" fn collider_get_position(world_handle: Handle, handle: Handle) ->
     });
 }
 
-#[no_mangle]
-pub extern "C" fn collider_get_angle(world_handle: Handle, handle: Handle) -> Real {
+pub fn collider_get_angle(world_handle: Handle, handle: Handle) -> Real {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let collider_handle = handle_to_collider_handle(handle);
@@ -247,8 +241,7 @@ pub extern "C" fn collider_get_angle(world_handle: Handle, handle: Handle) -> Re
     return collider.unwrap().rotation().angle();
 }
 
-#[no_mangle]
-pub extern "C" fn collider_set_transform(
+pub fn collider_set_transform(
     world_handle: Handle,
     handle: Handle,
     shape_info: ShapeInfo,
@@ -283,8 +276,7 @@ pub extern "C" fn collider_set_transform(
     }
 }
 
-#[no_mangle]
-pub extern "C" fn collider_set_collision_events_enabled(
+pub fn collider_set_collision_events_enabled(
     world_handle: Handle,
     handle: Handle,
     enable: bool,
@@ -304,8 +296,7 @@ pub extern "C" fn collider_set_collision_events_enabled(
     collider_access.set_active_events(active_events);
 }
 
-#[no_mangle]
-pub extern "C" fn collider_set_contact_force_events_enabled(
+pub fn collider_set_contact_force_events_enabled(
     world_handle: Handle,
     handle: Handle,
     enable: bool,

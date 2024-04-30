@@ -121,38 +121,32 @@ pub fn handle_to_fluid_handle(handle: HandleDouble) -> FluidHandle {
     ));
 }
 
-#[no_mangle]
-pub extern "C" fn invalid_handle() -> Handle {
+pub fn invalid_handle() -> Handle {
     Handle {
         id: u32::MAX,
         generation: u32::MAX,
     }
 }
 
-#[no_mangle]
-pub extern "C" fn invalid_handle_double() -> HandleDouble {
+pub fn invalid_handle_double() -> HandleDouble {
     HandleDouble {
         id: usize::MAX,
         generation: u64::MAX,
     }
 }
 
-#[no_mangle]
-pub extern "C" fn is_handle_valid(handle: Handle) -> bool {
+pub fn is_handle_valid(handle: Handle) -> bool {
     return handle.is_valid();
 }
 
-#[no_mangle]
-pub extern "C" fn is_handle_valid_double(handle: HandleDouble) -> bool {
+pub fn is_handle_valid_double(handle: HandleDouble) -> bool {
     return handle.is_valid();
 }
 
-#[no_mangle]
-pub extern "C" fn are_handles_equal(handle1: Handle, handle2: Handle) -> bool {
+pub fn are_handles_equal(handle1: Handle, handle2: Handle) -> bool {
     return (handle1.id == handle2.id) && (handle1.generation == handle2.generation);
 }
 
-#[no_mangle]
-pub extern "C" fn are_handles_equal_double(handle1: HandleDouble, handle2: HandleDouble) -> bool {
+pub fn are_handles_equal_double(handle1: HandleDouble, handle2: HandleDouble) -> bool {
     return (handle1.id == handle2.id) && (handle1.generation == handle2.generation);
 }

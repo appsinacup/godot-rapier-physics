@@ -24,16 +24,14 @@ pub struct ShapeInfo {
     pub scale: Vector,
 }
 
-#[no_mangle]
-pub extern "C" fn shape_create_box(pixel_size: &Vector) -> Handle {
+pub fn shape_create_box(pixel_size: &Vector) -> Handle {
     let size = &vector_pixels_to_meters(pixel_size);
     let shape = SharedShape::cuboid(0.5 * size.x, 0.5 * size.y);
     let mut physics_engine = singleton().lock().unwrap();
     return physics_engine.insert_shape(shape);
 }
 
-#[no_mangle]
-pub extern "C" fn shape_create_halfspace(normal: &Vector, pixel_distance: Real) -> Handle {
+pub fn shape_create_halfspace(normal: &Vector, pixel_distance: Real) -> Handle {
     let distance = pixels_to_meters(pixel_distance);
 
     let shape = SharedShape::halfspace(UnitVector::new_normalize(vector![normal.x, -normal.y]));
@@ -45,16 +43,14 @@ pub extern "C" fn shape_create_halfspace(normal: &Vector, pixel_distance: Real) 
     return physics_engine.insert_shape(shape_compound);
 }
 
-#[no_mangle]
-pub extern "C" fn shape_create_circle(pixel_radius: Real) -> Handle {
+pub fn shape_create_circle(pixel_radius: Real) -> Handle {
     let radius = pixels_to_meters(pixel_radius);
     let shape = SharedShape::ball(radius);
     let mut physics_engine = singleton().lock().unwrap();
     return physics_engine.insert_shape(shape);
 }
 
-#[no_mangle]
-pub extern "C" fn shape_create_capsule(pixel_half_height: Real, pixel_radius: Real) -> Handle {
+pub fn shape_create_capsule(pixel_half_height: Real, pixel_radius: Real) -> Handle {
     let half_height = pixels_to_meters(pixel_half_height);
     let radius = pixels_to_meters(pixel_radius);
 
@@ -63,8 +59,7 @@ pub extern "C" fn shape_create_capsule(pixel_half_height: Real, pixel_radius: Re
     return physics_engine.insert_shape(shape);
 }
 
-#[no_mangle]
-pub extern "C" fn shape_create_convex_polyline(
+pub fn shape_create_convex_polyline(
     pixel_points: Vec<Vector>,
 ) -> Handle {
     let points_vec = pixel_point_array_to_vec(pixel_points);
@@ -77,8 +72,7 @@ pub extern "C" fn shape_create_convex_polyline(
     return physics_engine.insert_shape(shape);
 }
 
-#[no_mangle]
-pub extern "C" fn shape_create_concave_polyline(
+pub fn shape_create_concave_polyline(
     pixel_points: Vec<Vector>,
 ) -> Handle {
     let points_vec = pixel_point_array_to_vec(pixel_points);
@@ -87,8 +81,7 @@ pub extern "C" fn shape_create_concave_polyline(
     return physics_engine.insert_shape(shape);
 }
 
-#[no_mangle]
-pub extern "C" fn shape_destroy(shape_handle: Handle) {
+pub fn shape_destroy(shape_handle: Handle) {
     let mut physics_engine = singleton().lock().unwrap();
     return physics_engine.remove_shape(shape_handle);
 }

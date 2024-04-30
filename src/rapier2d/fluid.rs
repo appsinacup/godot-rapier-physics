@@ -24,8 +24,7 @@ pub fn pixel_vector_array_to_vec(pixel_data: Vec<Vector>) -> Vec<SalvaVector<Rea
     return vec;
 }
 
-#[no_mangle]
-pub extern "C" fn fluid_create(world_handle: Handle, density: Real) -> HandleDouble {
+pub fn fluid_create(world_handle: Handle, density: Real) -> HandleDouble {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let particle_radius = physics_world.fluids_pipeline.liquid_world.particle_radius();
@@ -33,8 +32,7 @@ pub extern "C" fn fluid_create(world_handle: Handle, density: Real) -> HandleDou
     return fluid_handle_to_handle(physics_world.fluids_pipeline.liquid_world.add_fluid(fluid));
 }
 
-#[no_mangle]
-pub extern "C" fn fluid_change_density(
+pub fn fluid_change_density(
     world_handle: Handle,
     fluid_handle: HandleDouble,
     density: Real,
@@ -51,8 +49,7 @@ pub extern "C" fn fluid_change_density(
     fluid.density0 = density;
 }
 
-#[no_mangle]
-pub extern "C" fn fluid_change_points_and_velocities(
+pub fn fluid_change_points_and_velocities(
     world_handle: Handle,
     fluid_handle: HandleDouble,
     pixel_points: Vec<Vector>,
@@ -87,8 +84,7 @@ pub extern "C" fn fluid_change_points_and_velocities(
         .collect();
 }
 
-#[no_mangle]
-pub extern "C" fn fluid_change_points(
+pub fn fluid_change_points(
     world_handle: Handle,
     fluid_handle: HandleDouble,
     pixel_points: Vec<Vector>,
@@ -127,8 +123,7 @@ pub extern "C" fn fluid_change_points(
         .collect();
 }
 
-#[no_mangle]
-pub extern "C" fn fluid_delete_points(
+pub fn fluid_delete_points(
     world_handle: Handle,
     fluid_handle: HandleDouble,
     indexes: &usize,
@@ -181,8 +176,7 @@ pub extern "C" fn fluid_delete_points(
     }
 }
 
-#[no_mangle]
-pub extern "C" fn fluid_add_points_and_velocities(
+pub fn fluid_add_points_and_velocities(
     world_handle: Handle,
     fluid_handle: HandleDouble,
     pixel_points: Vec<Vector>,
@@ -217,8 +211,7 @@ pub extern "C" fn fluid_add_points_and_velocities(
         .collect();
 }
 
-#[no_mangle]
-pub extern "C" fn fluid_get_points(
+pub fn fluid_get_points(
     world_handle: Handle,
     fluid_handle: HandleDouble,
     pixel_points: &mut Vector,
@@ -245,8 +238,7 @@ pub extern "C" fn fluid_get_points(
     }
 }
 
-#[no_mangle]
-pub extern "C" fn fluid_get_velocities(
+pub fn fluid_get_velocities(
     world_handle: Handle,
     fluid_handle: HandleDouble,
     pixel_velocities: &mut Vector,
@@ -273,8 +265,7 @@ pub extern "C" fn fluid_get_velocities(
     }
 }
 
-#[no_mangle]
-pub extern "C" fn fluid_get_accelerations(
+pub fn fluid_get_accelerations(
     world_handle: Handle,
     fluid_handle: HandleDouble,
     pixel_acceleration: &mut Vector,
@@ -302,8 +293,7 @@ pub extern "C" fn fluid_get_accelerations(
     }
 }
 
-#[no_mangle]
-pub extern "C" fn fluid_clear_effects(world_handle: Handle, fluid_handle: HandleDouble) {
+pub fn fluid_clear_effects(world_handle: Handle, fluid_handle: HandleDouble) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let fluid = physics_world
@@ -316,8 +306,7 @@ pub extern "C" fn fluid_clear_effects(world_handle: Handle, fluid_handle: Handle
     fluid.nonpressure_forces.clear();
 }
 
-#[no_mangle]
-pub extern "C" fn fluid_add_effect_elasticity(
+pub fn fluid_add_effect_elasticity(
     world_handle: Handle,
     fluid_handle: HandleDouble,
     young_modulus: Real,
@@ -338,8 +327,7 @@ pub extern "C" fn fluid_add_effect_elasticity(
     fluid.nonpressure_forces.push(Box::new(effect));
 }
 
-#[no_mangle]
-pub extern "C" fn fluid_add_effect_surface_tension_akinci(
+pub fn fluid_add_effect_surface_tension_akinci(
     world_handle: Handle,
     fluid_handle: HandleDouble,
     fluid_tension_coefficient: Real,
@@ -359,8 +347,7 @@ pub extern "C" fn fluid_add_effect_surface_tension_akinci(
     fluid.nonpressure_forces.push(Box::new(effect));
 }
 
-#[no_mangle]
-pub extern "C" fn fluid_add_effect_surface_tension_he(
+pub fn fluid_add_effect_surface_tension_he(
     world_handle: Handle,
     fluid_handle: HandleDouble,
     fluid_tension_coefficient: Real,
@@ -380,8 +367,7 @@ pub extern "C" fn fluid_add_effect_surface_tension_he(
     fluid.nonpressure_forces.push(Box::new(effect));
 }
 
-#[no_mangle]
-pub extern "C" fn fluid_add_effect_surface_tension_wcsph(
+pub fn fluid_add_effect_surface_tension_wcsph(
     world_handle: Handle,
     fluid_handle: HandleDouble,
     fluid_tension_coefficient: Real,
@@ -401,8 +387,7 @@ pub extern "C" fn fluid_add_effect_surface_tension_wcsph(
     fluid.nonpressure_forces.push(Box::new(effect));
 }
 
-#[no_mangle]
-pub extern "C" fn fluid_add_effect_viscosity_artificial(
+pub fn fluid_add_effect_viscosity_artificial(
     world_handle: Handle,
     fluid_handle: HandleDouble,
     fluid_viscosity_coefficient: Real,
@@ -422,8 +407,7 @@ pub extern "C" fn fluid_add_effect_viscosity_artificial(
     fluid.nonpressure_forces.push(Box::new(effect));
 }
 
-#[no_mangle]
-pub extern "C" fn fluid_add_effect_viscosity_dfsph(
+pub fn fluid_add_effect_viscosity_dfsph(
     world_handle: Handle,
     fluid_handle: HandleDouble,
     fluid_viscosity_coefficient: Real,
@@ -441,8 +425,7 @@ pub extern "C" fn fluid_add_effect_viscosity_dfsph(
     fluid.nonpressure_forces.push(Box::new(effect));
 }
 
-#[no_mangle]
-pub extern "C" fn fluid_add_effect_viscosity_xsph(
+pub fn fluid_add_effect_viscosity_xsph(
     world_handle: Handle,
     fluid_handle: HandleDouble,
     fluid_viscosity_coefficient: Real,
@@ -462,8 +445,7 @@ pub extern "C" fn fluid_add_effect_viscosity_xsph(
     fluid.nonpressure_forces.push(Box::new(effect));
 }
 
-#[no_mangle]
-pub extern "C" fn fluid_destroy(world_handle: Handle, fluid_handle: HandleDouble) {
+pub fn fluid_destroy(world_handle: Handle, fluid_handle: HandleDouble) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let fluid = physics_world

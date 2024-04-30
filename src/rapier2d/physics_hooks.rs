@@ -13,10 +13,9 @@ pub struct OneWayDirection {
 }
 
 pub type CollisionFilterCallback =
-    Option<extern "C" fn(world_handle: Handle, filter_info: &CollisionFilterInfo) -> bool>;
-pub type CollisionModifyContactsCallback = Option<
-    extern "C" fn(world_handle: Handle, filter_info: &CollisionFilterInfo) -> OneWayDirection,
->;
+    Option<fn(world_handle: Handle, filter_info: &CollisionFilterInfo) -> bool>;
+pub type CollisionModifyContactsCallback =
+    Option<fn(world_handle: Handle, filter_info: &CollisionFilterInfo) -> OneWayDirection>;
 
 #[repr(C)]
 pub struct CollisionFilterInfo {

@@ -8,6 +8,11 @@ pub struct RapierDirectBodyState2D {
     base: Base<PhysicsDirectBodyState2DExtension>,
 }
 
+impl RapierDirectBodyState2D {
+    pub fn set_body(&mut self, body: Rid) {
+        self.body = body;
+    }
+}
 
 #[godot_api]
 impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {

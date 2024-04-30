@@ -3,20 +3,26 @@ use godot::{
     engine::{IPhysicsDirectSpaceState2DExtension, PhysicsDirectSpaceState2DExtension},
     prelude::*,
 };
-use std::{cell::RefCell, rc::Rc};
 
 #[derive(GodotClass)]
 #[class(base=PhysicsDirectSpaceState2DExtension)]
 pub struct RapierDirectSpaceState2D {
-    space: Option<Rc<RefCell<RapierSpace2D>>>,
-
+    space: Rid,
     base: Base<PhysicsDirectSpaceState2DExtension>,
+}
+
+#[godot_api]
+impl RapierDirectSpaceState2D {
+    #[func]
+    pub fn set_space(&mut self, space: Rid) {
+        self.space = space;
+    }
 }
 
 #[godot_api]
 impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
     fn init(base: Base<PhysicsDirectSpaceState2DExtension>) -> Self {
-        Self { space: None, base }
+        Self { space: Rid::Invalid, base }
     }
 
     unsafe fn intersect_ray(

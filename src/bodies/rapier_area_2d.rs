@@ -3,25 +3,36 @@ use crate::bodies::rapier_collision_object_2d::{
     IRapierCollisionObject2D, RapierCollisionObject2D,
 };
 use crate::rapier2d::handle::Handle;
+use godot::builtin::real;
 use godot::{
     builtin::{Callable, Rid, Variant, Vector2},
-    engine::{
-        physics_server_2d::{AreaParameter, AreaSpaceOverrideMode},
-        ICollisionObject2D,
-    },
+    engine::physics_server_2d::{AreaParameter, AreaSpaceOverrideMode},
 };
 use std::collections::HashMap;
+
+struct MonitorInfo {
+    rid: Rid,
+    instance_id: u64,
+    object_shape_index: u32,
+    area_shape_index: u32,
+    collision_object_type: CollisionObjectType,
+    state: i32,
+}
+
+struct BodyRefCount {
+    count: u32,
+}
 
 pub struct RapierArea2D {
     gravity_override_mode: AreaSpaceOverrideMode,
     linear_damping_override_mode: AreaSpaceOverrideMode,
     angular_damping_override_mode: AreaSpaceOverrideMode,
-    gravity: f32,
+    gravity: real,
     gravity_vector: Vector2,
     gravity_is_point: bool,
-    gravity_point_unit_distance: f32,
-    linear_damp: f32,
-    angular_damp: f32,
+    gravity_point_unit_distance: real,
+    linear_damp: real,
+    angular_damp: real,
     priority: i32,
     monitorable: bool,
     monitor_callback: Callable,
@@ -56,6 +67,17 @@ impl RapierArea2D {
             base: RapierCollisionObject2D::new(rid, CollisionObjectType::Area),
         }
     }
+
+    pub fn _shapes_changed() {}
+
+    pub fn _set_space_override_mode(
+        r_mode: &AreaSpaceOverrideMode,
+        p_value: AreaSpaceOverrideMode,
+    ) {
+    }
+    pub fn _enable_space_override() {}
+    pub fn _disable_space_override() {}
+    pub fn _reset_space_override() {}
 
     pub fn on_body_enter(
         &mut self,
@@ -137,11 +159,11 @@ impl RapierArea2D {
         Variant::nil()
     }
 
-    pub fn set_gravity(&mut self, gravity: f32) {
+    pub fn set_gravity(&mut self, gravity: real) {
         self.gravity = gravity;
     }
 
-    pub fn get_gravity(&self) -> f32 {
+    pub fn get_gravity(&self) -> real {
         self.gravity
     }
 
@@ -161,27 +183,27 @@ impl RapierArea2D {
         self.gravity_is_point
     }
 
-    pub fn set_gravity_point_unit_distance(&mut self, scale: f32) {
+    pub fn set_gravity_point_unit_distance(&mut self, scale: real) {
         self.gravity_point_unit_distance = scale;
     }
 
-    pub fn get_gravity_point_unit_distance(&self) -> f32 {
+    pub fn get_gravity_point_unit_distance(&self) -> real {
         self.gravity_point_unit_distance
     }
 
-    pub fn set_linear_damp(&mut self, linear_damp: f32) {
+    pub fn set_linear_damp(&mut self, linear_damp: real) {
         self.linear_damp = linear_damp;
     }
 
-    pub fn get_linear_damp(&self) -> f32 {
+    pub fn get_linear_damp(&self) -> real {
         self.linear_damp
     }
 
-    pub fn set_angular_damp(&mut self, angular_damp: f32) {
+    pub fn set_angular_damp(&mut self, angular_damp: real) {
         self.angular_damp = angular_damp;
     }
 
-    pub fn get_angular_damp(&self) -> f32 {
+    pub fn get_angular_damp(&self) -> real {
         self.angular_damp
     }
 
@@ -201,10 +223,6 @@ impl RapierArea2D {
         self.monitorable
     }
 
-    pub fn set_space(&mut self, space: Rid) {
-        // Implementation needed
-    }
-
     pub fn call_queries(&self) {
         // Implementation needed
     }
@@ -220,21 +238,4 @@ impl IRapierCollisionObject2D for RapierArea2D {
         &self.base
     }
     fn set_space(&mut self, space: Rid) {}
-
-    fn get_space(&self) -> Rid {
-        self.get_base().get_space()
-    }
-}
-
-struct MonitorInfo {
-    rid: Rid,
-    instance_id: u64,
-    object_shape_index: u32,
-    area_shape_index: u32,
-    collision_object_type: CollisionObjectType,
-    state: i32,
-}
-
-struct BodyRefCount {
-    count: u32,
 }

@@ -8,8 +8,7 @@ pub struct WorldSettings {
     pub smoothing_factor: Real,
 }
 
-#[no_mangle]
-pub extern "C" fn default_world_settings() -> WorldSettings {
+pub fn default_world_settings() -> WorldSettings {
     WorldSettings {
         max_ccd_substeps: 1,
         particle_radius: 0.1,
