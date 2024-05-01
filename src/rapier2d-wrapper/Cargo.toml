@@ -24,6 +24,10 @@ rapier2d = {git = "https://github.com/dimforge/rapier", branch = "master"}
 rapier2d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master"}
 salva2d = { git = "https://github.com/dimforge/salva", branch = "master", features = ["rapier"] }
 
+[patch.crates-io]
+rapier2d = {git = "https://github.com/dimforge/rapier", branch = "master"}
+rapier2d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master"}
+
 [profile.release]
 codegen-units = 1
 lto = "fat"
