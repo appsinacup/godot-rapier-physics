@@ -131,10 +131,22 @@ pub extern "C" fn default_material() -> Material {
     }
 }
 
+fn shape_is_halfspace(shape: &SharedShape) -> bool {
+    if shape.shape_type() == ShapeType::Compound {
+        for shape in shape.as_compound().unwrap().shapes() {
+            if shape_is_halfspace(&shape.1) {
+                return true;
+            }
+        }
+    }
+    shape.shape_type() == ShapeType::HalfSpace
+}
+
 #[no_mangle]
 pub extern "C" fn collider_create_solid(world_handle : Handle, shape_handle : Handle, mat : &Material, body_handle : Handle, user_data : &UserData) -> Handle {
     let mut physics_engine = singleton().lock().unwrap();
     let shape = physics_engine.get_shape(shape_handle);
+    let is_shape_halfspace = shape_is_halfspace(shape);
     let mut collider = ColliderBuilder::new(shape.clone()).contact_force_event_threshold(-Real::MAX).build();
     // TODO update when https://github.com/dimforge/rapier/issues/622 is fixed
     if mat.friction >= 0.0 {
@@ -151,15 +163,18 @@ pub extern "C" fn collider_create_solid(world_handle : Handle, shape_handle : Ha
     collider.set_active_hooks(ActiveHooks::FILTER_CONTACT_PAIRS | ActiveHooks::MODIFY_SOLVER_CONTACTS);
     let physics_world = physics_engine.get_world(world_handle);
     let handle = physics_world.insert_collider(collider, body_handle);
+    // register fluid coupling. Dynamic coupling doens't work for halfspace
     let collider_handle = handle_to_collider_handle(handle);
-    let boundary_handle = physics_world.fluids_pipeline
-        .liquid_world
-        .add_boundary(Boundary::new(Vec::new()));
-    physics_world.fluids_pipeline.coupling.register_coupling(
-        boundary_handle,
-        collider_handle,
-        ColliderSampling::DynamicContactSampling,
-    );
+    if !is_shape_halfspace {
+        let boundary_handle = physics_world.fluids_pipeline
+            .liquid_world
+            .add_boundary(Boundary::new(Vec::new()));
+        physics_world.fluids_pipeline.coupling.register_coupling(
+            boundary_handle,
+            collider_handle,
+            ColliderSampling::DynamicContactSampling,
+        );
+    }
     return handle
 }
 
