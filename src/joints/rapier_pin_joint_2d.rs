@@ -1,10 +1,5 @@
 use crate::joints::rapier_joint_2d::IRapierJoint2D;
 use crate::joints::rapier_joint_2d::RapierJointBase2D;
-use crate::rapier2d::handle::{self, invalid_handle, Handle};
-use crate::rapier2d::joint::joint_change_revolute_params;
-use godot::log::godot_error;
-use godot::log::godot_warn;
-use godot::obj::EngineEnum;
 use godot::{builtin::Rid, engine::physics_server_2d};
 pub struct RapierPinJoint2D {
     angular_limit_lower: f32,
@@ -38,9 +33,7 @@ impl RapierPinJoint2D {
             physics_server_2d::PinJointParam::MOTOR_TARGET_VELOCITY => {
                 self.motor_target_velocity = p_value;
             }
-            _ => {
-                godot_warn!("Unsupported pin joint param: {}", p_param.ord());
-            }
+            _ => {}
         }
         if !self.base.get_handle().is_valid() {
             return;
@@ -55,10 +48,7 @@ impl RapierPinJoint2D {
             physics_server_2d::PinJointParam::LIMIT_UPPER => self.angular_limit_upper,
             physics_server_2d::PinJointParam::LIMIT_LOWER => self.angular_limit_lower,
             physics_server_2d::PinJointParam::MOTOR_TARGET_VELOCITY => self.motor_target_velocity,
-            _ => {
-                godot_warn!("Unsupported pin joint param: {}", p_param.ord());
-                0.0
-            }
+            _ => 0.0,
         }
     }
 
@@ -70,9 +60,7 @@ impl RapierPinJoint2D {
             physics_server_2d::PinJointFlag::MOTOR_ENABLED => {
                 self.motor_enabled = p_enabled;
             }
-            _ => {
-                godot_warn!("Unsupported pin joint flag: {}", p_flag.ord());
-            }
+            _ => {}
         }
     }
 
@@ -80,10 +68,7 @@ impl RapierPinJoint2D {
         match p_flag {
             physics_server_2d::PinJointFlag::ANGULAR_LIMIT_ENABLED => self.angular_limit_enabled,
             physics_server_2d::PinJointFlag::MOTOR_ENABLED => self.motor_enabled,
-            _ => {
-                godot_warn!("Unsupported pin joint flag: {}", p_flag.ord());
-                false
-            }
+            _ => false,
         }
     }
 }

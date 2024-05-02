@@ -1,6 +1,4 @@
 use crate::joints::rapier_joint_2d::IRapierJoint2D;
-use godot::log::godot_warn;
-use godot::obj::EngineEnum;
 use godot::{builtin::Rid, engine::physics_server_2d};
 
 use super::rapier_joint_2d::RapierJointBase2D;
@@ -32,9 +30,7 @@ impl RapierDampedSpringJoint2D {
             physics_server_2d::DampedSpringParam::REST_LENGTH => {
                 self.rest_length = p_value;
             }
-            _ => {
-                godot_warn!("Unsupported damped spring joint param: {}", p_param.ord());
-            }
+            _ => {}
         }
     }
 
@@ -43,10 +39,7 @@ impl RapierDampedSpringJoint2D {
             physics_server_2d::DampedSpringParam::DAMPING => self.damping,
             physics_server_2d::DampedSpringParam::STIFFNESS => self.stiffness,
             physics_server_2d::DampedSpringParam::REST_LENGTH => self.rest_length,
-            _ => {
-                godot_warn!("Unsupported damped spring joint param: {}", p_param.ord());
-                0.0
-            }
+            _ => 0.0,
         }
     }
 }

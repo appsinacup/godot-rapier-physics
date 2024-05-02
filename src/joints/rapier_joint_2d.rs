@@ -1,8 +1,10 @@
 use crate::{
-    bodies::rapier_collision_object_2d::IRapierCollisionObject2D, rapier2d::{
+    bodies::rapier_collision_object_2d::IRapierCollisionObject2D,
+    rapier2d::{
         handle::{invalid_handle, Handle},
         joint::joint_change_disable_collision,
-    }, servers::rapier_physics_singleton_2d::physics_singleton
+    },
+    servers::rapier_physics_singleton_2d::physics_singleton,
 };
 use godot::{builtin::Rid, engine::physics_server_2d};
 
@@ -80,7 +82,8 @@ impl RapierJointBase2D {
     pub fn get_space(&self) -> Rid {
         let lock = physics_singleton().lock().unwrap();
         if self.body_a.is_valid() {
-            let body_a: Option<&Box<dyn IRapierCollisionObject2D>> = lock.collision_objects.get(&self.body_a);
+            let body_a: Option<&Box<dyn IRapierCollisionObject2D>> =
+                lock.collision_objects.get(&self.body_a);
             if let Some(body_a) = body_a {
                 //return body_a.get_space();
             }

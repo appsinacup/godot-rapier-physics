@@ -2,6 +2,7 @@ use crate::rapier2d::convert::*;
 use crate::rapier2d::handle::*;
 use crate::rapier2d::physics_world::*;
 use crate::rapier2d::vector::Vector;
+use godot::builtin::Transform2D;
 use rapier2d::prelude::*;
 
 pub fn pixel_point_array_to_vec(pixel_data: Vec<Vector>) -> Vec<Point<Real>> {
@@ -15,13 +16,25 @@ pub fn pixel_point_array_to_vec(pixel_data: Vec<Vector>) -> Vec<Point<Real>> {
     return vec;
 }
 
-#[repr(C)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ShapeInfo {
     pub handle: Handle,
     pub pixel_position: Vector,
     pub rotation: Real,
     pub skew: Real,
     pub scale: Vector,
+}
+
+pub fn shape_info_from_body_shape(shape_handle: Handle, transform: Transform2D) -> ShapeInfo {
+    let origin = transform.origin;
+    let scale = transform.scale();
+    return ShapeInfo {
+        handle: shape_handle,
+        pixel_position: Vector::new(origin.x, origin.y),
+        rotation: transform.get_rotation(),
+        skew: transform.get_skew(),
+        scale: Vector::new(scale.x, scale.y),
+    };
 }
 
 pub fn shape_create_box(pixel_size: &Vector) -> Handle {
@@ -59,9 +72,7 @@ pub fn shape_create_capsule(pixel_half_height: Real, pixel_radius: Real) -> Hand
     return physics_engine.insert_shape(shape);
 }
 
-pub fn shape_create_convex_polyline(
-    pixel_points: Vec<Vector>,
-) -> Handle {
+pub fn shape_create_convex_polyline(pixel_points: Vec<Vector>) -> Handle {
     let points_vec = pixel_point_array_to_vec(pixel_points);
     let shape_data = SharedShape::convex_polyline(points_vec);
     if shape_data.is_none() {
@@ -72,9 +83,7 @@ pub fn shape_create_convex_polyline(
     return physics_engine.insert_shape(shape);
 }
 
-pub fn shape_create_concave_polyline(
-    pixel_points: Vec<Vector>,
-) -> Handle {
+pub fn shape_create_concave_polyline(pixel_points: Vec<Vector>) -> Handle {
     let points_vec = pixel_point_array_to_vec(pixel_points);
     let shape = SharedShape::polyline(points_vec, None);
     let mut physics_engine = singleton().lock().unwrap();

@@ -1,4 +1,3 @@
-#[repr(C)]
 #[derive(Copy, Clone, Eq, Hash, PartialEq)]
 pub struct UserData {
     pub part1: u64,
@@ -7,10 +6,7 @@ pub struct UserData {
 
 impl Default for UserData {
     fn default() -> Self {
-        UserData {
-            part1: 0,
-            part2: 0,
-        }
+        UserData { part1: 0, part2: 0 }
     }
 }
 

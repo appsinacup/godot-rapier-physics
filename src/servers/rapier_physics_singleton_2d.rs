@@ -1,11 +1,8 @@
-use crate::bodies::rapier_area_2d::RapierArea2D;
-use crate::bodies::rapier_body_2d::RapierBody2D;
-use crate::bodies::rapier_collision_object_2d::{CollisionObjectType, IRapierCollisionObject2D};
+use crate::bodies::rapier_collision_object_2d::IRapierCollisionObject2D;
 use crate::fluids::rapier_fluid_2d::RapierFluid2D;
 use crate::joints::rapier_joint_2d::IRapierJoint2D;
 use crate::rapier2d::handle::Handle;
-use crate::shapes::rapier_circle_shape_2d::RapierCircleShape2D;
-use crate::shapes::rapier_shape_2d::{IRapierShape2D};
+use crate::shapes::rapier_shape_2d::IRapierShape2D;
 use crate::spaces::rapier_space_2d::RapierSpace2D;
 use godot::builtin::Rid;
 use std::collections::HashMap;

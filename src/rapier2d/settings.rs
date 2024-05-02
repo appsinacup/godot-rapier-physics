@@ -1,7 +1,6 @@
 use crate::rapier2d::vector::Vector;
 use rapier2d::prelude::*;
 
-#[repr(C)]
 pub struct WorldSettings {
     pub max_ccd_substeps: usize,
     pub particle_radius: Real,
@@ -16,7 +15,6 @@ pub fn default_world_settings() -> WorldSettings {
     }
 }
 
-#[repr(C)]
 pub struct SimulationSettings {
     /// The timestep length (default: `1.0 / 60.0`)
     pub dt: Real,
