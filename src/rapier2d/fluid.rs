@@ -32,11 +32,7 @@ pub fn fluid_create(world_handle: Handle, density: Real) -> HandleDouble {
     return fluid_handle_to_handle(physics_world.fluids_pipeline.liquid_world.add_fluid(fluid));
 }
 
-pub fn fluid_change_density(
-    world_handle: Handle,
-    fluid_handle: HandleDouble,
-    density: Real,
-) {
+pub fn fluid_change_density(world_handle: Handle, fluid_handle: HandleDouble, density: Real) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let fluid = physics_world

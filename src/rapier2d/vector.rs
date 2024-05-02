@@ -1,6 +1,5 @@
 use rapier2d::prelude::*;
 
-#[repr(C)]
 #[derive(Clone)]
 pub struct Vector {
     pub x: Real,

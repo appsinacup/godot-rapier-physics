@@ -16,7 +16,6 @@ use std::num::NonZeroUsize;
 use std::sync::Mutex;
 use std::sync::OnceLock;
 
-#[repr(C)]
 pub struct ActiveBodyInfo {
     pub body_handle: Handle,
     pub body_user_data: UserData,
@@ -31,7 +30,6 @@ impl ActiveBodyInfo {
     }
 }
 
-#[repr(C)]
 pub struct ContactPointInfo {
     pixel_local_pos_1: Vector,
     pixel_local_pos_2: Vector,
@@ -58,11 +56,9 @@ impl ContactPointInfo {
     }
 }
 
-type ActiveBodyCallback =
-    Option<fn(world_handle: Handle, active_body_info: &ActiveBodyInfo)>;
+type ActiveBodyCallback = Option<fn(world_handle: Handle, active_body_info: &ActiveBodyInfo)>;
 
-type CollisionEventCallback =
-    Option<fn(world_handle: Handle, event_info: &CollisionEventInfo)>;
+type CollisionEventCallback = Option<fn(world_handle: Handle, event_info: &CollisionEventInfo)>;
 
 type ContactForceEventCallback =
     Option<fn(world_handle: Handle, event_info: &ContactForceEventInfo) -> bool>;
@@ -74,7 +70,6 @@ type ContactPointCallback = Option<
     ) -> bool,
 >;
 
-#[repr(C)]
 pub struct CollisionEventInfo {
     collider1: Handle,
     collider2: Handle,
@@ -101,7 +96,6 @@ impl CollisionEventInfo {
     }
 }
 
-#[repr(C)]
 pub struct ContactForceEventInfo {
     collider1: Handle,
     collider2: Handle,
@@ -549,10 +543,7 @@ pub fn world_step(world_handle: Handle, settings: &SimulationSettings) {
     physics_world.step(settings);
 }
 
-pub fn world_set_active_body_callback(
-    world_handle: Handle,
-    callback: ActiveBodyCallback,
-) {
+pub fn world_set_active_body_callback(world_handle: Handle, callback: ActiveBodyCallback) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world: &mut PhysicsWorld = physics_engine.get_world(world_handle);
     physics_world.active_body_callback = callback;
@@ -585,10 +576,7 @@ pub fn world_set_modify_contacts_callback(
     physics_world.collision_modify_contacts_callback = callback;
 }
 
-pub fn world_set_collision_event_callback(
-    world_handle: Handle,
-    callback: CollisionEventCallback,
-) {
+pub fn world_set_collision_event_callback(world_handle: Handle, callback: CollisionEventCallback) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     physics_world.collision_event_callback = callback;
@@ -603,10 +591,7 @@ pub fn world_set_contact_force_event_callback(
     physics_world.contact_force_event_callback = callback;
 }
 
-pub fn world_set_contact_point_callback(
-    world_handle: Handle,
-    callback: ContactPointCallback,
-) {
+pub fn world_set_contact_point_callback(world_handle: Handle, callback: ContactPointCallback) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     physics_world.contact_point_callback = callback;

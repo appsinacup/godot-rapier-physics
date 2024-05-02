@@ -18,7 +18,7 @@ impl IRapierJoint2D for RapierGrooveJoint2D {
     fn get_type(&self) -> physics_server_2d::JointType {
         physics_server_2d::JointType::GROOVE
     }
-    
+
     fn get_base(&self) -> &RapierJointBase2D {
         &self.base
     }

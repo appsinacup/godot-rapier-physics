@@ -7,7 +7,7 @@ use crate::rapier2d::vector::Vector;
 use rapier2d::prelude::*;
 
 #[allow(dead_code)]
-#[repr(C)]
+
 pub enum BodyType {
     Dynamic,
     Kinematic,
@@ -140,11 +140,7 @@ pub fn body_get_linear_velocity(world_handle: Handle, body_handle: Handle) -> Ve
     });
 }
 
-pub fn body_set_linear_velocity(
-    world_handle: Handle,
-    body_handle: Handle,
-    pixel_vel: &Vector,
-) {
+pub fn body_set_linear_velocity(world_handle: Handle, body_handle: Handle, pixel_vel: &Vector) {
     let vel = &vector_pixels_to_meters(pixel_vel);
 
     let mut physics_engine = singleton().lock().unwrap();
@@ -192,11 +188,7 @@ pub fn body_set_angular_velocity(world_handle: Handle, body_handle: Handle, vel:
     body.unwrap().set_angvel(vel, true);
 }
 
-pub fn body_set_linear_damping(
-    world_handle: Handle,
-    body_handle: Handle,
-    linear_damping: Real,
-) {
+pub fn body_set_linear_damping(world_handle: Handle, body_handle: Handle, linear_damping: Real) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
@@ -205,11 +197,7 @@ pub fn body_set_linear_damping(
     body.unwrap().set_linear_damping(linear_damping);
 }
 
-pub fn body_set_angular_damping(
-    world_handle: Handle,
-    body_handle: Handle,
-    angular_damping: Real,
-) {
+pub fn body_set_angular_damping(world_handle: Handle, body_handle: Handle, angular_damping: Real) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
@@ -338,11 +326,7 @@ pub fn body_add_torque(world_handle: Handle, body_handle: Handle, pixel_torque: 
     body.unwrap().add_torque(torque, true);
 }
 
-pub fn body_apply_impulse(
-    world_handle: Handle,
-    body_handle: Handle,
-    pixel_impulse: &Vector,
-) {
+pub fn body_apply_impulse(world_handle: Handle, body_handle: Handle, pixel_impulse: &Vector) {
     let impulse = &vector_pixels_to_meters(pixel_impulse);
 
     let mut physics_engine = singleton().lock().unwrap();

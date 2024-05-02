@@ -3,7 +3,6 @@ use crate::rapier2d::handle::*;
 use crate::rapier2d::user_data::*;
 use rapier2d::prelude::*;
 
-#[repr(C)]
 pub struct OneWayDirection {
     pub body1: bool,
     pub body2: bool,
@@ -17,7 +16,6 @@ pub type CollisionFilterCallback =
 pub type CollisionModifyContactsCallback =
     Option<fn(world_handle: Handle, filter_info: &CollisionFilterInfo) -> OneWayDirection>;
 
-#[repr(C)]
 pub struct CollisionFilterInfo {
     pub user_data1: UserData,
     pub user_data2: UserData,

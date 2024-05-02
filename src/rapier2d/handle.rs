@@ -3,7 +3,6 @@ use rapier2d::prelude::*;
 use salva2d::object::ContiguousArenaIndex;
 use salva2d::object::FluidHandle;
 
-#[repr(C)]
 #[derive(Copy, Clone, Eq, Hash, PartialEq)]
 pub struct Handle {
     id: u32,
@@ -18,7 +17,6 @@ impl Default for Handle {
     }
 }
 
-#[repr(C)]
 #[derive(Copy, Clone, Eq, Hash, PartialEq)]
 pub struct HandleDouble {
     id: usize,

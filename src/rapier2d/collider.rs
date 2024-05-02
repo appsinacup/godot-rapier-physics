@@ -119,7 +119,6 @@ pub fn scale_shape(shape: &SharedShape, scale: &Vector2<Real>) -> SharedShape {
     return shape.clone();
 }
 
-#[repr(C)]
 pub struct Material {
     pub friction: Real,
     pub restitution: Real,
@@ -153,7 +152,9 @@ pub fn collider_create_solid(
     let mut physics_engine = singleton().lock().unwrap();
     let shape = physics_engine.get_shape(shape_handle);
     let is_shape_halfspace = shape_is_halfspace(shape);
-    let mut collider = ColliderBuilder::new(shape.clone()).contact_force_event_threshold(-Real::MAX).build();
+    let mut collider = ColliderBuilder::new(shape.clone())
+        .contact_force_event_threshold(-Real::MAX)
+        .build();
     // TODO update when https://github.com/dimforge/rapier/issues/622 is fixed
     if mat.friction >= 0.0 {
         collider.set_friction(mat.friction);
@@ -173,7 +174,8 @@ pub fn collider_create_solid(
     // register fluid coupling. Dynamic coupling doens't work for halfspace
     let collider_handle = handle_to_collider_handle(handle);
     if !is_shape_halfspace {
-        let boundary_handle = physics_world.fluids_pipeline
+        let boundary_handle = physics_world
+            .fluids_pipeline
             .liquid_world
             .add_boundary(Boundary::new(Vec::new()));
         physics_world.fluids_pipeline.coupling.register_coupling(
@@ -182,7 +184,7 @@ pub fn collider_create_solid(
             ColliderSampling::DynamicContactSampling,
         );
     }
-    return handle
+    return handle;
 }
 
 pub fn collider_create_sensor(
@@ -241,11 +243,7 @@ pub fn collider_get_angle(world_handle: Handle, handle: Handle) -> Real {
     return collider.unwrap().rotation().angle();
 }
 
-pub fn collider_set_transform(
-    world_handle: Handle,
-    handle: Handle,
-    shape_info: ShapeInfo,
-) {
+pub fn collider_set_transform(world_handle: Handle, handle: Handle, shape_info: ShapeInfo) {
     {
         let position = &vector_pixels_to_meters(&shape_info.pixel_position);
 
@@ -276,11 +274,7 @@ pub fn collider_set_transform(
     }
 }
 
-pub fn collider_set_collision_events_enabled(
-    world_handle: Handle,
-    handle: Handle,
-    enable: bool,
-) {
+pub fn collider_set_collision_events_enabled(world_handle: Handle, handle: Handle, enable: bool) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let collider_handle = handle_to_collider_handle(handle);
