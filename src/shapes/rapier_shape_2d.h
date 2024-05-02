@@ -32,9 +32,9 @@ protected:
 	void configure(const Rect2 &p_aabb);
 
 	virtual rapier2d::Handle create_rapier_shape() const = 0;
-	void destroy_rapier_shape();
 
 public:
+	void destroy_rapier_shape();
 	_FORCE_INLINE_ void set_rid(const RID &p_rid) { rid = p_rid; }
 	_FORCE_INLINE_ RID get_rid() const { return rid; }
 

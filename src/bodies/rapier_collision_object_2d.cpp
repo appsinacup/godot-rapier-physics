@@ -196,7 +196,8 @@ void RapierCollisionObject2D::_destroy_shape(Shape &shape, uint32_t p_shape_inde
 	}
 
 	rapier2d::collider_destroy(space_handle, shape.collider_handle);
-	shape.collider_handle = rapier2d::invalid_handle(); // collider_handle = rapier ID
+	shape.shape->destroy_rapier_shape();
+	shape.collider_handle = rapier2d::invalid_handle();
 }
 
 void RapierCollisionObject2D::_update_shape_transform(const Shape &shape) {
