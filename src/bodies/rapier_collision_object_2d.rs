@@ -2,12 +2,19 @@ use std::{cell::RefCell, rc::Rc};
 use godot::{builtin::{real, Rid, Transform2D, Vector2}, engine::{native::ObjectId, physics_server_2d}, obj::InstanceId};
 use crate::{rapier2d::{body::{body_get_angle, body_get_position, body_set_transform}, collider::{collider_create_sensor, collider_create_solid, collider_destroy, Material}, handle::{invalid_handle, is_handle_valid, Handle}, shape::ShapeInfo, user_data::UserData, vector::Vector}, servers::rapier_physics_singleton_2d::physics_singleton, shapes::rapier_shape_2d::IRapierShape2D, spaces::rapier_space_2d::RapierSpace2D};
 
+use super::{rapier_area_2d::RapierArea2D, rapier_body_2d::RapierBody2D};
+
 pub trait IRapierCollisionObject2D {
     fn get_base(&self) -> &RapierCollisionObject2D;
+    fn get_mut_base(&mut self) -> &mut RapierCollisionObject2D;
+    fn get_body(&self) -> Option<&RapierBody2D>;
+    fn get_area(&self) -> Option<&RapierArea2D>;
+    fn get_mut_body(&mut self) -> Option<&mut RapierBody2D>;
+    fn get_mut_area(&mut self) -> Option<&mut RapierArea2D>;
     fn set_space(&mut self, space: Rid);
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum CollisionObjectType {
     Area,
     Body,
@@ -108,7 +115,7 @@ impl RapierCollisionObject2D {
         }
     }
 
-    fn _destroy_shape(&mut self, shape: &CollisionObjectShape, p_shape_index: u32) {
+    fn _destroy_shape(&mut self, shape: &CollisionObjectShape, p_shape_index: usize) {
         let lock = physics_singleton().lock().unwrap();
         let space = lock.spaces.get(&self.space);
         if let Some(space) = space {
@@ -119,10 +126,11 @@ impl RapierCollisionObject2D {
 
             if self.area_detection_counter > 0 {
                 // Keep track of body information for delayed removal
-                space.add_removed_collider(shape.collider_handle, self, p_shape_index);
+                space.add_removed_collider(shape.collider_handle, self.rid, p_shape_index);
             }
 
             collider_destroy(space_handle, shape.collider_handle);
+            shape.shape.destroy_shape();
             shape.collider_handle = invalid_handle();
         }
     }

@@ -1,8 +1,12 @@
-use godot::{engine::{IPhysicsDirectBodyState2DExtension, PhysicsDirectBodyState2DExtension, PhysicsDirectSpaceState2D}, prelude::*};
-
+use crate::bodies::rapier_collision_object_2d::IRapierCollisionObject2D;
 use crate::servers::rapier_physics_singleton_2d::physics_singleton;
-
-use super::{rapier_body_2d::RapierBody2D, rapier_collision_object_2d::CollisionObjectType};
+use godot::{
+    engine::{
+        physics_server_2d, IPhysicsDirectBodyState2DExtension, PhysicsDirectBodyState2DExtension,
+        PhysicsDirectSpaceState2D,
+    },
+    prelude::*,
+};
 
 #[derive(GodotClass)]
 #[class(base=PhysicsDirectBodyState2DExtension)]
@@ -28,173 +32,492 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
             base,
         }
     }
-    
-    fn get_total_gravity(&self,) -> Vector2 {
-        physics_singleton()
-        if (body.using_area_gravity) {
-            return body->total_gravity;
-        } else {
-            ERR_FAIL_COND_V(!body->get_space(), Vector2());
-            real_t default_gravity = body->get_space()->get_default_area_param(PhysicsServer2D::AREA_PARAM_GRAVITY);
-            Vector2 default_gravity_vector = body->get_space()->get_default_area_param(PhysicsServer2D::AREA_PARAM_GRAVITY_VECTOR);
-            return body->gravity_scale * default_gravity_vector * default_gravity;
+
+    fn get_total_gravity(&self) -> Vector2 {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            let base = body.get_base();
+            let space = base.get_space();
+            if let Some(body) = body.get_body() {
+                if body.using_area_gravity {
+                    return body.total_gravity;
+                } else {
+                    let space = lock.spaces.get(&space);
+                    if let Some(space) = space {
+                        let default_gravity: f32 = space
+                            .get_default_area_param(physics_server_2d::AreaParameter::GRAVITY)
+                            .to();
+                        let default_gravity_vector: Vector2 = space
+                            .get_default_area_param(
+                                physics_server_2d::AreaParameter::GRAVITY_VECTOR,
+                            )
+                            .to();
+                        return default_gravity_vector * body.gravity_scale * default_gravity;
+                    }
+                }
+            }
+        }
+        Vector2::ZERO
+    }
+
+    fn get_total_linear_damp(&self) -> f32 {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.total_linear_damping;
+            }
+        }
+        0.0
+    }
+
+    fn get_total_angular_damp(&self) -> f32 {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.total_angular_damping;
+            }
+        }
+        0.0
+    }
+
+    fn get_center_of_mass(&self) -> Vector2 {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            let base = body.get_base();
+            if let Some(body) = body.get_body() {
+                return base.get_transform().basis_xform(body.get_center_of_mass());
+            }
+        }
+        Vector2::ZERO
+    }
+
+    fn get_center_of_mass_local(&self) -> Vector2 {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.get_center_of_mass();
+            }
+        }
+        Vector2::ZERO
+    }
+
+    fn get_inverse_mass(&self) -> f32 {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.get_inv_mass();
+            }
+        }
+        0.0
+    }
+
+    fn get_inverse_inertia(&self) -> f32 {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.get_inv_inertia();
+            }
+        }
+        0.0
+    }
+
+    fn set_linear_velocity(&mut self, velocity: Vector2) {
+        let mut lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get_mut(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_mut_body() {
+                body.set_linear_velocity(&velocity);
+            }
         }
     }
-    
-    fn get_total_linear_damp(&self,) -> f32 {
+
+    fn get_linear_velocity(&self) -> Vector2 {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.get_linear_velocity();
+            }
+        }
+        Vector2::ZERO
+    }
+
+    fn set_angular_velocity(&mut self, velocity: f32) {
+        let mut lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get_mut(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_mut_body() {
+                body.set_angular_velocity(velocity);
+            }
+        }
+    }
+
+    fn get_angular_velocity(&self) -> f32 {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.get_angular_velocity();
+            }
+        }
         0.0
     }
-    
-    fn get_total_angular_damp(&self,) -> f32 {
-        0.0
+
+    fn set_transform(&mut self, transform: Transform2D) {
+        let mut lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get_mut(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_mut_body() {
+                body.get_mut_base().set_transform(transform, true);
+            }
+        }
     }
-    
-    fn get_center_of_mass(&self,) -> Vector2 {
-        Vector2::default()
-    }
-    
-    fn get_center_of_mass_local(&self,) -> Vector2 {
-        Vector2::default()
-    }
-    
-    fn get_inverse_mass(&self,) -> f32 {
-        0.0
-    }
-    
-    fn get_inverse_inertia(&self,) -> f32 {
-        0.0
-    }
-    
-    fn set_linear_velocity(&mut self, velocity: Vector2,) {
-    }
-    
-    fn get_linear_velocity(&self,) -> Vector2 {
-        Vector2::default()
-    }
-    
-    fn set_angular_velocity(&mut self, velocity: f32,) {
-    }
-    
-    fn get_angular_velocity(&self,) -> f32 {
-        0.0
-    }
-    
-    fn set_transform(&mut self, transform: Transform2D,) {
-    }
-    
-    fn get_transform(&self,) -> Transform2D {
+
+    fn get_transform(&self) -> Transform2D {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.get_base().get_transform();
+            }
+        }
         Transform2D::default()
     }
-    
-    fn get_velocity_at_local_position(&self, local_position: Vector2,) -> Vector2 {
+
+    fn get_velocity_at_local_position(&self, local_position: Vector2) -> Vector2 {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.get_velocity_at_local_point(local_position);
+            }
+        }
         Vector2::default()
     }
-    
-    fn apply_central_impulse(&mut self, impulse: Vector2,) {
+
+    fn apply_central_impulse(&mut self, impulse: Vector2) {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.apply_central_impulse(impulse);
+            }
+        }
     }
-    
-    fn apply_impulse(&mut self, impulse: Vector2, position: Vector2,) {
+
+    fn apply_impulse(&mut self, impulse: Vector2, position: Vector2) {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.apply_impulse(impulse, position);
+            }
+        }
     }
-    
-    fn apply_torque_impulse(&mut self, impulse: f32,) {
+
+    fn apply_torque_impulse(&mut self, impulse: f32) {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.apply_torque_impulse(impulse);
+            }
+        }
     }
-    
-    fn apply_central_force(&mut self, force: Vector2,) {
+
+    fn apply_central_force(&mut self, force: Vector2) {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.apply_central_force(force);
+            }
+        }
     }
-    
-    fn apply_force(&mut self, force: Vector2, position: Vector2,) {
+
+    fn apply_force(&mut self, force: Vector2, position: Vector2) {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.apply_force(force, position);
+            }
+        }
     }
-    
-    fn apply_torque(&mut self, torque: f32,) {
+
+    fn apply_torque(&mut self, torque: f32) {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.apply_torque(torque);
+            }
+        }
     }
-    
-    fn add_constant_central_force(&mut self, force: Vector2,) {
+
+    fn add_constant_central_force(&mut self, force: Vector2) {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.add_constant_central_force(force);
+            }
+        }
     }
-    
-    fn add_constant_force(&mut self, force: Vector2, position: Vector2,) {
+
+    fn add_constant_force(&mut self, force: Vector2, position: Vector2) {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.add_constant_force(force, position);
+            }
+        }
     }
-    
-    fn add_constant_torque(&mut self, torque: f32,) {
+
+    fn add_constant_torque(&mut self, torque: f32) {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.add_constant_torque(torque);
+            }
+        }
     }
-    
-    fn set_constant_force(&mut self, force: Vector2,) {
+
+    fn set_constant_force(&mut self, force: Vector2) {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.set_constant_force(force);
+            }
+        }
     }
-    
-    fn get_constant_force(&self,) -> Vector2 {
+
+    fn get_constant_force(&self) -> Vector2 {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.get_constant_force();
+            }
+        }
         Vector2::default()
     }
-    
-    fn set_constant_torque(&mut self, torque: f32,) {
+
+    fn set_constant_torque(&mut self, torque: f32) {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.set_constant_torque(torque);
+            }
+        }
     }
-    
-    fn get_constant_torque(&self,) -> f32 {
+
+    fn get_constant_torque(&self) -> f32 {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.get_constant_torque();
+            }
+        }
         0.0
     }
-    
-    fn set_sleep_state(&mut self, enabled: bool,) {
+
+    fn set_sleep_state(&mut self, enabled: bool) {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.set_active(!enabled);
+            }
+        }
     }
-    
-    fn is_sleeping(&self,) -> bool {
+
+    fn is_sleeping(&self) -> bool {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return !body.is_active();
+            }
+        }
         false
     }
-    
-    fn get_contact_count(&self,) -> i32 {
+
+    fn get_contact_count(&self) -> i32 {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.contact_count;
+            }
+        }
         0
     }
-    
-    fn get_contact_local_position(&self, contact_idx: i32,) -> Vector2 {
+
+    fn get_contact_local_position(&self, contact_idx: i32) -> Vector2 {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.contacts[contact_idx as usize].local_pos;
+            }
+        }
         Vector2::default()
     }
-    
-    fn get_contact_local_normal(&self, contact_idx: i32,) -> Vector2 {
+
+    fn get_contact_local_normal(&self, contact_idx: i32) -> Vector2 {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.contacts[contact_idx as usize].local_normal;
+            }
+        }
         Vector2::default()
     }
-    
-    fn get_contact_local_shape(&self, contact_idx: i32,) -> i32 {
+
+    fn get_contact_local_shape(&self, contact_idx: i32) -> i32 {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.contacts[contact_idx as usize].local_shape;
+            }
+        }
         0
     }
-    
-    fn get_contact_local_velocity_at_position(&self, contact_idx: i32,) -> Vector2 {
+
+    fn get_contact_local_velocity_at_position(&self, contact_idx: i32) -> Vector2 {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.contacts[contact_idx as usize].local_velocity_at_pos;
+            }
+        }
         Vector2::default()
     }
-    
-    fn get_contact_collider(&self, contact_idx: i32,) -> Rid {
+
+    fn get_contact_collider(&self, contact_idx: i32) -> Rid {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.contacts[contact_idx as usize].collider;
+            }
+        }
         Rid::Invalid
     }
-    
-    fn get_contact_collider_position(&self, contact_idx: i32,) -> Vector2 {
+
+    fn get_contact_collider_position(&self, contact_idx: i32) -> Vector2 {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.contacts[contact_idx as usize].collider_pos;
+            }
+        }
         Vector2::default()
     }
-    
-    fn get_contact_collider_id(&self, contact_idx: i32,) -> u64 {
+
+    fn get_contact_collider_id(&self, contact_idx: i32) -> u64 {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.contacts[contact_idx as usize]
+                    .collider_instance_id
+                    .to_i64() as u64;
+            }
+        }
         0
     }
-    
-    fn get_contact_collider_object(&self, contact_idx: i32,) -> Option< Gd< Object > > {
-        None
-    }
-    
-    fn get_contact_collider_shape(&self, contact_idx: i32,) -> i32 {
-        0
-    }
-    
-    fn get_contact_collider_velocity_at_position(&self, contact_idx: i32,) -> Vector2 {
-        Vector2::default()
-    }
-    
-    fn get_contact_impulse(&self, contact_idx: i32,) -> Vector2 {
-        Vector2::default()
-    }
-    
-    fn get_step(&self,) -> f32 {
-        0.0
-    }
-    
-    fn integrate_forces(&mut self,) {
-    }
-    
-    fn get_space_state(&mut self,) -> Option< Gd< PhysicsDirectSpaceState2D > > {
+
+    fn get_contact_collider_object(&self, contact_idx: i32) -> Option<Gd<Object>> {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return Some(Gd::from_instance_id(
+                    body.contacts[contact_idx as usize].collider_instance_id,
+                ));
+            }
+        }
         None
     }
 
+    fn get_contact_collider_shape(&self, contact_idx: i32) -> i32 {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.contacts[contact_idx as usize].collider_shape;
+            }
+        }
+        0
+    }
+
+    fn get_contact_collider_velocity_at_position(&self, contact_idx: i32) -> Vector2 {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.contacts[contact_idx as usize].collider_velocity_at_pos;
+            }
+        }
+        Vector2::default()
+    }
+
+    fn get_contact_impulse(&self, contact_idx: i32) -> Vector2 {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                return body.contacts[contact_idx as usize].impulse;
+            }
+        }
+        Vector2::default()
+    }
+
+    fn get_step(&self) -> f32 {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            if let Some(body) = body.get_body() {
+                let space = body.get_base().get_space();
+                let space = lock.spaces.get(&space);
+                if let Some(space) = space {
+                    return space.get_last_step();
+                }
+            }
+        }
+        0.0
+    }
+
+    fn integrate_forces(&mut self) {}
+
+    fn get_space_state(&mut self) -> Option<Gd<PhysicsDirectSpaceState2D>> {
+        let lock = physics_singleton().lock().unwrap();
+        let body = lock.collision_objects.get(&self.body);
+        if let Some(body) = body {
+            let space = body.get_base().get_space();
+            let space = lock.spaces.get(&space);
+            if let Some(space) = space {
+                return space.get_direct_state();
+            }
+        }
+        None
+    }
 }

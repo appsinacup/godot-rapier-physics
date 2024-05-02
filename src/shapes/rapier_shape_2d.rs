@@ -1,7 +1,7 @@
 use crate::{rapier2d::{
     handle::{invalid_handle, Handle},
     shape::shape_destroy,
-}, servers::rapier_physics_singleton_2d::physics_singleton};
+}};
 use godot::{engine::physics_server_2d::ShapeType, prelude::*};
 use std::collections::HashMap;
 
@@ -83,7 +83,7 @@ impl RapierShapeBase2D {
         self.rid
     }
 
-    fn destroy_rapier_shape(&mut self) {
+    pub fn destroy_rapier_shape(&mut self) {
         if self.handle.is_valid() {
             shape_destroy(self.handle);
             self.handle = invalid_handle();
