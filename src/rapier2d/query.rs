@@ -216,15 +216,12 @@ pub fn intersect_point(
     }
 
     let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
-        if handle_excluded_callback.is_some() {
-            return !handle_excluded_callback.unwrap()(
-                world_handle,
-                collider_handle_to_handle(handle),
-                &physics_world.get_collider_user_data(handle),
-                &handle_excluded_info,
-            );
-        }
-        return true;
+        return !handle_excluded_callback(
+            world_handle,
+            collider_handle_to_handle(handle),
+            &physics_world.get_collider_user_data(handle),
+            &handle_excluded_info,
+        );
     };
 
     filter.predicate = Some(&predicate);
@@ -368,15 +365,12 @@ pub fn shape_casting(
     }
 
     let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
-        if handle_excluded_callback.is_some() {
-            return !handle_excluded_callback.unwrap()(
-                world_handle,
-                collider_handle_to_handle(handle),
-                &physics_world.get_collider_user_data(handle),
-                &handle_excluded_info,
-            );
-        }
-        return true;
+        return !handle_excluded_callback(
+            world_handle,
+            collider_handle_to_handle(handle),
+            &physics_world.get_collider_user_data(handle),
+            &handle_excluded_info,
+        );
     };
 
     filter.predicate = Some(&predicate);
@@ -456,15 +450,12 @@ pub fn intersect_shape(
     }
 
     let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
-        if handle_excluded_callback.is_some() {
-            return !handle_excluded_callback.unwrap()(
-                world_handle,
-                collider_handle_to_handle(handle),
-                &physics_world.get_collider_user_data(handle),
-                &handle_excluded_info,
-            );
-        }
-        return true;
+        return !handle_excluded_callback(
+            world_handle,
+            collider_handle_to_handle(handle),
+            &physics_world.get_collider_user_data(handle),
+            &handle_excluded_info,
+        );
     };
 
     filter.predicate = Some(&predicate);
@@ -554,8 +545,8 @@ pub fn intersect_aabb(
                     valid_hit = true;
                 }
 
-                if valid_hit && handle_excluded_callback.is_some() {
-                    valid_hit = !handle_excluded_callback.unwrap()(
+                if valid_hit {
+                    valid_hit = !handle_excluded_callback(
                         world_handle,
                         collider_handle_to_handle(*handle),
                         &physics_world.get_collider_user_data(*handle),

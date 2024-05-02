@@ -171,7 +171,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let results_out: *mut Vector2 = results as *mut Vector2;
 
         let vector2_slice: &mut [Vector2] =
-            unsafe { std::slice::from_raw_parts_mut(results_out, result_max as usize) };
+            unsafe { std::slice::from_raw_parts_mut(results_out, result_max.into()) };
 
         let result = shape_collide(
             &rapier_a_motion,

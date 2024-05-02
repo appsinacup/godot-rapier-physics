@@ -16,7 +16,7 @@ pub fn pixel_point_array_to_vec(pixel_data: Vec<Vector>) -> Vec<Point<Real>> {
     return vec;
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone)]
 pub struct ShapeInfo {
     pub handle: Handle,
     pub pixel_position: Vector,
@@ -31,8 +31,8 @@ pub fn shape_info_from_body_shape(shape_handle: Handle, transform: Transform2D) 
     return ShapeInfo {
         handle: shape_handle,
         pixel_position: Vector::new(origin.x, origin.y),
-        rotation: transform.get_rotation(),
-        skew: transform.get_skew(),
+        rotation: transform.rotation(),
+        skew: transform.skew(),
         scale: Vector::new(scale.x, scale.y),
     };
 }
