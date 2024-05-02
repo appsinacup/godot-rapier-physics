@@ -113,33 +113,26 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let shape = binding.shapes.get_mut(&shape);
         if let Some(shape) = shape {
             shape.set_data(data);
-        } else {
-            godot_error!("Shape not found");
         }
     }
-    fn shape_set_custom_solver_bias(&mut self, shape: Rid, bias: f32) {
-        godot_warn!("shape_set_custom_solver_bias is unused by Rapier");
+    fn shape_set_custom_solver_bias(&mut self, _shape: Rid, _bias: f32) {
     }
 
     fn shape_get_type(&self, shape: Rid) -> engine::physics_server_2d::ShapeType {
         let lock = physics_singleton().lock().unwrap();
         let shape = lock.shapes.get(&shape);
         if let Some(shape) = shape {
-            shape.get_type()
-        } else {
-            godot_error!("Shape not found");
-            engine::physics_server_2d::ShapeType::CUSTOM
+            return shape.get_type()
         }
+        engine::physics_server_2d::ShapeType::CUSTOM
     }
     fn shape_get_data(&self, shape: Rid) -> Variant {
         let lock = physics_singleton().lock().unwrap();
         let shape = lock.shapes.get(&shape);
         if let Some(shape) = shape {
-            shape.get_data()
-        } else {
-            godot_error!("Shape not found");
-            Variant::nil()
+            return shape.get_data()
         }
+        Variant::nil()
     }
     fn shape_get_custom_solver_bias(&self, shape: Rid) -> f32 {
         0.0
@@ -211,33 +204,33 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         space: Rid,
     ) -> Option<Gd<engine::PhysicsDirectSpaceState2D>> {
         let mut lock = physics_singleton().lock().unwrap();
-        let space = lock.spaces.get_mut(&space);
+        let space = lock.spaces.get(&space);
         if let Some(space) = space {
-            return space.get_direct_state();
+            return space.get_direct_state()
         }
-        return None;
+        None
         //ERR_FAIL_COND_V_MSG((using_threads && !doing_sync) || space->is_locked(), nullptr, "Space state is inaccessible right now, wait for iteration or physics process notification.");
     }
     fn space_set_debug_contacts(&mut self, space: Rid, max_contacts: i32) {
         let mut lock = physics_singleton().lock().unwrap();
         let space = lock.spaces.get_mut(&space);
         if let Some(space) = space {
-            return space.set_debug_contacts(max_contacts);
+            space.set_debug_contacts(max_contacts);
         }
     }
     fn space_get_contacts(&self, space: Rid) -> PackedVector2Array {
         let mut lock = physics_singleton().lock().unwrap();
-        let space = lock.spaces.get_mut(&space);
+        let space = lock.spaces.get(&space);
         if let Some(space) = space {
-            return space.get_debug_contacts();
+            return space.get_debug_contacts()
         }
         PackedVector2Array::new()
     }
     fn space_get_contact_count(&self, space: Rid) -> i32 {
         let mut lock = physics_singleton().lock().unwrap();
-        let space = lock.spaces.get_mut(&space);
+        let space = lock.spaces.get(&space);
         if let Some(space) = space {
-            return space.get_debug_contact_count();
+            return space.get_debug_contact_count()
         }
         0
     }
@@ -257,9 +250,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     }
     fn area_get_space(&self, area: Rid) -> Rid {
         let mut lock = physics_singleton().lock().unwrap();
-        let area = lock.collision_objects.get_mut(&area);
+        let area = lock.collision_objects.get(&area);
         if let Some(area) = area {
-            return area.get_space();
+            return area.get_base().get_space();
         }
         Rid::Invalid
     }

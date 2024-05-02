@@ -1,5 +1,6 @@
 
 use godot::engine::native::ObjectId;
+use godot::engine::PhysicsDirectBodyState2D;
 use godot::prelude::*;
 use godot::engine::physics_server_2d::{BodyDampMode, BodyMode, BodyParameter, BodyState, CcdMode};
 use std::collections::HashSet;
@@ -9,21 +10,22 @@ use crate::bodies::rapier_collision_object_2d::CollisionObjectType;
 use crate::rapier2d::collider::Material;
 use crate::rapier2d::handle::Handle;
 
+use super::rapier_area_2d::RapierArea2D;
 use super::rapier_direct_body_state_2d::RapierDirectBodyState2D;
 
 struct Contact {
-    local_pos: Vector2,
-    local_normal: Vector2,
-    depth: real,
-    local_shape: i32,
-    collider_pos: Vector2,
-    collider_shape: i32,
-    collider_instance_id: ObjectId,
-    collider_object: Option<Object>,
-    collider: Rid,
-    local_velocity_at_pos: Vector2,
-    collider_velocity_at_pos: Vector2,
-    impulse: Vector2,
+    pub local_pos: Vector2,
+    pub local_normal: Vector2,
+    pub depth: real,
+    pub local_shape: i32,
+    pub collider_pos: Vector2,
+    pub collider_shape: i32,
+    pub collider_instance_id: InstanceId,
+    //pub collider_object: Option<Object>,
+    pub collider: Rid,
+    pub local_velocity_at_pos: Vector2,
+    pub collider_velocity_at_pos: Vector2,
+    pub impulse: Vector2,
 }
 
 struct ForceIntegrationCallbackData {
@@ -37,10 +39,10 @@ pub struct RapierBody2D {
     angular_damping_mode: BodyDampMode,
     linear_damping: real,
     angular_damping: real,
-    total_linear_damping: real,
-    total_angular_damping: real,
-    total_gravity: Vector2,
-    gravity_scale: real,
+    pub total_linear_damping: real,
+    pub total_angular_damping: real,
+    pub total_gravity: Vector2,
+    pub gravity_scale: real,
     bounce: real,
     friction: real,
     mass: real,
@@ -48,7 +50,7 @@ pub struct RapierBody2D {
     center_of_mass: Vector2,
     calculate_inertia: bool,
     calculate_center_of_mass: bool,
-    using_area_gravity: bool,
+    pub using_area_gravity: bool,
     using_area_linear_damping: bool,
     using_area_angular_damping: bool,
     exceptions: HashSet<Rid>,
@@ -71,11 +73,11 @@ pub struct RapierBody2D {
     gravity_update_list: Vec<Rid>,
     areas: Vec<Rid>,
     area_override_update_list: Vec<Rid>,
-    contacts: Vec<Contact>,
-    contact_count: i32,
+    pub contacts: Vec<Contact>,
+    pub contact_count: i32,
     body_state_callback: Callable,
     fi_callback_data: ForceIntegrationCallbackData,
-    direct_state: Option<Gd<RapierDirectBodyState2D>>,
+    direct_state: Option<Gd<PhysicsDirectBodyState2D>>,
     direct_state_query_list: Vec<Rid>,
     base: RapierCollisionObject2D
 }
@@ -183,13 +185,13 @@ impl RapierBody2D {
 	pub fn set_force_integration_callback(&mut self, callable: Callable, udata: Variant) {
     }
 
-	pub fn get_direct_state(&self) -> &Option<Gd<RapierDirectBodyState2D>> {
+	pub fn get_direct_state(&mut self) -> Option<Gd<PhysicsDirectBodyState2D>> {
         if self.direct_state.is_none() {
             let direct_space_state = RapierDirectBodyState2D::new_alloc();
-            direct_space_state.set_body(self.rid);
+            //direct_space_state.set_body(self.rid);
             self.direct_state = Some(direct_space_state.upcast());
         }
-        &self.direct_state
+        self.direct_state
     }
 
 	pub fn add_area(&mut self, area: Rid) {
@@ -227,8 +229,8 @@ impl RapierBody2D {
         local_velocity_at_pos: Vector2,
         collider_pos: Vector2,
         collider_shape: i32,
-        collider_instance_id: ObjectId,
-        collider_object: Option<Object>,
+        collider_instance_id: InstanceId,
+        //collider_object: Option<Object>,
         collider: Rid,
         collider_velocity_at_pos: Vector2,
         impulse: Vector2,
@@ -381,7 +383,26 @@ impl IRapierCollisionObject2D for RapierBody2D {
     fn get_base(&self) -> &RapierCollisionObject2D {
         &self.base
     }
+    fn get_mut_base(&mut self) -> &mut RapierCollisionObject2D {
+        &mut self.base
+    }
 
     fn set_space(&mut self, space: Rid) {
+    }
+    
+    fn get_body(&self) -> Option<&RapierBody2D> {
+        Some(self)
+    }
+    
+    fn get_area(&self) -> Option<&RapierArea2D> {
+        None
+    }
+    
+    fn get_mut_body(&mut self) -> Option<&mut RapierBody2D> {
+        Some(self)
+    }
+    
+    fn get_mut_area(&mut self) -> Option<&mut RapierArea2D> {
+        None
     }
 }

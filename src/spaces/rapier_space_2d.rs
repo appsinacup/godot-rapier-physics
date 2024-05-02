@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use godot::{engine::{native::{ObjectId, PhysicsServer2DExtensionMotionResult}, physics_server_2d, PhysicsDirectSpaceState2D, ProjectSettings}, prelude::*};
-use crate::{bodies::{rapier_area_2d::RapierArea2D, rapier_body_2d::RapierBody2D, rapier_collision_object_2d::{CollisionObjectType, IRapierCollisionObject2D, RapierCollisionObject2D}}, rapier2d::{handle::{invalid_handle, Handle}, physics_hooks::{CollisionFilterInfo, OneWayDirection}, physics_world::{world_create, world_set_active_body_callback, world_set_body_collision_filter_callback, world_set_collision_event_callback, world_set_contact_force_event_callback, world_set_contact_point_callback, world_set_modify_contacts_callback, world_set_sensor_collision_filter_callback, ActiveBodyInfo, CollisionEventInfo, ContactForceEventInfo, ContactPointInfo}, query::{PointHitInfo, QueryExcludedInfo}, settings::default_world_settings, user_data::{is_user_data_valid, UserData}}, servers::{rapier_physics_singleton_2d::physics_singleton, rapier_project_settings::RapierProjectSettings}};
+use crate::{bodies::{rapier_area_2d::RapierArea2D, rapier_body_2d::RapierBody2D, rapier_collision_object_2d::{CollisionObjectType, IRapierCollisionObject2D, RapierCollisionObject2D}}, rapier2d::{handle::{invalid_handle, Handle}, physics_hooks::{CollisionFilterInfo, OneWayDirection}, physics_world::{world_create, world_set_active_body_callback, world_set_body_collision_filter_callback, world_set_collision_event_callback, world_set_contact_force_event_callback, world_set_contact_point_callback, world_set_modify_contacts_callback, world_set_sensor_collision_filter_callback, ActiveBodyInfo, CollisionEventInfo, ContactForceEventInfo, ContactPointInfo}, query::{PointHitInfo, QueryExcludedInfo}, settings::default_world_settings, user_data::{is_user_data_valid, UserData}}, servers::{rapier_physics_singleton_2d::{get_active_space, get_body, get_collision_object, physics_singleton}, rapier_project_settings::RapierProjectSettings}};
 use crate::spaces::rapier_direct_space_state_2d::RapierDirectSpaceState2D;
 
 const TEST_MOTION_MARGIN: real = 1e-4;
@@ -14,13 +14,13 @@ pub struct RemovedColliderInfo {
 
 pub struct CollidersInfo {
     pub shape1: u32,
-    pub object1: Option<RapierCollisionObject2D>,
+    pub object1: Rid,
     pub shape2: u32,
-    pub object2: Option<RapierCollisionObject2D>,
+    pub object2: Rid,
 }
 
 pub struct RapierSpace2D {
-    direct_access: Gd<PhysicsDirectSpaceState2D>,
+    direct_access: Option<Gd<PhysicsDirectSpaceState2D>>,
     rid: Rid,
     handle: Handle,
     removed_colliders: HashMap<u32, RemovedColliderInfo>,
@@ -69,7 +69,7 @@ impl RapierSpace2D {
         let contact_bias = project_settings.get_setting_with_override("physics/2d/solver/default_contact_bias".into()).to();
         let constraint_bias = project_settings.get_setting_with_override("physics/2d/solver/default_constraint_bias".into()).to();
 
-        let direct_access = RapierDirectSpaceState2D::new_alloc();
+        let direct_access = Some(RapierDirectSpaceState2D::new_alloc().upcast());
         //direct_access.set_space(rid);
 
         let mut world_settings = default_world_settings();
@@ -140,29 +140,18 @@ impl RapierSpace2D {
         r_colliders_info: &mut CollidersInfo,
     ) -> bool {
         let lock = physics_singleton().lock().unwrap();
-        let space = lock.active_spaces.get(&world_handle);
-        if let Some(space) = space {
-            let space = lock.spaces.get(space);
-            if let Some(space) = space {
-
-                if (rapier2d::is_user_data_valid(filter_info.user_data1)) {
-                    r_colliders_info.object1 = RapierCollisionObject2D::get_collider_user_data(filter_info->user_data1, r_colliders_info.shape1);
-                }
-            
-                if (rapier2d::is_user_data_valid(filter_info->user_data2)) {
-                    r_colliders_info.object2 = RapierCollisionObject2D::get_collider_user_data(filter_info->user_data2, r_colliders_info.shape2);
-                }
-            
-                ERR_FAIL_COND_V(!r_colliders_info.object1, false);
-                ERR_FAIL_COND_V(!r_colliders_info.object2, false);
-            
-                if (!r_colliders_info.object1->interacts_with(r_colliders_info.object2)) {
-                    return false;
-                }
-            
-                return true;
-            }
+        let space = get_active_space(&world_handle);
+        (r_colliders_info.object1, r_colliders_info.shape1) = RapierCollisionObject2D::get_collider_user_data(&filter_info.user_data1);
+        (r_colliders_info.object2, r_colliders_info.shape2) = RapierCollisionObject2D::get_collider_user_data(&filter_info.user_data2);
+        
+        let body1 = get_collision_object(r_colliders_info.object1);
+        let body2 = get_collision_object(r_colliders_info.object2);
+    
+        if !body1.get_base().interacts_with(body2.get_base()) {
+            return false;
         }
+    
+        return true;
     }
 
     fn collision_filter_body_callback(
@@ -334,11 +323,11 @@ impl RapierSpace2D {
         return self.contact_debug
     }
     pub fn get_debug_contact_count(&self) -> i32 {
-        return self.contact_debug_count
+        self.contact_debug_count
     }
 
-    pub fn get_direct_state(&mut self) -> Gd<PhysicsDirectSpaceState2D> {
-        self.direct_access.upcast()
+    pub fn get_direct_state(&self) -> Option<Gd<PhysicsDirectSpaceState2D>> {
+        &self.direct_access
     }
 
 	pub fn test_body_motion(&self, body: Rid, from: Transform2D, motion: Vector2, margin: f64, collide_separation_ray: bool, recovery_as_collision: bool, result: &PhysicsServer2DExtensionMotionResult) -> bool {

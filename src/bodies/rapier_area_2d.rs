@@ -10,6 +10,8 @@ use godot::{
 };
 use std::collections::HashMap;
 
+use super::rapier_body_2d::RapierBody2D;
+
 struct MonitorInfo {
     rid: Rid,
     instance_id: u64,
@@ -237,5 +239,24 @@ impl IRapierCollisionObject2D for RapierArea2D {
     fn get_base(&self) -> &RapierCollisionObject2D {
         &self.base
     }
+    fn get_mut_base(&mut self) -> &mut RapierCollisionObject2D {
+        &mut &self.base
+    }
     fn set_space(&mut self, space: Rid) {}
+    
+    fn get_body(&self) -> Option<&RapierBody2D> {
+        None
+    }
+    
+    fn get_area(&self) -> Option<&RapierArea2D> {
+        Some(self)
+    }
+    
+    fn get_mut_body(&mut self) -> Option<&mut RapierBody2D> {
+        None
+    }
+    
+    fn get_mut_area(&mut self) -> Option<&mut RapierArea2D> {
+        Some(self)
+    }
 }
