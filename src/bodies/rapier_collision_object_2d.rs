@@ -112,37 +112,36 @@ impl RapierCollisionObject2D {
                 assert!(!is_handle_valid(shape.collider_handle));
 
                 let shape_object = lock.shapes.get(&shape.shape);
-                if shape_object.is_none() {
-                    return;
-                }
-                let shape_handle = shape_object.unwrap().get_rapier_shape();
-                assert!(is_handle_valid(shape_handle));
-
-                let mut user_data = UserData::default();
-                self.set_collider_user_data(&mut user_data, p_shape_index);
-
-                match self.collision_object_type {
-                    CollisionObjectType::Body => {
-                        shape.collider_handle = collider_create_solid(
-                            space_handle,
-                            shape_handle,
-                            &mat,
-                            self.body_handle,
-                            &user_data,
-                        );
+                if let Some(shape_object) = shape_object {
+                    let shape_handle = shape_object.get_rapier_shape();
+                    assert!(is_handle_valid(shape_handle));
+    
+                    let mut user_data = UserData::default();
+                    self.set_collider_user_data(&mut user_data, p_shape_index);
+    
+                    match self.collision_object_type {
+                        CollisionObjectType::Body => {
+                            shape.collider_handle = collider_create_solid(
+                                space_handle,
+                                shape_handle,
+                                &mat,
+                                self.body_handle,
+                                &user_data,
+                            );
+                        }
+                        CollisionObjectType::Area => {
+                            shape.collider_handle = collider_create_sensor(
+                                space_handle,
+                                shape_handle,
+                                self.body_handle,
+                                &user_data,
+                            );
+                        }
                     }
-                    CollisionObjectType::Area => {
-                        shape.collider_handle = collider_create_sensor(
-                            space_handle,
-                            shape_handle,
-                            self.body_handle,
-                            &user_data,
-                        );
-                    }
+    
+                    assert!(is_handle_valid(shape.collider_handle));
+                    self._init_collider(shape.collider_handle);
                 }
-
-                assert!(is_handle_valid(shape.collider_handle));
-                self._init_collider(shape.collider_handle);
             }
         }
     }
