@@ -360,4 +360,13 @@ impl IRapierCollisionObject2D for RapierBody2D {
     fn get_mut_area(&mut self) -> Option<&mut RapierArea2D> {
         None
     }
+    
+    fn add_shape(
+        &mut self,
+        p_shape: Box<dyn crate::shapes::rapier_shape_2d::IRapierShape2D>,
+        p_transform: Transform2D,
+        p_disabled: bool,
+    ) {
+        todo!()
+    }
 }

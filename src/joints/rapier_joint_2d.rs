@@ -1,10 +1,6 @@
-use crate::{
-    bodies::rapier_collision_object_2d::IRapierCollisionObject2D,
-    rapier2d::{
-        handle::{invalid_handle, Handle},
-        joint::joint_change_disable_collision,
-    },
-    servers::rapier_physics_singleton_2d::physics_singleton,
+use crate::rapier2d::{
+    handle::Handle,
+    joint::{joint_change_disable_collision, joint_destroy},
 };
 use godot::{builtin::Rid, engine::physics_server_2d};
 
@@ -18,28 +14,30 @@ pub struct RapierJointBase2D {
     max_bias: f32,
     max_force: f32,
     rid: Rid,
-    body_a: Rid,
-    body_b: Rid,
     handle: Handle,
+    space_handle: Handle,
     disabled_collisions_between_bodies: bool,
 }
 
 impl RapierJointBase2D {
-    pub fn new(rid: Rid, body_a: Rid, body_b: Rid) -> Self {
+    pub fn new(space_handle: Handle, handle: Handle, rid: Rid) -> Self {
         Self {
             bias: 0.0,
             max_bias: 3.40282e38,
             max_force: 3.40282e38,
             rid: rid,
-            body_a: body_a,
-            body_b: body_b,
-            handle: invalid_handle(),
-            disabled_collisions_between_bodies: false,
+            handle: handle,
+            space_handle: space_handle,
+            disabled_collisions_between_bodies: true,
         }
     }
 
     pub fn get_handle(&self) -> Handle {
         self.handle
+    }
+
+    pub fn get_space_handle(&self) -> Handle {
+        self.space_handle
     }
 
     pub fn set_handle(&mut self, handle: Handle) {
@@ -79,31 +77,14 @@ impl RapierJointBase2D {
         self.rid = rid;
     }
 
-    pub fn get_space(&self) -> Rid {
-        let lock = physics_singleton().lock().unwrap();
-        if self.body_a.is_valid() {
-            let body_a: Option<&Box<dyn IRapierCollisionObject2D>> =
-                lock.collision_objects.get(&self.body_a);
-            if let Some(body_a) = body_a {
-                //return body_a.get_space();
-            }
-        }
-        let body_b = lock.collision_objects.get(&self.body_b);
-        return Rid::Invalid;
-        //let space_a = body_a.unwrap()
-        //physics_server_2d::get_space(self.body_a)
-    }
-
     pub fn disable_collisions_between_bodies(&mut self, disabled: bool) {
         self.disabled_collisions_between_bodies = disabled;
         if self.handle.is_valid() {
-            //joint_change_disable_collision(world_handle, joint_handle, disable_collision)
-            // Joint not yet created, when it will be created it will have disable collision flag set
-            //rapier2d::geometry::ColliderSet::joint_change_disable_collision(
-            //    &mut self.space_handle,
-            //    &mut self.handle,
-            //    self.disabled_collisions_between_bodies,
-            //);
+            joint_change_disable_collision(
+                self.space_handle,
+                self.handle,
+                self.disabled_collisions_between_bodies,
+            );
         }
     }
 
@@ -117,5 +98,13 @@ impl RapierJointBase2D {
         self.set_bias(joint.get_bias());
         self.set_max_bias(joint.get_max_bias());
         self.disable_collisions_between_bodies(joint.is_disabled_collisions_between_bodies());
+    }
+}
+
+impl Drop for RapierJointBase2D {
+    fn drop(&mut self) {
+        if self.handle.is_valid() {
+            joint_destroy(self.space_handle, self.handle);
+        }
     }
 }
