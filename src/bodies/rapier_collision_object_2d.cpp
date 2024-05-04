@@ -29,10 +29,10 @@ void RapierCollisionObject2D::set_shape(int p_index, RapierShape2D *p_shape) {
 
 	Shape &shape = shapes[p_index];
 
-	_destroy_shape(shape, p_index);
-
 	shape.shape->remove_owner(this);
 	shape.shape = p_shape;
+
+	_destroy_shape(shape, p_index);
 
 	p_shape->add_owner(this);
 
@@ -97,12 +97,12 @@ void RapierCollisionObject2D::remove_shape(int p_index) {
 
 	Shape &shape = shapes[p_index];
 
+	shape.shape->remove_owner(this);
+	shapes.remove_at(p_index);
+
 	if (!shape.disabled) {
 		_destroy_shape(shape, p_index);
 	}
-
-	shape.shape->remove_owner(this);
-	shapes.remove_at(p_index);
 
 	if (space) {
 		_shapes_changed();
