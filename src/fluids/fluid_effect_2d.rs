@@ -1,5 +1,5 @@
-use godot::{engine::{IResource, Resource}, obj::Base, register::{godot_api, GodotClass}};
-
+use godot::{builtin::{meta::{FromGodot, ToGodot}, Variant}, engine::{IResource, Resource}, obj::Base, register::{godot_api, GodotClass}};
+use godot::builtin::meta::GodotConvert;
 
 #[derive(GodotClass)]
 #[class(base=Resource)]
@@ -27,12 +27,6 @@ impl IResource for FluidEffect2D {
             fluid_effect_type: FluidEffectType::FluidEffectElasticity,
             base,
         }
-    }
-}
-
-impl FluidEffect2D {
-    fn get_fluid_effect_type(&self) -> FluidEffectType {
-        self.fluid_effect_type
     }
 }
 

@@ -295,8 +295,8 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         Rid::Invalid
     }
     fn area_add_shape(&mut self, area: Rid, shape: Rid, transform: Transform2D, disabled: bool) {
-        let lock = physics_singleton().lock().unwrap();
-        let area = lock.collision_objects.get(&area);
+        let mut lock = physics_singleton().lock().unwrap();
+        let area = lock.collision_objects.get_mut(&area);
         if let Some(area) = area {
             let shape = lock.shapes.get(&shape);
             if let Some(shape) = shape {
@@ -304,7 +304,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             }
         }
     }
-    fn area_set_shape(&mut self, area: Rid, shape_idx: i32, shape: Rid) {}
+    fn area_set_shape(&mut self, area: Rid, shape_idx: i32, shape: Rid) {
+
+    }
     fn area_set_shape_transform(&mut self, area: Rid, shape_idx: i32, transform: Transform2D) {}
     fn area_set_shape_disabled(&mut self, area: Rid, shape_idx: i32, disabled: bool) {}
     fn area_get_shape_count(&self, area: Rid) -> i32 {
