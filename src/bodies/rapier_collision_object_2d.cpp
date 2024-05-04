@@ -132,6 +132,7 @@ void RapierCollisionObject2D::_update_transform() {
 }
 
 void RapierCollisionObject2D::set_transform(const Transform2D &p_transform, bool wake_up) {
+	bool scale_changed = transform.get_scale() != p_transform.get_scale();
 	transform = p_transform;
 	inv_transform = transform.affine_inverse();
 
@@ -145,6 +146,12 @@ void RapierCollisionObject2D::set_transform(const Transform2D &p_transform, bool
 		rapier2d::Vector position = { origin.x, origin.y };
 		real_t rotation = transform.get_rotation();
 		rapier2d::body_set_transform(space_handle, body_handle, &position, rotation, wake_up);
+		if (scale_changed) {
+			for (uint32_t i = 0; i < shapes.size(); i++) {
+				Shape &shape = shapes[i];
+				_shape_changed(shape.shape);
+			}
+		}
 	}
 }
 
@@ -206,21 +213,25 @@ void RapierCollisionObject2D::_update_shape_transform(const Shape &shape) {
 	}
 
 	rapier2d::Handle space_handle = space->get_handle();
-
-	const Vector2 &origin = shape.xform.get_origin();
+	Transform2D parent_transform = get_transform();
+	Vector2 parent_scale = get_transform().get_scale();
+	Transform2D shape_transform = shape.xform;
+	Vector2 scale_shape = shape.xform.get_scale();
+	const Vector2 &origin = shape_transform.get_origin() * parent_scale;
 	rapier2d::Vector position = { origin.x, origin.y };
-	real_t angle = shape.xform.get_rotation();
+	real_t angle = shape_transform.get_rotation();
 
 	ERR_FAIL_COND(!rapier2d::is_handle_valid(space_handle));
 
 	ERR_FAIL_COND(!rapier2d::is_handle_valid(shape.collider_handle));
 	ERR_FAIL_COND(!rapier2d::is_handle_valid(shape.shape->get_rapier_shape()));
+	scale_shape *= parent_scale;
 	rapier2d::ShapeInfo shape_info{
 		shape.shape->get_rapier_shape(),
 		position,
 		angle,
 		shape.xform.get_skew(),
-		rapier2d::Vector{ shape.xform.get_scale().x, shape.xform.get_scale().y }
+		rapier2d::Vector{ scale_shape.x, scale_shape.y }
 	};
 	rapier2d::collider_set_transform(space_handle, shape.collider_handle, shape_info);
 }
