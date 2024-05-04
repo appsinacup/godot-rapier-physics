@@ -29,7 +29,7 @@ pub trait IRapierCollisionObject2D {
     fn set_space(&mut self, space: Rid);
     fn add_shape(
         &mut self,
-        p_shape: Box<dyn IRapierShape2D>,
+        p_shape: &Box<dyn IRapierShape2D>,
         p_transform: Transform2D,
         p_disabled: bool,
     );
@@ -211,7 +211,23 @@ impl RapierCollisionObject2D {
 
     fn _init_material(&self, mat: &mut Material) {}
 
-    fn _init_collider(&self, collider_handle: Handle) {}
+    fn _init_collider(&self, collider_handle: Handle) {
+
+        rapier2d::Handle space_handle = get_space()->get_handle();
+        ERR_FAIL_COND(!rapier2d::is_handle_valid(space_handle));
+
+        // Send contact infos for dynamic bodies
+        if (mode >= PhysicsServer2D::BODY_MODE_KINEMATIC) {
+    #ifdef DEBUG_ENABLED
+            // Always send contacts in case debug contacts is enabled
+            bool send_contacts = true;
+    #else
+            // Only send contacts if contact monitor is enabled
+            bool send_contacts = can_report_contacts();
+    #endif
+            rapier2d::collider_set_contact_force_events_enabled(space_handle, collider_handle, send_contacts);
+        }
+    }
 
     fn _shapes_changed(&self) {}
 

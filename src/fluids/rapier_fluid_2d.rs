@@ -9,18 +9,18 @@ pub struct RapierFluid2D {
     rid: Rid,
     enabled: bool,
     density: f64,
-    space: Option<Rid>,
+    space: Rid,
     effects: Vec<Rid>,
-    fluid_handle: Option<HandleDouble>,
+    fluid_handle: HandleDouble,
     points: Vec<Vector2>,
     velocities: Vec<Vector2>,
     accelerations: Vec<Vector2>,
 }
 
-impl Default for RapierFluid2D {
-    fn default() -> Self {
+impl RapierFluid2D {
+    fn new(rid: Rid) -> Self {
         Self {
-            rid: Rid::Invalid,
+            rid: rid,
             enabled: true,
             density: 1.0,
             space: None,
@@ -31,9 +31,6 @@ impl Default for RapierFluid2D {
             accelerations: Vec::new(),
         }
     }
-}
-
-impl RapierFluid2D {
 
     pub fn set_points(&mut self, points: Vec<Vector2>) {
         self.points = points;

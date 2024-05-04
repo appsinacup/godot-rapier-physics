@@ -363,7 +363,7 @@ impl IRapierCollisionObject2D for RapierBody2D {
     
     fn add_shape(
         &mut self,
-        p_shape: Box<dyn crate::shapes::rapier_shape_2d::IRapierShape2D>,
+        p_shape: &Box<dyn crate::shapes::rapier_shape_2d::IRapierShape2D>,
         p_transform: Transform2D,
         p_disabled: bool,
     ) {
