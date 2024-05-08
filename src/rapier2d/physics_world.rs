@@ -62,12 +62,11 @@ type CollisionEventCallback = fn(world_handle: Handle, event_info: &CollisionEve
 
 type ContactForceEventCallback =
     fn(world_handle: Handle, event_info: &ContactForceEventInfo) -> bool;
-type ContactPointCallback = 
-    fn(
-        world_handle: Handle,
-        contact_info: &ContactPointInfo,
-        event_info: &ContactForceEventInfo,
-    ) -> bool;
+type ContactPointCallback = fn(
+    world_handle: Handle,
+    contact_info: &ContactPointInfo,
+    event_info: &ContactForceEventInfo,
+) -> bool;
 
 pub struct CollisionEventInfo {
     collider1: Handle,
@@ -143,7 +142,16 @@ pub struct PhysicsWorld {
 }
 
 impl PhysicsWorld {
-    pub fn new(settings: &WorldSettings) -> PhysicsWorld {
+    pub fn new(
+        settings: &WorldSettings,
+        active_body_callback: ActiveBodyCallback,
+        collision_filter_body_callback: CollisionFilterCallback,
+        collision_filter_sensor_callback: CollisionFilterCallback,
+        collision_modify_contacts_callback: CollisionModifyContactsCallback,
+        collision_event_callback: CollisionEventCallback,
+        contact_force_event_callback: ContactForceEventCallback,
+        contact_point_callback: ContactPointCallback,
+    ) -> PhysicsWorld {
         PhysicsWorld {
             query_pipeline: QueryPipeline::new(),
             physics_pipeline: PhysicsPipeline::new(),
@@ -154,15 +162,15 @@ impl PhysicsWorld {
             multibody_joint_set: MultibodyJointSet::new(),
             ccd_solver: CCDSolver::new(),
 
-            active_body_callback: None,
-            collision_filter_body_callback: None,
-            collision_filter_sensor_callback: None,
-            collision_modify_contacts_callback: None,
+            active_body_callback,
+            collision_filter_body_callback,
+            collision_filter_sensor_callback,
+            collision_modify_contacts_callback,
 
-            collision_event_callback: None,
-            contact_force_event_callback: None,
+            collision_event_callback,
+            contact_force_event_callback,
 
-            contact_point_callback: None,
+            contact_point_callback,
 
             rigid_body_set: RigidBodySet::new(),
             collider_set: ColliderSet::new(),
@@ -520,8 +528,15 @@ pub fn singleton() -> &'static Mutex<PhysicsEngine> {
     HASHMAP.get_or_init(|| Mutex::new(PhysicsEngine::new()))
 }
 
-pub fn world_create(settings: &WorldSettings) -> Handle {
-    let physics_world = PhysicsWorld::new(settings);
+pub fn world_create(settings: &WorldSettings, 
+    active_body_callback: ActiveBodyCallback,
+    collision_filter_body_callback: CollisionFilterCallback,
+    collision_filter_sensor_callback: CollisionFilterCallback,
+    collision_modify_contacts_callback: CollisionModifyContactsCallback,
+    collision_event_callback: CollisionEventCallback,
+    contact_force_event_callback: ContactForceEventCallback,
+    contact_point_callback: ContactPointCallback,) -> Handle {
+    let physics_world = PhysicsWorld::new(settings, active_body_callback, collision_filter_body_callback, collision_filter_sensor_callback, collision_modify_contacts_callback, collision_event_callback, contact_force_event_callback, contact_point_callback);
     let mut physics_engine = singleton().lock().unwrap();
     let world_handle = physics_engine.insert_world(physics_world);
     let physics_world = physics_engine.get_world(world_handle);

@@ -15,15 +15,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "aho-corasick"
-version = "1.1.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e60d3430d3a69478ad0993f19238d2df97c507009a52b3c10addcd7f6bcb916"
-dependencies = [
- "memchr",
-]
-
-[[package]]
 name = "allocator-api2"
 version = "0.2.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -164,129 +155,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "gensym"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "913dce4c5f06c2ea40fc178c06f777ac89fc6b1383e90c254fafb1abe4ba3c82"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.61",
- "uuid",
-]
-
-[[package]]
-name = "getrandom"
-version = "0.2.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c4567c8db10ae91089c99af84c68c38da3ec2f087c3f82960bcdbf3656b6f4d7"
-dependencies = [
- "cfg-if",
- "libc",
- "wasi",
-]
-
-[[package]]
-name = "glam"
-version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e05e7e6723e3455f4818c7b26e855439f7546cf617ef669d1adedb8669e5cb9"
-
-[[package]]
-name = "godot"
-version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#e43fdd391af2bd2433fe04bfc707342382351bdb"
-dependencies = [
- "godot-core",
- "godot-macros",
-]
-
-[[package]]
-name = "godot-bindings"
-version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#e43fdd391af2bd2433fe04bfc707342382351bdb"
-dependencies = [
- "godot4-prebuilt",
-]
-
-[[package]]
-name = "godot-cell"
-version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#e43fdd391af2bd2433fe04bfc707342382351bdb"
-
-[[package]]
-name = "godot-codegen"
-version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#e43fdd391af2bd2433fe04bfc707342382351bdb"
-dependencies = [
- "godot-bindings",
- "godot-fmt",
- "heck",
- "nanoserde",
- "proc-macro2",
- "quote",
- "regex",
-]
-
-[[package]]
-name = "godot-core"
-version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#e43fdd391af2bd2433fe04bfc707342382351bdb"
-dependencies = [
- "glam",
- "godot-bindings",
- "godot-cell",
- "godot-codegen",
- "godot-ffi",
-]
-
-[[package]]
-name = "godot-ffi"
-version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#e43fdd391af2bd2433fe04bfc707342382351bdb"
-dependencies = [
- "gensym",
- "godot-bindings",
- "godot-codegen",
- "libc",
- "paste",
-]
-
-[[package]]
-name = "godot-fmt"
-version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#e43fdd391af2bd2433fe04bfc707342382351bdb"
-dependencies = [
- "proc-macro2",
-]
-
-[[package]]
-name = "godot-macros"
-version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#e43fdd391af2bd2433fe04bfc707342382351bdb"
-dependencies = [
- "godot-bindings",
- "proc-macro2",
- "quote",
- "venial",
-]
-
-[[package]]
-name = "godot-rapier"
-version = "0.1.0"
-dependencies = [
- "godot",
- "rapier2d",
- "rapier2d-f64",
- "salva2d",
-]
-
-[[package]]
-name = "godot4-prebuilt"
-version = "0.0.0"
-source = "git+https://github.com/godot-rust/godot4-prebuilt?branch=4.2.2#5e6130a47f3dd31bfd02548cf8d90f47cb741916"
-
-[[package]]
 name = "hashbrown"
 version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -301,12 +169,6 @@ dependencies = [
  "ahash",
  "allocator-api2",
 ]
-
-[[package]]
-name = "heck"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "95505c38b4572b2d910cecb0281560f54b440a19336cbbcb27bf6ce6adc6f5a8"
 
 [[package]]
 name = "indexmap"
@@ -338,12 +200,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "libc"
-version = "0.2.154"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ae743338b92ff9146ce83992f766a31066a91a8c84a45e0e9f21e7cf6de6d346"
-
-[[package]]
 name = "libm"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -372,12 +228,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "memchr"
-version = "2.7.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c8640c5d730cb13ebd907d8d04b52f55ac9a2eec55b440c8892f40d56c76c1d"
-
-[[package]]
 name = "nalgebra"
 version = "0.32.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -404,21 +254,6 @@ dependencies = [
  "quote",
  "syn 1.0.109",
 ]
-
-[[package]]
-name = "nanoserde"
-version = "0.1.37"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5de9cf844ab1e25a0353525bd74cb889843a6215fa4a0d156fd446f4857a1b99"
-dependencies = [
- "nanoserde-derive",
-]
-
-[[package]]
-name = "nanoserde-derive"
-version = "0.1.22"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e943b2c21337b7e3ec6678500687cdc741b7639ad457f234693352075c082204"
 
 [[package]]
 name = "num-complex"
@@ -497,8 +332,30 @@ dependencies = [
 
 [[package]]
 name = "parry2d"
-version = "0.13.7"
-source = "git+https://github.com/dimforge/parry?branch=internal-edges-rework#2d541212b6f5f483168d8127e537c17822d66f32"
+version = "0.13.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9fd94bf962ead112f14223469aac6f76e3c24e2c399e348f638924498b238c56"
+dependencies = [
+ "approx",
+ "arrayvec",
+ "bitflags",
+ "downcast-rs",
+ "either",
+ "nalgebra",
+ "num-derive",
+ "num-traits",
+ "rustc-hash",
+ "simba",
+ "slab",
+ "smallvec",
+ "spade",
+]
+
+[[package]]
+name = "parry2d"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "41c56bf3b44b08f18a6ed01e5c6bf1a41a12efc7e8b806ce0cf50831c88f9fc8"
 dependencies = [
  "approx",
  "arrayvec",
@@ -520,8 +377,9 @@ dependencies = [
 
 [[package]]
 name = "parry2d-f64"
-version = "0.13.7"
-source = "git+https://github.com/dimforge/parry?branch=internal-edges-rework#2d541212b6f5f483168d8127e537c17822d66f32"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "416b765a3db5f3e219fcc878d649ea6dc6b93490694be846c39c7398074f90d1"
 dependencies = [
  "approx",
  "arrayvec",
@@ -568,7 +426,27 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.18.0"
-source = "git+https://github.com/dimforge/rapier?branch=stability-improvements#a967241683c898647429f16832813172a9dc3a51"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "48a3ec4ae89e0837c0ff6f29af32a8e5d78dfabe2273dcd945cfaf3f5d2b1501"
+dependencies = [
+ "approx",
+ "arrayvec",
+ "bit-vec",
+ "bitflags",
+ "crossbeam",
+ "downcast-rs",
+ "nalgebra",
+ "num-derive",
+ "num-traits",
+ "parry2d 0.13.8",
+ "rustc-hash",
+ "simba",
+]
+
+[[package]]
+name = "rapier2d"
+version = "0.19.0"
+source = "git+https://github.com/dimforge/rapier?branch=master#af1ac9baa26b1199ae2728e91adf5345bcd1c693"
 dependencies = [
  "approx",
  "arrayvec",
@@ -581,7 +459,7 @@ dependencies = [
  "num-derive",
  "num-traits",
  "ordered-float",
- "parry2d",
+ "parry2d 0.15.1",
  "rayon",
  "rustc-hash",
  "serde",
@@ -591,8 +469,8 @@ dependencies = [
 
 [[package]]
 name = "rapier2d-f64"
-version = "0.18.0"
-source = "git+https://github.com/dimforge/rapier?branch=stability-improvements#a967241683c898647429f16832813172a9dc3a51"
+version = "0.19.0"
+source = "git+https://github.com/dimforge/rapier?branch=master#af1ac9baa26b1199ae2728e91adf5345bcd1c693"
 dependencies = [
  "approx",
  "arrayvec",
@@ -611,6 +489,15 @@ dependencies = [
  "serde",
  "simba",
  "vec_map",
+]
+
+[[package]]
+name = "rapier2d-wrapper"
+version = "0.1.0"
+dependencies = [
+ "rapier2d 0.19.0",
+ "rapier2d-f64",
+ "salva2d",
 ]
 
 [[package]]
@@ -638,35 +525,6 @@ dependencies = [
  "crossbeam-deque",
  "crossbeam-utils",
 ]
-
-[[package]]
-name = "regex"
-version = "1.10.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c117dbdfde9c8308975b6a18d71f3f385c89461f7b3fb054288ecf2a2058ba4c"
-dependencies = [
- "aho-corasick",
- "memchr",
- "regex-automata",
- "regex-syntax",
-]
-
-[[package]]
-name = "regex-automata"
-version = "0.4.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "86b83b8b9847f9bf95ef68afb0b8e6cdb80f498442f5179a29fad448fcc1eaea"
-dependencies = [
- "aho-corasick",
- "memchr",
- "regex-syntax",
-]
-
-[[package]]
-name = "regex-syntax"
-version = "0.8.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "adad44e29e4c806119491a7f06f03de4d1af22c3a680dd47f1e6e179439d1f56"
 
 [[package]]
 name = "robust"
@@ -701,8 +559,8 @@ dependencies = [
  "itertools",
  "nalgebra",
  "num-traits",
- "parry2d",
- "rapier2d",
+ "parry2d 0.13.8",
+ "rapier2d 0.18.0",
 ]
 
 [[package]]
@@ -802,41 +660,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3354b9ac3fae1ff6755cb6db53683adb661634f67557942dea4facebec0fee4b"
 
 [[package]]
-name = "uuid"
-version = "1.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a183cf7feeba97b4dd1c0d46788634f6221d87fa961b305bed08c851829efcc0"
-dependencies = [
- "getrandom",
-]
-
-[[package]]
 name = "vec_map"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f1bddf1187be692e79c5ffeab891132dfb0f236ed36a43c7ed39f1165ee20191"
 
 [[package]]
-name = "venial"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6816bc32f30bf8dd1b3adb04de8406c7bf187d2f923bd9e4c0b99365d012613f"
-dependencies = [
- "proc-macro2",
- "quote",
-]
-
-[[package]]
 name = "version_check"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
-
-[[package]]
-name = "wasi"
-version = "0.11.0+wasi-snapshot-preview1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c8d87e72b64a3b4db28d11ce29237c246188f4f51057d65a7eab63b7987e423"
 
 [[package]]
 name = "wide"
