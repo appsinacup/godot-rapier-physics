@@ -3,12 +3,12 @@ use crate::{
         handle::{invalid_handle, Handle},
         shape::shape_destroy,
     },
-    servers::rapier_physics_singleton_2d::physics_singleton,
+    servers::rapier_physics_singleton_2d::bodies_singleton,
 };
 use godot::{engine::physics_server_2d::ShapeType, prelude::*};
-use std::collections::HashMap;
+use std::{any::Any, collections::HashMap};
 
-pub trait IRapierShape2D {
+pub trait IRapierShape2D: Any {
     fn get_base(&self) -> &RapierShapeBase2D;
     fn get_type(&self) -> ShapeType;
     fn get_moment_of_inertia(&self, mass: f32, scale: Vector2) -> f32;
@@ -47,7 +47,7 @@ impl RapierShapeBase2D {
         self.aabb = aabb;
         self.configured = true;
         for (owner, _) in self.owners.iter() {
-            let lock = physics_singleton().lock().unwrap();
+            let lock = bodies_singleton().lock().unwrap();
             let owner = lock.collision_objects.get(owner);
             if let Some(owner) = owner {
                 owner.get_base().shape_changed(self.rid);
@@ -76,6 +76,10 @@ impl RapierShapeBase2D {
                 self.owners.remove(&owner);
             }
         }
+    }
+
+    pub fn get_owners(&self) -> &HashMap<Rid, i32> {
+        &self.owners
     }
 
     pub fn is_owner(&self, owner: Rid) -> bool {

@@ -56,19 +56,18 @@ impl ContactPointInfo {
     }
 }
 
-type ActiveBodyCallback = Option<fn(world_handle: Handle, active_body_info: &ActiveBodyInfo)>;
+type ActiveBodyCallback = fn(active_body_info: &ActiveBodyInfo);
 
-type CollisionEventCallback = Option<fn(world_handle: Handle, event_info: &CollisionEventInfo)>;
+type CollisionEventCallback = fn(world_handle: Handle, event_info: &CollisionEventInfo);
 
 type ContactForceEventCallback =
-    Option<fn(world_handle: Handle, event_info: &ContactForceEventInfo) -> bool>;
-type ContactPointCallback = Option<
+    fn(world_handle: Handle, event_info: &ContactForceEventInfo) -> bool;
+type ContactPointCallback = 
     fn(
         world_handle: Handle,
         contact_info: &ContactPointInfo,
         event_info: &ContactForceEventInfo,
-    ) -> bool,
->;
+    ) -> bool;
 
 pub struct CollisionEventInfo {
     collider1: Handle,
@@ -236,7 +235,7 @@ impl PhysicsWorld {
                 active_body_info.body_handle = rigid_body_handle_to_handle(*handle);
                 active_body_info.body_user_data = self.get_rigid_body_user_data(*handle);
 
-                callback(self.handle, &active_body_info);
+                callback(&active_body_info);
             }
             for handle in self.island_manager.active_kinematic_bodies() {
                 // Send the active body event.

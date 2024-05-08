@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use godot::builtin::{Rid, Vector2};
 
-use crate::rapier2d::handle::HandleDouble;
+use crate::rapier2d::handle::{invalid_handle_double, HandleDouble};
 
 
 pub struct RapierFluid2D {
@@ -18,14 +18,14 @@ pub struct RapierFluid2D {
 }
 
 impl RapierFluid2D {
-    fn new(rid: Rid) -> Self {
+    pub fn new(rid: Rid) -> Self {
         Self {
             rid: rid,
             enabled: true,
             density: 1.0,
-            space: None,
+            space: Rid::Invalid,
             effects: Vec::new(),
-            fluid_handle: None,
+            fluid_handle: invalid_handle_double(),
             points: Vec::new(),
             velocities: Vec::new(),
             accelerations: Vec::new(),
@@ -90,11 +90,11 @@ impl RapierFluid2D {
     }
 
     pub fn set_space(&mut self, space: Rid) {
-        self.space = Some(space);
+        self.space = space;
     }
 
-    pub fn get_space(&self) -> Option<Rid> {
-        self.space.as_ref().map(|s| s.clone())
+    pub fn get_space(&self) -> Rid {
+        self.space
     }
 }
 

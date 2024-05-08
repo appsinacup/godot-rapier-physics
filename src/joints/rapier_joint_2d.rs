@@ -1,17 +1,25 @@
+use std::any::Any;
+
 use crate::rapier2d::{
     handle::Handle,
     joint::{joint_change_disable_collision, joint_destroy},
 };
 use godot::{builtin::Rid, engine::physics_server_2d};
 
-pub trait IRapierJoint2D {
+use super::{rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D, rapier_groove_joint_2d::RapierGrooveJoint2D, rapier_pin_joint_2d::RapierPinJoint2D};
+
+pub trait IRapierJoint2D: Any {
     fn get_base(&self) -> &RapierJointBase2D;
     fn get_type(&self) -> physics_server_2d::JointType;
+    fn get_damped_spring(&self) -> Option<&RapierDampedSpringJoint2D>;
+    fn get_pin(&self) -> Option<&RapierPinJoint2D>;
+    fn get_groove(&self) -> Option<&RapierGrooveJoint2D>;
+    fn get_mut_damped_spring(&mut self) -> Option<&mut RapierDampedSpringJoint2D>;
+    fn get_mut_pin(&mut self) -> Option<&mut RapierPinJoint2D>;
+    fn get_mut_groove(&mut self) -> Option<&mut RapierGrooveJoint2D>;
 }
 
 pub struct RapierJointBase2D {
-    bias: f32,
-    max_bias: f32,
     max_force: f32,
     rid: Rid,
     handle: Handle,
@@ -22,8 +30,6 @@ pub struct RapierJointBase2D {
 impl RapierJointBase2D {
     pub fn new(space_handle: Handle, handle: Handle, rid: Rid) -> Self {
         Self {
-            bias: 0.0,
-            max_bias: 3.40282e38,
             max_force: 3.40282e38,
             rid: rid,
             handle: handle,
@@ -50,22 +56,6 @@ impl RapierJointBase2D {
 
     pub fn get_max_force(&self) -> f32 {
         self.max_force
-    }
-
-    pub fn set_bias(&mut self, bias: f32) {
-        self.bias = bias;
-    }
-
-    pub fn get_bias(&self) -> f32 {
-        self.bias
-    }
-
-    pub fn set_max_bias(&mut self, bias: f32) {
-        self.max_bias = bias;
-    }
-
-    pub fn get_max_bias(&self) -> f32 {
-        self.max_bias
     }
 
     pub fn get_rid(&self) -> Rid {
@@ -95,8 +85,6 @@ impl RapierJointBase2D {
     pub fn copy_settings_from(&mut self, joint: RapierJointBase2D) {
         self.set_rid(joint.get_rid());
         self.set_max_force(joint.get_max_force());
-        self.set_bias(joint.get_bias());
-        self.set_max_bias(joint.get_max_bias());
         self.disable_collisions_between_bodies(joint.is_disabled_collisions_between_bodies());
     }
 }

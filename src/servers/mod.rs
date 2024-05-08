@@ -3,7 +3,6 @@ use godot::{engine::PhysicsServer2DManager, prelude::*};
 use crate::servers::rapier_physics_server_factory_2d::*;
 use crate::servers::rapier_project_settings::RapierProjectSettings;
 
-pub mod rapier_body_utils_2d;
 pub mod rapier_physics_server_2d;
 pub mod rapier_physics_server_factory_2d;
 pub mod rapier_physics_singleton_2d;
