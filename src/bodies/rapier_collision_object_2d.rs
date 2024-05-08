@@ -1,3 +1,5 @@
+use std::any::Any;
+
 use crate::{
     rapier2d::{
         body::{body_get_angle, body_get_position, body_set_transform},
@@ -7,19 +9,17 @@ use crate::{
         user_data::UserData,
         vector::Vector,
     },
-    servers::rapier_physics_singleton_2d::physics_singleton,
     shapes::rapier_shape_2d::IRapierShape2D,
     spaces::rapier_space_2d::RapierSpace2D,
 };
 use godot::{
     builtin::{real, Rid, Transform2D, Vector2},
-    engine::{native::ObjectId, physics_server_2d},
-    obj::InstanceId,
+    engine::{physics_server_2d},
 };
 
 use super::{rapier_area_2d::RapierArea2D, rapier_body_2d::RapierBody2D};
 
-pub trait IRapierCollisionObject2D {
+pub trait IRapierCollisionObject2D: Any {
     fn get_base(&self) -> &RapierCollisionObject2D;
     fn get_mut_base(&mut self) -> &mut RapierCollisionObject2D;
     fn get_body(&self) -> Option<&RapierBody2D>;
@@ -29,10 +29,25 @@ pub trait IRapierCollisionObject2D {
     fn set_space(&mut self, space: Rid);
     fn add_shape(
         &mut self,
-        p_shape: &Box<dyn IRapierShape2D>,
+        p_shape: Rid,
         p_transform: Transform2D,
         p_disabled: bool,
     );
+    fn set_shape(
+        &mut self,
+        shape_idx: i32,
+        p_shape: Rid,
+    );
+    fn set_shape_transform(&mut self, shape_idx: i32, transform: Transform2D);
+    fn set_shape_disabled(&mut self, shape_idx: i32, disabled: bool);
+    fn get_shape_count(&self) -> i32;
+    fn get_shape(&self, shape_idx: i32) -> Rid;
+    fn get_shape_transform(&self, shape_idx: i32) -> Transform2D;
+    fn remove_shape(&mut self, shape_idx: i32);
+    fn set_instance_id(&mut self, id: u64);
+    fn get_instance_id(&self) -> u64;
+    fn set_canvas_instance_id(&mut self, id: u64);
+    fn get_canvas_instance_id(&self);
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -553,19 +568,19 @@ impl RapierCollisionObject2D {
         self.collision_priority
     }
 
-    pub fn remove_shape(&mut self, shape: Rid) {
+    pub fn remove_shape_rid(&mut self, shape: Rid) {
         // remove a shape, all the times it appears
         let mut i = 0;
         while i < self.shapes.len() {
-            if self.shapes[i].shape == p_shape {
-                self.remove_shape(i);
+            if self.shapes[i].shape == shape {
+                self.remove_shape_idx(i);
             } else {
                 i += 1;
             }
         }
     }
 
-    pub fn remove_shape(&mut self, p_index: usize) {
+    pub fn remove_shape_idx(&mut self, p_index: usize) {
         // remove anything from shape to be erased to end, so subindices don't change
         assert!(p_index < self.shapes.len());
 

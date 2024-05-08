@@ -34,3 +34,9 @@ parry2d-f64 = {git = "https://github.com/dimforge/parry", branch = "internal-edg
 [profile.release]
 codegen-units = 1
 lto = "fat"
+
+[profile.dev]
+split-debuginfo = "unpacked"
+
+[profile.dev.build-override]
+opt-level = 3

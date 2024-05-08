@@ -1,12 +1,15 @@
 use crate::joints::rapier_joint_2d::IRapierJoint2D;
 use crate::joints::rapier_joint_2d::RapierJointBase2D;
-use crate::rapier2d::handle::invalid_handle;
 use crate::rapier2d::joint::joint_change_revolute_params;
 use crate::rapier2d::joint::joint_create_revolute;
 use crate::rapier2d::vector::Vector;
-use crate::servers::rapier_physics_singleton_2d::physics_singleton;
+use crate::servers::rapier_physics_singleton_2d::bodies_singleton;
+use crate::servers::rapier_physics_singleton_2d::spaces_singleton;
 use godot::builtin::Vector2;
 use godot::{builtin::Rid, engine::physics_server_2d};
+
+use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
+use super::rapier_groove_joint_2d::RapierGrooveJoint2D;
 pub struct RapierPinJoint2D {
     angular_limit_lower: f32,
     angular_limit_upper: f32,
@@ -18,35 +21,38 @@ pub struct RapierPinJoint2D {
 
 impl RapierPinJoint2D {
     pub fn new(rid: Rid, pos: Vector2, body_a: Rid, body_b: Rid) -> Self {
-        let lock = physics_singleton().lock().unwrap();
-        let body_a = lock.collision_objects.get(&body_a);
-        assert!(body_a.is_some());
-        let body_a = body_a.unwrap();
-        let body_a_handle = body_a.get_base().get_body_handle();
-        let anchor_a = body_a.get_base().get_inv_transform().basis_xform(pos);
-        let space_a = lock.spaces.get(&body_a.get_base().get_space());
-        assert!(space_a.is_some());
-        let space_handle_a = space_a.unwrap().get_handle();
-        let mut space_handle_b = invalid_handle();
-        let mut body_b_handle = invalid_handle();
-        let mut anchor_b = pos;
-        if body_b.is_valid() {
+        let body_a_handle;
+        let body_b_handle;
+        let space_rid;
+        let space_handle;
+        let rapier_anchor_a;
+        let rapier_anchor_b;
+        {
+            let lock = bodies_singleton().lock().unwrap();
+            let body_a = lock.collision_objects.get(&body_a);
+            assert!(body_a.is_some());
+            let body_a = body_a.unwrap();
+            body_a_handle = body_a.get_base().get_body_handle();
+            let anchor_a = body_a.get_base().get_inv_transform().basis_xform(pos);
+            rapier_anchor_a = Vector::new(anchor_a.x, anchor_a.y);
+            let mut anchor_b = pos;
             let body_b = lock.collision_objects.get(&body_b);
-            if let Some(body_b) = body_b {
-                body_b_handle = body_b.get_base().get_body_handle();
-                anchor_b = body_b.get_base().get_inv_transform().basis_xform(pos);
-                let space_b = body_b.get_base().get_space();
-                if let Some(space_b) = lock.spaces.get(&space_b) {
-                    space_handle_b = space_b.get_handle();
-                }
-            }
+            assert!(body_b.is_some());
+            let body_b = body_b.unwrap();
+            body_b_handle = body_b.get_base().get_body_handle();
+            anchor_b = body_b.get_base().get_inv_transform().basis_xform(pos);
+            rapier_anchor_b = Vector::new(anchor_b.x, anchor_b.y);
+            space_rid = body_a.get_base().get_space();
         }
-        assert!(space_handle_a != space_handle_b);
+        {
+            let lock = spaces_singleton().lock().unwrap();
+            let space_a = lock.spaces.get(&space_rid);
+            assert!(space_a.is_some());
+            space_handle = space_a.unwrap().get_handle();
+        }
 
-        let rapier_anchor_a = Vector::new(anchor_a.x, anchor_a.y);
-        let rapier_anchor_b = Vector::new(anchor_b.x, anchor_b.y);
         let handle = joint_create_revolute(
-            space_handle_a,
+            space_handle,
             body_a_handle,
             body_b_handle,
             &rapier_anchor_a,
@@ -64,7 +70,7 @@ impl RapierPinJoint2D {
             motor_target_velocity: 0.0,
             motor_enabled: false,
             angular_limit_enabled: false,
-            base: RapierJointBase2D::new(space_handle_a, handle, rid),
+            base: RapierJointBase2D::new(space_handle, handle, rid),
         }
     }
 
@@ -147,5 +153,25 @@ impl IRapierJoint2D for RapierPinJoint2D {
     }
     fn get_type(&self) -> physics_server_2d::JointType {
         physics_server_2d::JointType::PIN
+    }
+
+    fn get_damped_spring(&self) -> Option<&RapierDampedSpringJoint2D> {
+        None
+    }
+    fn get_pin(&self) -> Option<&RapierPinJoint2D> {
+        Some(self)
+    }
+    fn get_groove(&self) -> Option<&RapierGrooveJoint2D> {
+        None
+    }
+
+    fn get_mut_damped_spring(&mut self) -> Option<&mut RapierDampedSpringJoint2D> {
+        None
+    }
+    fn get_mut_pin(&mut self) -> Option<&mut RapierPinJoint2D> {
+        Some(self)
+    }
+    fn get_mut_groove(&mut self) -> Option<&mut RapierGrooveJoint2D> {
+        None
     }
 }

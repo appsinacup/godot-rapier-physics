@@ -35,6 +35,15 @@ pub struct PointHitInfo {
     pub user_data: UserData,
 }
 
+impl Default for PointHitInfo {
+    fn default() -> Self {
+        Self {
+            collider: invalid_collider(),
+            user_data: UserData::default(),
+        }
+    }
+}
+
 pub struct ShapeCastResult {
     pub collided: bool,
     pub toi: Real,
@@ -91,7 +100,7 @@ pub struct QueryExcludedInfo {
     // Pointer to array of objects
     pub query_exclude: *mut Handle,
     // Size of query_exclude array
-    pub query_exclude_size: u32,
+    pub query_exclude_size: usize,
     pub query_exclude_body: i64,
 }
 

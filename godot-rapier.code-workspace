@@ -41,7 +41,8 @@
 			"initializer_list": "cpp",
 			"queue": "cpp",
 			"span": "cpp",
-			"stack": "cpp"
+			"stack": "cpp",
+			"__node_handle": "cpp"
 		}
 	},
 	"launch": {

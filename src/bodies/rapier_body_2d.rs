@@ -332,7 +332,7 @@ impl RapierBody2D {
 
     pub fn call_queries(&self) {}
 
-    fn get_aabb(&self) -> Rect2 {}
+    pub fn get_aabb(&self) -> Rect2 {}
 }
 
 impl IRapierCollisionObject2D for RapierBody2D {
