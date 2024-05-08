@@ -130,28 +130,17 @@ impl RapierSpace2D {
         world_settings.particle_radius = RapierProjectSettings::get_fluid_particle_radius() as real;
         world_settings.smoothing_factor =
             RapierProjectSettings::get_fluid_smoothing_factor() as real;
-        let handle = world_create(&world_settings);
+        let handle = world_create(&world_settings,
+            RapierSpace2D::active_body_callback,
+            RapierSpace2D::collision_filter_body_callback,
+            RapierSpace2D::collision_filter_sensor_callback,
+            RapierSpace2D::collision_modify_contacts_callback,
+            RapierSpace2D::collision_event_callback,
+            RapierSpace2D::contact_force_event_callback,
+            RapierSpace2D::contact_point_callback,
+        );
         assert!(handle.is_valid());
 
-        world_set_active_body_callback(handle, Some(RapierSpace2D::active_body_callback));
-        world_set_body_collision_filter_callback(
-            handle,
-            Some(RapierSpace2D::collision_filter_body_callback),
-        );
-        world_set_sensor_collision_filter_callback(
-            handle,
-            Some(RapierSpace2D::collision_filter_sensor_callback),
-        );
-        world_set_modify_contacts_callback(
-            handle,
-            Some(RapierSpace2D::collision_modify_contacts_callback),
-        );
-        world_set_collision_event_callback(handle, Some(RapierSpace2D::collision_event_callback));
-        world_set_contact_force_event_callback(
-            handle,
-            Some(RapierSpace2D::contact_force_event_callback),
-        );
-        world_set_contact_point_callback(handle, Some(RapierSpace2D::contact_point_callback));
         Self {
             direct_access: Some(direct_access.upcast()),
             rid,
