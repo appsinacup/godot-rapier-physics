@@ -10,6 +10,7 @@ use super::{rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D, rapier_gro
 
 pub trait IRapierJoint2D: Any {
     fn get_base(&self) -> &RapierJointBase2D;
+    fn get_mut_base(&mut self) -> &mut RapierJointBase2D;
     fn get_type(&self) -> physics_server_2d::JointType;
     fn get_damped_spring(&self) -> Option<&RapierDampedSpringJoint2D>;
     fn get_pin(&self) -> Option<&RapierPinJoint2D>;
@@ -82,7 +83,7 @@ impl RapierJointBase2D {
         self.disabled_collisions_between_bodies
     }
 
-    pub fn copy_settings_from(&mut self, joint: RapierJointBase2D) {
+    pub fn copy_settings_from(&mut self, joint: &RapierJointBase2D) {
         self.set_rid(joint.get_rid());
         self.set_max_force(joint.get_max_force());
         self.disable_collisions_between_bodies(joint.is_disabled_collisions_between_bodies());

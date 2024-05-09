@@ -44,10 +44,6 @@ pub trait IRapierCollisionObject2D: Any {
     fn get_shape(&self, shape_idx: i32) -> Rid;
     fn get_shape_transform(&self, shape_idx: i32) -> Transform2D;
     fn remove_shape(&mut self, shape_idx: i32);
-    fn set_instance_id(&mut self, id: u64);
-    fn get_instance_id(&self) -> u64;
-    fn set_canvas_instance_id(&mut self, id: u64);
-    fn get_canvas_instance_id(&self);
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]

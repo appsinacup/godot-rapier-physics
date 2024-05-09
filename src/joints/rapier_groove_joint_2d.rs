@@ -89,6 +89,10 @@ impl IRapierJoint2D for RapierGrooveJoint2D {
         &self.base
     }
 
+    fn get_mut_base(&mut self) -> &mut RapierJointBase2D {
+        &mut self.base
+    }
+
     fn get_damped_spring(&self) -> Option<&RapierDampedSpringJoint2D> {
         None
     }

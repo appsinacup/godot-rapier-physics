@@ -18,10 +18,7 @@ use crate::{
         handle::Handle,
         physics_hooks::{CollisionFilterInfo, OneWayDirection},
         physics_world::{
-            world_create, world_set_active_body_callback, world_set_body_collision_filter_callback,
-            world_set_collision_event_callback, world_set_contact_force_event_callback,
-            world_set_contact_point_callback, world_set_modify_contacts_callback,
-            world_set_sensor_collision_filter_callback, ActiveBodyInfo, CollisionEventInfo,
+            world_create, ActiveBodyInfo, CollisionEventInfo,
             ContactForceEventInfo, ContactPointInfo,
         },
         query::{PointHitInfo, QueryExcludedInfo},
@@ -52,12 +49,12 @@ const BODY_MOTION_RECOVER_RATIO: f32 = 0.4;
 pub struct RemovedColliderInfo {
     pub rid: Rid,
     pub instance_id: InstanceId,
-    pub shape_index: u32,
+    pub shape_index: usize,
     pub collision_object_type: CollisionObjectType,
 }
 
 impl RemovedColliderInfo {
-    pub fn new(rid: Rid, instance_id: InstanceId, shape_index: u32, collision_object_type: CollisionObjectType) -> Self{
+    pub fn new(rid: Rid, instance_id: InstanceId, shape_index: usize, collision_object_type: CollisionObjectType) -> Self{
         Self {
             rid,
             instance_id,
@@ -175,9 +172,10 @@ impl RapierSpace2D {
             &active_body_info.body_user_data,
         );
         let lock = bodies_singleton().lock().unwrap();
-        let collision_object = lock.collision_objects.get(&rid);
-        if let Some(collision_object) = collision_object {
-            collision_object.on_marked_active();
+        if let Some(body) = lock.collision_objects.get(&rid) {
+            if let Some(body) = body.get_body() {
+                body.on_marked_active();
+            }
         }
     }
 
@@ -202,7 +200,7 @@ impl RapierSpace2D {
         filter_info: &CollisionFilterInfo,
     ) -> bool {
         let colliders_info = CollidersInfo::default();
-        if (!collision_filter_common_callback(filter_info, colliders_info)) {
+        if (!Self::collision_filter_common_callback(filter_info, &mut colliders_info)) {
             return false;
         }
         let lock = bodies_singleton().lock().unwrap();
@@ -220,12 +218,11 @@ impl RapierSpace2D {
     fn collision_filter_sensor_callback(
         filter_info: &CollisionFilterInfo,
     ) -> bool {
-        let colliders_info = CollidersInfo::default();
-        collision_filter_common_callback(world_handle, filter_info, colliders_info)
+        let mut colliders_info = CollidersInfo::default();
+        Self::collision_filter_common_callback(filter_info, &mut colliders_info)
     }
 
     fn collision_modify_contacts_callback(
-        world_handle: Handle,
         filter_info: &CollisionFilterInfo,
     ) -> OneWayDirection {
         // Implement callback logic
@@ -265,6 +262,7 @@ impl RapierSpace2D {
         collider: &UserData,
         handle_excluded_info: &QueryExcludedInfo,
     ) -> bool {
+        false
     }
 
     pub fn _get_object_instance_hack(instance_id: u64) -> *mut Gd<Object> {
@@ -315,7 +313,7 @@ impl RapierSpace2D {
     pub fn get_removed_collider_info(
         &mut self,
         handle: Handle,
-    ) -> Option<RemovedColliderInfo> {
+    ) -> Option<&RemovedColliderInfo> {
         self.removed_colliders.get(handle)
     }
 
@@ -402,23 +400,21 @@ impl RapierSpace2D {
                 }
             }
         }
-        self.active_objects = world_get_active_objects_count(self.handle);
+        self.active_objects = world_get_active_objects_count(self.handle) as i32;
     }
 
     pub fn call_queries(&mut self) {
-        for body_rid in self.state_query_list {
+        for body_rid in &self.state_query_list {
             let lock = bodies_singleton().lock().unwrap();
-            let body = lock.collision_objects.get(&body_rid);
-            if let Some(body) = body {
+            if let Some(body) = lock.collision_objects.get(body_rid) {
                 if let Some(body) = body.get_body() {
                     body.call_queries();
                 }
             }
         }
-        for area_rid in self.monitor_query_list {
+        for area_rid in &self.monitor_query_list {
             let lock = bodies_singleton().lock().unwrap();
-            let area = lock.collision_objects.get(&area_rid);
-            if let Some(area) = area {
+            if let Some(area) = lock.collision_objects.get(area_rid) {
                 if let Some(area) = area.get_area() {
                     area.call_queries();
                 }
