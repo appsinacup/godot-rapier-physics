@@ -151,6 +151,9 @@ impl IRapierJoint2D for RapierPinJoint2D {
     fn get_base(&self) -> &RapierJointBase2D {
         &self.base
     }
+    fn get_mut_base(&mut self) -> &mut RapierJointBase2D {
+        &mut self.base
+    }
     fn get_type(&self) -> physics_server_2d::JointType {
         physics_server_2d::JointType::PIN
     }

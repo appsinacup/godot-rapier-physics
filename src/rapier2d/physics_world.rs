@@ -79,37 +79,11 @@ pub struct CollisionEventInfo {
     is_removed: bool,
 }
 
-impl CollisionEventInfo {
-    fn new() -> CollisionEventInfo {
-        CollisionEventInfo {
-            collider1: invalid_handle(),
-            collider2: invalid_handle(),
-            user_data1: invalid_user_data(),
-            user_data2: invalid_user_data(),
-            is_sensor: false,
-            is_started: false,
-            is_removed: false,
-            is_stopped: false,
-        }
-    }
-}
-
 pub struct ContactForceEventInfo {
     collider1: Handle,
     collider2: Handle,
     user_data1: UserData,
     user_data2: UserData,
-}
-
-impl ContactForceEventInfo {
-    fn new() -> ContactForceEventInfo {
-        ContactForceEventInfo {
-            collider1: invalid_handle(),
-            collider2: invalid_handle(),
-            user_data1: invalid_user_data(),
-            user_data2: invalid_user_data(),
-        }
-    }
 }
 
 //#[cfg_attr(feature = "serde-serialize", derive(Serialize, Deserialize))]
@@ -228,162 +202,157 @@ impl PhysicsWorld {
             &physics_hooks,
             &event_handler,
         );
-        self.fluids_pipeline.step(
-            &liquid_gravity,
-            integration_parameters.dt,
-            &self.collider_set,
-            &mut self.rigid_body_set,
-        );
-
-        if self.active_body_callback.is_some() {
-            let callback = self.active_body_callback.unwrap();
-            for handle in self.island_manager.active_dynamic_bodies() {
-                // Send the active body event.
-                let mut active_body_info = ActiveBodyInfo::new();
-                active_body_info.body_handle = rigid_body_handle_to_handle(*handle);
-                active_body_info.body_user_data = self.get_rigid_body_user_data(*handle);
-
-                callback(&active_body_info);
-            }
-            for handle in self.island_manager.active_kinematic_bodies() {
-                // Send the active body event.
-                let mut active_body_info = ActiveBodyInfo::new();
-                active_body_info.body_handle = rigid_body_handle_to_handle(*handle);
-                active_body_info.body_user_data = self.get_rigid_body_user_data(*handle);
-
-                callback(self.handle, &active_body_info);
-            }
+        if self.fluids_pipeline.liquid_world.fluids().len() > 0 {
+            self.fluids_pipeline.step(
+                &liquid_gravity,
+                integration_parameters.dt,
+                &self.collider_set,
+                &mut self.rigid_body_set,
+            );
         }
 
-        if self.collision_event_callback.is_some() {
-            let callback = self.collision_event_callback.unwrap();
-            while let Ok((collision_event, _contact_pair)) = collision_recv.try_recv() {
-                let handle1 = collision_event.collider1();
-                let handle2 = collision_event.collider2();
+        for handle in self.island_manager.active_dynamic_bodies() {
+            // Send the active body event.
+            let active_body_info = ActiveBodyInfo{
+                body_handle: rigid_body_handle_to_handle(*handle),
+                body_user_data: self.get_rigid_body_user_data(*handle),
+            };
 
-                // Handle the collision event.
-                let mut event_info = CollisionEventInfo::new();
-                event_info.is_sensor = collision_event.sensor();
-                event_info.is_removed = collision_event.removed();
-                event_info.is_started = collision_event.started();
-                event_info.is_stopped = collision_event.stopped();
-                event_info.collider1 = collider_handle_to_handle(handle1);
-                event_info.collider2 = collider_handle_to_handle(handle2);
-                event_info.user_data1 = self.get_collider_user_data(handle1);
-                event_info.user_data2 = self.get_collider_user_data(handle2);
+            (self.active_body_callback)(&active_body_info);
+        }
+        for handle in self.island_manager.active_kinematic_bodies() {
+            // Send the active body event.
+            let active_body_info = ActiveBodyInfo{
+                body_handle: rigid_body_handle_to_handle(*handle),
+                body_user_data: self.get_rigid_body_user_data(*handle),
+            };
 
-                callback(self.handle, &event_info);
-            }
+            (self.active_body_callback)(&active_body_info);
         }
 
-        if self.contact_force_event_callback.is_some() {
-            let callback = self.contact_force_event_callback.unwrap();
-            while let Ok((contact_force_event, contact_pair)) = contact_force_recv.try_recv() {
-                let collider1 = self
-                    .collider_set
-                    .get(contact_force_event.collider1)
-                    .unwrap();
-                let collider2 = self
-                    .collider_set
-                    .get(contact_force_event.collider2)
-                    .unwrap();
+        while let Ok((collision_event, _contact_pair)) = collision_recv.try_recv() {
+            let handle1 = collision_event.collider1();
+            let handle2 = collision_event.collider2();
 
-                // Handle the contact force event.
-                let mut event_info = ContactForceEventInfo::new();
-                event_info.collider1 = collider_handle_to_handle(contact_force_event.collider1);
-                event_info.collider2 = collider_handle_to_handle(contact_force_event.collider2);
-                event_info.user_data1 = UserData::new(collider1.user_data);
-                event_info.user_data2 = UserData::new(collider2.user_data);
+            // Handle the collision event.
+            let event_info = CollisionEventInfo{
+                is_sensor: collision_event.sensor(),
+                is_removed: collision_event.removed(),
+                is_started: collision_event.started(),
+                is_stopped: collision_event.stopped(),
+                collider1: collider_handle_to_handle(handle1),
+                collider2: collider_handle_to_handle(handle2),
+                user_data1: self.get_collider_user_data(handle1),
+                user_data2: self.get_collider_user_data(handle2),
+            };
 
-                let mut send_contact_points = callback(self.handle, &event_info);
+            (self.collision_event_callback)(self.handle, &event_info);
+        }
 
-                if send_contact_points && self.contact_point_callback.is_some() {
-                    let contact_callback = self.contact_point_callback.unwrap();
+        while let Ok((contact_force_event, contact_pair)) = contact_force_recv.try_recv() {
+            let collider1 = self
+                .collider_set
+                .get(contact_force_event.collider1)
+                .unwrap();
+            let collider2 = self
+                .collider_set
+                .get(contact_force_event.collider2)
+                .unwrap();
 
-                    let body1: &RigidBody = self.get_collider_rigid_body(collider1).unwrap();
-                    let body2: &RigidBody = self.get_collider_rigid_body(collider2).unwrap();
-                    // Find the contact pair, if it exists, between two colliders
-                    let mut contact_info = ContactPointInfo::new();
+            // Handle the contact force event.
+            let mut event_info = ContactForceEventInfo{
+                collider1: collider_handle_to_handle(contact_force_event.collider1),
+                collider2: collider_handle_to_handle(contact_force_event.collider2),
+                user_data1: UserData::new(collider1.user_data),
+                user_data2: UserData::new(collider2.user_data),
+            };
 
-                    let mut swap = false;
-                    if contact_force_event.collider1 != contact_pair.collider1 {
-                        assert!(contact_force_event.collider1 == contact_pair.collider2);
-                        assert!(contact_force_event.collider2 == contact_pair.collider1);
-                        swap = true;
-                    } else {
-                        assert!(contact_force_event.collider2 == contact_pair.collider2);
-                    }
+            let mut send_contact_points = (self.contact_force_event_callback)(self.handle, &event_info);
 
-                    // We may also read the contact manifolds to access the contact geometry.
-                    for manifold in &contact_pair.manifolds {
-                        let manifold_normal = manifold.data.normal;
-                        contact_info.normal = Vector {
-                            x: manifold_normal.x,
-                            y: manifold_normal.y,
-                        };
+            if send_contact_points {
+                let body1: &RigidBody = self.get_collider_rigid_body(collider1).unwrap();
+                let body2: &RigidBody = self.get_collider_rigid_body(collider2).unwrap();
+                // Find the contact pair, if it exists, between two colliders
+                let mut contact_info = ContactPointInfo::new();
 
-                        // Read the geometric contacts.
-                        for contact_point in &manifold.points {
-                            let collider_pos_1 = collider1.position() * contact_point.local_p1;
-                            let collider_pos_2 = collider2.position() * contact_point.local_p2;
-                            let point_velocity_1 = body1.velocity_at_point(&collider_pos_1);
-                            let point_velocity_2 = body2.velocity_at_point(&collider_pos_2);
+                let mut swap = false;
+                if contact_force_event.collider1 != contact_pair.collider1 {
+                    assert!(contact_force_event.collider1 == contact_pair.collider2);
+                    assert!(contact_force_event.collider2 == contact_pair.collider1);
+                    swap = true;
+                } else {
+                    assert!(contact_force_event.collider2 == contact_pair.collider2);
+                }
 
-                            if swap {
-                                contact_info.pixel_local_pos_1 = vector_meters_to_pixels(&Vector {
-                                    x: collider_pos_2.x,
-                                    y: collider_pos_2.y,
+                // We may also read the contact manifolds to access the contact geometry.
+                for manifold in &contact_pair.manifolds {
+                    let manifold_normal = manifold.data.normal;
+                    contact_info.normal = Vector {
+                        x: manifold_normal.x,
+                        y: manifold_normal.y,
+                    };
+
+                    // Read the geometric contacts.
+                    for contact_point in &manifold.points {
+                        let collider_pos_1 = collider1.position() * contact_point.local_p1;
+                        let collider_pos_2 = collider2.position() * contact_point.local_p2;
+                        let point_velocity_1 = body1.velocity_at_point(&collider_pos_1);
+                        let point_velocity_2 = body2.velocity_at_point(&collider_pos_2);
+
+                        if swap {
+                            contact_info.pixel_local_pos_1 = vector_meters_to_pixels(&Vector {
+                                x: collider_pos_2.x,
+                                y: collider_pos_2.y,
+                            });
+                            contact_info.pixel_local_pos_2 = vector_meters_to_pixels(&Vector {
+                                x: collider_pos_1.x,
+                                y: collider_pos_1.y,
+                            });
+                            contact_info.pixel_velocity_pos_1 =
+                                vector_meters_to_pixels(&Vector {
+                                    x: point_velocity_2.x,
+                                    y: point_velocity_2.y,
                                 });
-                                contact_info.pixel_local_pos_2 = vector_meters_to_pixels(&Vector {
-                                    x: collider_pos_1.x,
-                                    y: collider_pos_1.y,
+                            contact_info.pixel_velocity_pos_2 =
+                                vector_meters_to_pixels(&Vector {
+                                    x: point_velocity_1.x,
+                                    y: point_velocity_1.y,
                                 });
-                                contact_info.pixel_velocity_pos_1 =
-                                    vector_meters_to_pixels(&Vector {
-                                        x: point_velocity_2.x,
-                                        y: point_velocity_2.y,
-                                    });
-                                contact_info.pixel_velocity_pos_2 =
-                                    vector_meters_to_pixels(&Vector {
-                                        x: point_velocity_1.x,
-                                        y: point_velocity_1.y,
-                                    });
-                            } else {
-                                contact_info.pixel_local_pos_1 = vector_meters_to_pixels(&Vector {
-                                    x: collider_pos_1.x,
-                                    y: collider_pos_1.y,
+                        } else {
+                            contact_info.pixel_local_pos_1 = vector_meters_to_pixels(&Vector {
+                                x: collider_pos_1.x,
+                                y: collider_pos_1.y,
+                            });
+                            contact_info.pixel_local_pos_2 = vector_meters_to_pixels(&Vector {
+                                x: collider_pos_2.x,
+                                y: collider_pos_2.y,
+                            });
+                            contact_info.pixel_velocity_pos_1 =
+                                vector_meters_to_pixels(&Vector {
+                                    x: point_velocity_1.x,
+                                    y: point_velocity_1.y,
                                 });
-                                contact_info.pixel_local_pos_2 = vector_meters_to_pixels(&Vector {
-                                    x: collider_pos_2.x,
-                                    y: collider_pos_2.y,
+                            contact_info.pixel_velocity_pos_2 =
+                                vector_meters_to_pixels(&Vector {
+                                    x: point_velocity_2.x,
+                                    y: point_velocity_2.y,
                                 });
-                                contact_info.pixel_velocity_pos_1 =
-                                    vector_meters_to_pixels(&Vector {
-                                        x: point_velocity_1.x,
-                                        y: point_velocity_1.y,
-                                    });
-                                contact_info.pixel_velocity_pos_2 =
-                                    vector_meters_to_pixels(&Vector {
-                                        x: point_velocity_2.x,
-                                        y: point_velocity_2.y,
-                                    });
-                            }
-                            contact_info.pixel_distance = meters_to_pixels(contact_point.dist);
-                            contact_info.pixel_impulse =
-                                meters_to_pixels(contact_point.data.impulse);
-                            contact_info.pixel_tangent_impulse =
-                                meters_to_pixels(contact_point.data.tangent_impulse.x);
-
-                            send_contact_points =
-                                contact_callback(self.handle, &contact_info, &event_info);
-                            if !send_contact_points {
-                                break;
-                            }
                         }
+                        contact_info.pixel_distance = meters_to_pixels(contact_point.dist);
+                        contact_info.pixel_impulse =
+                            meters_to_pixels(contact_point.data.impulse);
+                        contact_info.pixel_tangent_impulse =
+                            meters_to_pixels(contact_point.data.tangent_impulse.x);
 
+                        send_contact_points =
+                            (self.contact_point_callback)(self.handle, &contact_info, &event_info);
                         if !send_contact_points {
                             break;
                         }
+                    }
+
+                    if !send_contact_points {
+                        break;
                     }
                 }
             }
@@ -555,60 +524,6 @@ pub fn world_step(world_handle: Handle, settings: &SimulationSettings) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     physics_world.step(settings);
-}
-
-pub fn world_set_active_body_callback(world_handle: Handle, callback: ActiveBodyCallback) {
-    let mut physics_engine = singleton().lock().unwrap();
-    let physics_world: &mut PhysicsWorld = physics_engine.get_world(world_handle);
-    physics_world.active_body_callback = callback;
-}
-
-pub fn world_set_body_collision_filter_callback(
-    world_handle: Handle,
-    callback: CollisionFilterCallback,
-) {
-    let mut physics_engine = singleton().lock().unwrap();
-    let physics_world = physics_engine.get_world(world_handle);
-    physics_world.collision_filter_body_callback = callback;
-}
-
-pub fn world_set_sensor_collision_filter_callback(
-    world_handle: Handle,
-    callback: CollisionFilterCallback,
-) {
-    let mut physics_engine = singleton().lock().unwrap();
-    let physics_world = physics_engine.get_world(world_handle);
-    physics_world.collision_filter_sensor_callback = callback;
-}
-
-pub fn world_set_modify_contacts_callback(
-    world_handle: Handle,
-    callback: CollisionModifyContactsCallback,
-) {
-    let mut physics_engine = singleton().lock().unwrap();
-    let physics_world = physics_engine.get_world(world_handle);
-    physics_world.collision_modify_contacts_callback = callback;
-}
-
-pub fn world_set_collision_event_callback(world_handle: Handle, callback: CollisionEventCallback) {
-    let mut physics_engine = singleton().lock().unwrap();
-    let physics_world = physics_engine.get_world(world_handle);
-    physics_world.collision_event_callback = callback;
-}
-
-pub fn world_set_contact_force_event_callback(
-    world_handle: Handle,
-    callback: ContactForceEventCallback,
-) {
-    let mut physics_engine = singleton().lock().unwrap();
-    let physics_world = physics_engine.get_world(world_handle);
-    physics_world.contact_force_event_callback = callback;
-}
-
-pub fn world_set_contact_point_callback(world_handle: Handle, callback: ContactPointCallback) {
-    let mut physics_engine = singleton().lock().unwrap();
-    let physics_world = physics_engine.get_world(world_handle);
-    physics_world.contact_point_callback = callback;
 }
 
 pub fn world_get_active_objects_count(world_handle: Handle) -> usize {
