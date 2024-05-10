@@ -25,6 +25,9 @@ impl IRapierShape2D for RapierWorldBoundaryShape2D {
     fn get_base(&self) -> &RapierShapeBase2D {
         &self.base
     }
+    fn get_mut_base(&mut self) -> &mut RapierShapeBase2D {
+        &mut self.base
+    }
     fn get_type(&self) -> ShapeType {
         ShapeType::WORLD_BOUNDARY
     }

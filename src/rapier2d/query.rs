@@ -38,7 +38,7 @@ pub struct PointHitInfo {
 impl Default for PointHitInfo {
     fn default() -> Self {
         Self {
-            collider: invalid_collider(),
+            collider: invalid_handle(),
             user_data: UserData::default(),
         }
     }

@@ -5,7 +5,7 @@ use crate::fluids::fluid_effect_2d::FluidEffect2D;
 use crate::fluids::rapier_fluid_2d::RapierFluid2D;
 use crate::joints::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 use crate::joints::rapier_groove_joint_2d::RapierGrooveJoint2D;
-use crate::joints::rapier_joint_2d::IRapierJoint2D;
+use crate::joints::rapier_joint_2d::{IRapierJoint2D, RapierEmptyJoint2D};
 use crate::joints::rapier_pin_joint_2d::RapierPinJoint2D;
 use crate::rapier2d::query::shape_collide;
 use crate::rapier2d::shape::shape_info_from_body_shape;
@@ -326,21 +326,21 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn area_get_shape_count(&self, area: Rid) -> i32 {
         let mut lock = bodies_singleton().lock().unwrap();
         if let Some(area) = lock.collision_objects.get_mut(&area) {
-            return area.get_shape_count();
+            return area.get_base().get_shape_count();
         }
         -1
     }
     fn area_get_shape(&self, area: Rid, shape_idx: i32) -> Rid {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(area) = lock.collision_objects.get(&area) {
-            return area.get_shape(shape_idx);
+            return area.get_base().get_shape(shape_idx);
         }
         Rid::Invalid
     }
     fn area_get_shape_transform(&self, area: Rid, shape_idx: i32) -> Transform2D {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(area) = lock.collision_objects.get(&area) {
-            return area.get_shape_transform(shape_idx);
+            return area.get_base().get_shape_transform(shape_idx);
         }
         Transform2D::default()
     }
@@ -561,7 +561,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get(&body) {
             if let Some(body) = body.get_body() {
-                return body.get_shape_count();
+                return body.get_base().get_shape_count();
             }
         }
         0
@@ -570,7 +570,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get(&body) {
             if let Some(body) = body.get_body() {
-                return body.get_shape(shape_idx);
+                return body.get_base().get_shape(shape_idx);
             }
         }
         Rid::Invalid
@@ -579,7 +579,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get(&body) {
             if let Some(body) = body.get_body() {
-                return body.get_shape_transform(shape_idx);
+                return body.get_base().get_shape_transform(shape_idx);
             }
         }
         Transform2D::default()
@@ -604,8 +604,22 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             body.get_mut_base().set_shape_as_one_way_collision(shape_idx as usize, enable, margin);
         }
     }
-    fn body_remove_shape(&mut self, body: Rid, shape_idx: i32) {}
-    fn body_clear_shapes(&mut self, body: Rid) {}
+    fn body_remove_shape(&mut self, body: Rid, shape_idx: i32) {
+        let mut lock = bodies_singleton().lock().unwrap();
+        if let Some(body) = lock.collision_objects.get_mut(&body) {
+            if let Some(body) = body.get_mut_body() {
+                body.remove_shape(shape_idx);
+            }
+        }
+    }
+    fn body_clear_shapes(&mut self, body: Rid) {
+        let mut lock = bodies_singleton().lock().unwrap();
+        if let Some(body) = lock.collision_objects.get_mut(&body) {
+            while body.get_base().get_shape_count() > 0 {
+                body.remove_shape(0);
+            }
+        }
+    }
     fn body_attach_object_instance_id(&mut self, body: Rid, id: u64) {
         let mut lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
@@ -847,7 +861,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
                 body.set_constant_torque(torque);
             }
         }
-    }
+    } 
     fn body_get_constant_torque(&self, body: Rid) -> f32 {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get(&body) {
@@ -861,7 +875,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let mut lock: std::sync::MutexGuard<super::rapier_physics_singleton_2d::RapierBodiesSingleton2D> = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                let v = body.get_linear_velocity();
+                let mut v = body.get_linear_velocity();
                 let axis = axis_velocity.normalized();
                 v -= axis * axis.dot(v);
                 v += axis_velocity;
@@ -918,8 +932,8 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         }
         0
     }
-    fn body_set_contacts_reported_depth_threshold(&mut self, body: Rid, threshold: f32) {}
-    fn body_get_contacts_reported_depth_threshold(&self, body: Rid) -> f32 {
+    fn body_set_contacts_reported_depth_threshold(&mut self, _body: Rid, _threshold: f32) {}
+    fn body_get_contacts_reported_depth_threshold(&self, _body: Rid) -> f32 {
         0.0
     }
     fn body_set_omit_force_integration(&mut self, body: Rid, enable: bool) {
@@ -971,8 +985,23 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         result_max: i32,
         result_count: *mut i32,
     ) -> bool {
-        false
+        let mut body_shape_rid = Rid::Invalid;
+        let mut body_transform = Transform2D::IDENTITY;
+        let mut body_shape_transform = Transform2D::IDENTITY;
+        {
+            let lock: std::sync::MutexGuard<super::rapier_physics_singleton_2d::RapierBodiesSingleton2D> = bodies_singleton().lock().unwrap();
+            if let Some(body) = lock.collision_objects.get(&body) {
+                if let Some(body) = body.get_body() {
+                    body_shape_rid = body.get_base().get_shape(body_shape);
+                    body_transform = body.get_base().get_transform();
+                    body_shape_transform = body.get_base().get_shape_transform(body_shape);
+                }
+            }
+        }
+    
+        return self.shape_collide(body_shape_rid, body_transform * body_shape_transform, Vector2::ZERO, shape, shape_xform, motion, results, result_max, result_count);
     }
+
     fn body_set_pickable(&mut self, body: Rid, pickable: bool) {
         let mut lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
@@ -998,13 +1027,38 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         recovery_as_collision: bool,
         result: *mut PhysicsServer2DExtensionMotionResult,
     ) -> bool {
+        let mut body_rid = Rid::Invalid;
+        let mut space_rid = Rid::Invalid;
+        {
+            let lock = bodies_singleton().lock().unwrap();
+            if let Some(body) = lock.collision_objects.get(&body) {
+                body_rid = body.get_base().get_rid();
+                space_rid = body.get_base().get_space();
+            }
+        }
+        {
+            let lock = spaces_singleton().lock().unwrap();
+            if let Some(space) = lock.spaces.get(&space_rid) {
+                let result = &*result;
+                return space.test_body_motion(body_rid, from, motion, margin.into(), collide_separation_ray, recovery_as_collision, result);
+            }
+        }
         false
     }
     fn joint_create(&mut self) -> Rid {
-        rid_from_int64(rid_allocate_id())
+        let rid = rid_from_int64(rid_allocate_id());
+        let mut lock = joints_singleton().lock().unwrap();
+        lock.joints.insert(rid, Box::new(RapierEmptyJoint2D::new(rid)));
+        return rid
     }
-    fn joint_clear(&mut self, joint: Rid) {
-        // TODO
+    fn joint_clear(&mut self, rid: Rid) {
+        let mut lock = joints_singleton().lock().unwrap();
+        let prev_joint = lock.joints.remove(&rid);
+        let mut joint = RapierEmptyJoint2D::new(rid);
+        if let Some(prev_joint) = prev_joint {
+            joint.get_mut_base().copy_settings_from(prev_joint.get_base());
+        }
+        lock.joints.insert(rid, Box::new(joint));
     }
     fn joint_set_param(
         &mut self,
@@ -1049,13 +1103,10 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     }
     fn joint_make_pin(&mut self, rid: Rid, anchor: Vector2, body_a: Rid, body_b: Rid) {
         let mut lock = joints_singleton().lock().unwrap();
-        let mut prev_joint = None;
-        if let Some(joint) = lock.joints.get(&rid) {
-            prev_joint = Some(joint.get_base());
-        }
+        let prev_joint = lock.joints.remove(&rid);
         let mut joint = RapierPinJoint2D::new(rid, anchor, body_a, body_b);
         if let Some(prev_joint) = prev_joint {
-            joint.get_mut_base().copy_settings_from(prev_joint);
+            joint.get_mut_base().copy_settings_from(prev_joint.get_base());
         }
         lock.joints.insert(rid, Box::new(joint));
     }
@@ -1069,14 +1120,10 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         body_b: Rid,
     ) {
         let mut lock = joints_singleton().lock().unwrap();
-        let mut prev_joint = None;
-        let joint = lock.joints.get(&rid);
-        if let Some(joint) = joint {
-            prev_joint = Some(joint.get_base());
-        }
+        let prev_joint = lock.joints.remove(&rid);
         let mut joint = RapierGrooveJoint2D::new(rid, a_groove1, a_groove2, b_anchor, body_a, body_b);
         if let Some(prev_joint) = prev_joint {
-            joint.get_mut_base().copy_settings_from(prev_joint);
+            joint.get_mut_base().copy_settings_from(prev_joint.get_base());
         }
         lock.joints.insert(rid, Box::new(joint));
     }
@@ -1088,15 +1135,11 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         body_a: Rid,
         body_b: Rid,
     ) {
-        let mut prev_joint = None;
         let mut lock = joints_singleton().lock().unwrap();
-        let joint = lock.joints.get(&rid);
-        if let Some(joint) = joint {
-            prev_joint = Some(joint.get_base());
-        }
+        let prev_joint = lock.joints.remove(&rid);
         let mut joint = RapierDampedSpringJoint2D::new(rid, anchor_a, anchor_b, body_a, body_b);
         if let Some(prev_joint) = prev_joint {
-            joint.get_mut_base().copy_settings_from(prev_joint);
+            joint.get_mut_base().copy_settings_from(prev_joint.get_base());
         }
         lock.joints.insert(rid, Box::new(joint));
 

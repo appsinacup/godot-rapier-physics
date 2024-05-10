@@ -10,6 +10,7 @@ use std::{any::Any, collections::HashMap};
 
 pub trait IRapierShape2D: Any {
     fn get_base(&self) -> &RapierShapeBase2D;
+    fn get_mut_base(&mut self) -> &mut RapierShapeBase2D;
     fn get_type(&self) -> ShapeType;
     fn get_moment_of_inertia(&self, mass: f32, scale: Vector2) -> f32;
     fn allows_one_way_collision(&self) -> bool;

@@ -37,7 +37,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
 
     fn get_total_gravity(&self) -> Vector2 {
         let mut space_rid = Rid::Invalid;
-        let gravity_scale = 1.0;
+        let mut gravity_scale = 1.0;
         {
             let lock = bodies_singleton().lock().unwrap();
             if let Some(body) = lock.collision_objects.get(&self.body) {
@@ -455,13 +455,17 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_step(&self) -> f32 {
-        let lock = bodies_singleton().lock().unwrap();
-        if let Some(body) = lock.collision_objects.get(&self.body) {
-            if let Some(body) = body.get_body() {
-                let space = body.get_base().get_space();
-                if let Some(space) = lock.spaces.get(&space) {
-                    return space.get_last_step();
-                }
+        let mut space_rid = Rid::Invalid;
+        {
+            let lock = bodies_singleton().lock().unwrap();
+            if let Some(body) = lock.collision_objects.get(&self.body) {
+                space_rid = body.get_base().get_space();
+            }
+        }
+        {
+            let lock = spaces_singleton().lock().unwrap();
+            if let Some(space) = lock.spaces.get(&space_rid) {
+                return space.get_last_step();
             }
         }
         0.0
@@ -470,10 +474,16 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     fn integrate_forces(&mut self) {}
 
     fn get_space_state(&mut self) -> Option<Gd<PhysicsDirectSpaceState2D>> {
-        let lock = bodies_singleton().lock().unwrap();
-        if let Some(body) = lock.collision_objects.get(&self.body) {
-            let space = body.get_base().get_space();
-            if let Some(space) = lock.spaces.get(&space) {
+        let mut space_rid = Rid::Invalid;
+        {
+            let lock = bodies_singleton().lock().unwrap();
+            if let Some(body) = lock.collision_objects.get(&self.body) {
+                space_rid = body.get_base().get_space();
+            }
+        }
+        {
+            let lock = spaces_singleton().lock().unwrap();
+            if let Some(space) = lock.spaces.get(&space_rid) {
                 return space.get_direct_state();
             }
         }
