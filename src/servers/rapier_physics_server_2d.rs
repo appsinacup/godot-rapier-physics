@@ -333,14 +333,14 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn area_get_shape(&self, area: Rid, shape_idx: i32) -> Rid {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(area) = lock.collision_objects.get(&area) {
-            return area.get_base().get_shape(shape_idx);
+            return area.get_base().get_shape(shape_idx as usize);
         }
         Rid::Invalid
     }
     fn area_get_shape_transform(&self, area: Rid, shape_idx: i32) -> Transform2D {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(area) = lock.collision_objects.get(&area) {
-            return area.get_base().get_shape_transform(shape_idx);
+            return area.get_base().get_shape_transform(shape_idx as usize);
         }
         Transform2D::default()
     }
@@ -353,7 +353,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn area_clear_shapes(&mut self, area: Rid) {
         let mut lock = bodies_singleton().lock().unwrap();
         if let Some(area) = lock.collision_objects.get_mut(&area) {
-            while area.get_shape_count() > 0 {
+            while area.get_base().get_shape_count() > 0 {
                 area.remove_shape(0);
             }
         }
@@ -570,7 +570,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get(&body) {
             if let Some(body) = body.get_body() {
-                return body.get_base().get_shape(shape_idx);
+                return body.get_base().get_shape(shape_idx as usize);
             }
         }
         Rid::Invalid
@@ -579,7 +579,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get(&body) {
             if let Some(body) = body.get_body() {
-                return body.get_base().get_shape_transform(shape_idx);
+                return body.get_base().get_shape_transform(shape_idx as usize);
             }
         }
         Transform2D::default()
@@ -992,9 +992,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             let lock: std::sync::MutexGuard<super::rapier_physics_singleton_2d::RapierBodiesSingleton2D> = bodies_singleton().lock().unwrap();
             if let Some(body) = lock.collision_objects.get(&body) {
                 if let Some(body) = body.get_body() {
-                    body_shape_rid = body.get_base().get_shape(body_shape);
+                    body_shape_rid = body.get_base().get_shape(body_shape as usize);
                     body_transform = body.get_base().get_transform();
-                    body_shape_transform = body.get_base().get_shape_transform(body_shape);
+                    body_shape_transform = body.get_base().get_shape_transform(body_shape as usize);
                 }
             }
         }
@@ -1252,7 +1252,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         if let Some(body) = body {
             body.set_space(Rid::Invalid);
     
-            while body.get_shape_count() > 0 {
+            while body.get_base().get_shape_count() > 0 {
                 body.remove_shape_idx(0);
             }
             return;

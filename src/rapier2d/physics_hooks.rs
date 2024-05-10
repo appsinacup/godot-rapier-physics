@@ -11,6 +11,18 @@ pub struct OneWayDirection {
     pub last_timestep: Real,
 }
 
+impl OneWayDirection {
+    pub fn default() -> OneWayDirection {
+        OneWayDirection {
+            body1: false,
+            body2: false,
+            pixel_body1_margin: 0.0,
+            pixel_body2_margin: 0.0,
+            last_timestep: 0.001,
+        }
+    }
+}
+
 pub type CollisionFilterCallback =
     fn(filter_info: &CollisionFilterInfo) -> bool;
 pub type CollisionModifyContactsCallback =

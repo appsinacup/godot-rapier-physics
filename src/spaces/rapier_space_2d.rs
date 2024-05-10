@@ -1,5 +1,6 @@
 use crate::bodies;
 use crate::bodies::rapier_body_2d::RapierBody2D;
+use crate::bodies::rapier_collision_object_2d::IRapierCollisionObject2D;
 use crate::rapier2d::physics_world::{world_get_active_objects_count, world_step};
 use crate::rapier2d::query::{default_query_excluded_info, intersect_aabb, shapes_contact, ContactResult};
 use crate::rapier2d::settings::SimulationSettings;
@@ -39,6 +40,7 @@ use godot::{
 use std::cmp::max;
 use std::collections::HashMap;
 use std::f32::EPSILON;
+use std::mem::swap;
 
 const TEST_MOTION_MARGIN: f64 = 1e-4;
 
@@ -81,7 +83,7 @@ pub struct RapierSpace2D {
     direct_access: Option<Gd<PhysicsDirectSpaceState2D>>,
     rid: Rid,
     pub handle: Handle,
-    removed_colliders: HashMap<u32, RemovedColliderInfo>,
+    removed_colliders: HashMap<Handle, RemovedColliderInfo>,
     active_list: Vec<Rid>,
     mass_properties_update_list: Vec<Rid>,
     gravity_update_list: Vec<Rid>,
@@ -199,17 +201,21 @@ impl RapierSpace2D {
     fn collision_filter_body_callback(
         filter_info: &CollisionFilterInfo,
     ) -> bool {
-        let colliders_info = CollidersInfo::default();
+        let mut colliders_info = CollidersInfo::default();
         if (!Self::collision_filter_common_callback(filter_info, &mut colliders_info)) {
             return false;
         }
         let lock = bodies_singleton().lock().unwrap();
         if let Some(body1) = lock.collision_objects.get(&colliders_info.object1) {
-            if let Some(body2) = lock.collision_objects.get(&colliders_info.object2) {
-                if (body1.get_base().has_exception(body2.get_rid()) || body2.has_exception(body1.get_rid())) {
-                    return false;
-                }
+            if let Some(body1) = body1.get_body() {
+                if let Some(body2) = lock.collision_objects.get(&colliders_info.object2) {
+                    if let Some(body2) = body2.get_body() {
+                        if body1.has_exception(body2.get_base().get_rid()) || body2.has_exception(body1.get_base().get_rid()) {
+                            return false;
+                        }
+                    }
             }
+        }
         }
     
         return true;
@@ -225,26 +231,312 @@ impl RapierSpace2D {
     fn collision_modify_contacts_callback(
         filter_info: &CollisionFilterInfo,
     ) -> OneWayDirection {
-        // Implement callback logic
-        OneWayDirection {
-            body1: false,
-            body2: false,
-            pixel_body1_margin: 0.0,
-            pixel_body2_margin: 0.0,
-            last_timestep: 0.0,
+        let mut result = OneWayDirection::default();
+        
+        let lock = bodies_singleton().lock().unwrap();
+        let (object1, shape1) =
+            RapierCollisionObject2D::get_collider_user_data(&filter_info.user_data1);
+        let (object2, shape2) =
+            RapierCollisionObject2D::get_collider_user_data(&filter_info.user_data2);
+        if let Some(collision_object_1) = lock.collision_objects.get(&object1) {
+            if let Some(collision_object_2) = lock.collision_objects.get(&object2) {
+                if collision_object_1.get_base().interacts_with(collision_object_2.get_base()) {
+                    if !collision_object_1.get_base().is_shape_disabled(shape1)
+                        && !collision_object_2.get_base().is_shape_disabled(shape2)
+                    {
+                        result.body1 = collision_object_1.get_base().is_shape_set_as_one_way_collision(shape1);
+                        result.pixel_body1_margin =
+                            collision_object_1.get_base().get_shape_one_way_collision_margin(shape1);
+                        result.body2 = collision_object_2.get_base().is_shape_set_as_one_way_collision(shape2);
+                        result.pixel_body2_margin =
+                            collision_object_2.get_base().get_shape_one_way_collision_margin(shape2);
+                        if let Some(body1) = collision_object_1.get_body() {
+                            if let Some(body2) = collision_object_2.get_body() {
+                                let static_linear_velocity1 = body1.get_static_linear_velocity();
+                                let static_linear_velocity2 = body2.get_static_linear_velocity();
+                                if static_linear_velocity1 != Vector2::default() {
+                                    body2.to_add_static_constant_linear_velocity(static_linear_velocity1);
+                                }
+                                if static_linear_velocity2 != Vector2::default() {
+                                    body1.to_add_static_constant_linear_velocity(static_linear_velocity2);
+                                }
+                                let static_angular_velocity1 = body1.get_static_angular_velocity();
+                                let static_angular_velocity2 = body2.get_static_angular_velocity();
+                                if static_angular_velocity1 != 0.0 {
+                                    body2.to_add_static_constant_angular_velocity(static_angular_velocity1);
+                                }
+                                if static_angular_velocity2 != 0.0 {
+                                    body1.to_add_static_constant_angular_velocity(static_angular_velocity2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
+
+        result
     }
 
     fn collision_event_callback(world_handle: Handle, event_info: &CollisionEventInfo) {
-        // Implement callback logic
+        let lock = spaces_singleton().lock().unwrap();
+        if let Some(space) = lock.active_spaces.get(&world_handle) {
+            if let Some(space) = lock.spaces.get(space) {
+                let (mut pObject1, mut shape1) = RapierCollisionObject2D::get_collider_user_data(
+                    &event_info.user_data1,
+                );
+                let (mut pObject2, mut shape2) = RapierCollisionObject2D::get_collider_user_data(
+                    &event_info.user_data2,
+                );
+    
+                let mut collider_handle1 = event_info.collider1;
+                let mut collider_handle2 = event_info.collider2;
+
+                let (mut rid1, mut rid2) = (Rid::Invalid, Rid::Invalid);
+                let (mut instance_id1, mut instance_id2) = (0, 0);
+                let (mut type1, mut type2) = (CollisionObjectType::Area, CollisionObjectType::Area);
+                
+
+                if event_info.is_removed {
+                    if pObject1.is_invalid() {
+                        if let Some(removed_collider_info_1) = space.get_removed_collider_info(
+                            &collider_handle1,
+                        ) {
+                            rid1 = removed_collider_info_1.rid;
+                            instance_id1 = removed_collider_info_1.instance_id;
+                            type1 = removed_collider_info_1.collision_object_type;
+                            shape1 = removed_collider_info_1.shape_index;
+                        }
+                    } else {
+                        let body_lock = bodies_singleton().lock().unwrap();
+                        if let Some(body) = body_lock.collision_objects.get(&pObject1) {
+                            rid1 = body.get_base().get_rid();
+                            instance_id1 = body.get_base().get_instance_id();
+                            type1 = body.get_base().get_type();
+                        }
+                    }
+                    if pObject2.is_invalid() {
+                        if let Some(removed_collider_info_2) = space.get_removed_collider_info(
+                            &collider_handle2,
+                        ) {
+                            rid2 = removed_collider_info_2.rid;
+                            instance_id2 = removed_collider_info_2.instance_id;
+                            type2 = removed_collider_info_2.collision_object_type;
+                            shape2 = removed_collider_info_2.shape_index;
+                        }
+                    } else {
+                        let body_lock = bodies_singleton().lock().unwrap();
+                        if let Some(body) = body_lock.collision_objects.get(&pObject2) {
+                            rid2 = body.get_base().get_rid();
+                            instance_id2 = body.get_base().get_instance_id();
+                            type2 = body.get_base().get_type();
+                        }
+                    }
+                } else {
+                    let body_lock = bodies_singleton().lock().unwrap();
+                    if let Some(body) = body_lock.collision_objects.get(&pObject1) {
+                        rid1 = body.get_base().get_rid();
+                        instance_id1 = body.get_base().get_instance_id();
+                        type1 = body.get_base().get_type();
+                    }
+                    if let Some(body) = body_lock.collision_objects.get(&pObject2) {
+                        rid2 = body.get_base().get_rid();
+                        instance_id2 = body.get_base().get_instance_id();
+                        type2 = body.get_base().get_type();
+                    }
+                }
+
+        if event_info.is_sensor {
+            if instance_id1 == 0 {
+                godot_error!("Should be able to get info about a removed object if the other one is still valid.");
+                return;
+            }
+            if instance_id2 == 0 {
+                godot_error!( "Should be able to get info about a removed object if the other one is still valid.");
+                return;
+            }
+    
+            if type1 != CollisionObjectType::Area {
+                if type2 != CollisionObjectType::Area {
+                    godot_error!("Expected Area.");
+                    return;
+                }
+                swap(&mut pObject1, &mut pObject2);
+                swap(&mut type1, &mut type2);
+                swap(&mut shape1, &mut shape2);
+                swap(&mut collider_handle1, &mut collider_handle2);
+                swap(&mut rid1, &mut rid2);
+                swap(&mut instance_id1, &mut instance_id2);
+            }
+            
+            let mut body_lock = bodies_singleton().lock().unwrap();
+            let mut p_area = body_lock.collision_objects.get_mut(&pObject1).unwrap().get_mut_area();
+            if type2 == CollisionObjectType::Area {
+                let p_area2 = body_lock.collision_objects.get_mut(&pObject2).unwrap().get_mut_area();
+                if event_info.is_started {
+                    let mut p_area = p_area.unwrap();
+                    p_area.on_area_enter(
+                        collider_handle2,
+                        Some(p_area2),
+                        shape2,
+                        rid2,
+                        instance_id2,
+                        collider_handle1,
+                        shape1,
+                    );
+                    p_area2.unwrap().on_area_enter(
+                        collider_handle1,
+                        Some(p_area),
+                        shape1,
+                        rid1,
+                        instance_id1,
+                        collider_handle2,
+                        shape2,
+                    );
+                } else if event_info.is_stopped {
+                    if let Some(pArea) = p_area {
+                        pArea.on_area_exit(
+                            collider_handle2,
+                            Some(p_area2),
+                            shape2,
+                            rid2,
+                            instance_id2,
+                            collider_handle1,
+                            shape1,
+                        );
+                    } else {
+                        // Try to retrieve area if not destroyed yet
+                        let p_area = body_lock.collision_objects.get(&rid1).unwrap().get_mut_area();
+                        if let Some(pArea) = p_area {
+                            // Use invalid area case to keep counters consistent for already removed collider
+                            pArea.on_area_exit(
+                                collider_handle2,
+                                None,
+                                shape2,
+                                rid2,
+                                instance_id2,
+                                collider_handle1,
+                                shape1,
+                            );
+                        }
+                    }
+                    if let Some(pArea2) = p_area2 {
+                        pArea2.on_area_exit(
+                            collider_handle1,
+                            Some(p_area),
+                            shape1,
+                            rid1,
+                            instance_id1,
+                            collider_handle2,
+                            shape2,
+                        );
+                    } else {
+                        // Try to retrieve area if not destroyed yet
+                        let p_area2 = body_lock.collision_objects.get_mut(&rid2).unwrap().get_mut_area();
+                        if let Some(pArea2) = p_area2 {
+                            // Use invalid area case to keep counters consistent for already removed collider
+                            pArea2.on_area_exit(
+                                collider_handle1,
+                                None,
+                                shape1,
+                                rid1,
+                                instance_id1,
+                                collider_handle2,
+                                shape2,
+                            );
+                        }
+                    }
+                }
+            } else {
+                let p_body = body_lock.collision_objects.get_mut(&pObject2).unwrap().get_mut_body();
+                if event_info.is_started {
+                    if !p_area.is_some() {
+                        godot_error!("Should be able to get info about a removed object if the other one is still valid.");
+                        return;
+                    }
+                    p_area.unwrap().on_body_enter(
+                        collider_handle2,
+                        Some(p_body),
+                        shape2,
+                        rid2,
+                        instance_id2,
+                        collider_handle1,
+                        shape1,
+                    );
+                } else if let Some(pArea) = p_area {
+                    if event_info.is_stopped {
+                        pArea.on_body_exit(
+                            collider_handle2,
+                            Some(p_body),
+                            shape2,
+                            rid2,
+                            instance_id2,
+                            collider_handle1,
+                            shape1,
+                            true,
+                        );
+                    }
+                } else if event_info.is_stopped {
+                    // Try to retrieve area if not destroyed yet
+                    let p_area = body_lock.collision_objects.get_mut(&rid1).unwrap().get_mut_area();
+                    if let Some(pArea) = p_area {
+                        // Use invalid body case to keep counters consistent for already removed collider
+                        pArea.on_body_exit(
+                            collider_handle2,
+                            None,
+                            shape2,
+                            rid2,
+                            instance_id2,
+                            collider_handle1,
+                            shape1,
+                            false,
+                        );
+                    }
+                }
+            }
+        } else {
+            // Body contacts use contact_force_event_callback instead
+            godot_error!("Shouldn't receive rigidbody collision events.");
+        }
+            }
+        }
     }
 
     fn contact_force_event_callback(
         world_handle: Handle,
         event_info: &ContactForceEventInfo,
     ) -> bool {
-        // Implement callback logic
-        false
+        let lock = spaces_singleton().lock().unwrap();
+        let mut send_contacts = false;
+        if let Some(space) = lock.active_spaces.get(&world_handle) {
+            if let Some(space) = lock.spaces.get(space) {
+                send_contacts = space.is_debugging_contacts();
+            }
+
+        let (pObject1,_)  = 
+        RapierCollisionObject2D::get_collider_user_data(&event_info.user_data1);
+
+        let (pObject2,_)  = 
+        RapierCollisionObject2D::get_collider_user_data(&event_info.user_data2);
+        let bodies_lock = bodies_singleton().lock().unwrap();
+        if let Some(body1) = bodies_lock.collision_objects.get(&pObject1) {
+            if let Some(body1) = body1.get_body() {
+                if body1.can_report_contacts() {
+                    send_contacts = true;
+                }
+            }
+        }
+        if let Some(body2) = bodies_lock.collision_objects.get(&pObject2) {
+            if let Some(body2) = body2.get_body() {
+                if body2.can_report_contacts() {
+                    send_contacts = true;
+                }
+            }
+        }
+
+        return send_contacts;
+    }
+    false
     }
 
     fn contact_point_callback(
@@ -308,13 +600,13 @@ impl RapierSpace2D {
     }
 
     pub fn add_removed_collider(&mut self, handle: Handle, object: Rid, instance_id: u64, shape_index: usize, collision_object_type: CollisionObjectType) {
-        self.removed_colliders.insert(handle, RemovedColliderInfo::new(object, instance_id, shape_index, collision_object_type))
+        self.removed_colliders.insert(handle, RemovedColliderInfo::new(object, instance_id, shape_index, collision_object_type));
     }
     pub fn get_removed_collider_info(
         &mut self,
-        handle: Handle,
+        handle: &Handle,
     ) -> Option<&RemovedColliderInfo> {
-        self.removed_colliders.get(handle)
+        self.removed_colliders.get(&handle)
     }
 
     pub fn get_solver_iterations(&self) -> i32 {
