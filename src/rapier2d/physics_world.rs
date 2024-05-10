@@ -69,21 +69,21 @@ type ContactPointCallback = fn(
 ) -> bool;
 
 pub struct CollisionEventInfo {
-    collider1: Handle,
-    collider2: Handle,
-    user_data1: UserData,
-    user_data2: UserData,
-    is_sensor: bool,
-    is_started: bool,
-    is_stopped: bool,
-    is_removed: bool,
+    pub collider1: Handle,
+    pub collider2: Handle,
+    pub user_data1: UserData,
+    pub user_data2: UserData,
+    pub is_sensor: bool,
+    pub is_started: bool,
+    pub is_stopped: bool,
+    pub is_removed: bool,
 }
 
 pub struct ContactForceEventInfo {
-    collider1: Handle,
-    collider2: Handle,
-    user_data1: UserData,
-    user_data2: UserData,
+    pub collider1: Handle,
+    pub collider2: Handle,
+    pub user_data1: UserData,
+    pub user_data2: UserData,
 }
 
 //#[cfg_attr(feature = "serde-serialize", derive(Serialize, Deserialize))]

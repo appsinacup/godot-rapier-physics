@@ -452,8 +452,8 @@ impl RapierCollisionObject2D {
         return self.shapes[idx].shape;
     }
 
-    pub fn get_shape_transform(&self, idx: usize) -> &Transform2D {
-        &self.shapes[idx].xform
+    pub fn get_shape_transform(&self, idx: usize) -> Transform2D {
+        self.shapes[idx].xform
     }
 
     pub fn set_transform(&mut self, p_transform: Transform2D, wake_up: bool) {

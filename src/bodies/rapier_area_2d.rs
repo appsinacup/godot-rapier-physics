@@ -84,10 +84,12 @@ impl RapierArea2D {
     pub fn on_body_enter(
         &mut self,
         collider_handle: Handle,
-        body: Rid,
-        body_shape: u32,
+        body: Option<&RapierBody2D>,
+        body_shape: usize,
+        body_rid: Rid,
+        body_instance_id: u64,
         area_collider_handle: Handle,
-        area_shape: u32,
+        area_shape: usize,
     ) {
         // Implementation needed
     }
@@ -95,10 +97,12 @@ impl RapierArea2D {
     pub fn on_body_exit(
         &mut self,
         collider_handle: Handle,
-        body: Rid,
-        body_shape: u32,
+        body: Option<&RapierBody2D>,
+        body_shape: usize,
+        body_rid: Rid,
+        body_instance_id: u64,
         area_collider_handle: Handle,
-        area_shape: u32,
+        area_shape: usize,
         update_detection: bool,
     ) {
         // Implementation needed
@@ -107,10 +111,12 @@ impl RapierArea2D {
     pub fn on_area_enter(
         &mut self,
         collider_handle: Handle,
-        other_area: Rid,
-        other_area_shape: u32,
+        other_area: Option<&RapierArea2D>,
+        other_area_shape: usize,
+        other_area_rid: Rid,
+        other_area_instance_id: u64,
         area_collider_handle: Handle,
-        area_shape: u32,
+        area_shape: usize,
     ) {
         // Implementation needed
     }
@@ -118,10 +124,12 @@ impl RapierArea2D {
     pub fn on_area_exit(
         &mut self,
         collider_handle: Handle,
-        other_area: Rid,
-        other_area_shape: u32,
+        other_area: Option<&RapierArea2D>,
+        other_area_shape: usize,
+        other_area_rid: Rid,
+        other_area_instance_id: u64,
         area_collider_handle: Handle,
-        area_shape: u32,
+        area_shape: usize,
     ) {
         // Implementation needed
     }

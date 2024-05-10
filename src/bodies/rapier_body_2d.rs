@@ -221,7 +221,7 @@ impl RapierBody2D {
     pub fn remove_exception(&mut self, exception: Rid) {
         self.exceptions.erase(exception);
     }
-    pub fn has_exception(&mut self, exception: Rid) -> bool {
+    pub fn has_exception(&self, exception: Rid) -> bool {
         return self.exceptions.has(exception);
     }
     pub fn get_exceptions(&self) -> HashSet<Rid> {
