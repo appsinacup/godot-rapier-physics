@@ -47,7 +47,7 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
         filter_info.user_data2 = UserData::new(user_data2);
 
         // Handle contact filtering for rigid bodies
-        if !(self.collision_filter_body_callback)(self.world_handle, &filter_info) {
+        if !(self.collision_filter_body_callback)(&filter_info) {
             return None;
         }
 
@@ -63,7 +63,7 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
         filter_info.user_data2 = UserData::new(user_data2);
 
         // Handle intersection filtering for sensors
-        return (self.collision_filter_sensor_callback)(self.world_handle, &filter_info);
+        return (self.collision_filter_sensor_callback)(&filter_info);
     }
 
     fn modify_solver_contacts(&self, context: &mut ContactModificationContext) {
@@ -77,7 +77,7 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
         let allowed_local_n1 = collider_1.position().rotation * Vector::y();
         let allowed_local_n2 = collider_2.position().rotation * Vector::y();
         let one_way_direction =
-            (self.collision_modify_contacts_callback)(self.world_handle, &filter_info);
+            (self.collision_modify_contacts_callback)(&filter_info);
         let mut contact_is_pass_through = false;
         let mut dist: Real = 0.0;
         if let Some(contact) = context.manifold.find_deepest_contact() {

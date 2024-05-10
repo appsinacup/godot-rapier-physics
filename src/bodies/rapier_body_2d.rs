@@ -142,7 +142,14 @@ impl RapierBody2D {
     fn _apply_gravity_scale(&self, new_value: real) {}
 
     fn _init_material(&self, mat: &Material) {}
-    fn _init_collider(&self, collider_handle: Handle) {}
+
+    fn _init_collider(&self, collider_handle: Handle, space_handle: Handle) {
+        // Send contact infos for dynamic bodies
+        if (mode >= PhysicsServer2D::BODY_MODE_KINEMATIC) {
+            let send_contacts = self.can_report_contacts();
+            rapier2d::collider_set_contact_force_events_enabled(space_handle, collider_handle, send_contacts);
+        }
+    }
 
     pub fn to_add_static_constant_linear_velocity(&mut self, linear_velocity: Vector2) {
         self.to_add_linear_velocity = linear_velocity;

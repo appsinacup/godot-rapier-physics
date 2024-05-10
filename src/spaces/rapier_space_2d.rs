@@ -48,13 +48,13 @@ const BODY_MOTION_RECOVER_RATIO: f32 = 0.4;
 
 pub struct RemovedColliderInfo {
     pub rid: Rid,
-    pub instance_id: InstanceId,
+    pub instance_id: u64,
     pub shape_index: usize,
     pub collision_object_type: CollisionObjectType,
 }
 
 impl RemovedColliderInfo {
-    pub fn new(rid: Rid, instance_id: InstanceId, shape_index: usize, collision_object_type: CollisionObjectType) -> Self{
+    pub fn new(rid: Rid, instance_id: u64, shape_index: usize, collision_object_type: CollisionObjectType) -> Self{
         Self {
             rid,
             instance_id,
@@ -307,7 +307,7 @@ impl RapierSpace2D {
         self.body_area_update_list.push(body);
     }
 
-    pub fn add_removed_collider(&mut self, handle: Handle, object: Rid, instance_id: InstanceId, shape_index: usize, collision_object_type: CollisionObjectType) {
+    pub fn add_removed_collider(&mut self, handle: Handle, object: Rid, instance_id: u64, shape_index: usize, collision_object_type: CollisionObjectType) {
         self.removed_colliders.insert(handle, RemovedColliderInfo::new(object, instance_id, shape_index, collision_object_type))
     }
     pub fn get_removed_collider_info(

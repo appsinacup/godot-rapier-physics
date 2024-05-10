@@ -1,7 +1,7 @@
 use std::any::Any;
 
 use crate::rapier2d::{
-    handle::Handle,
+    handle::{invalid_handle, Handle},
     joint::{joint_change_disable_collision, joint_destroy},
 };
 use godot::{builtin::Rid, engine::physics_server_2d};
@@ -95,5 +95,51 @@ impl Drop for RapierJointBase2D {
         if self.handle.is_valid() {
             joint_destroy(self.space_handle, self.handle);
         }
+    }
+}
+
+pub struct RapierEmptyJoint2D {
+    base: RapierJointBase2D,
+}
+
+impl RapierEmptyJoint2D {
+    pub fn new(rid: Rid) -> Self {
+        Self {
+            base: RapierJointBase2D::new(invalid_handle(), invalid_handle(), rid),
+        }
+    }
+}
+
+impl IRapierJoint2D for RapierEmptyJoint2D {
+    fn get_type(&self) -> physics_server_2d::JointType {
+        physics_server_2d::JointType::MAX
+    }
+
+    fn get_base(&self) -> &RapierJointBase2D {
+        &self.base
+    }
+
+    fn get_mut_base(&mut self) -> &mut RapierJointBase2D {
+        &mut self.base
+    }
+
+    fn get_damped_spring(&self) -> Option<&RapierDampedSpringJoint2D> {
+        None
+    }
+    fn get_pin(&self) -> Option<&RapierPinJoint2D> {
+        None
+    }
+    fn get_groove(&self) -> Option<&RapierGrooveJoint2D> {
+        None
+    }
+
+    fn get_mut_damped_spring(&mut self) -> Option<&mut RapierDampedSpringJoint2D> {
+        None
+    }
+    fn get_mut_pin(&mut self) -> Option<&mut RapierPinJoint2D> {
+        None
+    }
+    fn get_mut_groove(&mut self) -> Option<&mut RapierGrooveJoint2D> {
+        None
     }
 }
