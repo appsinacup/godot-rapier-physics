@@ -11,9 +11,11 @@ use std::sync::{Mutex, OnceLock};
 pub struct RapierShapesSingleton2D {
     pub shapes: HashMap<Rid, Box<dyn IRapierShape2D>>,
 }
+pub struct RapierActiveSpacesSingleton2D {
+    pub active_spaces: HashMap<Handle, Rid>,
+}
 pub struct RapierSpacesSingleton2D {
     pub spaces: HashMap<Rid, Box<RapierSpace2D>>,
-    pub active_spaces: HashMap<Handle, Rid>,
 }
 pub struct RapierBodiesSingleton2D {
     pub collision_objects: HashMap<Rid, Box<dyn IRapierCollisionObject2D>>,
@@ -32,11 +34,17 @@ impl RapierShapesSingleton2D {
         }
     }
 }
+impl RapierActiveSpacesSingleton2D {
+    pub fn new() -> RapierActiveSpacesSingleton2D {
+        RapierActiveSpacesSingleton2D {
+            active_spaces: HashMap::new(),
+        }
+    }
+}
 impl RapierSpacesSingleton2D {
     pub fn new() -> RapierSpacesSingleton2D {
         RapierSpacesSingleton2D {
             spaces: HashMap::new(),
-            active_spaces: HashMap::new(),
         }
     }
 }
@@ -63,6 +71,7 @@ impl RapierFluidsSingleton2D {
 }
 unsafe impl Send for RapierShapesSingleton2D {}
 unsafe impl Send for RapierSpacesSingleton2D {}
+unsafe impl Send for RapierActiveSpacesSingleton2D {}
 unsafe impl Send for RapierBodiesSingleton2D {}
 unsafe impl Send for RapierJointsSingleton2D {}
 unsafe impl Send for RapierFluidsSingleton2D {}
@@ -70,6 +79,11 @@ unsafe impl Send for RapierFluidsSingleton2D {}
 pub fn shapes_singleton() -> &'static Mutex<RapierShapesSingleton2D> {
     static HOLDER: OnceLock<Mutex<RapierShapesSingleton2D>> = OnceLock::new();
     HOLDER.get_or_init(|| Mutex::new(RapierShapesSingleton2D::new()))
+}
+
+pub fn active_spaces_singleton() -> &'static Mutex<RapierActiveSpacesSingleton2D> {
+    static HOLDER: OnceLock<Mutex<RapierActiveSpacesSingleton2D>> = OnceLock::new();
+    HOLDER.get_or_init(|| Mutex::new(RapierActiveSpacesSingleton2D::new()))
 }
 
 pub fn spaces_singleton() -> &'static Mutex<RapierSpacesSingleton2D> {

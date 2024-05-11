@@ -30,6 +30,7 @@ impl RayHitInfo {
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct PointHitInfo {
     pub collider: Handle,
     pub user_data: UserData,
@@ -81,7 +82,7 @@ pub struct ContactResult {
 }
 
 impl ContactResult {
-    fn new() -> ContactResult {
+    pub fn default() -> ContactResult {
         ContactResult {
             collided: false,
             within_margin: false,
@@ -506,8 +507,8 @@ pub fn intersect_aabb(
     pixel_aabb_max: &Vector,
     collide_with_body: bool,
     collide_with_area: bool,
-    hit_info_array: *mut PointHitInfo,
-    hit_info_length: usize,
+    hit_info_slice: &mut [PointHitInfo],
+    max_results: usize,
     handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
 ) -> usize {
@@ -529,17 +530,6 @@ pub fn intersect_aabb(
         mins: aabb_min_point,
         maxs: aabb_max_point,
     };
-
-    assert!(hit_info_length > 0);
-    let hit_info_slice_opt;
-    unsafe {
-        hit_info_slice_opt = Some(std::slice::from_raw_parts_mut(
-            hit_info_array,
-            hit_info_length,
-        ));
-    }
-    assert!(hit_info_slice_opt.is_some());
-    let hit_info_slice = hit_info_slice_opt.unwrap();
 
     let mut cpt_hit = 0;
     physics_world
@@ -572,7 +562,7 @@ pub fn intersect_aabb(
             hit_info_slice[cpt_hit].collider = collider_handle_to_handle(*handle);
             hit_info_slice[cpt_hit].user_data = physics_world.get_collider_user_data(*handle);
             cpt_hit += 1;
-            let keep_searching = cpt_hit < hit_info_length;
+            let keep_searching = cpt_hit < max_results;
             keep_searching // Continue to search collisions if we still have space for results.
         });
 
@@ -609,7 +599,7 @@ pub fn shapes_contact(
     let shape_transform1 = Isometry::new(vector![position1.x, position1.y], shape_info1.rotation);
     let shape_transform2 = Isometry::new(vector![position2.x, position2.y], shape_info2.rotation);
 
-    let mut result = ContactResult::new();
+    let mut result = ContactResult::default();
     if let Ok(Some(contact)) = parry::query::contact(
         &shape_transform1,
         shared_shape1.as_ref(),
