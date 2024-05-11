@@ -7,7 +7,7 @@ use crate::rapier2d::settings::SimulationSettings;
 use crate::rapier2d::shape::shape_info_from_body_shape;
 use crate::rapier2d::user_data::is_user_data_valid;
 use crate::rapier2d::vector::Vector;
-use crate::servers::rapier_physics_singleton_2d::{bodies_singleton, spaces_singleton};
+use crate::servers::rapier_physics_singleton_2d::{active_spaces_singleton, bodies_singleton, shapes_singleton, spaces_singleton};
 use crate::servers::rapier_project_settings::RapierProjectSettings;
 use crate::shapes::rapier_shape_2d::IRapierShape2D;
 use crate::spaces::rapier_direct_space_state_2d::RapierDirectSpaceState2D;
@@ -29,6 +29,7 @@ use crate::{
     servers::{
     },
 };
+use godot::engine::{collision_object_2d, IPhysicsDirectBodyState2DExtension, PhysicsDirectBodyState2DExtension};
 use godot::engine::physics_server_2d::{AreaParameter, BodyMode};
 use godot::{
     engine::{
@@ -37,7 +38,7 @@ use godot::{
     },
     prelude::*,
 };
-use std::cmp::max;
+use std::cmp::{self, max};
 use std::collections::HashMap;
 use std::f32::EPSILON;
 use std::mem::swap;
@@ -202,7 +203,7 @@ impl RapierSpace2D {
         filter_info: &CollisionFilterInfo,
     ) -> bool {
         let mut colliders_info = CollidersInfo::default();
-        if (!Self::collision_filter_common_callback(filter_info, &mut colliders_info)) {
+        if !Self::collision_filter_common_callback(filter_info, &mut colliders_info) {
             return false;
         }
         let lock = bodies_singleton().lock().unwrap();
@@ -233,42 +234,42 @@ impl RapierSpace2D {
     ) -> OneWayDirection {
         let mut result = OneWayDirection::default();
         
-        let lock = bodies_singleton().lock().unwrap();
+        let mut lock = bodies_singleton().lock().unwrap();
         let (object1, shape1) =
             RapierCollisionObject2D::get_collider_user_data(&filter_info.user_data1);
         let (object2, shape2) =
             RapierCollisionObject2D::get_collider_user_data(&filter_info.user_data2);
-        if let Some(collision_object_1) = lock.collision_objects.get(&object1) {
-            if let Some(collision_object_2) = lock.collision_objects.get(&object2) {
-                if collision_object_1.get_base().interacts_with(collision_object_2.get_base()) {
-                    if !collision_object_1.get_base().is_shape_disabled(shape1)
-                        && !collision_object_2.get_base().is_shape_disabled(shape2)
-                    {
-                        result.body1 = collision_object_1.get_base().is_shape_set_as_one_way_collision(shape1);
-                        result.pixel_body1_margin =
-                            collision_object_1.get_base().get_shape_one_way_collision_margin(shape1);
-                        result.body2 = collision_object_2.get_base().is_shape_set_as_one_way_collision(shape2);
-                        result.pixel_body2_margin =
-                            collision_object_2.get_base().get_shape_one_way_collision_margin(shape2);
-                        if let Some(body1) = collision_object_1.get_body() {
-                            if let Some(body2) = collision_object_2.get_body() {
-                                let static_linear_velocity1 = body1.get_static_linear_velocity();
-                                let static_linear_velocity2 = body2.get_static_linear_velocity();
-                                if static_linear_velocity1 != Vector2::default() {
-                                    body2.to_add_static_constant_linear_velocity(static_linear_velocity1);
-                                }
-                                if static_linear_velocity2 != Vector2::default() {
-                                    body1.to_add_static_constant_linear_velocity(static_linear_velocity2);
-                                }
-                                let static_angular_velocity1 = body1.get_static_angular_velocity();
-                                let static_angular_velocity2 = body2.get_static_angular_velocity();
-                                if static_angular_velocity1 != 0.0 {
-                                    body2.to_add_static_constant_angular_velocity(static_angular_velocity1);
-                                }
-                                if static_angular_velocity2 != 0.0 {
-                                    body1.to_add_static_constant_angular_velocity(static_angular_velocity2);
-                                }
-                            }
+        if !lock.collision_objects.contains_key(&object1) || !lock.collision_objects.contains_key(&object2) {
+            return result
+        }
+        let [collision_object_1, collision_object_2] = lock.collision_objects.get_many_mut([&object1, &object2]).unwrap();
+        if collision_object_1.get_base().interacts_with(collision_object_2.get_base()) {
+            if !collision_object_1.get_base().is_shape_disabled(shape1)
+                && !collision_object_2.get_base().is_shape_disabled(shape2)
+            {
+                result.body1 = collision_object_1.get_base().is_shape_set_as_one_way_collision(shape1);
+                result.pixel_body1_margin =
+                    collision_object_1.get_base().get_shape_one_way_collision_margin(shape1);
+                result.body2 = collision_object_2.get_base().is_shape_set_as_one_way_collision(shape2);
+                result.pixel_body2_margin =
+                    collision_object_2.get_base().get_shape_one_way_collision_margin(shape2);
+                if let Some(body1) = collision_object_1.get_mut_body() {
+                    if let Some(body2) = collision_object_2.get_mut_body() {
+                        let static_linear_velocity1 = body1.get_static_linear_velocity();
+                        let static_linear_velocity2 = body2.get_static_linear_velocity();
+                        if static_linear_velocity1 != Vector2::default() {
+                            body2.to_add_static_constant_linear_velocity(static_linear_velocity1);
+                        }
+                        if static_linear_velocity2 != Vector2::default() {
+                            body1.to_add_static_constant_linear_velocity(static_linear_velocity2);
+                        }
+                        let static_angular_velocity1 = body1.get_static_angular_velocity();
+                        let static_angular_velocity2 = body2.get_static_angular_velocity();
+                        if static_angular_velocity1 != 0.0 {
+                            body2.to_add_static_constant_angular_velocity(static_angular_velocity1);
+                        }
+                        if static_angular_velocity2 != 0.0 {
+                            body1.to_add_static_constant_angular_velocity(static_angular_velocity2);
                         }
                     }
                 }
@@ -279,9 +280,10 @@ impl RapierSpace2D {
     }
 
     fn collision_event_callback(world_handle: Handle, event_info: &CollisionEventInfo) {
-        let lock = spaces_singleton().lock().unwrap();
-        if let Some(space) = lock.active_spaces.get(&world_handle) {
-            if let Some(space) = lock.spaces.get(space) {
+        let mut spaces_lock = spaces_singleton().lock().unwrap();
+        let active_spaces_lock = active_spaces_singleton().lock().unwrap();
+        if let Some(space) = active_spaces_lock.active_spaces.get(&world_handle) {
+            if let Some(space) = spaces_lock.spaces.get_mut(space) {
                 let (mut pObject1, mut shape1) = RapierCollisionObject2D::get_collider_user_data(
                     &event_info.user_data1,
                 );
@@ -377,7 +379,7 @@ impl RapierSpace2D {
                     let mut p_area = p_area.unwrap();
                     p_area.on_area_enter(
                         collider_handle2,
-                        Some(p_area2),
+                        p_area2,
                         shape2,
                         rid2,
                         instance_id2,
@@ -397,7 +399,7 @@ impl RapierSpace2D {
                     if let Some(pArea) = p_area {
                         pArea.on_area_exit(
                             collider_handle2,
-                            Some(p_area2),
+                            p_area2,
                             shape2,
                             rid2,
                             instance_id2,
@@ -407,9 +409,9 @@ impl RapierSpace2D {
                     } else {
                         // Try to retrieve area if not destroyed yet
                         let p_area = body_lock.collision_objects.get(&rid1).unwrap().get_mut_area();
-                        if let Some(pArea) = p_area {
+                        if let Some(p_area) = p_area {
                             // Use invalid area case to keep counters consistent for already removed collider
-                            pArea.on_area_exit(
+                            p_area.on_area_exit(
                                 collider_handle2,
                                 None,
                                 shape2,
@@ -420,10 +422,10 @@ impl RapierSpace2D {
                             );
                         }
                     }
-                    if let Some(pArea2) = p_area2 {
-                        pArea2.on_area_exit(
+                    if let Some(p_area_2) = p_area2 {
+                        p_area_2.on_area_exit(
                             collider_handle1,
-                            Some(p_area),
+                            p_area,
                             shape1,
                             rid1,
                             instance_id1,
@@ -433,9 +435,9 @@ impl RapierSpace2D {
                     } else {
                         // Try to retrieve area if not destroyed yet
                         let p_area2 = body_lock.collision_objects.get_mut(&rid2).unwrap().get_mut_area();
-                        if let Some(pArea2) = p_area2 {
+                        if let Some(p_area_2) = p_area2 {
                             // Use invalid area case to keep counters consistent for already removed collider
-                            pArea2.on_area_exit(
+                            p_area_2.on_area_exit(
                                 collider_handle1,
                                 None,
                                 shape1,
@@ -456,18 +458,18 @@ impl RapierSpace2D {
                     }
                     p_area.unwrap().on_body_enter(
                         collider_handle2,
-                        Some(p_body),
+                        p_body,
                         shape2,
                         rid2,
                         instance_id2,
                         collider_handle1,
                         shape1,
                     );
-                } else if let Some(pArea) = p_area {
+                } else if let Some(p_area) = p_area {
                     if event_info.is_stopped {
-                        pArea.on_body_exit(
+                        p_area.on_body_exit(
                             collider_handle2,
-                            Some(p_body),
+                            p_body,
                             shape2,
                             rid2,
                             instance_id2,
@@ -479,9 +481,9 @@ impl RapierSpace2D {
                 } else if event_info.is_stopped {
                     // Try to retrieve area if not destroyed yet
                     let p_area = body_lock.collision_objects.get_mut(&rid1).unwrap().get_mut_area();
-                    if let Some(pArea) = p_area {
+                    if let Some(p_area) = p_area {
                         // Use invalid body case to keep counters consistent for already removed collider
-                        pArea.on_body_exit(
+                        p_area.on_body_exit(
                             collider_handle2,
                             None,
                             shape2,
@@ -506,10 +508,11 @@ impl RapierSpace2D {
         world_handle: Handle,
         event_info: &ContactForceEventInfo,
     ) -> bool {
-        let lock = spaces_singleton().lock().unwrap();
+        let spaces_lock = spaces_singleton().lock().unwrap();
+        let active_spaces_lock = active_spaces_singleton().lock().unwrap();
         let mut send_contacts = false;
-        if let Some(space) = lock.active_spaces.get(&world_handle) {
-            if let Some(space) = lock.spaces.get(space) {
+        if let Some(space) = active_spaces_lock.active_spaces.get(&world_handle) {
+            if let Some(space) = spaces_lock.spaces.get(space) {
                 send_contacts = space.is_debugging_contacts();
             }
 
@@ -554,7 +557,32 @@ impl RapierSpace2D {
         collider: &UserData,
         handle_excluded_info: &QueryExcludedInfo,
     ) -> bool {
-        false
+        for exclude_index in 0..handle_excluded_info.query_exclude_size {
+            if handle_excluded_info.query_exclude[exclude_index] == collider_handle {
+                return true;
+            }
+        }
+    
+        let (collision_object_2d, shape_index) = RapierCollisionObject2D::get_collider_user_data(user_data);
+        let body_lock = bodies_singleton().lock().unwrap();
+        let collision_object_2d = body_lock.collision_objects.get(&collision_object_2d).unwrap();
+        if handle_excluded_info.query_canvas_instance_id != collision_object_2d.get_base().get_canvas_instance_id() {
+            return true;
+        }
+    
+        if collision_object_2d.get_base().get_collision_layer() & handle_excluded_info.query_collision_layer_mask == 0 {
+            return true;
+        }
+    
+        if handle_excluded_info.query_exclude_body == collision_object_2d.get_base().get_rid().to_u64() as i64 {
+            return true;
+        }
+        let spaces_lock = spaces_singleton().lock().unwrap();
+        let active_spaces_lock = active_spaces_singleton().lock().unwrap();
+        let space = active_spaces_lock.active_spaces.get(&world_handle).unwrap();
+        let space = spaces_lock.spaces.get(space).unwrap();
+        let direct_state = space.get_rapier_direct_state().unwrap();
+        return direct_state.base().is_body_excluded_from_query(collision_object_2d.get_base().get_rid());
     }
 
     pub fn _get_object_instance_hack(instance_id: u64) -> *mut Gd<Object> {
@@ -615,10 +643,10 @@ impl RapierSpace2D {
 
     pub fn step(&mut self, step: real) {
         self.last_step = step;
-        for body in self.active_list {
-            let lock = bodies_singleton().lock().unwrap();
-            if let Some(body) = lock.collision_objects.get(&body) {
-                if let Some(body) = body.get_body() {
+        for body in &self.active_list {
+            let mut lock = bodies_singleton().lock().unwrap();
+            if let Some(body) = lock.collision_objects.get_mut(&body) {
+                if let Some(body) = body.get_mut_body() {
                     body.reset_contact_count();
                 }
             }
@@ -627,43 +655,43 @@ impl RapierSpace2D {
         
         let project_settings = ProjectSettings::singleton();
     
-        let default_gravity_dir = project_settings.get_setting_with_override("physics/2d/default_gravity_vector".into());
-        let default_gravity_value = project_settings.get_setting_with_override("physics/2d/default_gravity".into());
+        let default_gravity_dir: Vector2 = project_settings.get_setting_with_override("physics/2d/default_gravity_vector".into()).to();
+        let default_gravity_value: real = project_settings.get_setting_with_override("physics/2d/default_gravity".into()).to();
     
         let fluid_default_gravity_dir = RapierProjectSettings::get_fluid_gravity_dir();
         let fluid_default_gravity_value = RapierProjectSettings::get_fluid_gravity_value();
     
-        let default_linear_damping = project_settings.get_setting_with_override("physics/2d/default_linear_damp".into());
-        let default_angular_damping = project_settings.get_setting_with_override("physics/2d/default_angular_damp".into());
+        let default_linear_damping: real = project_settings.get_setting_with_override("physics/2d/default_linear_damp".into()).to();
+        let default_angular_damping: real = project_settings.get_setting_with_override("physics/2d/default_angular_damp".into()).to();
         
-        for body in self.mass_properties_update_list {
-            let lock = bodies_singleton().lock().unwrap();
-            if let Some(body) = lock.collision_objects.get(&body) {
-                if let Some(body) = body.get_body() {
+        for body in &self.mass_properties_update_list {
+            let mut lock = bodies_singleton().lock().unwrap();
+            if let Some(body) = lock.collision_objects.get_mut(&body) {
+                if let Some(body) = body.get_mut_body() {
                     body.update_mass_properties(false);
                 }
             }
         }
-        for area in self.area_update_list {
-            let lock = bodies_singleton().lock().unwrap();
-            if let Some(area) = lock.collision_objects.get(&area) {
-                if let Some(area) = area.get_area() {
+        for area in &self.area_update_list {
+            let mut lock = bodies_singleton().lock().unwrap();
+            if let Some(area) = lock.collision_objects.get_mut(&area) {
+                if let Some(area) = area.get_mut_area() {
                     area.update_area_override();
                 }
             }
         }
-        for body in self.body_area_update_list {
-            let lock = bodies_singleton().lock().unwrap();
-            if let Some(body) = lock.collision_objects.get(&body) {
-                if let Some(body) = body.get_body() {
+        for body in &self.body_area_update_list {
+            let mut lock = bodies_singleton().lock().unwrap();
+            if let Some(body) = lock.collision_objects.get_mut(&body) {
+                if let Some(body) = body.get_mut_body() {
                     body.update_area_override();
                 }
             }
         }
-        for body in self.gravity_update_list {
-            let lock = bodies_singleton().lock().unwrap();
-            if let Some(body) = lock.collision_objects.get(&body) {
-                if let Some(body) = body.get_body() {
+        for body in &self.gravity_update_list {
+            let mut lock = bodies_singleton().lock().unwrap();
+            if let Some(body) = lock.collision_objects.get_mut(&body) {
+                if let Some(body) = body.get_mut_body() {
                     body.update_gravity(step);
                 }
             }
@@ -672,7 +700,7 @@ impl RapierSpace2D {
         let settings = SimulationSettings{
             pixel_liquid_gravity: Vector::new(fluid_default_gravity_dir.x * fluid_default_gravity_value as real,fluid_default_gravity_dir.y * fluid_default_gravity_value as real),
             dt: step,
-            pixel_gravity: Vector::new(default_gravity_dir.x * default_gravity_value.to(),default_gravity_dir.y * default_gravity_value.to()),
+            pixel_gravity: Vector::new(default_gravity_dir.x * default_gravity_value,default_gravity_dir.y * default_gravity_value),
             max_ccd_substeps: RapierProjectSettings::get_solver_max_ccd_substeps() as usize,
             num_additional_friction_iterations: RapierProjectSettings::get_solver_num_additional_friction_iterations() as usize,
             num_internal_pgs_iterations: RapierProjectSettings::get_solver_num_internal_pgs_iterations() as usize,
@@ -684,10 +712,10 @@ impl RapierSpace2D {
         // Needed only for one physics step to retrieve lost info
         self.removed_colliders.clear();
     
-        for body in self.gravity_update_list {
-            let lock = bodies_singleton().lock().unwrap();
-            if let Some(body) = lock.collision_objects.get(&body) {
-                if let Some(body) = body.get_body() {
+        for body in &self.gravity_update_list {
+            let mut lock = bodies_singleton().lock().unwrap();
+            if let Some(body) = lock.collision_objects.get_mut(&body) {
+                if let Some(body) = body.get_mut_body() {
                     body.on_update_active();
                 }
             }
@@ -782,8 +810,8 @@ impl RapierSpace2D {
         return !self.contact_debug.is_empty();
     }
     pub fn add_debug_contact(&mut self, contact: Vector2) {
-        if (self.contact_debug_count < self.contact_debug.len()) {
-            self.contact_debug[self.contact_debug_count] = contact;
+        if self.contact_debug_count < self.contact_debug.len() {
+            self.contact_debug.set(self.contact_debug_count, contact);
             self.contact_debug_count += 1;
         }
     }
@@ -791,11 +819,18 @@ impl RapierSpace2D {
         return self.contact_debug.clone();
     }
     pub fn get_debug_contact_count(&self) -> i32 {
-        self.contact_debug_count
+        self.contact_debug_count as i32
     }
 
     pub fn get_direct_state(&self) -> Option<Gd<PhysicsDirectSpaceState2D>> {
         self.direct_access
+    }
+
+    pub fn get_rapier_direct_state(&self) -> Option<Gd<RapierDirectSpaceState2D>> {
+        if let Some(direct_access) = self.direct_access {
+            return Some(direct_access.cast())
+        }
+        None
     }
 
     pub fn test_body_motion(
@@ -861,8 +896,8 @@ impl RapierSpace2D {
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
-        results: &PointHitInfo,
-        max_results: i32,
+        results: &mut [PointHitInfo],
+        max_results: usize,
         exclude_body: Rid,
     ) -> i32 {
         let max_results = max_results as usize;
@@ -872,7 +907,7 @@ impl RapierSpace2D {
 
         let rect_begin = Vector::new( aabb.position.x, aabb.position.y );
         let rect_end = Vector::new( aabb.end().x, aabb.end().y );
-        let handle_excluded_info = default_query_excluded_info();
+        let mut handle_excluded_info = default_query_excluded_info();
         let mut query_exclude: Vec<Handle> = Vec::with_capacity(max_results);
         handle_excluded_info.query_exclude = query_exclude.as_mut_ptr();
         handle_excluded_info.query_collision_layer_mask = collision_mask;
@@ -892,7 +927,7 @@ fn body_motion_recover(
     p_margin: f32,
     p_recover_motion: &mut Vector2,
 ) -> bool {
-    let shape_count = p_body.get_shape_count();
+    let shape_count = p_body.get_base().get_shape_count();
     if shape_count < 1 {
         return false;
     }
@@ -905,17 +940,17 @@ fn body_motion_recover(
 
         let body_aabb = p_body.get_aabb();
         // Undo the currently transform the physics server is aware of and apply the provided one
-        let margin_aabb = p_transform.xform(body_aabb);
+        let margin_aabb = p_transform.basis_xform(body_aabb);
         let margin_aabb = margin_aabb.grow(p_margin);
         
         let result_count = self.rapier_intersect_aabb(
             margin_aabb,
-            p_body.get_collision_mask(),
+            p_body.get_base().get_collision_mask(),
             true,
             false,
             &mut results,
             32,
-            p_body.get_rid(),
+            p_body.get_base().get_rid(),
         );
         // Optimization
         if result_count == 0 {
@@ -924,13 +959,13 @@ fn body_motion_recover(
 
         let mut recover_step = Vector2::default();
 
-        for body_shape_idx in 0..p_body.get_shape_count() {
-            if p_body.is_shape_disabled(body_shape_idx) {
+        for body_shape_idx in 0..p_body.get_base().get_shape_count() {
+            if p_body.get_base().is_shape_disabled(body_shape_idx) {
                 continue;
             }
 
-            let body_shape = p_body.get_shape(body_shape_idx);
-            let body_shape_transform = *p_transform * p_body.get_shape_transform(body_shape_idx);
+            let body_shape = p_body.get_base().get_shape(body_shape_idx);
+            let body_shape_transform = *p_transform * p_body.get_base().get_shape_transform(body_shape_idx);
             let body_shape_info =
                 shape_info_from_body_shape(body_shape.get_rapier_shape(), body_shape_transform);
 
@@ -1022,7 +1057,7 @@ fn cast_motion(
     p_best_body_shape: &mut i32,
 ) {
     let body_aabb = p_body.get_aabb();
-    let margin_aabb = p_transform.xform(body_aabb);
+    let margin_aabb = p_transform.basis_xform(body_aabb);
 
     let margin_aabb = margin_aabb.grow(p_margin);
     let mut motion_aabb = margin_aabb;
@@ -1044,13 +1079,13 @@ fn cast_motion(
         return;
     }
 
-    for body_shape_idx in 0..p_body.get_shape_count() {
-        if p_body.is_shape_disabled(body_shape_idx) {
+    for body_shape_idx in 0..p_body.get_base().get_shape_count() {
+        if p_body.get_base().is_shape_disabled(body_shape_idx) {
             continue;
         }
 
-        let body_shape = p_body.get_shape(body_shape_idx);
-        let body_shape_transform = *p_transform * p_body.get_shape_transform(body_shape_idx);
+        let body_shape = p_body.get_base().get_shape(body_shape_idx);
+        let body_shape_transform = *p_transform * p_body.get_base().get_shape_transform(body_shape_idx);
         let body_shape_info =
             shape_info_from_body_shape(body_shape.get_rapier_shape(), body_shape_transform);
 
@@ -1150,12 +1185,12 @@ fn body_motion_collide(
     p_margin: f32,
     p_result: Option<&mut PhysicsServer2DExtensionMotionResult>,
 ) -> bool {
-    let shape_count = p_body.get_shape_count();
+    let shape_count = p_body.get_base().get_shape_count();
     if shape_count < 1 {
         return false;
     }
     let body_aabb = p_body.get_aabb();
-    let margin_aabb = p_transform.xform(body_aabb);
+    let margin_aabb = p_transform.basis_xform(body_aabb);
     let margin_aabb = margin_aabb.grow(p_margin);
 
     // also check things at motion
@@ -1166,12 +1201,12 @@ fn body_motion_collide(
     let mut results = [PointHitInfo::default(); 32];
     let result_count = self.rapier_intersect_aabb(
         motion_aabb,
-        p_body.get_collision_mask(),
+        p_body.get_base().get_collision_mask(),
         true,
         false,
         &mut results,
         32,
-        p_body.get_rid(),
+        p_body.get_base().get_rid(),
     );
     // Optimization
     if result_count == 0 {
@@ -1180,7 +1215,7 @@ fn body_motion_collide(
 
     let mut min_distance = f32::INFINITY;
     let mut best_collision_body = None;
-    let mut best_collision_shape_index = -1;
+    let mut best_collision_shape_index: i32 = -1;
     let mut best_body_shape_index = -1;
     let mut best_contact = ContactResult::default();
 
@@ -1192,39 +1227,42 @@ fn body_motion_collide(
     let to_shape = if p_best_body_shape != -1 {
         p_best_body_shape + 1
     } else {
-        p_body.get_shape_count()
+        p_body.get_base().get_shape_count()
     };
     for body_shape_idx in from_shape..to_shape {
-        if p_body.is_shape_disabled(body_shape_idx) {
+        if p_body.get_base().is_shape_disabled(body_shape_idx as usize) {
             continue;
         }
-
-        let body_shape = p_body.get_shape(body_shape_idx);
-        let body_shape_transform = *p_transform * p_body.get_shape_transform(body_shape_idx);
+        let mut shapes_lock = shapes_singleton().lock().unwrap();
+        let body_shape = p_body.get_base().get_shape(body_shape_idx as usize);
+        let body_shape_transform = *p_transform * p_body.get_base().get_shape_transform(body_shape_idx as usize);
+        let mut body_shape_obj = shapes_lock.shapes.get(&body_shape).unwrap();
         let body_shape_info =
-            shape_info_from_body_shape(body_shape.get_rapier_shape(), body_shape_transform);
+            shape_info_from_body_shape(body_shape_obj.get_rapier_shape(), body_shape_transform);
 
         for result_idx in 0..result_count {
-            let result = &mut results[result_idx];
+            let result = &mut results[result_idx as usize];
 
             if !is_user_data_valid(result.user_data) {
                 continue;
             }
-            let (shape_index, shape_col_object) =
-                RapierCollisionObject2D::get_collider_user_data(result.user_data);
-            if shape_col_object.is_none() {
+            let (shape_col_object, shape_index) =
+                RapierCollisionObject2D::get_collider_user_data(&result.user_data);
+            if shape_col_object.is_invalid() {
                 continue;
             }
-            let shape_col_object = shape_col_object.unwrap();
-            if shape_col_object.get_type() != RapierCollisionObject2D::TYPE_BODY {
+            let bodies_lock = bodies_singleton().lock().unwrap();
+            let shape_col_object = bodies_lock.collision_objects.get(&shape_col_object).unwrap();
+            if shape_col_object.get_base().get_type() != CollisionObjectType::Body {
                 continue;
             }
-            let collision_body = shape_col_object.downcast_ref::<RapierBody2D>().unwrap();
+            let collision_body = shape_col_object.get_body().unwrap();
 
-            let col_shape = collision_body.get_shape(shape_index).unwrap();
+            let col_shape_rid = collision_body.get_base().get_shape(shape_index);
+            let col_shape = shapes_lock.shapes.get_mut(&col_shape_rid).unwrap();
 
             let col_shape_transform =
-                collision_body.get_transform() * collision_body.get_shape_transform(shape_index);
+                collision_body.get_base().get_transform() * collision_body.get_base().get_shape_transform(shape_index);
             let col_shape_info =
                 shape_info_from_body_shape(col_shape.get_rapier_shape(), col_shape_transform);
 
@@ -1238,7 +1276,7 @@ fn body_motion_collide(
 
             if should_skip_collision_one_dir(
                 contact,
-                body_shape,
+                body_shape_obj,
                 collision_body,
                 shape_index,
                 &col_shape_transform,
@@ -1251,21 +1289,21 @@ fn body_motion_collide(
             if contact.pixel_distance < min_distance {
                 min_distance = contact.pixel_distance;
                 best_collision_body = Some(collision_body);
-                best_collision_shape_index = shape_index;
+                best_collision_shape_index = shape_index as i32;
                 best_body_shape_index = body_shape_idx;
                 best_contact = contact;
             }
         }
     }
     if let Some(best_collision_body) = best_collision_body {
-        // conveyer belt
-        if best_collision_body.get_static_linear_velocity() != Vector2::default() {
-            p_result.travel += best_collision_body.get_static_linear_velocity() * self.get_last_step();
-        }
         if let Some(p_result) = p_result {
-            p_result.collider = best_collision_body.get_rid();
-            p_result.collider_id = best_collision_body.get_instance_id();
-            p_result.collider_shape = best_collision_shape_index;
+            // conveyer belt
+            if best_collision_body.get_static_linear_velocity() != Vector2::default() {
+                p_result.travel += best_collision_body.get_static_linear_velocity() * self.get_last_step();
+            }
+            p_result.collider = best_collision_body.get_base().get_rid();
+            p_result.collider_id = ObjectId{id : best_collision_body.get_base().get_instance_id()};
+            p_result.collider_shape = best_collision_shape_index as i32;
             p_result.collision_local_shape = best_body_shape_index;
             // World position from the moving body to get the contact point
             p_result.collision_point = Vector2::new(best_contact.pixel_point1.x, best_contact.pixel_point1.y);
@@ -1274,7 +1312,7 @@ fn body_motion_collide(
             // compute distance without sign
             p_result.collision_depth = p_margin - best_contact.pixel_distance;
 
-            let local_position = p_result.collision_point - best_collision_body.get_transform().get_origin();
+            let local_position = p_result.collision_point - best_collision_body.get_base().get_transform().origin;
             p_result.collider_velocity = best_collision_body.get_velocity_at_local_point(local_position);
         }
 
@@ -1289,8 +1327,8 @@ fn body_motion_collide(
 
 fn should_skip_collision_one_dir(
     contact: ContactResult,
-    body_shape: &IRapierShape2D,
-    collision_body: &RapierBody2D,
+    body_shape: &Box<dyn IRapierShape2D>,
+    collision_body: &dyn IRapierCollisionObject2D,
     shape_index: usize,
     col_shape_transform: &Transform2D,
     p_margin: f32,
@@ -1300,32 +1338,31 @@ fn should_skip_collision_one_dir(
     let dist = contact.pixel_distance;
     if !contact.within_margin
         && body_shape.allows_one_way_collision()
-        && collision_body.is_shape_set_as_one_way_collision(shape_index)
-    {
-        let mut valid_depth = 10e20;
-        let valid_dir = col_shape_transform.y.normalize();
+        && collision_body.get_base().is_shape_set_as_one_way_collision(shape_index)
+    {   
+        let valid_dir = col_shape_transform.origin.normalized();
 
-        let owc_margin = collision_body.get_shape_one_way_collision_margin(shape_index);
-        valid_depth = valid_depth.max(owc_margin).max(p_margin);
+        let owc_margin = collision_body.get_base().get_shape_one_way_collision_margin(shape_index);
+        let mut valid_depth = owc_margin.max(p_margin);
 
-        if collision_body.get_type() == RapierCollisionObject2D::TYPE_BODY {
-            let b = collision_body;
-            if b.get_mode() >= BodyMode::KINEMATIC {
+        if collision_body.get_base().get_type() == CollisionObjectType::Body {
+            let b = collision_body.get_body().unwrap();
+            if b.get_mode().ord() >= BodyMode::KINEMATIC.ord() {
                 // fix for moving platforms (kinematic and dynamic), margin is increased by how much it moved in the
                 // given direction
                 let lv = b.get_linear_velocity();
                 // compute displacement from linear velocity
                 let motion = lv * last_step;
                 let motion_len = motion.length();
-                let motion = motion.normalize();
+                let motion = motion.normalized();
                 valid_depth += motion_len * motion.dot(valid_dir).max(0.0);
             }
         }
         let motion = p_motion;
         let motion_len = motion.length();
-        let motion = motion.normalize();
+        let motion = motion.normalized();
         valid_depth += motion_len * motion.dot(valid_dir).max(0.0);
-        if dist < -valid_depth || p_motion.normalize().dot(valid_dir) < EPSILON {
+        if dist < -valid_depth || p_motion.normalized().dot(valid_dir) < EPSILON {
             return true;
         }
     }

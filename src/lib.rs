@@ -1,3 +1,4 @@
+#![feature(map_many_mut)]
 mod bodies;
 mod fluids;
 mod joints;

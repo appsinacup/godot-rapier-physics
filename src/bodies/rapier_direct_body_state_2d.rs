@@ -129,7 +129,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let mut lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_linear_velocity(&velocity);
+                body.set_linear_velocity(velocity);
             }
         }
     }
@@ -406,7 +406,6 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
             if let Some(body) = body.get_body() {
                 return body.contacts[contact_idx as usize]
                     .collider_instance_id
-                    .to_i64() as u64;
             }
         }
         0
@@ -417,7 +416,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return Some(Gd::from_instance_id(
-                    body.contacts[contact_idx as usize].collider_instance_id,
+                    InstanceId::from_i64(body.contacts[contact_idx as usize].collider_instance_id as i64),
                 ));
             }
         }

@@ -90,7 +90,7 @@ pub struct RapierCollisionObject2D {
     collision_priority: real,
     pub mode: physics_server_2d::BodyMode,
     body_handle: Handle,
-    area_detection_counter: u32,
+    pub area_detection_counter: u32,
 }
 
 impl RapierCollisionObject2D {

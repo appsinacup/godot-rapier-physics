@@ -26,7 +26,7 @@ use godot::engine::IPhysicsServer2DExtension;
 use godot::{engine, prelude::*};
 use std::ffi::c_void;
 
-use super::rapier_physics_singleton_2d::{bodies_singleton, fluids_singleton, joints_singleton, shapes_singleton, spaces_singleton};
+use super::rapier_physics_singleton_2d::{active_spaces_singleton, bodies_singleton, fluids_singleton, joints_singleton, shapes_singleton, spaces_singleton};
 
 #[derive(GodotClass)]
 #[class(base=PhysicsServer2DExtension, init)]
@@ -213,20 +213,22 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         rid
     }
     fn space_set_active(&mut self, space_rid: Rid, active: bool) {
-        let mut lock = spaces_singleton().lock().unwrap();
-        if let Some(space) = lock.spaces.get(&space_rid) {
+        let mut active_spaces_lock = active_spaces_singleton().lock().unwrap();
+        let spaces_lock = spaces_singleton().lock().unwrap();
+        if let Some(space) = spaces_lock.spaces.get(&space_rid) {
             let handle = space.get_handle();
             if active {
-                lock.active_spaces.insert(handle, space_rid);
+                active_spaces_lock.active_spaces.insert(handle, space_rid);
             } else {
-                lock.active_spaces.remove(&handle);
+                active_spaces_lock.active_spaces.remove(&handle);
             }
         }
     }
     fn space_is_active(&self, space: Rid) -> bool {
-        let lock = spaces_singleton().lock().unwrap();
-        if let Some(space) = lock.spaces.get(&space) {
-            return lock.active_spaces.contains_key(&space.get_handle());
+        let active_spaces_lock = active_spaces_singleton().lock().unwrap();
+        let spaces_lock = spaces_singleton().lock().unwrap();
+        if let Some(space) = spaces_lock.spaces.get(&space) {
+            return active_spaces_lock.active_spaces.contains_key(&space.get_handle());
         }
         false
     }
@@ -1258,11 +1260,12 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             return;
         }
         {
-            let mut lock = spaces_singleton().lock().unwrap();
-            if let Some(space) = lock.spaces.remove(&rid) {
-                for (handle, active_rid) in lock.active_spaces.iter_mut() {
+            let mut spaces_lock = spaces_singleton().lock().unwrap();
+            let mut active_spaces_lock = active_spaces_singleton().lock().unwrap();
+            if let Some(space) = spaces_lock.spaces.remove(&rid) {
+                for (handle, active_rid) in active_spaces_lock.active_spaces.iter_mut() {
                     if *active_rid == space.get_rid() {
-                        lock.active_spaces.remove(handle);
+                        active_spaces_lock.active_spaces.remove(handle);
                         break;
                     }
                 }
@@ -1305,7 +1308,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         self.collision_pairs = 0;
         let active_spaces;
         {
-            let lock = spaces_singleton().lock().unwrap();
+            let lock = active_spaces_singleton().lock().unwrap();
             active_spaces = lock.active_spaces.clone();
         }
         for space in active_spaces.values() {
@@ -1329,7 +1332,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         self.flushing_queries = true;
         let active_spaces;
         {
-            let lock = spaces_singleton().lock().unwrap();
+            let lock = active_spaces_singleton().lock().unwrap();
             active_spaces = lock.active_spaces.clone();
         }
         for space in active_spaces.values() {
