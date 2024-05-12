@@ -5,6 +5,7 @@ use crate::rapier2d::collider::Material;
 use crate::rapier2d::handle::is_handle_valid;
 use crate::rapier2d::handle::Handle;
 use crate::rapier2d::vector::Vector;
+use crate::servers::rapier_physics_singleton_2d::shapes_singleton;
 use crate::servers::rapier_physics_singleton_2d::spaces_singleton;
 use godot::engine::physics_server_2d::AreaParameter;
 use godot::engine::physics_server_2d::{BodyDampMode, BodyMode, BodyParameter, BodyState, CcdMode};
@@ -96,11 +97,7 @@ pub struct RapierBody2D {
     to_add_angular_velocity: real,
     to_add_linear_velocity: Vector2,
     sleep: bool,
-    active_list: Vec<Rid>,
-    mass_properties_update_list: Vec<Rid>,
-    gravity_update_list: Vec<Rid>,
     areas: Vec<Rid>,
-    area_override_update_list: Vec<Rid>,
     contacts: Vec<Contact>,
     contact_count: i32,
     body_state_callback: Callable,
@@ -146,11 +143,7 @@ impl RapierBody2D {
             to_add_angular_velocity: 0.0,
             to_add_linear_velocity: Vector2::ZERO,
             sleep: false,
-            active_list: Vec::new(),
-            mass_properties_update_list: Vec::new(),
-            gravity_update_list: Vec::new(),
             areas: Vec::new(),
-            area_override_update_list: Vec::new(),
             contacts: Vec::new(),
             contact_count: 0,
             body_state_callback: Callable::invalid(),
@@ -266,7 +259,6 @@ impl RapierBody2D {
             self.angular_velocity = 0.0;
             body_set_angular_velocity(space_handle, body_handle, self.angular_velocity);
         }
-        
     }
     pub fn get_angular_velocity(&self) -> real {
         let lock = spaces_singleton().lock().unwrap();
@@ -433,7 +425,20 @@ impl RapierBody2D {
         return self.omit_force_integration;
     }
 
-    pub fn apply_central_impulse(&self, impulse: Vector2) {}
+    pub fn apply_central_impulse(&self, p_impulse: Vector2) {
+        let lock = spaces_singleton().lock().unwrap();
+        if let Some(space) = lock.spaces.get(&self.get_base().get_space()) {
+            let space_handle = space.get_handle();
+            let body_handle = self.get_base().get_body_handle();
+            if !is_handle_valid(space_handle) || !is_handle_valid(body_handle) {
+                return;
+            }
+            self.angular_velocity = 0.0;
+            body_set_angular_velocity(space_handle, body_handle, self.angular_velocity);
+        } else {
+            self.impulse += p_impulse
+        }
+    }
 
     pub fn apply_impulse(&self, impulse: Vector2, position: Vector2) {}
 
@@ -587,8 +592,8 @@ impl RapierBody2D {
     }
 
     pub fn call_queries(&self) {
-        if let Some(direct_state) = self.direct_state {
-            if let Some (fi_callback_data) = self.fi_callback_data {
+        if let Some(direct_state) = &self.direct_state {
+            if let Some (fi_callback_data) = &self.fi_callback_data {
                 if fi_callback_data.callable.is_valid() {
                     let mut arg_array = Array::new();
         
@@ -609,27 +614,30 @@ impl RapierBody2D {
             }
         }
         
-        if (!self.active) {
+        if !self.active {
             // todo
             //direct_state_query_list.remove_from_list();
         }
     }
 
     pub fn get_aabb(&self) -> Rect2 {
-        let shapes_found = false;
+        let mut shapes_found = false;
         let mut body_aabb = Rect2::default();
-        for let 
-        for (int i = 0; i < get_shape_count(); ++i) {
-            if (is_shape_disabled(i)) {
+        let shape_count = self.base.get_shape_count() as usize;
+        for i in 0..shape_count {
+            if (self.base.is_shape_disabled(i)) {
                 continue;
             }
-            if (!shapes_found) {
-                // TODO not 100% correct, we don't take into consideration rotation here.
-                body_aabb = get_shape(i)->get_aabb(get_shape_transform(i).get_origin());
-                shapes_found = true;
-            } else {
-                // TODO not 100% correct, we don't take into consideration rotation here.
-                body_aabb = body_aabb.merge(get_shape(i)->get_aabb(get_shape_transform(i).get_origin()));
+            let shape_lock = shapes_singleton().lock().unwrap();
+            if let Some(shape) = shape_lock.shapes.get(&self.base.get_shape(i)) {
+                if (!shapes_found) {
+                    // TODO not 100% correct, we don't take into consideration rotation here.
+                    body_aabb = shape.get_base().get_aabb(self.get_base().get_shape_transform(i).origin);
+                    shapes_found = true;
+                } else {
+                    // TODO not 100% correct, we don't take into consideration rotation here.
+                    body_aabb = body_aabb.merge(shape.get_base().get_aabb(self.get_base().get_shape_transform(i).origin));
+                }
             }
         }
         return body_aabb;
