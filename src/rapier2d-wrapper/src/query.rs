@@ -1,5 +1,6 @@
 use rapier2d::na::Vector2;
 use rapier2d::parry;
+use rapier2d::parry::query::ShapeCastOptions;
 use rapier2d::prelude::*;
 use crate::convert::meters_to_pixels;
 use crate::convert::pixels_to_meters;
@@ -135,15 +136,15 @@ pub extern "C" fn intersect_ray(world_handle : Handle, pixel_from : &Vector, dir
     physics_world.query_pipeline.intersections_with_ray(&physics_world.rigid_body_set, &physics_world.collider_set, &ray, length, solid, filter,
         |handle, intersection| {
             // Find closest intersection
-            if intersection.toi > length_current {
+            if intersection.time_of_impact > length_current {
                 return true;
             }
             // Callback called on each collider hit by the ray.
-            if hit_from_inside || intersection.toi != 0.0 {
-                length_current = intersection.toi;
+            if hit_from_inside || intersection.time_of_impact != 0.0 {
+                length_current = intersection.time_of_impact;
                 result = true;
 
-                let hit_point = ray.point_at(intersection.toi);
+                let hit_point = ray.point_at(intersection.time_of_impact);
                 let hit_normal = intersection.normal;
                 hit_info.pixel_position = vector_meters_to_pixels(&Vector {
                     x: hit_point.x,
@@ -237,11 +238,15 @@ pub extern "C" fn shape_collide(pixel_motion1 : &Vector, shape_info1: ShapeInfo,
     let shape_transform1 = Isometry::new(vector![position1.x, position1.y], shape_info1.rotation);
     let shape_transform2 = Isometry::new(vector![position2.x, position2.y], shape_info2.rotation);
     let mut result = ShapeCastResult::new();
-    let toi_result = parry::query::time_of_impact(&shape_transform1, &shape_vel1, shared_shape1.as_ref(), &shape_transform2, &shape_vel2, shared_shape2.as_ref(), 1.0, false);
+    let mut shape_cast_options = ShapeCastOptions::default();
+    shape_cast_options.max_time_of_impact = 1.0;
+    shape_cast_options.compute_impact_geometry_on_penetration = true;
+    shape_cast_options.stop_at_penetration = true;
+    let toi_result = parry::query::cast_shapes(&shape_transform1, &shape_vel1, shared_shape1.as_ref(), &shape_transform2, &shape_vel2, shared_shape2.as_ref(), shape_cast_options);
     assert!(toi_result.is_ok());
     if let Some(hit) = toi_result.unwrap() {
         result.collided = true;
-        result.toi = hit.toi;
+        result.toi = hit.time_of_impact;
         result.normal1 = Vector{ x: hit.normal1.x, y: hit.normal1.y };
         result.normal2 = Vector{ x: hit.normal2.x, y: hit.normal2.y };
         result.pixel_witness1 = vector_meters_to_pixels(&Vector{ x: hit.witness1.x, y: hit.witness1.y });
@@ -289,11 +294,15 @@ pub extern "C" fn shape_casting(world_handle : Handle, pixel_motion : &Vector, s
     if shape_vel.x == 0.0 && shape_vel.y == 0.0 {
         shape_vel.x = 1e-5;
     }
+    let mut shape_cast_options = ShapeCastOptions::default();
+    shape_cast_options.max_time_of_impact = 1.0;
+    shape_cast_options.compute_impact_geometry_on_penetration = true;
+    shape_cast_options.stop_at_penetration = true;
     if let Some((collider_handle, hit)) = physics_world.query_pipeline.cast_shape(
-        &physics_world.rigid_body_set, &physics_world.collider_set, &shape_transform, &shape_vel, shared_shape.as_ref(), 1.0, ignore_intersecting, filter
+        &physics_world.rigid_body_set, &physics_world.collider_set, &shape_transform, &shape_vel, shared_shape.as_ref(), shape_cast_options, filter
     ) {
         result.collided = true;
-        result.toi = hit.toi;
+        result.toi = hit.time_of_impact;
         result.normal1 = Vector{ x: hit.normal1.x, y: hit.normal1.y };
         result.normal2 = Vector{ x: hit.normal2.x, y: hit.normal2.y };
         result.collider = collider_handle_to_handle(collider_handle);
