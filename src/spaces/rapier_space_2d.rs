@@ -616,6 +616,9 @@ impl RapierSpace2D {
     pub fn body_add_to_state_query_list(&mut self, body: Rid) {
         self.state_query_list.push(body);
     }
+    pub fn body_remove_from_state_query_list(&mut self, body: Rid) {
+        self.state_query_list.retain(|&x| x != body);
+    }
 
     pub fn area_add_to_monitor_query_list(&mut self, area: Rid) {
         self.monitor_query_list.push(area);
