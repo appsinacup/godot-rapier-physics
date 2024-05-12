@@ -615,8 +615,10 @@ impl RapierBody2D {
         }
         
         if !self.active {
-            // todo
-            //direct_state_query_list.remove_from_list();
+            let lock = spaces_singleton().lock().unwrap();
+            if let Some(space) = lock.spaces.get(&self.get_base().get_space()) {
+                space.body_remove_from_state_query_list(self.base.get_rid());
+            }
         }
     }
 
