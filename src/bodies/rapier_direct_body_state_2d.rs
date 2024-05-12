@@ -43,10 +43,10 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
             if let Some(body) = lock.collision_objects.get(&self.body) {
                 space_rid = body.get_base().get_space();
                 if let Some(body) = body.get_body() {
-                    if body.using_area_gravity {
-                        return body.total_gravity;
+                    if body.using_area_gravity() {
+                        return body.total_gravity();
                     } else {
-                        gravity_scale = body.gravity_scale;
+                        gravity_scale = body.gravity_scale();
                     }
                 }
             }
@@ -68,7 +68,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
-                return body.total_linear_damping;
+                return body.total_linear_damping();
             }
         }
         0.0
@@ -78,7 +78,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
-                return body.total_angular_damping;
+                return body.total_angular_damping();
             }
         }
         0.0
@@ -334,7 +334,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
-                return body.contact_count;
+                return body.contact_count();
             }
         }
         0
@@ -344,7 +344,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
-                return body.contacts[contact_idx as usize].local_pos;
+                return body.contacts()[contact_idx as usize].local_pos;
             }
         }
         Vector2::default()
@@ -354,7 +354,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
-                return body.contacts[contact_idx as usize].local_normal;
+                return body.contacts()[contact_idx as usize].local_normal;
             }
         }
         Vector2::default()
@@ -364,7 +364,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
-                return body.contacts[contact_idx as usize].local_shape;
+                return body.contacts()[contact_idx as usize].local_shape;
             }
         }
         0
@@ -374,7 +374,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
-                return body.contacts[contact_idx as usize].local_velocity_at_pos;
+                return body.contacts()[contact_idx as usize].local_velocity_at_pos;
             }
         }
         Vector2::default()
@@ -384,7 +384,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
-                return body.contacts[contact_idx as usize].collider;
+                return body.contacts()[contact_idx as usize].collider;
             }
         }
         Rid::Invalid
@@ -394,7 +394,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
-                return body.contacts[contact_idx as usize].collider_pos;
+                return body.contacts()[contact_idx as usize].collider_pos;
             }
         }
         Vector2::default()
@@ -404,7 +404,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
-                return body.contacts[contact_idx as usize]
+                return body.contacts()[contact_idx as usize]
                     .collider_instance_id
             }
         }
@@ -416,7 +416,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return Some(Gd::from_instance_id(
-                    InstanceId::from_i64(body.contacts[contact_idx as usize].collider_instance_id as i64),
+                    InstanceId::from_i64(body.contacts()[contact_idx as usize].collider_instance_id as i64),
                 ));
             }
         }
@@ -427,7 +427,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
-                return body.contacts[contact_idx as usize].collider_shape;
+                return body.contacts()[contact_idx as usize].collider_shape;
             }
         }
         0
@@ -437,7 +437,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
-                return body.contacts[contact_idx as usize].collider_velocity_at_pos;
+                return body.contacts()[contact_idx as usize].collider_velocity_at_pos;
             }
         }
         Vector2::default()
@@ -447,7 +447,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
-                return body.contacts[contact_idx as usize].impulse;
+                return body.contacts()[contact_idx as usize].impulse;
             }
         }
         Vector2::default()

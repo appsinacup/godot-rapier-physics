@@ -1,22 +1,11 @@
-use crate::bodies::rapier_collision_object_2d::CollisionObjectType;
-use crate::bodies::rapier_collision_object_2d::IRapierCollisionObject2D;
-use crate::bodies::rapier_collision_object_2d::RapierCollisionObject2D;
-use crate::rapier2d::body::body_apply_impulse;
-use crate::rapier2d::body::body_change_mode;
-use crate::rapier2d::body::body_get_angular_velocity;
-use crate::rapier2d::body::body_get_linear_velocity;
-use crate::rapier2d::body::body_set_angular_damping;
-use crate::rapier2d::body::body_set_angular_velocity;
-use crate::rapier2d::body::body_set_gravity_scale;
-use crate::rapier2d::body::body_set_linear_damping;
-use crate::rapier2d::body::body_set_linear_velocity;
+use crate::bodies::rapier_collision_object_2d::*;
+use crate::rapier2d::body::*;
 use crate::rapier2d::collider::collider_set_contact_force_events_enabled;
 use crate::rapier2d::collider::Material;
 use crate::rapier2d::handle::is_handle_valid;
 use crate::rapier2d::handle::Handle;
 use crate::rapier2d::vector::Vector;
 use crate::servers::rapier_physics_singleton_2d::spaces_singleton;
-use godot::engine::native::ObjectId;
 use godot::engine::physics_server_2d::AreaParameter;
 use godot::engine::physics_server_2d::{BodyDampMode, BodyMode, BodyParameter, BodyState, CcdMode};
 use godot::engine::PhysicsDirectBodyState2D;
@@ -78,10 +67,10 @@ pub struct RapierBody2D {
     angular_damping_mode: BodyDampMode,
     linear_damping: real,
     angular_damping: real,
-    pub total_linear_damping: real,
-    pub total_angular_damping: real,
-    pub total_gravity: Vector2,
-    pub gravity_scale: real,
+    total_linear_damping: real,
+    total_angular_damping: real,
+    total_gravity: Vector2,
+    gravity_scale: real,
     bounce: real,
     friction: real,
     mass: real,
@@ -89,7 +78,7 @@ pub struct RapierBody2D {
     center_of_mass: Vector2,
     calculate_inertia: bool,
     calculate_center_of_mass: bool,
-    pub using_area_gravity: bool,
+    using_area_gravity: bool,
     using_area_linear_damping: bool,
     using_area_angular_damping: bool,
     exceptions: HashSet<Rid>,
@@ -112,8 +101,8 @@ pub struct RapierBody2D {
     gravity_update_list: Vec<Rid>,
     areas: Vec<Rid>,
     area_override_update_list: Vec<Rid>,
-    pub contacts: Vec<Contact>,
-    pub contact_count: i32,
+    contacts: Vec<Contact>,
+    contact_count: i32,
     body_state_callback: Callable,
     fi_callback_data: Option<ForceIntegrationCallbackData>,
     direct_state: Option<Gd<PhysicsDirectBodyState2D>>,
@@ -213,7 +202,7 @@ impl RapierBody2D {
 
     fn _init_collider(&self, collider_handle: Handle, space_handle: Handle) {
         // Send contact infos for dynamic bodies
-        if self.get_mode().ord() >= BodyMode::KINEMATIC.ord() {
+        if self.get_base().mode.ord() >= BodyMode::KINEMATIC.ord() {
             let send_contacts = self.can_report_contacts();
             collider_set_contact_force_events_enabled(space_handle, collider_handle, send_contacts);
         }
@@ -597,9 +586,77 @@ impl RapierBody2D {
             );
     }
 
-    pub fn call_queries(&self) {}
+    pub fn call_queries(&self) {
+        if let Some(direct_state) = self.direct_state {
+            if let Some (fi_callback_data) = self.fi_callback_data {
+                if fi_callback_data.callable.is_valid() {
+                    let mut arg_array = Array::new();
+        
+                    arg_array.push(direct_state.to_variant());
+                    arg_array.push(fi_callback_data.udata);
+        
+                    fi_callback_data.callable.callv(arg_array);
+                }
+            }
+        
+            //  Sync body server with Godot by sending body direct state
+            if self.body_state_callback.is_valid() {
+                let mut arg_array = Array::new();
+    
+                arg_array.push(direct_state.to_variant());
+    
+                self.body_state_callback.callv(arg_array);
+            }
+        }
+        
+        if (!self.active) {
+            // todo
+            //direct_state_query_list.remove_from_list();
+        }
+    }
 
-    pub fn get_aabb(&self) -> Rect2 {}
+    pub fn get_aabb(&self) -> Rect2 {
+        let shapes_found = false;
+        let mut body_aabb = Rect2::default();
+        for let 
+        for (int i = 0; i < get_shape_count(); ++i) {
+            if (is_shape_disabled(i)) {
+                continue;
+            }
+            if (!shapes_found) {
+                // TODO not 100% correct, we don't take into consideration rotation here.
+                body_aabb = get_shape(i)->get_aabb(get_shape_transform(i).get_origin());
+                shapes_found = true;
+            } else {
+                // TODO not 100% correct, we don't take into consideration rotation here.
+                body_aabb = body_aabb.merge(get_shape(i)->get_aabb(get_shape_transform(i).get_origin()));
+            }
+        }
+        return body_aabb;
+    }
+
+
+    pub fn total_linear_damping(&self)-> real {
+        self.total_linear_damping
+    }
+    pub fn total_angular_damping(&self)-> real {
+        self.total_angular_damping
+    }
+    pub fn total_gravity(&self)-> Vector2 {
+        self.total_gravity
+    }
+    pub fn gravity_scale(&self)-> real {
+        self.gravity_scale
+    }
+    pub fn using_area_gravity(&self)-> bool {
+        self.using_area_gravity
+    }
+    pub fn contact_count(&self)-> i32 {
+        self.contact_count
+    }
+    pub fn contacts(&self)-> &Vec<Contact> {
+        &self.contacts
+    }
 }
 
 impl IRapierCollisionObject2D for RapierBody2D {
