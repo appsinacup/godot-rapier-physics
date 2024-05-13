@@ -184,8 +184,7 @@ impl RapierBody2D {
                 let linear_damp: real = space.get_default_area_param(AreaParameter::LINEAR_DAMP).to();
                 self.total_linear_damping += linear_damp;
             }
-            let space_handle = space.get_handle();
-            body_set_linear_damping(space_handle, self.base.get_body_handle(), self.total_linear_damping);
+            body_set_linear_damping(self.base.space_handle, self.base.get_body_handle(), self.total_linear_damping);
         }
     }
 
@@ -197,17 +196,12 @@ impl RapierBody2D {
                 let angular_damp: real = space.get_default_area_param(AreaParameter::ANGULAR_DAMP).to();
                 self.total_angular_damping += angular_damp;
             }
-            let space_handle = space.get_handle();
-            body_set_angular_damping(space_handle, self.base.get_body_handle(), self.total_angular_damping);
+            body_set_angular_damping(self.base.space_handle, self.base.get_body_handle(), self.total_angular_damping);
         }
     }
 
     fn _apply_gravity_scale(&self, new_value: real) {
-        let lock = spaces_singleton().lock().unwrap();
-        if let Some(space) = lock.spaces.get(&self.base.get_space()) {
-            let space_handle = space.get_handle();
-            body_set_gravity_scale(space_handle, self.base.get_body_handle(), new_value, true);
-        }
+        body_set_gravity_scale(self.base.space_handle, self.base.get_body_handle(), new_value, true);
     }
 
     fn _init_material(&self, mat: &mut Material) {
@@ -235,31 +229,22 @@ impl RapierBody2D {
         if self.base.mode == BodyMode::STATIC {
             return;
         }
-        let lock = spaces_singleton().lock().unwrap();
-        if let Some(space) = lock.spaces.get(&self.base.get_space()) {
-            let space_handle = space.get_handle();
-            let body_handle = self.base.get_body_handle();
-        
-            if !is_handle_valid(space_handle) || !is_handle_valid(body_handle) {
-                return;
-            }
-            let velocity = Vector::new(self.linear_velocity.x, self.linear_velocity.y);
-            self.linear_velocity = Vector2::default();
-            body_set_linear_velocity(space_handle, body_handle, &velocity);
+        let body_handle = self.base.get_body_handle();
+    
+        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+            return;
         }
+        let velocity = Vector::new(self.linear_velocity.x, self.linear_velocity.y);
+        self.linear_velocity = Vector2::default();
+        body_set_linear_velocity(self.base.space_handle, body_handle, &velocity);
     }
     pub fn get_linear_velocity(&self) -> Vector2 {
-        let lock = spaces_singleton().lock().unwrap();
-        if let Some(space) = lock.spaces.get(&self.base.get_space()) {
-            let space_handle = space.get_handle();
-            let body_handle = self.base.get_body_handle();
-            if !is_handle_valid(space_handle) || !is_handle_valid(body_handle) {
-                return self.linear_velocity;
-            }
-            let vel = body_get_linear_velocity(space_handle, body_handle);
-            return Vector2::new(vel.x, vel.y);
+        let body_handle = self.base.get_body_handle();
+        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+            return self.linear_velocity;
         }
-        return self.linear_velocity;
+        let vel = body_get_linear_velocity(self.base.space_handle, body_handle);
+        return Vector2::new(vel.x, vel.y);
     }
     pub fn get_static_linear_velocity(&self) -> Vector2 {
 	    return self.linear_velocity;
@@ -271,28 +256,19 @@ impl RapierBody2D {
             return;
         }
         
-        let lock = spaces_singleton().lock().unwrap();
-        if let Some(space) = lock.spaces.get(&self.base.get_space()) {
-            let space_handle = space.get_handle();
-            let body_handle = self.base.get_body_handle();
-            if !is_handle_valid(space_handle) || !is_handle_valid(body_handle) {
-                return;
-            }
-            self.angular_velocity = 0.0;
-            body_set_angular_velocity(space_handle, body_handle, self.angular_velocity);
+        let body_handle = self.base.get_body_handle();
+        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+            return;
         }
+        self.angular_velocity = 0.0;
+        body_set_angular_velocity(self.base.space_handle, body_handle, self.angular_velocity);
     }
     pub fn get_angular_velocity(&self) -> real {
-        let lock = spaces_singleton().lock().unwrap();
-        if let Some(space) = lock.spaces.get(&self.base.get_space()) {
-            let space_handle = space.get_handle();
-            let body_handle = self.base.get_body_handle();
-            if !is_handle_valid(space_handle) || !is_handle_valid(body_handle) {
-                return self.angular_velocity;
-            }
-            return body_get_angular_velocity(space_handle, body_handle);
+        let body_handle = self.base.get_body_handle();
+        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+            return self.angular_velocity;
         }
-        return self.angular_velocity;
+        return body_get_angular_velocity(self.base.space_handle, body_handle);
     }
     pub fn get_static_angular_velocity(&self) -> real {
         self.angular_velocity
@@ -340,18 +316,14 @@ impl RapierBody2D {
         if !self.areas.is_empty() {
             self.update_area_override();
         }
-        let lock = spaces_singleton().lock().unwrap();
-        if let Some(space) = lock.spaces.get(&self.base.get_space()) {
-            let space_handle = space.get_handle();
-            let body_handle = self.base.get_body_handle();
+        let body_handle = self.base.get_body_handle();
 
-            if !is_handle_valid(space_handle) || !is_handle_valid(body_handle) {
-                return;
-            }
-            let gravity_impulse = self.total_gravity * self.mass * p_step;
-            let impulse = Vector::new(gravity_impulse.x, gravity_impulse.y);
-            body_apply_impulse(space_handle, body_handle, &impulse);
+        if !is_handle_valid(self.base.) || !is_handle_valid(body_handle) {
+            return;
         }
+        let gravity_impulse = self.total_gravity * self.mass * p_step;
+        let impulse = Vector::new(gravity_impulse.x, gravity_impulse.y);
+        body_apply_impulse(self.base.space_handle, body_handle, &impulse);
     }
 
     pub fn set_max_contacts_reported(&mut self, size: i32) {
@@ -448,18 +420,13 @@ impl RapierBody2D {
     }
 
     pub fn apply_central_impulse(&self, p_impulse: Vector2) {
-        let lock = spaces_singleton().lock().unwrap();
-        if let Some(space) = lock.spaces.get(&self.base.get_space()) {
-            let space_handle = space.get_handle();
-            let body_handle = self.base.get_body_handle();
-            if !is_handle_valid(space_handle) || !is_handle_valid(body_handle) {
-                return;
-            }
-            self.angular_velocity = 0.0;
-            body_set_angular_velocity(space_handle, body_handle, self.angular_velocity);
-        } else {
-            self.impulse += p_impulse
+        let body_handle = self.base.get_body_handle();
+        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+            self.impulse += p_impulse;
+            return;
         }
+        self.angular_velocity = 0.0;
+        body_set_angular_velocity(self.base.space_handle, body_handle, self.angular_velocity);
     }
 
     pub fn apply_impulse(&self, impulse: Vector2, position: Vector2) {}
