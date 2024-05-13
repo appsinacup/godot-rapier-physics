@@ -21,15 +21,15 @@ parallel = ["rapier2d/parallel", "rapier2d-f64/parallel"]
 
 [dependencies]
 godot = { git = "https://github.com/godot-rust/gdext", branch = "master" }
-rapier2d = {git = "https://github.com/dimforge/rapier", branch = "stability-improvements"}
-rapier2d-f64 = {git = "https://github.com/dimforge/rapier", branch = "stability-improvements"}
+rapier2d = {git = "https://github.com/dimforge/rapier", branch = "master"}
+rapier2d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master"}
 salva2d = { git = "https://github.com/dimforge/salva", branch = "master", features = ["rapier"] }
 
 [patch.crates-io]
-rapier2d = {git = "https://github.com/dimforge/rapier", branch = "stability-improvements"}
-rapier2d-f64 = {git = "https://github.com/dimforge/rapier", branch = "stability-improvements"}
-parry2d = {git = "https://github.com/dimforge/parry", branch = "internal-edges-rework"}
-parry2d-f64 = {git = "https://github.com/dimforge/parry", branch = "internal-edges-rework"}
+rapier2d = {git = "https://github.com/dimforge/rapier", branch = "master"}
+rapier2d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master"}
+parry2d = {git = "https://github.com/dimforge/parry", branch = "master"}
+parry2d-f64 = {git = "https://github.com/dimforge/parry", branch = "master"}
 
 [profile.release]
 codegen-units = 1

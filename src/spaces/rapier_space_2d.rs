@@ -606,12 +606,21 @@ impl RapierSpace2D {
     pub fn body_add_to_mass_properties_update_list(&mut self, body: Rid) {
         self.mass_properties_update_list.push(body);
     }
+    pub fn body_remove_from_mass_properties_update_list(&mut self, body: Rid) {
+        self.mass_properties_update_list.retain(|&x| x != body);
+    }
     pub fn body_add_to_gravity_update_list(&mut self, body: Rid) {
         self.gravity_update_list.push(body);
+    }
+    pub fn body_remove_from_gravity_update_list(&mut self, body: Rid) {
+        self.gravity_update_list.retain(|&x| x != body);
     }
 
     pub fn body_add_to_active_list(&mut self, body: Rid) {
         self.active_list.push(body);
+    }
+    pub fn body_remove_from_active_list(&mut self, body: Rid) {
+        self.state_query_list.retain(|&x| x != body);
     }
     pub fn body_add_to_state_query_list(&mut self, body: Rid) {
         self.state_query_list.push(body);
@@ -628,6 +637,9 @@ impl RapierSpace2D {
     }
     pub fn body_add_to_area_update_list(&mut self, body: Rid) {
         self.body_area_update_list.push(body);
+    }
+    pub fn body_remove_from_area_update_list(&mut self, body: Rid) {
+        self.body_area_update_list.retain(|&x| x != body);
     }
 
     pub fn add_removed_collider(&mut self, handle: Handle, object: Rid, instance_id: u64, shape_index: usize, collision_object_type: CollisionObjectType) {

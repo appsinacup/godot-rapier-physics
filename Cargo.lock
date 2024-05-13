@@ -276,7 +276,7 @@ name = "godot-rapier"
 version = "0.1.0"
 dependencies = [
  "godot",
- "rapier2d",
+ "rapier2d 0.19.0",
  "rapier2d-f64",
  "salva2d",
 ]
@@ -497,8 +497,29 @@ dependencies = [
 
 [[package]]
 name = "parry2d"
-version = "0.13.7"
-source = "git+https://github.com/dimforge/parry?branch=internal-edges-rework#2d541212b6f5f483168d8127e537c17822d66f32"
+version = "0.13.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9fd94bf962ead112f14223469aac6f76e3c24e2c399e348f638924498b238c56"
+dependencies = [
+ "approx",
+ "arrayvec",
+ "bitflags",
+ "downcast-rs",
+ "either",
+ "nalgebra",
+ "num-derive",
+ "num-traits",
+ "rustc-hash",
+ "simba",
+ "slab",
+ "smallvec",
+ "spade",
+]
+
+[[package]]
+name = "parry2d"
+version = "0.15.1"
+source = "git+https://github.com/dimforge/parry?branch=master#b8b0f648c7dbe1ad8d9e12182845f166eae68b35"
 dependencies = [
  "approx",
  "arrayvec",
@@ -520,8 +541,8 @@ dependencies = [
 
 [[package]]
 name = "parry2d-f64"
-version = "0.13.7"
-source = "git+https://github.com/dimforge/parry?branch=internal-edges-rework#2d541212b6f5f483168d8127e537c17822d66f32"
+version = "0.15.1"
+source = "git+https://github.com/dimforge/parry?branch=master#b8b0f648c7dbe1ad8d9e12182845f166eae68b35"
 dependencies = [
  "approx",
  "arrayvec",
@@ -568,7 +589,27 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.18.0"
-source = "git+https://github.com/dimforge/rapier?branch=stability-improvements#a967241683c898647429f16832813172a9dc3a51"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "48a3ec4ae89e0837c0ff6f29af32a8e5d78dfabe2273dcd945cfaf3f5d2b1501"
+dependencies = [
+ "approx",
+ "arrayvec",
+ "bit-vec",
+ "bitflags",
+ "crossbeam",
+ "downcast-rs",
+ "nalgebra",
+ "num-derive",
+ "num-traits",
+ "parry2d 0.13.8",
+ "rustc-hash",
+ "simba",
+]
+
+[[package]]
+name = "rapier2d"
+version = "0.19.0"
+source = "git+https://github.com/dimforge/rapier?branch=master#af1ac9baa26b1199ae2728e91adf5345bcd1c693"
 dependencies = [
  "approx",
  "arrayvec",
@@ -581,7 +622,7 @@ dependencies = [
  "num-derive",
  "num-traits",
  "ordered-float",
- "parry2d",
+ "parry2d 0.15.1",
  "rayon",
  "rustc-hash",
  "serde",
@@ -591,8 +632,8 @@ dependencies = [
 
 [[package]]
 name = "rapier2d-f64"
-version = "0.18.0"
-source = "git+https://github.com/dimforge/rapier?branch=stability-improvements#a967241683c898647429f16832813172a9dc3a51"
+version = "0.19.0"
+source = "git+https://github.com/dimforge/rapier?branch=master#af1ac9baa26b1199ae2728e91adf5345bcd1c693"
 dependencies = [
  "approx",
  "arrayvec",
@@ -701,8 +742,8 @@ dependencies = [
  "itertools",
  "nalgebra",
  "num-traits",
- "parry2d",
- "rapier2d",
+ "parry2d 0.13.8",
+ "rapier2d 0.18.0",
 ]
 
 [[package]]
