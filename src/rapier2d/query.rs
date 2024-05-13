@@ -3,6 +3,7 @@ use crate::rapier2d::convert::meters_to_pixels;
 use crate::rapier2d::convert::pixels_to_meters;
 use crate::rapier2d::convert::vector_meters_to_pixels;
 use crate::rapier2d::convert::vector_pixels_to_meters;
+use rapier2d::parry::query::ShapeCastOptions;
 use crate::rapier2d::handle::*;
 use crate::rapier2d::physics_world::*;
 use crate::rapier2d::shape::*;
@@ -303,20 +304,23 @@ pub fn shape_collide(
     let shape_transform1 = Isometry::new(vector![position1.x, position1.y], shape_info1.rotation);
     let shape_transform2 = Isometry::new(vector![position2.x, position2.y], shape_info2.rotation);
     let mut result = ShapeCastResult::new();
-    let toi_result = parry::query::time_of_impact(
+    let mut shape_cast_options = ShapeCastOptions::default();
+    shape_cast_options.max_time_of_impact = 1.0;
+    shape_cast_options.compute_impact_geometry_on_penetration = true;
+    shape_cast_options.stop_at_penetration = true;
+    let toi_result = parry::query::cast_shapes(
         &shape_transform1,
         &shape_vel1,
         shared_shape1.as_ref(),
         &shape_transform2,
         &shape_vel2,
         shared_shape2.as_ref(),
-        1.0,
-        false,
+        shape_cast_options,
     );
     assert!(toi_result.is_ok());
     if let Some(hit) = toi_result.unwrap() {
         result.collided = true;
-        result.toi = hit.toi;
+        result.toi = hit.time_of_impact;
         result.normal1 = Vector {
             x: hit.normal1.x,
             y: hit.normal1.y,
@@ -399,12 +403,11 @@ pub fn shape_casting(
         &shape_transform,
         &shape_vel,
         shared_shape.as_ref(),
-        1.0,
-        ignore_intersecting,
+        shape_cast_options,
         filter,
     ) {
         result.collided = true;
-        result.toi = hit.toi;
+        result.toi = hit.time_of_impact;
         result.normal1 = Vector {
             x: hit.normal1.x,
             y: hit.normal1.y,

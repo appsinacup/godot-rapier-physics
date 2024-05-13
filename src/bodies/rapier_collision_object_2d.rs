@@ -90,6 +90,7 @@ pub struct RapierCollisionObject2D {
     collision_priority: real,
     pub mode: physics_server_2d::BodyMode,
     body_handle: Handle,
+    space_handle: Handle,
     pub area_detection_counter: u32,
 }
 
@@ -110,19 +111,13 @@ impl RapierCollisionObject2D {
             collision_priority: 1.0,
             mode: physics_server_2d::BodyMode::RIGID,
             body_handle: invalid_handle(),
+            space_handle: invalid_handle(),
             area_detection_counter: 0,
         }
     }
 
     fn _create_shape(&mut self, shape: &mut CollisionObjectShape, p_shape_index: usize, mat: Material) {
-        let mut space_handle = invalid_handle();
-        {
-            let lock = spaces_singleton().lock().unwrap();
-            if let Some(space) = lock.spaces.get(&self.space) {
-                space_handle = space.get_handle();
-            }
-        }
-        assert!(is_handle_valid(space_handle));
+        assert!(is_handle_valid(self.space_handle));
         assert!(!is_handle_valid(shape.collider_handle));
         let mut lock = shapes_singleton().lock().unwrap();
         if let Some(shape_object) = lock.shapes.get_mut(&shape.shape) {
@@ -135,7 +130,7 @@ impl RapierCollisionObject2D {
             match self.collision_object_type {
                 CollisionObjectType::Body => {
                     shape.collider_handle = collider_create_solid(
-                        space_handle,
+                        self.space_handle,
                         shape_handle,
                         &mat,
                         self.body_handle,
@@ -144,7 +139,7 @@ impl RapierCollisionObject2D {
                 }
                 CollisionObjectType::Area => {
                     shape.collider_handle = collider_create_sensor(
-                        space_handle,
+                        self.space_handle,
                         shape_handle,
                         self.body_handle,
                         &user_data,
@@ -162,8 +157,7 @@ impl RapierCollisionObject2D {
         {
             let mut lock = spaces_singleton().lock().unwrap();
             if let Some(space) = lock.spaces.get_mut(&self.space) {
-                let space_handle = space.get_handle();
-                assert!(is_handle_valid(space_handle));
+                assert!(is_handle_valid(self.space_handle));
     
                 assert!(is_handle_valid(shape.collider_handle));
     
@@ -172,7 +166,7 @@ impl RapierCollisionObject2D {
                     space.add_removed_collider(shape.collider_handle, self.rid, self.instance_id, p_shape_index, self.get_type());
                 }
     
-                collider_destroy(space_handle, shape.collider_handle);
+                collider_destroy(self.space_handle, shape.collider_handle);
                 shape_rid = shape.shape;
                 shape.collider_handle = invalid_handle();
             }
@@ -186,19 +180,12 @@ impl RapierCollisionObject2D {
     }
 
     fn update_shape_transform(&mut self, shape: &CollisionObjectShape) {
-        let mut space_handle = invalid_handle();
-        {
-            let lock = spaces_singleton().lock().unwrap();
-            if let Some(space) = lock.spaces.get(&self.space) {
-                space_handle = space.get_handle();
-            }
-        }
         let origin = shape.xform.origin;
         let position = Vector::new(origin.x, origin.y);
         let angle = shape.xform.rotation();
         let scale = shape.xform.scale();
 
-        assert!(is_handle_valid(space_handle));
+        assert!(is_handle_valid(self.space_handle));
 
         assert!(is_handle_valid(shape.collider_handle));
         let mut lock = shapes_singleton().lock().unwrap();
@@ -212,25 +199,21 @@ impl RapierCollisionObject2D {
                 skew: shape.xform.skew(),
                 scale: Vector::new(scale.x, scale.y),
             };
-            collider_set_transform(space_handle, shape.collider_handle, shape_info);
+            collider_set_transform(self.space_handle, shape.collider_handle, shape_info);
         }
     }
 
     pub fn update_transform(&mut self) {
-        let lock = spaces_singleton().lock().unwrap();
-        if let Some(space) = lock.spaces.get(&self.space) {
-            let space_handle = space.get_handle();
-            assert!(is_handle_valid(space_handle));
+        assert!(is_handle_valid(self.space_handle));
 
-            assert!(is_handle_valid(self.body_handle));
+        assert!(is_handle_valid(self.body_handle));
 
-            let position = body_get_position(space_handle, self.body_handle);
-            let angle = body_get_angle(space_handle, self.body_handle);
-            let origin = Vector2::new(position.x, position.y);
-            self.transform = Transform2D::from_angle_scale_skew_origin(angle, self.transform.scale(), self.transform.skew(), origin);
+        let position = body_get_position(self.space_handle, self.body_handle);
+        let angle = body_get_angle(self.space_handle, self.body_handle);
+        let origin = Vector2::new(position.x, position.y);
+        self.transform = Transform2D::from_angle_scale_skew_origin(angle, self.transform.scale(), self.transform.skew(), origin);
 
-            self.inv_transform = self.transform.affine_inverse();
-        }
+        self.inv_transform = self.transform.affine_inverse();
     }
 /*
     fn _init_material(&self, mat: &mut Material) {}
@@ -459,18 +442,14 @@ impl RapierCollisionObject2D {
     pub fn set_transform(&mut self, p_transform: Transform2D, wake_up: bool) {
         self.transform = p_transform;
         self.inv_transform = self.transform.affine_inverse();
-        let lock = spaces_singleton().lock().unwrap();
-        if let Some(space) = lock.spaces.get(&self.space) {
-            let space_handle = space.get_handle();
-            assert!(is_handle_valid(space_handle));
+        assert!(is_handle_valid(self.space_handle));
 
-            assert!(is_handle_valid(self.body_handle));
+        assert!(is_handle_valid(self.body_handle));
 
-            let origin = self.transform.origin;
-            let position = Vector::new(origin.x, origin.y);
-            let rotation = self.transform.rotation();
-            body_set_transform(space_handle, self.body_handle, &position, rotation, wake_up);
-        }
+        let origin = self.transform.origin;
+        let position = Vector::new(origin.x, origin.y);
+        let rotation = self.transform.rotation();
+        body_set_transform(self.space_handle, self.body_handle, &position, rotation, wake_up);
     }
 
     pub fn get_transform(&self) -> Transform2D {

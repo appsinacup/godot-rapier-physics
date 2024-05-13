@@ -153,38 +153,60 @@ impl RapierBody2D {
             base: RapierCollisionObject2D::new(rid, CollisionObjectType::Body),
         }
     }
+    
+    fn _mass_properties_changed(&mut self) {
+        if (mode < PhysicsServer2D::BODY_MODE_RIGID) {
+            return;
+        }
+
+        if (calculate_inertia || calculate_center_of_mass) {
+            if (!mass_properties_update_list.in_list()) {
+                get_space()->body_add_to_mass_properties_update_list(&mass_properties_update_list);
+            }
+        } else {
+            self._apply_mass_properties(false);
+        }
+    }
+
+	fn _apply_mass_properties(force_update: bool) {
+
+    }
+
+	fn _shapes_changed() {
+
+    }
 
     fn _apply_linear_damping(&mut self, new_value: real, apply_default: bool) {
         let lock = spaces_singleton().lock().unwrap();
-        if let Some(space) = lock.spaces.get(&self.get_base().get_space()) {
+        if let Some(space) = lock.spaces.get(&self.base.get_space()) {
             self.total_linear_damping = new_value;
             if apply_default {
                 let linear_damp: real = space.get_default_area_param(AreaParameter::LINEAR_DAMP).to();
                 self.total_linear_damping += linear_damp;
             }
             let space_handle = space.get_handle();
-            body_set_linear_damping(space_handle, self.get_base().get_body_handle(), self.total_linear_damping);
+            body_set_linear_damping(space_handle, self.base.get_body_handle(), self.total_linear_damping);
         }
     }
 
     fn _apply_angular_damping(&mut self, new_value: real, apply_default: bool) {
         let lock = spaces_singleton().lock().unwrap();
-        if let Some(space) = lock.spaces.get(&self.get_base().get_space()) {
+        if let Some(space) = lock.spaces.get(&self.base.get_space()) {
             self.total_angular_damping = new_value;
             if apply_default {
                 let angular_damp: real = space.get_default_area_param(AreaParameter::ANGULAR_DAMP).to();
                 self.total_angular_damping += angular_damp;
             }
             let space_handle = space.get_handle();
-            body_set_angular_damping(space_handle, self.get_base().get_body_handle(), self.total_angular_damping);
+            body_set_angular_damping(space_handle, self.base.get_body_handle(), self.total_angular_damping);
         }
     }
 
     fn _apply_gravity_scale(&self, new_value: real) {
         let lock = spaces_singleton().lock().unwrap();
-        if let Some(space) = lock.spaces.get(&self.get_base().get_space()) {
+        if let Some(space) = lock.spaces.get(&self.base.get_space()) {
             let space_handle = space.get_handle();
-            body_set_gravity_scale(space_handle, self.get_base().get_body_handle(), new_value, true);
+            body_set_gravity_scale(space_handle, self.base.get_body_handle(), new_value, true);
         }
     }
 
@@ -195,7 +217,7 @@ impl RapierBody2D {
 
     fn _init_collider(&self, collider_handle: Handle, space_handle: Handle) {
         // Send contact infos for dynamic bodies
-        if self.get_base().mode.ord() >= BodyMode::KINEMATIC.ord() {
+        if self.base.mode.ord() >= BodyMode::KINEMATIC.ord() {
             let send_contacts = self.can_report_contacts();
             collider_set_contact_force_events_enabled(space_handle, collider_handle, send_contacts);
         }
@@ -210,13 +232,13 @@ impl RapierBody2D {
 
     pub fn set_linear_velocity(&mut self, p_linear_velocity: Vector2) {
         self.linear_velocity = p_linear_velocity;
-        if self.get_base().mode == BodyMode::STATIC {
+        if self.base.mode == BodyMode::STATIC {
             return;
         }
         let lock = spaces_singleton().lock().unwrap();
-        if let Some(space) = lock.spaces.get(&self.get_base().get_space()) {
+        if let Some(space) = lock.spaces.get(&self.base.get_space()) {
             let space_handle = space.get_handle();
-            let body_handle = self.get_base().get_body_handle();
+            let body_handle = self.base.get_body_handle();
         
             if !is_handle_valid(space_handle) || !is_handle_valid(body_handle) {
                 return;
@@ -228,9 +250,9 @@ impl RapierBody2D {
     }
     pub fn get_linear_velocity(&self) -> Vector2 {
         let lock = spaces_singleton().lock().unwrap();
-        if let Some(space) = lock.spaces.get(&self.get_base().get_space()) {
+        if let Some(space) = lock.spaces.get(&self.base.get_space()) {
             let space_handle = space.get_handle();
-            let body_handle = self.get_base().get_body_handle();
+            let body_handle = self.base.get_body_handle();
             if !is_handle_valid(space_handle) || !is_handle_valid(body_handle) {
                 return self.linear_velocity;
             }
@@ -245,14 +267,14 @@ impl RapierBody2D {
 
     pub fn set_angular_velocity(&mut self, p_angular_velocity: real) {
         self.angular_velocity = p_angular_velocity;
-        if self.get_base().mode == BodyMode::STATIC {
+        if self.base.mode == BodyMode::STATIC {
             return;
         }
         
         let lock = spaces_singleton().lock().unwrap();
-        if let Some(space) = lock.spaces.get(&self.get_base().get_space()) {
+        if let Some(space) = lock.spaces.get(&self.base.get_space()) {
             let space_handle = space.get_handle();
-            let body_handle = self.get_base().get_body_handle();
+            let body_handle = self.base.get_body_handle();
             if !is_handle_valid(space_handle) || !is_handle_valid(body_handle) {
                 return;
             }
@@ -262,9 +284,9 @@ impl RapierBody2D {
     }
     pub fn get_angular_velocity(&self) -> real {
         let lock = spaces_singleton().lock().unwrap();
-        if let Some(space) = lock.spaces.get(&self.get_base().get_space()) {
+        if let Some(space) = lock.spaces.get(&self.base.get_space()) {
             let space_handle = space.get_handle();
-            let body_handle = self.get_base().get_body_handle();
+            let body_handle = self.base.get_body_handle();
             if !is_handle_valid(space_handle) || !is_handle_valid(body_handle) {
                 return self.angular_velocity;
             }
@@ -319,9 +341,9 @@ impl RapierBody2D {
             self.update_area_override();
         }
         let lock = spaces_singleton().lock().unwrap();
-        if let Some(space) = lock.spaces.get(&self.get_base().get_space()) {
+        if let Some(space) = lock.spaces.get(&self.base.get_space()) {
             let space_handle = space.get_handle();
-            let body_handle = self.get_base().get_body_handle();
+            let body_handle = self.base.get_body_handle();
 
             if !is_handle_valid(space_handle) || !is_handle_valid(body_handle) {
                 return;
@@ -427,9 +449,9 @@ impl RapierBody2D {
 
     pub fn apply_central_impulse(&self, p_impulse: Vector2) {
         let lock = spaces_singleton().lock().unwrap();
-        if let Some(space) = lock.spaces.get(&self.get_base().get_space()) {
+        if let Some(space) = lock.spaces.get(&self.base.get_space()) {
             let space_handle = space.get_handle();
-            let body_handle = self.get_base().get_body_handle();
+            let body_handle = self.base.get_body_handle();
             if !is_handle_valid(space_handle) || !is_handle_valid(body_handle) {
                 return;
             }
@@ -470,12 +492,13 @@ impl RapierBody2D {
     pub fn set_can_sleep(&self, can_sleep: bool) {}
 
     pub fn on_marked_active(&self) {
-        if (self.base.mode == BodyMode::STATIC) {
+        if self.base.mode == BodyMode::STATIC {
             return;
         }
         self.marked_active = true;
-        if (!self.active) {
+        if !self.active {
             self.active = true;
+            let lock = 
             get_space().body_add_to_active_list(self.base.get_rid());
         }
     }
@@ -488,57 +511,49 @@ impl RapierBody2D {
     pub fn get_param(&self, param: BodyParameter) -> Variant {}
 
     pub fn set_mode(&mut self, p_mode: BodyMode) {
-        let mode = self.base.mode;
-        if mode == p_mode {
-            return;
-        }
-    
-        let prev_mode = mode;
-        mode = p_mode;
-    let spaces_lock = spaces_singleton().lock().unwrap();
-    if let Some(space) = spaces_lock.spaces.get(&self.get_base().get_space()) {
-        match p_mode {
-            BodyMode::KINEMATIC => {
-                body_change_mode(space.get_handle(), get_body_handle(), rapier2d::BodyType::Kinematic, true);
-            }
-            BodyMode::STATIC => {
-                body_change_mode(space.get_handle(), get_body_handle(), rapier2d::BodyType::Static, true);
-            }
-            BodyMode::RIGID | BodyMode::RIGID_LINEAR => {
-                body_change_mode(space.get_handle(), get_body_handle(), rapier2d::BodyType::Dynamic, true);
-            }
-        }
-    }
-    
-    if p_mode == BodyMode::STATIC {
-        self.force_sleep();
-    
-        if self.marked_active {
-            return;
-        }
-        self.active_list.remove_from_list();
-        self.mass_properties_update_list.remove_from_list();
-        self.gravity_update_list.remove_from_list();
-        self.area_override_update_list.remove_from_list();
-    
+    if self.base.mode == p_mode {
         return;
     }
-    
-    if active && prev_mode == PhysicsServer2D::BODY_MODE_STATIC {
-        if let Some(space) = get_space() {
-            space.body_add_to_active_list(&active_list);
+
+    let prev_mode = self.base.mode;
+    self.base.mode = p_mode;
+    let rid = self.base.get_rid();
+    let mut spaces_lock = spaces_singleton().lock().unwrap();
+    if let Some(space) = spaces_lock.spaces.get_mut(&self.base.get_space()) {
+        match p_mode {
+            BodyMode::KINEMATIC => {
+                body_change_mode(space.get_handle(), self.base.get_body_handle(), BodyType::Kinematic, true);
+            }
+            BodyMode::STATIC => {
+                body_change_mode(space.get_handle(), self.base.get_body_handle(), BodyType::Static, true);
+            }
+            BodyMode::RIGID | BodyMode::RIGID_LINEAR => {
+                body_change_mode(space.get_handle(), self.base.get_body_handle(), BodyType::Dynamic, true);
+            }
+            _ => {}
+        }
+        if p_mode == BodyMode::STATIC {
+            self.force_sleep();
+        
+            if self.marked_active {
+                return;
+            }
+            space.body_remove_from_active_list(rid);
+            space.body_remove_from_mass_properties_update_list(rid);
+            space.body_remove_from_gravity_update_list(rid);
+            space.body_remove_from_area_update_list(rid);
+            return;
+        }
+        if self.active && prev_mode == BodyMode::STATIC {
+            space.body_add_to_active_list(rid);
         }
     }
+    if p_mode.ord() >= BodyMode::RIGID.ord() {
+        self._mass_properties_changed();
     
-    if p_mode >= PhysicsServer2D::BODY_MODE_RIGID {
-        _mass_properties_changed();
-    
-        if let Some(space) = get_space() {
-            update_area_override();
-            _apply_gravity_scale(gravity_scale);
-        }
+        self.update_area_override();
+        self._apply_gravity_scale(self.gravity_scale);
     }
-    
     }
 
     pub fn set_state(&mut self, state: BodyState, variant: Variant) {}
@@ -598,7 +613,7 @@ impl RapierBody2D {
                     let mut arg_array = Array::new();
         
                     arg_array.push(direct_state.to_variant());
-                    arg_array.push(fi_callback_data.udata);
+                    arg_array.push(fi_callback_data.udata.clone());
         
                     fi_callback_data.callable.callv(arg_array);
                 }
@@ -615,8 +630,8 @@ impl RapierBody2D {
         }
         
         if !self.active {
-            let lock = spaces_singleton().lock().unwrap();
-            if let Some(space) = lock.spaces.get(&self.get_base().get_space()) {
+            let mut lock = spaces_singleton().lock().unwrap();
+            if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
                 space.body_remove_from_state_query_list(self.base.get_rid());
             }
         }
@@ -632,13 +647,13 @@ impl RapierBody2D {
             }
             let shape_lock = shapes_singleton().lock().unwrap();
             if let Some(shape) = shape_lock.shapes.get(&self.base.get_shape(i)) {
-                if (!shapes_found) {
+                if !shapes_found {
                     // TODO not 100% correct, we don't take into consideration rotation here.
-                    body_aabb = shape.get_base().get_aabb(self.get_base().get_shape_transform(i).origin);
+                    body_aabb = shape.base.get_aabb(self.base.get_shape_transform(i).origin);
                     shapes_found = true;
                 } else {
                     // TODO not 100% correct, we don't take into consideration rotation here.
-                    body_aabb = body_aabb.merge(shape.get_base().get_aabb(self.get_base().get_shape_transform(i).origin));
+                    body_aabb = body_aabb.merge(shape.base.get_aabb(self.base.get_shape_transform(i).origin));
                 }
             }
         }
