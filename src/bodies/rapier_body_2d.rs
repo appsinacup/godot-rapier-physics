@@ -351,7 +351,7 @@ impl RapierBody2D {
             }
         }
 
-        if (self.base.mode == BodyMode::STATIC) {
+        if self.base.mode == BodyMode::STATIC {
             return;
         }
         if !self.base.space_handle.is_valid() {
@@ -371,112 +371,112 @@ impl RapierBody2D {
 
         // Combine gravity and damping from overlapping areas in priority order.
         let ac = self.areas.len();
-        let gravity_done = false; // always calculate to be able to change scale on area gravity
-        let linear_damping_done = (self.linear_damping_mode == BodyDampMode::REPLACE);
-        let angular_damping_done = (self.angular_damping_mode == BodyDampMode::REPLACE);
-        if (ac > 0) {
-            let areas = self.areas.clone();
+        let mut gravity_done = false; // always calculate to be able to change scale on area gravity
+        let mut linear_damping_done = self.linear_damping_mode == BodyDampMode::REPLACE;
+        let mut angular_damping_done = self.angular_damping_mode == BodyDampMode::REPLACE;
+        if ac > 0 {
+            let mut areas = self.areas.clone();
             areas.reverse();
             for area_rid in areas {
                 let lock = bodies_singleton().lock().unwrap();
                 if let Some(area) = lock.collision_objects.get(&area_rid) {
                     if let Some(aa) = area.get_area() {
 
-                if (!gravity_done) {
-                    let area_gravity_mode = aa.get_param(AreaParameter::GRAVITY_OVERRIDE_MODE);
+                if !gravity_done {
+                    let area_gravity_mode = aa.get_param(AreaParameter::GRAVITY_OVERRIDE_MODE).to();
                     if area_gravity_mode != AreaSpaceOverrideMode::DISABLED {
-                        let area_gravity = aa.compute_gravity(get_transform().get_origin());
+                        let area_gravity = aa.compute_gravity(&self.base.get_transform().origin);
                         match area_gravity_mode {
                             AreaSpaceOverrideMode::COMBINE | AreaSpaceOverrideMode::COMBINE_REPLACE => {
-                                using_area_gravity = true;
-                                total_gravity += area_gravity;
+                                self.using_area_gravity = true;
+                                self.total_gravity += area_gravity;
                                 gravity_done = area_gravity_mode == AreaSpaceOverrideMode::COMBINE_REPLACE;
                             }
                             AreaSpaceOverrideMode::REPLACE | AreaSpaceOverrideMode::REPLACE_COMBINE => {
-                                using_area_gravity = true;
-                                total_gravity = area_gravity;
+                                self.using_area_gravity = true;
+                                self.total_gravity = area_gravity;
                                 gravity_done = area_gravity_mode == AreaSpaceOverrideMode::REPLACE;
                             }
                             _ => {}
                         }
                     }
                 }
-                if (!linear_damping_done) {
-                    let area_linear_damping_mode = aa.get_param(AreaParameter::LINEAR_DAMP_OVERRIDE_MODE);
-                    if (area_linear_damping_mode != AreaSpaceOverrideMode::DISABLED) {
+                if !linear_damping_done {
+                    let area_linear_damping_mode = aa.get_param(AreaParameter::LINEAR_DAMP_OVERRIDE_MODE).to();
+                    if area_linear_damping_mode != AreaSpaceOverrideMode::DISABLED {
                         let area_linear_damping = aa.get_linear_damp();
                         match area_linear_damping_mode {
-                            case PhysicsServer2D::AREA_SPACE_OVERRIDE_COMBINE:
-                            case PhysicsServer2D::AREA_SPACE_OVERRIDE_COMBINE_REPLACE: {
-                                using_area_linear_damping = true;
+                            AreaSpaceOverrideMode::COMBINE | AreaSpaceOverrideMode::COMBINE_REPLACE => {
+                                self.using_area_linear_damping = true;
                                 total_linear_damping += area_linear_damping;
-                                linear_damping_done = area_linear_damping_mode == PhysicsServer2D::AREA_SPACE_OVERRIDE_COMBINE_REPLACE;
-                            } break;
-                            case PhysicsServer2D::AREA_SPACE_OVERRIDE_REPLACE:
-                            case PhysicsServer2D::AREA_SPACE_OVERRIDE_REPLACE_COMBINE: {
-                                using_area_linear_damping = true;
+                                linear_damping_done = area_linear_damping_mode == AreaSpaceOverrideMode::COMBINE_REPLACE;
+                            }
+                            AreaSpaceOverrideMode::REPLACE | AreaSpaceOverrideMode::REPLACE_COMBINE => {
+                                self.using_area_linear_damping = true;
                                 total_linear_damping = area_linear_damping;
-                                linear_damping_done = area_linear_damping_mode == PhysicsServer2D::AREA_SPACE_OVERRIDE_REPLACE;
-                            } break;
-                            default: {
+                                linear_damping_done = area_linear_damping_mode == AreaSpaceOverrideMode::REPLACE;
                             }
+                            _ => {}
                         }
                     }
                 }
-                if (!angular_damping_done) {
-                    PhysicsServer2D::AreaSpaceOverrideMode area_angular_damping_mode = (PhysicsServer2D::AreaSpaceOverrideMode)(int)aa[i].area->get_param(PhysicsServer2D::AREA_PARAM_ANGULAR_DAMP_OVERRIDE_MODE);
-                    if (area_angular_damping_mode != PhysicsServer2D::AREA_SPACE_OVERRIDE_DISABLED) {
-                        real_t area_angular_damping = aa[i].area->get_angular_damp();
-                        switch (area_angular_damping_mode) {
-                            case PhysicsServer2D::AREA_SPACE_OVERRIDE_COMBINE:
-                            case PhysicsServer2D::AREA_SPACE_OVERRIDE_COMBINE_REPLACE: {
-                                using_area_angular_damping = true;
+                if !angular_damping_done {
+                    let area_angular_damping_mode = aa.get_param(AreaParameter::ANGULAR_DAMP_OVERRIDE_MODE).to();
+                    if area_angular_damping_mode != AreaSpaceOverrideMode::DISABLED {
+                        let area_angular_damping = aa.get_angular_damp();
+                        match area_angular_damping_mode {
+                            AreaSpaceOverrideMode::COMBINE | AreaSpaceOverrideMode::COMBINE_REPLACE => {
+                                self.using_area_angular_damping = true;
                                 total_angular_damping += area_angular_damping;
-                                angular_damping_done = area_angular_damping_mode == PhysicsServer2D::AREA_SPACE_OVERRIDE_COMBINE_REPLACE;
-                            } break;
-                            case PhysicsServer2D::AREA_SPACE_OVERRIDE_REPLACE:
-                            case PhysicsServer2D::AREA_SPACE_OVERRIDE_REPLACE_COMBINE: {
-                                using_area_angular_damping = true;
-                                total_angular_damping = area_angular_damping;
-                                angular_damping_done = area_angular_damping_mode == PhysicsServer2D::AREA_SPACE_OVERRIDE_REPLACE;
-                            } break;
-                            default: {
+                                angular_damping_done = area_angular_damping_mode == AreaSpaceOverrideMode::COMBINE_REPLACE;
                             }
+                            AreaSpaceOverrideMode::REPLACE | AreaSpaceOverrideMode::REPLACE_COMBINE => {
+                                self.using_area_angular_damping = true;
+                                total_angular_damping = area_angular_damping;
+                                angular_damping_done = area_angular_damping_mode == AreaSpaceOverrideMode::REPLACE;
+                            }
+                            _ => {}
                         }
                     }
                 }
-                if (gravity_done && linear_damping_done && angular_damping_done) {
+                if gravity_done && linear_damping_done && angular_damping_done {
                     break;
+                }
+                    }
                 }
             }
         }
 
         // Override or combine damping with body's values.
-        total_linear_damping += linear_damping;
-        total_angular_damping += angular_damping;
+        total_linear_damping += self.linear_damping;
+        total_angular_damping += self.angular_damping;
 
         // Apply to the simulation.
-        _apply_linear_damping(total_linear_damping, !linear_damping_done);
-        _apply_angular_damping(total_angular_damping, !angular_damping_done);
+        self._apply_linear_damping(total_linear_damping, !linear_damping_done);
+        self._apply_angular_damping(total_angular_damping, !angular_damping_done);
 
-        if (using_area_gravity) {
-            // Add default gravity from space.
-            if (!gravity_done) {
-                total_gravity += get_space()->get_default_area_param(PhysicsServer2D::AREA_PARAM_GRAVITY);
+
+        {
+            let mut lock = spaces_singleton().lock().unwrap();
+            if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
+                if self.using_area_gravity {
+                    // Add default gravity from space.
+                    if !gravity_done {
+                        self.total_gravity += space.get_default_area_param(AreaParameter::GRAVITY).to();
+                    }
+        
+                    // Apply gravity scale to computed value.
+                    self.total_gravity *= self.gravity_scale;
+        
+                    // Disable simulation gravity and apply it manually instead.
+                    self._apply_gravity_scale(0.0);
+                    space.body_add_to_gravity_update_list(self.base.get_rid());
+                } else {
+                    // Enable simulation gravity.
+                    self._apply_gravity_scale(self.gravity_scale);
+                    space.body_remove_from_gravity_update_list(self.base.get_rid());
+                }
             }
-
-            // Apply gravity scale to computed value.
-            total_gravity *= gravity_scale;
-
-            // Disable simulation gravity and apply it manually instead.
-            _apply_gravity_scale(0.0);
-            if (!gravity_update_list.in_list()) {
-                get_space()->body_add_to_gravity_update_list(&gravity_update_list);
-            }
-        } else {
-            // Enable simulation gravity.
-            _apply_gravity_scale(gravity_scale);
-            gravity_update_list.remove_from_list();
         }
     }
     pub fn update_gravity(&mut self, p_step: real) {
