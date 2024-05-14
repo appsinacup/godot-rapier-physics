@@ -43,9 +43,11 @@ pub extern "C" fn joint_change_revolute_params(world_handle : Handle, joint_hand
     assert!(joint.is_some());
     let joint = joint.unwrap();
     if motor_enabled {
-        joint.set_motor_velocity(motor_target_velocity, 0.0);
+        joint.set_motor_velocity(motor_target_velocity, 0.0)
+        .set_motor_max_force(Real::MAX);
     } else {
-        joint.set_motor_velocity(0.0, 0.0);
+        joint.set_motor_velocity(0.0, 0.0)
+        .set_motor_max_force(0.0);
     }
     if angular_limit_enabled {
         joint.set_limits([angular_limit_lower, angular_limit_upper]);

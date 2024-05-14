@@ -1,6 +1,8 @@
 use rapier2d::prelude::*;
 use crate::vector::Vector;
 
+//const PIXELS_PER_METER : f64 = 1.0;
+//const METERS_PER_PIXEL : f64 = 1.0 / 1.0;
 const PIXELS_PER_METER : f64 = 128.0;
 const METERS_PER_PIXEL : f64 = 1.0 / 128.0;
 
