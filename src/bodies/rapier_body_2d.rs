@@ -5,9 +5,11 @@ use crate::rapier2d::collider::Material;
 use crate::rapier2d::handle::is_handle_valid;
 use crate::rapier2d::handle::Handle;
 use crate::rapier2d::vector::Vector;
+use crate::servers::rapier_physics_singleton_2d::bodies_singleton;
 use crate::servers::rapier_physics_singleton_2d::shapes_singleton;
 use crate::servers::rapier_physics_singleton_2d::spaces_singleton;
 use godot::engine::physics_server_2d::AreaParameter;
+use godot::engine::physics_server_2d::AreaSpaceOverrideMode;
 use godot::engine::physics_server_2d::{BodyDampMode, BodyMode, BodyParameter, BodyState, CcdMode};
 use godot::engine::PhysicsDirectBodyState2D;
 use godot::prelude::*;
@@ -155,25 +157,43 @@ impl RapierBody2D {
     }
     
     fn _mass_properties_changed(&mut self) {
-        if (mode < PhysicsServer2D::BODY_MODE_RIGID) {
+        if self.base.mode.ord() < BodyMode::RIGID.ord() {
             return;
         }
 
-        if (calculate_inertia || calculate_center_of_mass) {
-            if (!mass_properties_update_list.in_list()) {
-                get_space()->body_add_to_mass_properties_update_list(&mass_properties_update_list);
+        if self.calculate_inertia || self.calculate_center_of_mass {
+            let mut lock = spaces_singleton().lock().unwrap();
+            if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
+                space.body_add_to_mass_properties_update_list(self.base.get_rid());
             }
         } else {
             self._apply_mass_properties(false);
         }
     }
 
-	fn _apply_mass_properties(force_update: bool) {
-
+	fn _apply_mass_properties(&mut self, force_update: bool) {
+        if self.base.mode.ord() < BodyMode::RIGID.ord(){
+            return
+        }
+    
+        let mut inertia_value = self.inertia;
+        if self.base.mode == BodyMode::RIGID_LINEAR{
+            inertia_value = 0.0;
+        }
+    
+        let com = Vector::new(self.center_of_mass.x, self.center_of_mass.y );
+        if !self.base.space_handle.is_valid() || !self.base.get_body_handle().is_valid() {
+            return;
+        }
+    
+        // Force update means local properties will be re-calculated internally,
+        // it's needed for applying forces right away (otherwise it's updated on next step)
+        body_set_mass_properties(self.base.space_handle, self.base.get_body_handle(), self.mass, inertia_value, &com, false, force_update);
     }
 
-	fn _shapes_changed() {
-
+	fn _shapes_changed(&mut self) {
+        self._mass_properties_changed();
+        self.wakeup();
     }
 
     fn _apply_linear_damping(&mut self, new_value: real, apply_default: bool) {
@@ -296,19 +316,169 @@ impl RapierBody2D {
 
     pub fn add_area(&mut self, p_area: Rid) {
         self.base.area_detection_counter += 1;
-        if (self.p_area.has_any_space_override()) {
-            self.areas.ordered_insert(AreaCMP(p_area));
-            on_area_updated(p_area);
+        let lock = bodies_singleton().lock().unwrap();
+        if let Some(area) = lock.collision_objects.get(&self.base.get_rid()) {
+            if let Some(area) = area.get_area() {
+                if area.has_any_space_override() {
+                    // todo sort
+                    self.areas.push(p_area);
+                    self.on_area_updated(p_area);
+                }
+            }
         }
     }
-    pub fn remove_area(&mut self, area: Rid) {}
+    pub fn remove_area(&mut self, area: Rid) {
+        if self.base.area_detection_counter == 0 {
+            godot_error!("Area detection counter is zero.");
+            return;
+        }
+        self.base.area_detection_counter -= 1;
+        self.areas.retain(|&x| x != area);
+        self.on_area_updated(area);
+    }
     pub fn on_area_updated(&mut self, area: Rid) {
-        if (!area_override_update_list.in_list()) {
-            get_space()->body_add_to_area_update_list(&area_override_update_list);
+        let mut lock = spaces_singleton().lock().unwrap();
+        if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
+            space.body_add_to_area_update_list(self.base.get_rid());
         }
     }
 
-    pub fn update_area_override(&self) {}
+    pub fn update_area_override(&mut self) {
+        {
+            let mut lock = spaces_singleton().lock().unwrap();
+            if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
+                space.body_remove_from_area_update_list(self.base.get_rid());
+            }
+        }
+
+        if (self.base.mode == BodyMode::STATIC) {
+            return;
+        }
+        if !self.base.space_handle.is_valid() {
+            godot_error!("Space handle is invalid.");
+            return;
+        }
+
+        // Reset area override flags.
+        self.using_area_gravity = false;
+        self.using_area_linear_damping = false;
+        self.using_area_angular_damping = false;
+
+        // Start with no effect.
+        self.total_gravity = Vector2::default();
+        let mut total_linear_damping = 0.0;
+        let mut total_angular_damping = 0.0;
+
+        // Combine gravity and damping from overlapping areas in priority order.
+        let ac = self.areas.len();
+        let gravity_done = false; // always calculate to be able to change scale on area gravity
+        let linear_damping_done = (self.linear_damping_mode == BodyDampMode::REPLACE);
+        let angular_damping_done = (self.angular_damping_mode == BodyDampMode::REPLACE);
+        if (ac > 0) {
+            let areas = self.areas.clone();
+            areas.reverse();
+            for area_rid in areas {
+                let lock = bodies_singleton().lock().unwrap();
+                if let Some(area) = lock.collision_objects.get(&area_rid) {
+                    if let Some(aa) = area.get_area() {
+
+                if (!gravity_done) {
+                    let area_gravity_mode = aa.get_param(AreaParameter::GRAVITY_OVERRIDE_MODE);
+                    if area_gravity_mode != AreaSpaceOverrideMode::DISABLED {
+                        let area_gravity = aa.compute_gravity(get_transform().get_origin());
+                        match area_gravity_mode {
+                            AreaSpaceOverrideMode::COMBINE | AreaSpaceOverrideMode::COMBINE_REPLACE => {
+                                using_area_gravity = true;
+                                total_gravity += area_gravity;
+                                gravity_done = area_gravity_mode == AreaSpaceOverrideMode::COMBINE_REPLACE;
+                            }
+                            AreaSpaceOverrideMode::REPLACE | AreaSpaceOverrideMode::REPLACE_COMBINE => {
+                                using_area_gravity = true;
+                                total_gravity = area_gravity;
+                                gravity_done = area_gravity_mode == AreaSpaceOverrideMode::REPLACE;
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+                if (!linear_damping_done) {
+                    let area_linear_damping_mode = aa.get_param(AreaParameter::LINEAR_DAMP_OVERRIDE_MODE);
+                    if (area_linear_damping_mode != AreaSpaceOverrideMode::DISABLED) {
+                        let area_linear_damping = aa.get_linear_damp();
+                        match area_linear_damping_mode {
+                            case PhysicsServer2D::AREA_SPACE_OVERRIDE_COMBINE:
+                            case PhysicsServer2D::AREA_SPACE_OVERRIDE_COMBINE_REPLACE: {
+                                using_area_linear_damping = true;
+                                total_linear_damping += area_linear_damping;
+                                linear_damping_done = area_linear_damping_mode == PhysicsServer2D::AREA_SPACE_OVERRIDE_COMBINE_REPLACE;
+                            } break;
+                            case PhysicsServer2D::AREA_SPACE_OVERRIDE_REPLACE:
+                            case PhysicsServer2D::AREA_SPACE_OVERRIDE_REPLACE_COMBINE: {
+                                using_area_linear_damping = true;
+                                total_linear_damping = area_linear_damping;
+                                linear_damping_done = area_linear_damping_mode == PhysicsServer2D::AREA_SPACE_OVERRIDE_REPLACE;
+                            } break;
+                            default: {
+                            }
+                        }
+                    }
+                }
+                if (!angular_damping_done) {
+                    PhysicsServer2D::AreaSpaceOverrideMode area_angular_damping_mode = (PhysicsServer2D::AreaSpaceOverrideMode)(int)aa[i].area->get_param(PhysicsServer2D::AREA_PARAM_ANGULAR_DAMP_OVERRIDE_MODE);
+                    if (area_angular_damping_mode != PhysicsServer2D::AREA_SPACE_OVERRIDE_DISABLED) {
+                        real_t area_angular_damping = aa[i].area->get_angular_damp();
+                        switch (area_angular_damping_mode) {
+                            case PhysicsServer2D::AREA_SPACE_OVERRIDE_COMBINE:
+                            case PhysicsServer2D::AREA_SPACE_OVERRIDE_COMBINE_REPLACE: {
+                                using_area_angular_damping = true;
+                                total_angular_damping += area_angular_damping;
+                                angular_damping_done = area_angular_damping_mode == PhysicsServer2D::AREA_SPACE_OVERRIDE_COMBINE_REPLACE;
+                            } break;
+                            case PhysicsServer2D::AREA_SPACE_OVERRIDE_REPLACE:
+                            case PhysicsServer2D::AREA_SPACE_OVERRIDE_REPLACE_COMBINE: {
+                                using_area_angular_damping = true;
+                                total_angular_damping = area_angular_damping;
+                                angular_damping_done = area_angular_damping_mode == PhysicsServer2D::AREA_SPACE_OVERRIDE_REPLACE;
+                            } break;
+                            default: {
+                            }
+                        }
+                    }
+                }
+                if (gravity_done && linear_damping_done && angular_damping_done) {
+                    break;
+                }
+            }
+        }
+
+        // Override or combine damping with body's values.
+        total_linear_damping += linear_damping;
+        total_angular_damping += angular_damping;
+
+        // Apply to the simulation.
+        _apply_linear_damping(total_linear_damping, !linear_damping_done);
+        _apply_angular_damping(total_angular_damping, !angular_damping_done);
+
+        if (using_area_gravity) {
+            // Add default gravity from space.
+            if (!gravity_done) {
+                total_gravity += get_space()->get_default_area_param(PhysicsServer2D::AREA_PARAM_GRAVITY);
+            }
+
+            // Apply gravity scale to computed value.
+            total_gravity *= gravity_scale;
+
+            // Disable simulation gravity and apply it manually instead.
+            _apply_gravity_scale(0.0);
+            if (!gravity_update_list.in_list()) {
+                get_space()->body_add_to_gravity_update_list(&gravity_update_list);
+            }
+        } else {
+            // Enable simulation gravity.
+            _apply_gravity_scale(gravity_scale);
+            gravity_update_list.remove_from_list();
+        }
+    }
     pub fn update_gravity(&mut self, p_step: real) {
         if !self.using_area_gravity {
             return;
@@ -318,7 +488,7 @@ impl RapierBody2D {
         }
         let body_handle = self.base.get_body_handle();
 
-        if !is_handle_valid(self.base.) || !is_handle_valid(body_handle) {
+        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
             return;
         }
         let gravity_impulse = self.total_gravity * self.mass * p_step;
@@ -419,7 +589,7 @@ impl RapierBody2D {
         return self.omit_force_integration;
     }
 
-    pub fn apply_central_impulse(&self, p_impulse: Vector2) {
+    pub fn apply_central_impulse(&mut self, p_impulse: Vector2) {
         let body_handle = self.base.get_body_handle();
         if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
             self.impulse += p_impulse;
@@ -458,15 +628,17 @@ impl RapierBody2D {
 
     pub fn set_can_sleep(&self, can_sleep: bool) {}
 
-    pub fn on_marked_active(&self) {
+    pub fn on_marked_active(&mut self) {
         if self.base.mode == BodyMode::STATIC {
             return;
         }
         self.marked_active = true;
         if !self.active {
             self.active = true;
-            let lock = 
-            get_space().body_add_to_active_list(self.base.get_rid());
+            let mut lock = spaces_singleton().lock().unwrap();
+            if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
+                space.body_add_to_active_list(self.base.get_rid());
+            }
         }
     }
     pub fn on_update_active(&self) {}
@@ -609,18 +781,18 @@ impl RapierBody2D {
         let mut body_aabb = Rect2::default();
         let shape_count = self.base.get_shape_count() as usize;
         for i in 0..shape_count {
-            if (self.base.is_shape_disabled(i)) {
+            if self.base.is_shape_disabled(i) {
                 continue;
             }
             let shape_lock = shapes_singleton().lock().unwrap();
             if let Some(shape) = shape_lock.shapes.get(&self.base.get_shape(i)) {
                 if !shapes_found {
                     // TODO not 100% correct, we don't take into consideration rotation here.
-                    body_aabb = shape.base.get_aabb(self.base.get_shape_transform(i).origin);
+                    body_aabb = shape.get_base().get_aabb(self.base.get_shape_transform(i).origin);
                     shapes_found = true;
                 } else {
                     // TODO not 100% correct, we don't take into consideration rotation here.
-                    body_aabb = body_aabb.merge(shape.base.get_aabb(self.base.get_shape_transform(i).origin));
+                    body_aabb = body_aabb.merge(shape.get_base().get_aabb(self.base.get_shape_transform(i).origin));
                 }
             }
         }
@@ -684,5 +856,13 @@ impl IRapierCollisionObject2D for RapierBody2D {
         p_disabled: bool,
     ) {
         todo!()
+    }
+}
+
+impl Drop for RapierBody2D {
+    fn drop(&mut self) {
+        if let Some(direct_state) = &self.direct_state {
+            direct_state.free();
+        }
     }
 }
