@@ -20,17 +20,13 @@ serde-serialize = ["rapier2d/serde-serialize", "rapier2d-f64/serde-serialize"]
 parallel = ["rapier2d/parallel", "rapier2d-f64/parallel"]
 
 [dependencies]
-rapier2d = {git = "https://github.com/dimforge/rapier", rev = "27f627902e62b67ed3f73b2d8bbcc612b0d784c2"}
-rapier2d-f64 = {git = "https://github.com/dimforge/rapier", rev = "27f627902e62b67ed3f73b2d8bbcc612b0d784c2"}
-salva2d = { git = "https://github.com/dimforge/salva", branch = "master", features = ["rapier"] }
-parry2d = { git = "https://github.com/dimforge/parry", branch = "master" }
-parry2d-f64 = { git = "https://github.com/dimforge/parry", branch = "master" }
+rapier2d = {git = "https://github.com/dimforge/rapier", branch = "master"}
+rapier2d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master"}
+salva2d = { git = "https://github.com/ughuuu/salva", branch = "update-to-rapier-0.19", features = ["rapier"] }
 
 [patch.crates-io]
-rapier2d = {git = "https://github.com/dimforge/rapier", rev = "27f627902e62b67ed3f73b2d8bbcc612b0d784c2"}
-rapier2d-f64 = {git = "https://github.com/dimforge/rapier", rev = "27f627902e62b67ed3f73b2d8bbcc612b0d784c2"}
-parry2d = { git = "https://github.com/dimforge/parry", branch = "master" }
-parry2d-f64 = { git = "https://github.com/dimforge/parry", branch = "master" }
+rapier2d = {git = "https://github.com/dimforge/rapier", branch = "master"}
+rapier2d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master"}
 
 [profile.release]
 codegen-units = 1
