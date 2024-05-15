@@ -1,6 +1,6 @@
 use crate::{
     bodies::rapier_collision_object_2d::IRapierCollisionObject2D,
-    servers::rapier_physics_singleton_2d::{bodies_singleton, spaces_singleton},
+    servers::rapier_physics_singleton_2d::{bodies_singleton, spaces_singleton}, spaces::rapier_space_2d::RapierSpace2D,
 };
 use godot::{
     engine::{
@@ -193,9 +193,9 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn apply_central_impulse(&mut self, impulse: Vector2) {
-        let lock = bodies_singleton().lock().unwrap();
-        if let Some(body) = lock.collision_objects.get(&self.body) {
-            if let Some(body) = body.get_body() {
+        let mut lock = bodies_singleton().lock().unwrap();
+        if let Some(body) = lock.collision_objects.get_mut(&self.body) {
+            if let Some(body) = body.get_mut_body() {
                 return body.apply_central_impulse(impulse);
             }
         }
@@ -454,20 +454,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_step(&self) -> f32 {
-        let mut space_rid = Rid::Invalid;
-        {
-            let lock = bodies_singleton().lock().unwrap();
-            if let Some(body) = lock.collision_objects.get(&self.body) {
-                space_rid = body.get_base().get_space();
-            }
-        }
-        {
-            let lock = spaces_singleton().lock().unwrap();
-            if let Some(space) = lock.spaces.get(&space_rid) {
-                return space.get_last_step();
-            }
-        }
-        0.0
+        return RapierSpace2D::get_last_step();
     }
 
     fn integrate_forces(&mut self) {}

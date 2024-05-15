@@ -161,7 +161,6 @@ impl RapierSpace2D {
             default_linear_damping: 0.0,
             default_angular_damping: 0.0,
             locked: false,
-            last_step,
             island_count: 0,
             active_objects: 0,
             collision_pairs: 0,
@@ -657,7 +656,6 @@ impl RapierSpace2D {
     }
 
     pub fn step(&mut self, step: real) {
-        self.last_step = step;
         for body in &self.active_list {
             let mut lock = bodies_singleton().lock().unwrap();
             if let Some(body) = lock.collision_objects.get_mut(&body) {
@@ -767,8 +765,15 @@ impl RapierSpace2D {
         self.locked = false;
     }
 
-    pub fn get_last_step(&self) -> real {
-        return self.last_step;
+    pub fn get_last_step() -> real {
+        let project_settings = ProjectSettings::singleton();
+        let physics_fps = project_settings
+            .get_setting_with_override("physics/common/physics_ticks_per_second".into());
+        let mut last_step = 1e-3;
+        if !physics_fps.is_nil() {
+            last_step = 1.0 / (physics_fps.to::<i32>() as f32);
+        }
+        return last_step;
     }
 
     pub fn set_param(&mut self, param: physics_server_2d::SpaceParameter, value: real) {
