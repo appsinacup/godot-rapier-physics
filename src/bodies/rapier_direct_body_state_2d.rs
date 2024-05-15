@@ -202,81 +202,81 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn apply_impulse(&mut self, impulse: Vector2, position: Vector2) {
-        let lock = bodies_singleton().lock().unwrap();
-        if let Some(body) = lock.collision_objects.get(&self.body) {
-            if let Some(body) = body.get_body() {
+        let mut lock = bodies_singleton().lock().unwrap();
+        if let Some(body) = lock.collision_objects.get_mut(&self.body) {
+            if let Some(body) = body.get_mut_body() {
                 return body.apply_impulse(impulse, position);
             }
         }
     }
 
     fn apply_torque_impulse(&mut self, impulse: f32) {
-        let lock = bodies_singleton().lock().unwrap();
-        if let Some(body) = lock.collision_objects.get(&self.body) {
-            if let Some(body) = body.get_body() {
+        let mut lock = bodies_singleton().lock().unwrap();
+        if let Some(body) = lock.collision_objects.get_mut(&self.body) {
+            if let Some(body) = body.get_mut_body() {
                 return body.apply_torque_impulse(impulse);
             }
         }
     }
 
     fn apply_central_force(&mut self, force: Vector2) {
-        let lock = bodies_singleton().lock().unwrap();
-        if let Some(body) = lock.collision_objects.get(&self.body) {
-            if let Some(body) = body.get_body() {
+        let mut lock = bodies_singleton().lock().unwrap();
+        if let Some(body) = lock.collision_objects.get_mut(&self.body) {
+            if let Some(body) = body.get_mut_body() {
                 return body.apply_central_force(force);
             }
         }
     }
 
     fn apply_force(&mut self, force: Vector2, position: Vector2) {
-        let lock = bodies_singleton().lock().unwrap();
-        if let Some(body) = lock.collision_objects.get(&self.body) {
-            if let Some(body) = body.get_body() {
+        let mut lock = bodies_singleton().lock().unwrap();
+        if let Some(body) = lock.collision_objects.get_mut(&self.body) {
+            if let Some(body) = body.get_mut_body() {
                 return body.apply_force(force, position);
             }
         }
     }
 
     fn apply_torque(&mut self, torque: f32) {
-        let lock = bodies_singleton().lock().unwrap();
-        if let Some(body) = lock.collision_objects.get(&self.body) {
-            if let Some(body) = body.get_body() {
+        let mut lock = bodies_singleton().lock().unwrap();
+        if let Some(body) = lock.collision_objects.get_mut(&self.body) {
+            if let Some(body) = body.get_mut_body() {
                 return body.apply_torque(torque);
             }
         }
     }
 
     fn add_constant_central_force(&mut self, force: Vector2) {
-        let lock = bodies_singleton().lock().unwrap();
-        if let Some(body) = lock.collision_objects.get(&self.body) {
-            if let Some(body) = body.get_body() {
+        let mut lock = bodies_singleton().lock().unwrap();
+        if let Some(body) = lock.collision_objects.get_mut(&self.body) {
+            if let Some(body) = body.get_mut_body() {
                 return body.add_constant_central_force(force);
             }
         }
     }
 
     fn add_constant_force(&mut self, force: Vector2, position: Vector2) {
-        let lock = bodies_singleton().lock().unwrap();
-        if let Some(body) = lock.collision_objects.get(&self.body) {
-            if let Some(body) = body.get_body() {
+        let mut lock = bodies_singleton().lock().unwrap();
+        if let Some(body) = lock.collision_objects.get_mut(&self.body) {
+            if let Some(body) = body.get_mut_body() {
                 return body.add_constant_force(force, position);
             }
         }
     }
 
     fn add_constant_torque(&mut self, torque: f32) {
-        let lock = bodies_singleton().lock().unwrap();
-        if let Some(body) = lock.collision_objects.get(&self.body) {
-            if let Some(body) = body.get_body() {
+        let mut lock = bodies_singleton().lock().unwrap();
+        if let Some(body) = lock.collision_objects.get_mut(&self.body) {
+            if let Some(body) = body.get_mut_body() {
                 return body.add_constant_torque(torque);
             }
         }
     }
 
     fn set_constant_force(&mut self, force: Vector2) {
-        let lock = bodies_singleton().lock().unwrap();
-        if let Some(body) = lock.collision_objects.get(&self.body) {
-            if let Some(body) = body.get_body() {
+        let mut lock = bodies_singleton().lock().unwrap();
+        if let Some(body) = lock.collision_objects.get_mut(&self.body) {
+            if let Some(body) = body.get_mut_body() {
                 return body.set_constant_force(force);
             }
         }
@@ -293,9 +293,9 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn set_constant_torque(&mut self, torque: f32) {
-        let lock = bodies_singleton().lock().unwrap();
-        if let Some(body) = lock.collision_objects.get(&self.body) {
-            if let Some(body) = body.get_body() {
+        let mut lock = bodies_singleton().lock().unwrap();
+        if let Some(body) = lock.collision_objects.get_mut(&self.body) {
+            if let Some(body) = body.get_mut_body() {
                 return body.set_constant_torque(torque);
             }
         }
@@ -312,9 +312,9 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn set_sleep_state(&mut self, enabled: bool) {
-        let lock = bodies_singleton().lock().unwrap();
-        if let Some(body) = lock.collision_objects.get(&self.body) {
-            if let Some(body) = body.get_body() {
+        let mut lock = bodies_singleton().lock().unwrap();
+        if let Some(body) = lock.collision_objects.get_mut(&self.body) {
+            if let Some(body) = body.get_mut_body() {
                 return body.set_active(!enabled);
             }
         }

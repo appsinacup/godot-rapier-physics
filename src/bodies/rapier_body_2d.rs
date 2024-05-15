@@ -337,7 +337,7 @@ impl RapierBody2D {
             //direct_space_state.set_body(self.rid);
             self.direct_state = Some(direct_space_state.upcast());
         }
-        self.direct_state
+        self.direct_state.clone()
     }
 
     pub fn add_area(&mut self, p_area: Rid) {
@@ -362,7 +362,7 @@ impl RapierBody2D {
         self.areas.retain(|&x| x != area);
         self.on_area_updated(area);
     }
-    pub fn on_area_updated(&mut self, area: Rid) {
+    pub fn on_area_updated(&mut self, _area: Rid) {
         let mut lock = spaces_singleton().lock().unwrap();
         if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
             space.body_add_to_area_update_list(self.base.get_rid());
@@ -865,7 +865,112 @@ impl RapierBody2D {
         body_force_sleep(self.base.space_handle, body_handle);
     }
 
-    pub fn set_param(&mut self, param: BodyParameter, value: Variant) {}
+    pub fn set_param(&mut self, p_param: BodyParameter, p_value: Variant) {
+	match (p_param) {
+        BodyParameter::BOUNCE | BodyParameter::FRICTION => {
+			if (p_param == BodyParameter::BOUNCE) {
+				self.bounce = p_value.to();
+			} else {
+				self.friction = p_value.to();
+			}
+            let body_handle = self.base.get_body_handle();
+            if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+                return;
+            }
+
+			let mat = Material{
+                friction: self.friction,
+                restitution: self.bounce
+            };
+			body_update_material(self.base.space_handle, body_handle, &mat);
+		}
+		BodyParameter::MASS => {
+			let mass_value = p_value.to();
+            if (mass_value <= 0.0) {
+                return;
+            }
+			self.mass = mass_value;
+			if (self.base.mode.ord() >= BodyMode::RIGID.ord()) {
+				self._mass_properties_changed();
+			}
+		}
+		BodyParameter::INERTIA => {
+			let inertia_value = p_value.to();
+			if (inertia_value <= 0.0) {
+				calculate_inertia = true;
+			} else {
+				calculate_inertia = false;
+				inertia = inertia_value;
+			}
+			if (self.base.mode.ord() >= BodyMode::RIGID.ord()) {
+				self._mass_properties_changed();
+			}
+		}
+		BodyParameter::CENTER_OF_MASS => {
+			self.center_of_mass = p_value;
+			if (self.base.mode.ord() >= BodyMode::RIGID.ord()) {
+				self._mass_properties_changed();
+			}
+		}
+		BodyParameter::GRAVITY_SCALE => {
+			let new_gravity_scale = p_value.to();
+			if (self.gravity_scale != new_gravity_scale) {
+				self.gravity_scale = new_gravity_scale;
+				if (!self.using_area_gravity) {
+					self._apply_gravity_scale(self.gravity_scale);
+				}
+			}
+		}
+		BodyParameter::LINEAR_DAMP_MODE => {
+			let mode_value = p_value.to();
+			if (self.linear_damping_mode != mode_value) {
+				self.linear_damping_mode = mode_value;
+				if (self.linear_damping_mode == BodyDampMode::REPLACE) {
+					self.using_area_linear_damping = false;
+				}
+				if (self.using_area_linear_damping) {
+					// Update linear damping from areas
+				} else {
+					self._apply_linear_damping(self.linear_damping);
+				}
+			}
+		} break;
+		case PhysicsServer2D::BODY_PARAM_ANGULAR_DAMP_MODE: {
+			int mode_value = p_value;
+			if (angular_damping_mode != mode_value) {
+				angular_damping_mode = (PhysicsServer2D::BodyDampMode)mode_value;
+				if (angular_damping_mode == PhysicsServer2D::BODY_DAMP_MODE_REPLACE) {
+					using_area_angular_damping = false;
+				}
+				if (using_area_angular_damping) {
+					// Update angular damping from areas
+				} else {
+					_apply_angular_damping(angular_damping);
+				}
+			}
+		} break;
+		case PhysicsServer2D::BODY_PARAM_LINEAR_DAMP: {
+			real_t new_value = p_value;
+			if (new_value != linear_damping) {
+				linear_damping = new_value;
+				if (!using_area_linear_damping) {
+					_apply_linear_damping(linear_damping);
+				}
+			}
+		} break;
+		case PhysicsServer2D::BODY_PARAM_ANGULAR_DAMP: {
+			real_t new_value = p_value;
+			if (new_value != angular_damping) {
+				angular_damping = new_value;
+				if (!using_area_angular_damping) {
+					_apply_angular_damping(angular_damping);
+				}
+			}
+		} break;
+		default: {
+		}
+	}
+    }
     pub fn get_param(&self, param: BodyParameter) -> Variant {}
 
     pub fn set_mode(&mut self, p_mode: BodyMode) {
