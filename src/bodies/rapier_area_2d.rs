@@ -248,7 +248,7 @@ impl IRapierCollisionObject2D for RapierArea2D {
         &self.base
     }
     fn get_mut_base(&mut self) -> &mut RapierCollisionObject2D {
-        &mut &self.base
+        &mut self.base
     }
     fn set_space(&mut self, space: Rid) {}
 
@@ -270,10 +270,46 @@ impl IRapierCollisionObject2D for RapierArea2D {
     
     fn add_shape(
         &mut self,
-        p_shape: Box<dyn crate::shapes::rapier_shape_2d::IRapierShape2D>,
+        p_shape: godot::prelude::Rid,
         p_transform: godot::prelude::Transform2D,
         p_disabled: bool,
     ) {
+        todo!()
+    }
+    
+    fn set_shape(
+        &mut self,
+        shape_idx: i32,
+        p_shape: Rid,
+    ) {
+        todo!()
+    }
+    
+    fn set_shape_transform(&mut self, shape_idx: i32, transform: godot::prelude::Transform2D) {
+        todo!()
+    }
+    
+    fn set_shape_disabled(&mut self, shape_idx: i32, disabled: bool) {
+        todo!()
+    }
+    
+    fn remove_shape(&mut self, shape_idx: i32) {
+        todo!()
+    }
+    
+    fn create_shape(&mut self, shape: &mut super::rapier_collision_object_2d::CollisionObjectShape, p_shape_index: usize, mat: crate::rapier2d::collider::Material) {
+        todo!()
+    }
+    
+    fn _init_material(&self, mat: &mut crate::rapier2d::collider::Material) {
+        todo!()
+    }
+    
+    fn _shapes_changed(&self) {
+        todo!()
+    }
+    
+    fn _shape_changed(&self, p_shape: Rid) {
         todo!()
     }
 }

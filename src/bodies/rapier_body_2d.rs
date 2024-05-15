@@ -866,112 +866,147 @@ impl RapierBody2D {
     }
 
     pub fn set_param(&mut self, p_param: BodyParameter, p_value: Variant) {
-	match (p_param) {
-        BodyParameter::BOUNCE | BodyParameter::FRICTION => {
-			if (p_param == BodyParameter::BOUNCE) {
-				self.bounce = p_value.to();
-			} else {
-				self.friction = p_value.to();
-			}
-            let body_handle = self.base.get_body_handle();
-            if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
-                return;
-            }
+        match p_param {
+            BodyParameter::BOUNCE | BodyParameter::FRICTION => {
+                if p_param == BodyParameter::BOUNCE {
+                    self.bounce = p_value.to();
+                } else {
+                    self.friction = p_value.to();
+                }
+                let body_handle = self.base.get_body_handle();
+                if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+                    return;
+                }
 
-			let mat = Material{
-                friction: self.friction,
-                restitution: self.bounce
-            };
-			body_update_material(self.base.space_handle, body_handle, &mat);
-		}
-		BodyParameter::MASS => {
-			let mass_value = p_value.to();
-            if (mass_value <= 0.0) {
-                return;
+                let mat = Material{
+                    friction: self.friction,
+                    restitution: self.bounce
+                };
+                body_update_material(self.base.space_handle, body_handle, &mat);
             }
-			self.mass = mass_value;
-			if (self.base.mode.ord() >= BodyMode::RIGID.ord()) {
-				self._mass_properties_changed();
-			}
-		}
-		BodyParameter::INERTIA => {
-			let inertia_value = p_value.to();
-			if (inertia_value <= 0.0) {
-				calculate_inertia = true;
-			} else {
-				calculate_inertia = false;
-				inertia = inertia_value;
-			}
-			if (self.base.mode.ord() >= BodyMode::RIGID.ord()) {
-				self._mass_properties_changed();
-			}
-		}
-		BodyParameter::CENTER_OF_MASS => {
-			self.center_of_mass = p_value;
-			if (self.base.mode.ord() >= BodyMode::RIGID.ord()) {
-				self._mass_properties_changed();
-			}
-		}
-		BodyParameter::GRAVITY_SCALE => {
-			let new_gravity_scale = p_value.to();
-			if (self.gravity_scale != new_gravity_scale) {
-				self.gravity_scale = new_gravity_scale;
-				if (!self.using_area_gravity) {
-					self._apply_gravity_scale(self.gravity_scale);
-				}
-			}
-		}
-		BodyParameter::LINEAR_DAMP_MODE => {
-			let mode_value = p_value.to();
-			if (self.linear_damping_mode != mode_value) {
-				self.linear_damping_mode = mode_value;
-				if (self.linear_damping_mode == BodyDampMode::REPLACE) {
-					self.using_area_linear_damping = false;
-				}
-				if (self.using_area_linear_damping) {
-					// Update linear damping from areas
-				} else {
-					self._apply_linear_damping(self.linear_damping);
-				}
-			}
-		} break;
-		case PhysicsServer2D::BODY_PARAM_ANGULAR_DAMP_MODE: {
-			int mode_value = p_value;
-			if (angular_damping_mode != mode_value) {
-				angular_damping_mode = (PhysicsServer2D::BodyDampMode)mode_value;
-				if (angular_damping_mode == PhysicsServer2D::BODY_DAMP_MODE_REPLACE) {
-					using_area_angular_damping = false;
-				}
-				if (using_area_angular_damping) {
-					// Update angular damping from areas
-				} else {
-					_apply_angular_damping(angular_damping);
-				}
-			}
-		} break;
-		case PhysicsServer2D::BODY_PARAM_LINEAR_DAMP: {
-			real_t new_value = p_value;
-			if (new_value != linear_damping) {
-				linear_damping = new_value;
-				if (!using_area_linear_damping) {
-					_apply_linear_damping(linear_damping);
-				}
-			}
-		} break;
-		case PhysicsServer2D::BODY_PARAM_ANGULAR_DAMP: {
-			real_t new_value = p_value;
-			if (new_value != angular_damping) {
-				angular_damping = new_value;
-				if (!using_area_angular_damping) {
-					_apply_angular_damping(angular_damping);
-				}
-			}
-		} break;
-		default: {
-		}
-	}
+            BodyParameter::MASS => {
+                let mass_value = p_value.to();
+                if mass_value <= 0.0 {
+                    return;
+                }
+                self.mass = mass_value;
+                if self.base.mode.ord() >= BodyMode::RIGID.ord() {
+                    self._mass_properties_changed();
+                }
+            }
+            BodyParameter::INERTIA => {
+                let inertia_value = p_value.to();
+                if inertia_value <= 0.0 {
+                    self.calculate_inertia = true;
+                } else {
+                    self.calculate_inertia = false;
+                    self.inertia = inertia_value;
+                }
+                if self.base.mode.ord() >= BodyMode::RIGID.ord() {
+                    self._mass_properties_changed();
+                }
+            }
+            BodyParameter::CENTER_OF_MASS => {
+                self.center_of_mass = p_value.to();
+                if self.base.mode.ord() >= BodyMode::RIGID.ord() {
+                    self._mass_properties_changed();
+                }
+            }
+            BodyParameter::GRAVITY_SCALE => {
+                let new_gravity_scale = p_value.to();
+                if self.gravity_scale != new_gravity_scale {
+                    self.gravity_scale = new_gravity_scale;
+                    if !self.using_area_gravity {
+                        self._apply_gravity_scale(self.gravity_scale);
+                    }
+                }
+            }
+            BodyParameter::LINEAR_DAMP_MODE => {
+                let mode_value = p_value.to();
+                if self.linear_damping_mode.ord() != mode_value {
+                    self.linear_damping_mode = BodyDampMode::from_ord(mode_value);
+                    if self.linear_damping_mode == BodyDampMode::REPLACE {
+                        self.using_area_linear_damping = false;
+                    }
+                    if self.using_area_linear_damping {
+                        // Update linear damping from areas
+                    } else {
+                        self._apply_linear_damping(self.linear_damping, true);
+                    }
+                }
+            }
+            BodyParameter::ANGULAR_DAMP_MODE => {
+                let mode_value = p_value.to();
+                if self.angular_damping_mode.ord() != mode_value {
+                    self.angular_damping_mode = BodyDampMode::from_ord(mode_value);
+                    if self.angular_damping_mode == BodyDampMode::REPLACE {
+                        self.using_area_angular_damping = false;
+                    }
+                    if self.using_area_angular_damping {
+                        // Update angular damping from areas
+                    } else {
+                        self._apply_angular_damping(self.angular_damping, true);
+                    }
+                }
+            }
+            BodyParameter::LINEAR_DAMP => {
+                let new_value = p_value.to();
+                if new_value != self.linear_damping {
+                    self.linear_damping = new_value;
+                    if !self.using_area_linear_damping {
+                        self._apply_linear_damping(self.linear_damping, true);
+                    }
+                }
+            }
+            BodyParameter::ANGULAR_DAMP => {
+                let new_value = p_value.to();
+                if new_value != self.angular_damping {
+                    self.angular_damping = new_value;
+                    if !self.using_area_angular_damping {
+                        self._apply_angular_damping(self.angular_damping, true);
+                    }
+                }
+            }
+            _ => {}
+        }
     }
-    pub fn get_param(&self, param: BodyParameter) -> Variant {}
+    pub fn get_param(&self, p_param: BodyParameter) -> Variant {
+        match p_param {
+            BodyParameter::BOUNCE => {
+                return self.bounce.to_variant();
+            }
+            BodyParameter::FRICTION => {
+                return self.friction.to_variant();
+            }
+            BodyParameter::MASS => {
+                return self.mass.to_variant();
+            }
+            BodyParameter::INERTIA => {
+                return self.inertia.to_variant();
+            }
+            BodyParameter::CENTER_OF_MASS => {
+                return self.center_of_mass.to_variant();
+            }
+            BodyParameter::GRAVITY_SCALE => {
+                return self.gravity_scale.to_variant();
+            }
+            BodyParameter::LINEAR_DAMP_MODE => {
+                return self.linear_damping_mode.to_variant();
+            }
+            BodyParameter::ANGULAR_DAMP_MODE => {
+                return self.angular_damping_mode.to_variant();
+            }
+            BodyParameter::LINEAR_DAMP => {
+                return self.linear_damping.to_variant();
+            }
+            BodyParameter::ANGULAR_DAMP => {
+                return self.angular_damping.to_variant();
+            }
+            _ => {
+                return 0.0.to_variant();
+            }
+        }
+    }
 
     pub fn set_mode(&mut self, p_mode: BodyMode) {
         if self.base.mode == p_mode {
@@ -1034,9 +1069,67 @@ impl RapierBody2D {
         }
     }
 
-    pub fn set_state(&mut self, state: BodyState, variant: Variant) {}
+    pub fn set_state(&mut self, p_state: BodyState, p_variant: Variant) {
+        match p_state {
+            BodyState::TRANSFORM => {
+                self.base.set_transform(p_variant.to(), true);
+            }
+            BodyState::LINEAR_VELOCITY => {
+                self.set_linear_velocity(p_variant.to());
+            }
+            BodyState::ANGULAR_VELOCITY => {
+                self.set_angular_velocity(p_variant.to());
+            }
+            BodyState::SLEEPING => {
+                if self.base.mode == BodyMode::STATIC {
+                    return;
+                }
+                self.sleep = p_variant.to();
+    
+                if self.sleep {
+                    if self.can_sleep {
+                        self.force_sleep();
+                        self.set_active(false);
+                    }
+                } else if self.base.mode != BodyMode::STATIC {
+                    self.wakeup();
+                    self.set_active(true);
+                }
+            }
+            BodyState::CAN_SLEEP => {
+                self.can_sleep = p_variant.to();
+                if self.base.mode.ord() >= BodyMode::RIGID.ord() {
+                    self.set_can_sleep(self.can_sleep);
+                    if !self.active && !self.can_sleep {
+                        self.wakeup();
+                        self. set_active(true);
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
 
-    pub fn get_state(&self, state: BodyState) -> Variant {}
+    pub fn get_state(&self, p_state: BodyState) -> Variant {
+        match p_state {
+            BodyState::TRANSFORM => {
+                return self.base.get_transform().to_variant();
+            }
+            BodyState::LINEAR_VELOCITY => {
+                return self.get_linear_velocity().to_variant();
+            }
+            BodyState::ANGULAR_VELOCITY => {
+                return self.get_angular_velocity().to_variant();
+            }
+            BodyState::SLEEPING => {
+                return (!self.active).to_variant();
+            }
+            BodyState::CAN_SLEEP => {
+                return self.can_sleep.to_variant();
+            }
+            _ => {return Variant::nil();}
+        }
+    }
 
     pub fn set_continuous_collision_detection_mode(&mut self, p_mode: CcdMode) {
         self.ccd_mode = p_mode;
@@ -1057,7 +1150,7 @@ impl RapierBody2D {
                 space.body_remove_from_mass_properties_update_list(self.base.get_rid());
             }
         }
-        if (self.base.mode.ord() < BodyMode::RIGID.ord()) {
+        if self.base.mode.ord() < BodyMode::RIGID.ord() {
             return;
         }
     
@@ -1073,10 +1166,10 @@ impl RapierBody2D {
             }
         }
     
-        if (self.calculate_center_of_mass) {
+        if self.calculate_center_of_mass {
             self.center_of_mass = Vector2::default();
     
-            if (total_area != 0.0) {
+            if total_area != 0.0 {
                 for i in 0..shape_count {
                     if self.base.is_shape_disabled(i) {
                         continue;
@@ -1085,7 +1178,7 @@ impl RapierBody2D {
                     let shapes_lock = shapes_singleton().lock().unwrap();
                     if let Some(shape) = shapes_lock.shapes.get(&self.base.get_shape(i)) {
                         let shape_area = shape.get_base().get_aabb(Vector2::default()).area();
-                        if (shape_area == 0.0 || self.mass == 0.0) {
+                        if shape_area == 0.0 || self.mass == 0.0 {
                             continue;
                         }
                         let shape_mass = shape_area * self.mass / total_area;
@@ -1098,10 +1191,10 @@ impl RapierBody2D {
             }
         }
     
-        if (self.calculate_inertia) {
+        if self.calculate_inertia {
             self.inertia = 0.0;
     
-            if (total_area != 0.0) {
+            if total_area != 0.0 {
                 for i in 0..shape_count {
                     if self.base.is_shape_disabled(i) {
                         continue;
@@ -1110,7 +1203,7 @@ impl RapierBody2D {
                     let shapes_lock = shapes_singleton().lock().unwrap();
                     if let Some(shape) = shapes_lock.shapes.get(&self.base.get_shape(i)) {
                         let shape_area = shape.get_base().get_aabb(Vector2::default()).area();
-                        if (shape_area == 0.0 || self.mass == 0.0) {
+                        if shape_area == 0.0 || self.mass == 0.0 {
                             continue;
                         }
     
@@ -1128,7 +1221,7 @@ impl RapierBody2D {
         self._apply_mass_properties(force_update);
     }
     pub fn reset_mass_properties(&mut self) {
-        if (self.calculate_inertia && self.calculate_center_of_mass) {
+        if self.calculate_inertia && self.calculate_center_of_mass {
             // Nothing to do, already calculated
             return;
         }
@@ -1287,10 +1380,46 @@ impl IRapierCollisionObject2D for RapierBody2D {
 
     fn add_shape(
         &mut self,
-        p_shape: &Box<dyn crate::shapes::rapier_shape_2d::IRapierShape2D>,
+        p_shape: godot::prelude::Rid,
         p_transform: Transform2D,
         p_disabled: bool,
     ) {
+        todo!()
+    }
+    
+    fn set_shape(
+        &mut self,
+        shape_idx: i32,
+        p_shape: Rid,
+    ) {
+        todo!()
+    }
+    
+    fn set_shape_transform(&mut self, shape_idx: i32, transform: Transform2D) {
+        todo!()
+    }
+    
+    fn set_shape_disabled(&mut self, shape_idx: i32, disabled: bool) {
+        todo!()
+    }
+    
+    fn remove_shape(&mut self, shape_idx: i32) {
+        todo!()
+    }
+    
+    fn create_shape(&mut self, shape: &mut CollisionObjectShape, p_shape_index: usize, mat: Material) {
+        todo!()
+    }
+    
+    fn _init_material(&self, mat: &mut Material) {
+        todo!()
+    }
+    
+    fn _shapes_changed(&self) {
+        todo!()
+    }
+    
+    fn _shape_changed(&self, p_shape: Rid) {
         todo!()
     }
 }
@@ -1298,7 +1427,8 @@ impl IRapierCollisionObject2D for RapierBody2D {
 impl Drop for RapierBody2D {
     fn drop(&mut self) {
         if let Some(direct_state) = &self.direct_state {
-            direct_state.free();
+            // TODO
+            direct_state.clone().free();
         }
     }
 }
