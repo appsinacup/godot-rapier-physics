@@ -100,7 +100,6 @@ pub struct RapierSpace2D {
     default_linear_damping: real,
     default_angular_damping: real,
     pub locked: bool,
-    last_step: real,
     island_count: i32,
     active_objects: i32,
     collision_pairs: i32,
@@ -674,8 +673,8 @@ impl RapierSpace2D {
         let fluid_default_gravity_dir = RapierProjectSettings::get_fluid_gravity_dir();
         let fluid_default_gravity_value = RapierProjectSettings::get_fluid_gravity_value();
     
-        let default_linear_damping: real = project_settings.get_setting_with_override("physics/2d/default_linear_damp".into()).to();
-        let default_angular_damping: real = project_settings.get_setting_with_override("physics/2d/default_angular_damp".into()).to();
+        //let default_linear_damping: real = project_settings.get_setting_with_override("physics/2d/default_linear_damp".into()).to();
+        //let default_angular_damping: real = project_settings.get_setting_with_override("physics/2d/default_angular_damp".into()).to();
         
         for body in &self.mass_properties_update_list {
             let mut lock = bodies_singleton().lock().unwrap();
@@ -843,12 +842,12 @@ impl RapierSpace2D {
     }
 
     pub fn get_direct_state(&self) -> Option<Gd<PhysicsDirectSpaceState2D>> {
-        self.direct_access
+        self.direct_access.clone()
     }
 
     pub fn get_rapier_direct_state(&self) -> Option<Gd<RapierDirectSpaceState2D>> {
-        if let Some(direct_access) = self.direct_access {
-            return Some(direct_access.cast())
+        if let Some(direct_access) = &self.direct_access {
+            return Some(direct_access.clone().cast())
         }
         None
     }
@@ -864,37 +863,37 @@ impl RapierSpace2D {
         result: &PhysicsServer2DExtensionMotionResult,
     ) -> bool {
         result.travel = Vector2::default();
-	    let body_transform = from.clone(); // Because body_transform needs to be modified during recovery
+	    let mut body_transform = from.clone(); // Because body_transform needs to be modified during recovery
         // Step 1: recover motion.
         // Expand the body colliders by the margin (grow) and check if now it collides with a collider,
         // if yes, "recover" / "push" out of this collider
 	    let recover_motion;
-        let margin = max(margin, TEST_MOTION_MARGIN);
+        let margin = f64::max(margin, TEST_MOTION_MARGIN);
 
 	    let recovered = false;//RapierBodyUtils2D::body_motion_recover(*this, *p_body, body_transform, p_motion, margin, recover_motion);
         // Step 2: Cast motion.
         // Try to to find what is the possible motion (how far it can move, it's a shapecast, when you try to find the safe point (max you can move without collision ))
         let best_safe = 1.0;
         let best_unsafe = 1.0;
-        let best_body_shape = -1;
+        let mut best_body_shape = -1;
 	    //RapierBodyUtils2D::cast_motion(*this, *p_body, body_transform, p_motion, p_collide_separation_ray, contact_max_allowed_penetration, margin, best_safe, best_unsafe, best_body_shape);
 
         // Step 3: Rest Info
         // Apply the motion and fill the collision information
         let mut collided = false;
-        if ((recovery_as_collision && recovered) || (best_safe < 1.0)) {
-            if (best_safe >= 1.0) {
+        if (recovery_as_collision && recovered) || (best_safe < 1.0) {
+            if best_safe >= 1.0 {
                 best_body_shape = -1; //no best shape with cast, reset to -1
             }
 
             // Get the rest info in unsafe advance
             let unsafe_motion = motion * best_unsafe;
-            body_transform.columns[2] += unsafe_motion;
+            body_transform.origin += unsafe_motion;
 
             collided = false;// RapierBodyUtils2D::body_motion_collide(*this, *p_body, body_transform, p_motion, best_body_shape, margin, r_result);
         }
 
-		if (collided) {
+		if collided {
 			result.travel += recover_motion + motion * best_safe;
 			result.remainder = motion - motion * best_safe;
 			result.collision_safe_fraction = best_safe;

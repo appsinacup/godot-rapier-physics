@@ -530,7 +530,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get(&body) {
             if let Some(body) = body.get_body() {
-                return body.get_mode();
+                return body.get_base().mode;
             }
         }
         engine::physics_server_2d::BodyMode::KINEMATIC
@@ -881,7 +881,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
                 let axis = axis_velocity.normalized();
                 v -= axis * axis.dot(v);
                 v += axis_velocity;
-                body.set_linear_velocity(&v);
+                body.set_linear_velocity(v);
             }
         }
     }
