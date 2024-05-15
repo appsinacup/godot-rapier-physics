@@ -70,9 +70,9 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
 name = "bytemuck"
-version = "1.15.0"
+version = "1.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d6d68c57235a3a081186990eca2867354726650f42f7516ca50c28d6281fd15"
+checksum = "78834c15cb5d5efe3452d58b1e8ba890dd62d21907f867f383358198e56ebca5"
 
 [[package]]
 name = "cfg-if"
@@ -171,7 +171,7 @@ checksum = "913dce4c5f06c2ea40fc178c06f777ac89fc6b1383e90c254fafb1abe4ba3c82"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.61",
+ "syn 2.0.63",
  "uuid",
 ]
 
@@ -195,7 +195,7 @@ checksum = "9e05e7e6723e3455f4818c7b26e855439f7546cf617ef669d1adedb8669e5cb9"
 [[package]]
 name = "godot"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#e43fdd391af2bd2433fe04bfc707342382351bdb"
+source = "git+https://github.com/godot-rust/gdext?branch=master#27b0054a296ebabebe80f2db3ec4f3c09d519b4b"
 dependencies = [
  "godot-core",
  "godot-macros",
@@ -204,7 +204,7 @@ dependencies = [
 [[package]]
 name = "godot-bindings"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#e43fdd391af2bd2433fe04bfc707342382351bdb"
+source = "git+https://github.com/godot-rust/gdext?branch=master#27b0054a296ebabebe80f2db3ec4f3c09d519b4b"
 dependencies = [
  "godot4-prebuilt",
 ]
@@ -212,12 +212,12 @@ dependencies = [
 [[package]]
 name = "godot-cell"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#e43fdd391af2bd2433fe04bfc707342382351bdb"
+source = "git+https://github.com/godot-rust/gdext?branch=master#27b0054a296ebabebe80f2db3ec4f3c09d519b4b"
 
 [[package]]
 name = "godot-codegen"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#e43fdd391af2bd2433fe04bfc707342382351bdb"
+source = "git+https://github.com/godot-rust/gdext?branch=master#27b0054a296ebabebe80f2db3ec4f3c09d519b4b"
 dependencies = [
  "godot-bindings",
  "godot-fmt",
@@ -231,7 +231,7 @@ dependencies = [
 [[package]]
 name = "godot-core"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#e43fdd391af2bd2433fe04bfc707342382351bdb"
+source = "git+https://github.com/godot-rust/gdext?branch=master#27b0054a296ebabebe80f2db3ec4f3c09d519b4b"
 dependencies = [
  "glam",
  "godot-bindings",
@@ -243,7 +243,7 @@ dependencies = [
 [[package]]
 name = "godot-ffi"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#e43fdd391af2bd2433fe04bfc707342382351bdb"
+source = "git+https://github.com/godot-rust/gdext?branch=master#27b0054a296ebabebe80f2db3ec4f3c09d519b4b"
 dependencies = [
  "gensym",
  "godot-bindings",
@@ -255,7 +255,7 @@ dependencies = [
 [[package]]
 name = "godot-fmt"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#e43fdd391af2bd2433fe04bfc707342382351bdb"
+source = "git+https://github.com/godot-rust/gdext?branch=master#27b0054a296ebabebe80f2db3ec4f3c09d519b4b"
 dependencies = [
  "proc-macro2",
 ]
@@ -263,7 +263,7 @@ dependencies = [
 [[package]]
 name = "godot-macros"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#e43fdd391af2bd2433fe04bfc707342382351bdb"
+source = "git+https://github.com/godot-rust/gdext?branch=master#27b0054a296ebabebe80f2db3ec4f3c09d519b4b"
 dependencies = [
  "godot-bindings",
  "proc-macro2",
@@ -276,7 +276,7 @@ name = "godot-rapier"
 version = "0.1.0"
 dependencies = [
  "godot",
- "rapier2d 0.19.0",
+ "rapier2d",
  "rapier2d-f64",
  "salva2d",
 ]
@@ -438,7 +438,7 @@ checksum = "ed3955f1a9c7c0c15e092f9c887db08b1fc683305fdf6eb6684f22555355e202"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.61",
+ "syn 2.0.63",
 ]
 
 [[package]]
@@ -493,27 +493,6 @@ checksum = "a1914cd452d8fccd6f9db48147b29fd4ae05bea9dc5d9ad578509f72415de282"
 dependencies = [
  "cfg-if",
  "libm 0.1.4",
-]
-
-[[package]]
-name = "parry2d"
-version = "0.13.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9fd94bf962ead112f14223469aac6f76e3c24e2c399e348f638924498b238c56"
-dependencies = [
- "approx",
- "arrayvec",
- "bitflags",
- "downcast-rs",
- "either",
- "nalgebra",
- "num-derive",
- "num-traits",
- "rustc-hash",
- "simba",
- "slab",
- "smallvec",
- "spade",
 ]
 
 [[package]]
@@ -588,26 +567,6 @@ dependencies = [
 
 [[package]]
 name = "rapier2d"
-version = "0.18.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "48a3ec4ae89e0837c0ff6f29af32a8e5d78dfabe2273dcd945cfaf3f5d2b1501"
-dependencies = [
- "approx",
- "arrayvec",
- "bit-vec",
- "bitflags",
- "crossbeam",
- "downcast-rs",
- "nalgebra",
- "num-derive",
- "num-traits",
- "parry2d 0.13.8",
- "rustc-hash",
- "simba",
-]
-
-[[package]]
-name = "rapier2d"
 version = "0.19.0"
 source = "git+https://github.com/dimforge/rapier?branch=master#af1ac9baa26b1199ae2728e91adf5345bcd1c693"
 dependencies = [
@@ -622,7 +581,7 @@ dependencies = [
  "num-derive",
  "num-traits",
  "ordered-float",
- "parry2d 0.15.1",
+ "parry2d",
  "rayon",
  "rustc-hash",
  "serde",
@@ -732,8 +691,8 @@ dependencies = [
 
 [[package]]
 name = "salva2d"
-version = "0.9.0"
-source = "git+https://github.com/dimforge/salva?branch=master#6e5cabe11f85caff3aef59f2022eb567d6ed58fe"
+version = "0.10.0"
+source = "git+https://github.com/ughuuu/salva?branch=update-to-rapier-0.19#badd003b434de8b25c648f17646fc91f9ab1bff8"
 dependencies = [
  "approx",
  "fnv",
@@ -742,8 +701,8 @@ dependencies = [
  "itertools",
  "nalgebra",
  "num-traits",
- "parry2d 0.13.8",
- "rapier2d 0.18.0",
+ "parry2d",
+ "rapier2d",
 ]
 
 [[package]]
@@ -763,7 +722,7 @@ checksum = "c5e405930b9796f1c00bee880d03fc7e0bb4b9a11afc776885ffe84320da2865"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.61",
+ "syn 2.0.63",
 ]
 
 [[package]]
@@ -821,9 +780,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.61"
+version = "2.0.63"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c993ed8ccba56ae856363b1845da7266a7cb78e1d146c8a32d54b45a8b831fc9"
+checksum = "bf5be731623ca1a1fb7d8be6f261a3be6d3e2337b8a1f97be944d020c8fcb704"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -881,9 +840,9 @@ checksum = "9c8d87e72b64a3b4db28d11ce29237c246188f4f51057d65a7eab63b7987e423"
 
 [[package]]
 name = "wide"
-version = "0.7.17"
+version = "0.7.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0f0e39d2c603fdc0504b12b458cf1f34e0b937ed2f4f2dc20796e3e86f34e11f"
+checksum = "aab6594190de06d718a5dbc5fa781ab62f8903797056480e549ca74add6b7065"
 dependencies = [
  "bytemuck",
  "safe_arch",
@@ -906,5 +865,5 @@ checksum = "15e934569e47891f7d9411f1a451d947a60e000ab3bd24fbb970f000387d1b3b"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.61",
+ "syn 2.0.63",
 ]
