@@ -293,7 +293,11 @@ impl IRapierCollisionObject2D for RapierArea2D {
         todo!()
     }
     
-    fn remove_shape(&mut self, shape_idx: i32) {
+    fn remove_shape_idx(&mut self, shape_idx: i32) {
+        todo!()
+    }
+    
+    fn remove_shape_rid(&mut self, shape_rid: Rid) {
         todo!()
     }
     

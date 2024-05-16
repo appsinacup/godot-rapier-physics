@@ -20,7 +20,7 @@ use super::rapier_area_2d::RapierArea2D;
 use super::rapier_direct_body_state_2d::RapierDirectBodyState2D;
 
 #[derive(Clone)]
-struct Contact {
+pub struct Contact {
     pub local_pos: Vector2,
     pub local_normal: Vector2,
     pub depth: real,
@@ -1403,7 +1403,11 @@ impl IRapierCollisionObject2D for RapierBody2D {
         todo!()
     }
     
-    fn remove_shape(&mut self, shape_idx: i32) {
+    fn remove_shape_idx(&mut self, shape_idx: i32) {
+        todo!()
+    }
+    
+    fn remove_shape_rid(&mut self, shape_rid: Rid) {
         todo!()
     }
     

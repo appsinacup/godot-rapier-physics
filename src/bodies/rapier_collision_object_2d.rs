@@ -38,7 +38,8 @@ pub trait IRapierCollisionObject2D: Any {
     );
     fn set_shape_transform(&mut self, shape_idx: i32, transform: Transform2D);
     fn set_shape_disabled(&mut self, shape_idx: i32, disabled: bool);
-    fn remove_shape(&mut self, shape_idx: i32);
+    fn remove_shape_idx(&mut self, shape_idx: i32);
+    fn remove_shape_rid(&mut self, shape_rid: Rid);
     fn create_shape(&mut self, shape: &mut CollisionObjectShape, p_shape_index: usize, mat: Material);
 
     fn _init_material(&self, mat: &mut Material);
