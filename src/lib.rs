@@ -15,7 +15,7 @@ pub struct RapierPhysics2DExtensionLibrary {}
 #[gdextension]
 unsafe impl ExtensionLibrary for RapierPhysics2DExtensionLibrary {
     fn min_level() -> InitLevel {
-        InitLevel::Scene
+        InitLevel::Servers
     }
     fn on_level_init(level: InitLevel) {
         match level {
@@ -39,5 +39,9 @@ unsafe impl ExtensionLibrary for RapierPhysics2DExtensionLibrary {
             }
             _ => (),
         }
+    }
+
+    fn override_hot_reload() -> Option<bool> {
+        Some(false)
     }
 }

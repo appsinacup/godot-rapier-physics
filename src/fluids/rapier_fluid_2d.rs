@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use godot::builtin::{Rid, Vector2};
+use godot::{builtin::{Array, Rid, Vector2}, obj::Gd};
 
 use crate::rapier2d::handle::{invalid_handle_double, HandleDouble};
 
@@ -12,7 +12,7 @@ pub struct RapierFluid2D {
     enabled: bool,
     density: f64,
     space: Rid,
-    effects: Vec<FluidEffect2D>,
+    effects: Array<Gd<FluidEffect2D>>,
     fluid_handle: HandleDouble,
     points: Vec<Vector2>,
     velocities: Vec<Vector2>,
@@ -26,7 +26,7 @@ impl RapierFluid2D {
             enabled: true,
             density: 1.0,
             space: Rid::Invalid,
-            effects: Vec::new(),
+            effects: Array::default(),
             fluid_handle: invalid_handle_double(),
             points: Vec::new(),
             velocities: Vec::new(),
@@ -71,7 +71,7 @@ impl RapierFluid2D {
         self.accelerations.clone()
     }
 
-    pub fn set_effects(&mut self, effects: Vec<FluidEffect2D>) {
+    pub fn set_effects(&mut self, effects: Array<Gd<FluidEffect2D>>) {
         self.effects = effects;
     }
 
