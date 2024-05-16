@@ -4,13 +4,15 @@ use godot::builtin::{Rid, Vector2};
 
 use crate::rapier2d::handle::{invalid_handle_double, HandleDouble};
 
+use super::fluid_effect_2d::FluidEffect2D;
+
 
 pub struct RapierFluid2D {
     rid: Rid,
     enabled: bool,
     density: f64,
     space: Rid,
-    effects: Vec<Rid>,
+    effects: Vec<FluidEffect2D>,
     fluid_handle: HandleDouble,
     points: Vec<Vector2>,
     velocities: Vec<Vector2>,
@@ -69,7 +71,7 @@ impl RapierFluid2D {
         self.accelerations.clone()
     }
 
-    pub fn set_effects(&mut self, effects: Vec<Rid>) {
+    pub fn set_effects(&mut self, effects: Vec<FluidEffect2D>) {
         self.effects = effects;
     }
 

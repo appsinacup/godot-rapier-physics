@@ -123,7 +123,7 @@ impl RapierSpace2D {
             .to();
 
         let mut direct_access = RapierDirectSpaceState2D::new_alloc();
-        direct_access.set_space(rid);
+        //direct_access.set_space(rid);
 
         let mut world_settings = default_world_settings();
         world_settings.particle_radius = RapierProjectSettings::get_fluid_particle_radius() as real;
@@ -172,9 +172,9 @@ impl RapierSpace2D {
         let (rid, _) = RapierCollisionObject2D::get_collider_user_data(
             &active_body_info.body_user_data,
         );
-        let lock = bodies_singleton().lock().unwrap();
-        if let Some(body) = lock.collision_objects.get(&rid) {
-            if let Some(body) = body.get_body() {
+        let mut lock = bodies_singleton().lock().unwrap();
+        if let Some(body) = lock.collision_objects.get_mut(&rid) {
+            if let Some(body) = body.get_mut_body() {
                 body.on_marked_active();
             }
         }
@@ -278,6 +278,7 @@ impl RapierSpace2D {
     }
 
     fn collision_event_callback(world_handle: Handle, event_info: &CollisionEventInfo) {
+        /*
         let mut spaces_lock = spaces_singleton().lock().unwrap();
         let active_spaces_lock = active_spaces_singleton().lock().unwrap();
         if let Some(space) = active_spaces_lock.active_spaces.get(&world_handle) {
@@ -500,6 +501,7 @@ impl RapierSpace2D {
         }
             }
         }
+        */
     }
 
     fn contact_force_event_callback(
@@ -555,6 +557,7 @@ impl RapierSpace2D {
         collider: &UserData,
         handle_excluded_info: &QueryExcludedInfo,
     ) -> bool {
+        /*
         for exclude_index in 0..handle_excluded_info.query_exclude_size {
             if handle_excluded_info.query_exclude[exclude_index] == collider_handle {
                 return true;
@@ -581,6 +584,8 @@ impl RapierSpace2D {
         let space = spaces_lock.spaces.get(space).unwrap();
         let direct_state = space.get_rapier_direct_state().unwrap();
         return direct_state.base().is_body_excluded_from_query(collision_object_2d.get_base().get_rid());
+         */
+        return false;
     }
 
     pub fn _get_object_instance_hack(instance_id: u64) -> *mut Gd<Object> {
@@ -862,6 +867,7 @@ impl RapierSpace2D {
         recovery_as_collision: bool,
         result: &PhysicsServer2DExtensionMotionResult,
     ) -> bool {
+        /*
         result.travel = Vector2::default();
 	    let mut body_transform = from.clone(); // Because body_transform needs to be modified during recovery
         // Step 1: recover motion.
@@ -907,6 +913,8 @@ impl RapierSpace2D {
 		}
 
         collided
+         */
+        return false;
     }
 
     pub fn rapier_intersect_aabb(
@@ -919,6 +927,7 @@ impl RapierSpace2D {
         max_results: usize,
         exclude_body: Rid,
     ) -> i32 {
+        /*
         let max_results = max_results as usize;
         if max_results < 1 {
             return 0;
@@ -934,7 +943,8 @@ impl RapierSpace2D {
         handle_excluded_info.query_exclude_body = exclude_body.to_u64() as i64;
     
         return intersect_aabb(self.handle, &rect_begin, &rect_end, collide_with_bodies, collide_with_areas, results, max_results, RapierSpace2D::_is_handle_excluded_callback, &handle_excluded_info) as i32;
-    
+         */
+        return 0;
     }
 
 
@@ -946,6 +956,7 @@ fn body_motion_recover(
     p_margin: f32,
     p_recover_motion: &mut Vector2,
 ) -> bool {
+    /*
     let shape_count = p_body.get_base().get_shape_count();
     if shape_count < 1 {
         return false;
@@ -1061,6 +1072,8 @@ fn body_motion_recover(
     }
 
     recovered
+     */
+    return false;
 }
 
 fn cast_motion(
@@ -1075,6 +1088,7 @@ fn cast_motion(
     p_closest_unsafe: &mut f32,
     p_best_body_shape: &mut i32,
 ) {
+    /*
     let body_aabb = p_body.get_aabb();
     let margin_aabb = p_transform.basis_xform(body_aabb);
 
@@ -1193,6 +1207,7 @@ fn cast_motion(
             *p_best_body_shape = body_shape_idx as i32;
         }
     }
+     */
 }
 
 fn body_motion_collide(
@@ -1204,6 +1219,7 @@ fn body_motion_collide(
     p_margin: f32,
     p_result: Option<&mut PhysicsServer2DExtensionMotionResult>,
 ) -> bool {
+    /*
     let shape_count = p_body.get_base().get_shape_count();
     if shape_count < 1 {
         return false;
@@ -1336,7 +1352,7 @@ fn body_motion_collide(
         }
 
         return true;
-    }
+    } */
 
     false
 }
@@ -1366,7 +1382,7 @@ fn should_skip_collision_one_dir(
 
         if collision_body.get_base().get_type() == CollisionObjectType::Body {
             let b = collision_body.get_body().unwrap();
-            if b.get_mode().ord() >= BodyMode::KINEMATIC.ord() {
+            if b.get_base().mode.ord() >= BodyMode::KINEMATIC.ord() {
                 // fix for moving platforms (kinematic and dynamic), margin is increased by how much it moved in the
                 // given direction
                 let lv = b.get_linear_velocity();
