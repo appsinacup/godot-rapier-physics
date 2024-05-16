@@ -22,14 +22,17 @@ use crate::shapes::rapier_world_boundary_shape_2d::RapierWorldBoundaryShape2D;
 use crate::spaces::rapier_space_2d::RapierSpace2D;
 use godot::engine::native::PhysicsServer2DExtensionMotionResult;
 use godot::engine::utilities::{rid_allocate_id, rid_from_int64};
-use godot::engine::IPhysicsServer2DExtension;
+use godot::engine::{IPhysicsServer2DExtension, PhysicsServer2DExtension};
 use godot::{engine, prelude::*};
 use std::ffi::c_void;
 
-use super::rapier_physics_singleton_2d::{active_spaces_singleton, bodies_singleton, fluids_singleton, joints_singleton, shapes_singleton, spaces_singleton};
+use super::rapier_physics_singleton_2d::{
+    active_spaces_singleton, bodies_singleton, fluids_singleton, joints_singleton,
+    shapes_singleton, spaces_singleton,
+};
 
 #[derive(GodotClass)]
-#[class(base=PhysicsServer2DExtension, init)]
+#[class(base=PhysicsServer2DExtension)]
 pub struct RapierPhysicsServer2D {
     active: bool,
     flushing_queries: bool,
@@ -37,10 +40,23 @@ pub struct RapierPhysicsServer2D {
     island_count: i32,
     active_objects: i32,
     collision_pairs: i32,
+
+    base: Base<PhysicsServer2DExtension>,
 }
 
 #[godot_api]
 impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
+    fn init(base: Base<PhysicsServer2DExtension>) -> Self {
+        Self {
+            active: true,
+            flushing_queries: false,
+            doing_sync: false,
+            island_count: 0,
+            active_objects: 0,
+            collision_pairs: 0,
+            base,
+        }
+    }
     fn world_boundary_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierWorldBoundaryShape2D::new(rid);
@@ -228,7 +244,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let active_spaces_lock = active_spaces_singleton().lock().unwrap();
         let spaces_lock = spaces_singleton().lock().unwrap();
         if let Some(space) = spaces_lock.spaces.get(&space) {
-            return active_spaces_lock.active_spaces.contains_key(&space.get_handle());
+            return active_spaces_lock
+                .active_spaces
+                .contains_key(&space.get_handle());
         }
         false
     }
@@ -603,7 +621,8 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     ) {
         let mut lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
-            body.get_mut_base().set_shape_as_one_way_collision(shape_idx as usize, enable, margin);
+            body.get_mut_base()
+                .set_shape_as_one_way_collision(shape_idx as usize, enable, margin);
         }
     }
     fn body_remove_shape(&mut self, body: Rid, shape_idx: i32) {
@@ -768,7 +787,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         Variant::nil()
     }
     fn body_apply_central_impulse(&mut self, body: Rid, impulse: Vector2) {
-        let mut lock: std::sync::MutexGuard<super::rapier_physics_singleton_2d::RapierBodiesSingleton2D> = bodies_singleton().lock().unwrap();
+        let mut lock: std::sync::MutexGuard<
+            super::rapier_physics_singleton_2d::RapierBodiesSingleton2D,
+        > = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.apply_central_impulse(impulse);
@@ -776,7 +797,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         }
     }
     fn body_apply_torque_impulse(&mut self, body: Rid, impulse: f32) {
-        let mut lock: std::sync::MutexGuard<super::rapier_physics_singleton_2d::RapierBodiesSingleton2D> = bodies_singleton().lock().unwrap();
+        let mut lock: std::sync::MutexGuard<
+            super::rapier_physics_singleton_2d::RapierBodiesSingleton2D,
+        > = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.apply_torque_impulse(impulse);
@@ -784,7 +807,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         }
     }
     fn body_apply_impulse(&mut self, body: Rid, impulse: Vector2, position: Vector2) {
-        let mut lock: std::sync::MutexGuard<super::rapier_physics_singleton_2d::RapierBodiesSingleton2D> = bodies_singleton().lock().unwrap();
+        let mut lock: std::sync::MutexGuard<
+            super::rapier_physics_singleton_2d::RapierBodiesSingleton2D,
+        > = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.apply_impulse(impulse, position);
@@ -792,7 +817,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         }
     }
     fn body_apply_central_force(&mut self, body: Rid, force: Vector2) {
-        let mut lock: std::sync::MutexGuard<super::rapier_physics_singleton_2d::RapierBodiesSingleton2D> = bodies_singleton().lock().unwrap();
+        let mut lock: std::sync::MutexGuard<
+            super::rapier_physics_singleton_2d::RapierBodiesSingleton2D,
+        > = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.apply_central_force(force);
@@ -800,7 +827,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         }
     }
     fn body_apply_force(&mut self, body: Rid, force: Vector2, position: Vector2) {
-        let mut lock: std::sync::MutexGuard<super::rapier_physics_singleton_2d::RapierBodiesSingleton2D> = bodies_singleton().lock().unwrap();
+        let mut lock: std::sync::MutexGuard<
+            super::rapier_physics_singleton_2d::RapierBodiesSingleton2D,
+        > = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.apply_force(force, position);
@@ -808,7 +837,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         }
     }
     fn body_apply_torque(&mut self, body: Rid, torque: f32) {
-        let mut lock: std::sync::MutexGuard<super::rapier_physics_singleton_2d::RapierBodiesSingleton2D> = bodies_singleton().lock().unwrap();
+        let mut lock: std::sync::MutexGuard<
+            super::rapier_physics_singleton_2d::RapierBodiesSingleton2D,
+        > = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.apply_torque(torque);
@@ -816,7 +847,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         }
     }
     fn body_add_constant_central_force(&mut self, body: Rid, force: Vector2) {
-        let mut lock: std::sync::MutexGuard<super::rapier_physics_singleton_2d::RapierBodiesSingleton2D> = bodies_singleton().lock().unwrap();
+        let mut lock: std::sync::MutexGuard<
+            super::rapier_physics_singleton_2d::RapierBodiesSingleton2D,
+        > = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.add_constant_central_force(force);
@@ -824,7 +857,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         }
     }
     fn body_add_constant_force(&mut self, body: Rid, force: Vector2, position: Vector2) {
-        let mut lock: std::sync::MutexGuard<super::rapier_physics_singleton_2d::RapierBodiesSingleton2D> = bodies_singleton().lock().unwrap();
+        let mut lock: std::sync::MutexGuard<
+            super::rapier_physics_singleton_2d::RapierBodiesSingleton2D,
+        > = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.add_constant_force(force, position);
@@ -832,7 +867,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         }
     }
     fn body_add_constant_torque(&mut self, body: Rid, torque: f32) {
-        let mut lock: std::sync::MutexGuard<super::rapier_physics_singleton_2d::RapierBodiesSingleton2D> = bodies_singleton().lock().unwrap();
+        let mut lock: std::sync::MutexGuard<
+            super::rapier_physics_singleton_2d::RapierBodiesSingleton2D,
+        > = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.add_constant_torque(torque);
@@ -840,7 +877,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         }
     }
     fn body_set_constant_force(&mut self, body: Rid, force: Vector2) {
-        let mut lock: std::sync::MutexGuard<super::rapier_physics_singleton_2d::RapierBodiesSingleton2D> = bodies_singleton().lock().unwrap();
+        let mut lock: std::sync::MutexGuard<
+            super::rapier_physics_singleton_2d::RapierBodiesSingleton2D,
+        > = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.set_constant_force(force);
@@ -857,13 +896,15 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         Vector2::default()
     }
     fn body_set_constant_torque(&mut self, body: Rid, torque: f32) {
-        let mut lock: std::sync::MutexGuard<super::rapier_physics_singleton_2d::RapierBodiesSingleton2D> = bodies_singleton().lock().unwrap();
+        let mut lock: std::sync::MutexGuard<
+            super::rapier_physics_singleton_2d::RapierBodiesSingleton2D,
+        > = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.set_constant_torque(torque);
             }
         }
-    } 
+    }
     fn body_get_constant_torque(&self, body: Rid) -> f32 {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get(&body) {
@@ -874,7 +915,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         0.0
     }
     fn body_set_axis_velocity(&mut self, body: Rid, axis_velocity: Vector2) {
-        let mut lock: std::sync::MutexGuard<super::rapier_physics_singleton_2d::RapierBodiesSingleton2D> = bodies_singleton().lock().unwrap();
+        let mut lock: std::sync::MutexGuard<
+            super::rapier_physics_singleton_2d::RapierBodiesSingleton2D,
+        > = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 let mut v = body.get_linear_velocity();
@@ -886,7 +929,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         }
     }
     fn body_add_collision_exception(&mut self, body: Rid, excepted_body: Rid) {
-        let mut lock: std::sync::MutexGuard<super::rapier_physics_singleton_2d::RapierBodiesSingleton2D> = bodies_singleton().lock().unwrap();
+        let mut lock: std::sync::MutexGuard<
+            super::rapier_physics_singleton_2d::RapierBodiesSingleton2D,
+        > = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.add_exception(excepted_body);
@@ -895,7 +940,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         }
     }
     fn body_remove_collision_exception(&mut self, body: Rid, excepted_body: Rid) {
-        let mut lock: std::sync::MutexGuard<super::rapier_physics_singleton_2d::RapierBodiesSingleton2D> = bodies_singleton().lock().unwrap();
+        let mut lock: std::sync::MutexGuard<
+            super::rapier_physics_singleton_2d::RapierBodiesSingleton2D,
+        > = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.remove_exception(excepted_body);
@@ -918,7 +965,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         Array::new()
     }
     fn body_set_max_contacts_reported(&mut self, body: Rid, amount: i32) {
-        let mut lock: std::sync::MutexGuard<super::rapier_physics_singleton_2d::RapierBodiesSingleton2D> = bodies_singleton().lock().unwrap();
+        let mut lock: std::sync::MutexGuard<
+            super::rapier_physics_singleton_2d::RapierBodiesSingleton2D,
+        > = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.set_max_contacts_reported(amount);
@@ -939,7 +988,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         0.0
     }
     fn body_set_omit_force_integration(&mut self, body: Rid, enable: bool) {
-        let mut lock: std::sync::MutexGuard<super::rapier_physics_singleton_2d::RapierBodiesSingleton2D> = bodies_singleton().lock().unwrap();
+        let mut lock: std::sync::MutexGuard<
+            super::rapier_physics_singleton_2d::RapierBodiesSingleton2D,
+        > = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.set_omit_force_integration(enable);
@@ -956,7 +1007,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         false
     }
     fn body_set_state_sync_callback(&mut self, body: Rid, callable: Callable) {
-        let mut lock: std::sync::MutexGuard<super::rapier_physics_singleton_2d::RapierBodiesSingleton2D> = bodies_singleton().lock().unwrap();
+        let mut lock: std::sync::MutexGuard<
+            super::rapier_physics_singleton_2d::RapierBodiesSingleton2D,
+        > = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.set_state_sync_callback(callable);
@@ -969,7 +1022,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         callable: Callable,
         userdata: Variant,
     ) {
-        let mut lock: std::sync::MutexGuard<super::rapier_physics_singleton_2d::RapierBodiesSingleton2D> = bodies_singleton().lock().unwrap();
+        let mut lock: std::sync::MutexGuard<
+            super::rapier_physics_singleton_2d::RapierBodiesSingleton2D,
+        > = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.set_force_integration_callback(callable, userdata);
@@ -991,7 +1046,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let mut body_transform = Transform2D::IDENTITY;
         let mut body_shape_transform = Transform2D::IDENTITY;
         {
-            let lock: std::sync::MutexGuard<super::rapier_physics_singleton_2d::RapierBodiesSingleton2D> = bodies_singleton().lock().unwrap();
+            let lock: std::sync::MutexGuard<
+                super::rapier_physics_singleton_2d::RapierBodiesSingleton2D,
+            > = bodies_singleton().lock().unwrap();
             if let Some(body) = lock.collision_objects.get(&body) {
                 if let Some(body) = body.get_body() {
                     body_shape_rid = body.get_base().get_shape(body_shape as usize);
@@ -1000,8 +1057,18 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
                 }
             }
         }
-    
-        return self.shape_collide(body_shape_rid, body_transform * body_shape_transform, Vector2::ZERO, shape, shape_xform, motion, results, result_max, result_count);
+
+        return self.shape_collide(
+            body_shape_rid,
+            body_transform * body_shape_transform,
+            Vector2::ZERO,
+            shape,
+            shape_xform,
+            motion,
+            results,
+            result_max,
+            result_count,
+        );
     }
 
     fn body_set_pickable(&mut self, body: Rid, pickable: bool) {
@@ -1042,7 +1109,15 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             let lock = spaces_singleton().lock().unwrap();
             if let Some(space) = lock.spaces.get(&space_rid) {
                 let result = &*result;
-                return space.test_body_motion(body_rid, from, motion, margin.into(), collide_separation_ray, recovery_as_collision, result);
+                return space.test_body_motion(
+                    body_rid,
+                    from,
+                    motion,
+                    margin.into(),
+                    collide_separation_ray,
+                    recovery_as_collision,
+                    result,
+                );
             }
         }
         false
@@ -1050,15 +1125,18 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn joint_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let mut lock = joints_singleton().lock().unwrap();
-        lock.joints.insert(rid, Box::new(RapierEmptyJoint2D::new(rid)));
-        return rid
+        lock.joints
+            .insert(rid, Box::new(RapierEmptyJoint2D::new(rid)));
+        return rid;
     }
     fn joint_clear(&mut self, rid: Rid) {
         let mut lock = joints_singleton().lock().unwrap();
         let prev_joint = lock.joints.remove(&rid);
         let mut joint = RapierEmptyJoint2D::new(rid);
         if let Some(prev_joint) = prev_joint {
-            joint.get_mut_base().copy_settings_from(prev_joint.get_base());
+            joint
+                .get_mut_base()
+                .copy_settings_from(prev_joint.get_base());
         }
         lock.joints.insert(rid, Box::new(joint));
     }
@@ -1093,7 +1171,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn joint_disable_collisions_between_bodies(&mut self, joint: Rid, disable: bool) {
         let mut lock = joints_singleton().lock().unwrap();
         if let Some(joint) = lock.joints.get_mut(&joint) {
-            joint.get_mut_base().disable_collisions_between_bodies(disable);
+            joint
+                .get_mut_base()
+                .disable_collisions_between_bodies(disable);
         }
     }
     fn joint_is_disabled_collisions_between_bodies(&self, joint: Rid) -> bool {
@@ -1108,7 +1188,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let prev_joint = lock.joints.remove(&rid);
         let mut joint = RapierPinJoint2D::new(rid, anchor, body_a, body_b);
         if let Some(prev_joint) = prev_joint {
-            joint.get_mut_base().copy_settings_from(prev_joint.get_base());
+            joint
+                .get_mut_base()
+                .copy_settings_from(prev_joint.get_base());
         }
         lock.joints.insert(rid, Box::new(joint));
     }
@@ -1123,9 +1205,12 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     ) {
         let mut lock = joints_singleton().lock().unwrap();
         let prev_joint = lock.joints.remove(&rid);
-        let mut joint = RapierGrooveJoint2D::new(rid, a_groove1, a_groove2, b_anchor, body_a, body_b);
+        let mut joint =
+            RapierGrooveJoint2D::new(rid, a_groove1, a_groove2, b_anchor, body_a, body_b);
         if let Some(prev_joint) = prev_joint {
-            joint.get_mut_base().copy_settings_from(prev_joint.get_base());
+            joint
+                .get_mut_base()
+                .copy_settings_from(prev_joint.get_base());
         }
         lock.joints.insert(rid, Box::new(joint));
     }
@@ -1141,10 +1226,11 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let prev_joint = lock.joints.remove(&rid);
         let mut joint = RapierDampedSpringJoint2D::new(rid, anchor_a, anchor_b, body_a, body_b);
         if let Some(prev_joint) = prev_joint {
-            joint.get_mut_base().copy_settings_from(prev_joint.get_base());
+            joint
+                .get_mut_base()
+                .copy_settings_from(prev_joint.get_base());
         }
         lock.joints.insert(rid, Box::new(joint));
-
     }
     fn pin_joint_set_flag(
         &mut self,
@@ -1155,7 +1241,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let mut lock = joints_singleton().lock().unwrap();
         if let Some(joint) = lock.joints.get_mut(&joint) {
             if let Some(joint) = joint.get_mut_pin() {
-                return joint.set_flag(flag, enabled)
+                return joint.set_flag(flag, enabled);
             }
         }
     }
@@ -1167,7 +1253,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let lock = joints_singleton().lock().unwrap();
         if let Some(joint) = lock.joints.get(&joint) {
             if let Some(joint) = joint.get_pin() {
-                return joint.get_flag(flag)
+                return joint.get_flag(flag);
             }
         }
         false
@@ -1181,7 +1267,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let mut lock = joints_singleton().lock().unwrap();
         if let Some(joint) = lock.joints.get_mut(&joint) {
             if let Some(joint) = joint.get_mut_pin() {
-                return joint.set_param(param, value)
+                return joint.set_param(param, value);
             }
         }
     }
@@ -1193,7 +1279,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let lock = joints_singleton().lock().unwrap();
         if let Some(joint) = lock.joints.get(&joint) {
             if let Some(joint) = joint.get_pin() {
-                return joint.get_param(param)
+                return joint.get_param(param);
             }
         }
         0.0
@@ -1207,7 +1293,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let mut lock = joints_singleton().lock().unwrap();
         if let Some(joint) = lock.joints.get_mut(&joint) {
             if let Some(joint) = joint.get_mut_damped_spring() {
-                return joint.set_param(param, value)
+                return joint.set_param(param, value);
             }
         }
     }
@@ -1219,7 +1305,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let lock = joints_singleton().lock().unwrap();
         if let Some(joint) = lock.joints.get(&joint) {
             if let Some(joint) = joint.get_damped_spring() {
-                return joint.get_param(param)
+                return joint.get_param(param);
             }
         }
         0.0
@@ -1253,7 +1339,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         }
         if let Some(mut body) = body {
             body.set_space(Rid::Invalid);
-    
+
             while body.get_base().get_shape_count() > 0 {
                 body.remove_shape_idx(0);
             }
@@ -1264,7 +1350,11 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             let mut active_spaces_lock = active_spaces_singleton().lock().unwrap();
             if let Some(space) = spaces_lock.spaces.remove(&rid) {
                 let space_handle = space.get_handle();
-                if active_spaces_lock.active_spaces.remove(&space_handle).is_some() {
+                if active_spaces_lock
+                    .active_spaces
+                    .remove(&space_handle)
+                    .is_some()
+                {
                     return;
                 }
             }
@@ -1299,7 +1389,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         if !self.active {
             return;
         }
-    
+
         self.island_count = 0;
         self.active_objects = 0;
         self.collision_pairs = 0;
@@ -1387,15 +1477,15 @@ impl RapierPhysicsServer2D {
             fluid.set_density(density);
         }
     }
-/*
+
     #[func]
-    fn fluid_set_effects(&mut self, fluid_rid: Rid, params: Array<FluidEffect2D>) {
+    fn fluid_set_effects(&mut self, fluid_rid: Rid, params: Array<Gd<FluidEffect2D>>) {
         let mut lock = fluids_singleton().lock().unwrap();
         if let Some(fluid) = lock.fluids.get_mut(&fluid_rid) {
             fluid.set_effects(params);
         }
     }
- */
+
     #[func]
     fn fluid_get_points(&self, fluid_rid: Rid) -> PackedVector2Array {
         let lock = fluids_singleton().lock().unwrap();
@@ -1432,7 +1522,12 @@ impl RapierPhysicsServer2D {
     }
 
     #[func]
-    fn fluid_set_points_and_velocities(&mut self, fluid_rid: Rid, points: PackedVector2Array, velocities: PackedVector2Array) {
+    fn fluid_set_points_and_velocities(
+        &mut self,
+        fluid_rid: Rid,
+        points: PackedVector2Array,
+        velocities: PackedVector2Array,
+    ) {
         let mut lock = fluids_singleton().lock().unwrap();
         if let Some(fluid) = lock.fluids.get_mut(&fluid_rid) {
             fluid.set_points_and_velocities(points.to_vec(), velocities.to_vec());
@@ -1440,7 +1535,12 @@ impl RapierPhysicsServer2D {
     }
 
     #[func]
-    fn fluid_add_points_and_velocities(&mut self, fluid_rid: Rid, points: PackedVector2Array, velocities: PackedVector2Array) {
+    fn fluid_add_points_and_velocities(
+        &mut self,
+        fluid_rid: Rid,
+        points: PackedVector2Array,
+        velocities: PackedVector2Array,
+    ) {
         let mut lock = fluids_singleton().lock().unwrap();
         if let Some(fluid) = lock.fluids.get_mut(&fluid_rid) {
             fluid.add_points_and_velocities(points.to_vec(), velocities.to_vec());

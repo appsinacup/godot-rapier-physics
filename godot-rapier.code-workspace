@@ -79,6 +79,19 @@
 					"--debug-collisions",
 					"test.tscn"
 				]
+			},
+			{
+				"name": "Launch Editor",
+				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.arm64",
+				"type": "cppdbg",
+				"request": "launch",
+				"cwd": "${workspaceFolder:godot-rapier-2d}",
+				"osx": {
+					"MIMode": "lldb"
+				},
+				"args": [
+					"/Users/dragosdaian/Documents/GitHub/godot-rapier-2d/bin/project.godot"
+				]
 			}
 		]
 	},

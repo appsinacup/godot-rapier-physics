@@ -20,7 +20,7 @@ serde-serialize = ["rapier2d/serde-serialize", "rapier2d-f64/serde-serialize"]
 parallel = ["rapier2d/parallel", "rapier2d-f64/parallel"]
 
 [dependencies]
-godot = { git = "https://github.com/godot-rust/gdext", branch = "master" }
+godot = { git = "https://github.com/godot-rust/gdext", branch = "master", features=["debug-log"] }
 rapier2d = {git = "https://github.com/dimforge/rapier", branch = "master"}
 rapier2d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master"}
 salva2d = { git = "https://github.com/ughuuu/salva", branch = "update-to-rapier-0.19", features = ["rapier"] }

@@ -1,9 +1,11 @@
-use crate::bodies::rapier_collision_object_2d::CollisionObjectType;
+use crate::bodies::rapier_collision_object_2d::{CollisionObjectShape, CollisionObjectType};
 use crate::bodies::rapier_collision_object_2d::{
     IRapierCollisionObject2D, RapierCollisionObject2D,
 };
-use crate::rapier2d::handle::Handle;
-use godot::builtin::real;
+use crate::rapier2d::collider::{default_material, Material};
+use crate::rapier2d::handle::{invalid_handle, Handle};
+use crate::servers::rapier_physics_singleton_2d::shapes_singleton;
+use godot::builtin::{real, Transform2D};
 use godot::{
     builtin::{Callable, Rid, Variant, Vector2},
     engine::physics_server_2d::{AreaParameter, AreaSpaceOverrideMode},
@@ -274,7 +276,31 @@ impl IRapierCollisionObject2D for RapierArea2D {
         p_transform: godot::prelude::Transform2D,
         p_disabled: bool,
     ) {
-        todo!()
+            let mut shape = CollisionObjectShape {
+                xform: p_transform,
+                shape: p_shape,
+                disabled: p_disabled,
+                one_way_collision: false,
+                one_way_collision_margin: 0.0,
+                collider_handle: invalid_handle(),
+            };
+    
+            if !shape.disabled {
+                self.create_shape(&mut shape, self.base.shapes.len());
+                self.base.update_shape_transform(&shape);
+            }
+    
+            self.base.shapes.push(shape);
+            {
+                let mut lock = shapes_singleton().lock().unwrap();
+                if let Some(shape) = lock.shapes.get_mut(&p_shape) {
+                    shape.get_mut_base().add_owner(self.base.get_rid());
+                }
+            }
+    
+            if self.base.space_handle.is_valid() {
+                self._shapes_changed();
+            }
     }
     
     fn set_shape(
@@ -301,16 +327,16 @@ impl IRapierCollisionObject2D for RapierArea2D {
         todo!()
     }
     
-    fn create_shape(&mut self, shape: &mut super::rapier_collision_object_2d::CollisionObjectShape, p_shape_index: usize, mat: crate::rapier2d::collider::Material) {
-        todo!()
+    fn create_shape(&mut self, shape: &mut super::rapier_collision_object_2d::CollisionObjectShape, p_shape_index: usize) {
+        let mat = self._init_material();
+        self.base._create_shape(shape, p_shape_index, mat);
+    }
+
+    fn _init_material(&self) -> Material{
+        default_material()
     }
     
-    fn _init_material(&self, mat: &mut crate::rapier2d::collider::Material) {
-        todo!()
-    }
-    
-    fn _shapes_changed(&self) {
-        todo!()
+    fn _shapes_changed(&mut self) {
     }
     
     fn _shape_changed(&self, p_shape: Rid) {
