@@ -11,7 +11,7 @@ use godot::{
 };
 
 #[derive(GodotClass)]
-#[class(base=PhysicsDirectBodyState2DExtension)]
+#[class(base=PhysicsDirectBodyState2DExtension,tool)]
 pub struct RapierDirectBodyState2D {
     body: Rid,
 
