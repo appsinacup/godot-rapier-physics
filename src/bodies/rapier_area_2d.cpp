@@ -47,7 +47,10 @@ void RapierArea2D::on_body_enter(rapier2d::Handle p_collider_handle, RapierBody2
 	area_detection_counter++;
 
 	uint64_t handle_pair_hash = rapier2d::handle_pair_hash(p_collider_handle, p_area_collider_handle);
-	ERR_FAIL_COND(monitored_objects.has(handle_pair_hash));
+	if (monitored_objects.has(handle_pair_hash)) {
+		// it's already monitored
+		return;
+	}
 	monitored_objects.insert(handle_pair_hash, { p_body_rid, p_body_instance_id, p_body_shape, p_area_shape, Type::TYPE_BODY, 1 });
 
 	if (!monitor_query_list.in_list()) {
@@ -107,8 +110,10 @@ void RapierArea2D::on_area_enter(rapier2d::Handle p_collider_handle, RapierArea2
 	p_other_area->area_detection_counter++;
 
 	uint64_t handle_pair_hash = rapier2d::handle_pair_hash(p_collider_handle, p_area_collider_handle);
-
-	ERR_FAIL_COND(monitored_objects.has(handle_pair_hash));
+	if (monitored_objects.has(handle_pair_hash)) {
+		// it's already monitored
+		return;
+	}
 	monitored_objects.insert(handle_pair_hash, { p_other_area_rid, p_other_area_instance_id, p_other_area_shape, p_area_shape, Type::TYPE_AREA, 1 });
 
 	if (!monitor_query_list.in_list()) {
