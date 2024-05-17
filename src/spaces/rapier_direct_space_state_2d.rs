@@ -19,7 +19,7 @@ use godot::{
 };
 
 #[derive(GodotClass)]
-#[class(base=PhysicsDirectSpaceState2DExtension)]
+#[class(base=PhysicsDirectSpaceState2DExtension,tool)]
 pub struct RapierDirectSpaceState2D {
     space: Rid,
     base: Base<PhysicsDirectSpaceState2DExtension>,

@@ -2,7 +2,7 @@ use crate::servers::rapier_physics_server_2d::*;
 use godot::{obj::NewAlloc, prelude::*};
 
 #[derive(GodotClass, Default)]
-#[class(base=Object,init)]
+#[class(base=Object,init,tool)]
 pub struct RapierPhysicsServerFactory2D;
 
 #[godot_api]
