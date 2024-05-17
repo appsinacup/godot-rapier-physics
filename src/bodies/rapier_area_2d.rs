@@ -286,7 +286,7 @@ impl IRapierCollisionObject2D for RapierArea2D {
             };
     
             if !shape.disabled {
-                self.create_shape(&mut shape, self.base.shapes.len());
+                shape.collider_handle = self.create_shape(shape, self.base.shapes.len());
                 self.base.update_shape_transform(&shape);
             }
     
@@ -327,9 +327,10 @@ impl IRapierCollisionObject2D for RapierArea2D {
         todo!()
     }
     
-    fn create_shape(&mut self, shape: &mut super::rapier_collision_object_2d::CollisionObjectShape, p_shape_index: usize) {
+    fn create_shape(&mut self, shape: CollisionObjectShape, p_shape_index: usize) -> Handle {
         let mat = self._init_material();
-        self.base._create_shape(shape, p_shape_index, mat);
+        let collider_handle = self.base._create_shape(shape, p_shape_index, mat);
+        return collider_handle;
     }
 
     fn _init_material(&self) -> Material{
@@ -341,5 +342,15 @@ impl IRapierCollisionObject2D for RapierArea2D {
     
     fn _shape_changed(&self, p_shape: Rid) {
         todo!()
+    }
+    
+    fn recreate_shapes(&mut self) {
+        for i in 0..self.base.get_shape_count() as usize {
+            if self.base.shapes[i].disabled{
+                continue;
+            }
+            self.base.shapes[i].collider_handle = self.create_shape(self.base.shapes[i], i);
+			self.base.update_shape_transform(&self.base.shapes[i]);
+        }
     }
 }

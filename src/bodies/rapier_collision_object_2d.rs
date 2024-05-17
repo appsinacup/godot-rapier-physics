@@ -41,7 +41,7 @@ pub trait IRapierCollisionObject2D: Any {
     fn set_shape_disabled(&mut self, shape_idx: i32, disabled: bool);
     fn remove_shape_idx(&mut self, shape_idx: i32);
     fn remove_shape_rid(&mut self, shape_rid: Rid);
-    fn create_shape(&mut self, shape: &mut CollisionObjectShape, p_shape_index: usize);
+    fn create_shape(&mut self, shape: CollisionObjectShape, p_shape_index: usize) -> Handle;
 
     fn _init_material(&self) -> Material;
     fn _shapes_changed(&mut self);
@@ -119,7 +119,7 @@ impl RapierCollisionObject2D {
         }
     }
 
-    pub fn _create_shape(&self, shape: &CollisionObjectShape, p_shape_index: usize, mat: Material) -> Handle{
+    pub fn _create_shape(&self, shape: CollisionObjectShape, p_shape_index: usize, mat: Material) -> Handle{
         assert!(is_handle_valid(self.space_handle));
         assert!(!is_handle_valid(shape.collider_handle));
         let mut lock = shapes_singleton().lock().unwrap();

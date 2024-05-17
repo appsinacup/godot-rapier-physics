@@ -1373,7 +1373,7 @@ impl IRapierCollisionObject2D for RapierBody2D {
             if self.base.shapes[i].disabled{
                 continue;
             }
-            self.create_shape(&mut self.base.shapes[i], i);
+            self.base.shapes[i].collider_handle = self.create_shape(self.base.shapes[i], i);
 			self.base.update_shape_transform(&self.base.shapes[i]);
         }
     }
@@ -1404,6 +1404,7 @@ impl IRapierCollisionObject2D for RapierBody2D {
         p_transform: Transform2D,
         p_disabled: bool,
     ) {
+        return;
         let mut shape = CollisionObjectShape {
             xform: p_transform,
             shape: p_shape,
@@ -1414,7 +1415,7 @@ impl IRapierCollisionObject2D for RapierBody2D {
         };
 
         if !shape.disabled {
-            self.create_shape(&mut shape, self.base.shapes.len());
+            shape.collider_handle = self.create_shape(shape, self.base.shapes.len());
             self.base.update_shape_transform(&shape);
         }
 
@@ -1432,26 +1433,26 @@ impl IRapierCollisionObject2D for RapierBody2D {
     }
 
     fn set_shape(&mut self, shape_idx: i32, p_shape: Rid) {
-        todo!()
+        //todo!()
     }
 
     fn set_shape_transform(&mut self, shape_idx: i32, transform: Transform2D) {
-        todo!()
+        //todo!()
     }
 
     fn set_shape_disabled(&mut self, shape_idx: i32, disabled: bool) {
-        todo!()
+        //todo!()
     }
 
     fn remove_shape_idx(&mut self, shape_idx: i32) {
-        todo!()
+        //todo!()
     }
 
     fn remove_shape_rid(&mut self, shape_rid: Rid) {
-        todo!()
+        //todo!()
     }
 
-    fn create_shape(&mut self, shape: &CollisionObjectShape, p_shape_index: usize) -> Handle{
+    fn create_shape(&mut self, shape: CollisionObjectShape, p_shape_index: usize) -> Handle{
         let mat = self._init_material();
         let handle = self.base._create_shape(shape, p_shape_index, mat);
         self._init_collider(shape.collider_handle, self.base.space_handle);
