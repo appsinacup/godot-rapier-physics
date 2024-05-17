@@ -32,7 +32,7 @@ use super::rapier_physics_singleton_2d::{
 };
 
 #[derive(GodotClass)]
-#[class(base=PhysicsServer2DExtension)]
+#[class(base=PhysicsServer2DExtension, tool)]
 pub struct RapierPhysicsServer2D {
     active: bool,
     flushing_queries: bool,
