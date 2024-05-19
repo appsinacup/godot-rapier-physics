@@ -623,7 +623,7 @@ impl RapierSpace2D {
         self.active_list.push(body);
     }
     pub fn body_remove_from_active_list(&mut self, body: Rid) {
-        self.state_query_list.retain(|&x| x != body);
+        self.active_list.retain(|&x| x != body);
     }
     pub fn body_add_to_state_query_list(&mut self, body: Rid) {
         self.state_query_list.push(body);
@@ -637,6 +637,9 @@ impl RapierSpace2D {
     }
     pub fn area_add_to_area_update_list(&mut self, area: Rid) {
         self.area_update_list.push(area);
+    }
+    pub fn area_remove_from_area_update_list(&mut self, area: Rid) {
+        self.area_update_list.retain(|&x| x != area);
     }
     pub fn body_add_to_area_update_list(&mut self, body: Rid) {
         self.body_area_update_list.push(body);
@@ -729,11 +732,11 @@ impl RapierSpace2D {
         // Needed only for one physics step to retrieve lost info
         self.removed_colliders.clear();
     
-        for body in &self.gravity_update_list {
+        for body in self.active_list.clone() {
             let mut lock = bodies_singleton().lock().unwrap();
             if let Some(body) = lock.collision_objects.get_mut(&body) {
                 if let Some(body) = body.get_mut_body() {
-                    body.on_update_active();
+                    body.on_update_active(self);
                 }
             }
         }
