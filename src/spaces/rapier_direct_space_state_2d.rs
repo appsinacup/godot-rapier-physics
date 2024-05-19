@@ -127,7 +127,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         max_results: i32,
     ) -> i32 {
         let max_results = max_results as usize;
-        if max_results < 0 {
+        if max_results <= 0 {
             return 0;
         }
         let mut space_handle = invalid_handle();

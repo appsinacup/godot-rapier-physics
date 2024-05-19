@@ -50,12 +50,18 @@ impl IRapierShape2D for RapierWorldBoundaryShape2D {
 
     fn set_data(&mut self, data: Variant) {
         if data.get_type() != VariantType::Array {
-            godot_error!("Invalid data type for WorldBoundaryShape2D");
+            godot_error!("Invalid shape data");
             return;
         }
         let arr: Array<Variant> = data.to();
         if arr.len() != 2 {
             godot_error!("Invalid data size for WorldBoundaryShape2D.");
+            return;
+        }
+        if arr.get(0).get_type() != VariantType::Vector2
+            || arr.get(1).get_type() != VariantType::Float
+        {
+            godot_error!("Invalid data type for WorldBoundaryShape2D.");
             return;
         }
         self.normal = arr.get(0).to();
