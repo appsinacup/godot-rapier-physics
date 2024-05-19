@@ -305,29 +305,78 @@ impl IRapierCollisionObject2D for RapierArea2D {
     
     fn set_shape(
         &mut self,
-        shape_idx: i32,
+        shape_idx: usize,
         p_shape: Rid,
     ) {
         todo!()
     }
     
-    fn set_shape_transform(&mut self, shape_idx: i32, transform: godot::prelude::Transform2D) {
+    fn set_shape_transform(&mut self, shape_idx: usize, transform: godot::prelude::Transform2D) {
         todo!()
     }
     
-    fn set_shape_disabled(&mut self, shape_idx: i32, disabled: bool) {
-        todo!()
+    fn set_shape_disabled(&mut self, p_index: usize, p_disabled: bool) {
+        assert!(p_index < self.base.shapes.len());
+        self.base.shapes[p_index].disabled = p_disabled;
+        let shape = self.base.shapes[p_index];
+        if shape.disabled == p_disabled {
+            return;
+        }
+        if shape.disabled {
+            self.base._destroy_shape(shape, p_index);
+        }
+
+        if !shape.disabled {
+            self.base._create_shape(shape, p_index, self._init_material());
+            self.base.update_shape_transform(&shape);
+        }
+
+        if self.base.space_handle.is_valid() {
+            self._shapes_changed();
+        }
     }
-    
-    fn remove_shape_idx(&mut self, shape_idx: i32) {
-        todo!()
+
+    fn remove_shape_rid(&mut self, shape: Rid) {
+        // remove a shape, all the times it appears
+        let mut i = 0;
+        while i < self.base.shapes.len() {
+            if self.base.shapes[i].shape == shape {
+                self.remove_shape_idx(i);
+            } else {
+                i += 1;
+            }
+        }
     }
-    
-    fn remove_shape_rid(&mut self, shape_rid: Rid) {
-        todo!()
+
+    fn remove_shape_idx(&mut self, p_index: usize) {
+        // remove anything from shape to be erased to end, so subindices don't change
+        assert!(p_index < self.base.shapes.len());
+
+        let shape = &self.base.shapes[p_index];
+
+        if !shape.disabled {
+            self.base._destroy_shape(*shape, p_index);
+        }
+        let shape = &mut self.base.shapes[p_index];
+        shape.collider_handle = invalid_handle();
+        {
+            let mut lock = shapes_singleton().lock().unwrap();
+            if let Some(shape) = lock.shapes.get_mut(&shape.shape) {
+                shape.get_mut_base().remove_owner(self.base.get_rid());
+            }
+        }
+
+        self.base.shapes.remove(p_index);
+
+        if self.base.space_handle.is_valid() {
+            self._shapes_changed();
+        }
     }
     
     fn create_shape(&mut self, shape: CollisionObjectShape, p_shape_index: usize) -> Handle {
+        if !self.base.space_handle.is_valid() {
+            return invalid_handle();
+        }
         let mat = self._init_material();
         let collider_handle = self.base._create_shape(shape, p_shape_index, mat);
         return collider_handle;
@@ -340,8 +389,23 @@ impl IRapierCollisionObject2D for RapierArea2D {
     fn _shapes_changed(&mut self) {
     }
     
-    fn _shape_changed(&self, p_shape: Rid) {
-        todo!()
+    fn _shape_changed(&mut self, p_shape: Rid) {
+        if (!self.base.space_handle.is_valid()) {
+            return;
+        }
+        for i in 0..self.base.shapes.len() {
+            let shape = self.base.shapes[i];
+            if (shape.shape != p_shape || shape.disabled) {
+                continue;
+            }
+
+            self.base.shapes[i].collider_handle = self.base._destroy_shape(shape, i);
+
+            self.base._create_shape(shape, i, self._init_material());
+            self.base.update_shape_transform(&shape);
+        }
+
+        self._shapes_changed();
     }
     
     fn recreate_shapes(&mut self) {

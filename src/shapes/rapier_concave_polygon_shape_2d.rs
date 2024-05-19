@@ -106,7 +106,7 @@ impl IRapierShape2D for RapierConcavePolygonShape2D {
             }
             _ => {
                 // Handle dictionary with arrays
-                godot_error!("ConcavePolygon2D must be a PackedVector2Array");
+                godot_error!("Invalid shape data");
                 return;
             }
         }

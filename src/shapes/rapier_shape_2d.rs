@@ -48,8 +48,8 @@ impl RapierShapeBase2D {
         self.aabb = aabb;
         self.configured = true;
         for (owner, _) in self.owners.iter() {
-            let lock = bodies_singleton().lock().unwrap();
-            let owner = lock.collision_objects.get(owner);
+            let mut lock = bodies_singleton().lock().unwrap();
+            let owner = lock.collision_objects.get_mut(owner);
             if let Some(owner) = owner {
                 owner._shape_changed(self.rid);
             }

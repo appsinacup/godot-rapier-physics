@@ -34,19 +34,19 @@ pub trait IRapierCollisionObject2D: Any {
     );
     fn set_shape(
         &mut self,
-        shape_idx: i32,
+        shape_idx: usize,
         p_shape: Rid,
     );
-    fn set_shape_transform(&mut self, shape_idx: i32, transform: Transform2D);
-    fn set_shape_disabled(&mut self, shape_idx: i32, disabled: bool);
-    fn remove_shape_idx(&mut self, shape_idx: i32);
+    fn set_shape_transform(&mut self, shape_idx: usize, transform: Transform2D);
+    fn set_shape_disabled(&mut self, shape_idx: usize, disabled: bool);
+    fn remove_shape_idx(&mut self, shape_idx: usize);
     fn remove_shape_rid(&mut self, shape_rid: Rid);
     fn create_shape(&mut self, shape: CollisionObjectShape, p_shape_index: usize) -> Handle;
 
     fn _init_material(&self) -> Material;
     fn _shapes_changed(&mut self);
 
-    fn _shape_changed(&self, p_shape: Rid);
+    fn _shape_changed(&mut self, p_shape: Rid);
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -120,7 +120,6 @@ impl RapierCollisionObject2D {
     }
 
     pub fn _create_shape(&self, shape: CollisionObjectShape, p_shape_index: usize, mat: Material) -> Handle{
-        assert!(is_handle_valid(self.space_handle));
         assert!(!is_handle_valid(shape.collider_handle));
         let mut lock = shapes_singleton().lock().unwrap();
         let mut handle = invalid_handle();
@@ -150,8 +149,6 @@ impl RapierCollisionObject2D {
                     );
                 }
             }
-
-            assert!(is_handle_valid(shape.collider_handle));
         }
         return handle;
     }
@@ -185,7 +182,7 @@ impl RapierCollisionObject2D {
             i+=1;
         }
     }
-    fn _destroy_shape(&mut self, shape: &mut CollisionObjectShape, p_shape_index: usize) {
+    pub fn _destroy_shape(&self, shape: CollisionObjectShape, p_shape_index: usize) -> Handle {
         let mut shape_rid = Rid::Invalid;
         {
             let mut lock = spaces_singleton().lock().unwrap();
@@ -201,7 +198,6 @@ impl RapierCollisionObject2D {
     
                 collider_destroy(self.space_handle, shape.collider_handle);
                 shape_rid = shape.shape;
-                shape.collider_handle = invalid_handle();
             }
         }
         {
@@ -210,9 +206,13 @@ impl RapierCollisionObject2D {
                 shape.get_mut_base().destroy_rapier_shape();
             }
         }
+        return invalid_handle();
     }
 
     pub fn update_shape_transform(&self, shape: &CollisionObjectShape) {
+        if !shape.disabled || !self.space_handle.is_valid() {
+            return;
+        }
         let origin = shape.xform.origin;
         let position = Vector::new(origin.x, origin.y);
         let angle = shape.xform.rotation();
@@ -254,6 +254,7 @@ impl RapierCollisionObject2D {
             // This call also destroys the colliders
             body_destroy(self.space_handle, self.body_handle);
             self.body_handle = invalid_handle();
+            
             self._destroy_shapes();
 
             // Reset area detection counter to keep it consistent for new detections
@@ -343,68 +344,11 @@ impl RapierCollisionObject2D {
     pub fn get_collider_user_data(p_user_data: &UserData) -> (Rid, usize) {
         return (Rid::new(p_user_data.part1), p_user_data.part2 as usize);
     }
-/*
-    pub fn shape_changed(&self, p_shape: Rid) {
-        if (!self.space.is_valid()) {
-            return;
-        }
-        for i in 0..self.shapes.len() {
-            let shape = self.shapes[i];
-            if (shape.shape != p_shape) {
-                continue;
-            }
-            if (shape.disabled) {
-                continue;
-            }
 
-            self._destroy_shape(&shape, i);
-
-            self._create_shape(&shape, i);
-            self._update_shape_transform(&shape);
-        }
-
-        _shapes_changed();
-    }
- */
     pub fn get_type(&self) -> CollisionObjectType {
         self.collision_object_type
     }
-/*
-    pub fn set_shape(&mut self, p_index: usize, p_shape: RapierShape2D) {
-        assert!(p_index < self.shapes.len());
 
-        let shape = &mut self.shapes[p_index];
-
-        self._destroy_shape(shape, p_index as u32);
-
-        shape.shape.remove_owner(self);
-        shape.shape = p_shape;
-
-        p_shape.add_owner(self);
-
-        if !shape.disabled {
-            self._create_shape(shape, p_index as u32);
-            self._update_shape_transform(shape);
-        }
-
-        if let Some(space) = &self.space {
-            self._shapes_changed();
-        }
-    }
-
-    pub fn set_shape_transform(&mut self, p_index: usize, p_transform: Transform2D) {
-        assert!(p_index < self.shapes.len());
-
-        let shape = &mut self.shapes[p_index];
-        shape.xform = p_transform;
-
-        self._update_shape_transform(shape);
-
-        if let Some(space) = &self.space {
-            self._shapes_changed();
-        }
-    }
-*/
     pub fn get_shape_count(&self) -> i32 {
         return self.shapes.len() as i32;
     }
@@ -420,9 +364,9 @@ impl RapierCollisionObject2D {
     pub fn set_transform(&mut self, p_transform: Transform2D, wake_up: bool) {
         self.transform = p_transform;
         self.inv_transform = self.transform.affine_inverse();
-        assert!(is_handle_valid(self.space_handle));
-
-        assert!(is_handle_valid(self.body_handle));
+        if !self.body_handle.is_valid() || !is_handle_valid(self.space_handle) {
+            return;
+        }
 
         let origin = self.transform.origin;
         let position = Vector::new(origin.x, origin.y);
@@ -442,29 +386,6 @@ impl RapierCollisionObject2D {
         self.space
     }
 
-/*
-    pub fn set_shape_disabled(&mut self, p_index: usize, p_disabled: bool) {
-        assert!(p_index < self.shapes.len());
-
-        let shape = &mut self.shapes[p_index];
-        if shape.disabled == p_disabled {
-            return;
-        }
-
-        shape.disabled = p_disabled;
-
-        if shape.disabled {
-            self._destroy_shape(shape, p_index as u32);
-        } else {
-            self._create_shape(shape, p_index as u32);
-            self._update_shape_transform(shape);
-        }
-
-        if let Some(space) = &self.space {
-            self._shapes_changed();
-        }
-    }
- */
     pub fn is_shape_disabled(&self, idx: usize) -> bool {
         self.shapes[idx].disabled
     }
@@ -518,37 +439,6 @@ impl RapierCollisionObject2D {
     pub fn get_collision_priority(&self) -> real {
         self.collision_priority
     }
-/*
-    pub fn remove_shape_rid(&mut self, shape: Rid) {
-        // remove a shape, all the times it appears
-        let mut i = 0;
-        while i < self.shapes.len() {
-            if self.shapes[i].shape == shape {
-                self.remove_shape_idx(i);
-            } else {
-                i += 1;
-            }
-        }
-    }
-
-    pub fn remove_shape_idx(&mut self, p_index: usize) {
-        // remove anything from shape to be erased to end, so subindices don't change
-        assert!(p_index < self.shapes.len());
-
-        let shape = &mut self.shapes[p_index];
-
-        if !shape.disabled {
-            self._destroy_shape(shape, p_index as u32);
-        }
-
-        shape.shape.remove_owner(self);
-        self.shapes.remove(p_index);
-
-        if let Some(space) = &self.space {
-            self._shapes_changed();
-        }
-    }
- */
 
     pub fn set_pickable(&mut self, p_pickable: bool) {
         self.pickable = p_pickable;

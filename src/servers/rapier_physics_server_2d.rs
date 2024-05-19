@@ -328,19 +328,19 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn area_set_shape(&mut self, area: Rid, shape_idx: i32, shape: Rid) {
         let mut lock = bodies_singleton().lock().unwrap();
         if let Some(area) = lock.collision_objects.get_mut(&area) {
-            area.set_shape(shape_idx, shape);
+            area.set_shape(shape_idx as usize, shape);
         }
     }
     fn area_set_shape_transform(&mut self, area: Rid, shape_idx: i32, transform: Transform2D) {
         let mut lock = bodies_singleton().lock().unwrap();
         if let Some(area) = lock.collision_objects.get_mut(&area) {
-            area.set_shape_transform(shape_idx, transform);
+            area.set_shape_transform(shape_idx as usize, transform);
         }
     }
     fn area_set_shape_disabled(&mut self, area: Rid, shape_idx: i32, disabled: bool) {
         let mut lock = bodies_singleton().lock().unwrap();
         if let Some(area) = lock.collision_objects.get_mut(&area) {
-            area.set_shape_disabled(shape_idx, disabled);
+            area.set_shape_disabled(shape_idx as usize, disabled);
         }
     }
     fn area_get_shape_count(&self, area: Rid) -> i32 {
@@ -367,7 +367,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn area_remove_shape(&mut self, area: Rid, shape_idx: i32) {
         let mut lock = bodies_singleton().lock().unwrap();
         if let Some(area) = lock.collision_objects.get_mut(&area) {
-            area.remove_shape_idx(shape_idx);
+            area.remove_shape_idx(shape_idx as usize);
         }
     }
     fn area_clear_shapes(&mut self, area: Rid) {
@@ -565,7 +565,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let mut lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_shape(shape_idx, shape);
+                body.set_shape(shape_idx as usize, shape);
             }
         }
     }
@@ -573,7 +573,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let mut lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_shape_transform(shape_idx, transform);
+                body.set_shape_transform(shape_idx as usize, transform);
             }
         }
     }
@@ -608,7 +608,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let mut lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_shape_disabled(shape_idx, disabled);
+                body.set_shape_disabled(shape_idx as usize, disabled);
             }
         }
     }
@@ -629,7 +629,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let mut lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.remove_shape_idx(shape_idx);
+                body.remove_shape_idx(shape_idx as usize);
             }
         }
     }

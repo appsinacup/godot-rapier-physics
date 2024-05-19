@@ -85,7 +85,7 @@ impl IRapierShape2D for RapierConvexPolygonShape2D {
                     self.points[i].normal = (pn - p).orthogonal().normalized();
                 }
             }
-            VariantType::PackedFloat32Array | VariantType::PackedFloat64Array => {
+            VariantType::PackedFloat32Array => {
                 let arr: PackedFloat32Array = data.to();
 
                 let size = arr.len() / 4;
@@ -100,7 +100,25 @@ impl IRapierShape2D for RapierConvexPolygonShape2D {
                     };
                 }
             }
-            _ => godot_error!("Invalid data type for RapierConvexPolygonShape2D"),
+            VariantType::PackedFloat64Array => {
+                let arr: PackedFloat64Array = data.to();
+
+                let size = arr.len() / 4;
+                assert!(size > 0);
+                self.points = Vec::with_capacity(size);
+
+                for i in 0..size {
+                    let idx = i << 2;
+                    self.points[i] = Point {
+                        pos: Vector2::new(arr.get(idx) as f32, arr.get(idx + 1) as f32),
+                        normal: Vector2::new(arr.get(idx + 2)  as f32, arr.get(idx + 3)  as f32),
+                    };
+                }
+            }
+            _ => {
+                godot_error!("Invalid shape data");
+                return;
+            }
         }
         if self.points.len() < 3 {
             godot_error!("ConvexPolygon2D must have at least three point");

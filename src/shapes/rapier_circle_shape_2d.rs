@@ -30,10 +30,10 @@ impl IRapierShape2D for RapierCircleShape2D {
         ShapeType::CIRCLE
     }
 
-    fn get_moment_of_inertia(&self, p_mass: f32, p_scale: Vector2) -> f32 {
-        let a = self.radius * p_scale.x;
-        let b = self.radius * p_scale.y;
-        p_mass * (a * a + b * b) / 4.0
+    fn get_moment_of_inertia(&self, mass: f32, scale: Vector2) -> f32 {
+        let a = self.radius * scale.x;
+        let b = self.radius * scale.y;
+        mass * (a * a + b * b) / 4.0
     }
 
     fn allows_one_way_collision(&self) -> bool {
@@ -44,8 +44,16 @@ impl IRapierShape2D for RapierCircleShape2D {
         shape_create_circle(self.radius)
     }
 
-    fn set_data(&mut self, p_data: Variant) {
-        self.radius = p_data.to();
+    fn set_data(&mut self, data: Variant) {
+        match data.get_type() {
+            VariantType::Float | VariantType::Int => {
+                self.radius = data.to();
+            }
+            _ => {
+                godot_error!("Invalid shape data");
+                return;
+            }
+        }
         self.base.configure(Rect2::new(
             -Vector2::splat(self.radius),
             Vector2::splat(self.radius) * 2.0,

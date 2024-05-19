@@ -63,23 +63,23 @@ impl IRapierShape2D for RapierSegmentShape2D {
     }
 
     fn set_data(&mut self, data: Variant) {
-        if data.get_type() == VariantType::Rect2 {
-            let r: Rect2 = data.to();
-            self.a = r.position;
-            self.b = r.position + r.size;
-            self.n = (self.b - self.a).orthogonal();
-
-            let mut aabb = Rect2::new(self.a, self.b);
-            if aabb.size.x == 0.0 {
-                aabb.size.x = 0.001;
-            }
-            if aabb.size.y == 0.0 {
-                aabb.size.y = 0.001;
-            }
-            self.base.configure(aabb);
-        } else {
-            godot_error!("Invalid data type for RapierSegmentShape2D");
+        if data.get_type() != VariantType::Rect2 {
+            godot_error!("Invalid shape data");
+            return;
         }
+        let r: Rect2 = data.to();
+        self.a = r.position;
+        self.b = r.position + r.size;
+        self.n = (self.b - self.a).orthogonal();
+
+        let mut aabb = Rect2::new(self.a, self.b);
+        if aabb.size.x == 0.0 {
+            aabb.size.x = 0.001;
+        }
+        if aabb.size.y == 0.0 {
+            aabb.size.y = 0.001;
+        }
+        self.base.configure(aabb);
     }
 
     fn get_data(&self) -> Variant {
