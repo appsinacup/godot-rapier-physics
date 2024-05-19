@@ -84,7 +84,7 @@ pub struct RapierCollisionObject2D {
     instance_id: u64,
     canvas_instance_id: u64,
     pickable: bool,
-    pub shapes: Vec<CollisionObjectShape>,
+    pub(crate) shapes: Vec<CollisionObjectShape>,
     space: Rid,
     transform: Transform2D,
     inv_transform: Transform2D,
@@ -92,7 +92,7 @@ pub struct RapierCollisionObject2D {
     collision_layer: u32,
     collision_priority: real,
     pub mode: physics_server_2d::BodyMode,
-    body_handle: Handle,
+    pub body_handle: Handle,
     pub space_handle: Handle,
     pub area_detection_counter: u32,
 }
@@ -119,7 +119,7 @@ impl RapierCollisionObject2D {
         }
     }
 
-    pub fn _create_shape(&self, shape: CollisionObjectShape, p_shape_index: usize, mat: Material) -> Handle{
+    pub(crate) fn _create_shape(&self, shape: CollisionObjectShape, p_shape_index: usize, mat: Material) -> Handle{
         assert!(!is_handle_valid(shape.collider_handle));
         let mut lock = shapes_singleton().lock().unwrap();
         let mut handle = invalid_handle();
@@ -152,7 +152,7 @@ impl RapierCollisionObject2D {
         }
         return handle;
     }
-    fn _destroy_shapes(&mut self) {
+    pub(crate) fn _destroy_shapes(&mut self) {
         let mut i = 0;
         for shape in &mut self.shapes {
             let mut shape_rid = Rid::Invalid;
@@ -182,7 +182,7 @@ impl RapierCollisionObject2D {
             i+=1;
         }
     }
-    pub fn _destroy_shape(&self, shape: CollisionObjectShape, p_shape_index: usize) -> Handle {
+    pub(crate) fn _destroy_shape(&self, shape: CollisionObjectShape, p_shape_index: usize) -> Handle {
         let mut shape_rid = Rid::Invalid;
         {
             let mut lock = spaces_singleton().lock().unwrap();
@@ -209,7 +209,7 @@ impl RapierCollisionObject2D {
         return invalid_handle();
     }
 
-    pub fn update_shape_transform(&self, shape: &CollisionObjectShape) {
+    pub(crate) fn update_shape_transform(&self, shape: &CollisionObjectShape) {
         if !shape.disabled || !self.space_handle.is_valid() {
             return;
         }
@@ -236,7 +236,7 @@ impl RapierCollisionObject2D {
         }
     }
 
-    pub fn update_transform(&mut self) {
+    pub(crate) fn update_transform(&mut self) {
         assert!(is_handle_valid(self.space_handle));
 
         assert!(is_handle_valid(self.body_handle));
@@ -248,7 +248,7 @@ impl RapierCollisionObject2D {
 
         self.inv_transform = self.transform.affine_inverse();
     }
-    pub fn _set_space(&mut self, p_space: Rid) {
+    pub(crate) fn _set_space(&mut self, p_space: Rid) {
         if self.space_handle.is_valid() {
             assert!(is_handle_valid(self.body_handle));
             // This call also destroys the colliders
@@ -299,9 +299,6 @@ impl RapierCollisionObject2D {
             }
             // todo re_create shapes
         }
-    }
-    pub fn set_rid(&mut self, p_rid: Rid) {
-        self.rid = p_rid;
     }
 
     pub fn get_rid(&self) -> Rid {

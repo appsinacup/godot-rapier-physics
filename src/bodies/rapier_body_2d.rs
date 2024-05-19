@@ -815,7 +815,7 @@ impl RapierBody2D {
             }
         }
     }
-    pub fn on_update_active(&mut self) {
+    pub fn on_update_active(&mut self, space: &mut RapierSpace2D) {
         if !self.marked_active {
             self.set_active(false);
             return;
@@ -824,12 +824,7 @@ impl RapierBody2D {
 
         self.base.update_transform();
 
-        {
-            let mut lock = spaces_singleton().lock().unwrap();
-            if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
-                space.body_add_to_state_query_list(self.base.get_rid());
-            }
-        }
+        space.body_add_to_state_query_list(self.base.get_rid());
         if self.base.mode.ord() >= BodyMode::RIGID.ord() {
             if self.to_add_angular_velocity != 0.0 {
                 self.set_angular_velocity(self.to_add_angular_velocity);
@@ -1064,9 +1059,10 @@ impl RapierBody2D {
         }
         if p_mode.ord() >= BodyMode::RIGID.ord() {
             self._mass_properties_changed();
-
-            self.update_area_override();
-            self._apply_gravity_scale(self.gravity_scale);
+            if self.base.space_handle.is_valid() {
+                self.update_area_override();
+                self._apply_gravity_scale(self.gravity_scale);
+            }
         }
     }
 
@@ -1378,8 +1374,71 @@ impl IRapierCollisionObject2D for RapierBody2D {
         }
     }
     fn set_space(&mut self, space: Rid) {
+        if (space == Rid::Invalid) {
+            return;
+        }
+    
+        if self.base.space_handle.is_valid() {
+            let mut lock = spaces_singleton().lock().unwrap();
+            if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
+                space.body_remove_from_mass_properties_update_list(self.base.get_rid());
+                space.body_remove_from_gravity_update_list(self.base.get_rid());
+                space.body_remove_from_active_list(self.base.get_rid());
+                space.body_remove_from_state_query_list(self.base.get_rid());
+                space.body_remove_from_area_update_list(self.base.get_rid());
+            }
+        }
         self.base._set_space(space);
         self.recreate_shapes();
+
+        if (self.base.space_handle.is_valid()) {
+            if (self.base.mode.ord() >= BodyMode::KINEMATIC.ord()) {
+                if (!self.can_sleep) {
+                    self.set_can_sleep(false);
+                }
+
+                if (self.active || !self.sleep) {
+                    self.wakeup();
+                    let mut lock = spaces_singleton().lock().unwrap();
+                    if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
+                        space.body_add_to_active_list(self.base.get_rid());
+                    }
+                } else if (self.can_sleep && self.sleep) {
+                    self.force_sleep();
+                }
+                if (self.base.mode.ord() >= BodyMode::RIGID.ord()) {
+                    self._apply_gravity_scale(self.gravity_scale);
+                    if (self.linear_damping_mode == BodyDampMode::COMBINE) {
+                        self._apply_linear_damping(self.linear_damping, true);
+                    }
+                    if (self.angular_damping_mode == BodyDampMode::COMBINE) {
+                        self._apply_angular_damping(self.angular_damping, true);
+                    }
+
+                    self._mass_properties_changed();
+                    if (self.linear_velocity != Vector2::default()) {
+                        self.set_linear_velocity(self.linear_velocity);
+                    }
+                    if (self.angular_velocity != 0.0) {
+                        self.set_angular_velocity(self.angular_velocity);
+                    }
+                    if (self.constant_force != Vector2::default()) {
+                        self.set_constant_force(self.constant_force);
+                    }
+                    if (self.constant_torque != 0.0) {
+                        self.set_constant_torque(self.constant_torque);
+                    }
+                    if (self.impulse != Vector2::default()) {
+                        self.apply_impulse(self.impulse, Vector2::default());
+                    }
+                    if (self.torque != 0.0) {
+                        self.apply_torque_impulse(self.torque);
+                    }
+                    self.set_continuous_collision_detection_mode(self.ccd_mode);
+                    body_update_material(self.base.space_handle, self.base.body_handle, &self._init_material());
+                }
+            }
+        }
     }
 
     fn get_body(&self) -> Option<&RapierBody2D> {
