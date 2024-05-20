@@ -5,6 +5,7 @@ use crate::bodies::rapier_collision_object_2d::{
 use crate::rapier2d::collider::{default_material, Material};
 use crate::rapier2d::handle::{invalid_handle, Handle};
 use crate::servers::rapier_physics_singleton_2d::shapes_singleton;
+use crate::shapes::rapier_shape_2d::RapierShapeBase2D;
 use godot::builtin::{real, Transform2D};
 use godot::{
     builtin::{Callable, Rid, Variant, Vector2},
@@ -401,8 +402,8 @@ impl IRapierCollisionObject2D for RapierArea2D {
 
             self.base.shapes[i].collider_handle = self.base._destroy_shape(shape, i);
 
-            self.base._create_shape(shape, i, self._init_material());
-            self.base.update_shape_transform(&shape);
+            self.base._create_shape(self.base.shapes[i], i, self._init_material());
+            self.base.update_shape_transform(&self.base.shapes[i]);
         }
 
         self._shapes_changed();

@@ -144,9 +144,9 @@ checksum = "75b325c5dbd37f80359721ad39aca5a29fb04c89279657cffdda8736d0c0b9d2"
 
 [[package]]
 name = "either"
-version = "1.11.0"
+version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a47c1c47d2f5964e29c61246e81db715514cd532db6b5116a25ea3c03d6780a2"
+checksum = "3dca9240753cf90908d7e4aac30f630662b02aebaa1b58a3cadabdb23385b58b"
 
 [[package]]
 name = "fnv"
@@ -321,9 +321,9 @@ dependencies = [
 
 [[package]]
 name = "instant"
-version = "0.1.12"
+version = "0.1.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7a5bbe824c507c5da5956355e86a746d82e0e1464f65d862cc5e71da70e94b2c"
+checksum = "e0242819d153cba4b4b05a5a8f2a7e9bbf97b6055b2a002b395c96b5ff3c0222"
 dependencies = [
  "cfg-if",
 ]
@@ -339,9 +339,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.154"
+version = "0.2.155"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ae743338b92ff9146ce83992f766a31066a91a8c84a45e0e9f21e7cf6de6d346"
+checksum = "97b3888a4aecf77e811145cadf6eef5901f4782c53886191b2f693f24761847c"
 
 [[package]]
 name = "libm"
@@ -498,7 +498,7 @@ dependencies = [
 [[package]]
 name = "parry2d"
 version = "0.15.1"
-source = "git+https://github.com/dimforge/parry?branch=master#b8b0f648c7dbe1ad8d9e12182845f166eae68b35"
+source = "git+https://github.com/dimforge/parry?branch=master#5f9bfb0e7e9ba799ddd9bef552babcb7b260addb"
 dependencies = [
  "approx",
  "arrayvec",
@@ -521,7 +521,7 @@ dependencies = [
 [[package]]
 name = "parry2d-f64"
 version = "0.15.1"
-source = "git+https://github.com/dimforge/parry?branch=master#b8b0f648c7dbe1ad8d9e12182845f166eae68b35"
+source = "git+https://github.com/dimforge/parry?branch=master#5f9bfb0e7e9ba799ddd9bef552babcb7b260addb"
 dependencies = [
  "approx",
  "arrayvec",
@@ -757,9 +757,9 @@ checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
 
 [[package]]
 name = "spade"
-version = "2.6.0"
+version = "2.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61addf9117b11d1f5b4bf6fe94242ba25f59d2d4b2080544b771bd647024fd00"
+checksum = "68330712eea6ce4123e2a732769ed19bba1f007fd2636cbdc6e6be2af8b606a4"
 dependencies = [
  "hashbrown 0.14.5",
  "num-traits",
