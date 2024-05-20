@@ -8,7 +8,7 @@ use crate::{
         shape::ShapeInfo,
         user_data::UserData,
         vector::Vector,
-    }, servers::rapier_physics_singleton_2d::{shapes_singleton, spaces_singleton}, shapes::rapier_shape_2d::IRapierShape2D
+    }, servers::rapier_physics_singleton_2d::{shapes_singleton, spaces_singleton}, shapes::rapier_shape_2d::{IRapierShape2D, RapierShapeBase2D}
 };
 use godot::{
     builtin::{real, Rid, Transform2D, Vector2},
@@ -183,7 +183,7 @@ impl RapierCollisionObject2D {
         }
     }
     pub(crate) fn _destroy_shape(&self, shape: CollisionObjectShape, p_shape_index: usize) -> Handle {
-        let mut shape_rid = Rid::Invalid;
+        let shape_rid = shape.shape;
         {
             let mut lock = spaces_singleton().lock().unwrap();
             if let Some(space) = lock.spaces.get_mut(&self.space) {
@@ -197,7 +197,6 @@ impl RapierCollisionObject2D {
                 }
     
                 collider_destroy(self.space_handle, shape.collider_handle);
-                shape_rid = shape.shape;
             }
         }
         {

@@ -20,6 +20,7 @@ pub trait IRapierShape2D: Any {
     fn get_rapier_shape(&mut self) -> Handle;
 }
 
+#[derive(Debug)]
 pub struct RapierShapeBase2D {
     rid: Rid,
     aabb: Rect2,
@@ -47,11 +48,13 @@ impl RapierShapeBase2D {
     pub fn configure(&mut self, aabb: Rect2) {
         self.aabb = aabb;
         self.configured = true;
-        for (owner, _) in self.owners.iter() {
+    }
+    pub fn call_shape_changed(owners: HashMap<Rid, i32>, shape_rid: Rid) {
+        for (owner, _) in owners {
             let mut lock = bodies_singleton().lock().unwrap();
-            let owner = lock.collision_objects.get_mut(owner);
+            let owner = lock.collision_objects.get_mut(&owner);
             if let Some(owner) = owner {
-                owner._shape_changed(self.rid);
+                owner._shape_changed(shape_rid);
             }
         }
     }

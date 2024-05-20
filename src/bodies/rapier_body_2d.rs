@@ -9,6 +9,7 @@ use crate::rapier2d::vector::Vector;
 use crate::servers::rapier_physics_singleton_2d::bodies_singleton;
 use crate::servers::rapier_physics_singleton_2d::shapes_singleton;
 use crate::servers::rapier_physics_singleton_2d::spaces_singleton;
+use crate::shapes::rapier_shape_2d::RapierShapeBase2D;
 use crate::spaces::rapier_space_2d::RapierSpace2D;
 use godot::engine::physics_server_2d::AreaParameter;
 use godot::engine::physics_server_2d::AreaSpaceOverrideMode;
@@ -1622,11 +1623,12 @@ impl IRapierCollisionObject2D for RapierBody2D {
             if (shape.shape != p_shape || shape.disabled) {
                 continue;
             }
+            if self.base.shapes[i].collider_handle.is_valid() {
+                self.base.shapes[i].collider_handle = self.base._destroy_shape(shape, i);
+            }
 
-            self.base.shapes[i].collider_handle = self.base._destroy_shape(shape, i);
-
-            self.base._create_shape(shape, i, self._init_material());
-            self.base.update_shape_transform(&shape);
+            self.base._create_shape(self.base.shapes[i], i, self._init_material());
+            self.base.update_shape_transform(&self.base.shapes[i]);
         }
 
         self._shapes_changed();

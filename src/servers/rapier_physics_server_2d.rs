@@ -17,7 +17,7 @@ use crate::shapes::rapier_convex_polygon_shape_2d::RapierConvexPolygonShape2D;
 use crate::shapes::rapier_rectangle_shape_2d::RapierRectangleShape2D;
 use crate::shapes::rapier_segment_shape_2d::RapierSegmentShape2D;
 use crate::shapes::rapier_separation_ray_shape_2d::RapierSeparationRayShape2D;
-use crate::shapes::rapier_shape_2d::IRapierShape2D;
+use crate::shapes::rapier_shape_2d::{IRapierShape2D, RapierShapeBase2D};
 use crate::shapes::rapier_world_boundary_shape_2d::RapierWorldBoundaryShape2D;
 use crate::spaces::rapier_space_2d::RapierSpace2D;
 use godot::engine::native::PhysicsServer2DExtensionMotionResult;
@@ -138,9 +138,18 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         rid
     }
     fn shape_set_data(&mut self, shape: Rid, data: Variant) {
-        let mut lock = shapes_singleton().lock().unwrap();
-        if let Some(shape) = lock.shapes.get_mut(&shape) {
-            shape.set_data(data);
+        let mut owners = None;
+        {
+            let mut lock = shapes_singleton().lock().unwrap();
+            if let Some(shape) = lock.shapes.get_mut(&shape) {
+                shape.set_data(data);
+                if shape.get_base().is_configured() {
+                    owners = Some(shape.get_base().get_owners().clone());
+                }
+            }
+        }
+        if let Some(owners) = owners {
+            RapierShapeBase2D::call_shape_changed(owners, shape);
         }
     }
     fn shape_set_custom_solver_bias(&mut self, _shape: Rid, _bias: f32) {}
