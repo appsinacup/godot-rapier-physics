@@ -1274,7 +1274,7 @@ impl RapierBody2D {
             );
     }
 
-    pub fn call_queries(&self) {
+    pub fn call_queries(&self, space: &mut RapierSpace2D) {
         if let Some(direct_state) = &self.direct_state {
             if let Some(fi_callback_data) = &self.fi_callback_data {
                 if fi_callback_data.callable.is_valid() {
@@ -1298,10 +1298,7 @@ impl RapierBody2D {
         }
 
         if !self.active {
-            let mut lock = spaces_singleton().lock().unwrap();
-            if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
-                space.body_remove_from_state_query_list(self.base.get_rid());
-            }
+            space.body_remove_from_state_query_list(self.base.get_rid());
         }
     }
 

@@ -7,7 +7,9 @@ use crate::joints::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 use crate::joints::rapier_groove_joint_2d::RapierGrooveJoint2D;
 use crate::joints::rapier_joint_2d::{IRapierJoint2D, RapierEmptyJoint2D};
 use crate::joints::rapier_pin_joint_2d::RapierPinJoint2D;
+use crate::rapier2d::physics_world::world_step;
 use crate::rapier2d::query::shape_collide;
+use crate::rapier2d::settings::{self, SimulationSettings};
 use crate::rapier2d::shape::shape_info_from_body_shape;
 use crate::rapier2d::vector::Vector;
 use crate::shapes::rapier_capsule_shape_2d::RapierCapsuleShape2D;
@@ -22,7 +24,7 @@ use crate::shapes::rapier_world_boundary_shape_2d::RapierWorldBoundaryShape2D;
 use crate::spaces::rapier_space_2d::RapierSpace2D;
 use godot::engine::native::PhysicsServer2DExtensionMotionResult;
 use godot::engine::utilities::{rid_allocate_id, rid_from_int64};
-use godot::engine::{IPhysicsServer2DExtension, PhysicsServer2DExtension};
+use godot::engine::{IPhysicsServer2DExtension, PhysicsServer2DExtension, ProjectSettings};
 use godot::{engine, prelude::*};
 use std::ffi::c_void;
 
@@ -30,6 +32,7 @@ use super::rapier_physics_singleton_2d::{
     active_spaces_singleton, bodies_singleton, fluids_singleton, joints_singleton,
     shapes_singleton, spaces_singleton,
 };
+use super::rapier_project_settings::RapierProjectSettings;
 
 #[derive(GodotClass)]
 #[class(base=PhysicsServer2DExtension, tool)]
@@ -1408,12 +1411,98 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             active_spaces = lock.active_spaces.clone();
         }
         for space in active_spaces.values() {
-            let mut lock = spaces_singleton().lock().unwrap();
-            if let Some(space) = lock.spaces.get_mut(&space) {
-                space.step(step);
-                self.island_count += space.get_island_count();
-                self.active_objects += space.get_active_objects();
-                self.collision_pairs += space.get_collision_pairs();
+            let mut active_list;
+            let mass_properties_update_list;
+            let area_update_list;
+            let body_area_update_list;
+            let gravity_update_list;
+            let space_handle;
+            {
+                let mut lock = spaces_singleton().lock().unwrap();
+                if let Some(space) = lock.spaces.get_mut(&space) {
+                    active_list = space.get_active_list();
+                    mass_properties_update_list = space.get_mass_properties_update_list();
+                    area_update_list = space.get_area_update_list();
+                    body_area_update_list = space.get_body_area_update_list();
+                    gravity_update_list = space.get_gravity_update_list();
+                    space_handle = space.get_handle();
+                    space.before_step();
+                } else {
+                    continue;
+                }
+            }
+            for body in active_list {
+                let mut lock = bodies_singleton().lock().unwrap();
+                if let Some(body) = lock.collision_objects.get_mut(&body) {
+                    if let Some(body) = body.get_mut_body() {
+                        body.reset_contact_count();
+                    }
+                }
+            }
+            for body in mass_properties_update_list {
+                let mut lock = bodies_singleton().lock().unwrap();
+                if let Some(body) = lock.collision_objects.get_mut(&body) {
+                    if let Some(body) = body.get_mut_body() {
+                        body.update_mass_properties(false);
+                    }
+                }
+            }
+            for area in area_update_list {
+                let mut lock = bodies_singleton().lock().unwrap();
+                if let Some(area) = lock.collision_objects.get_mut(&area) {
+                    if let Some(area) = area.get_mut_area() {
+                        area.update_area_override();
+                    }
+                }
+            }
+            for body in body_area_update_list {
+                let mut lock = bodies_singleton().lock().unwrap();
+                if let Some(body) = lock.collision_objects.get_mut(&body) {
+                    if let Some(body) = body.get_mut_body() {
+                        body.update_area_override();
+                    }
+                }
+            }
+            for body in gravity_update_list {
+                let mut lock = bodies_singleton().lock().unwrap();
+                if let Some(body) = lock.collision_objects.get_mut(&body) {
+                    if let Some(body) = body.get_mut_body() {
+                        body.update_gravity(step);
+                    }
+                }
+            }
+
+            let project_settings = ProjectSettings::singleton();
+    
+            let default_gravity_dir: Vector2 = project_settings.get_setting_with_override("physics/2d/default_gravity_vector".into()).to();
+            let default_gravity_value: real = project_settings.get_setting_with_override("physics/2d/default_gravity".into()).to();
+        
+            let fluid_default_gravity_dir = RapierProjectSettings::get_fluid_gravity_dir();
+            let fluid_default_gravity_value = RapierProjectSettings::get_fluid_gravity_value();
+        
+            //let default_linear_damping: real = project_settings.get_setting_with_override("physics/2d/default_linear_damp".into()).to();
+            //let default_angular_damping: real = project_settings.get_setting_with_override("physics/2d/default_angular_damp".into()).to();
+            
+            let settings = SimulationSettings{
+                pixel_liquid_gravity: Vector::new(fluid_default_gravity_dir.x * fluid_default_gravity_value as real,fluid_default_gravity_dir.y * fluid_default_gravity_value as real),
+                dt: step,
+                pixel_gravity: Vector::new(default_gravity_dir.x * default_gravity_value,default_gravity_dir.y * default_gravity_value),
+                max_ccd_substeps: RapierProjectSettings::get_solver_max_ccd_substeps() as usize,
+                num_additional_friction_iterations: RapierProjectSettings::get_solver_num_additional_friction_iterations() as usize,
+                num_internal_pgs_iterations: RapierProjectSettings::get_solver_num_internal_pgs_iterations() as usize,
+                num_solver_iterations: RapierProjectSettings::get_solver_num_solver_iterations() as usize,
+            };
+            // this calls into rapier
+            world_step(space_handle, &settings);
+
+            {
+                let mut lock = spaces_singleton().lock().unwrap();
+                if let Some(space) = lock.spaces.get_mut(&space) {
+                    space.after_step();
+                    self.island_count += space.get_island_count();
+                    self.active_objects += space.get_active_objects();
+                    self.collision_pairs += space.get_collision_pairs();
+                }
             }
         }
     }

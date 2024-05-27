@@ -662,101 +662,20 @@ impl RapierSpace2D {
         return self.solver_iterations;
     }
 
-    pub fn step(&mut self, step: real) {
-        for body in &self.active_list {
-            let mut lock = bodies_singleton().lock().unwrap();
-            if let Some(body) = lock.collision_objects.get_mut(&body) {
-                if let Some(body) = body.get_mut_body() {
-                    body.reset_contact_count();
-                }
-            }
-        }
-        self.contact_debug_count = 0;
-        
-        let project_settings = ProjectSettings::singleton();
-    
-        let default_gravity_dir: Vector2 = project_settings.get_setting_with_override("physics/2d/default_gravity_vector".into()).to();
-        let default_gravity_value: real = project_settings.get_setting_with_override("physics/2d/default_gravity".into()).to();
-    
-        let fluid_default_gravity_dir = RapierProjectSettings::get_fluid_gravity_dir();
-        let fluid_default_gravity_value = RapierProjectSettings::get_fluid_gravity_value();
-    
-        //let default_linear_damping: real = project_settings.get_setting_with_override("physics/2d/default_linear_damp".into()).to();
-        //let default_angular_damping: real = project_settings.get_setting_with_override("physics/2d/default_angular_damp".into()).to();
-        
-        for body in &self.mass_properties_update_list {
-            let mut lock = bodies_singleton().lock().unwrap();
-            if let Some(body) = lock.collision_objects.get_mut(&body) {
-                if let Some(body) = body.get_mut_body() {
-                    body.update_mass_properties(false);
-                }
-            }
-        }
-        for area in &self.area_update_list {
-            let mut lock = bodies_singleton().lock().unwrap();
-            if let Some(area) = lock.collision_objects.get_mut(&area) {
-                if let Some(area) = area.get_mut_area() {
-                    area.update_area_override();
-                }
-            }
-        }
-        for body in &self.body_area_update_list {
-            let mut lock = bodies_singleton().lock().unwrap();
-            if let Some(body) = lock.collision_objects.get_mut(&body) {
-                if let Some(body) = body.get_mut_body() {
-                    body.update_area_override();
-                }
-            }
-        }
-        for body in &self.gravity_update_list {
-            let mut lock = bodies_singleton().lock().unwrap();
-            if let Some(body) = lock.collision_objects.get_mut(&body) {
-                if let Some(body) = body.get_mut_body() {
-                    body.update_gravity(step);
-                }
-            }
-        }
-    
-        let settings = SimulationSettings{
-            pixel_liquid_gravity: Vector::new(fluid_default_gravity_dir.x * fluid_default_gravity_value as real,fluid_default_gravity_dir.y * fluid_default_gravity_value as real),
-            dt: step,
-            pixel_gravity: Vector::new(default_gravity_dir.x * default_gravity_value,default_gravity_dir.y * default_gravity_value),
-            max_ccd_substeps: RapierProjectSettings::get_solver_max_ccd_substeps() as usize,
-            num_additional_friction_iterations: RapierProjectSettings::get_solver_num_additional_friction_iterations() as usize,
-            num_internal_pgs_iterations: RapierProjectSettings::get_solver_num_internal_pgs_iterations() as usize,
-            num_solver_iterations: RapierProjectSettings::get_solver_num_solver_iterations() as usize,
-        };
-    
-        world_step(self.handle, &settings);
-    
-        // Needed only for one physics step to retrieve lost info
-        self.removed_colliders.clear();
-    
-        for body in self.active_list.clone() {
-            let mut lock = bodies_singleton().lock().unwrap();
-            if let Some(body) = lock.collision_objects.get_mut(&body) {
-                if let Some(body) = body.get_mut_body() {
-                    body.on_update_active(self);
-                }
-            }
-        }
-        self.active_objects = world_get_active_objects_count(self.handle) as i32;
-    }
-
     pub fn call_queries(&mut self) {
-        for body_rid in &self.state_query_list {
+        for body_rid in self.state_query_list.clone() {
             let lock = bodies_singleton().lock().unwrap();
-            if let Some(body) = lock.collision_objects.get(body_rid) {
+            if let Some(body) = lock.collision_objects.get(&body_rid) {
                 if let Some(body) = body.get_body() {
-                    body.call_queries();
+                    body.call_queries(self);
                 }
             }
         }
-        for area_rid in &self.monitor_query_list {
+        for area_rid in self.monitor_query_list.clone() {
             let lock = bodies_singleton().lock().unwrap();
-            if let Some(area) = lock.collision_objects.get(area_rid) {
+            if let Some(area) = lock.collision_objects.get(&area_rid) {
                 if let Some(area) = area.get_area() {
-                    area.call_queries();
+                    area.call_queries(self);
                 }
             }
         }
@@ -848,6 +767,23 @@ impl RapierSpace2D {
     pub fn get_debug_contact_count(&self) -> i32 {
         self.contact_debug_count as i32
     }
+    pub fn before_step(&mut self) {
+        self.contact_debug_count = 0
+    }
+    pub fn after_step(&mut self) {
+        // Needed only for one physics step to retrieve lost info
+        self.removed_colliders.clear();
+        self.active_objects = world_get_active_objects_count(self.handle) as i32;
+        
+        for body in self.active_list.clone() {
+            let mut lock = bodies_singleton().lock().unwrap();
+            if let Some(body) = lock.collision_objects.get_mut(&body) {
+                if let Some(body) = body.get_mut_body() {
+                    body.on_update_active(self);
+                }
+            }
+        }
+    }
 
     pub fn get_direct_state(&self) -> Option<Gd<PhysicsDirectSpaceState2D>> {
         self.direct_access.clone()
@@ -858,6 +794,22 @@ impl RapierSpace2D {
             return Some(direct_access.clone().cast())
         }
         None
+    }
+
+    pub fn get_active_list(&self) -> Vec<Rid> {
+        return self.active_list.clone();
+    }
+    pub fn get_mass_properties_update_list(&self) -> Vec<Rid> {
+        return self.mass_properties_update_list.clone();
+    }
+    pub fn get_area_update_list(&self) -> Vec<Rid> {
+        return self.area_update_list.clone();
+    }
+    pub fn get_body_area_update_list(&self) -> Vec<Rid> {
+        return self.body_area_update_list.clone();
+    }
+    pub fn get_gravity_update_list(&self) -> Vec<Rid> {
+        return self.gravity_update_list.clone();
     }
 
     pub fn test_body_motion(
