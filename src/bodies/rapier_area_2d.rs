@@ -6,6 +6,7 @@ use crate::rapier2d::collider::{default_material, Material};
 use crate::rapier2d::handle::{invalid_handle, Handle};
 use crate::servers::rapier_physics_singleton_2d::shapes_singleton;
 use crate::shapes::rapier_shape_2d::RapierShapeBase2D;
+use crate::spaces::rapier_space_2d::RapierSpace2D;
 use godot::builtin::{real, Transform2D};
 use godot::{
     builtin::{Callable, Rid, Variant, Vector2},
@@ -236,7 +237,7 @@ impl RapierArea2D {
         self.monitorable
     }
 
-    pub fn call_queries(&self) {
+    pub fn call_queries(&self, space: &mut RapierSpace2D) {
         // Implementation needed
     }
 
