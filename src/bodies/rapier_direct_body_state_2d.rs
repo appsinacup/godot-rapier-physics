@@ -21,7 +21,7 @@ pub struct RapierDirectBodyState2D {
 #[godot_api]
 impl RapierDirectBodyState2D {
     #[func]
-    fn set_body(&mut self, body: Rid) {
+    pub fn set_body(&mut self, body: Rid) {
         self.body = body;
     }
 }

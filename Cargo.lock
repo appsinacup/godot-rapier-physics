@@ -497,7 +497,7 @@ dependencies = [
 [[package]]
 name = "parry2d"
 version = "0.15.1"
-source = "git+https://github.com/dimforge/parry?branch=master#5f9bfb0e7e9ba799ddd9bef552babcb7b260addb"
+source = "git+https://github.com/dimforge/parry?branch=master#9e723ee3f066da9b61eb4023fe393ff4f81125d3"
 dependencies = [
  "approx",
  "arrayvec",
@@ -520,7 +520,7 @@ dependencies = [
 [[package]]
 name = "parry2d-f64"
 version = "0.15.1"
-source = "git+https://github.com/dimforge/parry?branch=master#5f9bfb0e7e9ba799ddd9bef552babcb7b260addb"
+source = "git+https://github.com/dimforge/parry?branch=master#9e723ee3f066da9b61eb4023fe393ff4f81125d3"
 dependencies = [
  "approx",
  "arrayvec",
@@ -675,9 +675,9 @@ checksum = "cbf4a6aa5f6d6888f39e980649f3ad6b666acdce1d78e95b8a2cb076e687ae30"
 
 [[package]]
 name = "rustc-hash"
-version = "1.2.0"
+version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3450ed37fe9609abb6bc3b8891b6e078404e4c53c7332350e2e15126a95229bf"
+checksum = "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
 
 [[package]]
 name = "ryu"
