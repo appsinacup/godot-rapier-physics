@@ -340,10 +340,8 @@ impl RapierBody2D {
 
     pub fn get_direct_state(&mut self) -> Option<Gd<PhysicsDirectBodyState2D>> {
         if self.direct_state.is_none() {
-            let direct_space_state = RapierDirectBodyState2D::new_alloc();
-            direct_space_state.apply_central_impulse(Vector2::default());
-            let godot_type: Gd<RapierDirectBodyState2D> = direct_space_state.cast();
-            godot_type.set_body(self.base.get_rid());
+            let mut direct_space_state = RapierDirectBodyState2D::new_alloc();
+            direct_space_state.bind_mut().set_body(self.base.get_rid());
             self.direct_state = Some(direct_space_state.upcast());
         }
         self.direct_state.clone()
@@ -866,7 +864,7 @@ impl RapierBody2D {
     pub fn set_param(&mut self, p_param: BodyParameter, p_value: Variant) {
         match p_param {
             BodyParameter::BOUNCE | BodyParameter::FRICTION => {
-                if p_value.get_type() != VariantType::Float {
+                if p_value.get_type() != VariantType::FLOAT {
                     return;
                 }
                 if p_param == BodyParameter::BOUNCE {
@@ -899,7 +897,7 @@ impl RapierBody2D {
                 }
             }
             BodyParameter::INERTIA => {
-                if p_value.get_type() != VariantType::Float {
+                if p_value.get_type() != VariantType::FLOAT {
                     return;
                 }
                 let inertia_value = p_value.to();
@@ -914,7 +912,7 @@ impl RapierBody2D {
                 }
             }
             BodyParameter::CENTER_OF_MASS => {
-                if p_value.get_type() != VariantType::Vector2 {
+                if p_value.get_type() != VariantType::VECTOR2 {
                     return;
                 }
                 self.center_of_mass = p_value.to();
@@ -923,7 +921,7 @@ impl RapierBody2D {
                 }
             }
             BodyParameter::GRAVITY_SCALE => {
-                if p_value.get_type() != VariantType::Float {
+                if p_value.get_type() != VariantType::FLOAT {
                     return;
                 }
                 let new_gravity_scale = p_value.to();
@@ -935,7 +933,7 @@ impl RapierBody2D {
                 }
             }
             BodyParameter::LINEAR_DAMP_MODE => {
-                if p_value.get_type() != VariantType::Int {
+                if p_value.get_type() != VariantType::INT {
                     return;
                 }
                 let mode_value = p_value.to();
@@ -952,7 +950,7 @@ impl RapierBody2D {
                 }
             }
             BodyParameter::ANGULAR_DAMP_MODE => {
-                if p_value.get_type() != VariantType::Int {
+                if p_value.get_type() != VariantType::INT {
                     return;
                 }
                 let mode_value = p_value.to();
@@ -969,7 +967,7 @@ impl RapierBody2D {
                 }
             }
             BodyParameter::LINEAR_DAMP => {
-                if p_value.get_type() != VariantType::Float {
+                if p_value.get_type() != VariantType::FLOAT {
                     return;
                 }
                 let new_value = p_value.to();
@@ -981,7 +979,7 @@ impl RapierBody2D {
                 }
             }
             BodyParameter::ANGULAR_DAMP => {
-                if p_value.get_type() != VariantType::Float {
+                if p_value.get_type() != VariantType::FLOAT {
                     return;
                 }
                 let new_value = p_value.to();

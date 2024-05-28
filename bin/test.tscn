@@ -1,8 +1,10 @@
-[gd_scene load_steps=3 format=3 uid="uid://d4exls53gi0df"]
+[gd_scene load_steps=4 format=3 uid="uid://d4exls53gi0df"]
 
 [ext_resource type="Script" path="res://rigid_body_2d.gd" id="1_4sybc"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_r2n1f"]
+
+[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_a3uwi"]
 
 [node name="Test" type="Node2D"]
 
@@ -39,3 +41,9 @@ shape = SubResource("CircleShape2D_r2n1f")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 zoom = Vector2(4, 4)
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+position = Vector2(0, 86)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+shape = SubResource("WorldBoundaryShape2D_a3uwi")
