@@ -11,7 +11,8 @@ config_version=5
 [application]
 
 config/name="Godot Physics Tests"
-config/features=PackedStringArray("4.2", "Forward Plus")
+run/main_scene="res://test.tscn"
+config/features=PackedStringArray("4.3", "Forward Plus")
 
 [display]
 

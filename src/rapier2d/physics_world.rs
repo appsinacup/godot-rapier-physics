@@ -15,6 +15,7 @@ use salva2d::integrations::rapier::FluidsPipeline;
 use std::num::NonZeroUsize;
 use std::sync::Mutex;
 use std::sync::OnceLock;
+use serde::{Serialize, Deserialize};
 
 pub struct ActiveBodyInfo {
     pub body_handle: Handle,
@@ -86,7 +87,7 @@ pub struct ContactForceEventInfo {
     pub user_data2: UserData,
 }
 
-//#[cfg_attr(feature = "serde-serialize", derive(Serialize, Deserialize))]
+//#[derive(Serialize, Deserialize)]
 pub struct PhysicsWorld {
     pub query_pipeline: QueryPipeline,
     pub physics_pipeline: PhysicsPipeline,

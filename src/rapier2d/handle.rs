@@ -2,8 +2,11 @@ use rapier2d::data::Index;
 use rapier2d::prelude::*;
 use salva2d::object::ContiguousArenaIndex;
 use salva2d::object::FluidHandle;
+use serde::Deserialize;
+use serde::Serialize;
 
 #[derive(Copy, Clone, Eq, Hash, PartialEq, Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct Handle {
     id: u32,
     generation: u32,

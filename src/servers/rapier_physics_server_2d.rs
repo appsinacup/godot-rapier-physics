@@ -1411,7 +1411,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             active_spaces = lock.active_spaces.clone();
         }
         for space in active_spaces.values() {
-            let mut active_list;
+            let active_list;
             let mass_properties_update_list;
             let area_update_list;
             let body_area_update_list;

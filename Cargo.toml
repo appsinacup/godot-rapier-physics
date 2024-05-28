@@ -23,6 +23,8 @@ godot = { git = "https://github.com/godot-rust/gdext", branch = "master", featur
 rapier2d = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"]}
 rapier2d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"]}
 salva2d = { git = "https://github.com/ughuuu/salva", branch = "update-to-rapier-0.19", features = ["rapier"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 
 [patch.crates-io]
 rapier2d = {git = "https://github.com/dimforge/rapier", branch = "master"}

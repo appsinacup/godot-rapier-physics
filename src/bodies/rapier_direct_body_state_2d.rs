@@ -315,7 +315,10 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let mut lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                return body.set_active(!enabled);
+                let mut space_lock = spaces_singleton().lock().unwrap();
+                if let Some(space) = space_lock.spaces.get_mut(&body.get_base().get_space()) {
+                    body.set_active(!enabled, space);
+                }
             }
         }
     }

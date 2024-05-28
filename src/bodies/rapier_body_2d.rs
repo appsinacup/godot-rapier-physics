@@ -767,7 +767,7 @@ impl RapierBody2D {
         return body_get_constant_torque(self.base.space_handle, body_handle);
     }
 
-    pub fn set_active(&mut self, p_active: bool) {
+    pub fn set_active(&mut self, p_active: bool, space: &mut RapierSpace2D) {
         if self.active == p_active {
             return;
         }
@@ -779,16 +779,10 @@ impl RapierBody2D {
                 // Static bodies can't be active.
                 self.active = false;
             } else {
-                let mut lock = spaces_singleton().lock().unwrap();
-                if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
-                    space.body_add_to_active_list(self.base.get_rid());
-                }
+                space.body_add_to_active_list(self.base.get_rid());
             }
         } else {
-            let mut lock = spaces_singleton().lock().unwrap();
-            if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
-                space.body_remove_from_active_list(self.base.get_rid());
-            }
+            space.body_remove_from_active_list(self.base.get_rid());
         }
     }
     pub fn is_active(&self) -> bool {
@@ -818,7 +812,7 @@ impl RapierBody2D {
     }
     pub fn on_update_active(&mut self, space: &mut RapierSpace2D) {
         if !self.marked_active {
-            self.set_active(false);
+            self.set_active(false, space);
             return;
         }
         self.marked_active = false;
@@ -863,6 +857,9 @@ impl RapierBody2D {
     pub fn set_param(&mut self, p_param: BodyParameter, p_value: Variant) {
         match p_param {
             BodyParameter::BOUNCE | BodyParameter::FRICTION => {
+                if p_value.get_type() != VariantType::Float {
+                    return;
+                }
                 if p_param == BodyParameter::BOUNCE {
                     self.bounce = p_value.to();
                 } else {
@@ -880,6 +877,9 @@ impl RapierBody2D {
                 body_update_material(self.base.space_handle, body_handle, &mat);
             }
             BodyParameter::MASS => {
+                if p_value.get_type() != VariantType::Float {
+                    return;
+                }
                 let mass_value = p_value.to();
                 if mass_value <= 0.0 {
                     return;
@@ -890,6 +890,9 @@ impl RapierBody2D {
                 }
             }
             BodyParameter::INERTIA => {
+                if p_value.get_type() != VariantType::Float {
+                    return;
+                }
                 let inertia_value = p_value.to();
                 if inertia_value <= 0.0 {
                     self.calculate_inertia = true;
@@ -902,12 +905,18 @@ impl RapierBody2D {
                 }
             }
             BodyParameter::CENTER_OF_MASS => {
+                if p_value.get_type() != VariantType::Vector2 {
+                    return;
+                }
                 self.center_of_mass = p_value.to();
                 if self.base.mode.ord() >= BodyMode::RIGID.ord() {
                     self._mass_properties_changed();
                 }
             }
             BodyParameter::GRAVITY_SCALE => {
+                if p_value.get_type() != VariantType::Float {
+                    return;
+                }
                 let new_gravity_scale = p_value.to();
                 if self.gravity_scale != new_gravity_scale {
                     self.gravity_scale = new_gravity_scale;
@@ -917,6 +926,9 @@ impl RapierBody2D {
                 }
             }
             BodyParameter::LINEAR_DAMP_MODE => {
+                if p_value.get_type() != VariantType::Int {
+                    return;
+                }
                 let mode_value = p_value.to();
                 if self.linear_damping_mode.ord() != mode_value {
                     self.linear_damping_mode = BodyDampMode::from_ord(mode_value);
@@ -931,6 +943,9 @@ impl RapierBody2D {
                 }
             }
             BodyParameter::ANGULAR_DAMP_MODE => {
+                if p_value.get_type() != VariantType::Int {
+                    return;
+                }
                 let mode_value = p_value.to();
                 if self.angular_damping_mode.ord() != mode_value {
                     self.angular_damping_mode = BodyDampMode::from_ord(mode_value);
@@ -945,6 +960,9 @@ impl RapierBody2D {
                 }
             }
             BodyParameter::LINEAR_DAMP => {
+                if p_value.get_type() != VariantType::Float {
+                    return;
+                }
                 let new_value = p_value.to();
                 if new_value != self.linear_damping {
                     self.linear_damping = new_value;
@@ -954,6 +972,9 @@ impl RapierBody2D {
                 }
             }
             BodyParameter::ANGULAR_DAMP => {
+                if p_value.get_type() != VariantType::Float {
+                    return;
+                }
                 let new_value = p_value.to();
                 if new_value != self.angular_damping {
                     self.angular_damping = new_value;
@@ -1084,23 +1105,29 @@ impl RapierBody2D {
                 }
                 self.sleep = p_variant.to();
 
-                if self.sleep {
-                    if self.can_sleep {
-                        self.force_sleep();
-                        self.set_active(false);
+                let mut lock = spaces_singleton().lock().unwrap();
+                if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
+                    if self.sleep {
+                        if self.can_sleep {
+                            self.force_sleep();
+                            self.set_active(false, space);
+                        }
+                    } else if self.base.mode != BodyMode::STATIC {
+                        self.wakeup();
+                        self.set_active(true, space);
                     }
-                } else if self.base.mode != BodyMode::STATIC {
-                    self.wakeup();
-                    self.set_active(true);
                 }
-            }
+                }
             BodyState::CAN_SLEEP => {
                 self.can_sleep = p_variant.to();
                 if self.base.mode.ord() >= BodyMode::RIGID.ord() {
                     self.set_can_sleep(self.can_sleep);
                     if !self.active && !self.can_sleep {
                         self.wakeup();
-                        self.set_active(true);
+                        let mut lock = spaces_singleton().lock().unwrap();
+                        if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
+                            self.set_active(true, space);
+                        }
                     }
                 }
             }
