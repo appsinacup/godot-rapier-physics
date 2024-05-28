@@ -240,15 +240,6 @@ pub fn body_set_can_sleep(world_handle: Handle, body_handle: Handle, can_sleep: 
     }
 }
 
-pub fn body_is_ccd_enabled(world_handle: Handle, body_handle: Handle) -> bool {
-    let mut physics_engine = singleton().lock().unwrap();
-    let physics_world = physics_engine.get_world(world_handle);
-    let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
-    let body = physics_world.rigid_body_set.get(rigid_body_handle);
-    assert!(body.is_some());
-    body.unwrap().is_ccd_enabled()
-}
-
 pub fn body_set_ccd_enabled(world_handle: Handle, body_handle: Handle, enable: bool) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);

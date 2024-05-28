@@ -66,7 +66,7 @@ impl IRapierShape2D for RapierConvexPolygonShape2D {
 
     fn set_data(&mut self, data: Variant) {
         match data.get_type() {
-            VariantType::PackedVector2Array => {
+            VariantType::PACKED_VECTOR2_ARRAY => {
                 let arr: PackedVector2Array = data.to();
                 let size = arr.len();
                 assert!(size > 0);
@@ -74,7 +74,7 @@ impl IRapierShape2D for RapierConvexPolygonShape2D {
 
                 for i in 0..size {
                     self.points[i] = Point {
-                        pos: arr.get(i),
+                        pos: arr[i],
                         normal: Vector2::ZERO,
                     };
                 }
@@ -85,7 +85,7 @@ impl IRapierShape2D for RapierConvexPolygonShape2D {
                     self.points[i].normal = (pn - p).orthogonal().normalized();
                 }
             }
-            VariantType::PackedFloat32Array => {
+            VariantType::PACKED_FLOAT32_ARRAY => {
                 let arr: PackedFloat32Array = data.to();
 
                 let size = arr.len() / 4;
@@ -95,12 +95,12 @@ impl IRapierShape2D for RapierConvexPolygonShape2D {
                 for i in 0..size {
                     let idx = i << 2;
                     self.points[i] = Point {
-                        pos: Vector2::new(arr.get(idx), arr.get(idx + 1)),
-                        normal: Vector2::new(arr.get(idx + 2), arr.get(idx + 3)),
+                        pos: Vector2::new(arr[idx], arr[idx + 1]),
+                        normal: Vector2::new(arr[idx + 2], arr[idx + 3]),
                     };
                 }
             }
-            VariantType::PackedFloat64Array => {
+            VariantType::PACKED_FLOAT64_ARRAY => {
                 let arr: PackedFloat64Array = data.to();
 
                 let size = arr.len() / 4;
@@ -110,8 +110,8 @@ impl IRapierShape2D for RapierConvexPolygonShape2D {
                 for i in 0..size {
                     let idx = i << 2;
                     self.points[i] = Point {
-                        pos: Vector2::new(arr.get(idx) as f32, arr.get(idx + 1) as f32),
-                        normal: Vector2::new(arr.get(idx + 2)  as f32, arr.get(idx + 3)  as f32),
+                        pos: Vector2::new(arr[idx] as f32, arr[idx+1] as f32),
+                        normal: Vector2::new(arr[idx+1]  as f32, arr[idx+3]  as f32),
                     };
                 }
             }

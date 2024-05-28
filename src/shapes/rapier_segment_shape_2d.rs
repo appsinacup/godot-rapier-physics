@@ -63,7 +63,7 @@ impl IRapierShape2D for RapierSegmentShape2D {
     }
 
     fn set_data(&mut self, data: Variant) {
-        if data.get_type() != VariantType::Rect2 {
+        if data.get_type() != VariantType::RECT2 {
             godot_error!("Invalid shape data");
             return;
         }

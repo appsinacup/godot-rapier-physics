@@ -42,7 +42,7 @@ impl IRapierShape2D for RapierSeparationRayShape2D {
     }
 
     fn set_data(&mut self, data: Variant) {
-        if data.get_type() != VariantType::Dictionary {
+        if data.get_type() != VariantType::DICTIONARY {
             godot_error!("Invalid shape data.");
             return;
         }
