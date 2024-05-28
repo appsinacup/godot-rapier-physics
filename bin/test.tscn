@@ -8,7 +8,6 @@
 
 [node name="RigidBody2D" type="RigidBody2D" parent="."]
 position = Vector2(15, 0)
-gravity_scale = 1.01
 script = ExtResource("1_4sybc")
 
 [node name="CollisionShape2D4" type="CollisionShape2D" parent="RigidBody2D"]

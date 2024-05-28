@@ -13,7 +13,7 @@ use godot::{
 #[derive(GodotClass)]
 #[class(base=PhysicsDirectBodyState2DExtension,tool)]
 pub struct RapierDirectBodyState2D {
-    body: Rid,
+    pub body: Rid,
 
     base: Base<PhysicsDirectBodyState2DExtension>,
 }
@@ -21,7 +21,7 @@ pub struct RapierDirectBodyState2D {
 #[godot_api]
 impl RapierDirectBodyState2D {
     #[func]
-    pub fn set_body(&mut self, body: Rid) {
+    fn set_body(&mut self, body: Rid) {
         self.body = body;
     }
 }

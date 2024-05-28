@@ -72,7 +72,7 @@ impl IRapierShape2D for RapierConcavePolygonShape2D {
         let mut aabb = Rect2::default();
 
         match data.get_type() {
-            VariantType::PackedVector2Array => {
+            VariantType::PACKED_VECTOR2_ARRAY => {
                 let arr: PackedVector2Array = data.to();
                 let len = arr.len();
                 if len % 2 != 0 {
@@ -88,8 +88,8 @@ impl IRapierShape2D for RapierConcavePolygonShape2D {
                     return;
                 }
                 for i in (0..len).step_by(2) {
-                    let p1 = arr.get(i);
-                    let p2 = arr.get(i + 1);
+                    let p1 = arr[i];
+                    let p2 = arr[i + 1];
 
                     // Find or insert the points into the `points` vector
                     let idx_p1 = find_or_insert_point(&mut self.points, p1);
@@ -125,8 +125,8 @@ impl IRapierShape2D for RapierConcavePolygonShape2D {
         for i in 0..len {
             let idx0 = self.segments[i][0] as usize;
             let idx1 = self.segments[i][1] as usize;
-            rsegments.set((i << 1) + 0, self.points[idx0]);
-            rsegments.set((i << 1) + 1, self.points[idx1]);
+            rsegments[(i << 1) + 0] = self.points[idx0];
+            rsegments[(i << 1) + 1] = self.points[idx1];
         }
 
         rsegments.to_variant()

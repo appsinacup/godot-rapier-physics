@@ -45,7 +45,7 @@ impl IRapierShape2D for RapierRectangleShape2D {
     }
 
     fn set_data(&mut self, data: Variant) {
-        if data.get_type() == VariantType::Vector2 {
+        if data.get_type() == VariantType::VECTOR2 {
             let v: Vector2 = data.to();
             self.half_extents = v;
             let mut aabb = Rect2::new(-self.half_extents, self.half_extents * 2.0);

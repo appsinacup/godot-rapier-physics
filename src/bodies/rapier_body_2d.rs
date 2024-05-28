@@ -9,13 +9,14 @@ use crate::rapier2d::vector::Vector;
 use crate::servers::rapier_physics_singleton_2d::bodies_singleton;
 use crate::servers::rapier_physics_singleton_2d::shapes_singleton;
 use crate::servers::rapier_physics_singleton_2d::spaces_singleton;
-use crate::shapes::rapier_shape_2d::RapierShapeBase2D;
 use crate::spaces::rapier_space_2d::RapierSpace2D;
 use godot::engine::physics_server_2d::AreaParameter;
 use godot::engine::physics_server_2d::AreaSpaceOverrideMode;
 use godot::engine::physics_server_2d::{BodyDampMode, BodyMode, BodyParameter, BodyState, CcdMode};
 use godot::engine::PhysicsDirectBodyState2D;
 use godot::prelude::*;
+use std::borrow::Borrow;
+use std::borrow::BorrowMut;
 use std::collections::HashSet;
 
 use super::rapier_area_2d::RapierArea2D;
@@ -56,9 +57,10 @@ impl Default for Contact {
     }
 }
 
-struct ForceIntegrationCallbackData {
-    callable: Callable,
-    udata: Variant,
+#[derive(Clone)]
+pub struct ForceIntegrationCallbackData {
+    pub callable: Callable,
+    pub udata: Variant,
 }
 
 impl ForceIntegrationCallbackData {
@@ -108,7 +110,6 @@ pub struct RapierBody2D {
     body_state_callback: Callable,
     fi_callback_data: Option<ForceIntegrationCallbackData>,
     direct_state: Option<Gd<PhysicsDirectBodyState2D>>,
-    direct_state_query_list: Vec<Rid>,
     base: RapierCollisionObject2D,
 }
 
@@ -125,7 +126,7 @@ impl RapierBody2D {
             gravity_scale: 1.0,
             bounce: 0.0,
             friction: 1.0,
-            mass: 0.0,
+            mass: 1.0,
             inertia: 0.0,
             center_of_mass: Vector2::ZERO,
             calculate_inertia: false,
@@ -154,7 +155,6 @@ impl RapierBody2D {
             body_state_callback: Callable::invalid(),
             fi_callback_data: None,
             direct_state: None,
-            direct_state_query_list: Vec::new(),
             base: RapierCollisionObject2D::new(rid, CollisionObjectType::Body),
         }
     }
@@ -323,6 +323,9 @@ impl RapierBody2D {
     pub fn set_state_sync_callback(&mut self, p_callable: Callable) {
         self.body_state_callback = p_callable;
     }
+    pub fn get_state_sync_callback(&self) -> Callable {
+        self.body_state_callback.clone()
+    }
     pub fn set_force_integration_callback(&mut self, p_callable: Callable, p_udata: Variant) {
         if p_callable.is_valid() {
             self.fi_callback_data = Some(ForceIntegrationCallbackData::new(p_callable, p_udata));
@@ -331,10 +334,16 @@ impl RapierBody2D {
         }
     }
 
+    pub fn get_force_integration_callback(&self) -> Option<ForceIntegrationCallbackData> {
+        self.fi_callback_data.clone()
+    }
+
     pub fn get_direct_state(&mut self) -> Option<Gd<PhysicsDirectBodyState2D>> {
         if self.direct_state.is_none() {
             let direct_space_state = RapierDirectBodyState2D::new_alloc();
-            //direct_space_state.set_body(self.rid);
+            direct_space_state.apply_central_impulse(Vector2::default());
+            let godot_type: Gd<RapierDirectBodyState2D> = direct_space_state.cast();
+            godot_type.set_body(self.base.get_rid());
             self.direct_state = Some(direct_space_state.upcast());
         }
         self.direct_state.clone()
@@ -877,7 +886,7 @@ impl RapierBody2D {
                 body_update_material(self.base.space_handle, body_handle, &mat);
             }
             BodyParameter::MASS => {
-                if p_value.get_type() != VariantType::Float {
+                if p_value.get_type() != VariantType::FLOAT {
                     return;
                 }
                 let mass_value = p_value.to();
@@ -1299,34 +1308,6 @@ impl RapierBody2D {
                 -angular_velocity * (rel_pos.y - self.center_of_mass.y),
                 angular_velocity * (rel_pos.x - self.center_of_mass.x),
             );
-    }
-
-    pub fn call_queries(&self, space: &mut RapierSpace2D) {
-        if let Some(direct_state) = &self.direct_state {
-            if let Some(fi_callback_data) = &self.fi_callback_data {
-                if fi_callback_data.callable.is_valid() {
-                    let mut arg_array = Array::new();
-
-                    arg_array.push(direct_state.to_variant());
-                    arg_array.push(fi_callback_data.udata.clone());
-
-                    fi_callback_data.callable.callv(arg_array);
-                }
-            }
-
-            //  Sync body server with Godot by sending body direct state
-            if self.body_state_callback.is_valid() {
-                let mut arg_array = Array::new();
-
-                arg_array.push(direct_state.to_variant());
-
-                self.body_state_callback.callv(arg_array);
-            }
-        }
-
-        if !self.active {
-            space.body_remove_from_state_query_list(self.base.get_rid());
-        }
     }
 
     pub fn get_aabb(&self) -> Rect2 {

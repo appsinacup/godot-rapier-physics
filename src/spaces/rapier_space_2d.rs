@@ -664,10 +664,44 @@ impl RapierSpace2D {
 
     pub fn call_queries(&mut self) {
         for body_rid in self.state_query_list.clone() {
-            let lock = bodies_singleton().lock().unwrap();
-            if let Some(body) = lock.collision_objects.get(&body_rid) {
-                if let Some(body) = body.get_body() {
-                    body.call_queries(self);
+            let mut direct_state = None;
+            let mut fi_callback_data = None;
+            let mut state_sync_callback = Callable::invalid();
+            {
+                let mut lock = bodies_singleton().lock().unwrap();
+                if let Some(body) = lock.collision_objects.get_mut(&body_rid) {
+                    if let Some(body) = body.get_mut_body() {
+                        if let Some(direct_state_gd) = body.get_direct_state() {
+                            direct_state = Some(direct_state_gd);
+                            fi_callback_data = body.get_force_integration_callback();
+                            state_sync_callback = body.get_state_sync_callback();
+    
+                        }
+    
+                        if !body.is_active() {
+                            self.body_remove_from_state_query_list(body.get_base().get_rid());
+                        }
+                    }
+                }
+            }
+            if let Some(fi_callback_data) = fi_callback_data {
+                if fi_callback_data.callable.is_valid() {
+                    if let Some(direct_state) = direct_state.clone() {
+                        let mut arg_array = Array::new();
+        
+                        arg_array.push(direct_state.to_variant());
+                        arg_array.push(fi_callback_data.udata.clone());
+        
+                        fi_callback_data.callable.callv(arg_array);
+                    }
+                }
+            }
+            //  Sync body server with Godot by sending body direct state
+            if state_sync_callback.is_valid() {
+                if let Some(direct_state) = direct_state.clone() {
+                    let mut arg_array = Array::new();
+                    arg_array.push(direct_state.to_variant());
+                    state_sync_callback.callv(arg_array);
                 }
             }
         }

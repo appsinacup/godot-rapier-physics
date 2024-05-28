@@ -46,7 +46,7 @@ impl IRapierShape2D for RapierCircleShape2D {
 
     fn set_data(&mut self, data: Variant) {
         match data.get_type() {
-            VariantType::Float | VariantType::Int => {
+            VariantType::FLOAT | VariantType::INT => {
                 self.radius = data.to();
             }
             _ => {
