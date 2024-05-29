@@ -10,4 +10,7 @@ impl Vector {
     pub fn new(x: Real, y: Real) -> Vector {
         Vector { x, y }
     }
+    pub fn default() -> Vector {
+        Vector { x: 0.0,y: 0.0 }
+    }
 }

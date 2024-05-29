@@ -2,14 +2,12 @@ use crate::rapier2d::vector::Vector;
 use rapier2d::prelude::*;
 
 pub struct WorldSettings {
-    pub max_ccd_substeps: usize,
     pub particle_radius: Real,
     pub smoothing_factor: Real,
 }
 
 pub fn default_world_settings() -> WorldSettings {
     WorldSettings {
-        max_ccd_substeps: 1,
         particle_radius: 0.1,
         smoothing_factor: 2.0,
     }

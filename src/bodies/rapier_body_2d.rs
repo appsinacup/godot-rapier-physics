@@ -3,7 +3,6 @@ use crate::rapier2d::body::*;
 use crate::rapier2d::collider::collider_set_contact_force_events_enabled;
 use crate::rapier2d::collider::Material;
 use crate::rapier2d::handle::invalid_handle;
-use crate::rapier2d::handle::is_handle_valid;
 use crate::rapier2d::handle::Handle;
 use crate::rapier2d::vector::Vector;
 use crate::servers::rapier_physics_singleton_2d::bodies_singleton;
@@ -277,7 +276,7 @@ impl RapierBody2D {
         }
         let body_handle = self.base.get_body_handle();
 
-        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+        if !self.base.space_handle.is_valid() || !body_handle.is_valid() {
             return;
         }
         let velocity = Vector::new(self.linear_velocity.x, self.linear_velocity.y);
@@ -286,7 +285,7 @@ impl RapierBody2D {
     }
     pub fn get_linear_velocity(&self) -> Vector2 {
         let body_handle = self.base.get_body_handle();
-        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+        if !self.base.space_handle.is_valid() || !body_handle.is_valid() {
             return self.linear_velocity;
         }
         let vel = body_get_linear_velocity(self.base.space_handle, body_handle);
@@ -303,7 +302,7 @@ impl RapierBody2D {
         }
 
         let body_handle = self.base.get_body_handle();
-        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+        if !self.base.space_handle.is_valid() || !body_handle.is_valid() {
             return;
         }
         self.angular_velocity = 0.0;
@@ -311,7 +310,7 @@ impl RapierBody2D {
     }
     pub fn get_angular_velocity(&self) -> real {
         let body_handle = self.base.get_body_handle();
-        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+        if !self.base.space_handle.is_valid() || !body_handle.is_valid() {
             return self.angular_velocity;
         }
         body_get_angular_velocity(self.base.space_handle, body_handle)
@@ -536,7 +535,7 @@ impl RapierBody2D {
         }
         let body_handle = self.base.get_body_handle();
 
-        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+        if !self.base.space_handle.is_valid() || !body_handle.is_valid() {
             return;
         }
         let gravity_impulse = self.total_gravity * self.mass * p_step;
@@ -638,7 +637,7 @@ impl RapierBody2D {
 
     pub fn apply_central_impulse(&mut self, p_impulse: Vector2) {
         let body_handle = self.base.get_body_handle();
-        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+        if !self.base.space_handle.is_valid() || !body_handle.is_valid() {
             self.impulse += p_impulse;
             return;
         }
@@ -648,7 +647,7 @@ impl RapierBody2D {
 
     pub fn apply_impulse(&mut self, p_impulse: Vector2, p_position: Vector2) {
         let body_handle = self.base.get_body_handle();
-        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+        if !self.base.space_handle.is_valid() || !body_handle.is_valid() {
             self.impulse += p_impulse;
             self.torque += (p_position - self.get_center_of_mass()).cross(p_impulse);
             return;
@@ -660,7 +659,7 @@ impl RapierBody2D {
 
     pub fn apply_torque_impulse(&mut self, p_torque: real) {
         let body_handle = self.base.get_body_handle();
-        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+        if !self.base.space_handle.is_valid() || !body_handle.is_valid() {
             self.torque += p_torque;
             return;
         }
@@ -671,7 +670,7 @@ impl RapierBody2D {
         // Note: using last delta assuming constant physics time
         let last_delta = RapierSpace2D::get_last_step();
         let body_handle = self.base.get_body_handle();
-        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+        if !self.base.space_handle.is_valid() || !body_handle.is_valid() {
             self.impulse += p_force * last_delta;
             return;
         }
@@ -683,7 +682,7 @@ impl RapierBody2D {
         // Note: using last delta assuming constant physics time
         let last_delta = RapierSpace2D::get_last_step();
         let body_handle = self.base.get_body_handle();
-        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+        if !self.base.space_handle.is_valid() || !body_handle.is_valid() {
             self.impulse += p_force * last_delta;
             self.torque += (p_position - self.get_center_of_mass()).cross(p_force) * last_delta;
             return;
@@ -698,7 +697,7 @@ impl RapierBody2D {
         // Note: using last delta assuming constant physics time
         let last_delta = RapierSpace2D::get_last_step();
         let body_handle = self.base.get_body_handle();
-        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+        if !self.base.space_handle.is_valid() || !body_handle.is_valid() {
             self.torque += p_torque * last_delta;
             return;
         }
@@ -708,7 +707,7 @@ impl RapierBody2D {
     pub fn add_constant_central_force(&mut self, p_force: Vector2) {
         self.constant_force += p_force;
         let body_handle = self.base.get_body_handle();
-        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+        if !self.base.space_handle.is_valid() || !body_handle.is_valid() {
             return;
         }
         let force = Vector::new(p_force.x, p_force.y);
@@ -719,7 +718,7 @@ impl RapierBody2D {
         self.constant_torque += (p_position - self.get_center_of_mass()).cross(p_force);
         self.constant_force += p_force;
         let body_handle = self.base.get_body_handle();
-        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+        if !self.base.space_handle.is_valid() || !body_handle.is_valid() {
             return;
         }
         let force = Vector::new(p_force.x, p_force.y);
@@ -730,7 +729,7 @@ impl RapierBody2D {
     pub fn add_constant_torque(&mut self, p_torque: real) {
         self.constant_torque += p_torque;
         let body_handle = self.base.get_body_handle();
-        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+        if !self.base.space_handle.is_valid() || !body_handle.is_valid() {
             return;
         }
         body_add_torque(self.base.space_handle, body_handle, p_torque);
@@ -739,7 +738,7 @@ impl RapierBody2D {
     pub fn set_constant_force(&mut self, p_force: Vector2) {
         self.constant_force = p_force;
         let body_handle = self.base.get_body_handle();
-        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+        if !self.base.space_handle.is_valid() || !body_handle.is_valid() {
             return;
         }
         let force = Vector::new(p_force.x, p_force.y);
@@ -748,7 +747,7 @@ impl RapierBody2D {
     }
     pub fn get_constant_force(&self) -> Vector2 {
         let body_handle = self.base.get_body_handle();
-        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+        if !self.base.space_handle.is_valid() || !body_handle.is_valid() {
             return self.constant_force;
         }
 
@@ -760,7 +759,7 @@ impl RapierBody2D {
     pub fn set_constant_torque(&mut self, p_torque: real) {
         self.constant_torque = p_torque;
         let body_handle = self.base.get_body_handle();
-        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+        if !self.base.space_handle.is_valid() || !body_handle.is_valid() {
             return;
         }
         body_reset_torques(self.base.space_handle, body_handle);
@@ -768,7 +767,7 @@ impl RapierBody2D {
     }
     pub fn get_constant_torque(&self) -> real {
         let body_handle = self.base.get_body_handle();
-        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+        if !self.base.space_handle.is_valid() || !body_handle.is_valid() {
             return self.constant_torque;
         }
         body_get_constant_torque(self.base.space_handle, body_handle)
@@ -798,7 +797,7 @@ impl RapierBody2D {
 
     pub fn set_can_sleep(&mut self, p_can_sleep: bool) {
         let body_handle = self.base.get_body_handle();
-        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+        if !self.base.space_handle.is_valid() || !body_handle.is_valid() {
             return;
         }
         body_set_can_sleep(self.base.space_handle, body_handle, p_can_sleep);
@@ -845,7 +844,7 @@ impl RapierBody2D {
             return;
         }
         let body_handle = self.base.get_body_handle();
-        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+        if !self.base.space_handle.is_valid() || !body_handle.is_valid() {
             return;
         }
 
@@ -854,7 +853,7 @@ impl RapierBody2D {
     pub fn force_sleep(&mut self) {
         self.sleep = true;
         let body_handle = self.base.get_body_handle();
-        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+        if !self.base.space_handle.is_valid() || !body_handle.is_valid() {
             return;
         }
 
@@ -873,7 +872,7 @@ impl RapierBody2D {
                     self.friction = p_value.to();
                 }
                 let body_handle = self.base.get_body_handle();
-                if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+                if !self.base.space_handle.is_valid() || !body_handle.is_valid() {
                     return;
                 }
 
@@ -1169,7 +1168,7 @@ impl RapierBody2D {
     pub fn set_continuous_collision_detection_mode(&mut self, p_mode: CcdMode) {
         self.ccd_mode = p_mode;
         let body_handle = self.base.get_body_handle();
-        if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
+        if !self.base.space_handle.is_valid() || !body_handle.is_valid() {
             return;
         }
         body_set_ccd_enabled(

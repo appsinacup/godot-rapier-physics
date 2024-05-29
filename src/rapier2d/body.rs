@@ -67,21 +67,17 @@ pub fn body_change_mode(
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
-    let body = physics_world
-        .physics_objects
-        .rigid_body_set
-        .get_mut(rigid_body_handle);
-    assert!(body.is_some());
-    let body: &mut RigidBody = body.unwrap();
-    match body_type {
-        BodyType::Dynamic => {
-            body.set_body_type(RigidBodyType::Dynamic, wakeup);
-        }
-        BodyType::Kinematic => {
-            body.set_body_type(RigidBodyType::KinematicPositionBased, wakeup);
-        }
-        BodyType::Static => {
-            body.set_body_type(RigidBodyType::Fixed, wakeup);
+    if let Some(body) = physics_world.physics_objects.rigid_body_set.get_mut(rigid_body_handle) {
+        match body_type {
+            BodyType::Dynamic => {
+                body.set_body_type(RigidBodyType::Dynamic, wakeup);
+            }
+            BodyType::Kinematic => {
+                body.set_body_type(RigidBodyType::KinematicPositionBased, wakeup);
+            }
+            BodyType::Static => {
+                body.set_body_type(RigidBodyType::Fixed, wakeup);
+            }
         }
     }
 }
@@ -96,28 +92,24 @@ pub fn body_get_position(world_handle: Handle, body_handle: Handle) -> Vector {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
-    let body = physics_world
-        .physics_objects
-        .rigid_body_set
-        .get(rigid_body_handle);
-    assert!(body.is_some());
-    let body_vector = body.unwrap().translation();
-    vector_meters_to_pixels(&Vector {
-        x: body_vector.x,
-        y: body_vector.y,
-    })
+    if let Some(body) = physics_world.physics_objects.rigid_body_set.get(rigid_body_handle) {
+        let body_vector = body.translation();
+        return vector_meters_to_pixels(&Vector {
+            x: body_vector.x,
+            y: body_vector.y,
+        })
+    }
+    vector_meters_to_pixels(&Vector::default())
 }
 
 pub fn body_get_angle(world_handle: Handle, body_handle: Handle) -> Real {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
-    let body = physics_world
-        .physics_objects
-        .rigid_body_set
-        .get(rigid_body_handle);
-    assert!(body.is_some());
-    return body.unwrap().rotation().angle();
+    if let Some(body) = physics_world.physics_objects.rigid_body_set.get(rigid_body_handle) {
+        return body.rotation().angle();
+    }
+    0.0
 }
 
 pub fn body_set_transform(
@@ -130,30 +122,23 @@ pub fn body_set_transform(
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
-    let body = physics_world
-        .physics_objects
-        .rigid_body_set
-        .get_mut(rigid_body_handle);
-    assert!(body.is_some());
-    let body = body.unwrap();
-    set_rigid_body_properties_internal(body, pixel_pos, rot, wake_up);
+    if let Some(body) = physics_world.physics_objects.rigid_body_set.get_mut(rigid_body_handle) {
+        set_rigid_body_properties_internal(body, pixel_pos, rot, wake_up);
+    }
 }
 
 pub fn body_get_linear_velocity(world_handle: Handle, body_handle: Handle) -> Vector {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
-    let body = physics_world
-        .physics_objects
-        .rigid_body_set
-        .get(rigid_body_handle);
-    assert!(body.is_some());
-    let body = body.unwrap();
-    let body_vel = body.linvel();
-    vector_meters_to_pixels(&Vector {
-        x: body_vel.x,
-        y: body_vel.y,
-    })
+    if let Some(body) = physics_world.physics_objects.rigid_body_set.get(rigid_body_handle) {
+        let body_vel = body.linvel();
+        return vector_meters_to_pixels(&Vector {
+            x: body_vel.x,
+            y: body_vel.y,
+        });
+    }
+    vector_meters_to_pixels(&Vector::default())
 }
 
 pub fn body_set_linear_velocity(world_handle: Handle, body_handle: Handle, pixel_vel: &Vector) {
@@ -162,38 +147,29 @@ pub fn body_set_linear_velocity(world_handle: Handle, body_handle: Handle, pixel
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
-    let body = physics_world
-        .physics_objects
-        .rigid_body_set
-        .get_mut(rigid_body_handle);
-    assert!(body.is_some());
-    body.unwrap().set_linvel(vector![vel.x, vel.y], true);
+    if let Some(body) = physics_world.physics_objects.rigid_body_set.get_mut(rigid_body_handle) {
+        body.set_linvel(vector![vel.x, vel.y], true);
+    }
 }
 
 pub fn body_update_material(world_handle: Handle, body_handle: Handle, mat: &Material) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
-    let body = physics_world
-        .physics_objects
-        .rigid_body_set
-        .get_mut(rigid_body_handle);
-    assert!(body.is_some());
-    for collider in body.unwrap().colliders() {
-        if let Some(col) = physics_world
-            .physics_objects
-            .collider_set
-            .get_mut(*collider)
-        {
-            // TODO update when https://github.com/dimforge/rapier/issues/622 is fixed
-            if mat.friction >= 0.0 {
-                col.set_friction(mat.friction);
-            }
-            if mat.restitution >= 0.0 {
-                col.set_restitution(mat.restitution);
-            }
-            if mat.contact_skin >= 0.0 {
-                col.set_contact_skin(mat.contact_skin);
+    if let Some(body) = physics_world.physics_objects.rigid_body_set.get_mut(rigid_body_handle) {
+        for collider in body.colliders() {
+            if let Some(col) = physics_world.physics_objects.collider_set.get_mut(*collider)
+            {
+                // TODO update when https://github.com/dimforge/rapier/issues/622 is fixed
+                if mat.friction >= 0.0 {
+                    col.set_friction(mat.friction);
+                }
+                if mat.restitution >= 0.0 {
+                    col.set_restitution(mat.restitution);
+                }
+                if mat.contact_skin >= 0.0 {
+                    col.set_contact_skin(mat.contact_skin);
+                }
             }
         }
     }
@@ -203,48 +179,37 @@ pub fn body_get_angular_velocity(world_handle: Handle, body_handle: Handle) -> R
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
-    let body = physics_world
-        .physics_objects
-        .rigid_body_set
-        .get(rigid_body_handle);
-    assert!(body.is_some());
-    body.unwrap().angvel()
+    if let Some(body) = physics_world.physics_objects.rigid_body_set.get(rigid_body_handle) {
+        return body.angvel();
+    }
+    0.0
 }
 
 pub fn body_set_angular_velocity(world_handle: Handle, body_handle: Handle, vel: Real) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
-    let body = physics_world
-        .physics_objects
-        .rigid_body_set
-        .get_mut(rigid_body_handle);
-    assert!(body.is_some());
-    body.unwrap().set_angvel(vel, true);
+    if let Some(body) = physics_world.physics_objects.rigid_body_set.get_mut(rigid_body_handle) {
+        body.set_angvel(vel, true);
+    }
 }
 
 pub fn body_set_linear_damping(world_handle: Handle, body_handle: Handle, linear_damping: Real) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
-    let body = physics_world
-        .physics_objects
-        .rigid_body_set
-        .get_mut(rigid_body_handle);
-    assert!(body.is_some());
-    body.unwrap().set_linear_damping(linear_damping);
+    if let Some(body) = physics_world.physics_objects.rigid_body_set.get_mut(rigid_body_handle) {
+        body.set_linear_damping(linear_damping);
+    }
 }
 
 pub fn body_set_angular_damping(world_handle: Handle, body_handle: Handle, angular_damping: Real) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
-    let body = physics_world
-        .physics_objects
-        .rigid_body_set
-        .get_mut(rigid_body_handle);
-    assert!(body.is_some());
-    body.unwrap().set_angular_damping(angular_damping);
+    if let Some(body) = physics_world.physics_objects.rigid_body_set.get_mut(rigid_body_handle) {
+        body.set_angular_damping(angular_damping);
+    }
 }
 
 pub fn body_set_gravity_scale(
@@ -256,34 +221,25 @@ pub fn body_set_gravity_scale(
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
-    let body = physics_world
-        .physics_objects
-        .rigid_body_set
-        .get_mut(rigid_body_handle);
-    assert!(body.is_some());
-    body.unwrap().set_gravity_scale(gravity_scale, wake_up);
+    if let Some(body) = physics_world.physics_objects.rigid_body_set.get_mut(rigid_body_handle) {
+        body.set_gravity_scale(gravity_scale, wake_up);
+    }
 }
 
 pub fn body_set_can_sleep(world_handle: Handle, body_handle: Handle, can_sleep: bool) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
-    let body = physics_world
-        .physics_objects
-        .rigid_body_set
-        .get_mut(rigid_body_handle);
-    assert!(body.is_some());
-    let body = body.unwrap();
-
-    if !can_sleep && body.activation().angular_threshold != -1.0 {
-        let activation = body.activation_mut();
-        activation.angular_threshold = -1.0;
-        activation.normalized_linear_threshold = -1.0;
-    }
-
-    // TODO: Check if is requiered
-    if !can_sleep && body.is_sleeping() {
-        body.wake_up(true);
+    if let Some(body) = physics_world.physics_objects.rigid_body_set.get_mut(rigid_body_handle) {
+        if !can_sleep && body.activation().angular_threshold != -1.0 {
+            let activation = body.activation_mut();
+            activation.angular_threshold = -1.0;
+            activation.normalized_linear_threshold = -1.0;
+        }
+        // TODO: Check if is requiered
+        if !can_sleep && body.is_sleeping() {
+            body.wake_up(true);
+        }
     }
 }
 
@@ -291,12 +247,9 @@ pub fn body_set_ccd_enabled(world_handle: Handle, body_handle: Handle, enable: b
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
-    let body = physics_world
-        .physics_objects
-        .rigid_body_set
-        .get_mut(rigid_body_handle);
-    assert!(body.is_some());
-    body.unwrap().enable_ccd(enable);
+    if let Some(body) = physics_world.physics_objects.rigid_body_set.get_mut(rigid_body_handle) {
+        body.enable_ccd(enable);
+    }
 }
 
 pub fn body_set_mass_properties(
@@ -314,19 +267,14 @@ pub fn body_set_mass_properties(
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
-    let body = physics_world
-        .physics_objects
-        .rigid_body_set
-        .get_mut(rigid_body_handle);
-    assert!(body.is_some());
-    let body_ref = body.unwrap();
-    body_ref.set_additional_mass_properties(
-        MassProperties::new(point![local_com.x, local_com.y], mass, inertia),
-        wake_up,
-    );
-    if force_update {
-        body_ref
-            .recompute_mass_properties_from_colliders(&physics_world.physics_objects.collider_set);
+    if let Some(body) = physics_world.physics_objects.rigid_body_set.get_mut(rigid_body_handle) {
+        body.set_additional_mass_properties(
+            MassProperties::new(point![local_com.x, local_com.y], mass, inertia),
+            wake_up,
+        );
+        if force_update {
+            body.recompute_mass_properties_from_colliders(&physics_world.physics_objects.collider_set);
+        }
     }
 }
 
@@ -336,12 +284,9 @@ pub fn body_add_force(world_handle: Handle, body_handle: Handle, pixel_force: &V
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
-    let body = physics_world
-        .physics_objects
-        .rigid_body_set
-        .get_mut(rigid_body_handle);
-    assert!(body.is_some());
-    body.unwrap().add_force(vector!(force.x, force.y), true);
+    if let Some(body) = physics_world.physics_objects.rigid_body_set.get_mut(rigid_body_handle) {
+        body.add_force(vector!(force.x, force.y), true);
+    }
 }
 
 pub fn body_add_force_at_point(
@@ -356,15 +301,10 @@ pub fn body_add_force_at_point(
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
-    let body = physics_world
-        .physics_objects
-        .rigid_body_set
-        .get_mut(rigid_body_handle);
-    assert!(body.is_some());
-    let mut local_point = point![point.x, point.y];
-    let body = body.unwrap();
-    local_point += body.center_of_mass().coords;
-    body.add_force_at_point(vector!(force.x, force.y), local_point, true);
+    if let Some(body) = physics_world.physics_objects.rigid_body_set.get_mut(rigid_body_handle) {
+        let local_point = point![point.x, point.y] + body.center_of_mass().coords;
+        body.add_force_at_point(vector!(force.x, force.y), local_point, true);
+    }
 }
 
 pub fn body_add_torque(world_handle: Handle, body_handle: Handle, pixel_torque: Real) {
