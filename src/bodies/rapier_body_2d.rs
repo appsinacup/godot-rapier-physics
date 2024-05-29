@@ -129,8 +129,8 @@ impl RapierBody2D {
             mass: 1.0,
             inertia: 0.0,
             center_of_mass: Vector2::ZERO,
-            calculate_inertia: false,
-            calculate_center_of_mass: false,
+            calculate_inertia: true,
+            calculate_center_of_mass: true,
             using_area_gravity: false,
             using_area_linear_damping: false,
             using_area_angular_damping: false,
@@ -138,7 +138,7 @@ impl RapierBody2D {
             ccd_mode: CcdMode::DISABLED,
             omit_force_integration: false,
             active: true,
-            marked_active: true,
+            marked_active: false,
             can_sleep: true,
             constant_force: Vector2::ZERO,
             linear_velocity: Vector2::ZERO,
@@ -1378,7 +1378,7 @@ impl IRapierCollisionObject2D for RapierBody2D {
         }
     }
     fn set_space(&mut self, space: Rid) {
-        if (space == Rid::Invalid) {
+        if space == Rid::Invalid {
             return;
         }
     
@@ -1496,7 +1496,6 @@ impl IRapierCollisionObject2D for RapierBody2D {
 
     fn set_shape(&mut self, p_index: usize, p_shape: Rid) {
         assert!(p_index < self.base.shapes.len());
-
 
         self.base.shapes[p_index].collider_handle = self.base._destroy_shape(self.base.shapes[p_index], p_index);
         let shape = self.base.shapes[p_index];
@@ -1618,12 +1617,12 @@ impl IRapierCollisionObject2D for RapierBody2D {
     }
 
     fn _shape_changed(&mut self, p_shape: Rid) {
-        if (!self.base.space_handle.is_valid()) {
+        if !self.base.space_handle.is_valid() {
             return;
         }
         for i in 0..self.base.shapes.len() {
             let shape = self.base.shapes[i];
-            if (shape.shape != p_shape || shape.disabled) {
+            if shape.shape != p_shape || shape.disabled {
                 continue;
             }
             if self.base.shapes[i].collider_handle.is_valid() {

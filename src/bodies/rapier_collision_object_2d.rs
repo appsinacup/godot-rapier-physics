@@ -156,13 +156,13 @@ impl RapierCollisionObject2D {
         let mut i = 0;
         for shape in &mut self.shapes {
             let mut shape_rid = Rid::Invalid;
+            if !self.space_handle.is_valid() || !is_handle_valid(shape.collider_handle) {
+                // skip
+                continue;
+            }
             {
                 let mut lock = spaces_singleton().lock().unwrap();
                 if let Some(space) = lock.spaces.get_mut(&self.space) {
-                    assert!(is_handle_valid(self.space_handle));
-        
-                    assert!(is_handle_valid(shape.collider_handle));
-        
                     if self.area_detection_counter > 0 {
                         // Keep track of body information for delayed removal
                         space.add_removed_collider(shape.collider_handle, self.rid, self.instance_id, i, self.collision_object_type);
@@ -184,13 +184,9 @@ impl RapierCollisionObject2D {
     }
     pub(crate) fn _destroy_shape(&self, shape: CollisionObjectShape, p_shape_index: usize) -> Handle {
         let shape_rid = shape.shape;
-        {
+        if self.space_handle.is_valid() && is_handle_valid(shape.collider_handle) {
             let mut lock = spaces_singleton().lock().unwrap();
             if let Some(space) = lock.spaces.get_mut(&self.space) {
-                assert!(is_handle_valid(self.space_handle));
-    
-                assert!(is_handle_valid(shape.collider_handle));
-    
                 if self.area_detection_counter > 0 {
                     // Keep track of body information for delayed removal
                     space.add_removed_collider(shape.collider_handle, self.rid, self.instance_id, p_shape_index, self.get_type());
@@ -209,17 +205,13 @@ impl RapierCollisionObject2D {
     }
 
     pub(crate) fn update_shape_transform(&self, shape: &CollisionObjectShape) {
-        if !shape.disabled || !self.space_handle.is_valid() {
+        if !self.space_handle.is_valid() || !shape.collider_handle.is_valid() {
             return;
         }
         let origin = shape.xform.origin;
         let position = Vector::new(origin.x, origin.y);
         let angle = shape.xform.rotation();
         let scale = shape.xform.scale();
-
-        assert!(is_handle_valid(self.space_handle));
-
-        assert!(is_handle_valid(shape.collider_handle));
         let mut lock = shapes_singleton().lock().unwrap();
         if let Some(rapier_shape) = lock.shapes.get_mut(&shape.shape) {
             let shape_handle = rapier_shape.get_rapier_shape();
@@ -236,9 +228,9 @@ impl RapierCollisionObject2D {
     }
 
     pub(crate) fn update_transform(&mut self) {
-        assert!(is_handle_valid(self.space_handle));
-
-        assert!(is_handle_valid(self.body_handle));
+        if !self.space_handle.is_valid() || !self.body_handle.is_valid() {
+            return;
+        }
 
         let position = body_get_position(self.space_handle, self.body_handle);
         let angle = body_get_angle(self.space_handle, self.body_handle);
@@ -249,10 +241,11 @@ impl RapierCollisionObject2D {
     }
     pub(crate) fn _set_space(&mut self, p_space: Rid) {
         if self.space_handle.is_valid() {
-            assert!(is_handle_valid(self.body_handle));
-            // This call also destroys the colliders
-            body_destroy(self.space_handle, self.body_handle);
-            self.body_handle = invalid_handle();
+            if self.body_handle.is_valid() {
+                // This call also destroys the colliders
+                body_destroy(self.space_handle, self.body_handle);
+                self.body_handle = invalid_handle();
+            }
             
             self._destroy_shapes();
 
@@ -268,8 +261,6 @@ impl RapierCollisionObject2D {
             }
         }
         if self.space_handle.is_valid() {
-            assert!(!is_handle_valid(self.body_handle));
-
             let mut user_data = UserData::default();
             self.set_body_user_data(&mut user_data);
 
@@ -428,7 +419,9 @@ impl RapierCollisionObject2D {
     }
 
     pub fn set_collision_priority(&mut self, p_priority: real) {
-        assert!(p_priority > 0.0);
+        if p_priority < 0.0 {
+            return;
+        }
         self.collision_priority = p_priority;
     }
 
