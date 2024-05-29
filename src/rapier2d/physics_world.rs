@@ -8,7 +8,6 @@ use crate::rapier2d::physics_hooks::*;
 use crate::rapier2d::settings::*;
 use crate::rapier2d::user_data::*;
 use crate::rapier2d::vector::Vector;
-use godot::global::print;
 use godot::log::godot_error;
 use rapier2d::crossbeam;
 use rapier2d::data::Arena;
@@ -249,7 +248,7 @@ impl PhysicsWorld {
                 .unwrap();
 
             // Handle the contact force event.
-            let mut event_info = ContactForceEventInfo {
+            let event_info = ContactForceEventInfo {
                 collider1: collider_handle_to_handle(contact_force_event.collider1),
                 collider2: collider_handle_to_handle(contact_force_event.collider2),
                 user_data1: UserData::new(collider1.user_data),
@@ -351,10 +350,10 @@ impl PhysicsWorld {
                 rigid_body_handle,
                 &mut self.physics_objects.rigid_body_set,
             );
-            return collider_handle_to_handle(collider_handle);
+            collider_handle_to_handle(collider_handle)
         } else {
             let collider_handle = self.physics_objects.collider_set.insert(collider);
-            return collider_handle_to_handle(collider_handle);
+            collider_handle_to_handle(collider_handle)
         }
     }
 
@@ -370,10 +369,10 @@ impl PhysicsWorld {
 
     pub fn get_collider_user_data(&self, collider_handle: ColliderHandle) -> UserData {
         let collider = self.physics_objects.collider_set.get(collider_handle);
-        if !collider.is_some() {
-            return invalid_user_data();
+        if collider.is_none() {
+            invalid_user_data()
         } else {
-            return UserData::new(collider.unwrap().user_data);
+            UserData::new(collider.unwrap().user_data)
         }
     }
 
@@ -382,7 +381,7 @@ impl PhysicsWorld {
         if parent.is_some() {
             return self.physics_objects.rigid_body_set.get(parent.unwrap());
         } else {
-            return None;
+            None
         }
     }
 
@@ -400,10 +399,10 @@ impl PhysicsWorld {
 
     pub fn get_rigid_body_user_data(&self, rigid_body_handle: RigidBodyHandle) -> UserData {
         let rigid_body = self.physics_objects.rigid_body_set.get(rigid_body_handle);
-        if !rigid_body.is_some() {
-            return invalid_user_data();
+        if rigid_body.is_none() {
+            invalid_user_data()
         } else {
-            return UserData::new(rigid_body.unwrap().user_data);
+            UserData::new(rigid_body.unwrap().user_data)
         }
     }
 
@@ -419,7 +418,7 @@ impl PhysicsWorld {
         let joint_handle =
             self.physics_objects.impulse_joint_set
                 .insert(rigid_body_1_handle, rigid_body_2_handle, joint, true);
-        return joint_handle_to_handle(joint_handle);
+        joint_handle_to_handle(joint_handle)
     }
 
     pub fn remove_joint(&mut self, handle: Handle) {
@@ -443,7 +442,7 @@ impl PhysicsEngine {
 
     pub fn insert_world(&mut self, world: PhysicsWorld) -> Handle {
         let world_handle = self.physics_worlds.insert(world);
-        return world_handle_to_handle(world_handle);
+        world_handle_to_handle(world_handle)
     }
 
     pub fn remove_world(&mut self, handle: Handle) {
@@ -455,12 +454,12 @@ impl PhysicsEngine {
         let world_handle = handle_to_world_handle(handle);
         let world = self.physics_worlds.get_mut(world_handle);
         assert!(world.is_some());
-        return world.unwrap();
+        world.unwrap()
     }
 
     pub fn insert_shape(&mut self, shape: SharedShape) -> Handle {
         let shape_handle = self.shapes.insert(shape);
-        return shape_handle_to_handle(shape_handle);
+        shape_handle_to_handle(shape_handle)
     }
 
     pub fn remove_shape(&mut self, handle: Handle) {
@@ -472,7 +471,7 @@ impl PhysicsEngine {
         let shape_handle = handle_to_shape_handle(handle);
         let shape = self.shapes.get(shape_handle);
         assert!(shape.is_some());
-        return shape.unwrap();
+        shape.unwrap()
     }
 }
 
@@ -487,7 +486,7 @@ pub fn world_create(settings: &WorldSettings) -> Handle {
     let world_handle = physics_engine.insert_world(physics_world);
     let physics_world = physics_engine.get_world(world_handle);
     physics_world.physics_objects.handle = world_handle;
-    return world_handle;
+    world_handle
 }
 
 pub fn world_destroy(world_handle: Handle) {
@@ -534,11 +533,11 @@ pub fn world_export_json(world_handle: Handle) -> String {
     let serialized = serde_json::to_string(&physics_world.physics_objects.collider_set);
     match serialized {
         Ok(serialized) => {
-            return serialized;
+            serialized
         },
         Err(err) => {
             godot_error!("{}", err);
-            return String::from("{}");
+            String::from("{}")
         },
     }
 }
@@ -549,11 +548,11 @@ pub fn world_export_binary(world_handle: Handle) -> Vec<u8> {
     let serialized = bincode::serialize(&physics_world.physics_objects);
     match serialized {
         Ok(serialized) => {
-            return serialized;
+            serialized
         },
         Err(err) => {
             godot_error!("{}", err);
-            return Vec::new();
+            Vec::new()
         },
     }
 }

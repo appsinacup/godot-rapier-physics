@@ -1,14 +1,10 @@
 #[derive(Copy, Clone, Eq, Hash, PartialEq)]
+#[derive(Default)]
 pub struct UserData {
     pub part1: u64,
     pub part2: u64,
 }
 
-impl Default for UserData {
-    fn default() -> Self {
-        UserData { part1: 0, part2: 0 }
-    }
-}
 
 impl UserData {
     pub fn new(data: u128) -> UserData {
@@ -21,13 +17,13 @@ impl UserData {
     }
 
     pub fn is_valid(&self) -> bool {
-        return (self.part1 != u64::MAX) && (self.part2 != u64::MAX);
+        (self.part1 != u64::MAX) && (self.part2 != u64::MAX)
     }
 
     pub fn get_data(&self) -> u128 {
         let data1: u128 = self.part1.into();
         let data2: u128 = self.part2.into();
-        return data1 + (data2 << 64);
+        data1 + (data2 << 64)
     }
 }
 
@@ -39,5 +35,5 @@ pub fn invalid_user_data() -> UserData {
 }
 
 pub fn is_user_data_valid(user_data: UserData) -> bool {
-    return user_data.is_valid();
+    user_data.is_valid()
 }

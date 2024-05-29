@@ -59,7 +59,7 @@ impl IRapierShape2D for RapierSegmentShape2D {
             Vector::new(p4.x, p4.y),
         ];
 
-        return shape_create_convex_polyline(rapier_points.to_vec());
+        shape_create_convex_polyline(rapier_points.to_vec())
     }
 
     fn set_data(&mut self, data: Variant) {
@@ -85,7 +85,7 @@ impl IRapierShape2D for RapierSegmentShape2D {
     fn get_data(&self) -> Variant {
         let mut r = Rect2::new(self.a, self.b - self.a);
         r.size = self.b - self.a;
-        return r.to_variant();
+        r.to_variant()
     }
 
     fn get_rapier_shape(&mut self) -> Handle {

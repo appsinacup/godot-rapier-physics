@@ -150,7 +150,7 @@ impl RapierCollisionObject2D {
                 }
             }
         }
-        return handle;
+        handle
     }
     pub(crate) fn _destroy_shapes(&mut self) {
         let mut i = 0;
@@ -201,7 +201,7 @@ impl RapierCollisionObject2D {
                 shape.get_mut_base().destroy_rapier_shape();
             }
         }
-        return invalid_handle();
+        invalid_handle()
     }
 
     pub(crate) fn update_shape_transform(&self, shape: &CollisionObjectShape) {
@@ -320,7 +320,7 @@ impl RapierCollisionObject2D {
     }
     pub fn get_body_user_data(user_data: &UserData) -> Rid {
         let (rid, _) = Self::get_collider_user_data(user_data);
-        return rid;
+        rid
     }
 
     pub fn set_collider_user_data(&self, r_user_data: &mut UserData, p_shape_index: usize) {
@@ -329,7 +329,7 @@ impl RapierCollisionObject2D {
     }
 
     pub fn get_collider_user_data(p_user_data: &UserData) -> (Rid, usize) {
-        return (Rid::new(p_user_data.part1), p_user_data.part2 as usize);
+        (Rid::new(p_user_data.part1), p_user_data.part2 as usize)
     }
 
     pub fn get_type(&self) -> CollisionObjectType {
@@ -337,11 +337,11 @@ impl RapierCollisionObject2D {
     }
 
     pub fn get_shape_count(&self) -> i32 {
-        return self.shapes.len() as i32;
+        self.shapes.len() as i32
     }
 
     pub fn get_shape(&self, idx: usize) -> Rid {
-        return self.shapes[idx].shape;
+        self.shapes[idx].shape
     }
 
     pub fn get_shape_transform(&self, idx: usize) -> Transform2D {

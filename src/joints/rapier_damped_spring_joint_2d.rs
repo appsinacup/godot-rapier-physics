@@ -77,7 +77,7 @@ impl RapierDampedSpringJoint2D {
         );
 
         Self {
-            rest_length: rest_length,
+            rest_length,
             stiffness: 20.0,
             damping: 1.5,
             base: RapierJointBase2D::new(space_handle, handle, rid),

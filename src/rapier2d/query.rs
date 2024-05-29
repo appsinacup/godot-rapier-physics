@@ -135,7 +135,7 @@ pub fn intersect_ray(
     handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
 ) -> bool {
-    let from = vector_pixels_to_meters(&pixel_from);
+    let from = vector_pixels_to_meters(pixel_from);
     let length = pixels_to_meters(pixel_length);
 
     let mut physics_engine = singleton().lock().unwrap();
@@ -153,12 +153,12 @@ pub fn intersect_ray(
     }
 
     let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
-        return !handle_excluded_callback(
+        !handle_excluded_callback(
             world_handle,
             collider_handle_to_handle(handle),
             &physics_world.get_collider_user_data(handle),
-            &handle_excluded_info,
-        );
+            handle_excluded_info,
+        )
     };
 
     filter.predicate = Some(&predicate);
@@ -203,7 +203,7 @@ pub fn intersect_ray(
             },
         );
 
-    return result;
+    result
 }
 
 pub fn intersect_point(
@@ -218,7 +218,7 @@ pub fn intersect_point(
 ) -> usize {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
-    let position = vector_pixels_to_meters(&pixel_position);
+    let position = vector_pixels_to_meters(pixel_position);
     let point = Point::new(position.x, position.y);
     let mut filter = QueryFilter::new();
 
@@ -230,12 +230,12 @@ pub fn intersect_point(
     }
 
     let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
-        return !handle_excluded_callback(
+        !handle_excluded_callback(
             world_handle,
             collider_handle_to_handle(handle),
             &physics_world.get_collider_user_data(handle),
-            &handle_excluded_info,
-        );
+            handle_excluded_info,
+        )
     };
 
     filter.predicate = Some(&predicate);
@@ -265,12 +265,12 @@ pub fn intersect_point(
                 hit_info_slice[cpt_hit].collider = collider_handle_to_handle(handle);
                 hit_info_slice[cpt_hit].user_data = physics_world.get_collider_user_data(handle);
                 cpt_hit += 1;
-                let keep_searching = cpt_hit < hit_info_length;
-                keep_searching // Continue to search collisions if we still have space for results.
+                
+                cpt_hit < hit_info_length // Continue to search collisions if we still have space for results.
             },
         );
 
-    return cpt_hit;
+    cpt_hit
 }
 
 pub fn shape_collide(
@@ -279,8 +279,8 @@ pub fn shape_collide(
     pixel_motion2: &Vector,
     shape_info2: ShapeInfo,
 ) -> ShapeCastResult {
-    let mut motion1 = vector_pixels_to_meters(&pixel_motion1);
-    let mut motion2 = vector_pixels_to_meters(&pixel_motion2);
+    let mut motion1 = vector_pixels_to_meters(pixel_motion1);
+    let mut motion2 = vector_pixels_to_meters(pixel_motion2);
     if motion1.x == 0.0 && motion1.y == 0.0 {
         motion1.x = 1e-5;
     }
@@ -345,7 +345,7 @@ pub fn shape_collide(
         });
         return result;
     }
-    return result;
+    result
 }
 
 pub fn shape_casting(
@@ -358,7 +358,7 @@ pub fn shape_casting(
     handle_excluded_info: &QueryExcludedInfo,
     ignore_intersecting: bool,
 ) -> ShapeCastResult {
-    let motion = vector_pixels_to_meters(&pixel_motion);
+    let motion = vector_pixels_to_meters(pixel_motion);
     let position = vector_pixels_to_meters(&shape_info.pixel_position);
 
     let mut physics_engine = singleton().lock().unwrap();
@@ -385,12 +385,12 @@ pub fn shape_casting(
     }
 
     let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
-        return !handle_excluded_callback(
+        !handle_excluded_callback(
             world_handle,
             collider_handle_to_handle(handle),
             &physics_world.get_collider_user_data(handle),
-            &handle_excluded_info,
-        );
+            handle_excluded_info,
+        )
     };
 
     filter.predicate = Some(&predicate);
@@ -437,7 +437,7 @@ pub fn shape_casting(
             y: witness2.y,
         });
     }
-    return result;
+    result
 }
 
 pub fn intersect_shape(
@@ -473,12 +473,12 @@ pub fn intersect_shape(
     }
 
     let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
-        return !handle_excluded_callback(
+        !handle_excluded_callback(
             world_handle,
             collider_handle_to_handle(handle),
             &physics_world.get_collider_user_data(handle),
-            &handle_excluded_info,
-        );
+            handle_excluded_info,
+        )
     };
 
     filter.predicate = Some(&predicate);
@@ -509,12 +509,12 @@ pub fn intersect_shape(
                 hit_info_slice[cpt_hit].collider = collider_handle_to_handle(handle);
                 hit_info_slice[cpt_hit].user_data = physics_world.get_collider_user_data(handle);
                 cpt_hit += 1;
-                let keep_searching = cpt_hit < hit_info_length;
-                keep_searching // Continue to search collisions if we still have space for results.
+                
+                cpt_hit < hit_info_length // Continue to search collisions if we still have space for results.
             },
         );
 
-    return cpt_hit;
+    cpt_hit
 }
 
 pub fn intersect_aabb(
@@ -528,8 +528,8 @@ pub fn intersect_aabb(
     handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
 ) -> usize {
-    let aabb_min = vector_pixels_to_meters(&pixel_aabb_min);
-    let aabb_max = vector_pixels_to_meters(&pixel_aabb_max);
+    let aabb_min = vector_pixels_to_meters(pixel_aabb_min);
+    let aabb_max = vector_pixels_to_meters(pixel_aabb_max);
 
     let mut physics_engine = singleton().lock().unwrap();
 
@@ -566,7 +566,7 @@ pub fn intersect_aabb(
                         world_handle,
                         collider_handle_to_handle(*handle),
                         &physics_world.get_collider_user_data(*handle),
-                        &handle_excluded_info,
+                        handle_excluded_info,
                     );
                 }
             }
@@ -579,11 +579,11 @@ pub fn intersect_aabb(
             hit_info_slice[cpt_hit].collider = collider_handle_to_handle(*handle);
             hit_info_slice[cpt_hit].user_data = physics_world.get_collider_user_data(*handle);
             cpt_hit += 1;
-            let keep_searching = cpt_hit < max_results;
-            keep_searching // Continue to search collisions if we still have space for results.
+            
+            cpt_hit < max_results // Continue to search collisions if we still have space for results.
         });
 
-    return cpt_hit;
+    cpt_hit
 }
 
 pub fn shapes_contact(
@@ -627,11 +627,7 @@ pub fn shapes_contact(
         // the distance is negative if there is intersection
         // and positive if the objects are separated by distance less than margin
         result.pixel_distance = meters_to_pixels(contact.dist);
-        if contact.dist <= 0.0 {
-            result.within_margin = false;
-        } else {
-            result.within_margin = true;
-        }
+        result.within_margin = contact.dist > 0.0;
         result.collided = true;
         result.normal1 = Vector {
             x: contact.normal1.x,
@@ -651,5 +647,5 @@ pub fn shapes_contact(
         });
         return result;
     }
-    return result;
+    result
 }

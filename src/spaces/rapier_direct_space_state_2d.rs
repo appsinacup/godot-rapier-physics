@@ -40,7 +40,7 @@ impl RapierDirectSpaceState2D {
         if let Some(space) = space {
             return space.export_json();
         }
-        return "{}".to_string();
+        "{}".to_string()
     }
     #[func]
     fn export_binary(&self) -> PackedByteArray {
@@ -49,7 +49,7 @@ impl RapierDirectSpaceState2D {
         if let Some(space) = space {
             return space.export_binary();
         }
-        return PackedByteArray::default();
+        PackedByteArray::default()
     }
 }
 
@@ -167,7 +167,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         let rapier_pos = Vector::new(position.x, position.y);
 
         // Allocate memory for hit_info_array
-        let mut hit_info_array: Vec<PointHitInfo> = Vec::with_capacity(max_results as usize);
+        let mut hit_info_array: Vec<PointHitInfo> = Vec::with_capacity(max_results);
         let hit_info_ptr = hit_info_array.as_mut_ptr();
 
         // Initialize query_excluded_info
@@ -194,7 +194,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             unsafe { std::slice::from_raw_parts_mut(results, max_results) };
 
         for i in 0..max_results {
-            let hit_info = unsafe { &mut *hit_info_ptr.add(i as usize) };
+            let hit_info = unsafe { &mut *hit_info_ptr.add(i) };
 
             let (rid, shape_index) =
                 RapierCollisionObject2D::get_collider_user_data(&hit_info.user_data);
@@ -213,7 +213,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             }
         }
 
-        return result_count as i32;
+        result_count as i32
     }
 
     unsafe fn intersect_shape(
@@ -253,7 +253,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
 
         let mut query_excluded_info = default_query_excluded_info();
         query_excluded_info.query_collision_layer_mask = collision_mask;
-        let mut query_exclude: Vec<Handle> = Vec::with_capacity(max_results as usize);
+        let mut query_exclude: Vec<Handle> = Vec::with_capacity(max_results);
         query_excluded_info.query_exclude = query_exclude.as_mut_ptr();
         query_excluded_info.query_exclude_size = 0;
         let mut cpt = 0;
@@ -297,7 +297,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             }
         }
 
-        return cpt as i32;
+        cpt as i32
     }
 
     unsafe fn cast_motion(
@@ -354,7 +354,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         // TODO
         *closest_safe = hit as f64;
         *closest_unsafe = hit as f64;
-        return true;
+        true
     }
 
     unsafe fn collide_shape(
@@ -433,7 +433,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             cpt += 1;
         }
 
-        return array_idx > 0;
+        array_idx > 0
     }
 
     unsafe fn rest_info(
@@ -509,6 +509,6 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             r_info.rid = rid;
             r_info.shape = shape_index as i32;
         }
-        return true;
+        true
     }
 }

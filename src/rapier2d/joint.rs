@@ -37,7 +37,7 @@ pub fn joint_create_revolute(
         joint = joint.motor_velocity(motor_target_velocity, 0.0);
     }
 
-    return physics_world.insert_joint(body_handle_1, body_handle_2, joint);
+    physics_world.insert_joint(body_handle_1, body_handle_2, joint)
 }
 
 pub fn joint_change_revolute_params(
@@ -97,7 +97,7 @@ pub fn joint_create_prismatic(
         .limits([limits.x, limits.y])
         .contacts_enabled(!disable_collision);
 
-    return physics_world.insert_joint(body_handle_1, body_handle_2, joint);
+    physics_world.insert_joint(body_handle_1, body_handle_2, joint)
 }
 
 pub fn joint_create_spring(
@@ -122,7 +122,7 @@ pub fn joint_create_spring(
         .local_anchor1(point!(anchor_1.x, anchor_1.y))
         .local_anchor2(point!(anchor_2.x, anchor_2.y))
         .contacts_enabled(!disable_collision);
-    return physics_world.insert_joint(body_handle_1, body_handle_2, joint);
+    physics_world.insert_joint(body_handle_1, body_handle_2, joint)
 }
 
 pub fn joint_change_spring_params(
@@ -152,7 +152,7 @@ pub fn joint_destroy(world_handle: Handle, joint_handle: Handle) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
 
-    return physics_world.remove_joint(joint_handle);
+    physics_world.remove_joint(joint_handle)
 }
 
 pub fn joint_change_disable_collision(

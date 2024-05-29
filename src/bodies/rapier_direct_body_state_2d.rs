@@ -195,7 +195,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let mut lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                return body.apply_central_impulse(impulse);
+                body.apply_central_impulse(impulse)
             }
         }
     }
@@ -204,7 +204,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let mut lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                return body.apply_impulse(impulse, position);
+                body.apply_impulse(impulse, position)
             }
         }
     }
@@ -213,7 +213,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let mut lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                return body.apply_torque_impulse(impulse);
+                body.apply_torque_impulse(impulse)
             }
         }
     }
@@ -222,7 +222,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let mut lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                return body.apply_central_force(force);
+                body.apply_central_force(force)
             }
         }
     }
@@ -231,7 +231,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let mut lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                return body.apply_force(force, position);
+                body.apply_force(force, position)
             }
         }
     }
@@ -240,7 +240,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let mut lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                return body.apply_torque(torque);
+                body.apply_torque(torque)
             }
         }
     }
@@ -249,7 +249,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let mut lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                return body.add_constant_central_force(force);
+                body.add_constant_central_force(force)
             }
         }
     }
@@ -258,7 +258,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let mut lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                return body.add_constant_force(force, position);
+                body.add_constant_force(force, position)
             }
         }
     }
@@ -267,7 +267,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let mut lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                return body.add_constant_torque(torque);
+                body.add_constant_torque(torque)
             }
         }
     }
@@ -276,7 +276,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let mut lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                return body.set_constant_force(force);
+                body.set_constant_force(force)
             }
         }
     }
@@ -295,7 +295,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let mut lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                return body.set_constant_torque(torque);
+                body.set_constant_torque(torque)
             }
         }
     }
@@ -455,7 +455,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_step(&self) -> f32 {
-        return RapierSpace2D::get_last_step();
+        RapierSpace2D::get_last_step()
     }
 
     fn integrate_forces(&mut self) {}

@@ -16,7 +16,7 @@ fn skew_polyline(vertices: &Vec<Point2<Real>>, skew: Real) -> SharedShape {
     // Apply skew transformation to the vertices
     let mut skewed_vertices = Vec::new();
     for vertex in vertices {
-        let mut skewed_vertex = vertex.clone();
+        let mut skewed_vertex = *vertex;
         skewed_vertex.x -= skewed_vertex.y * skew;
         skewed_vertices.push(skewed_vertex);
     }
@@ -43,15 +43,15 @@ pub fn skew_shape(shape: &SharedShape, skew: Real) -> SharedShape {
                 let transformed_position = *position;
                 transformed_shapes.push((transformed_position, skewed_sub_shape));
             }
-            return SharedShape::compound(transformed_shapes);
+            SharedShape::compound(transformed_shapes)
         }
         ShapeType::Ball => {
             let ball_polyline = shape.as_ball().unwrap().to_polyline(SUBDIVISIONS);
-            return skew_polyline(&ball_polyline, skew);
+            skew_polyline(&ball_polyline, skew)
         }
         ShapeType::Cuboid => {
             let cuboid_polyline = shape.as_cuboid().unwrap().to_polyline();
-            return skew_polyline(&cuboid_polyline, skew);
+            skew_polyline(&cuboid_polyline, skew)
         }
         ShapeType::Polyline => {
             let polyline = shape.as_polyline().unwrap();
@@ -60,14 +60,14 @@ pub fn skew_shape(shape: &SharedShape, skew: Real) -> SharedShape {
         ShapeType::ConvexPolygon => {
             let convex_polygon = shape.as_convex_polygon().unwrap();
             let pooints = convex_polygon.points();
-            return skew_polyline(&pooints.to_vec(), skew);
+            skew_polyline(&pooints.to_vec(), skew)
         }
         ShapeType::Capsule => {
             let capsule = shape.as_capsule().unwrap().to_polyline(SUBDIVISIONS);
-            return skew_polyline(&capsule, skew);
+            skew_polyline(&capsule, skew)
         }
         _ => {
-            return shape.clone();
+            shape.clone()
         }
     }
 }
@@ -116,7 +116,7 @@ pub fn scale_shape(shape: &SharedShape, scale: &Vector2<Real>) -> SharedShape {
         }
         return SharedShape::compound(shapes_vec);
     }
-    return shape.clone();
+    shape.clone()
 }
 
 pub struct Material {
@@ -187,7 +187,7 @@ pub fn collider_create_solid(
             ColliderSampling::DynamicContactSampling,
         );
     }
-    return handle;
+    handle
 }
 
 pub fn collider_create_sensor(
@@ -210,7 +210,7 @@ pub fn collider_create_sensor(
     collider.user_data = user_data.get_data();
     collider.set_active_hooks(ActiveHooks::FILTER_INTERSECTION_PAIR);
     let physics_world = physics_engine.get_world(world_handle);
-    return physics_world.insert_collider(collider, body_handle);
+    physics_world.insert_collider(collider, body_handle)
 }
 
 pub fn collider_destroy(world_handle: Handle, handle: Handle) {
@@ -221,7 +221,7 @@ pub fn collider_destroy(world_handle: Handle, handle: Handle) {
         .fluids_pipeline
         .coupling
         .unregister_coupling(collider_handle);
-    return physics_world.remove_collider(handle);
+    physics_world.remove_collider(handle)
 }
 
 pub fn collider_get_position(world_handle: Handle, handle: Handle) -> Vector {
@@ -234,10 +234,10 @@ pub fn collider_get_position(world_handle: Handle, handle: Handle) -> Vector {
         .get(collider_handle);
     assert!(collider.is_some());
     let collider_vector = collider.unwrap().translation();
-    return vector_meters_to_pixels(&Vector {
+    vector_meters_to_pixels(&Vector {
         x: collider_vector.x,
         y: collider_vector.y,
-    });
+    })
 }
 
 pub fn collider_get_angle(world_handle: Handle, handle: Handle) -> Real {

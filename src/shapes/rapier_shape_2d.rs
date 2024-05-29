@@ -60,7 +60,7 @@ impl RapierShapeBase2D {
     }
 
     pub fn get_aabb(&self, origin: Vector2) -> Rect2 {
-        let mut aabb_clone = self.aabb.clone();
+        let mut aabb_clone = self.aabb;
         aabb_clone.position += origin;
         aabb_clone
     }
@@ -104,7 +104,7 @@ impl RapierShapeBase2D {
 
 impl Drop for RapierShapeBase2D {
     fn drop(&mut self) {
-        if self.owners.len() > 0 {
+        if !self.owners.is_empty() {
             godot_error!("RapierShapeBase2D leaked {} owners", self.owners.len());
         }
         if self.handle.is_valid() {

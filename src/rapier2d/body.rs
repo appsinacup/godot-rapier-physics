@@ -55,7 +55,7 @@ pub fn body_create(
         .physics_objects
         .rigid_body_set
         .insert(rigid_body);
-    return rigid_body_handle_to_handle(body_handle);
+    rigid_body_handle_to_handle(body_handle)
 }
 
 pub fn body_change_mode(
@@ -102,10 +102,10 @@ pub fn body_get_position(world_handle: Handle, body_handle: Handle) -> Vector {
         .get(rigid_body_handle);
     assert!(body.is_some());
     let body_vector = body.unwrap().translation();
-    return vector_meters_to_pixels(&Vector {
+    vector_meters_to_pixels(&Vector {
         x: body_vector.x,
         y: body_vector.y,
-    });
+    })
 }
 
 pub fn body_get_angle(world_handle: Handle, body_handle: Handle) -> Real {
@@ -150,10 +150,10 @@ pub fn body_get_linear_velocity(world_handle: Handle, body_handle: Handle) -> Ve
     assert!(body.is_some());
     let body = body.unwrap();
     let body_vel = body.linvel();
-    return vector_meters_to_pixels(&Vector {
+    vector_meters_to_pixels(&Vector {
         x: body_vel.x,
         y: body_vel.y,
-    });
+    })
 }
 
 pub fn body_set_linear_velocity(world_handle: Handle, body_handle: Handle, pixel_vel: &Vector) {
@@ -208,7 +208,7 @@ pub fn body_get_angular_velocity(world_handle: Handle, body_handle: Handle) -> R
         .rigid_body_set
         .get(rigid_body_handle);
     assert!(body.is_some());
-    return body.unwrap().angvel();
+    body.unwrap().angvel()
 }
 
 pub fn body_set_angular_velocity(world_handle: Handle, body_handle: Handle, vel: Real) {
@@ -430,10 +430,10 @@ pub fn body_get_constant_force(world_handle: Handle, body_handle: Handle) -> Vec
         .get_mut(rigid_body_handle);
     assert!(body.is_some());
     let constant_force = body.unwrap().user_force();
-    return vector_meters_to_pixels(&Vector {
+    vector_meters_to_pixels(&Vector {
         x: constant_force.x,
         y: constant_force.y,
-    });
+    })
 }
 
 pub fn body_get_constant_torque(world_handle: Handle, body_handle: Handle) -> Real {

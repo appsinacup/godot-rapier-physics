@@ -63,7 +63,7 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
             return None;
         }
 
-        return Some(SolverFlags::COMPUTE_IMPULSES);
+        Some(SolverFlags::COMPUTE_IMPULSES)
     }
 
     fn filter_intersection_pair(&self, context: &PairFilterContext) -> bool {
@@ -75,7 +75,7 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
         filter_info.user_data2 = UserData::new(user_data2);
 
         // Handle intersection filtering for sensors
-        return (self.collision_filter_sensor_callback)(&filter_info);
+        (self.collision_filter_sensor_callback)(&filter_info)
     }
 
     fn modify_solver_contacts(&self, context: &mut ContactModificationContext) {

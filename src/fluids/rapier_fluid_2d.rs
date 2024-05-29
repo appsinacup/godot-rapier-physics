@@ -22,7 +22,7 @@ pub struct RapierFluid2D {
 impl RapierFluid2D {
     pub fn new(rid: Rid) -> Self {
         Self {
-            rid: rid,
+            rid,
             enabled: true,
             density: 1.0,
             space: Rid::Invalid,

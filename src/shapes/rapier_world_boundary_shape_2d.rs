@@ -45,7 +45,7 @@ impl IRapierShape2D for RapierWorldBoundaryShape2D {
             x: self.normal.x,
             y: -self.normal.y,
         };
-        return shape_create_halfspace(&v, -self.d);
+        shape_create_halfspace(&v, -self.d)
     }
 
     fn set_data(&mut self, data: Variant) {
@@ -76,7 +76,7 @@ impl IRapierShape2D for RapierWorldBoundaryShape2D {
         let mut arr = Array::<Variant>::new();
         arr.push(self.normal.to_variant());
         arr.push(self.d.to_variant());
-        return arr.to_variant();
+        arr.to_variant()
     }
 
     fn get_rapier_shape(&mut self) -> Handle {

@@ -21,7 +21,7 @@ pub fn pixel_vector_array_to_vec(pixel_data: Vec<Vector>) -> Vec<SalvaVector<Rea
         let salva_vector = SalvaVector::<Real>::new(point.x, point.y);
         vec.push(salva_vector);
     }
-    return vec;
+    vec
 }
 
 pub fn fluid_create(world_handle: Handle, density: Real) -> HandleDouble {
@@ -29,7 +29,7 @@ pub fn fluid_create(world_handle: Handle, density: Real) -> HandleDouble {
     let physics_world = physics_engine.get_world(world_handle);
     let particle_radius = physics_world.fluids_pipeline.liquid_world.particle_radius();
     let fluid = Fluid::new(Vec::new(), particle_radius, density);
-    return fluid_handle_to_handle(physics_world.fluids_pipeline.liquid_world.add_fluid(fluid));
+    fluid_handle_to_handle(physics_world.fluids_pipeline.liquid_world.add_fluid(fluid))
 }
 
 pub fn fluid_change_density(world_handle: Handle, fluid_handle: HandleDouble, density: Real) {

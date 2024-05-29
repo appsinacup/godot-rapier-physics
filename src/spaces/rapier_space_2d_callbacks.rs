@@ -1,47 +1,22 @@
-use crate::bodies;
-use crate::bodies::rapier_body_2d::RapierBody2D;
 use crate::bodies::rapier_collision_object_2d::IRapierCollisionObject2D;
-use crate::rapier2d::physics_world::{world_export_binary, world_export_json, world_get_active_objects_count, world_step};
-use crate::rapier2d::query::{default_query_excluded_info, intersect_aabb, shapes_contact, ContactResult};
-use crate::rapier2d::settings::SimulationSettings;
-use crate::rapier2d::shape::shape_info_from_body_shape;
-use crate::rapier2d::user_data::is_user_data_valid;
-use crate::rapier2d::vector::Vector;
-use crate::servers::rapier_physics_singleton_2d::{active_spaces_singleton, bodies_singleton, shapes_singleton, spaces_singleton};
-use crate::servers::rapier_project_settings::RapierProjectSettings;
+use crate::servers::rapier_physics_singleton_2d::{active_spaces_singleton, bodies_singleton, spaces_singleton};
 use crate::shapes::rapier_shape_2d::IRapierShape2D;
-use crate::spaces::rapier_direct_space_state_2d::RapierDirectSpaceState2D;
 use crate::{
     bodies::rapier_collision_object_2d::{
-            CollisionObjectType, RapierCollisionObject2D,
+            RapierCollisionObject2D,
         },
     rapier2d::{
         handle::Handle,
         physics_hooks::{CollisionFilterInfo, OneWayDirection},
         physics_world::{
-            world_create, ActiveBodyInfo, CollisionEventInfo,
+            ActiveBodyInfo, CollisionEventInfo,
             ContactForceEventInfo, ContactPointInfo,
         },
-        query::{PointHitInfo, QueryExcludedInfo},
-        settings::default_world_settings,
-        user_data::UserData,
-    },
-    servers::{
     },
 };
-use godot::engine::{collision_object_2d, IPhysicsDirectBodyState2DExtension, PhysicsDirectBodyState2DExtension};
-use godot::engine::physics_server_2d::{AreaParameter, BodyMode};
 use godot::{
-    engine::{
-        native::{ObjectId, PhysicsServer2DExtensionMotionResult},
-        physics_server_2d, PhysicsDirectSpaceState2D, ProjectSettings,
-    },
     prelude::*,
 };
-use std::cmp::{self, max};
-use std::collections::HashMap;
-use std::f32::EPSILON;
-use std::mem::swap;
 use super::rapier_space_2d::{RapierSpace2D};
 
 pub struct CollidersInfo {
@@ -86,7 +61,7 @@ impl RapierSpace2D {
                 return body1.get_base().interacts_with(body2.get_base())
             }
         }
-        return false;
+        false
     }
 
     pub fn collision_filter_body_callback(
@@ -109,7 +84,7 @@ impl RapierSpace2D {
         }
         }
     
-        return true;
+        true
     }
 
     pub fn collision_filter_sensor_callback(
@@ -133,34 +108,30 @@ impl RapierSpace2D {
             return result
         }
         let [collision_object_1, collision_object_2] = lock.collision_objects.get_many_mut([&object1, &object2]).unwrap();
-        if collision_object_1.get_base().interacts_with(collision_object_2.get_base()) {
-            if !collision_object_1.get_base().is_shape_disabled(shape1)
-                && !collision_object_2.get_base().is_shape_disabled(shape2)
-            {
-                result.body1 = collision_object_1.get_base().is_shape_set_as_one_way_collision(shape1);
-                result.pixel_body1_margin =
-                    collision_object_1.get_base().get_shape_one_way_collision_margin(shape1);
-                result.body2 = collision_object_2.get_base().is_shape_set_as_one_way_collision(shape2);
-                result.pixel_body2_margin =
-                    collision_object_2.get_base().get_shape_one_way_collision_margin(shape2);
-                if let Some(body1) = collision_object_1.get_mut_body() {
-                    if let Some(body2) = collision_object_2.get_mut_body() {
-                        let static_linear_velocity1 = body1.get_static_linear_velocity();
-                        let static_linear_velocity2 = body2.get_static_linear_velocity();
-                        if static_linear_velocity1 != Vector2::default() {
-                            body2.to_add_static_constant_linear_velocity(static_linear_velocity1);
-                        }
-                        if static_linear_velocity2 != Vector2::default() {
-                            body1.to_add_static_constant_linear_velocity(static_linear_velocity2);
-                        }
-                        let static_angular_velocity1 = body1.get_static_angular_velocity();
-                        let static_angular_velocity2 = body2.get_static_angular_velocity();
-                        if static_angular_velocity1 != 0.0 {
-                            body2.to_add_static_constant_angular_velocity(static_angular_velocity1);
-                        }
-                        if static_angular_velocity2 != 0.0 {
-                            body1.to_add_static_constant_angular_velocity(static_angular_velocity2);
-                        }
+        if collision_object_1.get_base().interacts_with(collision_object_2.get_base()) && !collision_object_1.get_base().is_shape_disabled(shape1) && !collision_object_2.get_base().is_shape_disabled(shape2) {
+            result.body1 = collision_object_1.get_base().is_shape_set_as_one_way_collision(shape1);
+            result.pixel_body1_margin =
+                collision_object_1.get_base().get_shape_one_way_collision_margin(shape1);
+            result.body2 = collision_object_2.get_base().is_shape_set_as_one_way_collision(shape2);
+            result.pixel_body2_margin =
+                collision_object_2.get_base().get_shape_one_way_collision_margin(shape2);
+            if let Some(body1) = collision_object_1.get_mut_body() {
+                if let Some(body2) = collision_object_2.get_mut_body() {
+                    let static_linear_velocity1 = body1.get_static_linear_velocity();
+                    let static_linear_velocity2 = body2.get_static_linear_velocity();
+                    if static_linear_velocity1 != Vector2::default() {
+                        body2.to_add_static_constant_linear_velocity(static_linear_velocity1);
+                    }
+                    if static_linear_velocity2 != Vector2::default() {
+                        body1.to_add_static_constant_linear_velocity(static_linear_velocity2);
+                    }
+                    let static_angular_velocity1 = body1.get_static_angular_velocity();
+                    let static_angular_velocity2 = body2.get_static_angular_velocity();
+                    if static_angular_velocity1 != 0.0 {
+                        body2.to_add_static_constant_angular_velocity(static_angular_velocity1);
+                    }
+                    if static_angular_velocity2 != 0.0 {
+                        body1.to_add_static_constant_angular_velocity(static_angular_velocity2);
                     }
                 }
             }
