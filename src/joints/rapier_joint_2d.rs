@@ -32,9 +32,9 @@ impl RapierJointBase2D {
     pub fn new(space_handle: Handle, handle: Handle, rid: Rid) -> Self {
         Self {
             max_force: 3.40282e38,
-            rid: rid,
-            handle: handle,
-            space_handle: space_handle,
+            rid,
+            handle,
+            space_handle,
             disabled_collisions_between_bodies: true,
         }
     }

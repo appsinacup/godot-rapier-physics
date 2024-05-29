@@ -27,7 +27,7 @@ impl EventHandler for ContactEventHandler {
         event: CollisionEvent,
         contact_pair: Option<&ContactPair>,
     ) {
-        let _ = self
+        self
             .collision_send
             .send((event, contact_pair.cloned()))
             .unwrap();
@@ -42,7 +42,7 @@ impl EventHandler for ContactEventHandler {
         total_force_magnitude: Real,
     ) {
         let result = ContactForceEvent::from_contact_pair(dt, contact_pair, total_force_magnitude);
-        let _ = self
+        self
             .contact_force_send
             .send((result, contact_pair.clone()))
             .unwrap();

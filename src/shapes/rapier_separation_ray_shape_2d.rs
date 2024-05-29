@@ -38,7 +38,7 @@ impl IRapierShape2D for RapierSeparationRayShape2D {
     }
 
     fn create_rapier_shape(&mut self) -> Handle {
-        return invalid_handle();
+        invalid_handle()
     }
 
     fn set_data(&mut self, data: Variant) {
@@ -55,7 +55,7 @@ impl IRapierShape2D for RapierSeparationRayShape2D {
         let mut dictionary = Dictionary::new();
         dictionary.set("length", self.length);
         dictionary.set("slide_on_slope", self.slide_on_slope);
-        return dictionary.to_variant();
+        dictionary.to_variant()
     }
 
     fn get_rapier_shape(&mut self) -> Handle {

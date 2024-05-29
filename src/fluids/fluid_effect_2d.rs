@@ -1,5 +1,4 @@
-use godot::{builtin::{meta::{FromGodot, ToGodot}, Variant}, engine::{IResource, Resource}, obj::Base, register::{godot_api, GodotClass}};
-use godot::builtin::meta::GodotConvert;
+use godot::{engine::{IResource, Resource}, obj::Base, register::{godot_api, GodotClass}};
 
 #[derive(GodotClass)]
 #[class(base=Resource)]

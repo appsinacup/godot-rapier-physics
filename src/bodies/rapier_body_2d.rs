@@ -290,10 +290,10 @@ impl RapierBody2D {
             return self.linear_velocity;
         }
         let vel = body_get_linear_velocity(self.base.space_handle, body_handle);
-        return Vector2::new(vel.x, vel.y);
+        Vector2::new(vel.x, vel.y)
     }
     pub fn get_static_linear_velocity(&self) -> Vector2 {
-        return self.linear_velocity;
+        self.linear_velocity
     }
 
     pub fn set_angular_velocity(&mut self, p_angular_velocity: real) {
@@ -314,7 +314,7 @@ impl RapierBody2D {
         if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
             return self.angular_velocity;
         }
-        return body_get_angular_velocity(self.base.space_handle, body_handle);
+        body_get_angular_velocity(self.base.space_handle, body_handle)
     }
     pub fn get_static_angular_velocity(&self) -> real {
         self.angular_velocity
@@ -552,10 +552,10 @@ impl RapierBody2D {
         self.contact_count = 0;
     }
     pub fn get_max_contacts_reported(&self) -> i32 {
-        return self.contacts.len() as i32;
+        self.contacts.len() as i32
     }
     pub fn can_report_contacts(&self) -> bool {
-        return !self.contacts.is_empty();
+        !self.contacts.is_empty()
     }
     fn add_contact(
         &mut self,
@@ -623,17 +623,17 @@ impl RapierBody2D {
         self.exceptions.remove(&exception);
     }
     pub fn has_exception(&self, exception: Rid) -> bool {
-        return self.exceptions.contains(&exception);
+        self.exceptions.contains(&exception)
     }
     pub fn get_exceptions(&self) -> HashSet<Rid> {
-        return self.exceptions.clone();
+        self.exceptions.clone()
     }
 
     pub fn set_omit_force_integration(&mut self, omit_force_integration: bool) {
         self.omit_force_integration = omit_force_integration;
     }
     pub fn get_omit_force_integration(&self) -> bool {
-        return self.omit_force_integration;
+        self.omit_force_integration
     }
 
     pub fn apply_central_impulse(&mut self, p_impulse: Vector2) {
@@ -754,7 +754,7 @@ impl RapierBody2D {
 
         let force = body_get_constant_force(self.base.space_handle, body_handle);
 
-        return Vector2::new(force.x, force.y);
+        Vector2::new(force.x, force.y)
     }
 
     pub fn set_constant_torque(&mut self, p_torque: real) {
@@ -771,7 +771,7 @@ impl RapierBody2D {
         if !is_handle_valid(self.base.space_handle) || !is_handle_valid(body_handle) {
             return self.constant_torque;
         }
-        return body_get_constant_torque(self.base.space_handle, body_handle);
+        body_get_constant_torque(self.base.space_handle, body_handle)
     }
 
     pub fn set_active(&mut self, p_active: bool, space: &mut RapierSpace2D) {
@@ -793,7 +793,7 @@ impl RapierBody2D {
         }
     }
     pub fn is_active(&self) -> bool {
-        return self.active;
+        self.active
     }
 
     pub fn set_can_sleep(&mut self, p_can_sleep: bool) {
@@ -997,37 +997,37 @@ impl RapierBody2D {
     pub fn get_param(&self, p_param: BodyParameter) -> Variant {
         match p_param {
             BodyParameter::BOUNCE => {
-                return self.bounce.to_variant();
+                self.bounce.to_variant()
             }
             BodyParameter::FRICTION => {
-                return self.friction.to_variant();
+                self.friction.to_variant()
             }
             BodyParameter::MASS => {
-                return self.mass.to_variant();
+                self.mass.to_variant()
             }
             BodyParameter::INERTIA => {
-                return self.inertia.to_variant();
+                self.inertia.to_variant()
             }
             BodyParameter::CENTER_OF_MASS => {
-                return self.center_of_mass.to_variant();
+                self.center_of_mass.to_variant()
             }
             BodyParameter::GRAVITY_SCALE => {
-                return self.gravity_scale.to_variant();
+                self.gravity_scale.to_variant()
             }
             BodyParameter::LINEAR_DAMP_MODE => {
-                return self.linear_damping_mode.to_variant();
+                self.linear_damping_mode.to_variant()
             }
             BodyParameter::ANGULAR_DAMP_MODE => {
-                return self.angular_damping_mode.to_variant();
+                self.angular_damping_mode.to_variant()
             }
             BodyParameter::LINEAR_DAMP => {
-                return self.linear_damping.to_variant();
+                self.linear_damping.to_variant()
             }
             BodyParameter::ANGULAR_DAMP => {
-                return self.angular_damping.to_variant();
+                self.angular_damping.to_variant()
             }
             _ => {
-                return 0.0.to_variant();
+                0.0.to_variant()
             }
         }
     }
@@ -1146,22 +1146,22 @@ impl RapierBody2D {
     pub fn get_state(&self, p_state: BodyState) -> Variant {
         match p_state {
             BodyState::TRANSFORM => {
-                return self.base.get_transform().to_variant();
+                self.base.get_transform().to_variant()
             }
             BodyState::LINEAR_VELOCITY => {
-                return self.get_linear_velocity().to_variant();
+                self.get_linear_velocity().to_variant()
             }
             BodyState::ANGULAR_VELOCITY => {
-                return self.get_angular_velocity().to_variant();
+                self.get_angular_velocity().to_variant()
             }
             BodyState::SLEEPING => {
-                return (!self.active).to_variant();
+                (!self.active).to_variant()
             }
             BodyState::CAN_SLEEP => {
-                return self.can_sleep.to_variant();
+                self.can_sleep.to_variant()
             }
             _ => {
-                return Variant::nil();
+                Variant::nil()
             }
         }
     }
@@ -1179,7 +1179,7 @@ impl RapierBody2D {
         );
     }
     pub fn get_continuous_collision_detection_mode(&self) -> CcdMode {
-        return self.ccd_mode;
+        self.ccd_mode
     }
 
     pub fn update_mass_properties(&mut self, force_update: bool) {
@@ -1272,41 +1272,41 @@ impl RapierBody2D {
     }
 
     pub fn get_center_of_mass(&self) -> Vector2 {
-        return self.center_of_mass;
+        self.center_of_mass
     }
     pub fn get_mass(&self) -> real {
-        return self.mass;
+        self.mass
     }
     pub fn get_inv_mass(&self) -> real {
         if self.mass != 0.0 {
             return 1.0 / self.mass;
         }
-        return 0.0;
+        0.0
     }
     pub fn get_inertia(&self) -> real {
-        return self.inertia;
+        self.inertia
     }
     pub fn get_inv_inertia(&self) -> real {
         if self.inertia != 0.0 {
             return 1.0 / self.inertia;
         }
-        return 0.0;
+        0.0
     }
     pub fn get_friction(&self) -> real {
-        return self.friction;
+        self.friction
     }
     pub fn get_bounce(&self) -> real {
-        return self.bounce;
+        self.bounce
     }
 
     pub fn get_velocity_at_local_point(&self, rel_pos: Vector2) -> Vector2 {
         let linear_velocity = self.get_linear_velocity();
         let angular_velocity = self.get_angular_velocity();
-        return linear_velocity
+        linear_velocity
             + Vector2::new(
                 -angular_velocity * (rel_pos.y - self.center_of_mass.y),
                 angular_velocity * (rel_pos.x - self.center_of_mass.x),
-            );
+            )
     }
 
     pub fn get_aabb(&self) -> Rect2 {
@@ -1335,7 +1335,7 @@ impl RapierBody2D {
                 }
             }
         }
-        return body_aabb;
+        body_aabb
     }
 
     pub fn total_linear_damping(&self) -> real {
@@ -1396,52 +1396,50 @@ impl IRapierCollisionObject2D for RapierBody2D {
         self.base._set_space(space);
         self.recreate_shapes();
 
-        if (self.base.space_handle.is_valid()) {
-            if (self.base.mode.ord() >= BodyMode::KINEMATIC.ord()) {
-                if (!self.can_sleep) {
-                    self.set_can_sleep(false);
+        if self.base.space_handle.is_valid() && self.base.mode.ord() >= BodyMode::KINEMATIC.ord() {
+            if !self.can_sleep {
+                self.set_can_sleep(false);
+            }
+
+            if self.active || !self.sleep {
+                self.wakeup();
+                let mut lock = spaces_singleton().lock().unwrap();
+                if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
+                    space.body_add_to_active_list(self.base.get_rid());
+                }
+            } else if self.can_sleep && self.sleep {
+                self.force_sleep();
+            }
+            if self.base.mode.ord() >= BodyMode::RIGID.ord() {
+                self._apply_gravity_scale(self.gravity_scale);
+                if self.linear_damping_mode == BodyDampMode::COMBINE {
+                    self._apply_linear_damping(self.linear_damping, true);
+                }
+                if self.angular_damping_mode == BodyDampMode::COMBINE {
+                    self._apply_angular_damping(self.angular_damping, true);
                 }
 
-                if (self.active || !self.sleep) {
-                    self.wakeup();
-                    let mut lock = spaces_singleton().lock().unwrap();
-                    if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
-                        space.body_add_to_active_list(self.base.get_rid());
-                    }
-                } else if (self.can_sleep && self.sleep) {
-                    self.force_sleep();
+                self._mass_properties_changed();
+                if self.linear_velocity != Vector2::default() {
+                    self.set_linear_velocity(self.linear_velocity);
                 }
-                if (self.base.mode.ord() >= BodyMode::RIGID.ord()) {
-                    self._apply_gravity_scale(self.gravity_scale);
-                    if (self.linear_damping_mode == BodyDampMode::COMBINE) {
-                        self._apply_linear_damping(self.linear_damping, true);
-                    }
-                    if (self.angular_damping_mode == BodyDampMode::COMBINE) {
-                        self._apply_angular_damping(self.angular_damping, true);
-                    }
-
-                    self._mass_properties_changed();
-                    if (self.linear_velocity != Vector2::default()) {
-                        self.set_linear_velocity(self.linear_velocity);
-                    }
-                    if (self.angular_velocity != 0.0) {
-                        self.set_angular_velocity(self.angular_velocity);
-                    }
-                    if (self.constant_force != Vector2::default()) {
-                        self.set_constant_force(self.constant_force);
-                    }
-                    if (self.constant_torque != 0.0) {
-                        self.set_constant_torque(self.constant_torque);
-                    }
-                    if (self.impulse != Vector2::default()) {
-                        self.apply_impulse(self.impulse, Vector2::default());
-                    }
-                    if (self.torque != 0.0) {
-                        self.apply_torque_impulse(self.torque);
-                    }
-                    self.set_continuous_collision_detection_mode(self.ccd_mode);
-                    body_update_material(self.base.space_handle, self.base.body_handle, &self._init_material());
+                if self.angular_velocity != 0.0 {
+                    self.set_angular_velocity(self.angular_velocity);
                 }
+                if self.constant_force != Vector2::default() {
+                    self.set_constant_force(self.constant_force);
+                }
+                if self.constant_torque != 0.0 {
+                    self.set_constant_torque(self.constant_torque);
+                }
+                if self.impulse != Vector2::default() {
+                    self.apply_impulse(self.impulse, Vector2::default());
+                }
+                if self.torque != 0.0 {
+                    self.apply_torque_impulse(self.torque);
+                }
+                self.set_continuous_collision_detection_mode(self.ccd_mode);
+                body_update_material(self.base.space_handle, self.base.body_handle, &self._init_material());
             }
         }
     }
@@ -1602,7 +1600,7 @@ impl IRapierCollisionObject2D for RapierBody2D {
         let mat = self._init_material();
         let handle = self.base._create_shape(shape, p_shape_index, mat);
         self._init_collider(handle, self.base.space_handle);
-        return handle;
+        handle
     }
 
     fn _init_material(&self) -> Material {

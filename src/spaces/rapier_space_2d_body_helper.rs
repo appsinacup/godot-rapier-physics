@@ -1,47 +1,15 @@
-use crate::bodies;
 use crate::bodies::rapier_body_2d::RapierBody2D;
-use crate::bodies::rapier_collision_object_2d::IRapierCollisionObject2D;
-use crate::rapier2d::physics_world::{world_export_binary, world_export_json, world_get_active_objects_count, world_step};
-use crate::rapier2d::query::{default_query_excluded_info, intersect_aabb, shapes_contact, ContactResult};
-use crate::rapier2d::settings::SimulationSettings;
-use crate::rapier2d::shape::shape_info_from_body_shape;
-use crate::rapier2d::user_data::is_user_data_valid;
-use crate::rapier2d::vector::Vector;
-use crate::servers::rapier_physics_singleton_2d::{active_spaces_singleton, bodies_singleton, shapes_singleton, spaces_singleton};
-use crate::servers::rapier_project_settings::RapierProjectSettings;
-use crate::shapes::rapier_shape_2d::IRapierShape2D;
-use crate::spaces::rapier_direct_space_state_2d::RapierDirectSpaceState2D;
 use crate::{
-    bodies::rapier_collision_object_2d::{
-            CollisionObjectType, RapierCollisionObject2D,
-        },
     rapier2d::{
-        handle::Handle,
-        physics_hooks::{CollisionFilterInfo, OneWayDirection},
-        physics_world::{
-            world_create, ActiveBodyInfo, CollisionEventInfo,
-            ContactForceEventInfo, ContactPointInfo,
-        },
-        query::{PointHitInfo, QueryExcludedInfo},
-        settings::default_world_settings,
-        user_data::UserData,
-    },
-    servers::{
+        query::{PointHitInfo},
     },
 };
-use godot::engine::{collision_object_2d, IPhysicsDirectBodyState2DExtension, PhysicsDirectBodyState2DExtension};
-use godot::engine::physics_server_2d::{AreaParameter, BodyMode};
 use godot::{
     engine::{
-        native::{ObjectId, PhysicsServer2DExtensionMotionResult},
-        physics_server_2d, PhysicsDirectSpaceState2D, ProjectSettings,
+        native::{PhysicsServer2DExtensionMotionResult},
     },
     prelude::*,
 };
-use std::cmp::{self, max};
-use std::collections::HashMap;
-use std::f32::EPSILON;
-use std::mem::swap;
 
 use super::rapier_space_2d::RapierSpace2D;
 
@@ -112,7 +80,7 @@ impl RapierSpace2D {
 
         collided
          */
-        return false;
+        false
     }
 
     pub fn rapier_intersect_aabb(
@@ -142,7 +110,7 @@ impl RapierSpace2D {
     
         return intersect_aabb(self.handle, &rect_begin, &rect_end, collide_with_bodies, collide_with_areas, results, max_results, RapierSpace2D::_is_handle_excluded_callback, &handle_excluded_info) as i32;
          */
-        return 0;
+        0
     }
 
 
@@ -271,7 +239,7 @@ fn body_motion_recover(
 
     recovered
      */
-    return false;
+    false
 }
 
 fn cast_motion(

@@ -9,7 +9,7 @@ pub fn pixels_to_meters(x: Real) -> Real {
         0.0
     } else {
         let res = METERS_PER_PIXEL * (x as f64);
-        return res as Real;
+        res as Real
     }
 }
 
@@ -22,7 +22,7 @@ pub fn vector_pixels_to_meters(v: &Vector) -> Vector {
 
 pub fn meters_to_pixels(x: Real) -> Real {
     let res = PIXELS_PER_METER * (x as f64);
-    return res as Real;
+    res as Real
 }
 
 pub fn vector_meters_to_pixels(v: &Vector) -> Vector {
