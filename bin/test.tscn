@@ -1,9 +1,11 @@
-[gd_scene load_steps=8 format=3 uid="uid://d4exls53gi0df"]
+[gd_scene load_steps=9 format=3 uid="uid://d4exls53gi0df"]
 
 [ext_resource type="Script" path="res://rigid_body_2d.gd" id="1_4sybc"]
 [ext_resource type="Script" path="res://test.gd" id="1_osmip"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_r2n1f"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_4v4tp"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_maxl6"]
 
@@ -18,12 +20,26 @@ size = Vector2(42.2131, 68.4998)
 script = ExtResource("1_osmip")
 
 [node name="RigidBody2D" type="RigidBody2D" parent="."]
-position = Vector2(15, 0)
+position = Vector2(-25, -1)
 script = ExtResource("1_4sybc")
 
 [node name="CollisionShape2D4" type="CollisionShape2D" parent="RigidBody2D"]
 position = Vector2(-9, -26)
 shape = SubResource("CircleShape2D_r2n1f")
+
+[node name="PinJoint2D" type="PinJoint2D" parent="RigidBody2D"]
+position = Vector2(-9, -25)
+node_a = NodePath("..")
+node_b = NodePath("../../RigidBody2D5")
+disable_collision = false
+
+[node name="RigidBody2D5" type="RigidBody2D" parent="."]
+position = Vector2(-2, -15)
+script = ExtResource("1_4sybc")
+
+[node name="CollisionShape2D4" type="CollisionShape2D" parent="RigidBody2D5"]
+position = Vector2(-9, -26)
+shape = SubResource("RectangleShape2D_4v4tp")
 
 [node name="RigidBody2D2" type="RigidBody2D" parent="."]
 position = Vector2(25, -6)

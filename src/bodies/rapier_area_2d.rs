@@ -87,7 +87,7 @@ impl RapierArea2D {
     pub fn on_body_enter(
         &mut self,
         collider_handle: Handle,
-        body: Option<&mut RapierBody2D>,
+        body: &Option<&mut Box<dyn IRapierCollisionObject2D>>,
         body_shape: usize,
         body_rid: Rid,
         body_instance_id: u64,
@@ -100,7 +100,7 @@ impl RapierArea2D {
     pub fn on_body_exit(
         &mut self,
         collider_handle: Handle,
-        body: Option<&mut RapierBody2D>,
+        body: &Option<&mut Box<dyn IRapierCollisionObject2D>>,
         body_shape: usize,
         body_rid: Rid,
         body_instance_id: u64,
@@ -108,13 +108,14 @@ impl RapierArea2D {
         area_shape: usize,
         update_detection: bool,
     ) {
+        // if body is null, update_detection should be false
         // Implementation needed
     }
 
     pub fn on_area_enter(
         &mut self,
         collider_handle: Handle,
-        other_area: Option<&mut RapierArea2D>,
+        other_area: &Option<&mut Box<dyn IRapierCollisionObject2D>>,
         other_area_shape: usize,
         other_area_rid: Rid,
         other_area_instance_id: u64,
@@ -127,7 +128,7 @@ impl RapierArea2D {
     pub fn on_area_exit(
         &mut self,
         collider_handle: Handle,
-        other_area: Option<&mut RapierArea2D>,
+        other_area: &Option<&mut Box<dyn IRapierCollisionObject2D>>,
         other_area_shape: usize,
         other_area_rid: Rid,
         other_area_instance_id: u64,

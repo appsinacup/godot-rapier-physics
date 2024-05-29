@@ -64,7 +64,7 @@ pub fn joint_change_revolute_params(
     let joint = joint.unwrap();
     if motor_enabled {
         joint.set_motor_velocity(motor_target_velocity, 0.0)
-        .set_motor_max_force(Real::MAX);;
+        .set_motor_max_force(Real::MAX);
     } else {
         joint.set_motor_velocity(0.0, 0.0)
         .set_motor_max_force(0.0);

@@ -4,7 +4,7 @@ use crate::{
     rapier2d::{
         body::{body_create, body_destroy, body_get_angle, body_get_position, body_set_transform, BodyType},
         collider::{collider_create_sensor, collider_create_solid, collider_destroy, collider_set_transform, Material},
-        handle::{invalid_handle, is_handle_valid, Handle},
+        handle::{invalid_handle, Handle},
         shape::ShapeInfo,
         user_data::UserData,
         vector::Vector,
@@ -91,10 +91,10 @@ pub struct RapierCollisionObject2D {
     collision_mask: u32,
     collision_layer: u32,
     collision_priority: real,
-    pub mode: physics_server_2d::BodyMode,
-    pub body_handle: Handle,
-    pub space_handle: Handle,
-    pub area_detection_counter: u32,
+    pub(crate) mode: physics_server_2d::BodyMode,
+    pub(crate) body_handle: Handle,
+    pub(crate) space_handle: Handle,
+    pub(crate) area_detection_counter: u32,
 }
 
 impl RapierCollisionObject2D {
@@ -120,12 +120,14 @@ impl RapierCollisionObject2D {
     }
 
     pub(crate) fn _create_shape(&self, shape: CollisionObjectShape, p_shape_index: usize, mat: Material) -> Handle{
-        assert!(!is_handle_valid(shape.collider_handle));
+        assert!(!shape.collider_handle.is_valid());
         let mut lock = shapes_singleton().lock().unwrap();
         let mut handle = invalid_handle();
         if let Some(shape_object) = lock.shapes.get_mut(&shape.shape) {
             let shape_handle = shape_object.get_rapier_shape();
-            assert!(is_handle_valid(shape_handle));
+            if !shape_handle.is_valid() {
+                return handle;
+            }
 
             let mut user_data = UserData::default();
             self.set_collider_user_data(&mut user_data, p_shape_index);
@@ -156,7 +158,7 @@ impl RapierCollisionObject2D {
         let mut i = 0;
         for shape in &mut self.shapes {
             let mut shape_rid = Rid::Invalid;
-            if !self.space_handle.is_valid() || !is_handle_valid(shape.collider_handle) {
+            if !self.space_handle.is_valid() || !shape.collider_handle.is_valid() {
                 // skip
                 continue;
             }
@@ -184,7 +186,7 @@ impl RapierCollisionObject2D {
     }
     pub(crate) fn _destroy_shape(&self, shape: CollisionObjectShape, p_shape_index: usize) -> Handle {
         let shape_rid = shape.shape;
-        if self.space_handle.is_valid() && is_handle_valid(shape.collider_handle) {
+        if self.space_handle.is_valid() && shape.collider_handle.is_valid() {
             let mut lock = spaces_singleton().lock().unwrap();
             if let Some(space) = lock.spaces.get_mut(&self.space) {
                 if self.area_detection_counter > 0 {
@@ -215,7 +217,9 @@ impl RapierCollisionObject2D {
         let mut lock = shapes_singleton().lock().unwrap();
         if let Some(rapier_shape) = lock.shapes.get_mut(&shape.shape) {
             let shape_handle = rapier_shape.get_rapier_shape();
-            assert!(is_handle_valid(shape_handle));
+            if !shape_handle.is_valid() {
+                return;
+            }
             let shape_info = ShapeInfo {
                 handle: shape_handle,
                 pixel_position: position,
@@ -291,6 +295,10 @@ impl RapierCollisionObject2D {
         }
     }
 
+    pub fn get_space_handle(&self) -> Handle {
+        self.space_handle
+    }
+
     pub fn get_rid(&self) -> Rid {
         self.rid
     }
@@ -351,7 +359,7 @@ impl RapierCollisionObject2D {
     pub fn set_transform(&mut self, p_transform: Transform2D, wake_up: bool) {
         self.transform = p_transform;
         self.inv_transform = self.transform.affine_inverse();
-        if !self.body_handle.is_valid() || !is_handle_valid(self.space_handle) {
+        if !self.body_handle.is_valid() || !self.space_handle.is_valid() {
             return;
         }
 
@@ -427,6 +435,10 @@ impl RapierCollisionObject2D {
 
     pub fn get_collision_priority(&self) -> real {
         self.collision_priority
+    }
+
+    pub fn get_mode(&self) -> BodyMode {
+        self.mode
     }
 
     pub fn set_pickable(&mut self, p_pickable: bool) {

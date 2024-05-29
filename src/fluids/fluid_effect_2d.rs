@@ -29,4 +29,9 @@ impl IResource for FluidEffect2D {
     }
 }
 
+impl FluidEffect2D {
+    fn get_fluid_effect_type(&self) -> FluidEffectType {
+        self.fluid_effect_type
+    }
+}
 

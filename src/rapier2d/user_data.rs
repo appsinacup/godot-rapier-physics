@@ -33,7 +33,3 @@ pub fn invalid_user_data() -> UserData {
         part2: u64::MAX,
     }
 }
-
-pub fn is_user_data_valid(user_data: UserData) -> bool {
-    user_data.is_valid()
-}

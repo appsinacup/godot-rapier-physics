@@ -9,7 +9,7 @@ use crate::joints::rapier_joint_2d::{IRapierJoint2D, RapierEmptyJoint2D};
 use crate::joints::rapier_pin_joint_2d::RapierPinJoint2D;
 use crate::rapier2d::physics_world::world_step;
 use crate::rapier2d::query::shape_collide;
-use crate::rapier2d::settings::{SimulationSettings};
+use crate::rapier2d::settings::SimulationSettings;
 use crate::rapier2d::shape::shape_info_from_body_shape;
 use crate::rapier2d::vector::Vector;
 use crate::shapes::rapier_capsule_shape_2d::RapierCapsuleShape2D;
@@ -19,13 +19,13 @@ use crate::shapes::rapier_convex_polygon_shape_2d::RapierConvexPolygonShape2D;
 use crate::shapes::rapier_rectangle_shape_2d::RapierRectangleShape2D;
 use crate::shapes::rapier_segment_shape_2d::RapierSegmentShape2D;
 use crate::shapes::rapier_separation_ray_shape_2d::RapierSeparationRayShape2D;
-use crate::shapes::rapier_shape_2d::{IRapierShape2D, RapierShapeBase2D};
+use crate::shapes::rapier_shape_2d::RapierShapeBase2D;
 use crate::shapes::rapier_world_boundary_shape_2d::RapierWorldBoundaryShape2D;
 use crate::spaces::rapier_space_2d::RapierSpace2D;
 use godot::engine::native::PhysicsServer2DExtensionMotionResult;
 use godot::engine::utilities::{rid_allocate_id, rid_from_int64};
-use godot::engine::{IPhysicsServer2DExtension, PhysicsServer2DExtension, ProjectSettings};
-use godot::{engine, prelude::*};
+use godot::engine::{self, IPhysicsServer2DExtension, PhysicsServer2DExtension, ProjectSettings};
+use godot::{prelude::*};
 use std::ffi::c_void;
 
 use super::rapier_physics_singleton_2d::{
@@ -560,7 +560,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get(&body) {
             if let Some(body) = body.get_body() {
-                return body.get_base().mode;
+                return body.get_base().get_mode();
             }
         }
         engine::physics_server_2d::BodyMode::KINEMATIC
@@ -1196,6 +1196,10 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         false
     }
     fn joint_make_pin(&mut self, rid: Rid, anchor: Vector2, body_a: Rid, body_b: Rid) {
+        if body_a.is_invalid() || body_b.is_invalid() {
+            godot_error!("Invalid body RID in joint_make_pin");
+            return;
+        }
         let mut lock = joints_singleton().lock().unwrap();
         let prev_joint = lock.joints.remove(&rid);
         let mut joint = RapierPinJoint2D::new(rid, anchor, body_a, body_b);

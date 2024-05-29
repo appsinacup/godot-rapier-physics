@@ -136,14 +136,6 @@ pub fn invalid_handle_double() -> HandleDouble {
     }
 }
 
-pub fn is_handle_valid(handle: Handle) -> bool {
-    handle.is_valid()
-}
-
-pub fn is_handle_valid_double(handle: HandleDouble) -> bool {
-    handle.is_valid()
-}
-
 pub fn are_handles_equal(handle1: Handle, handle2: Handle) -> bool {
     (handle1.id == handle2.id) && (handle1.generation == handle2.generation)
 }
