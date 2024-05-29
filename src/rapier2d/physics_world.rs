@@ -8,14 +8,16 @@ use crate::rapier2d::physics_hooks::*;
 use crate::rapier2d::settings::*;
 use crate::rapier2d::user_data::*;
 use crate::rapier2d::vector::Vector;
+use godot::global::print;
+use godot::log::godot_error;
 use rapier2d::crossbeam;
 use rapier2d::data::Arena;
 use rapier2d::prelude::*;
 use salva2d::integrations::rapier::FluidsPipeline;
+use serde::{Deserialize, Serialize};
 use std::num::NonZeroUsize;
 use std::sync::Mutex;
 use std::sync::OnceLock;
-use serde::{Serialize, Deserialize};
 
 pub struct ActiveBodyInfo {
     pub body_handle: Handle,
@@ -87,10 +89,9 @@ pub struct ContactForceEventInfo {
     pub user_data2: UserData,
 }
 
-//#[derive(Serialize, Deserialize)]
-pub struct PhysicsWorld {
+#[derive(Serialize, Deserialize)]
+pub struct PhysicsObjects {
     pub query_pipeline: QueryPipeline,
-    pub physics_pipeline: PhysicsPipeline,
     pub island_manager: IslandManager,
     pub broad_phase: BroadPhaseMultiSap,
     pub narrow_phase: NarrowPhase,
@@ -98,60 +99,36 @@ pub struct PhysicsWorld {
     pub multibody_joint_set: MultibodyJointSet,
     pub ccd_solver: CCDSolver,
 
-    pub active_body_callback: ActiveBodyCallback,
-    pub collision_filter_body_callback: CollisionFilterCallback,
-    pub collision_filter_sensor_callback: CollisionFilterCallback,
-    pub collision_modify_contacts_callback: CollisionModifyContactsCallback,
-
-    pub collision_event_callback: CollisionEventCallback,
-    pub contact_force_event_callback: ContactForceEventCallback,
-
-    pub contact_point_callback: ContactPointCallback,
-
     pub collider_set: ColliderSet,
     pub rigid_body_set: RigidBodySet,
 
     pub handle: Handle,
+}
 
+pub struct PhysicsWorld {
+    pub physics_objects: PhysicsObjects,
+    pub physics_pipeline: PhysicsPipeline,
     pub fluids_pipeline: FluidsPipeline,
 }
 
 impl PhysicsWorld {
-    pub fn new(
-        settings: &WorldSettings,
-        active_body_callback: ActiveBodyCallback,
-        collision_filter_body_callback: CollisionFilterCallback,
-        collision_filter_sensor_callback: CollisionFilterCallback,
-        collision_modify_contacts_callback: CollisionModifyContactsCallback,
-        collision_event_callback: CollisionEventCallback,
-        contact_force_event_callback: ContactForceEventCallback,
-        contact_point_callback: ContactPointCallback,
-    ) -> PhysicsWorld {
+    pub fn new(settings: &WorldSettings) -> PhysicsWorld {
         PhysicsWorld {
-            query_pipeline: QueryPipeline::new(),
+            physics_objects: PhysicsObjects {
+                query_pipeline: QueryPipeline::new(),
+                island_manager: IslandManager::new(),
+                broad_phase: DefaultBroadPhase::new(),
+                narrow_phase: NarrowPhase::new(),
+                impulse_joint_set: ImpulseJointSet::new(),
+                multibody_joint_set: MultibodyJointSet::new(),
+                ccd_solver: CCDSolver::new(),
+    
+                rigid_body_set: RigidBodySet::new(),
+                collider_set: ColliderSet::new(),
+    
+                handle: invalid_handle(),
+            },
             physics_pipeline: PhysicsPipeline::new(),
-            island_manager: IslandManager::new(),
-            broad_phase: DefaultBroadPhase::new(),
-            narrow_phase: NarrowPhase::new(),
-            impulse_joint_set: ImpulseJointSet::new(),
-            multibody_joint_set: MultibodyJointSet::new(),
-            ccd_solver: CCDSolver::new(),
-
-            active_body_callback,
-            collision_filter_body_callback,
-            collision_filter_sensor_callback,
-            collision_modify_contacts_callback,
-
-            collision_event_callback,
-            contact_force_event_callback,
-
-            contact_point_callback,
-
-            rigid_body_set: RigidBodySet::new(),
-            collider_set: ColliderSet::new(),
-
-            handle: invalid_handle(),
-
             fluids_pipeline: FluidsPipeline::new(
                 pixels_to_meters(settings.particle_radius),
                 settings.smoothing_factor,
@@ -159,7 +136,17 @@ impl PhysicsWorld {
         }
     }
 
-    pub fn step(&mut self, settings: &SimulationSettings) {
+    pub fn step(
+        &mut self,
+        settings: &SimulationSettings,
+        active_body_callback: ActiveBodyCallback,
+        collision_filter_body_callback: CollisionFilterCallback,
+        collision_filter_sensor_callback: CollisionFilterCallback,
+        collision_modify_contacts_callback: CollisionModifyContactsCallback,
+        collision_event_callback: CollisionEventCallback,
+        contact_force_event_callback: ContactForceEventCallback,
+        contact_point_callback: ContactPointCallback,
+    ) {
         let mut integration_parameters = IntegrationParameters::default();
 
         integration_parameters.dt = settings.dt;
@@ -177,10 +164,10 @@ impl PhysicsWorld {
         let liquid_gravity = vector![liquid_gravity_vector.x, liquid_gravity_vector.y];
 
         let physics_hooks = PhysicsHooksCollisionFilter {
-            world_handle: self.handle,
-            collision_filter_body_callback: &self.collision_filter_body_callback,
-            collision_filter_sensor_callback: &self.collision_filter_sensor_callback,
-            collision_modify_contacts_callback: &self.collision_modify_contacts_callback,
+            world_handle: self.physics_objects.handle,
+            collision_filter_body_callback: &collision_filter_body_callback,
+            collision_filter_sensor_callback: &collision_filter_sensor_callback,
+            collision_modify_contacts_callback: &collision_modify_contacts_callback,
         };
 
         // Initialize the event collector.
@@ -191,15 +178,15 @@ impl PhysicsWorld {
         self.physics_pipeline.step(
             &gravity,
             &integration_parameters,
-            &mut self.island_manager,
-            &mut self.broad_phase,
-            &mut self.narrow_phase,
-            &mut self.rigid_body_set,
-            &mut self.collider_set,
-            &mut self.impulse_joint_set,
-            &mut self.multibody_joint_set,
-            &mut self.ccd_solver,
-            Some(&mut self.query_pipeline),
+            &mut self.physics_objects.island_manager,
+            &mut self.physics_objects.broad_phase,
+            &mut self.physics_objects.narrow_phase,
+            &mut self.physics_objects.rigid_body_set,
+            &mut self.physics_objects.collider_set,
+            &mut self.physics_objects.impulse_joint_set,
+            &mut self.physics_objects.multibody_joint_set,
+            &mut self.physics_objects.ccd_solver,
+            Some(&mut self.physics_objects.query_pipeline),
             &physics_hooks,
             &event_handler,
         );
@@ -207,28 +194,28 @@ impl PhysicsWorld {
             self.fluids_pipeline.step(
                 &liquid_gravity,
                 integration_parameters.dt,
-                &self.collider_set,
-                &mut self.rigid_body_set,
+                &self.physics_objects.collider_set,
+                &mut self.physics_objects.rigid_body_set,
             );
         }
 
-        for handle in self.island_manager.active_dynamic_bodies() {
+        for handle in self.physics_objects.island_manager.active_dynamic_bodies() {
             // Send the active body event.
-            let active_body_info = ActiveBodyInfo{
+            let active_body_info = ActiveBodyInfo {
                 body_handle: rigid_body_handle_to_handle(*handle),
                 body_user_data: self.get_rigid_body_user_data(*handle),
             };
 
-            (self.active_body_callback)(&active_body_info);
+            (active_body_callback)(&active_body_info);
         }
-        for handle in self.island_manager.active_kinematic_bodies() {
+        for handle in self.physics_objects.island_manager.active_kinematic_bodies() {
             // Send the active body event.
-            let active_body_info = ActiveBodyInfo{
+            let active_body_info = ActiveBodyInfo {
                 body_handle: rigid_body_handle_to_handle(*handle),
                 body_user_data: self.get_rigid_body_user_data(*handle),
             };
 
-            (self.active_body_callback)(&active_body_info);
+            (active_body_callback)(&active_body_info);
         }
 
         while let Ok((collision_event, _contact_pair)) = collision_recv.try_recv() {
@@ -236,7 +223,7 @@ impl PhysicsWorld {
             let handle2 = collision_event.collider2();
 
             // Handle the collision event.
-            let event_info = CollisionEventInfo{
+            let event_info = CollisionEventInfo {
                 is_sensor: collision_event.sensor(),
                 is_removed: collision_event.removed(),
                 is_started: collision_event.started(),
@@ -247,28 +234,29 @@ impl PhysicsWorld {
                 user_data2: self.get_collider_user_data(handle2),
             };
 
-            (self.collision_event_callback)(self.handle, &event_info);
+            (collision_event_callback)(self.physics_objects.handle, &event_info);
         }
 
         while let Ok((contact_force_event, contact_pair)) = contact_force_recv.try_recv() {
             let collider1 = self
+                .physics_objects
                 .collider_set
                 .get(contact_force_event.collider1)
                 .unwrap();
             let collider2 = self
-                .collider_set
+            .physics_objects.collider_set
                 .get(contact_force_event.collider2)
                 .unwrap();
 
             // Handle the contact force event.
-            let mut event_info = ContactForceEventInfo{
+            let mut event_info = ContactForceEventInfo {
                 collider1: collider_handle_to_handle(contact_force_event.collider1),
                 collider2: collider_handle_to_handle(contact_force_event.collider2),
                 user_data1: UserData::new(collider1.user_data),
                 user_data2: UserData::new(collider2.user_data),
             };
 
-            let mut send_contact_points = (self.contact_force_event_callback)(self.handle, &event_info);
+            let mut send_contact_points = (contact_force_event_callback)(self.physics_objects.handle, &event_info);
 
             if send_contact_points {
                 let body1: &RigidBody = self.get_collider_rigid_body(collider1).unwrap();
@@ -309,16 +297,14 @@ impl PhysicsWorld {
                                 x: collider_pos_1.x,
                                 y: collider_pos_1.y,
                             });
-                            contact_info.pixel_velocity_pos_1 =
-                                vector_meters_to_pixels(&Vector {
-                                    x: point_velocity_2.x,
-                                    y: point_velocity_2.y,
-                                });
-                            contact_info.pixel_velocity_pos_2 =
-                                vector_meters_to_pixels(&Vector {
-                                    x: point_velocity_1.x,
-                                    y: point_velocity_1.y,
-                                });
+                            contact_info.pixel_velocity_pos_1 = vector_meters_to_pixels(&Vector {
+                                x: point_velocity_2.x,
+                                y: point_velocity_2.y,
+                            });
+                            contact_info.pixel_velocity_pos_2 = vector_meters_to_pixels(&Vector {
+                                x: point_velocity_1.x,
+                                y: point_velocity_1.y,
+                            });
                         } else {
                             contact_info.pixel_local_pos_1 = vector_meters_to_pixels(&Vector {
                                 x: collider_pos_1.x,
@@ -328,25 +314,22 @@ impl PhysicsWorld {
                                 x: collider_pos_2.x,
                                 y: collider_pos_2.y,
                             });
-                            contact_info.pixel_velocity_pos_1 =
-                                vector_meters_to_pixels(&Vector {
-                                    x: point_velocity_1.x,
-                                    y: point_velocity_1.y,
-                                });
-                            contact_info.pixel_velocity_pos_2 =
-                                vector_meters_to_pixels(&Vector {
-                                    x: point_velocity_2.x,
-                                    y: point_velocity_2.y,
-                                });
+                            contact_info.pixel_velocity_pos_1 = vector_meters_to_pixels(&Vector {
+                                x: point_velocity_1.x,
+                                y: point_velocity_1.y,
+                            });
+                            contact_info.pixel_velocity_pos_2 = vector_meters_to_pixels(&Vector {
+                                x: point_velocity_2.x,
+                                y: point_velocity_2.y,
+                            });
                         }
                         contact_info.pixel_distance = meters_to_pixels(contact_point.dist);
-                        contact_info.pixel_impulse =
-                            meters_to_pixels(contact_point.data.impulse);
+                        contact_info.pixel_impulse = meters_to_pixels(contact_point.data.impulse);
                         contact_info.pixel_tangent_impulse =
                             meters_to_pixels(contact_point.data.tangent_impulse.x);
 
                         send_contact_points =
-                            (self.contact_point_callback)(self.handle, &contact_info, &event_info);
+                            (contact_point_callback)(self.physics_objects.handle, &contact_info, &event_info);
                         if !send_contact_points {
                             break;
                         }
@@ -363,30 +346,30 @@ impl PhysicsWorld {
     pub fn insert_collider(&mut self, collider: Collider, body_handle: Handle) -> Handle {
         if body_handle.is_valid() {
             let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
-            let collider_handle = self.collider_set.insert_with_parent(
+            let collider_handle = self.physics_objects.collider_set.insert_with_parent(
                 collider,
                 rigid_body_handle,
-                &mut self.rigid_body_set,
+                &mut self.physics_objects.rigid_body_set,
             );
             return collider_handle_to_handle(collider_handle);
         } else {
-            let collider_handle = self.collider_set.insert(collider);
+            let collider_handle = self.physics_objects.collider_set.insert(collider);
             return collider_handle_to_handle(collider_handle);
         }
     }
 
     pub fn remove_collider(&mut self, handle: Handle) {
         let collider_handle = handle_to_collider_handle(handle);
-        self.collider_set.remove(
+        self.physics_objects.collider_set.remove(
             collider_handle,
-            &mut self.island_manager,
-            &mut self.rigid_body_set,
+            &mut self.physics_objects.island_manager,
+            &mut self.physics_objects.rigid_body_set,
             false,
         );
     }
 
     pub fn get_collider_user_data(&self, collider_handle: ColliderHandle) -> UserData {
-        let collider = self.collider_set.get(collider_handle);
+        let collider = self.physics_objects.collider_set.get(collider_handle);
         if !collider.is_some() {
             return invalid_user_data();
         } else {
@@ -397,7 +380,7 @@ impl PhysicsWorld {
     pub fn get_collider_rigid_body(&self, collider: &Collider) -> Option<&RigidBody> {
         let parent = collider.parent();
         if parent.is_some() {
-            return self.rigid_body_set.get(parent.unwrap());
+            return self.physics_objects.rigid_body_set.get(parent.unwrap());
         } else {
             return None;
         }
@@ -405,18 +388,18 @@ impl PhysicsWorld {
 
     pub fn remove_rigid_body(&mut self, body_handle: Handle) {
         let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
-        self.rigid_body_set.remove(
+        self.physics_objects.rigid_body_set.remove(
             rigid_body_handle,
-            &mut self.island_manager,
-            &mut self.collider_set,
-            &mut self.impulse_joint_set,
-            &mut self.multibody_joint_set,
+            &mut self.physics_objects.island_manager,
+            &mut self.physics_objects.collider_set,
+            &mut self.physics_objects.impulse_joint_set,
+            &mut self.physics_objects.multibody_joint_set,
             true,
         );
     }
 
     pub fn get_rigid_body_user_data(&self, rigid_body_handle: RigidBodyHandle) -> UserData {
-        let rigid_body = self.rigid_body_set.get(rigid_body_handle);
+        let rigid_body = self.physics_objects.rigid_body_set.get(rigid_body_handle);
         if !rigid_body.is_some() {
             return invalid_user_data();
         } else {
@@ -434,14 +417,14 @@ impl PhysicsWorld {
         let rigid_body_2_handle = handle_to_rigid_body_handle(body_handle_2);
 
         let joint_handle =
-            self.impulse_joint_set
+            self.physics_objects.impulse_joint_set
                 .insert(rigid_body_1_handle, rigid_body_2_handle, joint, true);
         return joint_handle_to_handle(joint_handle);
     }
 
     pub fn remove_joint(&mut self, handle: Handle) {
         let joint_handle = handle_to_joint_handle(handle);
-        self.impulse_joint_set.remove(joint_handle, true);
+        self.physics_objects.impulse_joint_set.remove(joint_handle, true);
     }
 }
 
@@ -498,37 +481,79 @@ pub fn singleton() -> &'static Mutex<PhysicsEngine> {
     HASHMAP.get_or_init(|| Mutex::new(PhysicsEngine::new()))
 }
 
-pub fn world_create(settings: &WorldSettings, 
-    active_body_callback: ActiveBodyCallback,
-    collision_filter_body_callback: CollisionFilterCallback,
-    collision_filter_sensor_callback: CollisionFilterCallback,
-    collision_modify_contacts_callback: CollisionModifyContactsCallback,
-    collision_event_callback: CollisionEventCallback,
-    contact_force_event_callback: ContactForceEventCallback,
-    contact_point_callback: ContactPointCallback,) -> Handle {
-    let physics_world = PhysicsWorld::new(settings, active_body_callback, collision_filter_body_callback, collision_filter_sensor_callback, collision_modify_contacts_callback, collision_event_callback, contact_force_event_callback, contact_point_callback);
+pub fn world_create(settings: &WorldSettings) -> Handle {
+    let physics_world = PhysicsWorld::new(settings);
     let mut physics_engine = singleton().lock().unwrap();
     let world_handle = physics_engine.insert_world(physics_world);
     let physics_world = physics_engine.get_world(world_handle);
-    physics_world.handle = world_handle;
+    physics_world.physics_objects.handle = world_handle;
     return world_handle;
 }
 
 pub fn world_destroy(world_handle: Handle) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
-    physics_world.handle = invalid_handle();
+    physics_world.physics_objects.handle = invalid_handle();
     physics_engine.remove_world(world_handle);
 }
 
-pub fn world_step(world_handle: Handle, settings: &SimulationSettings) {
+pub fn world_step(
+    world_handle: Handle,
+    settings: &SimulationSettings,
+    active_body_callback: ActiveBodyCallback,
+    collision_filter_body_callback: CollisionFilterCallback,
+    collision_filter_sensor_callback: CollisionFilterCallback,
+    collision_modify_contacts_callback: CollisionModifyContactsCallback,
+    collision_event_callback: CollisionEventCallback,
+    contact_force_event_callback: ContactForceEventCallback,
+    contact_point_callback: ContactPointCallback,
+) {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
-    physics_world.step(settings);
+    physics_world.step(
+        settings,
+        active_body_callback,
+        collision_filter_body_callback,
+        collision_filter_sensor_callback,
+        collision_modify_contacts_callback,
+        collision_event_callback,
+        contact_force_event_callback,
+        contact_point_callback,
+    );
 }
 
 pub fn world_get_active_objects_count(world_handle: Handle) -> usize {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
-    return physics_world.island_manager.active_dynamic_bodies().len();
+    return physics_world.physics_objects.island_manager.active_dynamic_bodies().len();
+}
+
+pub fn world_export_json(world_handle: Handle) -> String {
+    let mut physics_engine = singleton().lock().unwrap();
+    let physics_world = physics_engine.get_world(world_handle);
+    let serialized = serde_json::to_string(&physics_world.physics_objects.collider_set);
+    match serialized {
+        Ok(serialized) => {
+            return serialized;
+        },
+        Err(err) => {
+            godot_error!("{}", err);
+            return String::from("{}");
+        },
+    }
+}
+
+pub fn world_export_binary(world_handle: Handle) -> Vec<u8> {
+    let mut physics_engine = singleton().lock().unwrap();
+    let physics_world = physics_engine.get_world(world_handle);
+    let serialized = bincode::serialize(&physics_world.physics_objects);
+    match serialized {
+        Ok(serialized) => {
+            return serialized;
+        },
+        Err(err) => {
+            godot_error!("{}", err);
+            return Vec::new();
+        },
+    }
 }

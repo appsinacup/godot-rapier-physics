@@ -25,11 +25,31 @@ pub struct RapierDirectSpaceState2D {
     base: Base<PhysicsDirectSpaceState2DExtension>,
 }
 
+impl RapierDirectSpaceState2D {
+    pub fn set_space(&mut self, space: Rid) {
+        self.space = space;
+    }
+}
+
 #[godot_api]
 impl RapierDirectSpaceState2D {
     #[func]
-    pub fn set_space(&mut self, space: Rid) {
-        self.space = space;
+    fn export_json(&self) -> String {
+        let lock = spaces_singleton().lock().unwrap();
+        let space = lock.spaces.get(&self.space);
+        if let Some(space) = space {
+            return space.export_json();
+        }
+        return "{}".to_string();
+    }
+    #[func]
+    fn export_binary(&self) -> PackedByteArray {
+        let lock = spaces_singleton().lock().unwrap();
+        let space = lock.spaces.get(&self.space);
+        if let Some(space) = space {
+            return space.export_binary();
+        }
+        return PackedByteArray::default();
     }
 }
 

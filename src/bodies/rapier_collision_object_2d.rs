@@ -8,7 +8,7 @@ use crate::{
         shape::ShapeInfo,
         user_data::UserData,
         vector::Vector,
-    }, servers::rapier_physics_singleton_2d::{shapes_singleton, spaces_singleton}, shapes::rapier_shape_2d::{IRapierShape2D, RapierShapeBase2D}
+    }, servers::rapier_physics_singleton_2d::{shapes_singleton, spaces_singleton}
 };
 use godot::{
     builtin::{real, Rid, Transform2D, Vector2},
@@ -100,8 +100,8 @@ pub struct RapierCollisionObject2D {
 impl RapierCollisionObject2D {
     pub fn new(rid: Rid, collision_object_type: CollisionObjectType) -> Self {
         Self {
-            collision_object_type: collision_object_type,
-            rid: rid,
+            collision_object_type,
+            rid,
             instance_id: 0,
             canvas_instance_id: 0,
             pickable: true,

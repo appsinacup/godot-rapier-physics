@@ -15,8 +15,6 @@ use godot::engine::physics_server_2d::AreaSpaceOverrideMode;
 use godot::engine::physics_server_2d::{BodyDampMode, BodyMode, BodyParameter, BodyState, CcdMode};
 use godot::engine::PhysicsDirectBodyState2D;
 use godot::prelude::*;
-use std::borrow::Borrow;
-use std::borrow::BorrowMut;
 use std::collections::HashSet;
 
 use super::rapier_area_2d::RapierArea2D;
@@ -83,6 +81,7 @@ pub struct RapierBody2D {
     friction: real,
     mass: real,
     inertia: real,
+    contact_skin: real,
     center_of_mass: Vector2,
     calculate_inertia: bool,
     calculate_center_of_mass: bool,
@@ -128,6 +127,7 @@ impl RapierBody2D {
             friction: 1.0,
             mass: 1.0,
             inertia: 0.0,
+            contact_skin: 0.0,
             center_of_mass: Vector2::ZERO,
             calculate_inertia: true,
             calculate_center_of_mass: true,
@@ -880,6 +880,7 @@ impl RapierBody2D {
                 let mat = Material {
                     friction: self.friction,
                     restitution: self.bounce,
+                    contact_skin: self.contact_skin,
                 };
                 body_update_material(self.base.space_handle, body_handle, &mat);
             }
@@ -1608,6 +1609,7 @@ impl IRapierCollisionObject2D for RapierBody2D {
         Material {
             friction: self.friction,
             restitution: self.bounce,
+            contact_skin: self.contact_skin,
         }
     }
 

@@ -1493,7 +1493,14 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
                 num_solver_iterations: RapierProjectSettings::get_solver_num_solver_iterations() as usize,
             };
             // this calls into rapier
-            world_step(space_handle, &settings);
+            world_step(space_handle, &settings,
+                RapierSpace2D::active_body_callback,
+                RapierSpace2D::collision_filter_body_callback,
+                RapierSpace2D::collision_filter_sensor_callback,
+                RapierSpace2D::collision_modify_contacts_callback,
+                RapierSpace2D::collision_event_callback,
+                RapierSpace2D::contact_force_event_callback,
+                RapierSpace2D::contact_point_callback,);
 
             {
                 let mut lock = spaces_singleton().lock().unwrap();
@@ -1548,6 +1555,22 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
 
 #[godot_api]
 impl RapierPhysicsServer2D {
+    #[func]
+    fn space_export_json(&mut self, world: Rid) -> String {
+        let mut lock = spaces_singleton().lock().unwrap();
+        if let Some(world) = lock.spaces.get_mut(&world) {
+            world.export_json();
+        }
+        "{}".to_string()
+    }
+    #[func]
+    fn space_export_binary(&mut self, world: Rid) -> PackedByteArray {
+        let mut lock = spaces_singleton().lock().unwrap();
+        if let Some(world) = lock.spaces.get_mut(&world) {
+            world.export_binary();
+        }
+        PackedByteArray::new()
+    }
     #[func]
     fn fluid_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
