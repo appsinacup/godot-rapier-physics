@@ -55,6 +55,7 @@ pub fn joint_change_revolute_params(
     let physics_world = physics_engine.get_world(world_handle);
 
     let joint = physics_world
+    .physics_objects
         .impulse_joint_set
         .get_mut(handle_to_joint_handle(joint_handle));
     assert!(joint.is_some());
@@ -137,6 +138,7 @@ pub fn joint_change_spring_params(
     let physics_world = physics_engine.get_world(world_handle);
 
     let joint = physics_world
+    .physics_objects
         .impulse_joint_set
         .get_mut(handle_to_joint_handle(joint_handle));
     assert!(joint.is_some());
@@ -162,6 +164,7 @@ pub fn joint_change_disable_collision(
     let physics_world = physics_engine.get_world(world_handle);
 
     let joint = physics_world
+    .physics_objects
         .impulse_joint_set
         .get_mut(handle_to_joint_handle(joint_handle));
     assert!(joint.is_some());

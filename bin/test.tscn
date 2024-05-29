@@ -22,6 +22,7 @@ position = Vector2(15, 0)
 script = ExtResource("1_4sybc")
 
 [node name="CollisionShape2D4" type="CollisionShape2D" parent="RigidBody2D"]
+position = Vector2(-9, -26)
 shape = SubResource("CircleShape2D_r2n1f")
 
 [node name="RigidBody2D2" type="RigidBody2D" parent="."]

@@ -3,7 +3,6 @@ use crate::rapier2d::convert::meters_to_pixels;
 use crate::rapier2d::convert::pixels_to_meters;
 use crate::rapier2d::convert::vector_meters_to_pixels;
 use crate::rapier2d::convert::vector_pixels_to_meters;
-use rapier2d::parry::query::ShapeCastOptions;
 use crate::rapier2d::handle::*;
 use crate::rapier2d::physics_world::*;
 use crate::rapier2d::shape::*;
@@ -11,6 +10,7 @@ use crate::rapier2d::user_data::*;
 use crate::rapier2d::vector::Vector;
 use rapier2d::na::Vector2;
 use rapier2d::parry;
+use rapier2d::parry::query::ShapeCastOptions;
 use rapier2d::prelude::*;
 
 pub struct RayHitInfo {
@@ -165,40 +165,43 @@ pub fn intersect_ray(
 
     let mut result = false;
     let mut length_current = Real::MAX;
-    physics_world.query_pipeline.intersections_with_ray(
-        &physics_world.rigid_body_set,
-        &physics_world.collider_set,
-        &ray,
-        length,
-        solid,
-        filter,
-        |handle, intersection| {
-            // Find closest intersection
-            if intersection.time_of_impact > length_current {
-                return true;
-            }
-            // Callback called on each collider hit by the ray.
-            if hit_from_inside || intersection.time_of_impact != 0.0 {
-                length_current = intersection.time_of_impact;
-                result = true;
+    physics_world
+        .physics_objects
+        .query_pipeline
+        .intersections_with_ray(
+            &physics_world.physics_objects.rigid_body_set,
+            &physics_world.physics_objects.collider_set,
+            &ray,
+            length,
+            solid,
+            filter,
+            |handle, intersection| {
+                // Find closest intersection
+                if intersection.time_of_impact > length_current {
+                    return true;
+                }
+                // Callback called on each collider hit by the ray.
+                if hit_from_inside || intersection.time_of_impact != 0.0 {
+                    length_current = intersection.time_of_impact;
+                    result = true;
 
-                let hit_point = ray.point_at(intersection.time_of_impact);
-                let hit_normal = intersection.normal;
-                hit_info.pixel_position = vector_meters_to_pixels(&Vector {
-                    x: hit_point.x,
-                    y: hit_point.y,
-                });
-                hit_info.normal = Vector {
-                    x: hit_normal.x,
-                    y: hit_normal.y,
-                };
-                hit_info.collider = collider_handle_to_handle(handle);
-                hit_info.user_data = physics_world.get_collider_user_data(handle);
-                //return false; // We found a collision hit.
-            }
-            true // Continue to search.
-        },
-    );
+                    let hit_point = ray.point_at(intersection.time_of_impact);
+                    let hit_normal = intersection.normal;
+                    hit_info.pixel_position = vector_meters_to_pixels(&Vector {
+                        x: hit_point.x,
+                        y: hit_point.y,
+                    });
+                    hit_info.normal = Vector {
+                        x: hit_normal.x,
+                        y: hit_normal.y,
+                    };
+                    hit_info.collider = collider_handle_to_handle(handle);
+                    hit_info.user_data = physics_world.get_collider_user_data(handle);
+                    //return false; // We found a collision hit.
+                }
+                true // Continue to search.
+            },
+        );
 
     return result;
 }
@@ -249,20 +252,23 @@ pub fn intersect_point(
     let hit_info_slice = hit_info_slice_opt.unwrap();
 
     let mut cpt_hit = 0;
-    physics_world.query_pipeline.intersections_with_point(
-        &physics_world.rigid_body_set,
-        &physics_world.collider_set,
-        &point,
-        filter,
-        |handle| {
-            // Callback called on each collider hit by the ray.
-            hit_info_slice[cpt_hit].collider = collider_handle_to_handle(handle);
-            hit_info_slice[cpt_hit].user_data = physics_world.get_collider_user_data(handle);
-            cpt_hit += 1;
-            let keep_searching = cpt_hit < hit_info_length;
-            keep_searching // Continue to search collisions if we still have space for results.
-        },
-    );
+    physics_world
+        .physics_objects
+        .query_pipeline
+        .intersections_with_point(
+            &physics_world.physics_objects.rigid_body_set,
+            &physics_world.physics_objects.collider_set,
+            &point,
+            filter,
+            |handle| {
+                // Callback called on each collider hit by the ray.
+                hit_info_slice[cpt_hit].collider = collider_handle_to_handle(handle);
+                hit_info_slice[cpt_hit].user_data = physics_world.get_collider_user_data(handle);
+                cpt_hit += 1;
+                let keep_searching = cpt_hit < hit_info_length;
+                keep_searching // Continue to search collisions if we still have space for results.
+            },
+        );
 
     return cpt_hit;
 }
@@ -397,9 +403,9 @@ pub fn shape_casting(
     shape_cast_options.max_time_of_impact = 1.0;
     shape_cast_options.compute_impact_geometry_on_penetration = true;
     shape_cast_options.stop_at_penetration = true;
-    if let Some((collider_handle, hit)) = physics_world.query_pipeline.cast_shape(
-        &physics_world.rigid_body_set,
-        &physics_world.collider_set,
+    if let Some((collider_handle, hit)) = physics_world.physics_objects.query_pipeline.cast_shape(
+        &physics_world.physics_objects.rigid_body_set,
+        &physics_world.physics_objects.collider_set,
         &shape_transform,
         &shape_vel,
         shared_shape.as_ref(),
@@ -489,21 +495,24 @@ pub fn intersect_shape(
     let hit_info_slice = hit_info_slice_opt.unwrap();
 
     let mut cpt_hit = 0;
-    physics_world.query_pipeline.intersections_with_shape(
-        &physics_world.rigid_body_set,
-        &physics_world.collider_set,
-        &shape_transform,
-        shared_shape.as_ref(),
-        filter,
-        |handle| {
-            // Callback called on each collider hit by the ray.
-            hit_info_slice[cpt_hit].collider = collider_handle_to_handle(handle);
-            hit_info_slice[cpt_hit].user_data = physics_world.get_collider_user_data(handle);
-            cpt_hit += 1;
-            let keep_searching = cpt_hit < hit_info_length;
-            keep_searching // Continue to search collisions if we still have space for results.
-        },
-    );
+    physics_world
+        .physics_objects
+        .query_pipeline
+        .intersections_with_shape(
+            &physics_world.physics_objects.rigid_body_set,
+            &physics_world.physics_objects.collider_set,
+            &shape_transform,
+            shared_shape.as_ref(),
+            filter,
+            |handle| {
+                // Callback called on each collider hit by the ray.
+                hit_info_slice[cpt_hit].collider = collider_handle_to_handle(handle);
+                hit_info_slice[cpt_hit].user_data = physics_world.get_collider_user_data(handle);
+                cpt_hit += 1;
+                let keep_searching = cpt_hit < hit_info_length;
+                keep_searching // Continue to search collisions if we still have space for results.
+            },
+        );
 
     return cpt_hit;
 }
@@ -540,10 +549,11 @@ pub fn intersect_aabb(
 
     let mut cpt_hit = 0;
     physics_world
+        .physics_objects
         .query_pipeline
         .colliders_with_aabb_intersecting_aabb(&aabb, |handle| {
             let mut valid_hit = false;
-            if let Some(collider) = physics_world.collider_set.get(*handle) {
+            if let Some(collider) = physics_world.physics_objects.collider_set.get(*handle) {
                 // type filder
                 if collider.is_sensor() && collide_with_area {
                     valid_hit = true;

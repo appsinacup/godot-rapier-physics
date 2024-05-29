@@ -122,12 +122,14 @@ pub fn scale_shape(shape: &SharedShape, scale: &Vector2<Real>) -> SharedShape {
 pub struct Material {
     pub friction: Real,
     pub restitution: Real,
+    pub contact_skin: Real,
 }
 
 pub fn default_material() -> Material {
     Material {
         friction: 1.0,
         restitution: 0.0,
+        contact_skin: 0.0,
     }
 }
 
@@ -165,6 +167,7 @@ pub fn collider_create_solid(
     collider.set_friction_combine_rule(CoefficientCombineRule::Multiply);
     collider.set_restitution_combine_rule(CoefficientCombineRule::Max);
     collider.set_density(0.0);
+    collider.set_contact_skin(mat.contact_skin);
     collider.set_contact_force_event_threshold(-Real::MAX);
     collider.user_data = user_data.get_data();
     collider
@@ -225,7 +228,10 @@ pub fn collider_get_position(world_handle: Handle, handle: Handle) -> Vector {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let collider_handle = handle_to_collider_handle(handle);
-    let collider = physics_world.collider_set.get(collider_handle);
+    let collider = physics_world
+        .physics_objects
+        .collider_set
+        .get(collider_handle);
     assert!(collider.is_some());
     let collider_vector = collider.unwrap().translation();
     return vector_meters_to_pixels(&Vector {
@@ -238,7 +244,10 @@ pub fn collider_get_angle(world_handle: Handle, handle: Handle) -> Real {
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let collider_handle = handle_to_collider_handle(handle);
-    let collider = physics_world.collider_set.get(collider_handle);
+    let collider = physics_world
+        .physics_objects
+        .collider_set
+        .get(collider_handle);
     assert!(collider.is_some());
     return collider.unwrap().rotation().angle();
 }
@@ -250,7 +259,10 @@ pub fn collider_set_transform(world_handle: Handle, handle: Handle, shape_info: 
         let mut physics_engine = singleton().lock().unwrap();
         let physics_world = physics_engine.get_world(world_handle);
         let collider_handle = handle_to_collider_handle(handle);
-        let collider = physics_world.collider_set.get_mut(collider_handle);
+        let collider = physics_world
+            .physics_objects
+            .collider_set
+            .get_mut(collider_handle);
         assert!(collider.is_some());
         let collider = collider.unwrap();
         collider.set_position_wrt_parent(Isometry::new(
@@ -268,7 +280,10 @@ pub fn collider_set_transform(world_handle: Handle, handle: Handle, shape_info: 
         );
         let physics_world = physics_engine.get_world(world_handle);
         let collider_handle = handle_to_collider_handle(handle);
-        let collider = physics_world.collider_set.get_mut(collider_handle);
+        let collider = physics_world
+            .physics_objects
+            .collider_set
+            .get_mut(collider_handle);
         assert!(collider.is_some());
         collider.unwrap().set_shape(new_shape);
     }
@@ -278,7 +293,10 @@ pub fn collider_set_collision_events_enabled(world_handle: Handle, handle: Handl
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let collider_handle = handle_to_collider_handle(handle);
-    let collider = physics_world.collider_set.get_mut(collider_handle);
+    let collider = physics_world
+        .physics_objects
+        .collider_set
+        .get_mut(collider_handle);
     assert!(collider.is_some());
     let collider_access = collider.unwrap();
     let mut active_events = collider_access.active_events();
@@ -298,7 +316,10 @@ pub fn collider_set_contact_force_events_enabled(
     let mut physics_engine = singleton().lock().unwrap();
     let physics_world = physics_engine.get_world(world_handle);
     let collider_handle = handle_to_collider_handle(handle);
-    let collider = physics_world.collider_set.get_mut(collider_handle);
+    let collider = physics_world
+        .physics_objects
+        .collider_set
+        .get_mut(collider_handle);
     assert!(collider.is_some());
     let collider_access = collider.unwrap();
     let mut active_events = collider_access.active_events();

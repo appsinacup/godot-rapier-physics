@@ -1,6 +1,7 @@
 use crate::{
     bodies::rapier_collision_object_2d::IRapierCollisionObject2D,
-    servers::rapier_physics_singleton_2d::{bodies_singleton, spaces_singleton}, spaces::rapier_space_2d::RapierSpace2D,
+    servers::rapier_physics_singleton_2d::{bodies_singleton, spaces_singleton},
+    spaces::rapier_space_2d::RapierSpace2D,
 };
 use godot::{
     engine::{
@@ -18,9 +19,7 @@ pub struct RapierDirectBodyState2D {
     base: Base<PhysicsDirectBodyState2DExtension>,
 }
 
-#[godot_api]
 impl RapierDirectBodyState2D {
-    #[func]
     pub fn set_body(&mut self, body: Rid) {
         self.body = body;
     }
@@ -407,8 +406,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
-                return body.contacts()[contact_idx as usize]
-                    .collider_instance_id
+                return body.contacts()[contact_idx as usize].collider_instance_id;
             }
         }
         0
@@ -418,9 +416,9 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
-                return Some(Gd::from_instance_id(
-                    InstanceId::from_i64(body.contacts()[contact_idx as usize].collider_instance_id as i64),
-                ));
+                return Some(Gd::from_instance_id(InstanceId::from_i64(
+                    body.contacts()[contact_idx as usize].collider_instance_id as i64,
+                )));
             }
         }
         None
