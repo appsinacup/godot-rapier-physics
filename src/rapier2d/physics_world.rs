@@ -15,8 +15,6 @@ use rapier2d::prelude::*;
 use salva2d::integrations::rapier::FluidsPipeline;
 use serde::{Deserialize, Serialize};
 use std::num::NonZeroUsize;
-use std::sync::Mutex;
-use std::sync::OnceLock;
 
 pub struct ActiveBodyInfo {
     pub body_handle: Handle,
@@ -475,14 +473,19 @@ impl PhysicsEngine {
     }
 }
 
-pub fn singleton() -> &'static Mutex<PhysicsEngine> {
-    static HASHMAP: OnceLock<Mutex<PhysicsEngine>> = OnceLock::new();
-    HASHMAP.get_or_init(|| Mutex::new(PhysicsEngine::new()))
+pub fn singleton() -> &'static mut PhysicsEngine {
+    static mut SINGLETON: Option<PhysicsEngine> = None;
+    unsafe {
+        if SINGLETON.is_none() {
+            SINGLETON = Some(PhysicsEngine::new());
+        }
+        SINGLETON.as_mut().unwrap()
+    }
 }
 
 pub fn world_create(settings: &WorldSettings) -> Handle {
     let physics_world = PhysicsWorld::new(settings);
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let world_handle = physics_engine.insert_world(physics_world);
     let physics_world = physics_engine.get_world(world_handle);
     physics_world.physics_objects.handle = world_handle;
@@ -490,7 +493,7 @@ pub fn world_create(settings: &WorldSettings) -> Handle {
 }
 
 pub fn world_destroy(world_handle: Handle) {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     physics_world.physics_objects.handle = invalid_handle();
     physics_engine.remove_world(world_handle);
@@ -507,7 +510,7 @@ pub fn world_step(
     contact_force_event_callback: ContactForceEventCallback,
     contact_point_callback: ContactPointCallback,
 ) {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     physics_world.step(
         settings,
@@ -522,13 +525,13 @@ pub fn world_step(
 }
 
 pub fn world_get_active_objects_count(world_handle: Handle) -> usize {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     return physics_world.physics_objects.island_manager.active_dynamic_bodies().len();
 }
 
 pub fn world_export_json(world_handle: Handle) -> String {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let serialized = serde_json::to_string(&physics_world.physics_objects.collider_set);
     match serialized {
@@ -543,7 +546,7 @@ pub fn world_export_json(world_handle: Handle) -> String {
 }
 
 pub fn world_export_binary(world_handle: Handle) -> Vec<u8> {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let serialized = bincode::serialize(&physics_world.physics_objects);
     match serialized {

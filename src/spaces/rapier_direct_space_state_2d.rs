@@ -33,7 +33,7 @@ impl RapierDirectSpaceState2D {
 impl RapierDirectSpaceState2D {
     #[func]
     fn export_json(&self) -> String {
-        let lock = spaces_singleton().lock().unwrap();
+        let lock = spaces_singleton();
         let space = lock.spaces.get(&self.space);
         if let Some(space) = space {
             return space.export_json();
@@ -42,7 +42,7 @@ impl RapierDirectSpaceState2D {
     }
     #[func]
     fn export_binary(&self) -> PackedByteArray {
-        let lock = spaces_singleton().lock().unwrap();
+        let lock = spaces_singleton();
         let space = lock.spaces.get(&self.space);
         if let Some(space) = space {
             return space.export_binary();
@@ -64,7 +64,7 @@ pub fn is_handle_excluded_callback(
     }
 
     let (collision_object_2d, _) = RapierCollisionObject2D::get_collider_user_data(user_data);
-    let body_lock = bodies_singleton().lock().unwrap();
+    let body_lock = bodies_singleton();
     let collision_object_2d = body_lock.collision_objects.get(&collision_object_2d).unwrap();
     if handle_excluded_info.query_canvas_instance_id != collision_object_2d.get_base().get_canvas_instance_id() {
         return true;
@@ -77,8 +77,8 @@ pub fn is_handle_excluded_callback(
     if handle_excluded_info.query_exclude_body == collision_object_2d.get_base().get_rid().to_u64() as i64 {
         return true;
     }
-    let spaces_lock = spaces_singleton().lock().unwrap();
-    let active_spaces_lock = active_spaces_singleton().lock().unwrap();
+    let spaces_lock = spaces_singleton();
+    let active_spaces_lock = active_spaces_singleton();
     let space = active_spaces_lock.active_spaces.get(&world_handle).unwrap();
     let space = spaces_lock.spaces.get(space).unwrap();
     let direct_state = space.get_rapier_direct_state().unwrap();
@@ -107,7 +107,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
     ) -> bool {
         let mut space_handle = invalid_handle();
         {
-            let lock = spaces_singleton().lock().unwrap();
+            let lock = spaces_singleton();
             let space = lock.spaces.get(&self.space);
             if let Some(space) = space {
                 if space.locked {
@@ -154,7 +154,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
                 RapierCollisionObject2D::get_collider_user_data(&hit_info.user_data);
             result.rid = rid;
             result.shape = shape_index as i32;
-            let lock = bodies_singleton().lock().unwrap();
+            let lock = bodies_singleton();
             let collision_object_2d = lock.collision_objects.get(&result.rid);
             if let Some(collision_object_2d) = collision_object_2d {
                 let instance_id = collision_object_2d.get_base().get_instance_id();
@@ -185,7 +185,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         }
         let mut space_handle = invalid_handle();
         {
-            let lock = spaces_singleton().lock().unwrap();
+            let lock = spaces_singleton();
             let space = lock.spaces.get(&self.space);
             if let Some(space) = space {
                 if space.locked {
@@ -233,7 +233,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
                 RapierCollisionObject2D::get_collider_user_data(&hit_info.user_data);
             results_slice[i].rid = rid;
             results_slice[i].shape = shape_index as i32;
-            let lock = bodies_singleton().lock().unwrap();
+            let lock = bodies_singleton();
             let collision_object_2d = lock.collision_objects.get(&rid);
             if let Some(collision_object_2d) = collision_object_2d {
                 let instance_id = collision_object_2d.get_base().get_instance_id();
@@ -265,14 +265,14 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         let mut shape_handle = invalid_handle();
         let mut space_handle = invalid_handle();
         {
-            let mut lock = shapes_singleton().lock().unwrap();
+            let lock = shapes_singleton();
             let shape = lock.shapes.get_mut(&shape_rid);
             if let Some(shape) = shape {
                 shape_handle = shape.get_rapier_shape();
             }
         }
         {
-            let lock = spaces_singleton().lock().unwrap();
+            let lock = spaces_singleton();
             let space = lock.spaces.get(&self.space);
             if let Some(space) = space {
                 space_handle = space.handle;
@@ -313,7 +313,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             }
             let (rid, shape_index) =
                 RapierCollisionObject2D::get_collider_user_data(&result.user_data);
-            let lock = bodies_singleton().lock().unwrap();
+            let lock = bodies_singleton();
             let collision_object_2d = lock.collision_objects.get(&rid);
             if let Some(collision_object_2d) = collision_object_2d {
                 results_slice[cpt].shape = shape_index as i32;
@@ -348,7 +348,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         let mut space_handle = invalid_handle();
         let mut shape_handle = invalid_handle();
         {
-            let lock = spaces_singleton().lock().unwrap();
+            let lock = spaces_singleton();
             let space = lock.spaces.get(&self.space);
             if let Some(space) = space {
                 if space.locked {
@@ -358,7 +358,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             }
         }
         {
-            let lock = shapes_singleton().lock().unwrap();
+            let lock = shapes_singleton();
             let shape = lock.shapes.get(&shape_rid);
             if let Some(shape) = shape {
                 shape_handle = shape.get_base().get_handle();
@@ -406,7 +406,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         let mut space_handle = invalid_handle();
         let mut shape_handle = invalid_handle();
         {
-            let lock = spaces_singleton().lock().unwrap();
+            let lock = spaces_singleton();
             let space = lock.spaces.get(&self.space);
             if let Some(space) = space {
                 if space.locked {
@@ -416,7 +416,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             }
         }
         {
-            let lock = shapes_singleton().lock().unwrap();
+            let lock = shapes_singleton();
             let shape = lock.shapes.get(&shape_rid);
             if let Some(shape) = shape {
                 shape_handle = shape.get_base().get_handle();
@@ -483,7 +483,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         let mut space_handle = invalid_handle();
         let mut shape_handle = invalid_handle();
         {
-            let lock = spaces_singleton().lock().unwrap();
+            let lock = spaces_singleton();
             let space = lock.spaces.get(&self.space);
             if let Some(space) = space {
                 if space.locked {
@@ -493,7 +493,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             }
         }
         {
-            let lock = shapes_singleton().lock().unwrap();
+            let lock = shapes_singleton();
             let shape = lock.shapes.get(&shape_rid);
             if let Some(shape) = shape {
                 shape_handle = shape.get_base().get_handle();
@@ -522,7 +522,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             return false;
         }
         let (rid, shape_index) = RapierCollisionObject2D::get_collider_user_data(&result.user_data);
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         let collision_object_2d = lock.collision_objects.get(&rid);
         let r_info = &mut *rest_info;
         if let Some(collision_object_2d) = collision_object_2d {

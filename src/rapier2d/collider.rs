@@ -151,7 +151,7 @@ pub fn collider_create_solid(
     body_handle: Handle,
     user_data: &UserData,
 ) -> Handle {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let shape = physics_engine.get_shape(shape_handle);
     let is_shape_halfspace = shape_is_halfspace(shape);
     let mut collider = ColliderBuilder::new(shape.clone())
@@ -196,7 +196,7 @@ pub fn collider_create_sensor(
     body_handle: Handle,
     user_data: &UserData,
 ) -> Handle {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let shape = physics_engine.get_shape(shape_handle);
     let mut collider = ColliderBuilder::new(shape.clone()).build();
     collider.set_sensor(true);
@@ -214,7 +214,7 @@ pub fn collider_create_sensor(
 }
 
 pub fn collider_destroy(world_handle: Handle, handle: Handle) {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let collider_handle = handle_to_collider_handle(handle);
     physics_world
@@ -225,7 +225,7 @@ pub fn collider_destroy(world_handle: Handle, handle: Handle) {
 }
 
 pub fn collider_get_position(world_handle: Handle, handle: Handle) -> Vector {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let collider_handle = handle_to_collider_handle(handle);
     let collider = physics_world
@@ -241,7 +241,7 @@ pub fn collider_get_position(world_handle: Handle, handle: Handle) -> Vector {
 }
 
 pub fn collider_get_angle(world_handle: Handle, handle: Handle) -> Real {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let collider_handle = handle_to_collider_handle(handle);
     let collider = physics_world
@@ -256,7 +256,7 @@ pub fn collider_set_transform(world_handle: Handle, handle: Handle, shape_info: 
     {
         let position = &vector_pixels_to_meters(&shape_info.pixel_position);
 
-        let mut physics_engine = singleton().lock().unwrap();
+        let physics_engine = singleton();
         let physics_world = physics_engine.get_world(world_handle);
         let collider_handle = handle_to_collider_handle(handle);
         let collider = physics_world
@@ -271,7 +271,7 @@ pub fn collider_set_transform(world_handle: Handle, handle: Handle, shape_info: 
         ));
     }
     {
-        let mut physics_engine = singleton().lock().unwrap();
+        let physics_engine = singleton();
         let shape = physics_engine.get_shape(shape_info.handle);
         let skewed_shape = skew_shape(shape, shape_info.skew);
         let new_shape = scale_shape(
@@ -290,7 +290,7 @@ pub fn collider_set_transform(world_handle: Handle, handle: Handle, shape_info: 
 }
 
 pub fn collider_set_collision_events_enabled(world_handle: Handle, handle: Handle, enable: bool) {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let collider_handle = handle_to_collider_handle(handle);
     let collider = physics_world
@@ -313,7 +313,7 @@ pub fn collider_set_contact_force_events_enabled(
     handle: Handle,
     enable: bool,
 ) {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let collider_handle = handle_to_collider_handle(handle);
     let collider = physics_world

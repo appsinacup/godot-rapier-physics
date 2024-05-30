@@ -39,7 +39,7 @@ impl RapierSpace2D {
     pub fn active_body_callback(active_body_info: &ActiveBodyInfo) {
         let (rid, _) =
             RapierCollisionObject2D::get_collider_user_data(&active_body_info.body_user_data);
-        let mut lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get_mut(&rid) {
             if let Some(body) = body.get_mut_body() {
                 body.on_marked_active();
@@ -51,7 +51,7 @@ impl RapierSpace2D {
         filter_info: &CollisionFilterInfo,
         r_colliders_info: &mut CollidersInfo,
     ) -> bool {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         (r_colliders_info.object1, r_colliders_info.shape1) =
             RapierCollisionObject2D::get_collider_user_data(&filter_info.user_data1);
         (r_colliders_info.object2, r_colliders_info.shape2) =
@@ -69,7 +69,7 @@ impl RapierSpace2D {
         if !Self::collision_filter_common_callback(filter_info, &mut colliders_info) {
             return false;
         }
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body1) = lock.collision_objects.get(&colliders_info.object1) {
             if let Some(body1) = body1.get_body() {
                 if let Some(body2) = lock.collision_objects.get(&colliders_info.object2) {
@@ -97,7 +97,7 @@ impl RapierSpace2D {
     ) -> OneWayDirection {
         let mut result = OneWayDirection::default();
 
-        let mut lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         let (object1, shape1) =
             RapierCollisionObject2D::get_collider_user_data(&filter_info.user_data1);
         let (object2, shape2) =
@@ -143,8 +143,8 @@ impl RapierSpace2D {
     }
 
     pub fn collision_event_callback(world_handle: Handle, event_info: &CollisionEventInfo) {
-        let mut spaces_lock = spaces_singleton().lock().unwrap();
-        let active_spaces_lock = active_spaces_singleton().lock().unwrap();
+        let spaces_lock = spaces_singleton();
+        let active_spaces_lock = active_spaces_singleton();
         if let Some(space) = active_spaces_lock.active_spaces.get(&world_handle) {
             if let Some(space) = spaces_lock.spaces.get_mut(space) {
                 let (mut p_object1, mut shape1) =
@@ -160,7 +160,7 @@ impl RapierSpace2D {
                 let (mut type1, mut type2) = (CollisionObjectType::Area, CollisionObjectType::Area);
 
                 if event_info.is_removed {
-                    let body_lock = bodies_singleton().lock().unwrap();
+                    let body_lock = bodies_singleton();
                     if let Some(body) = body_lock.collision_objects.get(&p_object1) {
                         rid1 = body.get_base().get_rid();
                         instance_id1 = body.get_base().get_instance_id();
@@ -186,7 +186,7 @@ impl RapierSpace2D {
                         shape2 = removed_collider_info_2.shape_index;
                     }
                 } else {
-                    let body_lock = bodies_singleton().lock().unwrap();
+                    let body_lock = bodies_singleton();
                     if let Some(body) = body_lock.collision_objects.get(&p_object1) {
                         rid1 = body.get_base().get_rid();
                         instance_id1 = body.get_base().get_instance_id();
@@ -222,7 +222,7 @@ impl RapierSpace2D {
                         swap(&mut instance_id1, &mut instance_id2);
                     }
 
-                    let mut body_lock = bodies_singleton().lock().unwrap();
+                    let body_lock = bodies_singleton();
                     let mut p_collision_object1 = None;
                     let mut p_collision_object2 = None;
                     if body_lock.collision_objects.contains_key(&p_object1) && body_lock.collision_objects.contains_key(&p_object2) {
@@ -289,8 +289,8 @@ impl RapierSpace2D {
         world_handle: Handle,
         event_info: &ContactForceEventInfo,
     ) -> bool {
-        let spaces_lock = spaces_singleton().lock().unwrap();
-        let active_spaces_lock = active_spaces_singleton().lock().unwrap();
+        let spaces_lock = spaces_singleton();
+        let active_spaces_lock = active_spaces_singleton();
         let mut send_contacts = false;
         if let Some(space) = active_spaces_lock.active_spaces.get(&world_handle) {
             if let Some(space) = spaces_lock.spaces.get(space) {
@@ -302,7 +302,7 @@ impl RapierSpace2D {
 
             let (p_object2, _) =
                 RapierCollisionObject2D::get_collider_user_data(&event_info.user_data2);
-            let bodies_lock = bodies_singleton().lock().unwrap();
+            let bodies_lock = bodies_singleton();
             if let Some(body1) = bodies_lock.collision_objects.get(&p_object1) {
                 if let Some(body1) = body1.get_body() {
                     if body1.can_report_contacts() {
@@ -332,9 +332,9 @@ impl RapierSpace2D {
         let pos2 = Vector2::new(contact_info.pixel_local_pos_2.x, contact_info.pixel_local_pos_2.y);
 
         let mut keep_sending_contacts = false;
-        let active_lock = active_spaces_singleton().lock().unwrap();
+        let active_lock = active_spaces_singleton();
         if let Some(active_space) = active_lock.active_spaces.get(&world_handle) {
-            if let Some(space) = spaces_singleton().lock().unwrap().spaces.get_mut(active_space) {
+            if let Some(space) = spaces_singleton().spaces.get_mut(active_space) {
                 if space.is_debugging_contacts() {
                     keep_sending_contacts = true;
                     space.add_debug_contact(pos1);
@@ -348,7 +348,7 @@ impl RapierSpace2D {
     RapierCollisionObject2D::get_collider_user_data(&event_info.user_data1);
     let (p_object2, shape2) =
     RapierCollisionObject2D::get_collider_user_data(&event_info.user_data2);
-    let mut bodies_lock = bodies_singleton().lock().unwrap();
+    let bodies_lock = bodies_singleton();
     if let Some([p_object1, p_object2]) = bodies_lock.collision_objects.get_many_mut([&p_object1, &p_object2]) {
         let depth = real::max(0.0, -contact_info.pixel_distance); // negative distance means penetration
         let normal = Vector2::new(contact_info.normal.x, contact_info.normal.y);

@@ -22,7 +22,7 @@ impl RapierGrooveJoint2D {
         body_a: Rid,
         body_b: Rid,
     ) -> Self {
-            let lock = bodies_singleton().lock().unwrap();
+            let lock = bodies_singleton();
             if let Some(body_a) = lock.collision_objects.get(&body_a) {
                 let base_a = body_a.get_base();
                 let point_a_1 = base_a.get_inv_transform().basis_xform(p_a_groove1);

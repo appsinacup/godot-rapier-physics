@@ -26,7 +26,7 @@ impl RapierDampedSpringJoint2D {
         body_a: Rid,
         body_b: Rid,
     ) -> Self {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body_a) = lock.collision_objects.get(&body_a) {
             let base_a = body_a.get_base();
             let body_a_handle = base_a.get_body_handle();

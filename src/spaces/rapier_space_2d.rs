@@ -201,7 +201,7 @@ impl RapierSpace2D {
             let mut fi_callback_data = None;
             let mut state_sync_callback = Callable::invalid();
             {
-                let mut lock = bodies_singleton().lock().unwrap();
+                let lock = bodies_singleton();
                 if let Some(body) = lock.collision_objects.get_mut(&body_rid) {
                     if let Some(body) = body.get_mut_body() {
                         if let Some(direct_state_gd) = body.get_direct_state() {
@@ -238,7 +238,7 @@ impl RapierSpace2D {
             }
         }
         for area_rid in self.monitor_query_list.clone() {
-            let lock = bodies_singleton().lock().unwrap();
+            let lock = bodies_singleton();
             if let Some(area) = lock.collision_objects.get(&area_rid) {
                 if let Some(area) = area.get_area() {
                     area.call_queries(self);
@@ -339,7 +339,7 @@ impl RapierSpace2D {
         self.active_objects = world_get_active_objects_count(self.handle) as i32;
 
         for body in self.active_list.clone() {
-            let mut lock = bodies_singleton().lock().unwrap();
+            let lock = bodies_singleton();
             if let Some(body) = lock.collision_objects.get_mut(&body) {
                 if let Some(body) = body.get_mut_body() {
                     body.on_update_active(self);

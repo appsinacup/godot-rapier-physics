@@ -137,7 +137,7 @@ pub fn intersect_ray(
     let from = vector_pixels_to_meters(pixel_from);
     let length = pixels_to_meters(pixel_length);
 
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
 
     let ray = Ray::new(point![from.x, from.y], vector![dir.x, dir.y]);
@@ -215,7 +215,7 @@ pub fn intersect_point(
     handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
 ) -> usize {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let position = vector_pixels_to_meters(pixel_position);
     let point = Point::new(position.x, position.y);
@@ -289,7 +289,7 @@ pub fn shape_collide(
     let position1 = vector_pixels_to_meters(&shape_info1.pixel_position);
     let position2 = vector_pixels_to_meters(&shape_info2.pixel_position);
 
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
 
     let raw_shared_shape1 = physics_engine.get_shape(shape_info1.handle).clone();
     let skewed_shape1 = skew_shape(&raw_shared_shape1, shape_info1.skew);
@@ -360,7 +360,7 @@ pub fn shape_casting(
     let motion = vector_pixels_to_meters(pixel_motion);
     let position = vector_pixels_to_meters(&shape_info.pixel_position);
 
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
 
     let raw_shared_shape = physics_engine.get_shape(shape_info.handle).clone();
     let skewed_shape = skew_shape(&raw_shared_shape, shape_info.skew);
@@ -450,7 +450,7 @@ pub fn intersect_shape(
     handle_excluded_info: &QueryExcludedInfo,
 ) -> usize {
     let position = vector_pixels_to_meters(&shape_info.pixel_position);
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
 
     let raw_shared_shape = physics_engine.get_shape(shape_info.handle).clone();
     let skewed_shape = skew_shape(&raw_shared_shape, shape_info.skew);
@@ -530,7 +530,7 @@ pub fn intersect_aabb(
     let aabb_min = vector_pixels_to_meters(pixel_aabb_min);
     let aabb_max = vector_pixels_to_meters(pixel_aabb_max);
 
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
 
     let physics_world = physics_engine.get_world(world_handle);
 
@@ -594,7 +594,7 @@ pub fn shapes_contact(
     let position2 = vector_pixels_to_meters(&shape_info2.pixel_position);
     let margin = pixels_to_meters(pixel_margin);
 
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
 
     //let prediction = Real::max(0.002, margin);
     let prediction = margin;

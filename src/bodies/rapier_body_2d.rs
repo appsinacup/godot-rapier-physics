@@ -162,7 +162,7 @@ impl RapierBody2D {
         }
 
         if self.calculate_inertia || self.calculate_center_of_mass {
-            let mut lock = spaces_singleton().lock().unwrap();
+            let lock = spaces_singleton();
             if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
                 space.body_add_to_mass_properties_update_list(self.base.get_rid());
             }
@@ -205,7 +205,7 @@ impl RapierBody2D {
     }
 
     fn _apply_linear_damping(&mut self, new_value: real, apply_default: bool) {
-        let lock = spaces_singleton().lock().unwrap();
+        let lock = spaces_singleton();
         if let Some(space) = lock.spaces.get(&self.base.get_space()) {
             self.total_linear_damping = new_value;
             if apply_default {
@@ -223,7 +223,7 @@ impl RapierBody2D {
     }
 
     fn _apply_angular_damping(&mut self, new_value: real, apply_default: bool) {
-        let lock = spaces_singleton().lock().unwrap();
+        let lock = spaces_singleton();
         if let Some(space) = lock.spaces.get(&self.base.get_space()) {
             self.total_angular_damping = new_value;
             if apply_default {
@@ -349,7 +349,7 @@ impl RapierBody2D {
 
     pub fn add_area(&mut self, p_area: Rid) {
         self.base.area_detection_counter += 1;
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(area) = lock.collision_objects.get(&self.base.get_rid()) {
             if let Some(area) = area.get_area() {
                 if area.has_any_space_override() {
@@ -370,7 +370,7 @@ impl RapierBody2D {
         self.on_area_updated(area);
     }
     pub fn on_area_updated(&mut self, _area: Rid) {
-        let mut lock = spaces_singleton().lock().unwrap();
+        let lock = spaces_singleton();
         if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
             space.body_add_to_area_update_list(self.base.get_rid());
         }
@@ -378,7 +378,7 @@ impl RapierBody2D {
 
     pub fn update_area_override(&mut self) {
         {
-            let mut lock = spaces_singleton().lock().unwrap();
+            let lock = spaces_singleton();
             if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
                 space.body_remove_from_area_update_list(self.base.get_rid());
             }
@@ -411,7 +411,7 @@ impl RapierBody2D {
             let mut areas = self.areas.clone();
             areas.reverse();
             for area_rid in areas {
-                let lock = bodies_singleton().lock().unwrap();
+                let lock = bodies_singleton();
                 if let Some(area) = lock.collision_objects.get(&area_rid) {
                     if let Some(aa) = area.get_area() {
                         if !gravity_done {
@@ -504,7 +504,7 @@ impl RapierBody2D {
         self._apply_angular_damping(total_angular_damping, !angular_damping_done);
 
         {
-            let mut lock = spaces_singleton().lock().unwrap();
+            let lock = spaces_singleton();
             if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
                 if self.using_area_gravity {
                     // Add default gravity from space.
@@ -809,7 +809,7 @@ impl RapierBody2D {
         self.marked_active = true;
         if !self.active {
             self.active = true;
-            let mut lock = spaces_singleton().lock().unwrap();
+            let lock = spaces_singleton();
             if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
                 space.body_add_to_active_list(self.base.get_rid());
             }
@@ -1039,7 +1039,7 @@ impl RapierBody2D {
         self.base.mode = p_mode;
         let rid = self.base.get_rid();
         {
-            let mut spaces_lock = spaces_singleton().lock().unwrap();
+            let spaces_lock = spaces_singleton();
             if let Some(space) = spaces_lock.spaces.get_mut(&self.base.get_space()) {
                 match p_mode {
                     BodyMode::KINEMATIC => {
@@ -1111,7 +1111,7 @@ impl RapierBody2D {
                 }
                 self.sleep = p_variant.to();
 
-                let mut lock = spaces_singleton().lock().unwrap();
+                let lock = spaces_singleton();
                 if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
                     if self.sleep {
                         if self.can_sleep {
@@ -1130,7 +1130,7 @@ impl RapierBody2D {
                     self.set_can_sleep(self.can_sleep);
                     if !self.active && !self.can_sleep {
                         self.wakeup();
-                        let mut lock = spaces_singleton().lock().unwrap();
+                        let lock = spaces_singleton();
                         if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
                             self.set_active(true, space);
                         }
@@ -1182,7 +1182,7 @@ impl RapierBody2D {
 
     pub fn update_mass_properties(&mut self, force_update: bool) {
         {
-            let mut lock = spaces_singleton().lock().unwrap();
+            let lock = spaces_singleton();
             if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
                 space.body_remove_from_mass_properties_update_list(self.base.get_rid());
             }
@@ -1197,7 +1197,7 @@ impl RapierBody2D {
             if self.base.is_shape_disabled(i) {
                 continue;
             }
-            let shapes_lock = shapes_singleton().lock().unwrap();
+            let shapes_lock = shapes_singleton();
             if let Some(shape) = shapes_lock.shapes.get(&self.base.get_shape(i)) {
                 total_area += shape.get_base().get_aabb(Vector2::default()).area();
             }
@@ -1212,7 +1212,7 @@ impl RapierBody2D {
                         continue;
                     }
 
-                    let shapes_lock = shapes_singleton().lock().unwrap();
+                    let shapes_lock = shapes_singleton();
                     if let Some(shape) = shapes_lock.shapes.get(&self.base.get_shape(i)) {
                         let shape_area = shape.get_base().get_aabb(Vector2::default()).area();
                         if shape_area == 0.0 || self.mass == 0.0 {
@@ -1237,7 +1237,7 @@ impl RapierBody2D {
                         continue;
                     }
 
-                    let shapes_lock = shapes_singleton().lock().unwrap();
+                    let shapes_lock = shapes_singleton();
                     if let Some(shape) = shapes_lock.shapes.get(&self.base.get_shape(i)) {
                         let shape_area = shape.get_base().get_aabb(Vector2::default()).area();
                         if shape_area == 0.0 || self.mass == 0.0 {
@@ -1315,7 +1315,7 @@ impl RapierBody2D {
             if self.base.is_shape_disabled(i) {
                 continue;
             }
-            let shape_lock = shapes_singleton().lock().unwrap();
+            let shape_lock = shapes_singleton();
             if let Some(shape) = shape_lock.shapes.get(&self.base.get_shape(i)) {
                 if !shapes_found {
                     // TODO not 100% correct, we don't take into consideration rotation here.
@@ -1382,7 +1382,7 @@ impl IRapierCollisionObject2D for RapierBody2D {
         }
     
         if self.base.space_handle.is_valid() {
-            let mut lock = spaces_singleton().lock().unwrap();
+            let lock = spaces_singleton();
             if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
                 space.body_remove_from_mass_properties_update_list(self.base.get_rid());
                 space.body_remove_from_gravity_update_list(self.base.get_rid());
@@ -1401,7 +1401,7 @@ impl IRapierCollisionObject2D for RapierBody2D {
 
             if self.active || !self.sleep {
                 self.wakeup();
-                let mut lock = spaces_singleton().lock().unwrap();
+                let lock = spaces_singleton();
                 if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
                     space.body_add_to_active_list(self.base.get_rid());
                 }
@@ -1480,7 +1480,7 @@ impl IRapierCollisionObject2D for RapierBody2D {
 
         self.base.shapes.push(shape);
         {
-            let mut lock = shapes_singleton().lock().unwrap();
+            let lock = shapes_singleton();
             if let Some(shape) = lock.shapes.get_mut(&p_shape) {
                 shape.get_mut_base().add_owner(self.base.get_rid());
             }
@@ -1497,14 +1497,14 @@ impl IRapierCollisionObject2D for RapierBody2D {
         self.base.shapes[p_index].collider_handle = self.base._destroy_shape(self.base.shapes[p_index], p_index);
         let shape = self.base.shapes[p_index];
         {
-            let mut lock = shapes_singleton().lock().unwrap();
+            let lock = shapes_singleton();
             if let Some(shape) = lock.shapes.get_mut(&shape.shape) {
                 shape.get_mut_base().remove_owner(self.base.get_rid());
             }
         }
         self.base.shapes[p_index].shape = p_shape;
         {
-            let mut lock = shapes_singleton().lock().unwrap();
+            let lock = shapes_singleton();
             if let Some(shape) = lock.shapes.get_mut(&p_shape) {
                 shape.get_mut_base().add_owner(self.base.get_rid());
             }
@@ -1578,7 +1578,7 @@ impl IRapierCollisionObject2D for RapierBody2D {
         let shape = &mut self.base.shapes[p_index];
         shape.collider_handle = invalid_handle();
         {
-            let mut lock = shapes_singleton().lock().unwrap();
+            let lock = shapes_singleton();
             if let Some(shape) = lock.shapes.get_mut(&shape.shape) {
                 shape.get_mut_base().remove_owner(self.base.get_rid());
             }
