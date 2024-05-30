@@ -19,6 +19,10 @@ size = Vector2(42.2131, 68.4998)
 [node name="Test" type="Node2D"]
 script = ExtResource("1_osmip")
 
+[node name="RigidBody2D6" type="RigidBody2D" parent="."]
+position = Vector2(-72, -19)
+lock_rotation = true
+
 [node name="RigidBody2D" type="RigidBody2D" parent="."]
 position = Vector2(-25, -1)
 script = ExtResource("1_4sybc")
@@ -74,7 +78,7 @@ position = Vector2(0, 86)
 shape = SubResource("WorldBoundaryShape2D_a3uwi")
 
 [node name="Timer" type="Timer" parent="."]
-wait_time = 5.0
+wait_time = 10.0
 autostart = true
 
 [connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]

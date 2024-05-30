@@ -28,7 +28,6 @@ pub struct Contact {
     pub collider_pos: Vector2,
     pub collider_shape: i32,
     pub collider_instance_id: u64,
-    //pub collider_object: Option<Object>,
     pub collider: Rid,
     pub local_velocity_at_pos: Vector2,
     pub collider_velocity_at_pos: Vector2,
@@ -45,7 +44,6 @@ impl Default for Contact {
             collider_pos: Vector2::ZERO,
             collider_shape: 0,
             collider_instance_id: 0,
-            //collider_object: None,
             collider: Rid::Invalid,
             local_velocity_at_pos: Vector2::ZERO,
             collider_velocity_at_pos: Vector2::ZERO,
@@ -257,7 +255,10 @@ impl RapierBody2D {
     fn _init_collider(&self, collider_handle: Handle, space_handle: Handle) {
         // Send contact infos for dynamic bodies
         if self.base.mode.ord() >= BodyMode::KINEMATIC.ord() {
-            let send_contacts = self.can_report_contacts();
+            let mut send_contacts = self.can_report_contacts();
+            if godot::engine::Os::singleton().is_debug_build() {
+                send_contacts = true;
+            }
             collider_set_contact_force_events_enabled(space_handle, collider_handle, send_contacts);
         }
     }
@@ -556,7 +557,7 @@ impl RapierBody2D {
     pub fn can_report_contacts(&self) -> bool {
         !self.contacts.is_empty()
     }
-    fn add_contact(
+    pub fn add_contact(
         &mut self,
         local_pos: Vector2,
         local_normal: Vector2,
@@ -566,7 +567,6 @@ impl RapierBody2D {
         collider_pos: Vector2,
         collider_shape: i32,
         collider_instance_id: u64,
-        //collider_object: Option<Object>,
         collider: Rid,
         collider_velocity_at_pos: Vector2,
         impulse: Vector2,
@@ -608,7 +608,6 @@ impl RapierBody2D {
         c.collider_pos = collider_pos;
         c.collider_shape = collider_shape;
         c.collider_instance_id = collider_instance_id;
-        //c.collider_object = p_collider_object;
         c.collider = collider;
         c.collider_velocity_at_pos = collider_velocity_at_pos;
         c.local_velocity_at_pos = local_velocity_at_pos;

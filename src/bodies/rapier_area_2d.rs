@@ -4,9 +4,11 @@ use crate::bodies::rapier_collision_object_2d::{
 };
 use crate::rapier2d::collider::{default_material, Material};
 use crate::rapier2d::handle::{invalid_handle, Handle};
-use crate::servers::rapier_physics_singleton_2d::shapes_singleton;
+use crate::servers::rapier_physics_singleton_2d::{shapes_singleton, spaces_singleton};
 use crate::spaces::rapier_space_2d::RapierSpace2D;
-use godot::builtin::{real};
+use godot::builtin::{real, Transform2D};
+use godot::meta::ToGodot;
+use godot::obj::EngineEnum;
 use godot::{
     builtin::{Callable, Rid, Variant, Vector2},
     engine::physics_server_2d::{AreaParameter, AreaSpaceOverrideMode},
@@ -73,16 +75,22 @@ impl RapierArea2D {
         }
     }
 
-    pub fn _shapes_changed() {}
-
     pub fn _set_space_override_mode(
-        r_mode: &AreaSpaceOverrideMode,
+        &mut self,
+        r_mode: AreaSpaceOverrideMode,
         p_value: AreaSpaceOverrideMode,
     ) {
+        // Implementation needed
     }
-    pub fn _enable_space_override() {}
-    pub fn _disable_space_override() {}
-    pub fn _reset_space_override() {}
+    pub fn _enable_space_override() {
+        // Implementation needed
+    }
+    pub fn _disable_space_override() {
+        // Implementation needed
+    }
+    pub fn _reset_space_override(&self) {
+        // Implementation needed
+    }
 
     pub fn on_body_enter(
         &mut self,
@@ -164,13 +172,139 @@ impl RapierArea2D {
         self.area_monitor_callback.is_valid()
     }
 
-    pub fn set_param(&mut self, param: AreaParameter, value: Variant) {
-        // Implementation needed
+    pub fn set_param(&mut self, p_param: AreaParameter, p_value: Variant) {
+        match p_param {
+            AreaParameter::GRAVITY_OVERRIDE_MODE => {
+                self._set_space_override_mode(
+                    self.gravity_override_mode,
+                    AreaSpaceOverrideMode::from_ord(p_value.to()),
+                );
+            }
+
+            AreaParameter::GRAVITY => {
+                let new_gravity = p_value.to();
+                if new_gravity != self.gravity {
+                    self.gravity = new_gravity;
+                    if self.gravity_override_mode != AreaSpaceOverrideMode::DISABLED {
+                        // Update currently detected bodies
+                        let mut lock = spaces_singleton().lock().unwrap();
+                        if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
+                            space.area_add_to_area_update_list(self.base.get_rid());
+                        }
+                    }
+                }
+            }
+            AreaParameter::GRAVITY_VECTOR => {
+                let new_gravity_vector = p_value.to();
+                if self.gravity_vector != new_gravity_vector {
+                    self.gravity_vector = new_gravity_vector;
+                    if self.gravity_override_mode != AreaSpaceOverrideMode::DISABLED {
+                        // Update currently detected bodies
+                        let mut lock = spaces_singleton().lock().unwrap();
+                        if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
+                            space.area_add_to_area_update_list(self.base.get_rid());
+                        }
+                    }
+                }
+            }
+            AreaParameter::GRAVITY_IS_POINT => {
+                let new_gravity_is_point = p_value.to();
+                if self.gravity_is_point != new_gravity_is_point {
+                    self.gravity_is_point = new_gravity_is_point;
+                    if self.gravity_override_mode != AreaSpaceOverrideMode::DISABLED {
+                        // Update currently detected bodies
+                        let mut lock = spaces_singleton().lock().unwrap();
+                        if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
+                            space.area_add_to_area_update_list(self.base.get_rid());
+                        }
+                    }
+                }
+            }
+            AreaParameter::GRAVITY_POINT_UNIT_DISTANCE => {
+                let new_gravity_point_unit_distance = p_value.to();
+                if self.gravity_point_unit_distance != new_gravity_point_unit_distance {
+                    self.gravity_point_unit_distance = new_gravity_point_unit_distance;
+                    if self.gravity_override_mode != AreaSpaceOverrideMode::DISABLED {
+                        // Update currently detected bodies
+                        let mut lock = spaces_singleton().lock().unwrap();
+                        if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
+                            space.area_add_to_area_update_list(self.base.get_rid());
+                        }
+                    }
+                }
+            }
+            AreaParameter::LINEAR_DAMP_OVERRIDE_MODE => {
+                self._set_space_override_mode(
+                    self.linear_damping_override_mode,
+                    AreaSpaceOverrideMode::from_ord(p_value.to()),
+                );
+            }
+            AreaParameter::LINEAR_DAMP => {
+                let new_linear_damp = p_value.to();
+                if self.linear_damp != new_linear_damp {
+                    self.linear_damp = new_linear_damp;
+                    if self.linear_damping_override_mode != AreaSpaceOverrideMode::DISABLED {
+                        // Update currently detected bodies
+                        let mut lock = spaces_singleton().lock().unwrap();
+                        if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
+                            space.area_add_to_area_update_list(self.base.get_rid());
+                        }
+                    }
+                }
+            }
+            AreaParameter::ANGULAR_DAMP_OVERRIDE_MODE => {
+                self._set_space_override_mode(
+                    self.angular_damping_override_mode,
+                    AreaSpaceOverrideMode::from_ord(p_value.to()),
+                );
+            }
+            AreaParameter::ANGULAR_DAMP => {
+                let new_angular_damp = p_value.to();
+                if self.angular_damp != new_angular_damp {
+                    self.angular_damp = new_angular_damp;
+                    if self.angular_damping_override_mode != AreaSpaceOverrideMode::DISABLED {
+                        // Update currently detected bodies
+                        let mut lock = spaces_singleton().lock().unwrap();
+                        if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
+                            space.area_add_to_area_update_list(self.base.get_rid());
+                        }
+                    }
+                }
+            }
+            AreaParameter::PRIORITY => {
+                let new_priority = p_value.to();
+                if self.priority != new_priority {
+                    self.priority = new_priority;
+                    if self.has_any_space_override() {
+                        // Need to re-process priority list for each body
+                        self._reset_space_override();
+                    }
+                }
+            }
+            _ => {}
+        }
     }
 
-    pub fn get_param(&self, param: AreaParameter) -> Variant {
-        // Implementation needed
-        Variant::nil()
+    pub fn get_param(&self, p_param: AreaParameter) -> Variant {
+        match p_param {
+            AreaParameter::GRAVITY_OVERRIDE_MODE => self.gravity_override_mode.to_variant(),
+            AreaParameter::GRAVITY => self.gravity.to_variant(),
+            AreaParameter::GRAVITY_VECTOR => self.gravity_vector.to_variant(),
+            AreaParameter::GRAVITY_IS_POINT => self.gravity_is_point.to_variant(),
+            AreaParameter::GRAVITY_POINT_UNIT_DISTANCE => {
+                self.gravity_point_unit_distance.to_variant()
+            }
+            AreaParameter::LINEAR_DAMP_OVERRIDE_MODE => {
+                self.linear_damping_override_mode.to_variant()
+            }
+            AreaParameter::LINEAR_DAMP => self.linear_damp.to_variant(),
+            AreaParameter::ANGULAR_DAMP_OVERRIDE_MODE => {
+                self.angular_damping_override_mode.to_variant()
+            }
+            AreaParameter::ANGULAR_DAMP => self.angular_damp.to_variant(),
+            AreaParameter::PRIORITY => self.priority.to_variant(),
+            _ => Variant::nil(),
+        }
     }
 
     pub fn set_gravity(&mut self, gravity: real) {
@@ -254,7 +388,9 @@ impl IRapierCollisionObject2D for RapierArea2D {
     fn get_mut_base(&mut self) -> &mut RapierCollisionObject2D {
         &mut self.base
     }
-    fn set_space(&mut self, space: Rid) {}
+    fn set_space(&mut self, space: Rid) {
+        // implementation needed
+    }
 
     fn get_body(&self) -> Option<&RapierBody2D> {
         None
@@ -271,52 +407,84 @@ impl IRapierCollisionObject2D for RapierArea2D {
     fn get_mut_area(&mut self) -> Option<&mut RapierArea2D> {
         Some(self)
     }
-    
+
     fn add_shape(
         &mut self,
         p_shape: godot::prelude::Rid,
         p_transform: godot::prelude::Transform2D,
         p_disabled: bool,
     ) {
-            let mut shape = CollisionObjectShape {
-                xform: p_transform,
-                shape: p_shape,
-                disabled: p_disabled,
-                one_way_collision: false,
-                one_way_collision_margin: 0.0,
-                collider_handle: invalid_handle(),
-            };
-    
-            if !shape.disabled {
-                shape.collider_handle = self.create_shape(shape, self.base.shapes.len());
-                self.base.update_shape_transform(&shape);
+        let mut shape = CollisionObjectShape {
+            xform: p_transform,
+            shape: p_shape,
+            disabled: p_disabled,
+            one_way_collision: false,
+            one_way_collision_margin: 0.0,
+            collider_handle: invalid_handle(),
+        };
+
+        if !shape.disabled {
+            shape.collider_handle = self.create_shape(shape, self.base.shapes.len());
+            self.base.update_shape_transform(&shape);
+        }
+
+        self.base.shapes.push(shape);
+        {
+            let mut lock = shapes_singleton().lock().unwrap();
+            if let Some(shape) = lock.shapes.get_mut(&p_shape) {
+                shape.get_mut_base().add_owner(self.base.get_rid());
             }
-    
-            self.base.shapes.push(shape);
-            {
-                let mut lock = shapes_singleton().lock().unwrap();
-                if let Some(shape) = lock.shapes.get_mut(&p_shape) {
-                    shape.get_mut_base().add_owner(self.base.get_rid());
-                }
+        }
+
+        if self.base.space_handle.is_valid() {
+            self._shapes_changed();
+        }
+    }
+
+    fn set_shape(&mut self, p_index: usize, p_shape: Rid) {
+        assert!(p_index < self.base.shapes.len());
+
+        self.base.shapes[p_index].collider_handle =
+            self.base._destroy_shape(self.base.shapes[p_index], p_index);
+        let shape = self.base.shapes[p_index];
+        {
+            let mut lock = shapes_singleton().lock().unwrap();
+            if let Some(shape) = lock.shapes.get_mut(&shape.shape) {
+                shape.get_mut_base().remove_owner(self.base.get_rid());
             }
-    
-            if self.base.space_handle.is_valid() {
-                self._shapes_changed();
+        }
+        self.base.shapes[p_index].shape = p_shape;
+        {
+            let mut lock = shapes_singleton().lock().unwrap();
+            if let Some(shape) = lock.shapes.get_mut(&p_shape) {
+                shape.get_mut_base().add_owner(self.base.get_rid());
             }
+        }
+
+        if !shape.disabled {
+            self.base
+                ._create_shape(shape, p_index, self._init_material());
+            self.base.update_shape_transform(&shape);
+        }
+
+        if self.base.space_handle.is_valid() {
+            self._shapes_changed();
+        }
     }
-    
-    fn set_shape(
-        &mut self,
-        shape_idx: usize,
-        p_shape: Rid,
-    ) {
-        todo!()
+
+    fn set_shape_transform(&mut self, p_index: usize, p_transform: Transform2D) {
+        assert!(p_index < self.base.shapes.len());
+
+        self.base.shapes[p_index].xform = p_transform;
+        let shape = &self.base.shapes[p_index];
+
+        self.base.update_shape_transform(shape);
+
+        if self.base.space_handle.is_valid() {
+            self._shapes_changed();
+        }
     }
-    
-    fn set_shape_transform(&mut self, shape_idx: usize, transform: godot::prelude::Transform2D) {
-        todo!()
-    }
-    
+
     fn set_shape_disabled(&mut self, p_index: usize, p_disabled: bool) {
         assert!(p_index < self.base.shapes.len());
         self.base.shapes[p_index].disabled = p_disabled;
@@ -329,7 +497,8 @@ impl IRapierCollisionObject2D for RapierArea2D {
         }
 
         if !shape.disabled {
-            self.base._create_shape(shape, p_index, self._init_material());
+            self.base
+                ._create_shape(shape, p_index, self._init_material());
             self.base.update_shape_transform(&shape);
         }
 
@@ -374,23 +543,20 @@ impl IRapierCollisionObject2D for RapierArea2D {
             self._shapes_changed();
         }
     }
-    
+
     fn create_shape(&mut self, shape: CollisionObjectShape, p_shape_index: usize) -> Handle {
         if !self.base.space_handle.is_valid() {
             return invalid_handle();
         }
         let mat = self._init_material();
-        
+
         self.base._create_shape(shape, p_shape_index, mat)
     }
 
-    fn _init_material(&self) -> Material{
+    fn _init_material(&self) -> Material {
         default_material()
     }
-    
-    fn _shapes_changed(&mut self) {
-    }
-    
+
     fn _shape_changed(&mut self, p_shape: Rid) {
         if !self.base.space_handle.is_valid() {
             return;
@@ -403,20 +569,23 @@ impl IRapierCollisionObject2D for RapierArea2D {
 
             self.base.shapes[i].collider_handle = self.base._destroy_shape(shape, i);
 
-            self.base._create_shape(self.base.shapes[i], i, self._init_material());
+            self.base
+                ._create_shape(self.base.shapes[i], i, self._init_material());
             self.base.update_shape_transform(&self.base.shapes[i]);
         }
 
         self._shapes_changed();
     }
-    
+
     fn recreate_shapes(&mut self) {
         for i in 0..self.base.get_shape_count() as usize {
-            if self.base.shapes[i].disabled{
+            if self.base.shapes[i].disabled {
                 continue;
             }
             self.base.shapes[i].collider_handle = self.create_shape(self.base.shapes[i], i);
-			self.base.update_shape_transform(&self.base.shapes[i]);
+            self.base.update_shape_transform(&self.base.shapes[i]);
         }
     }
+
+    fn _shapes_changed(&mut self) {}
 }

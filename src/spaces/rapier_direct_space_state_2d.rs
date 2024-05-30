@@ -1,14 +1,12 @@
+
 use crate::{
     bodies::rapier_collision_object_2d::{IRapierCollisionObject2D, RapierCollisionObject2D},
     rapier2d::{
-        handle::{invalid_handle, Handle},
-        query::{
-            default_query_excluded_info, intersect_point, shape_casting, PointHitInfo, RayHitInfo,
-        },
-        shape::shape_info_from_body_shape,
-        vector::Vector,
+        handle::{invalid_handle, Handle}, query::{
+            default_query_excluded_info, intersect_point, shape_casting, PointHitInfo, QueryExcludedInfo, RayHitInfo
+        }, shape::shape_info_from_body_shape, user_data::UserData, vector::Vector
     },
-    servers::rapier_physics_singleton_2d::{bodies_singleton, shapes_singleton, spaces_singleton},
+    servers::rapier_physics_singleton_2d::{active_spaces_singleton, bodies_singleton, shapes_singleton, spaces_singleton},
     spaces::rapier_space_2d::RapierSpace2D,
 };
 use godot::{
@@ -52,6 +50,41 @@ impl RapierDirectSpaceState2D {
         PackedByteArray::default()
     }
 }
+
+pub fn is_handle_excluded_callback(
+    world_handle: Handle,
+    collider_handle: Handle,
+    user_data: &UserData,
+    handle_excluded_info: &QueryExcludedInfo,
+) -> bool {
+    for exclude_index in 0..handle_excluded_info.query_exclude_size {
+        if handle_excluded_info.query_exclude[exclude_index] == collider_handle {
+            return true;
+        }
+    }
+
+    let (collision_object_2d, _) = RapierCollisionObject2D::get_collider_user_data(user_data);
+    let body_lock = bodies_singleton().lock().unwrap();
+    let collision_object_2d = body_lock.collision_objects.get(&collision_object_2d).unwrap();
+    if handle_excluded_info.query_canvas_instance_id != collision_object_2d.get_base().get_canvas_instance_id() {
+        return true;
+    }
+
+    if collision_object_2d.get_base().get_collision_layer() & handle_excluded_info.query_collision_layer_mask == 0 {
+        return true;
+    }
+
+    if handle_excluded_info.query_exclude_body == collision_object_2d.get_base().get_rid().to_u64() as i64 {
+        return true;
+    }
+    let spaces_lock = spaces_singleton().lock().unwrap();
+    let active_spaces_lock = active_spaces_singleton().lock().unwrap();
+    let space = active_spaces_lock.active_spaces.get(&world_handle).unwrap();
+    let space = spaces_lock.spaces.get(space).unwrap();
+    let direct_state = space.get_rapier_direct_state().unwrap();
+    return direct_state.is_body_excluded_from_query(collision_object_2d.get_base().get_rid());
+}
+
 
 #[godot_api]
 impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
@@ -109,7 +142,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             collide_with_areas,
             hit_from_inside,
             &mut hit_info,
-            RapierSpace2D::_is_handle_excluded_callback,
+            is_handle_excluded_callback,
             &query_excluded_info,
         );
 
@@ -183,7 +216,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             collide_with_areas,
             hit_info_ptr,
             max_results,
-            RapierSpace2D::_is_handle_excluded_callback,
+            is_handle_excluded_callback,
             &mut query_excluded_info,
         );
         if result_count > max_results {
@@ -253,8 +286,8 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
 
         let mut query_excluded_info = default_query_excluded_info();
         query_excluded_info.query_collision_layer_mask = collision_mask;
-        let mut query_exclude: Vec<Handle> = Vec::with_capacity(max_results);
-        query_excluded_info.query_exclude = query_exclude.as_mut_ptr();
+        let query_exclude: Vec<Handle> = Vec::with_capacity(max_results);
+        query_excluded_info.query_exclude = query_exclude;
         query_excluded_info.query_exclude_size = 0;
         let mut cpt = 0;
         let results_slice: &mut [godot::engine::native::PhysicsServer2DExtensionShapeResult] =
@@ -266,14 +299,14 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
                 shape_info.clone(),
                 collide_with_bodies,
                 collide_with_areas,
-                RapierSpace2D::_is_handle_excluded_callback,
+                is_handle_excluded_callback,
                 &query_excluded_info,
                 false,
             );
             if !result.collided {
                 break;
             }
-            query_exclude[query_excluded_info.query_exclude_size as usize] = result.collider;
+            query_excluded_info.query_exclude[query_excluded_info.query_exclude_size as usize] = result.collider;
             query_excluded_info.query_exclude_size+=1;
             if !result.user_data.is_valid() {
                 continue;
@@ -346,7 +379,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             shape_info,
             collide_with_bodies,
             collide_with_areas,
-            RapierSpace2D::_is_handle_excluded_callback,
+            is_handle_excluded_callback,
             &query_excluded_info,
             false,
         )
@@ -399,8 +432,8 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         let shape_info = shape_info_from_body_shape(shape_handle, transform);
         let mut query_excluded_info = default_query_excluded_info();
         query_excluded_info.query_collision_layer_mask = collision_mask;
-        let mut query_exclude: Vec<Handle> = Vec::with_capacity(max_results as usize);
-        query_excluded_info.query_exclude = query_exclude.as_mut_ptr();
+        let query_exclude: Vec<Handle> = Vec::with_capacity(max_results as usize);
+        query_excluded_info.query_exclude = query_exclude;
         query_excluded_info.query_exclude_size = 0;
 
         let mut array_idx = 0;
@@ -413,7 +446,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
                 shape_info.clone(),
                 collide_with_bodies,
                 collide_with_areas,
-                RapierSpace2D::_is_handle_excluded_callback,
+                is_handle_excluded_callback,
                 &mut query_excluded_info,
                 false,
             );
@@ -421,7 +454,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
                 break;
             }
             *result_count += 1;
-            query_exclude[query_excluded_info.query_exclude_size] = result.collider;
+            query_excluded_info.query_exclude[query_excluded_info.query_exclude_size] = result.collider;
             query_excluded_info.query_exclude_size+=1;
             unsafe {
                 (*results_out.add(array_idx)) =
@@ -481,7 +514,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             shape_info,
             collide_with_bodies,
             collide_with_areas,
-            RapierSpace2D::_is_handle_excluded_callback,
+            is_handle_excluded_callback,
             &mut query_excluded_info,
             false,
         );

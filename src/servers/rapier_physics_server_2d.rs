@@ -977,9 +977,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         Array::new()
     }
     fn body_set_max_contacts_reported(&mut self, body: Rid, amount: i32) {
-        let mut lock: std::sync::MutexGuard<
-            super::rapier_physics_singleton_2d::RapierBodiesSingleton2D,
-        > = bodies_singleton().lock().unwrap();
+        let mut lock = bodies_singleton().lock().unwrap();
         if let Some(body) = lock.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.set_max_contacts_reported(amount);
@@ -1160,22 +1158,16 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     ) {
         let mut lock = joints_singleton().lock().unwrap();
         if let Some(joint) = lock.joints.get_mut(&joint) {
-            match param {
-                engine::physics_server_2d::JointParam::MAX_FORCE => {
-                    joint.get_mut_base().set_max_force(value);
-                }
-                _ => {}
+            if param == engine::physics_server_2d::JointParam::MAX_FORCE {
+                joint.get_mut_base().set_max_force(value);
             }
         }
     }
     fn joint_get_param(&self, joint: Rid, param: engine::physics_server_2d::JointParam) -> f32 {
         let lock = joints_singleton().lock().unwrap();
         if let Some(joint) = lock.joints.get(&joint) {
-            match param {
-                engine::physics_server_2d::JointParam::MAX_FORCE => {
-                    return joint.get_base().get_max_force();
-                }
-                _ => {}
+            if param == engine::physics_server_2d::JointParam::MAX_FORCE {
+                return joint.get_base().get_max_force();
             }
         }
         0.0
@@ -1423,11 +1415,11 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             {
                 let mut lock = spaces_singleton().lock().unwrap();
                 if let Some(space) = lock.spaces.get_mut(space) {
-                    active_list = space.get_active_list();
-                    mass_properties_update_list = space.get_mass_properties_update_list();
-                    area_update_list = space.get_area_update_list();
-                    body_area_update_list = space.get_body_area_update_list();
-                    gravity_update_list = space.get_gravity_update_list();
+                    active_list = space.get_active_list().clone();
+                    mass_properties_update_list = space.get_mass_properties_update_list().clone();
+                    area_update_list = space.get_area_update_list().clone();
+                    body_area_update_list = space.get_body_area_update_list().clone();
+                    gravity_update_list = space.get_gravity_update_list().clone();
                     space_handle = space.get_handle();
                     space.before_step();
                 } else {
