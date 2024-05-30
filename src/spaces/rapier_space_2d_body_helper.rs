@@ -437,7 +437,7 @@ fn body_motion_collide(
         if p_body.get_base().is_shape_disabled(body_shape_idx as usize) {
             continue;
         }
-        let mut shapes_lock = shapes_singleton().lock().unwrap();
+        let mut shapes_lock = shapes_singleton();
         let body_shape = p_body.get_base().get_shape(body_shape_idx as usize);
         let body_shape_transform = *p_transform * p_body.get_base().get_shape_transform(body_shape_idx as usize);
         let mut body_shape_obj = shapes_lock.shapes.get(&body_shape).unwrap();
@@ -455,7 +455,7 @@ fn body_motion_collide(
             if shape_col_object.is_invalid() {
                 continue;
             }
-            let bodies_lock = bodies_singleton().lock().unwrap();
+            let bodies_lock = bodies_singleton();
             let shape_col_object = bodies_lock.collision_objects.get(&shape_col_object).unwrap();
             if shape_col_object.get_base().get_type() != CollisionObjectType::Body {
                 continue;

@@ -6,7 +6,6 @@ use crate::shapes::rapier_shape_2d::IRapierShape2D;
 use crate::spaces::rapier_space_2d::RapierSpace2D;
 use godot::builtin::Rid;
 use std::collections::HashMap;
-use std::sync::{Mutex, OnceLock};
 
 pub struct RapierShapesSingleton2D {
     pub shapes: HashMap<Rid, Box<dyn IRapierShape2D>>,
@@ -70,38 +69,83 @@ impl RapierFluidsSingleton2D {
     }
 }
 unsafe impl Send for RapierShapesSingleton2D {}
+unsafe impl Sync for RapierShapesSingleton2D {}
+
 unsafe impl Send for RapierSpacesSingleton2D {}
+unsafe impl Sync for RapierSpacesSingleton2D {}
 unsafe impl Send for RapierActiveSpacesSingleton2D {}
+unsafe impl Sync for RapierActiveSpacesSingleton2D {}
 unsafe impl Send for RapierBodiesSingleton2D {}
+unsafe impl Sync for RapierBodiesSingleton2D {}
 unsafe impl Send for RapierJointsSingleton2D {}
+unsafe impl Sync for RapierJointsSingleton2D {}
 unsafe impl Send for RapierFluidsSingleton2D {}
+unsafe impl Sync for RapierFluidsSingleton2D {}
 
-pub fn shapes_singleton() -> &'static Mutex<RapierShapesSingleton2D> {
-    static HOLDER: OnceLock<Mutex<RapierShapesSingleton2D>> = OnceLock::new();
-    HOLDER.get_or_init(|| Mutex::new(RapierShapesSingleton2D::new()))
+pub fn shapes_singleton() -> &'static mut RapierShapesSingleton2D {
+    static mut SINGLETON: Option<RapierShapesSingleton2D> = None;
+    unsafe {
+        if SINGLETON.is_none() {
+            SINGLETON = Some(RapierShapesSingleton2D {
+                shapes: HashMap::new(),
+            });
+        }
+        SINGLETON.as_mut().unwrap()
+    }
 }
 
-pub fn active_spaces_singleton() -> &'static Mutex<RapierActiveSpacesSingleton2D> {
-    static HOLDER: OnceLock<Mutex<RapierActiveSpacesSingleton2D>> = OnceLock::new();
-    HOLDER.get_or_init(|| Mutex::new(RapierActiveSpacesSingleton2D::new()))
+pub fn active_spaces_singleton() -> &'static mut RapierActiveSpacesSingleton2D {
+    static mut SINGLETON: Option<RapierActiveSpacesSingleton2D> = None;
+    unsafe {
+        if SINGLETON.is_none() {
+            SINGLETON = Some(RapierActiveSpacesSingleton2D {
+                active_spaces: HashMap::new(),
+            });
+        }
+        SINGLETON.as_mut().unwrap()
+    }
 }
-
-pub fn spaces_singleton() -> &'static Mutex<RapierSpacesSingleton2D> {
-    static HOLDER: OnceLock<Mutex<RapierSpacesSingleton2D>> = OnceLock::new();
-    HOLDER.get_or_init(|| Mutex::new(RapierSpacesSingleton2D::new()))
+pub fn spaces_singleton() -> &'static mut RapierSpacesSingleton2D {
+    static mut SINGLETON: Option<RapierSpacesSingleton2D> = None;
+    unsafe {
+        if SINGLETON.is_none() {
+            SINGLETON = Some(RapierSpacesSingleton2D {
+                spaces: HashMap::new(),
+            });
+        }
+        SINGLETON.as_mut().unwrap()
+    }
 }
-
-pub fn bodies_singleton() -> &'static Mutex<RapierBodiesSingleton2D> {
-    static HOLDER: OnceLock<Mutex<RapierBodiesSingleton2D>> = OnceLock::new();
-    HOLDER.get_or_init(|| Mutex::new(RapierBodiesSingleton2D::new()))
+pub fn bodies_singleton() -> &'static mut RapierBodiesSingleton2D {
+    static mut SINGLETON: Option<RapierBodiesSingleton2D> = None;
+    unsafe {
+        if SINGLETON.is_none() {
+            SINGLETON = Some(RapierBodiesSingleton2D {
+                collision_objects: HashMap::new(),
+            });
+        }
+        SINGLETON.as_mut().unwrap()
+    }
 }
-
-pub fn joints_singleton() -> &'static Mutex<RapierJointsSingleton2D> {
-    static HOLDER: OnceLock<Mutex<RapierJointsSingleton2D>> = OnceLock::new();
-    HOLDER.get_or_init(|| Mutex::new(RapierJointsSingleton2D::new()))
+pub fn joints_singleton() -> &'static mut RapierJointsSingleton2D {
+    static mut SINGLETON: Option<RapierJointsSingleton2D> = None;
+    unsafe {
+        if SINGLETON.is_none() {
+            SINGLETON = Some(RapierJointsSingleton2D {
+                joints: HashMap::new(),
+            });
+        }
+        SINGLETON.as_mut().unwrap()
+    }
 }
-
-pub fn fluids_singleton() -> &'static Mutex<RapierFluidsSingleton2D> {
-    static HOLDER: OnceLock<Mutex<RapierFluidsSingleton2D>> = OnceLock::new();
-    HOLDER.get_or_init(|| Mutex::new(RapierFluidsSingleton2D::new()))
+pub fn fluids_singleton() -> &'static mut RapierFluidsSingleton2D {
+    static mut SINGLETON: Option<RapierFluidsSingleton2D> = None;
+    unsafe {
+        if SINGLETON.is_none() {
+            SINGLETON = Some(RapierFluidsSingleton2D {
+                fluids: HashMap::new(),
+            });
+        }
+        SINGLETON.as_mut().unwrap()
+    }
 }

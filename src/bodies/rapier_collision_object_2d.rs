@@ -121,7 +121,7 @@ impl RapierCollisionObject2D {
 
     pub(crate) fn _create_shape(&self, shape: CollisionObjectShape, p_shape_index: usize, mat: Material) -> Handle{
         assert!(!shape.collider_handle.is_valid());
-        let mut lock = shapes_singleton().lock().unwrap();
+        let lock = shapes_singleton();
         let mut handle = invalid_handle();
         if let Some(shape_object) = lock.shapes.get_mut(&shape.shape) {
             let shape_handle = shape_object.get_rapier_shape();
@@ -163,7 +163,7 @@ impl RapierCollisionObject2D {
                 continue;
             }
             {
-                let mut lock = spaces_singleton().lock().unwrap();
+                let lock = spaces_singleton();
                 if let Some(space) = lock.spaces.get_mut(&self.space) {
                     if self.area_detection_counter > 0 {
                         // Keep track of body information for delayed removal
@@ -176,7 +176,7 @@ impl RapierCollisionObject2D {
                 }
             }
             {
-                let mut lock = shapes_singleton().lock().unwrap();
+                let lock = shapes_singleton();
                 if let Some(shape) = lock.shapes.get_mut(&shape_rid) {
                     shape.get_mut_base().destroy_rapier_shape();
                 }
@@ -187,7 +187,7 @@ impl RapierCollisionObject2D {
     pub(crate) fn _destroy_shape(&self, shape: CollisionObjectShape, p_shape_index: usize) -> Handle {
         let shape_rid = shape.shape;
         if self.space_handle.is_valid() && shape.collider_handle.is_valid() {
-            let mut lock = spaces_singleton().lock().unwrap();
+            let lock = spaces_singleton();
             if let Some(space) = lock.spaces.get_mut(&self.space) {
                 if self.area_detection_counter > 0 {
                     // Keep track of body information for delayed removal
@@ -198,7 +198,7 @@ impl RapierCollisionObject2D {
             }
         }
         {
-            let mut lock = shapes_singleton().lock().unwrap();
+            let lock = shapes_singleton();
             if let Some(shape) = lock.shapes.get_mut(&shape_rid) {
                 shape.get_mut_base().destroy_rapier_shape();
             }
@@ -214,7 +214,7 @@ impl RapierCollisionObject2D {
         let position = Vector::new(origin.x, origin.y);
         let angle = shape.xform.rotation();
         let scale = shape.xform.scale();
-        let mut lock = shapes_singleton().lock().unwrap();
+        let lock = shapes_singleton();
         if let Some(rapier_shape) = lock.shapes.get_mut(&shape.shape) {
             let shape_handle = rapier_shape.get_rapier_shape();
             if !shape_handle.is_valid() {
@@ -259,7 +259,7 @@ impl RapierCollisionObject2D {
 
         self.space = p_space;
         {
-            let lock = spaces_singleton().lock().unwrap();
+            let lock = spaces_singleton();
             if let Some(space) = lock.spaces.get(&self.space) {
                 self.space_handle = space.get_handle();
             }

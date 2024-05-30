@@ -34,7 +34,7 @@ pub fn body_create(
     user_data: &UserData,
     body_type: BodyType,
 ) -> Handle {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let mut rigid_body: RigidBody;
     match body_type {
@@ -64,7 +64,7 @@ pub fn body_change_mode(
     body_type: BodyType,
     wakeup: bool,
 ) {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     if let Some(body) = physics_world.physics_objects.rigid_body_set.get_mut(rigid_body_handle) {
@@ -83,13 +83,13 @@ pub fn body_change_mode(
 }
 
 pub fn body_destroy(world_handle: Handle, body_handle: Handle) {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     physics_world.remove_rigid_body(body_handle);
 }
 
 pub fn body_get_position(world_handle: Handle, body_handle: Handle) -> Vector {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     if let Some(body) = physics_world.physics_objects.rigid_body_set.get(rigid_body_handle) {
@@ -103,7 +103,7 @@ pub fn body_get_position(world_handle: Handle, body_handle: Handle) -> Vector {
 }
 
 pub fn body_get_angle(world_handle: Handle, body_handle: Handle) -> Real {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     if let Some(body) = physics_world.physics_objects.rigid_body_set.get(rigid_body_handle) {
@@ -119,7 +119,7 @@ pub fn body_set_transform(
     rot: Real,
     wake_up: bool,
 ) {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     if let Some(body) = physics_world.physics_objects.rigid_body_set.get_mut(rigid_body_handle) {
@@ -128,7 +128,7 @@ pub fn body_set_transform(
 }
 
 pub fn body_get_linear_velocity(world_handle: Handle, body_handle: Handle) -> Vector {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     if let Some(body) = physics_world.physics_objects.rigid_body_set.get(rigid_body_handle) {
@@ -144,7 +144,7 @@ pub fn body_get_linear_velocity(world_handle: Handle, body_handle: Handle) -> Ve
 pub fn body_set_linear_velocity(world_handle: Handle, body_handle: Handle, pixel_vel: &Vector) {
     let vel = &vector_pixels_to_meters(pixel_vel);
 
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     if let Some(body) = physics_world.physics_objects.rigid_body_set.get_mut(rigid_body_handle) {
@@ -153,7 +153,7 @@ pub fn body_set_linear_velocity(world_handle: Handle, body_handle: Handle, pixel
 }
 
 pub fn body_update_material(world_handle: Handle, body_handle: Handle, mat: &Material) {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     if let Some(body) = physics_world.physics_objects.rigid_body_set.get_mut(rigid_body_handle) {
@@ -176,7 +176,7 @@ pub fn body_update_material(world_handle: Handle, body_handle: Handle, mat: &Mat
 }
 
 pub fn body_get_angular_velocity(world_handle: Handle, body_handle: Handle) -> Real {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     if let Some(body) = physics_world.physics_objects.rigid_body_set.get(rigid_body_handle) {
@@ -186,7 +186,7 @@ pub fn body_get_angular_velocity(world_handle: Handle, body_handle: Handle) -> R
 }
 
 pub fn body_set_angular_velocity(world_handle: Handle, body_handle: Handle, vel: Real) {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     if let Some(body) = physics_world.physics_objects.rigid_body_set.get_mut(rigid_body_handle) {
@@ -195,7 +195,7 @@ pub fn body_set_angular_velocity(world_handle: Handle, body_handle: Handle, vel:
 }
 
 pub fn body_set_linear_damping(world_handle: Handle, body_handle: Handle, linear_damping: Real) {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     if let Some(body) = physics_world.physics_objects.rigid_body_set.get_mut(rigid_body_handle) {
@@ -204,7 +204,7 @@ pub fn body_set_linear_damping(world_handle: Handle, body_handle: Handle, linear
 }
 
 pub fn body_set_angular_damping(world_handle: Handle, body_handle: Handle, angular_damping: Real) {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     if let Some(body) = physics_world.physics_objects.rigid_body_set.get_mut(rigid_body_handle) {
@@ -218,7 +218,7 @@ pub fn body_set_gravity_scale(
     gravity_scale: Real,
     wake_up: bool,
 ) {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     if let Some(body) = physics_world.physics_objects.rigid_body_set.get_mut(rigid_body_handle) {
@@ -227,7 +227,7 @@ pub fn body_set_gravity_scale(
 }
 
 pub fn body_set_can_sleep(world_handle: Handle, body_handle: Handle, can_sleep: bool) {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     if let Some(body) = physics_world.physics_objects.rigid_body_set.get_mut(rigid_body_handle) {
@@ -244,7 +244,7 @@ pub fn body_set_can_sleep(world_handle: Handle, body_handle: Handle, can_sleep: 
 }
 
 pub fn body_set_ccd_enabled(world_handle: Handle, body_handle: Handle, enable: bool) {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     if let Some(body) = physics_world.physics_objects.rigid_body_set.get_mut(rigid_body_handle) {
@@ -264,7 +264,7 @@ pub fn body_set_mass_properties(
     let local_com = &vector_pixels_to_meters(pixel_local_com);
     let inertia = pixels_to_meters(pixels_to_meters(pixel_inertia));
 
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     if let Some(body) = physics_world.physics_objects.rigid_body_set.get_mut(rigid_body_handle) {
@@ -281,7 +281,7 @@ pub fn body_set_mass_properties(
 pub fn body_add_force(world_handle: Handle, body_handle: Handle, pixel_force: &Vector) {
     let force = &vector_pixels_to_meters(pixel_force);
 
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     if let Some(body) = physics_world.physics_objects.rigid_body_set.get_mut(rigid_body_handle) {
@@ -298,7 +298,7 @@ pub fn body_add_force_at_point(
     let force = &vector_pixels_to_meters(pixel_force);
     let point = &vector_pixels_to_meters(pixel_point);
 
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     if let Some(body) = physics_world.physics_objects.rigid_body_set.get_mut(rigid_body_handle) {
@@ -309,7 +309,7 @@ pub fn body_add_force_at_point(
 
 pub fn body_add_torque(world_handle: Handle, body_handle: Handle, pixel_torque: Real) {
     let torque = pixels_to_meters(pixels_to_meters(pixel_torque));
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     let body = physics_world
@@ -323,7 +323,7 @@ pub fn body_add_torque(world_handle: Handle, body_handle: Handle, pixel_torque: 
 pub fn body_apply_impulse(world_handle: Handle, body_handle: Handle, pixel_impulse: &Vector) {
     let impulse = &vector_pixels_to_meters(pixel_impulse);
 
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     let body = physics_world
@@ -345,7 +345,7 @@ pub fn body_apply_impulse_at_point(
     let impulse = &vector_pixels_to_meters(pixel_impulse);
     let point = &vector_pixels_to_meters(pixel_point);
 
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     let body = physics_world
@@ -361,7 +361,7 @@ pub fn body_apply_impulse_at_point(
 }
 
 pub fn body_get_constant_force(world_handle: Handle, body_handle: Handle) -> Vector {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     let body = physics_world
@@ -377,7 +377,7 @@ pub fn body_get_constant_force(world_handle: Handle, body_handle: Handle) -> Vec
 }
 
 pub fn body_get_constant_torque(world_handle: Handle, body_handle: Handle) -> Real {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     let body = physics_world
@@ -395,7 +395,7 @@ pub fn body_apply_torque_impulse(
 ) {
     let torque_impulse = pixels_to_meters(pixels_to_meters(pixel_torque_impulse));
 
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     let body = physics_world
@@ -407,7 +407,7 @@ pub fn body_apply_torque_impulse(
 }
 
 pub fn body_reset_torques(world_handle: Handle, body_handle: Handle) {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     let body = physics_world
@@ -419,7 +419,7 @@ pub fn body_reset_torques(world_handle: Handle, body_handle: Handle) {
 }
 
 pub fn body_reset_forces(world_handle: Handle, body_handle: Handle) {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     let body = physics_world
@@ -431,7 +431,7 @@ pub fn body_reset_forces(world_handle: Handle, body_handle: Handle) {
 }
 
 pub fn body_wake_up(world_handle: Handle, body_handle: Handle, strong: bool) {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     let body = physics_world
@@ -447,7 +447,7 @@ pub fn body_wake_up(world_handle: Handle, body_handle: Handle, strong: bool) {
 }
 
 pub fn body_force_sleep(world_handle: Handle, body_handle: Handle) {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
     let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
     let body = physics_world

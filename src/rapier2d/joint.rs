@@ -22,7 +22,7 @@ pub fn joint_create_revolute(
 
     let motor_target_velocity = pixels_to_meters(pixel_motor_target_velocity);
 
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
 
     let mut joint = RevoluteJointBuilder::new()
@@ -51,7 +51,7 @@ pub fn joint_change_revolute_params(
 ) {
     let motor_target_velocity = pixels_to_meters(pixel_motor_target_velocity);
 
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
 
     let joint = physics_world
@@ -88,7 +88,7 @@ pub fn joint_create_prismatic(
     let anchor_2 = &vector_pixels_to_meters(pixel_anchor_2);
     let limits = &vector_pixels_to_meters(pixel_limits);
 
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
 
     let joint = PrismaticJointBuilder::new(UnitVector::new_normalize(vector![axis.x, axis.y]))
@@ -115,7 +115,7 @@ pub fn joint_create_spring(
     let anchor_2 = &vector_pixels_to_meters(pixel_anchor_2);
     let rest_length = pixels_to_meters(pixel_rest_length);
 
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
 
     let joint = SpringJointBuilder::new(rest_length, stiffness, damping)
@@ -134,7 +134,7 @@ pub fn joint_change_spring_params(
 ) {
     let rest_length = pixels_to_meters(pixel_rest_length);
 
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
 
     let joint = physics_world
@@ -149,7 +149,7 @@ pub fn joint_change_spring_params(
 }
 
 pub fn joint_destroy(world_handle: Handle, joint_handle: Handle) {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
 
     physics_world.remove_joint(joint_handle)
@@ -160,7 +160,7 @@ pub fn joint_change_disable_collision(
     joint_handle: Handle,
     disable_collision: bool,
 ) {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     let physics_world = physics_engine.get_world(world_handle);
 
     let joint = physics_world

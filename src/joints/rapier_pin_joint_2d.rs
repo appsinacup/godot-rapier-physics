@@ -20,7 +20,7 @@ pub struct RapierPinJoint2D {
 
 impl RapierPinJoint2D {
     pub fn new(rid: Rid, pos: Vector2, body_a: Rid, body_b: Rid) -> Self {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body_a) = lock.collision_objects.get(&body_a) {
             let body_a_handle = body_a.get_base().get_body_handle();
             let anchor_a = body_a.get_base().get_inv_transform().basis_xform(pos);

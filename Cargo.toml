@@ -20,7 +20,7 @@ parallel = ["rapier2d/parallel", "rapier2d-f64/parallel"]
 
 [dependencies]
 bincode = "1"
-godot = { git = "https://github.com/godot-rust/gdext", branch = "master", features=["debug-log"] }
+godot = { git = "https://github.com/godot-rust/gdext", branch = "master", features=[] }
 rapier2d = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"]}
 rapier2d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"]}
 salva2d = { git = "https://github.com/ughuuu/salva", branch = "update-to-rapier-0.19", features = ["rapier"] }
@@ -36,9 +36,10 @@ parry2d-f64 = {git = "https://github.com/dimforge/parry", branch = "master"}
 [profile.release]
 codegen-units = 1
 lto = "fat"
+debug = 1
+panic = "abort"
+strip = "debuginfo"
+opt-level = 3
 
 [profile.dev]
 split-debuginfo = "unpacked"
-
-[profile.dev.build-override]
-opt-level = 3

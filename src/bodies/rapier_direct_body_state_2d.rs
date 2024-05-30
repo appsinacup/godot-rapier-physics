@@ -38,7 +38,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let mut space_rid = Rid::Invalid;
         let mut gravity_scale = 1.0;
         {
-            let lock = bodies_singleton().lock().unwrap();
+            let lock = bodies_singleton();
             if let Some(body) = lock.collision_objects.get(&self.body) {
                 space_rid = body.get_base().get_space();
                 if let Some(body) = body.get_body() {
@@ -50,7 +50,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
                 }
             }
         }
-        let lock = spaces_singleton().lock().unwrap();
+        let lock = spaces_singleton();
         if let Some(space) = lock.spaces.get(&space_rid) {
             let default_gravity: f32 = space
                 .get_default_area_param(physics_server_2d::AreaParameter::GRAVITY)
@@ -64,7 +64,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_total_linear_damp(&self) -> f32 {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.total_linear_damping();
@@ -74,7 +74,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_total_angular_damp(&self) -> f32 {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.total_angular_damping();
@@ -84,7 +84,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_center_of_mass(&self) -> Vector2 {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             let base = body.get_base();
             if let Some(body) = body.get_body() {
@@ -95,7 +95,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_center_of_mass_local(&self) -> Vector2 {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.get_center_of_mass();
@@ -105,7 +105,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_inverse_mass(&self) -> f32 {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.get_inv_mass();
@@ -115,7 +115,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_inverse_inertia(&self) -> f32 {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.get_inv_inertia();
@@ -125,7 +125,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn set_linear_velocity(&mut self, velocity: Vector2) {
-        let mut lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
                 body.set_linear_velocity(velocity);
@@ -134,7 +134,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_linear_velocity(&self) -> Vector2 {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.get_linear_velocity();
@@ -144,7 +144,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn set_angular_velocity(&mut self, velocity: f32) {
-        let mut lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
                 body.set_angular_velocity(velocity);
@@ -153,7 +153,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_angular_velocity(&self) -> f32 {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.get_angular_velocity();
@@ -163,7 +163,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn set_transform(&mut self, transform: Transform2D) {
-        let mut lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
                 body.get_mut_base().set_transform(transform, true);
@@ -172,7 +172,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_transform(&self) -> Transform2D {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.get_base().get_transform();
@@ -182,7 +182,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_velocity_at_local_position(&self, local_position: Vector2) -> Vector2 {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.get_velocity_at_local_point(local_position);
@@ -192,7 +192,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn apply_central_impulse(&mut self, impulse: Vector2) {
-        let mut lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
                 body.apply_central_impulse(impulse)
@@ -201,7 +201,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn apply_impulse(&mut self, impulse: Vector2, position: Vector2) {
-        let mut lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
                 body.apply_impulse(impulse, position)
@@ -210,7 +210,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn apply_torque_impulse(&mut self, impulse: f32) {
-        let mut lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
                 body.apply_torque_impulse(impulse)
@@ -219,7 +219,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn apply_central_force(&mut self, force: Vector2) {
-        let mut lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
                 body.apply_central_force(force)
@@ -228,7 +228,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn apply_force(&mut self, force: Vector2, position: Vector2) {
-        let mut lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
                 body.apply_force(force, position)
@@ -237,7 +237,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn apply_torque(&mut self, torque: f32) {
-        let mut lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
                 body.apply_torque(torque)
@@ -246,7 +246,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn add_constant_central_force(&mut self, force: Vector2) {
-        let mut lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
                 body.add_constant_central_force(force)
@@ -255,7 +255,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn add_constant_force(&mut self, force: Vector2, position: Vector2) {
-        let mut lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
                 body.add_constant_force(force, position)
@@ -264,7 +264,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn add_constant_torque(&mut self, torque: f32) {
-        let mut lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
                 body.add_constant_torque(torque)
@@ -273,7 +273,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn set_constant_force(&mut self, force: Vector2) {
-        let mut lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
                 body.set_constant_force(force)
@@ -282,7 +282,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_constant_force(&self) -> Vector2 {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.get_constant_force();
@@ -292,7 +292,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn set_constant_torque(&mut self, torque: f32) {
-        let mut lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
                 body.set_constant_torque(torque)
@@ -301,7 +301,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_constant_torque(&self) -> f32 {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.get_constant_torque();
@@ -311,10 +311,10 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn set_sleep_state(&mut self, enabled: bool) {
-        let mut lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                let mut space_lock = spaces_singleton().lock().unwrap();
+                let space_lock = spaces_singleton();
                 if let Some(space) = space_lock.spaces.get_mut(&body.get_base().get_space()) {
                     body.set_active(!enabled, space);
                 }
@@ -323,7 +323,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn is_sleeping(&self) -> bool {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return !body.is_active();
@@ -333,7 +333,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_count(&self) -> i32 {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.contact_count();
@@ -343,7 +343,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_local_position(&self, contact_idx: i32) -> Vector2 {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.contacts()[contact_idx as usize].local_pos;
@@ -353,7 +353,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_local_normal(&self, contact_idx: i32) -> Vector2 {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.contacts()[contact_idx as usize].local_normal;
@@ -363,7 +363,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_local_shape(&self, contact_idx: i32) -> i32 {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.contacts()[contact_idx as usize].local_shape;
@@ -373,7 +373,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_local_velocity_at_position(&self, contact_idx: i32) -> Vector2 {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.contacts()[contact_idx as usize].local_velocity_at_pos;
@@ -383,7 +383,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_collider(&self, contact_idx: i32) -> Rid {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.contacts()[contact_idx as usize].collider;
@@ -393,7 +393,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_collider_position(&self, contact_idx: i32) -> Vector2 {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.contacts()[contact_idx as usize].collider_pos;
@@ -403,7 +403,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_collider_id(&self, contact_idx: i32) -> u64 {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.contacts()[contact_idx as usize].collider_instance_id;
@@ -413,7 +413,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_collider_object(&self, contact_idx: i32) -> Option<Gd<Object>> {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return Some(Gd::from_instance_id(InstanceId::from_i64(
@@ -425,7 +425,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_collider_shape(&self, contact_idx: i32) -> i32 {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.contacts()[contact_idx as usize].collider_shape;
@@ -435,7 +435,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_collider_velocity_at_position(&self, contact_idx: i32) -> Vector2 {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.contacts()[contact_idx as usize].collider_velocity_at_pos;
@@ -445,7 +445,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_impulse(&self, contact_idx: i32) -> Vector2 {
-        let lock = bodies_singleton().lock().unwrap();
+        let lock = bodies_singleton();
         if let Some(body) = lock.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.contacts()[contact_idx as usize].impulse;
@@ -463,13 +463,13 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     fn get_space_state(&mut self) -> Option<Gd<PhysicsDirectSpaceState2D>> {
         let mut space_rid = Rid::Invalid;
         {
-            let lock = bodies_singleton().lock().unwrap();
+            let lock = bodies_singleton();
             if let Some(body) = lock.collision_objects.get(&self.body) {
                 space_rid = body.get_base().get_space();
             }
         }
         {
-            let lock = spaces_singleton().lock().unwrap();
+            let lock = spaces_singleton();
             if let Some(space) = lock.spaces.get(&space_rid) {
                 return space.get_direct_state();
             }

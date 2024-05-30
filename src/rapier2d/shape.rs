@@ -40,7 +40,7 @@ pub fn shape_info_from_body_shape(shape_handle: Handle, transform: Transform2D) 
 pub fn shape_create_box(pixel_size: &Vector) -> Handle {
     let size = &vector_pixels_to_meters(pixel_size);
     let shape = SharedShape::cuboid(0.5 * size.x, 0.5 * size.y);
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     physics_engine.insert_shape(shape)
 }
 
@@ -52,14 +52,14 @@ pub fn shape_create_halfspace(normal: &Vector, pixel_distance: Real) -> Handle {
     let mut shapes_vec = Vec::<(Isometry<Real>, SharedShape)>::new();
     shapes_vec.push((shape_position, shape));
     let shape_compound = SharedShape::compound(shapes_vec);
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     physics_engine.insert_shape(shape_compound)
 }
 
 pub fn shape_create_circle(pixel_radius: Real) -> Handle {
     let radius = pixels_to_meters(pixel_radius);
     let shape = SharedShape::ball(radius);
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     physics_engine.insert_shape(shape)
 }
 
@@ -68,7 +68,7 @@ pub fn shape_create_capsule(pixel_half_height: Real, pixel_radius: Real) -> Hand
     let radius = pixels_to_meters(pixel_radius);
 
     let shape = SharedShape::capsule_y(half_height, radius);
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     physics_engine.insert_shape(shape)
 }
 
@@ -79,18 +79,18 @@ pub fn shape_create_convex_polyline(pixel_points: Vec<Vector>) -> Handle {
         return Handle::default();
     }
     let shape = shape_data.unwrap();
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     physics_engine.insert_shape(shape)
 }
 
 pub fn shape_create_concave_polyline(pixel_points: Vec<Vector>) -> Handle {
     let points_vec = pixel_point_array_to_vec(pixel_points);
     let shape = SharedShape::polyline(points_vec, None);
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     physics_engine.insert_shape(shape)
 }
 
 pub fn shape_destroy(shape_handle: Handle) {
-    let mut physics_engine = singleton().lock().unwrap();
+    let physics_engine = singleton();
     physics_engine.remove_shape(shape_handle)
 }
