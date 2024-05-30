@@ -1,9 +1,15 @@
 use crate::bodies::rapier_body_2d::RapierBody2D;
+use crate::bodies::rapier_collision_object_2d::{CollisionObjectType, IRapierCollisionObject2D};
+use crate::rapier2d::handle::Handle;
+use crate::rapier2d::query::{default_query_excluded_info, intersect_aabb, ContactResult};
+use crate::rapier2d::vector::Vector;
+use crate::shapes::rapier_shape_2d::IRapierShape2D;
 use crate::{
     rapier2d::{
         query::{PointHitInfo},
     },
 };
+use godot::engine::physics_server_2d::BodyMode;
 use godot::{
     engine::{
         native::{PhysicsServer2DExtensionMotionResult},
@@ -11,6 +17,8 @@ use godot::{
     prelude::*,
 };
 
+use std::f32::EPSILON;
+use super::rapier_direct_space_state_2d::is_handle_excluded_callback;
 use super::rapier_space_2d::RapierSpace2D;
 
 const TEST_MOTION_MARGIN: f64 = 1e-4;
@@ -21,8 +29,6 @@ const BODY_MOTION_RECOVER_RATIO: f32 = 0.4;
 
 
 impl RapierSpace2D {
-
-
     pub fn test_body_motion(
         &self,
         body: Rid,
@@ -93,8 +99,7 @@ impl RapierSpace2D {
         max_results: usize,
         exclude_body: Rid,
     ) -> i32 {
-        /*
-        let max_results = max_results as usize;
+        let max_results = max_results;
         if max_results < 1 {
             return 0;
         }
@@ -102,15 +107,13 @@ impl RapierSpace2D {
         let rect_begin = Vector::new( aabb.position.x, aabb.position.y );
         let rect_end = Vector::new( aabb.end().x, aabb.end().y );
         let mut handle_excluded_info = default_query_excluded_info();
-        let mut query_exclude: Vec<Handle> = Vec::with_capacity(max_results);
-        handle_excluded_info.query_exclude = query_exclude.as_mut_ptr();
+        let query_exclude: Vec<Handle> = Vec::with_capacity(max_results);
+        handle_excluded_info.query_exclude = query_exclude;
         handle_excluded_info.query_collision_layer_mask = collision_mask;
         handle_excluded_info.query_exclude_size = 0;
         handle_excluded_info.query_exclude_body = exclude_body.to_u64() as i64;
     
-        return intersect_aabb(self.handle, &rect_begin, &rect_end, collide_with_bodies, collide_with_areas, results, max_results, RapierSpace2D::_is_handle_excluded_callback, &handle_excluded_info) as i32;
-         */
-        0
+        intersect_aabb(self.handle, &rect_begin, &rect_end, collide_with_bodies, collide_with_areas, results, max_results, is_handle_excluded_callback, &handle_excluded_info) as i32
     }
 
 
@@ -523,4 +526,53 @@ fn body_motion_collide(
     false
 }
 
+}
+
+
+fn should_skip_collision_one_dir(
+    contact: ContactResult,
+    body_shape: &Box<dyn IRapierShape2D>,
+    collision_body: &dyn IRapierCollisionObject2D,
+    shape_index: usize,
+    col_shape_transform: &Transform2D,
+    p_margin: f32,
+    last_step: f32,
+    p_motion: Vector2,
+) -> bool {
+    let dist = contact.pixel_distance;
+    if !contact.within_margin
+        && body_shape.allows_one_way_collision()
+        && collision_body
+            .get_base()
+            .is_shape_set_as_one_way_collision(shape_index)
+    {
+        let valid_dir = col_shape_transform.origin.normalized();
+
+        let owc_margin = collision_body
+            .get_base()
+            .get_shape_one_way_collision_margin(shape_index);
+        let mut valid_depth = owc_margin.max(p_margin);
+
+        if collision_body.get_base().get_type() == CollisionObjectType::Body {
+            let b = collision_body.get_body().unwrap();
+            if b.get_base().mode.ord() >= BodyMode::KINEMATIC.ord() {
+                // fix for moving platforms (kinematic and dynamic), margin is increased by how much it moved in the
+                // given direction
+                let lv = b.get_linear_velocity();
+                // compute displacement from linear velocity
+                let motion = lv * last_step;
+                let motion_len = motion.length();
+                let motion = motion.normalized();
+                valid_depth += motion_len * motion.dot(valid_dir).max(0.0);
+            }
+        }
+        let motion = p_motion;
+        let motion_len = motion.length();
+        let motion = motion.normalized();
+        valid_depth += motion_len * motion.dot(valid_dir).max(0.0);
+        if dist < -valid_depth || p_motion.normalized().dot(valid_dir) < EPSILON {
+            return true;
+        }
+    }
+    false
 }

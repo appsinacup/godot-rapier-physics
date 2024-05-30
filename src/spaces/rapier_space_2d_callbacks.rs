@@ -5,7 +5,6 @@ use crate::bodies::rapier_collision_object_2d::{CollisionObjectType, IRapierColl
 use crate::servers::rapier_physics_singleton_2d::{
     active_spaces_singleton, bodies_singleton, spaces_singleton,
 };
-use crate::shapes::rapier_shape_2d::IRapierShape2D;
 use crate::{
     bodies::rapier_collision_object_2d::RapierCollisionObject2D,
     rapier2d::{
@@ -148,9 +147,9 @@ impl RapierSpace2D {
         let active_spaces_lock = active_spaces_singleton().lock().unwrap();
         if let Some(space) = active_spaces_lock.active_spaces.get(&world_handle) {
             if let Some(space) = spaces_lock.spaces.get_mut(space) {
-                let (mut pObject1, mut shape1) =
+                let (mut p_object1, mut shape1) =
                     RapierCollisionObject2D::get_collider_user_data(&event_info.user_data1);
-                let (mut pObject2, mut shape2) =
+                let (mut p_object2, mut shape2) =
                     RapierCollisionObject2D::get_collider_user_data(&event_info.user_data2);
 
                 let mut collider_handle1 = event_info.collider1;
@@ -162,7 +161,7 @@ impl RapierSpace2D {
 
                 if event_info.is_removed {
                     let body_lock = bodies_singleton().lock().unwrap();
-                    if let Some(body) = body_lock.collision_objects.get(&pObject1) {
+                    if let Some(body) = body_lock.collision_objects.get(&p_object1) {
                         rid1 = body.get_base().get_rid();
                         instance_id1 = body.get_base().get_instance_id();
                         type1 = body.get_base().get_type();
@@ -174,7 +173,7 @@ impl RapierSpace2D {
                         type1 = removed_collider_info_1.collision_object_type;
                         shape1 = removed_collider_info_1.shape_index;
                     }
-                    if let Some(body) = body_lock.collision_objects.get(&pObject2) {
+                    if let Some(body) = body_lock.collision_objects.get(&p_object2) {
                         rid2 = body.get_base().get_rid();
                         instance_id2 = body.get_base().get_instance_id();
                         type2 = body.get_base().get_type();
@@ -188,12 +187,12 @@ impl RapierSpace2D {
                     }
                 } else {
                     let body_lock = bodies_singleton().lock().unwrap();
-                    if let Some(body) = body_lock.collision_objects.get(&pObject1) {
+                    if let Some(body) = body_lock.collision_objects.get(&p_object1) {
                         rid1 = body.get_base().get_rid();
                         instance_id1 = body.get_base().get_instance_id();
                         type1 = body.get_base().get_type();
                     }
-                    if let Some(body) = body_lock.collision_objects.get(&pObject2) {
+                    if let Some(body) = body_lock.collision_objects.get(&p_object2) {
                         rid2 = body.get_base().get_rid();
                         instance_id2 = body.get_base().get_instance_id();
                         type2 = body.get_base().get_type();
@@ -215,7 +214,7 @@ impl RapierSpace2D {
                             godot_error!("Expected Area.");
                             return;
                         }
-                        swap(&mut pObject1, &mut pObject2);
+                        swap(&mut p_object1, &mut p_object2);
                         swap(&mut type1, &mut type2);
                         swap(&mut shape1, &mut shape2);
                         swap(&mut collider_handle1, &mut collider_handle2);
@@ -226,20 +225,20 @@ impl RapierSpace2D {
                     let mut body_lock = bodies_singleton().lock().unwrap();
                     let mut p_collision_object1 = None;
                     let mut p_collision_object2 = None;
-                    if body_lock.collision_objects.contains_key(&pObject1) && body_lock.collision_objects.contains_key(&pObject2) {
-                        if let Some([p_object1, p_object2]) = body_lock.collision_objects.get_many_mut([&pObject1, &pObject2]) {
+                    if body_lock.collision_objects.contains_key(&p_object1) && body_lock.collision_objects.contains_key(&p_object2) {
+                        if let Some([p_object1, p_object2]) = body_lock.collision_objects.get_many_mut([&p_object1, &p_object2]) {
                             p_collision_object1 = Some(p_object1);
                             p_collision_object2 = Some(p_object2);
                         }
-                    } else if body_lock.collision_objects.contains_key(&pObject1){
-                        if let Some(p_object1) = body_lock.collision_objects.get_mut(&pObject1) {
+                    } else if body_lock.collision_objects.contains_key(&p_object1){
+                        if let Some(p_object1) = body_lock.collision_objects.get_mut(&p_object1) {
                             p_collision_object1 = Some(p_object1);
                         }
-                    } else if let Some(p_object2) = body_lock.collision_objects.get_mut(&pObject2) {
+                    } else if let Some(p_object2) = body_lock.collision_objects.get_mut(&p_object2) {
                         p_collision_object2 = Some(p_object2);
                     }
                     // collision object 1 area
-                    if let Some(p_collision_object1) = p_collision_object1 {
+                    if let Some(ref mut p_collision_object1) = p_collision_object1 {
                         if let Some(p_area1) = p_collision_object1.get_mut_area() {
                             if type2 == CollisionObjectType::Area {
                                 if event_info.is_started {
@@ -329,7 +328,52 @@ impl RapierSpace2D {
         contact_info: &ContactPointInfo,
         event_info: &ContactForceEventInfo,
     ) -> bool {
-        // Implement callback logic
-        false
+        let pos1 = Vector2::new(contact_info.pixel_local_pos_1.x, contact_info.pixel_local_pos_1.y);
+        let pos2 = Vector2::new(contact_info.pixel_local_pos_2.x, contact_info.pixel_local_pos_2.y);
+
+        let mut keep_sending_contacts = false;
+        let active_lock = active_spaces_singleton().lock().unwrap();
+        if let Some(active_space) = active_lock.active_spaces.get(&world_handle) {
+            if let Some(space) = spaces_singleton().lock().unwrap().spaces.get_mut(active_space) {
+                if space.is_debugging_contacts() {
+                    keep_sending_contacts = true;
+                    space.add_debug_contact(pos1);
+                    space.add_debug_contact(pos2);
+                }
+            }
+        }
+        false;
+
+    let (p_object1, shape1) =
+    RapierCollisionObject2D::get_collider_user_data(&event_info.user_data1);
+    let (p_object2, shape2) =
+    RapierCollisionObject2D::get_collider_user_data(&event_info.user_data2);
+    let mut bodies_lock = bodies_singleton().lock().unwrap();
+    if let Some([p_object1, p_object2]) = bodies_lock.collision_objects.get_many_mut([&p_object1, &p_object2]) {
+        let depth = real::max(0.0, -contact_info.pixel_distance); // negative distance means penetration
+        let normal = Vector2::new(contact_info.normal.x, contact_info.normal.y);
+        let tangent = normal.orthogonal();
+        let impulse = contact_info.pixel_impulse * normal + contact_info.pixel_tangent_impulse * tangent;
+    
+        let vel_pos1 = Vector2::new(contact_info.pixel_velocity_pos_1.x, contact_info.pixel_velocity_pos_1.y);
+        let vel_pos2 = Vector2::new(contact_info.pixel_velocity_pos_2.x, contact_info.pixel_velocity_pos_2.y);
+        if let Some(body1) = p_object1.get_mut_body() {
+            if let Some(body2) = p_object2.get_mut_body() {
+                if body1.can_report_contacts() {
+                    keep_sending_contacts = true;
+                    let instance_id2 = body2.get_base().get_instance_id();
+                    body1.add_contact(pos1, -normal, depth, shape1 as i32, vel_pos1, pos2, shape2 as i32, instance_id2, body2.get_base().get_rid(), vel_pos2, impulse);
+                }
+    
+                if body2.can_report_contacts() {
+                    keep_sending_contacts = true;
+                    let instance_id1 = body2.get_base().get_instance_id();
+                    body2.add_contact(pos2, normal, depth, shape2 as i32, vel_pos2, pos1, shape1 as i32, instance_id1, body1.get_base().get_rid(), vel_pos1, impulse);
+                }
+            }
+        }
+    }
+
+	keep_sending_contacts
     }
 }

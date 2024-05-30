@@ -2,7 +2,6 @@ use crate::bodies::rapier_collision_object_2d::IRapierCollisionObject2D;
 use crate::rapier2d::physics_world::{
     world_export_binary, world_export_json, world_get_active_objects_count,
 };
-use crate::rapier2d::query::ContactResult;
 use crate::servers::rapier_physics_singleton_2d::bodies_singleton;
 use crate::servers::rapier_project_settings::RapierProjectSettings;
 use crate::shapes::rapier_shape_2d::IRapierShape2D;
@@ -10,18 +9,16 @@ use crate::spaces::rapier_direct_space_state_2d::RapierDirectSpaceState2D;
 use crate::{
     bodies::rapier_collision_object_2d::CollisionObjectType,
     rapier2d::{
-        handle::Handle, physics_world::world_create, query::QueryExcludedInfo,
-        settings::default_world_settings, user_data::UserData,
+        handle::Handle, physics_world::world_create,
+        settings::default_world_settings,
     },
 };
-use godot::engine::physics_server_2d::{AreaParameter, BodyMode};
-use godot::engine::IPhysicsDirectBodyState2DExtension;
+use godot::engine::physics_server_2d::{AreaParameter};
 use godot::{
     engine::{physics_server_2d, PhysicsDirectSpaceState2D, ProjectSettings},
     prelude::*,
 };
-use std::collections::HashMap;
-use std::f32::EPSILON;
+use std::collections::{HashMap, HashSet};
 
 pub struct RemovedColliderInfo {
     pub rid: Rid,
@@ -51,13 +48,13 @@ pub struct RapierSpace2D {
     rid: Rid,
     pub handle: Handle,
     removed_colliders: HashMap<Handle, RemovedColliderInfo>,
-    active_list: Vec<Rid>,
-    mass_properties_update_list: Vec<Rid>,
-    gravity_update_list: Vec<Rid>,
-    state_query_list: Vec<Rid>,
-    monitor_query_list: Vec<Rid>,
-    area_update_list: Vec<Rid>,
-    body_area_update_list: Vec<Rid>,
+    active_list: HashSet<Rid>,
+    mass_properties_update_list: HashSet<Rid>,
+    gravity_update_list: HashSet<Rid>,
+    state_query_list: HashSet<Rid>,
+    monitor_query_list: HashSet<Rid>,
+    area_update_list: HashSet<Rid>,
+    body_area_update_list: HashSet<Rid>,
     solver_iterations: i32,
     fluid_default_gravity_dir: Vector2,
     fluid_default_gravity_value: real,
@@ -94,13 +91,13 @@ impl RapierSpace2D {
             rid,
             handle,
             removed_colliders: HashMap::new(),
-            active_list: Vec::new(),
-            mass_properties_update_list: Vec::new(),
-            gravity_update_list: Vec::new(),
-            state_query_list: Vec::new(),
-            monitor_query_list: Vec::new(),
-            area_update_list: Vec::new(),
-            body_area_update_list: Vec::new(),
+            active_list: HashSet::new(),
+            mass_properties_update_list: HashSet::new(),
+            gravity_update_list: HashSet::new(),
+            state_query_list: HashSet::new(),
+            monitor_query_list: HashSet::new(),
+            area_update_list: HashSet::new(),
+            body_area_update_list: HashSet::new(),
             solver_iterations,
             fluid_default_gravity_dir: Vector2::ZERO,
             fluid_default_gravity_value: 0.0,
@@ -115,43 +112,6 @@ impl RapierSpace2D {
             contact_debug: PackedVector2Array::new(),
             contact_debug_count: 0,
         }
-    }
-
-    pub fn _is_handle_excluded_callback(
-        world_handle: Handle,
-        collider_handle: Handle,
-        collider: &UserData,
-        handle_excluded_info: &QueryExcludedInfo,
-    ) -> bool {
-        /*
-        for exclude_index in 0..handle_excluded_info.query_exclude_size {
-            if handle_excluded_info.query_exclude[exclude_index] == collider_handle {
-                return true;
-            }
-        }
-
-        let (collision_object_2d, shape_index) = RapierCollisionObject2D::get_collider_user_data(user_data);
-        let body_lock = bodies_singleton().lock().unwrap();
-        let collision_object_2d = body_lock.collision_objects.get(&collision_object_2d).unwrap();
-        if handle_excluded_info.query_canvas_instance_id != collision_object_2d.get_base().get_canvas_instance_id() {
-            return true;
-        }
-
-        if collision_object_2d.get_base().get_collision_layer() & handle_excluded_info.query_collision_layer_mask == 0 {
-            return true;
-        }
-
-        if handle_excluded_info.query_exclude_body == collision_object_2d.get_base().get_rid().to_u64() as i64 {
-            return true;
-        }
-        let spaces_lock = spaces_singleton().lock().unwrap();
-        let active_spaces_lock = active_spaces_singleton().lock().unwrap();
-        let space = active_spaces_lock.active_spaces.get(&world_handle).unwrap();
-        let space = spaces_lock.spaces.get(space).unwrap();
-        let direct_state = space.get_rapier_direct_state().unwrap();
-        return direct_state.base().is_body_excluded_from_query(collision_object_2d.get_base().get_rid());
-         */
-        false
     }
 
     pub fn _get_object_instance_hack(instance_id: u64) -> *mut Gd<Object> {
@@ -173,45 +133,45 @@ impl RapierSpace2D {
     }
 
     pub fn body_add_to_mass_properties_update_list(&mut self, body: Rid) {
-        self.mass_properties_update_list.push(body);
+        self.mass_properties_update_list.insert(body);
     }
     pub fn body_remove_from_mass_properties_update_list(&mut self, body: Rid) {
-        self.mass_properties_update_list.retain(|&x| x != body);
+        self.mass_properties_update_list.remove(&body);
     }
     pub fn body_add_to_gravity_update_list(&mut self, body: Rid) {
-        self.gravity_update_list.push(body);
+        self.gravity_update_list.insert(body);
     }
     pub fn body_remove_from_gravity_update_list(&mut self, body: Rid) {
-        self.gravity_update_list.retain(|&x| x != body);
+        self.gravity_update_list.remove(&body);
     }
 
     pub fn body_add_to_active_list(&mut self, body: Rid) {
-        self.active_list.push(body);
+        self.active_list.insert(body);
     }
     pub fn body_remove_from_active_list(&mut self, body: Rid) {
-        self.active_list.retain(|&x| x != body);
+        self.active_list.remove(&body);
     }
     pub fn body_add_to_state_query_list(&mut self, body: Rid) {
-        self.state_query_list.push(body);
+        self.state_query_list.insert(body);
     }
     pub fn body_remove_from_state_query_list(&mut self, body: Rid) {
-        self.state_query_list.retain(|&x| x != body);
+        self.state_query_list.remove(&body);
     }
 
     pub fn area_add_to_monitor_query_list(&mut self, area: Rid) {
-        self.monitor_query_list.push(area);
+        self.monitor_query_list.insert(area);
     }
     pub fn area_add_to_area_update_list(&mut self, area: Rid) {
-        self.area_update_list.push(area);
+        self.area_update_list.insert(area);
     }
     pub fn area_remove_from_area_update_list(&mut self, area: Rid) {
-        self.area_update_list.retain(|&x| x != area);
+        self.area_update_list.remove(&area);
     }
     pub fn body_add_to_area_update_list(&mut self, body: Rid) {
-        self.body_area_update_list.push(body);
+        self.body_area_update_list.insert(body);
     }
     pub fn body_remove_from_area_update_list(&mut self, body: Rid) {
-        self.body_area_update_list.retain(|&x| x != body);
+        self.body_area_update_list.remove(&body);
     }
 
     pub fn add_removed_collider(
@@ -309,11 +269,8 @@ impl RapierSpace2D {
     }
 
     pub fn set_param(&mut self, param: physics_server_2d::SpaceParameter, value: real) {
-        match param {
-            physics_server_2d::SpaceParameter::SOLVER_ITERATIONS => {
-                self.solver_iterations = value as i32;
-            }
-            _ => {}
+        if param == physics_server_2d::SpaceParameter::SOLVER_ITERATIONS {
+            self.solver_iterations = value as i32;
         }
     }
 
@@ -363,7 +320,7 @@ impl RapierSpace2D {
     }
     pub fn add_debug_contact(&mut self, contact: Vector2) {
         if self.contact_debug_count < self.contact_debug.len() {
-            self.contact_debug.set(self.contact_debug_count, contact);
+            self.contact_debug[self.contact_debug_count] = contact;
             self.contact_debug_count += 1;
         }
     }
@@ -402,20 +359,20 @@ impl RapierSpace2D {
         None
     }
 
-    pub fn get_active_list(&self) -> Vec<Rid> {
-        self.active_list.clone()
+    pub fn get_active_list(&self) -> &HashSet<Rid> {
+        &self.active_list
     }
-    pub fn get_mass_properties_update_list(&self) -> Vec<Rid> {
-        self.mass_properties_update_list.clone()
+    pub fn get_mass_properties_update_list(&self) -> &HashSet<Rid> {
+        &self.mass_properties_update_list
     }
-    pub fn get_area_update_list(&self) -> Vec<Rid> {
-        self.area_update_list.clone()
+    pub fn get_area_update_list(&self) -> &HashSet<Rid> {
+        &self.area_update_list
     }
-    pub fn get_body_area_update_list(&self) -> Vec<Rid> {
-        self.body_area_update_list.clone()
+    pub fn get_body_area_update_list(&self) -> &HashSet<Rid> {
+        &self.body_area_update_list
     }
-    pub fn get_gravity_update_list(&self) -> Vec<Rid> {
-        self.gravity_update_list.clone()
+    pub fn get_gravity_update_list(&self) -> &HashSet<Rid> {
+        &self.gravity_update_list
     }
 
     pub fn export_json(&self) -> String {
@@ -430,52 +387,4 @@ impl RapierSpace2D {
         }
         buf
     }
-}
-
-fn should_skip_collision_one_dir(
-    contact: ContactResult,
-    body_shape: &Box<dyn IRapierShape2D>,
-    collision_body: &dyn IRapierCollisionObject2D,
-    shape_index: usize,
-    col_shape_transform: &Transform2D,
-    p_margin: f32,
-    last_step: f32,
-    p_motion: Vector2,
-) -> bool {
-    let dist = contact.pixel_distance;
-    if !contact.within_margin
-        && body_shape.allows_one_way_collision()
-        && collision_body
-            .get_base()
-            .is_shape_set_as_one_way_collision(shape_index)
-    {
-        let valid_dir = col_shape_transform.origin.normalized();
-
-        let owc_margin = collision_body
-            .get_base()
-            .get_shape_one_way_collision_margin(shape_index);
-        let mut valid_depth = owc_margin.max(p_margin);
-
-        if collision_body.get_base().get_type() == CollisionObjectType::Body {
-            let b = collision_body.get_body().unwrap();
-            if b.get_base().mode.ord() >= BodyMode::KINEMATIC.ord() {
-                // fix for moving platforms (kinematic and dynamic), margin is increased by how much it moved in the
-                // given direction
-                let lv = b.get_linear_velocity();
-                // compute displacement from linear velocity
-                let motion = lv * last_step;
-                let motion_len = motion.length();
-                let motion = motion.normalized();
-                valid_depth += motion_len * motion.dot(valid_dir).max(0.0);
-            }
-        }
-        let motion = p_motion;
-        let motion_len = motion.length();
-        let motion = motion.normalized();
-        valid_depth += motion_len * motion.dot(valid_dir).max(0.0);
-        if dist < -valid_depth || p_motion.normalized().dot(valid_dir) < EPSILON {
-            return true;
-        }
-    }
-    false
 }

@@ -5,7 +5,5 @@ func _on_timer_timeout():
 
 func _ready():
 	var space := get_viewport().find_world_2d().direct_space_state as RapierDirectSpaceState2D
-	var space_json := space.export_json()
-	print(space_json)
-	FluidEffect2D
-	RapierDirectBodyState2D
+	#var space_json := space.export_json()
+	#print(space_json)

@@ -100,8 +100,7 @@ pub struct QueryExcludedInfo {
     pub query_collision_layer_mask: u32,
     pub query_canvas_instance_id: u64,
     // Pointer to array of objects
-    pub query_exclude: *mut Handle,
-    // Size of query_exclude array
+    pub query_exclude: Vec<Handle>,
     pub query_exclude_size: usize,
     pub query_exclude_body: i64,
 }
@@ -110,7 +109,7 @@ pub fn default_query_excluded_info() -> QueryExcludedInfo {
     QueryExcludedInfo {
         query_collision_layer_mask: 0,
         query_canvas_instance_id: 0,
-        query_exclude: &mut Handle::default(),
+        query_exclude: Vec::new(),
         query_exclude_size: 0,
         query_exclude_body: 0,
     }

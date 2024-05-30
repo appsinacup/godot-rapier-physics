@@ -33,14 +33,14 @@ impl ActiveBodyInfo {
 }
 
 pub struct ContactPointInfo {
-    pixel_local_pos_1: Vector,
-    pixel_local_pos_2: Vector,
-    pixel_velocity_pos_1: Vector,
-    pixel_velocity_pos_2: Vector,
-    normal: Vector,
-    pixel_distance: Real,
-    pixel_impulse: Real,
-    pixel_tangent_impulse: Real,
+    pub pixel_local_pos_1: Vector,
+    pub pixel_local_pos_2: Vector,
+    pub pixel_velocity_pos_1: Vector,
+    pub pixel_velocity_pos_2: Vector,
+    pub normal: Vector,
+    pub pixel_distance: Real,
+    pub pixel_impulse: Real,
+    pub pixel_tangent_impulse: Real,
 }
 
 impl ContactPointInfo {
