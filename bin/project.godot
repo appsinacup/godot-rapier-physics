@@ -22,3 +22,4 @@ window/size/viewport_height=1080
 [physics]
 
 2d/physics_engine="Rapier2D"
+rapier_2d/solver/polygon_contact_skin=0.1

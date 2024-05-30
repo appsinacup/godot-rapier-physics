@@ -8,6 +8,7 @@ use crate::rapier2d::vector::Vector;
 use crate::servers::rapier_physics_singleton_2d::bodies_singleton;
 use crate::servers::rapier_physics_singleton_2d::shapes_singleton;
 use crate::servers::rapier_physics_singleton_2d::spaces_singleton;
+use crate::servers::rapier_project_settings::RapierProjectSettings;
 use crate::spaces::rapier_space_2d::RapierSpace2D;
 use godot::engine::physics_server_2d::AreaParameter;
 use godot::engine::physics_server_2d::AreaSpaceOverrideMode;
@@ -124,7 +125,7 @@ impl RapierBody2D {
             friction: 1.0,
             mass: 1.0,
             inertia: 0.0,
-            contact_skin: 0.0,
+            contact_skin: RapierProjectSettings::get_contact_skin() as f32,
             center_of_mass: Vector2::ZERO,
             calculate_inertia: true,
             calculate_center_of_mass: true,
