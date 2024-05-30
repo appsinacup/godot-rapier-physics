@@ -168,7 +168,7 @@ pub fn body_update_material(world_handle: Handle, body_handle: Handle, mat: &Mat
                     col.set_restitution(mat.restitution);
                 }
                 if mat.contact_skin >= 0.0 {
-                    col.set_contact_skin(mat.contact_skin);
+                    col.set_contact_skin(pixels_to_meters(mat.contact_skin));
                 }
             }
         }

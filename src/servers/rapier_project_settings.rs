@@ -9,6 +9,7 @@ const SOLVER_NUM_ADDITIONAL_FRICTION_ITERATIONS: &str =
 const SOLVER_NUM_INTERNAL_PGS_ITERATIONS: &str =
     "physics/rapier_2d/solver/num_internal_pgs_iterations";
 const SOLVER_MAX_CCD_SUBSTEPS: &str = "physics/rapier_2d/solver/max_ccd_substeps";
+const CONTACT_SKIN: &str = "physics/rapier_2d/solver/polygon_contact_skin";
 const FLUID_GRAVITY_DIR: &str = "physics/rapier_2d/fluid/fluid_gravity_dir";
 const FLUID_GRAVITY_VALUE: &str = "physics/rapier_2d/fluid/fluid_gravity_value";
 const FLUID_PARTICLE_RADIUS: &str = "physics/rapier_2d/fluid/fluid_particle_radius";
@@ -27,10 +28,10 @@ fn register_setting(
     }
 
     let mut property_info = Dictionary::new();
-    property_info.insert("name", p_name);
-    property_info.insert("type", p_value.get_type());
-    property_info.insert("hint", p_hint);
-    property_info.insert("hint_string", p_hint_string);
+    let _ = property_info.insert("name", p_name);
+    let _ = property_info.insert("type", p_value.get_type());
+    let _ = property_info.insert("hint", p_hint);
+    let _ = property_info.insert("hint_string", p_hint_string);
     project_settings.add_property_info(property_info);
     project_settings.set_initial_value(p_name.into(), p_value);
     project_settings.set_restart_if_changed(p_name.into(), p_needs_restart);
@@ -88,6 +89,12 @@ impl RapierProjectSettings {
             SOLVER_MAX_CCD_SUBSTEPS,
             Variant::from(1),
             "1,16,or_greater",
+            false,
+        );
+        register_setting_ranged(
+            CONTACT_SKIN,
+            Variant::from(0.0),
+            "0,10,0.00001,or_greater",
             false,
         );
         register_setting_plain(
@@ -156,5 +163,9 @@ impl RapierProjectSettings {
 
     pub fn get_fluid_smoothing_factor() -> f64 {
         RapierProjectSettings::get_setting_double(FLUID_SMOOTHING_FACTOR)
+    }
+
+    pub fn get_contact_skin() -> f64 {
+        RapierProjectSettings::get_setting_double(CONTACT_SKIN)
     }
 }

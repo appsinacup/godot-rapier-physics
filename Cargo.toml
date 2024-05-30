@@ -17,6 +17,7 @@ simd-stable = ["rapier2d/simd-stable", "rapier2d-f64/simd-stable"]
 simd-nightly = ["rapier2d/simd-nightly", "rapier2d-f64/simd-nightly"]
 # wasm-bindgen = ["rapier2d/wasm-bindgen", "rapier2d-f64/wasm-bindgen"]
 parallel = ["rapier2d/parallel", "rapier2d-f64/parallel"]
+experimental-wasm = ["godot/experimental-wasm", "godot/lazy-function-tables"]
 
 [dependencies]
 bincode = "1"
