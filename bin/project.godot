@@ -19,7 +19,6 @@ config/features=PackedStringArray("4.3", "Forward Plus")
 window/size/viewport_width=1920
 window/size/viewport_height=1080
 
-[physics]
+[editor_plugins]
 
-2d/physics_engine="Rapier2D"
-rapier_2d/solver/polygon_contact_skin=0.1
+enabled=PackedStringArray("res://addons/gut/plugin.cfg")

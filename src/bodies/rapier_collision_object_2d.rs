@@ -12,7 +12,7 @@ use crate::{
 };
 use godot::{
     builtin::{real, Rid, Transform2D, Vector2},
-    engine::physics_server_2d::{self, BodyMode},
+    engine::physics_server_2d::{self, BodyMode}, log::godot_error,
 };
 
 use super::{rapier_area_2d::RapierArea2D, rapier_body_2d::RapierBody2D};
@@ -92,8 +92,8 @@ pub struct RapierCollisionObject2D {
     collision_layer: u32,
     collision_priority: real,
     pub(crate) mode: physics_server_2d::BodyMode,
-    pub(crate) body_handle: Handle,
-    pub(crate) space_handle: Handle,
+    body_handle: Handle,
+    space_handle: Handle,
     pub(crate) area_detection_counter: u32,
 }
 
@@ -214,10 +214,10 @@ impl RapierCollisionObject2D {
         let position = Vector::new(origin.x, origin.y);
         let angle = shape.xform.rotation();
         let scale = shape.xform.scale();
-        let lock = shapes_singleton();
-        if let Some(rapier_shape) = lock.shapes.get_mut(&shape.shape) {
+        if let Some(rapier_shape) = shapes_singleton().shapes.get_mut(&shape.shape) {
             let shape_handle = rapier_shape.get_rapier_shape();
             if !shape_handle.is_valid() {
+                godot_error!("Rapier shape is invalid");
                 return;
             }
             let shape_info = ShapeInfo {
@@ -244,6 +244,7 @@ impl RapierCollisionObject2D {
         self.inv_transform = self.transform.affine_inverse();
     }
     pub(crate) fn _set_space(&mut self, p_space: Rid) {
+        // previous space
         if self.space_handle.is_valid() {
             if self.body_handle.is_valid() {
                 // This call also destroys the colliders
@@ -262,11 +263,14 @@ impl RapierCollisionObject2D {
             let lock = spaces_singleton();
             if let Some(space) = lock.spaces.get(&self.space) {
                 self.space_handle = space.get_handle();
+            } else {
+                self.space_handle = invalid_handle();
+                self.space = Rid::Invalid;
             }
         }
         if self.space_handle.is_valid() {
             let mut user_data = UserData::default();
-            self.set_body_user_data(&mut user_data);
+            user_data.part1 = self.rid.to_u64();
 
             let position =
                 Vector::new(self.transform.origin.x, self.transform.origin.y);
@@ -291,7 +295,6 @@ impl RapierCollisionObject2D {
                     BodyType::Dynamic,
                 );
             }
-            // todo re_create shapes
         }
     }
 
@@ -323,9 +326,6 @@ impl RapierCollisionObject2D {
         self.canvas_instance_id
     }
 
-    pub fn set_body_user_data(&self, r_user_data: &mut UserData) {
-        r_user_data.part1 = self.rid.to_u64();
-    }
     pub fn get_body_user_data(user_data: &UserData) -> Rid {
         let (rid, _) = Self::get_collider_user_data(user_data);
         rid
