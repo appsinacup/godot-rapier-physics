@@ -151,7 +151,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn shape_get_data(&self, shape: Rid) -> Variant {
         let lock = shapes_singleton();
         if let Some(shape) = lock.shapes.get(&shape) {
-            return shape.get_data();
+            if shape.get_base().is_configured() {
+                return shape.get_data();
+            }
         }
         Variant::nil()
     }
