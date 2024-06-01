@@ -5,6 +5,7 @@ use crate::rapier2d::collider::Material;
 use crate::rapier2d::handle::invalid_handle;
 use crate::rapier2d::handle::Handle;
 use crate::rapier2d::vector::Vector;
+use crate::servers::rapier_physics_server_2d::RapierBodyParam;
 use crate::servers::rapier_physics_singleton_2d::bodies_singleton;
 use crate::servers::rapier_physics_singleton_2d::shapes_singleton;
 use crate::servers::rapier_physics_singleton_2d::spaces_singleton;
@@ -875,12 +876,7 @@ impl RapierBody2D {
                 if !self.base.get_space_handle().is_valid() || !body_handle.is_valid() {
                     return;
                 }
-
-                let mat = Material {
-                    friction: self.friction,
-                    restitution: self.bounce,
-                    contact_skin: self.contact_skin,
-                };
+                let mat = self._init_material();
                 body_update_material(self.base.get_space_handle(), body_handle, &mat);
             }
             BodyParameter::MASS => {
@@ -1031,6 +1027,32 @@ impl RapierBody2D {
         }
     }
 
+    pub fn set_extra_param(&mut self, p_param: RapierBodyParam, p_value: Variant) {
+        match p_param {
+            RapierBodyParam::ContactSkin => {
+                if p_value.get_type() != VariantType::FLOAT && p_value.get_type() != VariantType::INT {
+                    return
+                }
+                self.contact_skin = p_value.to();
+                let mat = self._init_material();
+                let body_handle = self.base.get_body_handle();
+                let space_handle = self.base.get_space_handle();
+
+                if body_handle.is_valid() && space_handle.is_valid() {
+                    body_update_material(space_handle, body_handle, &mat);
+                }
+            }
+        }
+    }
+
+    pub fn get_extra_param(&self, p_param: RapierBodyParam) -> Variant {
+        match p_param {
+            RapierBodyParam::ContactSkin => {
+                self.contact_skin.to_variant()
+            }
+        }
+    }
+
     pub fn set_mode(&mut self, p_mode: BodyMode) {
         if self.base.mode == p_mode {
             return;
@@ -1177,6 +1199,7 @@ impl RapierBody2D {
             self.ccd_mode != CcdMode::DISABLED,
         );
     }
+    
     pub fn get_continuous_collision_detection_mode(&self) -> CcdMode {
         self.ccd_mode
     }
@@ -1259,6 +1282,7 @@ impl RapierBody2D {
 
         self._apply_mass_properties(force_update);
     }
+    
     pub fn reset_mass_properties(&mut self) {
         if self.calculate_inertia && self.calculate_center_of_mass {
             // Nothing to do, already calculated

@@ -16,8 +16,9 @@ size = Vector2(42.2131, 68.4998)
 
 [sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_a3uwi"]
 
-[node name="Test" type="Node2D"]
+[node name="Test" type="Node2D" node_paths=PackedStringArray("body")]
 script = ExtResource("1_osmip")
+body = NodePath("RigidBody2D4")
 
 [node name="RigidBody2D6" type="RigidBody2D" parent="."]
 position = Vector2(-72, -19)

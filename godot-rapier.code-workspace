@@ -44,14 +44,14 @@
 			"stack": "cpp",
 			"__node_handle": "cpp"
 		},
-		"godotTools.editorPath.godot4": "/Users/dragosdaian/Downloads/Godot.app/Contents/MacOS/Godot"
+		"godotTools.editorPath.godot4": "/Applications/Godot.app"
 	},
 	"launch": {
 		"version": "0.2.0",
 		"configurations": [
 			{
 				"name": "Launch",
-				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.arm64",
+				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.dev.arm64",
 				"type": "cppdbg",
 				"request": "launch",
 				"cwd": "${workspaceFolder:godot-rapier-2d}",
@@ -67,7 +67,7 @@
 			},
 			{
 				"name": "Launch Fluid",
-				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.arm64",
+				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.dev.arm64",
 				"type": "cppdbg",
 				"request": "launch",
 				"cwd": "${workspaceFolder:godot-rapier-2d}",
@@ -83,7 +83,7 @@
 			},
 			{
 				"name": "Launch Editor",
-				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.arm64",
+				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.dev.arm64",
 				"type": "cppdbg",
 				"request": "launch",
 				"cwd": "${workspaceFolder:godot-rapier-2d}",
@@ -96,7 +96,7 @@
 			},
 			{
 				"name": "Run Tests",
-				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.arm64",
+				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.dev.arm64",
 				"type": "cppdbg",
 				"request": "launch",
 				"cwd": "${workspaceFolder:godot-rapier-2d}",

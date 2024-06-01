@@ -29,28 +29,6 @@ impl RapierDirectSpaceState2D {
     }
 }
 
-#[godot_api]
-impl RapierDirectSpaceState2D {
-    #[func]
-    fn export_json(&self) -> String {
-        let lock = spaces_singleton();
-        let space = lock.spaces.get(&self.space);
-        if let Some(space) = space {
-            return space.export_json();
-        }
-        "{}".to_string()
-    }
-    #[func]
-    fn export_binary(&self) -> PackedByteArray {
-        let lock = spaces_singleton();
-        let space = lock.spaces.get(&self.space);
-        if let Some(space) = space {
-            return space.export_binary();
-        }
-        PackedByteArray::default()
-    }
-}
-
 pub fn is_handle_excluded_callback(
     world_handle: Handle,
     collider_handle: Handle,
