@@ -1496,8 +1496,40 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     }
 }
 
+pub enum RapierBodyParam {
+    ContactSkin = 0,
+}
+
+impl From<i32> for RapierBodyParam {
+    fn from(i: i32) -> Self {
+        match i {
+            0 => RapierBodyParam::ContactSkin,
+            _ => RapierBodyParam::ContactSkin,
+        }
+    }
+}
+
 #[godot_api]
 impl RapierPhysicsServer2D {
+    #[func]
+    fn body_set_extra_param(&mut self, body: Rid, param: i32, value: Variant) {
+        let lock = bodies_singleton();
+        if let Some(body) = lock.collision_objects.get_mut(&body) {
+            if let Some(body) = body.get_mut_body() {
+                body.set_extra_param(RapierBodyParam::from(param), value);
+            }
+        }
+    }
+    #[func]
+    fn body_get_extra_param(&self, body: Rid, param: i32) -> Variant {
+        let lock = bodies_singleton();
+        if let Some(body) = lock.collision_objects.get(&body) {
+            if let Some(body) = body.get_body() {
+                return body.get_extra_param(RapierBodyParam::from(param));
+            }
+        }
+        0.0.to_variant()
+    }
     #[func]
     fn space_export_json(&mut self, world: Rid) -> String {
         let lock = spaces_singleton();

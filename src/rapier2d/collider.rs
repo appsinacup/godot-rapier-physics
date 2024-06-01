@@ -167,7 +167,7 @@ pub fn collider_create_solid(
     collider.set_friction_combine_rule(CoefficientCombineRule::Multiply);
     collider.set_restitution_combine_rule(CoefficientCombineRule::Max);
     collider.set_density(0.0);
-    collider.set_contact_skin(mat.contact_skin);
+    collider.set_contact_skin(pixels_to_meters(mat.contact_skin));
     collider.set_contact_force_event_threshold(-Real::MAX);
     collider.user_data = user_data.get_data();
     collider
