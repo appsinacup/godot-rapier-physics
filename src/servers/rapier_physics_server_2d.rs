@@ -547,7 +547,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
                 return body.get_base().get_mode();
             }
         }
-        engine::physics_server_2d::BodyMode::KINEMATIC
+        engine::physics_server_2d::BodyMode::STATIC
     }
     fn body_add_shape(&mut self, body: Rid, shape: Rid, transform: Transform2D, disabled: bool) {
         let lock = bodies_singleton();

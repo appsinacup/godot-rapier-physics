@@ -95,7 +95,7 @@
 				]
 			},
 			{
-				"name": "Run Tests",
+				"name": "Unit Body Test",
 				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.dev.arm64",
 				"type": "cppdbg",
 				"request": "launch",
@@ -104,12 +104,26 @@
 					"MIMode": "lldb"
 				},
 				"args": [
-					"-d",
-					"-s",
 					"--path",
 					"${workspaceFolder:godot-rapier-2d}/bin",
-					"addons/gut/gut_cmdln.gd",
-					//"--headless"
+					"--debug-collisions",
+					"test/unit/test_body.tscn"
+				]
+			},
+			{
+				"name": "Integration Body Delete Test",
+				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.dev.arm64",
+				"type": "cppdbg",
+				"request": "launch",
+				"cwd": "${workspaceFolder:godot-rapier-2d}",
+				"osx": {
+					"MIMode": "lldb"
+				},
+				"args": [
+					"--path",
+					"${workspaceFolder:godot-rapier-2d}/bin",
+					"--debug-collisions",
+					"test/integration/test_body_delete.tscn"
 				]
 			}
 		]

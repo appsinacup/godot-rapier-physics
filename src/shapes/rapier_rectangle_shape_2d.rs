@@ -27,7 +27,7 @@ impl IRapierShape2D for RapierRectangleShape2D {
         &mut self.base
     }
     fn get_type(&self) -> ShapeType {
-        ShapeType::SEGMENT
+        ShapeType::RECTANGLE
     }
 
     fn get_moment_of_inertia(&self, mass: f32, scale: Vector2) -> f32 {
