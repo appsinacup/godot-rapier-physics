@@ -19,9 +19,8 @@ pub fn register_scene() {
 }
 
 pub fn unregister_server() {
-    // TODO
+    // there doesn't seem to be a function to unregister a server.
 }
 
 pub fn unregister_scene() {
-    // TODO
 }
