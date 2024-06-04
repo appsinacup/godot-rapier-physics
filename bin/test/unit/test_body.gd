@@ -30,6 +30,10 @@ func test_body_create():
 	PhysicsServer2D.free_rid(body)
 	PhysicsServer2D.free_rid(RID())
 	
+func assert_aprox(x: float, y: float):
+	if absf(x - y) > 0.00001:
+		assert(true)
+
 func test_shape_create():
 	var world_shape = PhysicsServer2D.world_boundary_shape_create()
 	assert(world_shape.is_valid())
@@ -68,6 +72,25 @@ func test_shape_create():
 	assert(PhysicsServer2D.shape_get_data(concave_polygon_shape) == null)
 	assert(PhysicsServer2D.shape_get_data(convex_polygon_shape) == null)
 	assert(PhysicsServer2D.shape_get_data(RID()) == null)
+	## - SHAPE_WORLD_BOUNDARY: an array of length two containing a Vector2 normal direction and a float distance d,
+	## - SHAPE_SEPARATION_RAY: a dictionary containing the key length with a float value and the key slide_on_slope with a bool value,
+	## - SHAPE_SEGMENT: a Rect2 rect containing the first point of the segment in rect.position and the second point of the segment in rect.size,
+	## - SHAPE_CIRCLE: a float radius,
+	## - SHAPE_RECTANGLE: a Vector2 half_extents,
+	## - SHAPE_CAPSULE: an array of length two (or a Vector2) containing a float height and a float radius,
+	## - SHAPE_CONVEX_POLYGON: either a PackedVector2Array of points defining a convex polygon in counterclockwise order (the clockwise outward normal of each segment formed by consecutive points is calculated internally), or a PackedFloat32Array of length divisible by four so that every 4-tuple of floats contains the coordinates of a point followed by the coordinates of the clockwise outward normal vector to the segment between the current point and the next point,
+	## - SHAPE_CONCAVE_POLYGON: a PackedVector2Array of length divisible by two (each pair of points forms one segment).
+
+	## Warning: In the case of SHAPE_CONVEX_POLYGON, this method does not check if the points supplied actually form a convex polygon (unlike the CollisionPolygon2D.polygon property).
+	
+	PhysicsServer2D.shape_set_data(world_shape, [Vector2(1.1,2.2), 1.2])
+	assert_aprox(PhysicsServer2D.shape_get_data(world_shape)[0].x, 1.1)
+	assert_aprox(PhysicsServer2D.shape_get_data(world_shape)[0].y, 2.2)
+	assert_aprox(PhysicsServer2D.shape_get_data(world_shape)[1], 1.2)
+	## a dictionary containing the key length with a float value and the key slide_on_slope with a bool value,
+	
+	PhysicsServer2D.shape_set_data(circle_shape, 1.1)
+	assert_aprox(PhysicsServer2D.shape_get_data(circle_shape), 1.1)
 
 
 	#PhysicsServer2D.shape_set_data(shape_rid, data)
