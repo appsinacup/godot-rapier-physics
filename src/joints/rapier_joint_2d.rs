@@ -53,10 +53,6 @@ impl RapierJointBase2D {
     pub fn get_rid(&self) -> Rid {
         self.rid
     }
-    // Careful when doing this you must also update the place where it's stored.
-    pub fn set_rid(&mut self, rid: Rid) {
-        self.rid = rid;
-    }
     pub fn disable_collisions_between_bodies(&mut self, disabled: bool) {
         self.disabled_collisions_between_bodies = disabled;
         if self.handle.is_valid() {
@@ -71,7 +67,6 @@ impl RapierJointBase2D {
         self.disabled_collisions_between_bodies
     }
     pub fn copy_settings_from(&mut self, joint: &RapierJointBase2D) {
-        self.set_rid(joint.get_rid());
         self.set_max_force(joint.get_max_force());
         self.disable_collisions_between_bodies(joint.is_disabled_collisions_between_bodies());
     }

@@ -2,7 +2,7 @@ extends TestBase
 
 func _ready():
 	test_space_functions()
-	print("Joint tests passed.")
+	print("Space tests passed.")
 
 
 # Test functions for space functions

@@ -72,7 +72,7 @@ pub fn shape_create_convex_polyline(pixel_points: Vec<Vector2<Real>>) -> Handle 
     if let Some(shape_data) = SharedShape::convex_polyline(points_vec) {
         return physics_engine().insert_shape(shape_data);
     }
-    return Handle::default();
+    Handle::default()
 }
 
 pub fn shape_create_concave_polyline(pixel_points: Vec<Vector<Real>>) -> Handle {

@@ -28,7 +28,7 @@ impl EventHandler for ContactEventHandler {
         event: CollisionEvent,
         contact_pair: Option<&ContactPair>,
     ) {
-        match (self.collision_send.send((event, contact_pair.cloned()))) {
+        match self.collision_send.send((event, contact_pair.cloned())) {
             Ok(_) => (),
             Err(err) => {
                 godot_error!("Failed to send collision event {}", err.to_string());
@@ -45,7 +45,7 @@ impl EventHandler for ContactEventHandler {
         total_force_magnitude: Real,
     ) {
         let result = ContactForceEvent::from_contact_pair(dt, contact_pair, total_force_magnitude);
-        match (self.contact_force_send.send((result, contact_pair.clone()))) {
+        match self.contact_force_send.send((result, contact_pair.clone())) {
             Ok(_) => (),
             Err(err) => {
                 godot_error!("Failed to send contact force event {}", err.to_string());

@@ -95,7 +95,7 @@
 				]
 			},
 			{
-				"name": "Unit Body Test",
+				"name": "Unit Test",
 				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.dev.arm64",
 				"type": "cppdbg",
 				"request": "launch",
@@ -107,7 +107,7 @@
 					"--path",
 					"${workspaceFolder:godot-rapier-2d}/bin",
 					"--debug-collisions",
-					"test/unit/test_body.tscn"
+					"test/unit/tests.tscn"
 				]
 			},
 			{

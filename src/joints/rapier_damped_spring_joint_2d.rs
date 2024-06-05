@@ -27,21 +27,33 @@ impl RapierDampedSpringJoint2D {
         body_a: Rid,
         body_b: Rid,
     ) -> Self {
-        let lock = bodies_singleton();
-        if let Some(body_a) = lock.collision_objects.get(&body_a) {
-            let base_a = body_a.get_base();
-            let body_a_handle = base_a.get_body_handle();
-            if let Some(body_b) = lock.collision_objects.get(&body_b) {
+        let invalid_joint = Self {
+            rest_length: 0.0,
+            stiffness: 20.0,
+            damping: 1.5,
+            base: RapierJointBase2D::new(invalid_handle(), invalid_handle(), rid),
+        };
+        if body_a == body_b {
+            return invalid_joint;
+        }
+        let bodies_singleton = bodies_singleton();
+        if let Some(body_a) = bodies_singleton.collision_objects.get(&body_a) {
+            if let Some(body_b) = bodies_singleton.collision_objects.get(&body_b) {
+                let base_a = body_a.get_base();
+                let body_a_handle = base_a.get_body_handle();
                 let base_b = body_b.get_base();
                 let body_b_handle = base_b.get_body_handle();
 
                 let anchor_a = base_a.get_inv_transform().basis_xform(p_anchor_a);
-                let anchor_b = base_a.get_inv_transform().basis_xform(p_anchor_b);
+                let anchor_b = base_b.get_inv_transform().basis_xform(p_anchor_b);
 
                 let rest_length = p_anchor_a.distance_to(p_anchor_b);
                 let rapier_anchor_a = rapier2d::na::Vector2::new(anchor_a.x, anchor_a.y);
                 let rapier_anchor_b = rapier2d::na::Vector2::new(anchor_b.x, anchor_b.y);
                 let space_handle = body_a.get_base().get_space_handle();
+                if space_handle != body_b.get_base().get_space_handle() {
+                    return invalid_joint;
+                }
 
                 let handle = joint_create_spring(
                     space_handle,
@@ -54,6 +66,10 @@ impl RapierDampedSpringJoint2D {
                     rest_length,
                     true,
                 );
+                if !handle.is_valid() {
+                    return invalid_joint;
+                }
+
                 return Self {
                     rest_length,
                     stiffness: 20.0,
@@ -62,12 +78,7 @@ impl RapierDampedSpringJoint2D {
                 };
             }
         }
-        Self {
-            rest_length: 0.0,
-            stiffness: 20.0,
-            damping: 1.5,
-            base: RapierJointBase2D::new(invalid_handle(), invalid_handle(), rid),
-        }
+        invalid_joint
     }
 
     pub fn set_param(&mut self, p_param: physics_server_2d::DampedSpringParam, p_value: f32) {

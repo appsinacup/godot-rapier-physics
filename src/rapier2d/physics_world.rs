@@ -142,7 +142,6 @@ impl PhysicsWorld {
         let liquid_gravity = vector_pixels_to_meters(settings.pixel_liquid_gravity);
 
         let physics_hooks = PhysicsHooksCollisionFilter {
-            world_handle: self.physics_objects.handle,
             collision_filter_body_callback: &collision_filter_body_callback,
             collision_filter_sensor_callback: &collision_filter_sensor_callback,
             collision_modify_contacts_callback: &collision_modify_contacts_callback,

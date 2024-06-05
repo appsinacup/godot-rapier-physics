@@ -1,5 +1,4 @@
 use crate::rapier2d::convert::*;
-use crate::rapier2d::handle::*;
 use crate::rapier2d::user_data::*;
 use rapier2d::prelude::*;
 
@@ -41,7 +40,6 @@ impl CollisionFilterInfo {
 }
 
 pub struct PhysicsHooksCollisionFilter<'a> {
-    pub world_handle: Handle,
     pub collision_filter_body_callback: &'a CollisionFilterCallback,
     pub collision_filter_sensor_callback: &'a CollisionFilterCallback,
     pub collision_modify_contacts_callback: &'a CollisionModifyContactsCallback,
