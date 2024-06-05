@@ -321,20 +321,18 @@ impl PhysicsWorld {
 
     pub fn get_collider_user_data(&self, collider_handle: ColliderHandle) -> UserData {
         let collider = self.physics_objects.collider_set.get(collider_handle);
-        if collider.is_none() {
-            UserData::invalid_user_data()
-        } else {
-            UserData::new(collider.unwrap().user_data)
+        if let Some(collider) = collider {
+            UserData::new(collider.user_data)
         }
+        UserData::invalid_user_data()
     }
 
     pub fn get_collider_rigid_body(&self, collider: &Collider) -> Option<&RigidBody> {
         let parent = collider.parent();
-        if parent.is_some() {
-            return self.physics_objects.rigid_body_set.get(parent.unwrap());
-        } else {
-            None
+        if let Some(parent) = parent {
+            return self.physics_objects.rigid_body_set.get(parent);
         }
+        None
     }
 
     pub fn remove_rigid_body(&mut self, body_handle: Handle) {
@@ -351,11 +349,10 @@ impl PhysicsWorld {
 
     pub fn get_rigid_body_user_data(&self, rigid_body_handle: RigidBodyHandle) -> UserData {
         let rigid_body = self.physics_objects.rigid_body_set.get(rigid_body_handle);
-        if rigid_body.is_none() {
-            UserData::invalid_user_data()
-        } else {
+        if let Some(rigid_body) = rigid_body {
             UserData::new(rigid_body.unwrap().user_data)
         }
+        UserData::invalid_user_data()
     }
 
     pub fn insert_joint(
