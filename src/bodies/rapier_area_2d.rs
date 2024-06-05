@@ -375,7 +375,7 @@ impl RapierArea2D {
         // Implementation needed
     }
 
-    pub fn compute_gravity(&self, position: &Vector2) -> Vector2 {
+    pub fn compute_gravity(&self, position: Vector2) -> Vector2 {
         // Implementation needed
         Vector2::default()
     }

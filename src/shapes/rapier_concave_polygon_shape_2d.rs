@@ -1,6 +1,5 @@
 use crate::rapier2d::handle::{invalid_handle, Handle};
 use crate::rapier2d::shape::shape_create_concave_polyline;
-use crate::rapier2d::vector::Vector;
 use crate::shapes::rapier_shape_2d::{IRapierShape2D, RapierShapeBase2D};
 use godot::engine::physics_server_2d::ShapeType;
 use godot::prelude::*;
@@ -57,10 +56,10 @@ impl IRapierShape2D for RapierConcavePolygonShape2D {
             let point_count = self.points.len();
             let mut rapier_points = Vec::with_capacity(point_count + 1);
             for i in 0..point_count {
-                rapier_points[i] = Vector::new(self.points[i].x, self.points[i].y);
+                rapier_points[i] = rapier2d::na::Vector2::new(self.points[i].x, self.points[i].y);
             }
             // Close the polyline shape
-            rapier_points[point_count] = Vector::new(rapier_points[0].x, rapier_points[0].y);
+            rapier_points[point_count] = rapier2d::na::Vector2::new(rapier_points[0].x, rapier_points[0].y);
             shape_create_concave_polyline(rapier_points)
         } else {
             godot_error!("ConcavePolygon2D must have at least three point");

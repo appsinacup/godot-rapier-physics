@@ -1,6 +1,5 @@
 use crate::rapier2d::handle::Handle;
 use crate::rapier2d::shape::shape_create_convex_polyline;
-use crate::rapier2d::vector::Vector;
 use crate::shapes::rapier_shape_2d::{IRapierShape2D, RapierShapeBase2D};
 use godot::{engine::physics_server_2d::ShapeType, prelude::*};
 
@@ -53,10 +52,10 @@ impl IRapierShape2D for RapierSegmentShape2D {
         let p4 = self.b - perpendicular * height / 2.0;
 
         let rapier_points = [
-            Vector::new(p1.x, p1.y),
-            Vector::new(p2.x, p2.y),
-            Vector::new(p3.x, p3.y),
-            Vector::new(p4.x, p4.y),
+            rapier2d::na::Vector2::new(p1.x, p1.y),
+            rapier2d::na::Vector2::new(p2.x, p2.y),
+            rapier2d::na::Vector2::new(p3.x, p3.y),
+            rapier2d::na::Vector2::new(p4.x, p4.y),
         ];
 
         shape_create_convex_polyline(rapier_points.to_vec())

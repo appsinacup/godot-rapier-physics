@@ -7,7 +7,6 @@ use crate::{
         handle::{invalid_handle, Handle},
         shape::ShapeInfo,
         user_data::UserData,
-        vector::Vector,
     }, servers::rapier_physics_singleton_2d::{shapes_singleton, spaces_singleton}
 };
 use godot::{
@@ -211,7 +210,7 @@ impl RapierCollisionObject2D {
             return;
         }
         let origin = shape.xform.origin;
-        let position = Vector::new(origin.x, origin.y);
+        let position = rapier2d::na::Vector2::new(origin.x, origin.y);
         let angle = shape.xform.rotation();
         let scale = shape.xform.scale();
         if let Some(rapier_shape) = shapes_singleton().shapes.get_mut(&shape.shape) {
@@ -225,7 +224,7 @@ impl RapierCollisionObject2D {
                 pixel_position: position,
                 rotation: angle,
                 skew: shape.xform.skew(),
-                scale: Vector::new(scale.x, scale.y),
+                scale: rapier2d::na::Vector2::new(scale.x, scale.y),
             };
             collider_set_transform(self.space_handle, shape.collider_handle, shape_info);
         }
@@ -273,15 +272,15 @@ impl RapierCollisionObject2D {
             user_data.part1 = self.rid.to_u64();
 
             let position =
-                Vector::new(self.transform.origin.x, self.transform.origin.y);
+            rapier2d::na::Vector2::new(self.transform.origin.x, self.transform.origin.y);
             let angle = self.transform.rotation();
             if self.mode == BodyMode::STATIC {
                 self.body_handle =
-                    body_create(self.space_handle, &position, angle, &user_data, BodyType::Static);
+                    body_create(self.space_handle, position, angle, &user_data, BodyType::Static);
             } else if self.mode == BodyMode::KINEMATIC {
                 self.body_handle = body_create(
                     self.space_handle,
-                    &position,
+                    position,
                     angle,
                     &user_data,
                     BodyType::Kinematic,
@@ -289,7 +288,7 @@ impl RapierCollisionObject2D {
             } else {
                 self.body_handle = body_create(
                     self.space_handle,
-                    &position,
+                    position,
                     angle,
                     &user_data,
                     BodyType::Dynamic,
@@ -364,9 +363,9 @@ impl RapierCollisionObject2D {
         }
 
         let origin = self.transform.origin;
-        let position = Vector::new(origin.x, origin.y);
+        let position = rapier2d::na::Vector2::new(origin.x, origin.y);
         let rotation = self.transform.rotation();
-        body_set_transform(self.space_handle, self.body_handle, &position, rotation, wake_up);
+        body_set_transform(self.space_handle, self.body_handle, position, rotation, wake_up);
     }
 
     pub fn get_transform(&self) -> Transform2D {

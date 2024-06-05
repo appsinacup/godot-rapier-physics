@@ -1,20 +1,20 @@
 use crate::{
     joints::rapier_joint_2d::IRapierJoint2D,
     rapier2d::{
-        handle::invalid_handle, joint::{joint_change_spring_params, joint_create_spring}, vector::Vector
+        handle::invalid_handle, joint::{joint_change_spring_params, joint_create_spring}
     },
     servers::rapier_physics_singleton_2d::{bodies_singleton},
 };
 use godot::{
-    builtin::{Rid, Vector2},
+    builtin::{real, Rid, Vector2},
     engine::physics_server_2d,
 };
 
 use super::{rapier_joint_2d::RapierJointBase2D, rapier_pin_joint_2d::RapierPinJoint2D};
 pub struct RapierDampedSpringJoint2D {
-    rest_length: f32,
-    stiffness: f32,
-    damping: f32,
+    rest_length: real,
+    stiffness: real,
+    damping: real,
     base: RapierJointBase2D,
 }
 
@@ -38,16 +38,16 @@ impl RapierDampedSpringJoint2D {
                 let anchor_b = base_a.get_inv_transform().basis_xform(p_anchor_b);
         
                 let rest_length = p_anchor_a.distance_to(p_anchor_b);
-                let rapier_anchor_a = Vector::new(anchor_a.x, anchor_a.y);
-                let rapier_anchor_b = Vector::new(anchor_b.x, anchor_b.y);
+                let rapier_anchor_a = rapier2d::na::Vector2::new(anchor_a.x, anchor_a.y);
+                let rapier_anchor_b = rapier2d::na::Vector2::new(anchor_b.x, anchor_b.y);
                 let space_handle = body_a.get_base().get_space_handle();
         
                 let handle = joint_create_spring(
                     space_handle,
                     body_a_handle,
                     body_b_handle,
-                    &rapier_anchor_a,
-                    &rapier_anchor_b,
+                    rapier_anchor_a,
+                    rapier_anchor_b,
                     20.0,
                     1.5,
                     rest_length,

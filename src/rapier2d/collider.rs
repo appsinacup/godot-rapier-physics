@@ -3,7 +3,6 @@ use crate::rapier2d::handle::*;
 use crate::rapier2d::physics_world::*;
 use crate::rapier2d::shape::ShapeInfo;
 use crate::rapier2d::user_data::*;
-use crate::rapier2d::vector::Vector;
 use rapier2d::na::Point2;
 use rapier2d::na::Vector2;
 use rapier2d::prelude::*;
@@ -72,7 +71,7 @@ pub fn skew_shape(shape: &SharedShape, skew: Real) -> SharedShape {
     }
 }
 
-pub fn scale_shape(shape: &SharedShape, scale: &Vector2<Real>) -> SharedShape {
+pub fn scale_shape(shape: &SharedShape, scale: Vector2<Real>) -> SharedShape {
     if scale.x == 1.0 && scale.y == 1.0 {
         return shape.clone();
     }
@@ -81,7 +80,7 @@ pub fn scale_shape(shape: &SharedShape, scale: &Vector2<Real>) -> SharedShape {
         let new_shape = shape
             .as_ball()
             .unwrap()
-            .scaled(scale, SUBDIVISIONS)
+            .scaled(&scale, SUBDIVISIONS)
             .unwrap();
         if new_shape.is_left() {
             let shape = new_shape.unwrap_left();
@@ -91,20 +90,20 @@ pub fn scale_shape(shape: &SharedShape, scale: &Vector2<Real>) -> SharedShape {
             return SharedShape::new(shape);
         }
     } else if shape_type == ShapeType::Cuboid {
-        let new_shape = shape.as_cuboid().unwrap().scaled(scale);
+        let new_shape = shape.as_cuboid().unwrap().scaled(&scale);
         return SharedShape::new(new_shape);
     } else if shape_type == ShapeType::HalfSpace {
-        let new_shape = shape.as_halfspace().unwrap().scaled(scale).unwrap();
+        let new_shape = shape.as_halfspace().unwrap().scaled(&scale).unwrap();
         return SharedShape::new(new_shape);
     } else if shape_type == ShapeType::Polyline {
-        let new_shape = shape.as_polyline().unwrap().clone().scaled(scale);
+        let new_shape = shape.as_polyline().unwrap().clone().scaled(&scale);
         return SharedShape::new(new_shape);
     } else if shape_type == ShapeType::ConvexPolygon {
         let new_shape = shape
             .as_convex_polygon()
             .unwrap()
             .clone()
-            .scaled(scale)
+            .scaled(&scale)
             .unwrap();
         return SharedShape::new(new_shape);
     } else if shape_type == ShapeType::Compound {
@@ -151,7 +150,7 @@ pub fn collider_create_solid(
     body_handle: Handle,
     user_data: &UserData,
 ) -> Handle {
-    let physics_engine = singleton();
+    let physics_engine = physics_engine();
     let shape = physics_engine.get_shape(shape_handle);
     let is_shape_halfspace = shape_is_halfspace(shape);
     let mut collider = ColliderBuilder::new(shape.clone())
@@ -196,7 +195,7 @@ pub fn collider_create_sensor(
     body_handle: Handle,
     user_data: &UserData,
 ) -> Handle {
-    let physics_engine = singleton();
+    let physics_engine = physics_engine();
     let shape = physics_engine.get_shape(shape_handle);
     let mut collider = ColliderBuilder::new(shape.clone()).build();
     collider.set_sensor(true);
@@ -214,7 +213,7 @@ pub fn collider_create_sensor(
 }
 
 pub fn collider_destroy(world_handle: Handle, handle: Handle) {
-    let physics_engine = singleton();
+    let physics_engine = physics_engine();
     let physics_world = physics_engine.get_world(world_handle);
     let collider_handle = handle_to_collider_handle(handle);
     physics_world
@@ -224,8 +223,8 @@ pub fn collider_destroy(world_handle: Handle, handle: Handle) {
     physics_world.remove_collider(handle)
 }
 
-pub fn collider_get_position(world_handle: Handle, handle: Handle) -> Vector {
-    let physics_engine = singleton();
+pub fn collider_get_position(world_handle: Handle, handle: Handle) -> Vector2<Real> {
+    let physics_engine = physics_engine();
     let physics_world = physics_engine.get_world(world_handle);
     let collider_handle = handle_to_collider_handle(handle);
     let collider = physics_world
@@ -234,14 +233,11 @@ pub fn collider_get_position(world_handle: Handle, handle: Handle) -> Vector {
         .get(collider_handle);
     assert!(collider.is_some());
     let collider_vector = collider.unwrap().translation();
-    vector_meters_to_pixels(&Vector {
-        x: collider_vector.x,
-        y: collider_vector.y,
-    })
+    vector_meters_to_pixels(*collider_vector)
 }
 
 pub fn collider_get_angle(world_handle: Handle, handle: Handle) -> Real {
-    let physics_engine = singleton();
+    let physics_engine = physics_engine();
     let physics_world = physics_engine.get_world(world_handle);
     let collider_handle = handle_to_collider_handle(handle);
     let collider = physics_world
@@ -254,9 +250,9 @@ pub fn collider_get_angle(world_handle: Handle, handle: Handle) -> Real {
 
 pub fn collider_set_transform(world_handle: Handle, handle: Handle, shape_info: ShapeInfo) {
     {
-        let position = &vector_pixels_to_meters(&shape_info.pixel_position);
+        let position = vector_pixels_to_meters(shape_info.pixel_position);
 
-        let physics_engine = singleton();
+        let physics_engine = physics_engine();
         let physics_world = physics_engine.get_world(world_handle);
         let collider_handle = handle_to_collider_handle(handle);
         let collider = physics_world
@@ -266,17 +262,17 @@ pub fn collider_set_transform(world_handle: Handle, handle: Handle, shape_info: 
         assert!(collider.is_some());
         let collider = collider.unwrap();
         collider.set_position_wrt_parent(Isometry::new(
-            vector![position.x, position.y],
+            position,
             shape_info.rotation,
         ));
     }
     {
-        let physics_engine = singleton();
+        let physics_engine = physics_engine();
         let shape = physics_engine.get_shape(shape_info.handle);
         let skewed_shape = skew_shape(shape, shape_info.skew);
         let new_shape = scale_shape(
             &skewed_shape,
-            &Vector2::<Real>::new(shape_info.scale.x, shape_info.scale.y),
+            shape_info.scale,
         );
         let physics_world = physics_engine.get_world(world_handle);
         let collider_handle = handle_to_collider_handle(handle);
@@ -290,7 +286,7 @@ pub fn collider_set_transform(world_handle: Handle, handle: Handle, shape_info: 
 }
 
 pub fn collider_set_collision_events_enabled(world_handle: Handle, handle: Handle, enable: bool) {
-    let physics_engine = singleton();
+    let physics_engine = physics_engine();
     let physics_world = physics_engine.get_world(world_handle);
     let collider_handle = handle_to_collider_handle(handle);
     let collider = physics_world
@@ -313,7 +309,7 @@ pub fn collider_set_contact_force_events_enabled(
     handle: Handle,
     enable: bool,
 ) {
-    let physics_engine = singleton();
+    let physics_engine = physics_engine();
     let physics_world = physics_engine.get_world(world_handle);
     let collider_handle = handle_to_collider_handle(handle);
     let collider = physics_world

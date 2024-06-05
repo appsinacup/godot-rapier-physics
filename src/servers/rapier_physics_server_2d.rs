@@ -11,7 +11,6 @@ use crate::rapier2d::physics_world::world_step;
 use crate::rapier2d::query::shape_collide;
 use crate::rapier2d::settings::SimulationSettings;
 use crate::rapier2d::shape::shape_info_from_body_shape;
-use crate::rapier2d::vector::Vector;
 use crate::shapes::rapier_capsule_shape_2d::RapierCapsuleShape2D;
 use crate::shapes::rapier_circle_shape_2d::RapierCircleShape2D;
 use crate::shapes::rapier_concave_polygon_shape_2d::RapierConcavePolygonShape2D;
@@ -192,8 +191,8 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
 
         let shape_a_info = shape_info_from_body_shape(shape_a_handle, xform_a);
         let shape_b_info = shape_info_from_body_shape(shape_b_handle, xform_b);
-        let rapier_a_motion = Vector::new(motion_a.x, motion_a.y);
-        let rapier_b_motion = Vector::new(motion_b.x, motion_b.y);
+        let rapier_a_motion = rapier2d::na::Vector2::new(motion_a.x, motion_a.y);
+        let rapier_b_motion = rapier2d::na::Vector2::new(motion_b.x, motion_b.y);
 
         let results_out: *mut Vector2 = results as *mut Vector2;
 
@@ -201,9 +200,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             unsafe { std::slice::from_raw_parts_mut(results_out, result_max as usize) };
 
         let result = shape_collide(
-            &rapier_a_motion,
+            rapier_a_motion,
             shape_a_info,
-            &rapier_b_motion,
+            rapier_b_motion,
             shape_b_info,
         );
         if !result.collided {
@@ -1427,9 +1426,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             //let default_angular_damping: real = project_settings.get_setting_with_override("physics/2d/default_angular_damp".into()).to();
             
             let settings = SimulationSettings{
-                pixel_liquid_gravity: Vector::new(fluid_default_gravity_dir.x * fluid_default_gravity_value as real,fluid_default_gravity_dir.y * fluid_default_gravity_value as real),
+                pixel_liquid_gravity: rapier2d::na::Vector2::new(fluid_default_gravity_dir.x * fluid_default_gravity_value as real,fluid_default_gravity_dir.y * fluid_default_gravity_value as real),
                 dt: step,
-                pixel_gravity: Vector::new(default_gravity_dir.x * default_gravity_value,default_gravity_dir.y * default_gravity_value),
+                pixel_gravity: rapier2d::na::Vector2::new(default_gravity_dir.x * default_gravity_value,default_gravity_dir.y * default_gravity_value),
                 max_ccd_substeps: RapierProjectSettings::get_solver_max_ccd_substeps() as usize,
                 num_additional_friction_iterations: RapierProjectSettings::get_solver_num_additional_friction_iterations() as usize,
                 num_internal_pgs_iterations: RapierProjectSettings::get_solver_num_internal_pgs_iterations() as usize,

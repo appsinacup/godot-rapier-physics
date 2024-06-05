@@ -13,4 +13,3 @@ pub mod query;
 pub mod settings;
 pub mod shape;
 pub mod user_data;
-pub mod vector;

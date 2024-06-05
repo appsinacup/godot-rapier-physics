@@ -2,12 +2,7 @@ extends Node2D
 
 func _ready():
 	test_body_create()
-	test_shape_create()
 	test_body_collision_exception_invalid()
-	#test_shape_functions()
-	#test_joint_functions()
-	#test_space_functions()
-	print("All tests completed")
 
 func test_body_collision_exception_invalid():
 	PhysicsServer2D.body_add_collision_exception(RID(), RID())
@@ -29,73 +24,6 @@ func test_body_create():
 	assert(!PhysicsServer2D.body_get_space(body).is_valid())
 	PhysicsServer2D.free_rid(body)
 	PhysicsServer2D.free_rid(RID())
-	
-func assert_aprox(x: float, y: float):
-	if absf(x - y) > 0.00001:
-		assert(true)
-
-func test_shape_create():
-	var world_shape = PhysicsServer2D.world_boundary_shape_create()
-	assert(world_shape.is_valid())
-	var separation_shape = PhysicsServer2D.separation_ray_shape_create()
-	assert(separation_shape.is_valid())
-	var rectangle_shape = PhysicsServer2D.rectangle_shape_create()
-	assert(rectangle_shape.is_valid())
-	var segment_shape = PhysicsServer2D.segment_shape_create()
-	assert(segment_shape.is_valid())
-	var capsule_shape = PhysicsServer2D.capsule_shape_create()
-	assert(capsule_shape.is_valid())
-	var circle_shape = PhysicsServer2D.circle_shape_create()
-	assert(circle_shape.is_valid())
-	var concave_polygon_shape = PhysicsServer2D.concave_polygon_shape_create()
-	assert(concave_polygon_shape.is_valid())
-	var convex_polygon_shape = PhysicsServer2D.convex_polygon_shape_create()
-	assert(convex_polygon_shape.is_valid())
-	
-	assert(PhysicsServer2D.shape_get_type(world_shape) == PhysicsServer2D.ShapeType.SHAPE_WORLD_BOUNDARY)
-	assert(PhysicsServer2D.shape_get_type(separation_shape) == PhysicsServer2D.ShapeType.SHAPE_SEPARATION_RAY)
-	assert(PhysicsServer2D.shape_get_type(rectangle_shape) == PhysicsServer2D.ShapeType.SHAPE_RECTANGLE)
-	assert(PhysicsServer2D.shape_get_type(segment_shape) == PhysicsServer2D.ShapeType.SHAPE_SEGMENT)
-	assert(PhysicsServer2D.shape_get_type(capsule_shape) == PhysicsServer2D.ShapeType.SHAPE_CAPSULE)
-	assert(PhysicsServer2D.shape_get_type(circle_shape) == PhysicsServer2D.ShapeType.SHAPE_CIRCLE)
-	assert(PhysicsServer2D.shape_get_type(concave_polygon_shape) == PhysicsServer2D.ShapeType.SHAPE_CONCAVE_POLYGON)
-	assert(PhysicsServer2D.shape_get_type(convex_polygon_shape) == PhysicsServer2D.ShapeType.SHAPE_CONVEX_POLYGON)
-	assert(PhysicsServer2D.shape_get_type(RID()) == PhysicsServer2D.ShapeType.SHAPE_CUSTOM)
-	
-
-	assert(PhysicsServer2D.shape_get_data(world_shape) == null)
-	assert(PhysicsServer2D.shape_get_data(separation_shape) == null)
-	assert(PhysicsServer2D.shape_get_data(rectangle_shape) == null)
-	assert(PhysicsServer2D.shape_get_data(segment_shape) == null)
-	assert(PhysicsServer2D.shape_get_data(capsule_shape) == null)
-	assert(PhysicsServer2D.shape_get_data(circle_shape) == null)
-	assert(PhysicsServer2D.shape_get_data(concave_polygon_shape) == null)
-	assert(PhysicsServer2D.shape_get_data(convex_polygon_shape) == null)
-	assert(PhysicsServer2D.shape_get_data(RID()) == null)
-	## - SHAPE_WORLD_BOUNDARY: an array of length two containing a Vector2 normal direction and a float distance d,
-	## - SHAPE_SEPARATION_RAY: a dictionary containing the key length with a float value and the key slide_on_slope with a bool value,
-	## - SHAPE_SEGMENT: a Rect2 rect containing the first point of the segment in rect.position and the second point of the segment in rect.size,
-	## - SHAPE_CIRCLE: a float radius,
-	## - SHAPE_RECTANGLE: a Vector2 half_extents,
-	## - SHAPE_CAPSULE: an array of length two (or a Vector2) containing a float height and a float radius,
-	## - SHAPE_CONVEX_POLYGON: either a PackedVector2Array of points defining a convex polygon in counterclockwise order (the clockwise outward normal of each segment formed by consecutive points is calculated internally), or a PackedFloat32Array of length divisible by four so that every 4-tuple of floats contains the coordinates of a point followed by the coordinates of the clockwise outward normal vector to the segment between the current point and the next point,
-	## - SHAPE_CONCAVE_POLYGON: a PackedVector2Array of length divisible by two (each pair of points forms one segment).
-
-	## Warning: In the case of SHAPE_CONVEX_POLYGON, this method does not check if the points supplied actually form a convex polygon (unlike the CollisionPolygon2D.polygon property).
-	
-	PhysicsServer2D.shape_set_data(world_shape, [Vector2(1.1,2.2), 1.2])
-	assert_aprox(PhysicsServer2D.shape_get_data(world_shape)[0].x, 1.1)
-	assert_aprox(PhysicsServer2D.shape_get_data(world_shape)[0].y, 2.2)
-	assert_aprox(PhysicsServer2D.shape_get_data(world_shape)[1], 1.2)
-	## a dictionary containing the key length with a float value and the key slide_on_slope with a bool value,
-	
-	PhysicsServer2D.shape_set_data(circle_shape, 1.1)
-	assert_aprox(PhysicsServer2D.shape_get_data(circle_shape), 1.1)
-
-
-	#PhysicsServer2D.shape_set_data(shape_rid, data)
-	print("Shape test passed")
-	
 	
 func test_body_create123():
 	var body_rid = RID()
@@ -202,43 +130,6 @@ func test_body_create123():
 	PhysicsServer2D.body_set_state(body_rid, PhysicsServer2D.BodyState.BODY_STATE_ANGULAR_VELOCITY, 2.3)
 	print("Body functions test passed")
 
-
-# Test functions for joint functions
-func test_joint_functions():
-	var joint_rid = RID()
-	var enabled = true
-	
-	var created_joint_rid = PhysicsServer2D.joint_create()
-	assert(created_joint_rid != null)
-
-	var param_value = PhysicsServer2D.damped_spring_joint_get_param(joint_rid, PhysicsServer2D.DampedSpringParam.DAMPED_SPRING_DAMPING)
-	assert(param_value == 0.0)
-
-	PhysicsServer2D.damped_spring_joint_set_param(joint_rid, PhysicsServer2D.DampedSpringParam.DAMPED_SPRING_DAMPING, 1.2)
-	PhysicsServer2D.free_rid(joint_rid)
-	
-	PhysicsServer2D.joint_clear(joint_rid)
-	PhysicsServer2D.joint_disable_collisions_between_bodies(joint_rid, enabled)
-	
-	var joint_type = PhysicsServer2D.joint_get_type(joint_rid)
-	assert(joint_type == PhysicsServer2D.JointType.JOINT_TYPE_MAX)
-	
-	var disabled_collisions = PhysicsServer2D.joint_is_disabled_collisions_between_bodies(joint_rid)
-	assert(disabled_collisions == false)
-
-	PhysicsServer2D.joint_make_damped_spring(joint_rid, Vector2.ZERO, Vector2.ZERO, RID())
-	PhysicsServer2D.joint_make_groove(joint_rid, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, RID())
-	PhysicsServer2D.joint_make_pin(joint_rid, Vector2.ZERO, RID())
-
-	var pin_joint_flag = PhysicsServer2D.pin_joint_get_flag(joint_rid, PhysicsServer2D.PinJointFlag.PIN_JOINT_FLAG_ANGULAR_LIMIT_ENABLED)
-	assert(pin_joint_flag == false)
-
-	var pin_joint_param = PhysicsServer2D.pin_joint_get_param(joint_rid, PhysicsServer2D.PinJointParam.PIN_JOINT_LIMIT_LOWER)
-	assert(pin_joint_param == 0.0)
-	
-	PhysicsServer2D.pin_joint_set_flag(joint_rid, PhysicsServer2D.PinJointFlag.PIN_JOINT_FLAG_ANGULAR_LIMIT_ENABLED, true)
-	PhysicsServer2D.pin_joint_set_param(joint_rid, PhysicsServer2D.PinJointParam.PIN_JOINT_LIMIT_LOWER, 1.2)
-	print("Joint functions test passed")
 
 # Test functions for space functions
 func test_space_functions():

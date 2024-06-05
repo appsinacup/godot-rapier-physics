@@ -1,14 +1,11 @@
-use crate::rapier2d::convert::meters_to_pixels;
-use crate::rapier2d::convert::pixels_to_meters;
-use crate::rapier2d::convert::vector_meters_to_pixels;
-use crate::rapier2d::convert::vector_pixels_to_meters;
+use crate::rapier2d::convert::*;
 use crate::rapier2d::event_handler::ContactEventHandler;
 use crate::rapier2d::handle::*;
 use crate::rapier2d::physics_hooks::*;
 use crate::rapier2d::settings::*;
 use crate::rapier2d::user_data::*;
-use crate::rapier2d::vector::Vector;
 use godot::log::godot_error;
+use nalgebra::Vector2;
 use rapier2d::crossbeam;
 use rapier2d::data::Arena;
 use rapier2d::prelude::*;
@@ -25,35 +22,21 @@ impl ActiveBodyInfo {
     fn new() -> ActiveBodyInfo {
         ActiveBodyInfo {
             body_handle: invalid_handle(),
-            body_user_data: invalid_user_data(),
+            body_user_data: UserData::invalid_user_data(),
         }
     }
 }
 
+#[derive(Default)]
 pub struct ContactPointInfo {
-    pub pixel_local_pos_1: Vector,
-    pub pixel_local_pos_2: Vector,
-    pub pixel_velocity_pos_1: Vector,
-    pub pixel_velocity_pos_2: Vector,
-    pub normal: Vector,
+    pub pixel_local_pos_1: Vector2<Real>,
+    pub pixel_local_pos_2: Vector2<Real>,
+    pub pixel_velocity_pos_1: Vector2<Real>,
+    pub pixel_velocity_pos_2: Vector2<Real>,
+    pub normal: Vector2<Real>,
     pub pixel_distance: Real,
     pub pixel_impulse: Real,
     pub pixel_tangent_impulse: Real,
-}
-
-impl ContactPointInfo {
-    fn new() -> ContactPointInfo {
-        ContactPointInfo {
-            pixel_local_pos_1: Vector { x: 0.0, y: 0.0 },
-            pixel_local_pos_2: Vector { x: 0.0, y: 0.0 },
-            pixel_velocity_pos_1: Vector { x: 0.0, y: 0.0 },
-            pixel_velocity_pos_2: Vector { x: 0.0, y: 0.0 },
-            normal: Vector { x: 0.0, y: 0.0 },
-            pixel_distance: 0.0,
-            pixel_impulse: 0.0,
-            pixel_tangent_impulse: 0.0,
-        }
-    }
 }
 
 type ActiveBodyCallback = fn(active_body_info: &ActiveBodyInfo);
@@ -155,10 +138,8 @@ impl PhysicsWorld {
         integration_parameters.num_additional_friction_iterations =
             settings.num_additional_friction_iterations;
         integration_parameters.num_internal_pgs_iterations = settings.num_internal_pgs_iterations;
-        let gravity_vector = vector_pixels_to_meters(&settings.pixel_gravity);
-        let gravity = vector![gravity_vector.x, gravity_vector.y];
-        let liquid_gravity_vector = vector_pixels_to_meters(&settings.pixel_liquid_gravity);
-        let liquid_gravity = vector![liquid_gravity_vector.x, liquid_gravity_vector.y];
+        let gravity = vector_pixels_to_meters(settings.pixel_gravity);
+        let liquid_gravity = vector_pixels_to_meters(settings.pixel_liquid_gravity);
 
         let physics_hooks = PhysicsHooksCollisionFilter {
             world_handle: self.physics_objects.handle,
@@ -259,7 +240,7 @@ impl PhysicsWorld {
                 let body1: &RigidBody = self.get_collider_rigid_body(collider1).unwrap();
                 let body2: &RigidBody = self.get_collider_rigid_body(collider2).unwrap();
                 // Find the contact pair, if it exists, between two colliders
-                let mut contact_info = ContactPointInfo::new();
+                let mut contact_info = ContactPointInfo::default();
 
                 let mut swap = false;
                 if contact_force_event.collider1 != contact_pair.collider1 {
@@ -273,10 +254,7 @@ impl PhysicsWorld {
                 // We may also read the contact manifolds to access the contact geometry.
                 for manifold in &contact_pair.manifolds {
                     let manifold_normal = manifold.data.normal;
-                    contact_info.normal = Vector {
-                        x: manifold_normal.x,
-                        y: manifold_normal.y,
-                    };
+                    contact_info.normal = manifold_normal;
 
                     // Read the geometric contacts.
                     for contact_point in &manifold.points {
@@ -286,39 +264,15 @@ impl PhysicsWorld {
                         let point_velocity_2 = body2.velocity_at_point(&collider_pos_2);
 
                         if swap {
-                            contact_info.pixel_local_pos_1 = vector_meters_to_pixels(&Vector {
-                                x: collider_pos_2.x,
-                                y: collider_pos_2.y,
-                            });
-                            contact_info.pixel_local_pos_2 = vector_meters_to_pixels(&Vector {
-                                x: collider_pos_1.x,
-                                y: collider_pos_1.y,
-                            });
-                            contact_info.pixel_velocity_pos_1 = vector_meters_to_pixels(&Vector {
-                                x: point_velocity_2.x,
-                                y: point_velocity_2.y,
-                            });
-                            contact_info.pixel_velocity_pos_2 = vector_meters_to_pixels(&Vector {
-                                x: point_velocity_1.x,
-                                y: point_velocity_1.y,
-                            });
+                            contact_info.pixel_local_pos_1 = vector_meters_to_pixels(collider_pos_2.coords);
+                            contact_info.pixel_local_pos_2 = vector_meters_to_pixels(collider_pos_1.coords);
+                            contact_info.pixel_velocity_pos_1 = vector_meters_to_pixels(point_velocity_2);
+                            contact_info.pixel_velocity_pos_2 = vector_meters_to_pixels(point_velocity_1);
                         } else {
-                            contact_info.pixel_local_pos_1 = vector_meters_to_pixels(&Vector {
-                                x: collider_pos_1.x,
-                                y: collider_pos_1.y,
-                            });
-                            contact_info.pixel_local_pos_2 = vector_meters_to_pixels(&Vector {
-                                x: collider_pos_2.x,
-                                y: collider_pos_2.y,
-                            });
-                            contact_info.pixel_velocity_pos_1 = vector_meters_to_pixels(&Vector {
-                                x: point_velocity_1.x,
-                                y: point_velocity_1.y,
-                            });
-                            contact_info.pixel_velocity_pos_2 = vector_meters_to_pixels(&Vector {
-                                x: point_velocity_2.x,
-                                y: point_velocity_2.y,
-                            });
+                            contact_info.pixel_local_pos_1 = vector_meters_to_pixels(collider_pos_1.coords);
+                            contact_info.pixel_local_pos_2 = vector_meters_to_pixels(collider_pos_2.coords);
+                            contact_info.pixel_velocity_pos_1 = vector_meters_to_pixels(point_velocity_1);
+                            contact_info.pixel_velocity_pos_2 = vector_meters_to_pixels(point_velocity_2);
                         }
                         contact_info.pixel_distance = meters_to_pixels(contact_point.dist);
                         contact_info.pixel_impulse = meters_to_pixels(contact_point.data.impulse);
@@ -368,7 +322,7 @@ impl PhysicsWorld {
     pub fn get_collider_user_data(&self, collider_handle: ColliderHandle) -> UserData {
         let collider = self.physics_objects.collider_set.get(collider_handle);
         if collider.is_none() {
-            invalid_user_data()
+            UserData::invalid_user_data()
         } else {
             UserData::new(collider.unwrap().user_data)
         }
@@ -398,7 +352,7 @@ impl PhysicsWorld {
     pub fn get_rigid_body_user_data(&self, rigid_body_handle: RigidBodyHandle) -> UserData {
         let rigid_body = self.physics_objects.rigid_body_set.get(rigid_body_handle);
         if rigid_body.is_none() {
-            invalid_user_data()
+            UserData::invalid_user_data()
         } else {
             UserData::new(rigid_body.unwrap().user_data)
         }
@@ -473,7 +427,7 @@ impl PhysicsEngine {
     }
 }
 
-pub fn singleton() -> &'static mut PhysicsEngine {
+pub fn physics_engine() -> &'static mut PhysicsEngine {
     static mut SINGLETON: Option<PhysicsEngine> = None;
     unsafe {
         if SINGLETON.is_none() {
@@ -485,7 +439,7 @@ pub fn singleton() -> &'static mut PhysicsEngine {
 
 pub fn world_create(settings: &WorldSettings) -> Handle {
     let physics_world = PhysicsWorld::new(settings);
-    let physics_engine = singleton();
+    let physics_engine = physics_engine();
     let world_handle = physics_engine.insert_world(physics_world);
     let physics_world = physics_engine.get_world(world_handle);
     physics_world.physics_objects.handle = world_handle;
@@ -493,7 +447,7 @@ pub fn world_create(settings: &WorldSettings) -> Handle {
 }
 
 pub fn world_destroy(world_handle: Handle) {
-    let physics_engine = singleton();
+    let physics_engine = physics_engine();
     let physics_world = physics_engine.get_world(world_handle);
     physics_world.physics_objects.handle = invalid_handle();
     physics_engine.remove_world(world_handle);
@@ -510,7 +464,7 @@ pub fn world_step(
     contact_force_event_callback: ContactForceEventCallback,
     contact_point_callback: ContactPointCallback,
 ) {
-    let physics_engine = singleton();
+    let physics_engine = physics_engine();
     let physics_world = physics_engine.get_world(world_handle);
     physics_world.step(
         settings,
@@ -525,13 +479,13 @@ pub fn world_step(
 }
 
 pub fn world_get_active_objects_count(world_handle: Handle) -> usize {
-    let physics_engine = singleton();
+    let physics_engine = physics_engine();
     let physics_world = physics_engine.get_world(world_handle);
     return physics_world.physics_objects.island_manager.active_dynamic_bodies().len();
 }
 
 pub fn world_export_json(world_handle: Handle) -> String {
-    let physics_engine = singleton();
+    let physics_engine = physics_engine();
     let physics_world = physics_engine.get_world(world_handle);
     let serialized = serde_json::to_string(&physics_world.physics_objects.collider_set);
     match serialized {
@@ -546,7 +500,7 @@ pub fn world_export_json(world_handle: Handle) -> String {
 }
 
 pub fn world_export_binary(world_handle: Handle) -> Vec<u8> {
-    let physics_engine = singleton();
+    let physics_engine = physics_engine();
     let physics_world = physics_engine.get_world(world_handle);
     let serialized = bincode::serialize(&physics_world.physics_objects);
     match serialized {
