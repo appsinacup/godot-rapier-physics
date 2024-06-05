@@ -5,7 +5,9 @@ var body_b := PhysicsServer2D.body_create()
 
 func _ready():
 	test_base_joint_empty()
+	test_base_joint()
 	test_spring_joint_empty()
+	test_spring_joint_base()
 	test_spring_joint()
 	test_pin_joint_empty()
 	print("Joint tests passed.")
@@ -13,9 +15,26 @@ func _ready():
 func test_base_joint_empty():
 	PhysicsServer2D.joint_disable_collisions_between_bodies(RID(), false)
 	PhysicsServer2D.joint_disable_collisions_between_bodies(RID(), true)
+	PhysicsServer2D.joint_clear(RID())
 	var disabled = PhysicsServer2D.joint_is_disabled_collisions_between_bodies(RID())
 	assert(disabled == true)
 	print("Base joint empty tests passed.")
+
+func test_base_joint():
+	var joint_rid = PhysicsServer2D.joint_create()
+	var disabled = PhysicsServer2D.joint_is_disabled_collisions_between_bodies(joint_rid)
+	assert(disabled == true)
+	PhysicsServer2D.joint_disable_collisions_between_bodies(joint_rid, false)
+	disabled = PhysicsServer2D.joint_is_disabled_collisions_between_bodies(joint_rid)
+	assert(disabled == false)
+	PhysicsServer2D.joint_disable_collisions_between_bodies(joint_rid, true)
+	disabled = PhysicsServer2D.joint_is_disabled_collisions_between_bodies(joint_rid)
+	assert(disabled == true)
+	PhysicsServer2D.joint_clear(RID())
+	disabled = PhysicsServer2D.joint_is_disabled_collisions_between_bodies(joint_rid)
+	assert(disabled == true)
+	PhysicsServer2D.joint_clear(joint_rid)
+	print("Base joint tests passed.")
 
 func test_spring_joint_empty():
 	var stiffness = PhysicsServer2D.damped_spring_joint_get_param(RID(), PhysicsServer2D.DampedSpringParam.DAMPED_SPRING_STIFFNESS)
@@ -42,38 +61,75 @@ func test_spring_joint_empty():
 	PhysicsServer2D.joint_make_damped_spring(body_a, Vector2.ZERO, Vector2.ZERO, body_a, body_b)
 	print("Spring joint empty tests passed.")
 
-# Test functions for joint functions
-func test_spring_joint():
-	
+func test_spring_joint_base():
 	# Base Joint
 	var joint_rid = PhysicsServer2D.joint_create()
 	assert(joint_rid != null)
 	var joint_type = PhysicsServer2D.joint_get_type(joint_rid)
 	# Should not be able to set any of specific values
-	assert(joint_type == PhysicsServer2D.JointType.JOINT_TYPE_MAX)
+	assert(joint_type == PhysicsServer2D.JOINT_TYPE_MAX)
 	var stiffness = PhysicsServer2D.damped_spring_joint_get_param(joint_rid, PhysicsServer2D.DampedSpringParam.DAMPED_SPRING_STIFFNESS)
 	assert(stiffness == 0)
 	var length = PhysicsServer2D.damped_spring_joint_get_param(joint_rid, PhysicsServer2D.DampedSpringParam.DAMPED_SPRING_REST_LENGTH)
 	assert(length == 0)
 	var damping = PhysicsServer2D.damped_spring_joint_get_param(joint_rid, PhysicsServer2D.DampedSpringParam.DAMPED_SPRING_DAMPING)
 	assert(damping == 0)
-
 	PhysicsServer2D.damped_spring_joint_set_param(joint_rid, PhysicsServer2D.DAMPED_SPRING_STIFFNESS, 2)
 	PhysicsServer2D.damped_spring_joint_set_param(joint_rid, PhysicsServer2D.DAMPED_SPRING_REST_LENGTH, 3)
 	PhysicsServer2D.damped_spring_joint_set_param(joint_rid, PhysicsServer2D.DAMPED_SPRING_DAMPING, 4)
-	
-	
+	stiffness = PhysicsServer2D.damped_spring_joint_get_param(joint_rid, PhysicsServer2D.DAMPED_SPRING_STIFFNESS)
+	assert(stiffness == 0)
+	length = PhysicsServer2D.damped_spring_joint_get_param(joint_rid, PhysicsServer2D.DAMPED_SPRING_REST_LENGTH)
+	assert(length == 0)
+	damping = PhysicsServer2D.damped_spring_joint_get_param(joint_rid, PhysicsServer2D.DAMPED_SPRING_DAMPING)
+	assert(damping == 0)
+	# Wrong creation
+	PhysicsServer2D.joint_make_damped_spring(joint_rid, Vector2.ZERO, Vector2.ZERO, RID(), RID())
+	joint_type = PhysicsServer2D.joint_get_type(joint_rid)
+	assert(joint_type == PhysicsServer2D.JOINT_TYPE_MAX)
+	PhysicsServer2D.joint_make_damped_spring(joint_rid, Vector2.ZERO, Vector2.ZERO, RID(), body_a)
+	assert(joint_type == PhysicsServer2D.JOINT_TYPE_MAX)
+	PhysicsServer2D.joint_make_damped_spring(joint_rid, Vector2.ZERO, Vector2.ZERO, body_a, body_a)
+	assert(joint_type == PhysicsServer2D.JOINT_TYPE_MAX)
+	PhysicsServer2D.joint_make_damped_spring(joint_rid, Vector2.ZERO, Vector2.ZERO, body_a, RID())
+	assert(joint_type == PhysicsServer2D.JOINT_TYPE_MAX)
+	PhysicsServer2D.joint_clear(joint_rid)
+	print("Spring joint base tests passed.")
+
+func test_spring_joint():
+	# Base Joint
+	var joint_rid = PhysicsServer2D.joint_create()
+	assert(joint_rid != null)
+	PhysicsServer2D.joint_make_damped_spring(joint_rid, Vector2(1,2), Vector2(3,4), body_a, body_b)
+	var joint_type = PhysicsServer2D.joint_get_type(joint_rid)
+	assert(joint_type == PhysicsServer2D.JOINT_TYPE_DAMPED_SPRING)
+	# Should be able to set any of specific values
+	var stiffness = PhysicsServer2D.damped_spring_joint_get_param(joint_rid, PhysicsServer2D.DampedSpringParam.DAMPED_SPRING_STIFFNESS)
+	assert(stiffness == 0)
+	var length = PhysicsServer2D.damped_spring_joint_get_param(joint_rid, PhysicsServer2D.DampedSpringParam.DAMPED_SPRING_REST_LENGTH)
+	assert(length == 0)
+	var damping = PhysicsServer2D.damped_spring_joint_get_param(joint_rid, PhysicsServer2D.DampedSpringParam.DAMPED_SPRING_DAMPING)
+	assert(damping == 0)
+	PhysicsServer2D.damped_spring_joint_set_param(joint_rid, PhysicsServer2D.DAMPED_SPRING_STIFFNESS, 2)
+	PhysicsServer2D.damped_spring_joint_set_param(joint_rid, PhysicsServer2D.DAMPED_SPRING_REST_LENGTH, 3)
+	PhysicsServer2D.damped_spring_joint_set_param(joint_rid, PhysicsServer2D.DAMPED_SPRING_DAMPING, 4)
 	stiffness = PhysicsServer2D.damped_spring_joint_get_param(joint_rid, PhysicsServer2D.DAMPED_SPRING_STIFFNESS)
 	assert(stiffness == 2)
 	length = PhysicsServer2D.damped_spring_joint_get_param(joint_rid, PhysicsServer2D.DAMPED_SPRING_REST_LENGTH)
 	assert(length == 3)
 	damping = PhysicsServer2D.damped_spring_joint_get_param(joint_rid, PhysicsServer2D.DAMPED_SPRING_DAMPING)
 	assert(damping == 4)
+	# Reset Values
 	PhysicsServer2D.free_rid(joint_rid)
+	stiffness = PhysicsServer2D.damped_spring_joint_get_param(joint_rid, PhysicsServer2D.DAMPED_SPRING_STIFFNESS)
+	assert(stiffness == 0)
+	length = PhysicsServer2D.damped_spring_joint_get_param(joint_rid, PhysicsServer2D.DAMPED_SPRING_REST_LENGTH)
+	assert(length == 0)
+	damping = PhysicsServer2D.damped_spring_joint_get_param(joint_rid, PhysicsServer2D.DAMPED_SPRING_DAMPING)
+	assert(damping == 0)
 	
+	# Cleanup
 	PhysicsServer2D.joint_clear(joint_rid)
-	PhysicsServer2D.joint_disable_collisions_between_bodies(joint_rid, false)
-	
 	joint_type = PhysicsServer2D.joint_get_type(joint_rid)
 	assert(joint_type == PhysicsServer2D.JointType.JOINT_TYPE_MAX)
 	

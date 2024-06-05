@@ -998,12 +998,20 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         true
     }
     fn joint_make_pin(&mut self, rid: Rid, anchor: Vector2, body_a: Rid, body_b: Rid) {
-        if let Some(prev_joint) = joints_singleton().joints.remove(&rid) {
-            let mut joint = RapierPinJoint2D::new(rid, anchor, body_a, body_b);
+        let joints_singleton = joints_singleton();
+        let mut joint = RapierPinJoint2D::new(rid, anchor, body_a, body_b);
+        if let Some(prev_joint) = joints_singleton.joints.remove(&rid) {
             joint
                 .get_mut_base()
                 .copy_settings_from(prev_joint.get_base());
-            joints_singleton().joints.insert(rid, Box::new(joint));
+            // insert old one back
+            if !joint.get_base().get_handle().is_valid() {
+                joints_singleton.joints.insert(rid, prev_joint);
+                return;
+            }
+        }
+        if joint.get_base().get_handle().is_valid() {
+            joints_singleton.joints.insert(rid, Box::new(joint));
         }
     }
     fn joint_make_groove(
@@ -1015,13 +1023,21 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         body_a: Rid,
         body_b: Rid,
     ) {
-        if let Some(prev_joint) = joints_singleton().joints.remove(&rid) {
-            let mut joint =
-                RapierGrooveJoint2D::new(rid, a_groove1, a_groove2, b_anchor, body_a, body_b);
+        let joints_singleton = joints_singleton();
+        let mut joint =
+            RapierGrooveJoint2D::new(rid, a_groove1, a_groove2, b_anchor, body_a, body_b);
+        if let Some(prev_joint) = joints_singleton.joints.remove(&rid) {
             joint
                 .get_mut_base()
                 .copy_settings_from(prev_joint.get_base());
-            joints_singleton().joints.insert(rid, Box::new(joint));
+            // insert old one back
+            if !joint.get_base().get_handle().is_valid() {
+                joints_singleton.joints.insert(rid, prev_joint);
+                return;
+            }
+        }
+        if joint.get_base().get_handle().is_valid() {
+            joints_singleton.joints.insert(rid, Box::new(joint));
         }
     }
     fn joint_make_damped_spring(
@@ -1033,11 +1049,18 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         body_b: Rid,
     ) {
         let joints_singleton = joints_singleton();
+        let mut joint = RapierDampedSpringJoint2D::new(rid, anchor_a, anchor_b, body_a, body_b);
         if let Some(prev_joint) = joints_singleton.joints.remove(&rid) {
-            let mut joint = RapierDampedSpringJoint2D::new(rid, anchor_a, anchor_b, body_a, body_b);
             joint
                 .get_mut_base()
                 .copy_settings_from(prev_joint.get_base());
+            // insert old one back
+            if !joint.get_base().get_handle().is_valid() {
+                joints_singleton.joints.insert(rid, prev_joint);
+                return;
+            }
+        }
+        if joint.get_base().get_handle().is_valid() {
             joints_singleton.joints.insert(rid, Box::new(joint));
         }
     }
@@ -1049,7 +1072,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     ) {
         if let Some(joint) = joints_singleton().joints.get_mut(&joint) {
             if let Some(joint) = joint.get_mut_pin() {
-                joint.set_flag(flag, enabled)
+                joint.set_flag(flag, enabled);
             }
         }
     }
