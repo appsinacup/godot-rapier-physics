@@ -22,5 +22,4 @@ pub fn unregister_server() {
     // there doesn't seem to be a function to unregister a server.
 }
 
-pub fn unregister_scene() {
-}
+pub fn unregister_scene() {}

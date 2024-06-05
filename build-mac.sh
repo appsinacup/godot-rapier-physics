@@ -1,3 +1,4 @@
+cargo fmt
 cargo clippy --fix --allow-dirty
 cargo build --features="simd-stable,parallel"
 #cargo build --release --features="simd-stable,parallel"

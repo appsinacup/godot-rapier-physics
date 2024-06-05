@@ -59,7 +59,8 @@ impl IRapierShape2D for RapierConcavePolygonShape2D {
                 rapier_points[i] = rapier2d::na::Vector2::new(self.points[i].x, self.points[i].y);
             }
             // Close the polyline shape
-            rapier_points[point_count] = rapier2d::na::Vector2::new(rapier_points[0].x, rapier_points[0].y);
+            rapier_points[point_count] =
+                rapier2d::na::Vector2::new(rapier_points[0].x, rapier_points[0].y);
             shape_create_concave_polyline(rapier_points)
         } else {
             godot_error!("ConcavePolygon2D must have at least three point");

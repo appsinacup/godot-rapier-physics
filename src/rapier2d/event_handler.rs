@@ -1,4 +1,5 @@
 use crossbeam::channel::Sender;
+use godot::log::godot_error;
 use rapier2d::crossbeam;
 use rapier2d::prelude::*;
 
@@ -27,10 +28,12 @@ impl EventHandler for ContactEventHandler {
         event: CollisionEvent,
         contact_pair: Option<&ContactPair>,
     ) {
-        self
-            .collision_send
-            .send((event, contact_pair.cloned()))
-            .unwrap();
+        match (self.collision_send.send((event, contact_pair.cloned()))) {
+            Ok(_) => (),
+            Err(err) => {
+                godot_error!("Failed to send collision event {}", err.to_string());
+            }
+        }
     }
 
     fn handle_contact_force_event(
@@ -42,9 +45,11 @@ impl EventHandler for ContactEventHandler {
         total_force_magnitude: Real,
     ) {
         let result = ContactForceEvent::from_contact_pair(dt, contact_pair, total_force_magnitude);
-        self
-            .contact_force_send
-            .send((result, contact_pair.clone()))
-            .unwrap();
+        match (self.contact_force_send.send((result, contact_pair.clone()))) {
+            Ok(_) => (),
+            Err(err) => {
+                godot_error!("Failed to send contact force event {}", err.to_string());
+            }
+        }
     }
 }

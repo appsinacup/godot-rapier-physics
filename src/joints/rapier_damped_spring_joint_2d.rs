@@ -1,9 +1,10 @@
 use crate::{
     joints::rapier_joint_2d::IRapierJoint2D,
     rapier2d::{
-        handle::invalid_handle, joint::{joint_change_spring_params, joint_create_spring}
+        handle::invalid_handle,
+        joint::{joint_change_spring_params, joint_create_spring},
     },
-    servers::rapier_physics_singleton_2d::{bodies_singleton},
+    servers::rapier_physics_singleton_2d::bodies_singleton,
 };
 use godot::{
     builtin::{real, Rid, Vector2},
@@ -33,15 +34,15 @@ impl RapierDampedSpringJoint2D {
             if let Some(body_b) = lock.collision_objects.get(&body_b) {
                 let base_b = body_b.get_base();
                 let body_b_handle = base_b.get_body_handle();
-        
+
                 let anchor_a = base_a.get_inv_transform().basis_xform(p_anchor_a);
                 let anchor_b = base_a.get_inv_transform().basis_xform(p_anchor_b);
-        
+
                 let rest_length = p_anchor_a.distance_to(p_anchor_b);
                 let rapier_anchor_a = rapier2d::na::Vector2::new(anchor_a.x, anchor_a.y);
                 let rapier_anchor_b = rapier2d::na::Vector2::new(anchor_b.x, anchor_b.y);
                 let space_handle = body_a.get_base().get_space_handle();
-        
+
                 let handle = joint_create_spring(
                     space_handle,
                     body_a_handle,
@@ -58,7 +59,7 @@ impl RapierDampedSpringJoint2D {
                     stiffness: 20.0,
                     damping: 1.5,
                     base: RapierJointBase2D::new(space_handle, handle, rid),
-                }
+                };
             }
         }
         Self {
@@ -84,7 +85,7 @@ impl RapierDampedSpringJoint2D {
         }
         let handle = self.get_base().get_handle();
         let space_handle = self.get_base().get_space_handle();
-        if !handle.is_valid() || !space_handle.is_valid(){
+        if !handle.is_valid() || !space_handle.is_valid() {
             return;
         }
         joint_change_spring_params(

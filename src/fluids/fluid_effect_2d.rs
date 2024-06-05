@@ -1,4 +1,8 @@
-use godot::{engine::{IResource, Resource}, obj::Base, register::{godot_api, GodotClass}};
+use godot::{
+    engine::{IResource, Resource},
+    obj::Base,
+    register::{godot_api, GodotClass},
+};
 
 #[derive(GodotClass)]
 #[class(base=Resource)]
@@ -34,4 +38,3 @@ impl FluidEffect2D {
         self.fluid_effect_type
     }
 }
-

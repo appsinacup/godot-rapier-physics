@@ -225,16 +225,22 @@ impl RapierSpace2D {
                     let body_lock = bodies_singleton();
                     let mut p_collision_object1 = None;
                     let mut p_collision_object2 = None;
-                    if body_lock.collision_objects.contains_key(&p_object1) && body_lock.collision_objects.contains_key(&p_object2) {
-                        if let Some([p_object1, p_object2]) = body_lock.collision_objects.get_many_mut([&p_object1, &p_object2]) {
+                    if body_lock.collision_objects.contains_key(&p_object1)
+                        && body_lock.collision_objects.contains_key(&p_object2)
+                    {
+                        if let Some([p_object1, p_object2]) = body_lock
+                            .collision_objects
+                            .get_many_mut([&p_object1, &p_object2])
+                        {
                             p_collision_object1 = Some(p_object1);
                             p_collision_object2 = Some(p_object2);
                         }
-                    } else if body_lock.collision_objects.contains_key(&p_object1){
+                    } else if body_lock.collision_objects.contains_key(&p_object1) {
                         if let Some(p_object1) = body_lock.collision_objects.get_mut(&p_object1) {
                             p_collision_object1 = Some(p_object1);
                         }
-                    } else if let Some(p_object2) = body_lock.collision_objects.get_mut(&p_object2) {
+                    } else if let Some(p_object2) = body_lock.collision_objects.get_mut(&p_object2)
+                    {
                         p_collision_object2 = Some(p_object2);
                     }
                     // collision object 1 area
@@ -242,17 +248,50 @@ impl RapierSpace2D {
                         if let Some(p_area1) = p_collision_object1.get_mut_area() {
                             if type2 == CollisionObjectType::Area {
                                 if event_info.is_started {
-                                    p_area1.on_area_enter(collider_handle2, &p_collision_object2, shape2, rid2, instance_id2, collider_handle1, shape1);
+                                    p_area1.on_area_enter(
+                                        collider_handle2,
+                                        &p_collision_object2,
+                                        shape2,
+                                        rid2,
+                                        instance_id2,
+                                        collider_handle1,
+                                        shape1,
+                                    );
                                 }
                                 if event_info.is_stopped {
-                                    p_area1.on_area_exit(collider_handle2, &p_collision_object2, shape2, rid2, instance_id2, collider_handle1, shape1);
+                                    p_area1.on_area_exit(
+                                        collider_handle2,
+                                        &p_collision_object2,
+                                        shape2,
+                                        rid2,
+                                        instance_id2,
+                                        collider_handle1,
+                                        shape1,
+                                    );
                                 }
                             } else {
                                 if event_info.is_started {
-                                    p_area1.on_body_enter(collider_handle2, &p_collision_object2, shape2, rid2, instance_id2, collider_handle1, shape1);
+                                    p_area1.on_body_enter(
+                                        collider_handle2,
+                                        &p_collision_object2,
+                                        shape2,
+                                        rid2,
+                                        instance_id2,
+                                        collider_handle1,
+                                        shape1,
+                                    );
                                 }
                                 if event_info.is_stopped {
-                                    p_area1.on_body_exit(collider_handle2, &p_collision_object2, shape2, rid2, instance_id2, collider_handle1, shape1, p_collision_object2.is_some());
+                                    p_area1.on_body_exit(
+                                        collider_handle2,
+                                        &p_collision_object2,
+                                        shape2,
+                                        rid2,
+                                        instance_id2,
+                                        collider_handle1,
+                                        shape1,
+                                        p_collision_object2.is_some(),
+                                    );
                                 }
                             }
                         }
@@ -262,17 +301,50 @@ impl RapierSpace2D {
                         if let Some(p_area2) = p_collision_object2.get_mut_area() {
                             if type1 == CollisionObjectType::Area {
                                 if event_info.is_started {
-                                    p_area2.on_area_enter(collider_handle1, &p_collision_object1, shape1, rid1, instance_id1, collider_handle2, shape2);
+                                    p_area2.on_area_enter(
+                                        collider_handle1,
+                                        &p_collision_object1,
+                                        shape1,
+                                        rid1,
+                                        instance_id1,
+                                        collider_handle2,
+                                        shape2,
+                                    );
                                 }
                                 if event_info.is_stopped {
-                                    p_area2.on_area_exit(collider_handle1, &p_collision_object1, shape1, rid1, instance_id1, collider_handle2, shape2);
+                                    p_area2.on_area_exit(
+                                        collider_handle1,
+                                        &p_collision_object1,
+                                        shape1,
+                                        rid1,
+                                        instance_id1,
+                                        collider_handle2,
+                                        shape2,
+                                    );
                                 }
                             } else {
                                 if event_info.is_started {
-                                    p_area2.on_body_enter(collider_handle1, &p_collision_object1, shape1, rid1, instance_id1, collider_handle2, shape2);
+                                    p_area2.on_body_enter(
+                                        collider_handle1,
+                                        &p_collision_object1,
+                                        shape1,
+                                        rid1,
+                                        instance_id1,
+                                        collider_handle2,
+                                        shape2,
+                                    );
                                 }
                                 if event_info.is_stopped {
-                                    p_area2.on_body_exit(collider_handle1, &p_collision_object1, shape1, rid1, instance_id1, collider_handle2, shape2, p_collision_object1.is_some());
+                                    p_area2.on_body_exit(
+                                        collider_handle1,
+                                        &p_collision_object1,
+                                        shape1,
+                                        rid1,
+                                        instance_id1,
+                                        collider_handle2,
+                                        shape2,
+                                        p_collision_object1.is_some(),
+                                    );
                                 }
                             }
                         }
@@ -328,8 +400,14 @@ impl RapierSpace2D {
         contact_info: &ContactPointInfo,
         event_info: &ContactForceEventInfo,
     ) -> bool {
-        let pos1 = Vector2::new(contact_info.pixel_local_pos_1.x, contact_info.pixel_local_pos_1.y);
-        let pos2 = Vector2::new(contact_info.pixel_local_pos_2.x, contact_info.pixel_local_pos_2.y);
+        let pos1 = Vector2::new(
+            contact_info.pixel_local_pos_1.x,
+            contact_info.pixel_local_pos_1.y,
+        );
+        let pos2 = Vector2::new(
+            contact_info.pixel_local_pos_2.x,
+            contact_info.pixel_local_pos_2.y,
+        );
 
         let mut keep_sending_contacts = false;
         let active_lock = active_spaces_singleton();
@@ -344,36 +422,70 @@ impl RapierSpace2D {
         }
         false;
 
-    let (p_object1, shape1) =
-    RapierCollisionObject2D::get_collider_user_data(&event_info.user_data1);
-    let (p_object2, shape2) =
-    RapierCollisionObject2D::get_collider_user_data(&event_info.user_data2);
-    let bodies_lock = bodies_singleton();
-    if let Some([p_object1, p_object2]) = bodies_lock.collision_objects.get_many_mut([&p_object1, &p_object2]) {
-        let depth = real::max(0.0, -contact_info.pixel_distance); // negative distance means penetration
-        let normal = Vector2::new(contact_info.normal.x, contact_info.normal.y);
-        let tangent = normal.orthogonal();
-        let impulse = contact_info.pixel_impulse * normal + contact_info.pixel_tangent_impulse * tangent;
-    
-        let vel_pos1 = Vector2::new(contact_info.pixel_velocity_pos_1.x, contact_info.pixel_velocity_pos_1.y);
-        let vel_pos2 = Vector2::new(contact_info.pixel_velocity_pos_2.x, contact_info.pixel_velocity_pos_2.y);
-        if let Some(body1) = p_object1.get_mut_body() {
-            if let Some(body2) = p_object2.get_mut_body() {
-                if body1.can_report_contacts() {
-                    keep_sending_contacts = true;
-                    let instance_id2 = body2.get_base().get_instance_id();
-                    body1.add_contact(pos1, -normal, depth, shape1 as i32, vel_pos1, pos2, shape2 as i32, instance_id2, body2.get_base().get_rid(), vel_pos2, impulse);
-                }
-    
-                if body2.can_report_contacts() {
-                    keep_sending_contacts = true;
-                    let instance_id1 = body2.get_base().get_instance_id();
-                    body2.add_contact(pos2, normal, depth, shape2 as i32, vel_pos2, pos1, shape1 as i32, instance_id1, body1.get_base().get_rid(), vel_pos1, impulse);
+        let (p_object1, shape1) =
+            RapierCollisionObject2D::get_collider_user_data(&event_info.user_data1);
+        let (p_object2, shape2) =
+            RapierCollisionObject2D::get_collider_user_data(&event_info.user_data2);
+        let bodies_lock = bodies_singleton();
+        if let Some([p_object1, p_object2]) = bodies_lock
+            .collision_objects
+            .get_many_mut([&p_object1, &p_object2])
+        {
+            let depth = real::max(0.0, -contact_info.pixel_distance); // negative distance means penetration
+            let normal = Vector2::new(contact_info.normal.x, contact_info.normal.y);
+            let tangent = normal.orthogonal();
+            let impulse =
+                contact_info.pixel_impulse * normal + contact_info.pixel_tangent_impulse * tangent;
+
+            let vel_pos1 = Vector2::new(
+                contact_info.pixel_velocity_pos_1.x,
+                contact_info.pixel_velocity_pos_1.y,
+            );
+            let vel_pos2 = Vector2::new(
+                contact_info.pixel_velocity_pos_2.x,
+                contact_info.pixel_velocity_pos_2.y,
+            );
+            if let Some(body1) = p_object1.get_mut_body() {
+                if let Some(body2) = p_object2.get_mut_body() {
+                    if body1.can_report_contacts() {
+                        keep_sending_contacts = true;
+                        let instance_id2 = body2.get_base().get_instance_id();
+                        body1.add_contact(
+                            pos1,
+                            -normal,
+                            depth,
+                            shape1 as i32,
+                            vel_pos1,
+                            pos2,
+                            shape2 as i32,
+                            instance_id2,
+                            body2.get_base().get_rid(),
+                            vel_pos2,
+                            impulse,
+                        );
+                    }
+
+                    if body2.can_report_contacts() {
+                        keep_sending_contacts = true;
+                        let instance_id1 = body2.get_base().get_instance_id();
+                        body2.add_contact(
+                            pos2,
+                            normal,
+                            depth,
+                            shape2 as i32,
+                            vel_pos2,
+                            pos1,
+                            shape1 as i32,
+                            instance_id1,
+                            body1.get_base().get_rid(),
+                            vel_pos1,
+                            impulse,
+                        );
+                    }
                 }
             }
         }
-    }
 
-	keep_sending_contacts
+        keep_sending_contacts
     }
 }

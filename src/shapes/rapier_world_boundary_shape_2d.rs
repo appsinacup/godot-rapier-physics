@@ -40,10 +40,7 @@ impl IRapierShape2D for RapierWorldBoundaryShape2D {
     }
 
     fn create_rapier_shape(&mut self) -> Handle {
-        let v = rapier2d::na::Vector2::new(
-            self.normal.x,
-            -self.normal.y,
-    );
+        let v = rapier2d::na::Vector2::new(self.normal.x, -self.normal.y);
         shape_create_halfspace(v, -self.d)
     }
 
