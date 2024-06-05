@@ -3,6 +3,7 @@ extends Node2D
 func _ready():
 	test_body_create()
 	test_body_collision_exception_invalid()
+	print("Body tests passed")
 
 func test_body_collision_exception_invalid():
 	PhysicsServer2D.body_add_collision_exception(RID(), RID())

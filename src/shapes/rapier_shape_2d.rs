@@ -51,8 +51,7 @@ impl RapierShapeBase2D {
     }
     pub fn call_shape_changed(owners: HashMap<Rid, i32>, shape_rid: Rid) {
         for (owner, _) in owners {
-            let lock = bodies_singleton();
-            let owner = lock.collision_objects.get_mut(&owner);
+            let owner = bodies_singleton().collision_objects.get_mut(&owner);
             if let Some(owner) = owner {
                 owner._shape_changed(shape_rid);
             }
