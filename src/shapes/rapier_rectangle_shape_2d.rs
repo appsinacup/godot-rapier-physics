@@ -1,6 +1,5 @@
 use crate::rapier2d::handle::Handle;
 use crate::rapier2d::shape::shape_create_box;
-use crate::rapier2d::vector::Vector;
 use crate::shapes::rapier_shape_2d::{IRapierShape2D, RapierShapeBase2D};
 use godot::engine::physics_server_2d::ShapeType;
 use godot::prelude::*;
@@ -40,8 +39,8 @@ impl IRapierShape2D for RapierRectangleShape2D {
     }
 
     fn create_rapier_shape(&mut self) -> Handle {
-        let v = Vector::new(self.half_extents.x * 2.0, self.half_extents.y * 2.0);
-        shape_create_box(&v)
+        let v = rapier2d::na::Vector2::new(self.half_extents.x * 2.0, self.half_extents.y * 2.0);
+        shape_create_box(v)
     }
 
     fn set_data(&mut self, data: Variant) {

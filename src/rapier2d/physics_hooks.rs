@@ -36,8 +36,8 @@ pub struct CollisionFilterInfo {
 impl CollisionFilterInfo {
     pub fn new() -> CollisionFilterInfo {
         CollisionFilterInfo {
-            user_data1: invalid_user_data(),
-            user_data2: invalid_user_data(),
+            user_data1: UserData::invalid_user_data(),
+            user_data2: UserData::invalid_user_data(),
         }
     }
 }

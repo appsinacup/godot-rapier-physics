@@ -3,8 +3,8 @@ use crate::{
     bodies::rapier_collision_object_2d::{IRapierCollisionObject2D, RapierCollisionObject2D},
     rapier2d::{
         handle::{invalid_handle, Handle}, query::{
-            default_query_excluded_info, intersect_point, shape_casting, PointHitInfo, QueryExcludedInfo, RayHitInfo
-        }, shape::shape_info_from_body_shape, user_data::UserData, vector::Vector
+            intersect_point, shape_casting, PointHitInfo, QueryExcludedInfo, RayHitInfo
+        }, shape::shape_info_from_body_shape, user_data::UserData
     },
     servers::rapier_physics_singleton_2d::{active_spaces_singleton, bodies_singleton, shapes_singleton, spaces_singleton},
     spaces::rapier_space_2d::RapierSpace2D,
@@ -75,8 +75,8 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
 
     unsafe fn intersect_ray(
         &mut self,
-        from: Vector2,
-        to: Vector2,
+        from: godot::builtin::Vector2,
+        to: godot::builtin::Vector2,
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
@@ -104,17 +104,17 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         let dir = end.normalized();
         let length = end.length();
 
-        let rapier_from = Vector::new(begin.x, begin.y);
-        let rapier_dir = Vector::new(dir.x, dir.y);
+        let rapier_from = rapier2d::na::Vector2::new(begin.x, begin.y);
+        let rapier_dir = rapier2d::na::Vector2::new(dir.x, dir.y);
 
-        let mut query_excluded_info = default_query_excluded_info();
+        let mut query_excluded_info = QueryExcludedInfo::default();
         query_excluded_info.query_collision_layer_mask = collision_mask;
 
         let mut hit_info = RayHitInfo::default();
         let collide = crate::rapier2d::query::intersect_ray(
             space_handle,
-            &rapier_from,
-            &rapier_dir,
+            rapier_from,
+            rapier_dir,
             length,
             collide_with_bodies,
             collide_with_areas,
@@ -175,21 +175,21 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         if !space_handle.is_valid() {
             return 0;
         }
-        let rapier_pos = Vector::new(position.x, position.y);
+        let rapier_pos = rapier2d::na::Vector2::new(position.x, position.y);
 
         // Allocate memory for hit_info_array
         let mut hit_info_array: Vec<PointHitInfo> = Vec::with_capacity(max_results);
         let hit_info_ptr = hit_info_array.as_mut_ptr();
 
         // Initialize query_excluded_info
-        let mut query_excluded_info = default_query_excluded_info();
+        let mut query_excluded_info = QueryExcludedInfo::default();
         query_excluded_info.query_canvas_instance_id = canvas_instance_id;
         query_excluded_info.query_collision_layer_mask = collision_mask;
 
         // Perform intersection
         let mut result_count = intersect_point(
             space_handle,
-            &rapier_pos,
+            rapier_pos,
             collide_with_bodies,
             collide_with_areas,
             hit_info_ptr,
@@ -259,10 +259,10 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         if !shape_handle.is_valid() || !space_handle.is_valid() {
             return 0;
         }
-        let rapier_motion = Vector::new(motion.x, motion.y);
+        let rapier_motion = rapier2d::na::Vector2::new(motion.x, motion.y);
         let shape_info = shape_info_from_body_shape(shape_handle, transform);
 
-        let mut query_excluded_info = default_query_excluded_info();
+        let mut query_excluded_info = QueryExcludedInfo::default();
         query_excluded_info.query_collision_layer_mask = collision_mask;
         let query_exclude: Vec<Handle> = Vec::with_capacity(max_results);
         query_excluded_info.query_exclude = query_exclude;
@@ -273,8 +273,8 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         while cpt < max_results {
             let result = shape_casting(
                 space_handle,
-                &rapier_motion,
-                shape_info.clone(),
+                rapier_motion,
+                shape_info,
                 collide_with_bodies,
                 collide_with_areas,
                 is_handle_excluded_callback,
@@ -284,7 +284,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             if !result.collided {
                 break;
             }
-            query_excluded_info.query_exclude[query_excluded_info.query_exclude_size as usize] = result.collider;
+            query_excluded_info.query_exclude[query_excluded_info.query_exclude_size] = result.collider;
             query_excluded_info.query_exclude_size+=1;
             if !result.user_data.is_valid() {
                 continue;
@@ -346,14 +346,14 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             return false;
         }
 
-        let rapier_motion = Vector::new(motion.x, motion.y);
+        let rapier_motion = rapier2d::na::Vector2::new(motion.x, motion.y);
         let shape_info = shape_info_from_body_shape(shape_handle, transform);
 
-        let mut query_excluded_info = default_query_excluded_info();
+        let mut query_excluded_info = QueryExcludedInfo::default();
         query_excluded_info.query_collision_layer_mask = collision_mask;
         let hit = shape_casting(
             space_handle,
-            &rapier_motion,
+            rapier_motion,
             shape_info,
             collide_with_bodies,
             collide_with_areas,
@@ -404,11 +404,11 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             return false;
         }
 
-        let rapier_motion = Vector::new(motion.x, motion.y);
+        let rapier_motion = rapier2d::na::Vector2::new(motion.x, motion.y);
 
         let results_out = results as *mut Vector2;
         let shape_info = shape_info_from_body_shape(shape_handle, transform);
-        let mut query_excluded_info = default_query_excluded_info();
+        let mut query_excluded_info = QueryExcludedInfo::default();
         query_excluded_info.query_collision_layer_mask = collision_mask;
         let query_exclude: Vec<Handle> = Vec::with_capacity(max_results as usize);
         query_excluded_info.query_exclude = query_exclude;
@@ -420,8 +420,8 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         while cpt < max_results {
             let result = shape_casting(
                 space_handle,
-                &rapier_motion,
-                shape_info.clone(),
+                rapier_motion,
+                shape_info,
                 collide_with_bodies,
                 collide_with_areas,
                 is_handle_excluded_callback,
@@ -481,14 +481,14 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             return false;
         }
 
-        let rapier_motion = Vector::new(motion.x, motion.y);
+        let rapier_motion = rapier2d::na::Vector2::new(motion.x, motion.y);
         let shape_info = shape_info_from_body_shape(shape_handle, transform);
 
-        let mut query_excluded_info = default_query_excluded_info();
+        let mut query_excluded_info = QueryExcludedInfo::default();
         query_excluded_info.query_collision_layer_mask = collision_mask;
         let result = shape_casting(
             space_handle,
-            &rapier_motion,
+            rapier_motion,
             shape_info,
             collide_with_bodies,
             collide_with_areas,

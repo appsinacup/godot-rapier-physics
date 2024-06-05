@@ -3,7 +3,7 @@ name = "godot-rapier"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.77.1"
-license = "MPL-2.0"
+license = "MIT"
 publish = false
 
 [lib]
@@ -44,3 +44,6 @@ opt-level = 3
 
 [profile.dev]
 split-debuginfo = "unpacked"
+
+[package.metadata.docs.rs]
+license-file = "../LICENSE"

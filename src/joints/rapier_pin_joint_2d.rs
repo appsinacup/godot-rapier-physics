@@ -3,7 +3,6 @@ use crate::joints::rapier_joint_2d::RapierJointBase2D;
 use crate::rapier2d::handle::invalid_handle;
 use crate::rapier2d::joint::joint_change_revolute_params;
 use crate::rapier2d::joint::joint_create_revolute;
-use crate::rapier2d::vector::Vector;
 use crate::servers::rapier_physics_singleton_2d::bodies_singleton;
 use godot::builtin::Vector2;
 use godot::{builtin::Rid, engine::physics_server_2d};
@@ -24,19 +23,19 @@ impl RapierPinJoint2D {
         if let Some(body_a) = lock.collision_objects.get(&body_a) {
             let body_a_handle = body_a.get_base().get_body_handle();
             let anchor_a = body_a.get_base().get_inv_transform().basis_xform(pos);
-            let rapier_anchor_a = Vector::new(anchor_a.x, anchor_a.y);
+            let rapier_anchor_a = rapier2d::na::Vector2::new(anchor_a.x, anchor_a.y);
             if let Some(body_b) = lock.collision_objects.get(&body_b) {
                 let body_b_handle = body_b.get_base().get_body_handle();
                 let anchor_b = body_b.get_base().get_inv_transform().basis_xform(pos);
-                let rapier_anchor_b = Vector::new(anchor_b.x, anchor_b.y);
+                let rapier_anchor_b = rapier2d::na::Vector2::new(anchor_b.x, anchor_b.y);
                 let space_handle = body_a.get_base().get_space_handle();
 
                 let handle = joint_create_revolute(
                     space_handle,
                     body_a_handle,
                     body_b_handle,
-                    &rapier_anchor_a,
-                    &rapier_anchor_b,
+                    rapier_anchor_a,
+                    rapier_anchor_b,
                     0.0,
                     0.0,
                     false,

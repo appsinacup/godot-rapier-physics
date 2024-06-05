@@ -1,15 +1,16 @@
 use crate::rapier2d::convert::*;
 use crate::rapier2d::handle::*;
 use crate::rapier2d::physics_world::*;
-use crate::rapier2d::vector::Vector;
+use nalgebra::UnitVector2;
+use nalgebra::Vector2;
 use rapier2d::prelude::*;
 
 pub fn joint_create_revolute(
     world_handle: Handle,
     body_handle_1: Handle,
     body_handle_2: Handle,
-    pixel_anchor_1: &Vector,
-    pixel_anchor_2: &Vector,
+    pixel_anchor_1: Vector2<Real>,
+    pixel_anchor_2: Vector2<Real>,
     angular_limit_lower: Real,
     angular_limit_upper: Real,
     angular_limit_enabled: bool,
@@ -22,7 +23,7 @@ pub fn joint_create_revolute(
 
     let motor_target_velocity = pixels_to_meters(pixel_motor_target_velocity);
 
-    let physics_engine = singleton();
+    let physics_engine = physics_engine();
     let physics_world = physics_engine.get_world(world_handle);
 
     let mut joint = RevoluteJointBuilder::new()
@@ -51,7 +52,7 @@ pub fn joint_change_revolute_params(
 ) {
     let motor_target_velocity = pixels_to_meters(pixel_motor_target_velocity);
 
-    let physics_engine = singleton();
+    let physics_engine = physics_engine();
     let physics_world = physics_engine.get_world(world_handle);
 
     let joint = physics_world
@@ -78,20 +79,20 @@ pub fn joint_create_prismatic(
     world_handle: Handle,
     body_handle_1: Handle,
     body_handle_2: Handle,
-    axis: &Vector,
-    pixel_anchor_1: &Vector,
-    pixel_anchor_2: &Vector,
-    pixel_limits: &Vector,
+    axis: Vector2<Real>,
+    pixel_anchor_1: Vector2<Real>,
+    pixel_anchor_2: Vector2<Real>,
+    pixel_limits: Vector2<Real>,
     disable_collision: bool,
 ) -> Handle {
     let anchor_1 = &vector_pixels_to_meters(pixel_anchor_1);
     let anchor_2 = &vector_pixels_to_meters(pixel_anchor_2);
     let limits = &vector_pixels_to_meters(pixel_limits);
 
-    let physics_engine = singleton();
+    let physics_engine = physics_engine();
     let physics_world = physics_engine.get_world(world_handle);
 
-    let joint = PrismaticJointBuilder::new(UnitVector::new_normalize(vector![axis.x, axis.y]))
+    let joint = PrismaticJointBuilder::new(UnitVector2::new_unchecked(axis))
         .local_anchor1(point!(anchor_1.x, anchor_1.y))
         .local_anchor2(point!(anchor_2.x, anchor_2.y))
         .limits([limits.x, limits.y])
@@ -104,8 +105,8 @@ pub fn joint_create_spring(
     world_handle: Handle,
     body_handle_1: Handle,
     body_handle_2: Handle,
-    pixel_anchor_1: &Vector,
-    pixel_anchor_2: &Vector,
+    pixel_anchor_1: Vector2<Real>,
+    pixel_anchor_2: Vector2<Real>,
     stiffness: Real,
     damping: Real,
     pixel_rest_length: Real,
@@ -115,7 +116,7 @@ pub fn joint_create_spring(
     let anchor_2 = &vector_pixels_to_meters(pixel_anchor_2);
     let rest_length = pixels_to_meters(pixel_rest_length);
 
-    let physics_engine = singleton();
+    let physics_engine = physics_engine();
     let physics_world = physics_engine.get_world(world_handle);
 
     let joint = SpringJointBuilder::new(rest_length, stiffness, damping)
@@ -134,7 +135,7 @@ pub fn joint_change_spring_params(
 ) {
     let rest_length = pixels_to_meters(pixel_rest_length);
 
-    let physics_engine = singleton();
+    let physics_engine = physics_engine();
     let physics_world = physics_engine.get_world(world_handle);
 
     let joint = physics_world
@@ -149,7 +150,7 @@ pub fn joint_change_spring_params(
 }
 
 pub fn joint_destroy(world_handle: Handle, joint_handle: Handle) {
-    let physics_engine = singleton();
+    let physics_engine = physics_engine();
     let physics_world = physics_engine.get_world(world_handle);
 
     physics_world.remove_joint(joint_handle)
@@ -160,7 +161,7 @@ pub fn joint_change_disable_collision(
     joint_handle: Handle,
     disable_collision: bool,
 ) {
-    let physics_engine = singleton();
+    let physics_engine = physics_engine();
     let physics_world = physics_engine.get_world(world_handle);
 
     let joint = physics_world

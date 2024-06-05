@@ -1,4 +1,4 @@
-use crate::rapier2d::vector::Vector;
+use nalgebra::Vector2;
 use rapier2d::prelude::*;
 
 pub struct WorldSettings {
@@ -6,10 +6,12 @@ pub struct WorldSettings {
     pub smoothing_factor: Real,
 }
 
-pub fn default_world_settings() -> WorldSettings {
-    WorldSettings {
-        particle_radius: 0.1,
-        smoothing_factor: 2.0,
+impl WorldSettings {
+    fn new(particle_radius: Real, smoothing_factor: Real) -> Self {
+        Self {
+            particle_radius,
+            smoothing_factor,
+        }
     }
 }
 
@@ -23,7 +25,7 @@ pub struct SimulationSettings {
     pub num_additional_friction_iterations: usize,
     /// Number of internal Project Gauss Seidel (PGS) iterations run at each solver iteration (default: `1`).
     pub num_internal_pgs_iterations: usize,
-    pub pixel_gravity: Vector,
-    pub pixel_liquid_gravity: Vector,
+    pub pixel_gravity: Vector2<Real>,
+    pub pixel_liquid_gravity: Vector2<Real>,
     pub max_ccd_substeps: usize,
 }

@@ -1,3 +1,5 @@
+use std::ops::Mul;
+
 use crate::rapier2d::collider::*;
 use crate::rapier2d::convert::meters_to_pixels;
 use crate::rapier2d::convert::pixels_to_meters;
@@ -7,15 +9,14 @@ use crate::rapier2d::handle::*;
 use crate::rapier2d::physics_world::*;
 use crate::rapier2d::shape::*;
 use crate::rapier2d::user_data::*;
-use crate::rapier2d::vector::Vector;
-use rapier2d::na::Vector2;
+use nalgebra::Vector2;
 use rapier2d::parry;
 use rapier2d::parry::query::ShapeCastOptions;
 use rapier2d::prelude::*;
 
 pub struct RayHitInfo {
-    pub pixel_position: Vector,
-    pub normal: Vector,
+    pub pixel_position: Vector2<Real>,
+    pub normal: Vector2<Real>,
     pub collider: Handle,
     pub user_data: UserData,
 }
@@ -23,36 +24,28 @@ pub struct RayHitInfo {
 impl RayHitInfo {
     pub fn default() -> RayHitInfo {
         RayHitInfo {
-            pixel_position: Vector { x: 0.0, y: 0.0 },
-            normal: Vector { x: 0.0, y: 0.0 },
+            pixel_position: Vector2::default(),
+            normal: Vector2::default(),
             collider: invalid_handle(),
-            user_data: UserData { part1: 0, part2: 0 },
+            user_data: UserData::invalid_user_data(),
         }
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Default)]
 pub struct PointHitInfo {
     pub collider: Handle,
     pub user_data: UserData,
 }
 
-impl Default for PointHitInfo {
-    fn default() -> Self {
-        Self {
-            collider: invalid_handle(),
-            user_data: UserData::default(),
-        }
-    }
-}
-
+#[derive(Default)]
 pub struct ShapeCastResult {
     pub collided: bool,
     pub toi: Real,
-    pub pixel_witness1: Vector,
-    pub pixel_witness2: Vector,
-    pub normal1: Vector,
-    pub normal2: Vector,
+    pub pixel_witness1: Vector2<Real>,
+    pub pixel_witness2: Vector2<Real>,
+    pub normal1: Vector2<Real>,
+    pub normal2: Vector2<Real>,
     pub collider: Handle,
     pub user_data: UserData,
 }
@@ -63,39 +56,27 @@ impl ShapeCastResult {
             collided: false,
             toi: 1.0,
             collider: invalid_handle(),
-            pixel_witness1: Vector { x: 0.0, y: 0.0 },
-            pixel_witness2: Vector { x: 0.0, y: 0.0 },
-            normal1: Vector { x: 0.0, y: 0.0 },
-            normal2: Vector { x: 0.0, y: 0.0 },
-            user_data: UserData { part1: 0, part2: 0 },
+            pixel_witness1: Vector2::default(),
+            pixel_witness2: Vector2::default(),
+            normal1: Vector2::default(),
+            normal2: Vector2::default(),
+            user_data: UserData::invalid_user_data(),
         }
     }
 }
 
+#[derive(Default)]
 pub struct ContactResult {
     pub collided: bool,
     pub within_margin: bool,
     pub pixel_distance: Real,
-    pub pixel_point1: Vector,
-    pub pixel_point2: Vector,
-    pub normal1: Vector,
-    pub normal2: Vector,
+    pub pixel_point1: Vector2<Real>,
+    pub pixel_point2: Vector2<Real>,
+    pub normal1: Vector2<Real>,
+    pub normal2: Vector2<Real>,
 }
 
-impl ContactResult {
-    pub fn default() -> ContactResult {
-        ContactResult {
-            collided: false,
-            within_margin: false,
-            pixel_distance: 0.0,
-            pixel_point1: Vector { x: 0.0, y: 0.0 },
-            pixel_point2: Vector { x: 0.0, y: 0.0 },
-            normal1: Vector { x: 0.0, y: 0.0 },
-            normal2: Vector { x: 0.0, y: 0.0 },
-        }
-    }
-}
-
+#[derive(Default)]
 pub struct QueryExcludedInfo {
     pub query_collision_layer_mask: u32,
     pub query_canvas_instance_id: u64,
@@ -103,16 +84,6 @@ pub struct QueryExcludedInfo {
     pub query_exclude: Vec<Handle>,
     pub query_exclude_size: usize,
     pub query_exclude_body: i64,
-}
-
-pub fn default_query_excluded_info() -> QueryExcludedInfo {
-    QueryExcludedInfo {
-        query_collision_layer_mask: 0,
-        query_canvas_instance_id: 0,
-        query_exclude: Vec::new(),
-        query_exclude_size: 0,
-        query_exclude_body: 0,
-    }
 }
 
 type QueryHandleExcludedCallback = fn(
@@ -124,8 +95,8 @@ type QueryHandleExcludedCallback = fn(
 
 pub fn intersect_ray(
     world_handle: Handle,
-    pixel_from: &Vector,
-    dir: &Vector,
+    pixel_from: Vector2<Real>,
+    dir: Vector2<Real>,
     pixel_length: Real,
     collide_with_body: bool,
     collide_with_area: bool,
@@ -137,11 +108,9 @@ pub fn intersect_ray(
     let from = vector_pixels_to_meters(pixel_from);
     let length = pixels_to_meters(pixel_length);
 
-    let physics_engine = singleton();
-    let physics_world = physics_engine.get_world(world_handle);
+    let physics_world = physics_engine().get_world(world_handle);
 
-    let ray = Ray::new(point![from.x, from.y], vector![dir.x, dir.y]);
-    let solid = true;
+    let ray = Ray::new(point![from.x, from.y], dir);
     let mut filter = QueryFilter::new();
 
     if !collide_with_body {
@@ -172,7 +141,7 @@ pub fn intersect_ray(
             &physics_world.physics_objects.collider_set,
             &ray,
             length,
-            solid,
+            true,
             filter,
             |handle, intersection| {
                 // Find closest intersection
@@ -186,14 +155,8 @@ pub fn intersect_ray(
 
                     let hit_point = ray.point_at(intersection.time_of_impact);
                     let hit_normal = intersection.normal;
-                    hit_info.pixel_position = vector_meters_to_pixels(&Vector {
-                        x: hit_point.x,
-                        y: hit_point.y,
-                    });
-                    hit_info.normal = Vector {
-                        x: hit_normal.x,
-                        y: hit_normal.y,
-                    };
+                    hit_info.pixel_position = vector_meters_to_pixels(hit_point.coords);
+                    hit_info.normal = hit_normal;
                     hit_info.collider = collider_handle_to_handle(handle);
                     hit_info.user_data = physics_world.get_collider_user_data(handle);
                     //return false; // We found a collision hit.
@@ -207,7 +170,7 @@ pub fn intersect_ray(
 
 pub fn intersect_point(
     world_handle: Handle,
-    pixel_position: &Vector,
+    pixel_position: Vector2<Real>,
     collide_with_body: bool,
     collide_with_area: bool,
     hit_info_array: *mut PointHitInfo,
@@ -215,8 +178,7 @@ pub fn intersect_point(
     handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
 ) -> usize {
-    let physics_engine = singleton();
-    let physics_world = physics_engine.get_world(world_handle);
+    let physics_world = physics_engine().get_world(world_handle);
     let position = vector_pixels_to_meters(pixel_position);
     let point = Point::new(position.x, position.y);
     let mut filter = QueryFilter::new();
@@ -273,41 +235,33 @@ pub fn intersect_point(
 }
 
 pub fn shape_collide(
-    pixel_motion1: &Vector,
+    pixel_motion1: Vector2<Real>,
     shape_info1: ShapeInfo,
-    pixel_motion2: &Vector,
+    pixel_motion2: Vector2<Real>,
     shape_info2: ShapeInfo,
 ) -> ShapeCastResult {
-    let mut motion1 = vector_pixels_to_meters(pixel_motion1);
-    let mut motion2 = vector_pixels_to_meters(pixel_motion2);
-    if motion1.x == 0.0 && motion1.y == 0.0 {
-        motion1.x = 1e-5;
-    }
-    if motion2.x == 0.0 && motion2.y == 0.0 {
-        motion2.x = 1e-5;
-    }
-    let position1 = vector_pixels_to_meters(&shape_info1.pixel_position);
-    let position2 = vector_pixels_to_meters(&shape_info2.pixel_position);
+    let shape_vel1 = vector_pixels_to_meters(pixel_motion1);
+    let shape_vel2 = vector_pixels_to_meters(pixel_motion2);
+    let position1 = vector_pixels_to_meters(shape_info1.pixel_position);
+    let position2 = vector_pixels_to_meters(shape_info2.pixel_position);
 
-    let physics_engine = singleton();
+    let physics_engine = physics_engine();
 
     let raw_shared_shape1 = physics_engine.get_shape(shape_info1.handle).clone();
     let skewed_shape1 = skew_shape(&raw_shared_shape1, shape_info1.skew);
     let shared_shape1 = scale_shape(
         &skewed_shape1,
-        &Vector2::<Real>::new(shape_info1.scale.x, shape_info1.scale.y),
+        shape_info1.scale,
     );
     let raw_shared_shape2 = physics_engine.get_shape(shape_info2.handle).clone();
     let skewed_shape2 = skew_shape(&raw_shared_shape2, shape_info2.skew);
     let shared_shape2 = scale_shape(
         &skewed_shape2,
-        &Vector2::<Real>::new(shape_info2.scale.x, shape_info2.scale.y),
+        shape_info2.scale,
     );
 
-    let shape_vel1 = vector![motion1.x, motion1.y];
-    let shape_vel2 = vector![motion2.x, motion2.y];
-    let shape_transform1 = Isometry::new(vector![position1.x, position1.y], shape_info1.rotation);
-    let shape_transform2 = Isometry::new(vector![position2.x, position2.y], shape_info2.rotation);
+    let shape_transform1 = Isometry::new(position1, shape_info1.rotation);
+    let shape_transform2 = Isometry::new(position2, shape_info2.rotation);
     let mut result = ShapeCastResult::new();
     let mut shape_cast_options = ShapeCastOptions::default();
     shape_cast_options.max_time_of_impact = 1.0;
@@ -326,22 +280,10 @@ pub fn shape_collide(
     if let Some(hit) = toi_result.unwrap() {
         result.collided = true;
         result.toi = hit.time_of_impact;
-        result.normal1 = Vector {
-            x: hit.normal1.x,
-            y: hit.normal1.y,
-        };
-        result.normal2 = Vector {
-            x: hit.normal2.x,
-            y: hit.normal2.y,
-        };
-        result.pixel_witness1 = vector_meters_to_pixels(&Vector {
-            x: hit.witness1.x,
-            y: hit.witness1.y,
-        });
-        result.pixel_witness2 = vector_meters_to_pixels(&Vector {
-            x: hit.witness2.x,
-            y: hit.witness2.y,
-        });
+        result.normal1 = hit.normal1.into_inner();
+        result.normal2 = hit.normal2.into_inner();
+        result.pixel_witness1 = vector_meters_to_pixels(hit.witness1.coords);
+        result.pixel_witness2 = vector_meters_to_pixels(hit.witness2.coords);
         return result;
     }
     result
@@ -349,7 +291,7 @@ pub fn shape_collide(
 
 pub fn shape_casting(
     world_handle: Handle,
-    pixel_motion: &Vector,
+    pixel_motion: Vector2<Real>,
     shape_info: ShapeInfo,
     collide_with_body: bool,
     collide_with_area: bool,
@@ -357,22 +299,21 @@ pub fn shape_casting(
     handle_excluded_info: &QueryExcludedInfo,
     ignore_intersecting: bool,
 ) -> ShapeCastResult {
-    let motion = vector_pixels_to_meters(pixel_motion);
-    let position = vector_pixels_to_meters(&shape_info.pixel_position);
+    let shape_vel = vector_pixels_to_meters(pixel_motion);
+    let position = vector_pixels_to_meters(shape_info.pixel_position);
 
-    let physics_engine = singleton();
+    let physics_engine = physics_engine();
 
     let raw_shared_shape = physics_engine.get_shape(shape_info.handle).clone();
     let skewed_shape = skew_shape(&raw_shared_shape, shape_info.skew);
     let shared_shape = scale_shape(
         &skewed_shape,
-        &Vector2::<Real>::new(shape_info.scale.x, shape_info.scale.y),
+        shape_info.scale,
     );
 
     let physics_world = physics_engine.get_world(world_handle);
-    let mut shape_vel = vector![motion.x, motion.y];
 
-    let shape_transform = Isometry::new(vector![position.x, position.y], shape_info.rotation);
+    let shape_transform = Isometry::new(position, shape_info.rotation);
 
     let mut filter = QueryFilter::new();
 
@@ -395,9 +336,6 @@ pub fn shape_casting(
     filter.predicate = Some(&predicate);
 
     let mut result = ShapeCastResult::new();
-    if shape_vel.x == 0.0 && shape_vel.y == 0.0 {
-        shape_vel.x = 1e-5;
-    }
     let mut shape_cast_options = ShapeCastOptions::default();
     shape_cast_options.max_time_of_impact = 1.0;
     shape_cast_options.compute_impact_geometry_on_penetration = true;
@@ -413,28 +351,16 @@ pub fn shape_casting(
     ) {
         result.collided = true;
         result.toi = hit.time_of_impact;
-        result.normal1 = Vector {
-            x: hit.normal1.x,
-            y: hit.normal1.y,
-        };
-        result.normal2 = Vector {
-            x: hit.normal2.x,
-            y: hit.normal2.y,
-        };
+        result.normal1 = hit.normal1.into_inner();
+        result.normal2 = hit.normal2.into_inner();
         result.collider = collider_handle_to_handle(collider_handle);
         result.user_data = physics_world.get_collider_user_data(collider_handle);
         // first is world space
         let witness1 = hit.witness1;
         // second is local space
         let witness2 = shape_transform.transform_point(&hit.witness2);
-        result.pixel_witness1 = vector_meters_to_pixels(&Vector {
-            x: witness1.x,
-            y: witness1.y,
-        });
-        result.pixel_witness2 = vector_meters_to_pixels(&Vector {
-            x: witness2.x,
-            y: witness2.y,
-        });
+        result.pixel_witness1 = vector_meters_to_pixels(witness1.coords);
+        result.pixel_witness2 = vector_meters_to_pixels(witness2.coords);
     }
     result
 }
@@ -449,14 +375,14 @@ pub fn intersect_shape(
     handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
 ) -> usize {
-    let position = vector_pixels_to_meters(&shape_info.pixel_position);
-    let physics_engine = singleton();
+    let position = vector_pixels_to_meters(shape_info.pixel_position);
+    let physics_engine = physics_engine();
 
     let raw_shared_shape = physics_engine.get_shape(shape_info.handle).clone();
     let skewed_shape = skew_shape(&raw_shared_shape, shape_info.skew);
     let shared_shape = scale_shape(
         &skewed_shape,
-        &Vector2::<Real>::new(shape_info.scale.x, shape_info.scale.y),
+        shape_info.scale,
     );
 
     let physics_world = physics_engine.get_world(world_handle);
@@ -518,8 +444,8 @@ pub fn intersect_shape(
 
 pub fn intersect_aabb(
     world_handle: Handle,
-    pixel_aabb_min: &Vector,
-    pixel_aabb_max: &Vector,
+    pixel_aabb_min: Vector2<Real>,
+    pixel_aabb_max: Vector2<Real>,
     collide_with_body: bool,
     collide_with_area: bool,
     hit_info_slice: &mut [PointHitInfo],
@@ -530,9 +456,7 @@ pub fn intersect_aabb(
     let aabb_min = vector_pixels_to_meters(pixel_aabb_min);
     let aabb_max = vector_pixels_to_meters(pixel_aabb_max);
 
-    let physics_engine = singleton();
-
-    let physics_world = physics_engine.get_world(world_handle);
+    let physics_world = physics_engine().get_world(world_handle);
 
     // let aabb_transform = Isometry::new(vector![position.x, position.y], rotation);
     let aabb_min_point = Point::new(aabb_min.x, aabb_min.y);
@@ -590,11 +514,11 @@ pub fn shapes_contact(
     shape_info2: ShapeInfo,
     pixel_margin: Real,
 ) -> ContactResult {
-    let position1 = vector_pixels_to_meters(&shape_info1.pixel_position);
-    let position2 = vector_pixels_to_meters(&shape_info2.pixel_position);
+    let position1 = vector_pixels_to_meters(shape_info1.pixel_position);
+    let position2 = vector_pixels_to_meters(shape_info2.pixel_position);
     let margin = pixels_to_meters(pixel_margin);
 
-    let physics_engine = singleton();
+    let physics_engine = physics_engine();
 
     //let prediction = Real::max(0.002, margin);
     let prediction = margin;
@@ -603,17 +527,17 @@ pub fn shapes_contact(
     let skewed_shape1 = skew_shape(&raw_shared_shape1, shape_info1.skew);
     let shared_shape1 = scale_shape(
         &skewed_shape1,
-        &Vector2::<Real>::new(shape_info1.scale.x, shape_info1.scale.y),
+        shape_info1.scale,
     );
     let raw_shared_shape2 = physics_engine.get_shape(shape_info2.handle).clone();
     let skewed_shape2 = skew_shape(&raw_shared_shape2, shape_info2.skew);
     let shared_shape2 = scale_shape(
         &skewed_shape2,
-        &Vector2::<Real>::new(shape_info2.scale.x, shape_info2.scale.y),
+        shape_info2.scale,
     );
 
-    let shape_transform1 = Isometry::new(vector![position1.x, position1.y], shape_info1.rotation);
-    let shape_transform2 = Isometry::new(vector![position2.x, position2.y], shape_info2.rotation);
+    let shape_transform1 = Isometry::new(position1, shape_info1.rotation);
+    let shape_transform2 = Isometry::new(position2, shape_info2.rotation);
 
     let mut result = ContactResult::default();
     if let Ok(Some(contact)) = parry::query::contact(
@@ -628,22 +552,10 @@ pub fn shapes_contact(
         result.pixel_distance = meters_to_pixels(contact.dist);
         result.within_margin = contact.dist > 0.0;
         result.collided = true;
-        result.normal1 = Vector {
-            x: contact.normal1.x,
-            y: contact.normal1.y,
-        };
-        result.normal2 = Vector {
-            x: contact.normal2.x,
-            y: contact.normal2.y,
-        };
-        result.pixel_point1 = vector_meters_to_pixels(&Vector {
-            x: contact.point1.x + prediction * contact.normal1.x,
-            y: contact.point1.y + prediction * contact.normal1.y,
-        });
-        result.pixel_point2 = vector_meters_to_pixels(&Vector {
-            x: contact.point2.x,
-            y: contact.point2.y,
-        });
+        result.normal1 = contact.normal1.into_inner();
+        result.normal2 = contact.normal2.into_inner();
+        result.pixel_point1 = vector_meters_to_pixels((contact.point1 + contact.normal1.mul(prediction)).coords);
+        result.pixel_point2 = vector_meters_to_pixels(contact.point2.coords);
         return result;
     }
     result

@@ -25,11 +25,11 @@ impl UserData {
         let data2: u128 = self.part2.into();
         data1 + (data2 << 64)
     }
-}
 
-pub fn invalid_user_data() -> UserData {
-    UserData {
-        part1: u64::MAX,
-        part2: u64::MAX,
+    pub fn invalid_user_data() -> UserData {
+        UserData {
+            part1: u64::MAX,
+            part2: u64::MAX,
+        }
     }
 }

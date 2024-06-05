@@ -4,7 +4,6 @@ use crate::rapier2d::collider::collider_set_contact_force_events_enabled;
 use crate::rapier2d::collider::Material;
 use crate::rapier2d::handle::invalid_handle;
 use crate::rapier2d::handle::Handle;
-use crate::rapier2d::vector::Vector;
 use crate::servers::rapier_physics_server_2d::RapierBodyParam;
 use crate::servers::rapier_physics_singleton_2d::bodies_singleton;
 use crate::servers::rapier_physics_singleton_2d::shapes_singleton;
@@ -183,7 +182,7 @@ impl RapierBody2D {
             inertia_value = 0.0;
         }
 
-        let com = Vector::new(self.center_of_mass.x, self.center_of_mass.y);
+        let com = rapier2d::na::Vector2::new(self.center_of_mass.x, self.center_of_mass.y);
         if !self.base.get_space_handle().is_valid() || !self.base.get_body_handle().is_valid() {
             return;
         }
@@ -195,7 +194,7 @@ impl RapierBody2D {
             self.base.get_body_handle(),
             self.mass,
             inertia_value,
-            &com,
+            com,
             false,
             force_update,
         );
@@ -282,9 +281,9 @@ impl RapierBody2D {
         if !self.base.get_space_handle().is_valid() || !body_handle.is_valid() {
             return;
         }
-        let velocity = Vector::new(self.linear_velocity.x, self.linear_velocity.y);
+        let velocity = rapier2d::na::Vector2::new(self.linear_velocity.x, self.linear_velocity.y);
         self.linear_velocity = Vector2::default();
-        body_set_linear_velocity(self.base.get_space_handle(), body_handle, &velocity);
+        body_set_linear_velocity(self.base.get_space_handle(), body_handle, velocity);
     }
     pub fn get_linear_velocity(&self) -> Vector2 {
         let body_handle = self.base.get_body_handle();
@@ -421,7 +420,7 @@ impl RapierBody2D {
                                 aa.get_param(AreaParameter::GRAVITY_OVERRIDE_MODE).to();
                             if area_gravity_mode != AreaSpaceOverrideMode::DISABLED {
                                 let area_gravity =
-                                    aa.compute_gravity(&self.base.get_transform().origin);
+                                    aa.compute_gravity(self.base.get_transform().origin);
                                 match area_gravity_mode {
                                     AreaSpaceOverrideMode::COMBINE
                                     | AreaSpaceOverrideMode::COMBINE_REPLACE => {
@@ -542,8 +541,8 @@ impl RapierBody2D {
             return;
         }
         let gravity_impulse = self.total_gravity * self.mass * p_step;
-        let impulse = Vector::new(gravity_impulse.x, gravity_impulse.y);
-        body_apply_impulse(self.base.get_space_handle(), body_handle, &impulse);
+        let impulse = rapier2d::na::Vector2::new(gravity_impulse.x, gravity_impulse.y);
+        body_apply_impulse(self.base.get_space_handle(), body_handle, impulse);
     }
 
     pub fn set_max_contacts_reported(&mut self, size: i32) {
@@ -653,9 +652,9 @@ impl RapierBody2D {
             self.torque += (p_position - self.get_center_of_mass()).cross(p_impulse);
             return;
         }
-        let impulse = Vector::new(p_impulse.x, p_impulse.y);
-        let pos = Vector::new(p_position.x, p_position.y);
-        body_apply_impulse_at_point(self.base.get_space_handle(), body_handle, &impulse, &pos);
+        let impulse = rapier2d::na::Vector2::new(p_impulse.x, p_impulse.y);
+        let pos = rapier2d::na::Vector2::new(p_position.x, p_position.y);
+        body_apply_impulse_at_point(self.base.get_space_handle(), body_handle, impulse, pos);
     }
 
     pub fn apply_torque_impulse(&mut self, p_torque: real) {
@@ -675,8 +674,8 @@ impl RapierBody2D {
             self.impulse += p_force * last_delta;
             return;
         }
-        let force = Vector::new(p_force.x * last_delta, p_force.y * last_delta);
-        body_apply_impulse(self.base.get_space_handle(), body_handle, &force);
+        let force = rapier2d::na::Vector2::new(p_force.x * last_delta, p_force.y * last_delta);
+        body_apply_impulse(self.base.get_space_handle(), body_handle, force);
     }
 
     pub fn apply_force(&mut self, p_force: Vector2, p_position: Vector2) {
@@ -689,9 +688,9 @@ impl RapierBody2D {
             return;
         }
 
-        let force = Vector::new(p_force.x * last_delta, p_force.y * last_delta);
-        let pos = Vector::new(p_position.x, p_position.y);
-        body_apply_impulse_at_point(self.base.get_space_handle(), body_handle, &force, &pos);
+        let force = rapier2d::na::Vector2::new(p_force.x * last_delta, p_force.y * last_delta);
+        let pos = rapier2d::na::Vector2::new(p_position.x, p_position.y);
+        body_apply_impulse_at_point(self.base.get_space_handle(), body_handle, force, pos);
     }
 
     pub fn apply_torque(&mut self, p_torque: real) {
@@ -711,8 +710,8 @@ impl RapierBody2D {
         if !self.base.get_space_handle().is_valid() || !body_handle.is_valid() {
             return;
         }
-        let force = Vector::new(p_force.x, p_force.y);
-        body_add_force(self.base.get_space_handle(), body_handle, &force);
+        let force = rapier2d::na::Vector2::new(p_force.x, p_force.y);
+        body_add_force(self.base.get_space_handle(), body_handle, force);
     }
 
     pub fn add_constant_force(&mut self, p_force: Vector2, p_position: Vector2) {
@@ -722,9 +721,9 @@ impl RapierBody2D {
         if !self.base.get_space_handle().is_valid() || !body_handle.is_valid() {
             return;
         }
-        let force = Vector::new(p_force.x, p_force.y);
-        let pos = Vector::new(p_position.x, p_position.y);
-        body_add_force_at_point(self.base.get_space_handle(), body_handle, &force, &pos);
+        let force = rapier2d::na::Vector2::new(p_force.x, p_force.y);
+        let pos = rapier2d::na::Vector2::new(p_position.x, p_position.y);
+        body_add_force_at_point(self.base.get_space_handle(), body_handle, force, pos);
     }
 
     pub fn add_constant_torque(&mut self, p_torque: real) {
@@ -742,9 +741,9 @@ impl RapierBody2D {
         if !self.base.get_space_handle().is_valid() || !body_handle.is_valid() {
             return;
         }
-        let force = Vector::new(p_force.x, p_force.y);
+        let force = rapier2d::na::Vector2::new(p_force.x, p_force.y);
         body_reset_forces(self.base.get_space_handle(), body_handle);
-        body_add_force(self.base.get_space_handle(), body_handle, &force);
+        body_add_force(self.base.get_space_handle(), body_handle, force);
     }
     pub fn get_constant_force(&self) -> Vector2 {
         let body_handle = self.base.get_body_handle();

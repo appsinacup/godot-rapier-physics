@@ -1,8 +1,7 @@
 use crate::bodies::rapier_body_2d::RapierBody2D;
 use crate::bodies::rapier_collision_object_2d::{CollisionObjectType, IRapierCollisionObject2D};
 use crate::rapier2d::handle::Handle;
-use crate::rapier2d::query::{default_query_excluded_info, intersect_aabb, ContactResult};
-use crate::rapier2d::vector::Vector;
+use crate::rapier2d::query::{intersect_aabb, ContactResult, QueryExcludedInfo};
 use crate::shapes::rapier_shape_2d::IRapierShape2D;
 use crate::{
     rapier2d::{
@@ -104,16 +103,16 @@ impl RapierSpace2D {
             return 0;
         }
 
-        let rect_begin = Vector::new( aabb.position.x, aabb.position.y );
-        let rect_end = Vector::new( aabb.end().x, aabb.end().y );
-        let mut handle_excluded_info = default_query_excluded_info();
+        let rect_begin = rapier2d::na::Vector2::new( aabb.position.x, aabb.position.y );
+        let rect_end = rapier2d::na::Vector2::new( aabb.end().x, aabb.end().y );
+        let mut handle_excluded_info = QueryExcludedInfo::default();
         let query_exclude: Vec<Handle> = Vec::with_capacity(max_results);
         handle_excluded_info.query_exclude = query_exclude;
         handle_excluded_info.query_collision_layer_mask = collision_mask;
         handle_excluded_info.query_exclude_size = 0;
         handle_excluded_info.query_exclude_body = exclude_body.to_u64() as i64;
     
-        intersect_aabb(self.handle, &rect_begin, &rect_end, collide_with_bodies, collide_with_areas, results, max_results, is_handle_excluded_callback, &handle_excluded_info) as i32
+        intersect_aabb(self.handle, rect_begin, rect_end, collide_with_bodies, collide_with_areas, results, max_results, is_handle_excluded_callback, &handle_excluded_info) as i32
     }
 
 

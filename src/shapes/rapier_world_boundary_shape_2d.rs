@@ -1,6 +1,5 @@
 use crate::rapier2d::handle::Handle;
 use crate::rapier2d::shape::shape_create_halfspace;
-use crate::rapier2d::vector::Vector;
 use crate::shapes::rapier_shape_2d::{IRapierShape2D, RapierShapeBase2D};
 use godot::{engine::physics_server_2d::ShapeType, prelude::*};
 
@@ -41,11 +40,11 @@ impl IRapierShape2D for RapierWorldBoundaryShape2D {
     }
 
     fn create_rapier_shape(&mut self) -> Handle {
-        let v = Vector {
-            x: self.normal.x,
-            y: -self.normal.y,
-        };
-        shape_create_halfspace(&v, -self.d)
+        let v = rapier2d::na::Vector2::new(
+            self.normal.x,
+            -self.normal.y,
+    );
+        shape_create_halfspace(v, -self.d)
     }
 
     fn set_data(&mut self, data: Variant) {
