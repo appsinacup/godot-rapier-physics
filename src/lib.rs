@@ -42,6 +42,6 @@ unsafe impl ExtensionLibrary for RapierPhysics2DExtensionLibrary {
     }
 
     fn override_hot_reload() -> Option<bool> {
-        Some(false)
+        Some(true)
     }
 }
