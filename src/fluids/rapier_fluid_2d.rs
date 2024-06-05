@@ -1,11 +1,13 @@
 use std::collections::VecDeque;
 
-use godot::{builtin::{Array, Rid, Vector2}, obj::Gd};
+use godot::{
+    builtin::{Array, Rid, Vector2},
+    obj::Gd,
+};
 
 use crate::rapier2d::handle::{invalid_handle_double, HandleDouble};
 
 use super::fluid_effect_2d::FluidEffect2D;
-
 
 pub struct RapierFluid2D {
     rid: Rid,
@@ -105,5 +107,3 @@ impl Drop for RapierFluid2D {
         // Cleanup code here
     }
 }
-
-

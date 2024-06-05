@@ -24,21 +24,22 @@ pub fn joint_create_revolute(
     let motor_target_velocity = pixels_to_meters(pixel_motor_target_velocity);
 
     let physics_engine = physics_engine();
-    let physics_world = physics_engine.get_world(world_handle);
+    if let Some(physics_world) = physics_engine.get_world(world_handle) {
+        let mut joint = RevoluteJointBuilder::new()
+            .local_anchor1(point!(anchor_1.x, anchor_1.y))
+            .local_anchor2(point!(anchor_2.x, anchor_2.y))
+            .motor_model(MotorModel::ForceBased)
+            .contacts_enabled(!disable_collision);
+        if angular_limit_enabled {
+            joint = joint.limits([angular_limit_lower, angular_limit_upper]);
+        }
+        if motor_enabled {
+            joint = joint.motor_velocity(motor_target_velocity, 0.0);
+        }
 
-    let mut joint = RevoluteJointBuilder::new()
-        .local_anchor1(point!(anchor_1.x, anchor_1.y))
-        .local_anchor2(point!(anchor_2.x, anchor_2.y))
-        .motor_model(MotorModel::ForceBased)
-        .contacts_enabled(!disable_collision);
-    if angular_limit_enabled {
-        joint = joint.limits([angular_limit_lower, angular_limit_upper]);
+        return physics_world.insert_joint(body_handle_1, body_handle_2, joint);
     }
-    if motor_enabled {
-        joint = joint.motor_velocity(motor_target_velocity, 0.0);
-    }
-
-    physics_world.insert_joint(body_handle_1, body_handle_2, joint)
+    invalid_handle()
 }
 
 pub fn joint_change_revolute_params(
@@ -53,25 +54,25 @@ pub fn joint_change_revolute_params(
     let motor_target_velocity = pixels_to_meters(pixel_motor_target_velocity);
 
     let physics_engine = physics_engine();
-    let physics_world = physics_engine.get_world(world_handle);
-
-    let joint = physics_world
-    .physics_objects
-        .impulse_joint_set
-        .get_mut(handle_to_joint_handle(joint_handle));
-    assert!(joint.is_some());
-    let joint = joint.unwrap().data.as_revolute_mut();
-    assert!(joint.is_some());
-    let joint = joint.unwrap();
-    if motor_enabled {
-        joint.set_motor_velocity(motor_target_velocity, 0.0)
-        .set_motor_max_force(Real::MAX);
-    } else {
-        joint.set_motor_velocity(0.0, 0.0)
-        .set_motor_max_force(0.0);
-    }
-    if angular_limit_enabled {
-        joint.set_limits([angular_limit_lower, angular_limit_upper]);
+    if let Some(physics_world) = physics_engine.get_world(world_handle) {
+        if let Some(joint) = physics_world
+            .physics_objects
+            .impulse_joint_set
+            .get_mut(handle_to_joint_handle(joint_handle))
+        {
+            if let Some(joint) = joint.data.as_revolute_mut() {
+                if motor_enabled {
+                    joint
+                        .set_motor_velocity(motor_target_velocity, 0.0)
+                        .set_motor_max_force(Real::MAX);
+                } else {
+                    joint.set_motor_velocity(0.0, 0.0).set_motor_max_force(0.0);
+                }
+                if angular_limit_enabled {
+                    joint.set_limits([angular_limit_lower, angular_limit_upper]);
+                }
+            }
+        }
     }
 }
 
@@ -90,15 +91,16 @@ pub fn joint_create_prismatic(
     let limits = &vector_pixels_to_meters(pixel_limits);
 
     let physics_engine = physics_engine();
-    let physics_world = physics_engine.get_world(world_handle);
+    if let Some(physics_world) = physics_engine.get_world(world_handle) {
+        let joint = PrismaticJointBuilder::new(UnitVector2::new_unchecked(axis))
+            .local_anchor1(point!(anchor_1.x, anchor_1.y))
+            .local_anchor2(point!(anchor_2.x, anchor_2.y))
+            .limits([limits.x, limits.y])
+            .contacts_enabled(!disable_collision);
 
-    let joint = PrismaticJointBuilder::new(UnitVector2::new_unchecked(axis))
-        .local_anchor1(point!(anchor_1.x, anchor_1.y))
-        .local_anchor2(point!(anchor_2.x, anchor_2.y))
-        .limits([limits.x, limits.y])
-        .contacts_enabled(!disable_collision);
-
-    physics_world.insert_joint(body_handle_1, body_handle_2, joint)
+        return physics_world.insert_joint(body_handle_1, body_handle_2, joint);
+    }
+    invalid_handle()
 }
 
 pub fn joint_create_spring(
@@ -117,13 +119,14 @@ pub fn joint_create_spring(
     let rest_length = pixels_to_meters(pixel_rest_length);
 
     let physics_engine = physics_engine();
-    let physics_world = physics_engine.get_world(world_handle);
-
-    let joint = SpringJointBuilder::new(rest_length, stiffness, damping)
-        .local_anchor1(point!(anchor_1.x, anchor_1.y))
-        .local_anchor2(point!(anchor_2.x, anchor_2.y))
-        .contacts_enabled(!disable_collision);
-    physics_world.insert_joint(body_handle_1, body_handle_2, joint)
+    if let Some(physics_world) = physics_engine.get_world(world_handle) {
+        let joint = SpringJointBuilder::new(rest_length, stiffness, damping)
+            .local_anchor1(point!(anchor_1.x, anchor_1.y))
+            .local_anchor2(point!(anchor_2.x, anchor_2.y))
+            .contacts_enabled(!disable_collision);
+        return physics_world.insert_joint(body_handle_1, body_handle_2, joint);
+    }
+    invalid_handle()
 }
 
 pub fn joint_change_spring_params(
@@ -136,24 +139,24 @@ pub fn joint_change_spring_params(
     let rest_length = pixels_to_meters(pixel_rest_length);
 
     let physics_engine = physics_engine();
-    let physics_world = physics_engine.get_world(world_handle);
-
-    let joint = physics_world
-    .physics_objects
-        .impulse_joint_set
-        .get_mut(handle_to_joint_handle(joint_handle));
-    assert!(joint.is_some());
-    let spring_joint = joint.unwrap();
-    spring_joint
-        .data
-        .set_motor_position(JointAxis::X, rest_length, stiffness, damping);
+    if let Some(physics_world) = physics_engine.get_world(world_handle) {
+        if let Some(joint) = physics_world
+            .physics_objects
+            .impulse_joint_set
+            .get_mut(handle_to_joint_handle(joint_handle))
+        {
+            joint
+                .data
+                .set_motor_position(JointAxis::X, rest_length, stiffness, damping);
+        }
+    }
 }
 
 pub fn joint_destroy(world_handle: Handle, joint_handle: Handle) {
     let physics_engine = physics_engine();
-    let physics_world = physics_engine.get_world(world_handle);
-
-    physics_world.remove_joint(joint_handle)
+    if let Some(physics_world) = physics_engine.get_world(world_handle) {
+        physics_world.remove_joint(joint_handle);
+    }
 }
 
 pub fn joint_change_disable_collision(
@@ -162,12 +165,13 @@ pub fn joint_change_disable_collision(
     disable_collision: bool,
 ) {
     let physics_engine = physics_engine();
-    let physics_world = physics_engine.get_world(world_handle);
-
-    let joint = physics_world
-    .physics_objects
-        .impulse_joint_set
-        .get_mut(handle_to_joint_handle(joint_handle));
-    assert!(joint.is_some());
-    joint.unwrap().data.set_contacts_enabled(!disable_collision);
+    if let Some(physics_world) = physics_engine.get_world(world_handle) {
+        if let Some(joint) = physics_world
+            .physics_objects
+            .impulse_joint_set
+            .get_mut(handle_to_joint_handle(joint_handle))
+        {
+            joint.data.set_contacts_enabled(!disable_collision);
+        }
+    }
 }

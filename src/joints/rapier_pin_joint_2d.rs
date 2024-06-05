@@ -50,7 +50,7 @@ impl RapierPinJoint2D {
                     motor_enabled: false,
                     angular_limit_enabled: false,
                     base: RapierJointBase2D::new(space_handle, handle, rid),
-                }
+                };
             }
         }
         Self {

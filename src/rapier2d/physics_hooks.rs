@@ -23,10 +23,8 @@ impl OneWayDirection {
     }
 }
 
-pub type CollisionFilterCallback =
-    fn(filter_info: &CollisionFilterInfo) -> bool;
-pub type CollisionModifyContactsCallback =
-    fn(filter_info: &CollisionFilterInfo) -> OneWayDirection;
+pub type CollisionFilterCallback = fn(filter_info: &CollisionFilterInfo) -> bool;
+pub type CollisionModifyContactsCallback = fn(filter_info: &CollisionFilterInfo) -> OneWayDirection;
 
 pub struct CollisionFilterInfo {
     pub user_data1: UserData,
@@ -88,8 +86,7 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
         filter_info.user_data2 = UserData::new(collider_2.user_data);
         let allowed_local_n1 = collider_1.position().rotation * Vector::y();
         let allowed_local_n2 = collider_2.position().rotation * Vector::y();
-        let one_way_direction =
-            (self.collision_modify_contacts_callback)(&filter_info);
+        let one_way_direction = (self.collision_modify_contacts_callback)(&filter_info);
         let mut contact_is_pass_through = false;
         let mut dist: Real = 0.0;
         if let Some(contact) = context.manifold.find_deepest_contact() {

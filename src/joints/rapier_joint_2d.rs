@@ -6,7 +6,9 @@ use crate::rapier2d::{
 };
 use godot::{builtin::Rid, engine::physics_server_2d};
 
-use super::{rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D, rapier_pin_joint_2d::RapierPinJoint2D};
+use super::{
+    rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D, rapier_pin_joint_2d::RapierPinJoint2D,
+};
 
 pub trait IRapierJoint2D: Any {
     fn get_base(&self) -> &RapierJointBase2D;

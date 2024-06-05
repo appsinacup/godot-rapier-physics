@@ -9,6 +9,7 @@ use crate::rapier2d::handle::*;
 use crate::rapier2d::physics_world::*;
 use crate::rapier2d::shape::*;
 use crate::rapier2d::user_data::*;
+use godot::log::godot_error;
 use nalgebra::Vector2;
 use rapier2d::parry;
 use rapier2d::parry::query::ShapeCastOptions;
@@ -105,66 +106,66 @@ pub fn intersect_ray(
     handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
 ) -> bool {
-    let from = vector_pixels_to_meters(pixel_from);
-    let length = pixels_to_meters(pixel_length);
-
-    let physics_world = physics_engine().get_world(world_handle);
-
-    let ray = Ray::new(point![from.x, from.y], dir);
-    let mut filter = QueryFilter::new();
-
-    if !collide_with_body {
-        filter = filter.exclude_solids();
-    }
-    if !collide_with_area {
-        filter = filter.exclude_sensors();
-    }
-
-    let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
-        !handle_excluded_callback(
-            world_handle,
-            collider_handle_to_handle(handle),
-            &physics_world.get_collider_user_data(handle),
-            handle_excluded_info,
-        )
-    };
-
-    filter.predicate = Some(&predicate);
-
     let mut result = false;
-    let mut length_current = Real::MAX;
-    physics_world
-        .physics_objects
-        .query_pipeline
-        .intersections_with_ray(
-            &physics_world.physics_objects.rigid_body_set,
-            &physics_world.physics_objects.collider_set,
-            &ray,
-            length,
-            true,
-            filter,
-            |handle, intersection| {
-                // Find closest intersection
-                if intersection.time_of_impact > length_current {
-                    return true;
-                }
-                // Callback called on each collider hit by the ray.
-                if hit_from_inside || intersection.time_of_impact != 0.0 {
-                    length_current = intersection.time_of_impact;
-                    result = true;
 
-                    let hit_point = ray.point_at(intersection.time_of_impact);
-                    let hit_normal = intersection.normal;
-                    hit_info.pixel_position = vector_meters_to_pixels(hit_point.coords);
-                    hit_info.normal = hit_normal;
-                    hit_info.collider = collider_handle_to_handle(handle);
-                    hit_info.user_data = physics_world.get_collider_user_data(handle);
-                    //return false; // We found a collision hit.
-                }
-                true // Continue to search.
-            },
-        );
+    if let Some(physics_world) = physics_engine().get_world(world_handle) {
+        let from = vector_pixels_to_meters(pixel_from);
+        let length = pixels_to_meters(pixel_length);
 
+        let ray = Ray::new(point![from.x, from.y], dir);
+        let mut filter = QueryFilter::new();
+
+        if !collide_with_body {
+            filter = filter.exclude_solids();
+        }
+        if !collide_with_area {
+            filter = filter.exclude_sensors();
+        }
+
+        let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
+            !handle_excluded_callback(
+                world_handle,
+                collider_handle_to_handle(handle),
+                &physics_world.get_collider_user_data(handle),
+                handle_excluded_info,
+            )
+        };
+
+        filter.predicate = Some(&predicate);
+
+        let mut length_current = Real::MAX;
+        physics_world
+            .physics_objects
+            .query_pipeline
+            .intersections_with_ray(
+                &physics_world.physics_objects.rigid_body_set,
+                &physics_world.physics_objects.collider_set,
+                &ray,
+                length,
+                true,
+                filter,
+                |handle, intersection| {
+                    // Find closest intersection
+                    if intersection.time_of_impact > length_current {
+                        return true;
+                    }
+                    // Callback called on each collider hit by the ray.
+                    if hit_from_inside || intersection.time_of_impact != 0.0 {
+                        length_current = intersection.time_of_impact;
+                        result = true;
+
+                        let hit_point = ray.point_at(intersection.time_of_impact);
+                        let hit_normal = intersection.normal;
+                        hit_info.pixel_position = vector_meters_to_pixels(hit_point.coords);
+                        hit_info.normal = hit_normal;
+                        hit_info.collider = collider_handle_to_handle(handle);
+                        hit_info.user_data = physics_world.get_collider_user_data(handle);
+                        //return false; // We found a collision hit.
+                    }
+                    true // Continue to search.
+                },
+            );
+    }
     result
 }
 
@@ -178,59 +179,60 @@ pub fn intersect_point(
     handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
 ) -> usize {
-    let physics_world = physics_engine().get_world(world_handle);
-    let position = vector_pixels_to_meters(pixel_position);
-    let point = Point::new(position.x, position.y);
-    let mut filter = QueryFilter::new();
-
-    if !collide_with_body {
-        filter = filter.exclude_solids();
-    }
-    if !collide_with_area {
-        filter = filter.exclude_sensors();
-    }
-
-    let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
-        !handle_excluded_callback(
-            world_handle,
-            collider_handle_to_handle(handle),
-            &physics_world.get_collider_user_data(handle),
-            handle_excluded_info,
-        )
-    };
-
-    filter.predicate = Some(&predicate);
-
-    assert!(hit_info_length > 0);
-    let hit_info_slice_opt;
-    unsafe {
-        hit_info_slice_opt = Some(std::slice::from_raw_parts_mut(
-            hit_info_array,
-            hit_info_length,
-        ));
-    }
-    assert!(hit_info_slice_opt.is_some());
-    let hit_info_slice = hit_info_slice_opt.unwrap();
-
     let mut cpt_hit = 0;
-    physics_world
-        .physics_objects
-        .query_pipeline
-        .intersections_with_point(
-            &physics_world.physics_objects.rigid_body_set,
-            &physics_world.physics_objects.collider_set,
-            &point,
-            filter,
-            |handle| {
-                // Callback called on each collider hit by the ray.
-                hit_info_slice[cpt_hit].collider = collider_handle_to_handle(handle);
-                hit_info_slice[cpt_hit].user_data = physics_world.get_collider_user_data(handle);
-                cpt_hit += 1;
-                
-                cpt_hit < hit_info_length // Continue to search collisions if we still have space for results.
-            },
-        );
+    if let Some(physics_world) = physics_engine().get_world(world_handle) {
+        let position = vector_pixels_to_meters(pixel_position);
+        let point = Point::new(position.x, position.y);
+        let mut filter = QueryFilter::new();
 
+        if !collide_with_body {
+            filter = filter.exclude_solids();
+        }
+        if !collide_with_area {
+            filter = filter.exclude_sensors();
+        }
+
+        let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
+            !handle_excluded_callback(
+                world_handle,
+                collider_handle_to_handle(handle),
+                &physics_world.get_collider_user_data(handle),
+                handle_excluded_info,
+            )
+        };
+
+        filter.predicate = Some(&predicate);
+
+        assert!(hit_info_length > 0);
+        let hit_info_slice_opt;
+        unsafe {
+            hit_info_slice_opt = Some(std::slice::from_raw_parts_mut(
+                hit_info_array,
+                hit_info_length,
+            ));
+        }
+        assert!(hit_info_slice_opt.is_some());
+        let hit_info_slice = hit_info_slice_opt.unwrap();
+
+        physics_world
+            .physics_objects
+            .query_pipeline
+            .intersections_with_point(
+                &physics_world.physics_objects.rigid_body_set,
+                &physics_world.physics_objects.collider_set,
+                &point,
+                filter,
+                |handle| {
+                    // Callback called on each collider hit by the ray.
+                    hit_info_slice[cpt_hit].collider = collider_handle_to_handle(handle);
+                    hit_info_slice[cpt_hit].user_data =
+                        physics_world.get_collider_user_data(handle);
+                    cpt_hit += 1;
+
+                    cpt_hit < hit_info_length // Continue to search collisions if we still have space for results.
+                },
+            );
+    }
     cpt_hit
 }
 
@@ -240,51 +242,49 @@ pub fn shape_collide(
     pixel_motion2: Vector2<Real>,
     shape_info2: ShapeInfo,
 ) -> ShapeCastResult {
+    let mut result = ShapeCastResult::new();
+    let physics_engine = physics_engine();
     let shape_vel1 = vector_pixels_to_meters(pixel_motion1);
     let shape_vel2 = vector_pixels_to_meters(pixel_motion2);
     let position1 = vector_pixels_to_meters(shape_info1.pixel_position);
     let position2 = vector_pixels_to_meters(shape_info2.pixel_position);
 
-    let physics_engine = physics_engine();
+    if let Some(raw_shared_shape1) = physics_engine.get_shape(shape_info1.handle) {
+        let skewed_shape1 = skew_shape(raw_shared_shape1, shape_info1.skew);
+        let shared_shape1 = scale_shape(&skewed_shape1, shape_info1.scale);
+        if let Some(raw_shared_shape2) = physics_engine.get_shape(shape_info2.handle) {
+            let skewed_shape2 = skew_shape(raw_shared_shape2, shape_info2.skew);
+            let shared_shape2 = scale_shape(&skewed_shape2, shape_info2.scale);
 
-    let raw_shared_shape1 = physics_engine.get_shape(shape_info1.handle).clone();
-    let skewed_shape1 = skew_shape(&raw_shared_shape1, shape_info1.skew);
-    let shared_shape1 = scale_shape(
-        &skewed_shape1,
-        shape_info1.scale,
-    );
-    let raw_shared_shape2 = physics_engine.get_shape(shape_info2.handle).clone();
-    let skewed_shape2 = skew_shape(&raw_shared_shape2, shape_info2.skew);
-    let shared_shape2 = scale_shape(
-        &skewed_shape2,
-        shape_info2.scale,
-    );
+            let shape_transform1 = Isometry::new(position1, shape_info1.rotation);
+            let shape_transform2 = Isometry::new(position2, shape_info2.rotation);
 
-    let shape_transform1 = Isometry::new(position1, shape_info1.rotation);
-    let shape_transform2 = Isometry::new(position2, shape_info2.rotation);
-    let mut result = ShapeCastResult::new();
-    let mut shape_cast_options = ShapeCastOptions::default();
-    shape_cast_options.max_time_of_impact = 1.0;
-    shape_cast_options.compute_impact_geometry_on_penetration = true;
-    shape_cast_options.stop_at_penetration = true;
-    let toi_result = parry::query::cast_shapes(
-        &shape_transform1,
-        &shape_vel1,
-        shared_shape1.as_ref(),
-        &shape_transform2,
-        &shape_vel2,
-        shared_shape2.as_ref(),
-        shape_cast_options,
-    );
-    assert!(toi_result.is_ok());
-    if let Some(hit) = toi_result.unwrap() {
-        result.collided = true;
-        result.toi = hit.time_of_impact;
-        result.normal1 = hit.normal1.into_inner();
-        result.normal2 = hit.normal2.into_inner();
-        result.pixel_witness1 = vector_meters_to_pixels(hit.witness1.coords);
-        result.pixel_witness2 = vector_meters_to_pixels(hit.witness2.coords);
-        return result;
+            let mut shape_cast_options = ShapeCastOptions::default();
+            shape_cast_options.max_time_of_impact = 1.0;
+            shape_cast_options.compute_impact_geometry_on_penetration = true;
+            shape_cast_options.stop_at_penetration = true;
+            let toi_result = parry::query::cast_shapes(
+                &shape_transform1,
+                &shape_vel1,
+                shared_shape1.as_ref(),
+                &shape_transform2,
+                &shape_vel2,
+                shared_shape2.as_ref(),
+                shape_cast_options,
+            );
+            if let Ok(hit) = toi_result {
+                if let Some(hit) = hit {
+                    result.collided = true;
+                    result.toi = hit.time_of_impact;
+                    result.normal1 = hit.normal1.into_inner();
+                    result.normal2 = hit.normal2.into_inner();
+                    result.pixel_witness1 = vector_meters_to_pixels(hit.witness1.coords);
+                    result.pixel_witness2 = vector_meters_to_pixels(hit.witness2.coords);
+                }
+                // can we get a hit without a result?
+                godot_error!("hit without a result");
+            }
+        }
     }
     result
 }
@@ -299,68 +299,68 @@ pub fn shape_casting(
     handle_excluded_info: &QueryExcludedInfo,
     ignore_intersecting: bool,
 ) -> ShapeCastResult {
-    let shape_vel = vector_pixels_to_meters(pixel_motion);
-    let position = vector_pixels_to_meters(shape_info.pixel_position);
+    let mut result = ShapeCastResult::new();
 
     let physics_engine = physics_engine();
 
-    let raw_shared_shape = physics_engine.get_shape(shape_info.handle).clone();
-    let skewed_shape = skew_shape(&raw_shared_shape, shape_info.skew);
-    let shared_shape = scale_shape(
-        &skewed_shape,
-        shape_info.scale,
-    );
+    if let Some(raw_shared_shape) = physics_engine.get_shape(shape_info.handle) {
+        let shape_vel = vector_pixels_to_meters(pixel_motion);
+        let position = vector_pixels_to_meters(shape_info.pixel_position);
+        let skewed_shape = skew_shape(raw_shared_shape, shape_info.skew);
+        let shared_shape = scale_shape(&skewed_shape, shape_info.scale);
 
-    let physics_world = physics_engine.get_world(world_handle);
+        if let Some(physics_world) = physics_engine.get_world(world_handle) {
+            let shape_transform = Isometry::new(position, shape_info.rotation);
 
-    let shape_transform = Isometry::new(position, shape_info.rotation);
+            let mut filter = QueryFilter::new();
 
-    let mut filter = QueryFilter::new();
+            if !collide_with_body {
+                filter = filter.exclude_solids();
+            }
+            if !collide_with_area {
+                filter = filter.exclude_sensors();
+            }
 
-    if !collide_with_body {
-        filter = filter.exclude_solids();
-    }
-    if !collide_with_area {
-        filter = filter.exclude_sensors();
-    }
+            let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
+                !handle_excluded_callback(
+                    world_handle,
+                    collider_handle_to_handle(handle),
+                    &physics_world.get_collider_user_data(handle),
+                    handle_excluded_info,
+                )
+            };
 
-    let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
-        !handle_excluded_callback(
-            world_handle,
-            collider_handle_to_handle(handle),
-            &physics_world.get_collider_user_data(handle),
-            handle_excluded_info,
-        )
-    };
+            filter.predicate = Some(&predicate);
 
-    filter.predicate = Some(&predicate);
-
-    let mut result = ShapeCastResult::new();
-    let mut shape_cast_options = ShapeCastOptions::default();
-    shape_cast_options.max_time_of_impact = 1.0;
-    shape_cast_options.compute_impact_geometry_on_penetration = true;
-    shape_cast_options.stop_at_penetration = true;
-    if let Some((collider_handle, hit)) = physics_world.physics_objects.query_pipeline.cast_shape(
-        &physics_world.physics_objects.rigid_body_set,
-        &physics_world.physics_objects.collider_set,
-        &shape_transform,
-        &shape_vel,
-        shared_shape.as_ref(),
-        shape_cast_options,
-        filter,
-    ) {
-        result.collided = true;
-        result.toi = hit.time_of_impact;
-        result.normal1 = hit.normal1.into_inner();
-        result.normal2 = hit.normal2.into_inner();
-        result.collider = collider_handle_to_handle(collider_handle);
-        result.user_data = physics_world.get_collider_user_data(collider_handle);
-        // first is world space
-        let witness1 = hit.witness1;
-        // second is local space
-        let witness2 = shape_transform.transform_point(&hit.witness2);
-        result.pixel_witness1 = vector_meters_to_pixels(witness1.coords);
-        result.pixel_witness2 = vector_meters_to_pixels(witness2.coords);
+            let mut shape_cast_options = ShapeCastOptions::default();
+            shape_cast_options.max_time_of_impact = 1.0;
+            shape_cast_options.compute_impact_geometry_on_penetration = true;
+            shape_cast_options.stop_at_penetration = true;
+            if let Some((collider_handle, hit)) =
+                physics_world.physics_objects.query_pipeline.cast_shape(
+                    &physics_world.physics_objects.rigid_body_set,
+                    &physics_world.physics_objects.collider_set,
+                    &shape_transform,
+                    &shape_vel,
+                    shared_shape.as_ref(),
+                    shape_cast_options,
+                    filter,
+                )
+            {
+                result.collided = true;
+                result.toi = hit.time_of_impact;
+                result.normal1 = hit.normal1.into_inner();
+                result.normal2 = hit.normal2.into_inner();
+                result.collider = collider_handle_to_handle(collider_handle);
+                result.user_data = physics_world.get_collider_user_data(collider_handle);
+                // first is world space
+                let witness1 = hit.witness1;
+                // second is local space
+                let witness2 = shape_transform.transform_point(&hit.witness2);
+                result.pixel_witness1 = vector_meters_to_pixels(witness1.coords);
+                result.pixel_witness2 = vector_meters_to_pixels(witness2.coords);
+            }
+        }
     }
     result
 }
@@ -375,70 +375,72 @@ pub fn intersect_shape(
     handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
 ) -> usize {
-    let position = vector_pixels_to_meters(shape_info.pixel_position);
+    if hit_info_length <= 0 {
+        return 0;
+    }
     let physics_engine = physics_engine();
-
-    let raw_shared_shape = physics_engine.get_shape(shape_info.handle).clone();
-    let skewed_shape = skew_shape(&raw_shared_shape, shape_info.skew);
-    let shared_shape = scale_shape(
-        &skewed_shape,
-        shape_info.scale,
-    );
-
-    let physics_world = physics_engine.get_world(world_handle);
-    let shape_transform = Isometry::new(vector![position.x, position.y], shape_info.rotation);
-
-    let mut filter = QueryFilter::new();
-
-    if !collide_with_body {
-        filter = filter.exclude_solids();
-    }
-    if !collide_with_area {
-        filter = filter.exclude_sensors();
-    }
-
-    let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
-        !handle_excluded_callback(
-            world_handle,
-            collider_handle_to_handle(handle),
-            &physics_world.get_collider_user_data(handle),
-            handle_excluded_info,
-        )
-    };
-
-    filter.predicate = Some(&predicate);
-
-    assert!(hit_info_length > 0);
-    let hit_info_slice_opt;
-    unsafe {
-        hit_info_slice_opt = Some(std::slice::from_raw_parts_mut(
-            hit_info_array,
-            hit_info_length,
-        ));
-    }
-    assert!(hit_info_slice_opt.is_some());
-    let hit_info_slice = hit_info_slice_opt.unwrap();
-
     let mut cpt_hit = 0;
-    physics_world
-        .physics_objects
-        .query_pipeline
-        .intersections_with_shape(
-            &physics_world.physics_objects.rigid_body_set,
-            &physics_world.physics_objects.collider_set,
-            &shape_transform,
-            shared_shape.as_ref(),
-            filter,
-            |handle| {
-                // Callback called on each collider hit by the ray.
-                hit_info_slice[cpt_hit].collider = collider_handle_to_handle(handle);
-                hit_info_slice[cpt_hit].user_data = physics_world.get_collider_user_data(handle);
-                cpt_hit += 1;
-                
-                cpt_hit < hit_info_length // Continue to search collisions if we still have space for results.
-            },
-        );
 
+    if let Some(raw_shared_shape) = physics_engine.get_shape(shape_info.handle) {
+        let skewed_shape = skew_shape(raw_shared_shape, shape_info.skew);
+        let shared_shape = scale_shape(&skewed_shape, shape_info.scale);
+
+        if let Some(physics_world) = physics_engine.get_world(world_handle) {
+            let position = vector_pixels_to_meters(shape_info.pixel_position);
+            let shape_transform =
+                Isometry::new(vector![position.x, position.y], shape_info.rotation);
+
+            let mut filter = QueryFilter::new();
+
+            if !collide_with_body {
+                filter = filter.exclude_solids();
+            }
+            if !collide_with_area {
+                filter = filter.exclude_sensors();
+            }
+
+            let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
+                !handle_excluded_callback(
+                    world_handle,
+                    collider_handle_to_handle(handle),
+                    &physics_world.get_collider_user_data(handle),
+                    handle_excluded_info,
+                )
+            };
+
+            filter.predicate = Some(&predicate);
+
+            let hit_info_slice_opt;
+            unsafe {
+                hit_info_slice_opt = Some(std::slice::from_raw_parts_mut(
+                    hit_info_array,
+                    hit_info_length,
+                ));
+            }
+            assert!(hit_info_slice_opt.is_some());
+            let hit_info_slice = hit_info_slice_opt.unwrap();
+
+            physics_world
+                .physics_objects
+                .query_pipeline
+                .intersections_with_shape(
+                    &physics_world.physics_objects.rigid_body_set,
+                    &physics_world.physics_objects.collider_set,
+                    &shape_transform,
+                    shared_shape.as_ref(),
+                    filter,
+                    |handle| {
+                        // Callback called on each collider hit by the ray.
+                        hit_info_slice[cpt_hit].collider = collider_handle_to_handle(handle);
+                        hit_info_slice[cpt_hit].user_data =
+                            physics_world.get_collider_user_data(handle);
+                        cpt_hit += 1;
+
+                        cpt_hit < hit_info_length // Continue to search collisions if we still have space for results.
+                    },
+                );
+        }
+    }
     cpt_hit
 }
 
@@ -453,59 +455,59 @@ pub fn intersect_aabb(
     handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
 ) -> usize {
-    let aabb_min = vector_pixels_to_meters(pixel_aabb_min);
-    let aabb_max = vector_pixels_to_meters(pixel_aabb_max);
-
-    let physics_world = physics_engine().get_world(world_handle);
-
-    // let aabb_transform = Isometry::new(vector![position.x, position.y], rotation);
-    let aabb_min_point = Point::new(aabb_min.x, aabb_min.y);
-    let aabb_max_point = Point::new(aabb_max.x, aabb_max.y);
-
-    // let transformed_aabb_min = aabb_transform * aabb_min_point;
-    // let transformed_aabb_max = aabb_transform * aabb_max_point;
-
-    let aabb = Aabb {
-        mins: aabb_min_point,
-        maxs: aabb_max_point,
-    };
-
     let mut cpt_hit = 0;
-    physics_world
-        .physics_objects
-        .query_pipeline
-        .colliders_with_aabb_intersecting_aabb(&aabb, |handle| {
-            let mut valid_hit = false;
-            if let Some(collider) = physics_world.physics_objects.collider_set.get(*handle) {
-                // type filder
-                if collider.is_sensor() && collide_with_area {
-                    valid_hit = true;
-                } else if !collider.is_sensor() && collide_with_body {
-                    valid_hit = true;
+
+    if let Some(physics_world) = physics_engine().get_world(world_handle) {
+        let aabb_min = vector_pixels_to_meters(pixel_aabb_min);
+        let aabb_max = vector_pixels_to_meters(pixel_aabb_max);
+
+        // let aabb_transform = Isometry::new(vector![position.x, position.y], rotation);
+        let aabb_min_point = Point::new(aabb_min.x, aabb_min.y);
+        let aabb_max_point = Point::new(aabb_max.x, aabb_max.y);
+
+        // let transformed_aabb_min = aabb_transform * aabb_min_point;
+        // let transformed_aabb_max = aabb_transform * aabb_max_point;
+
+        let aabb = Aabb {
+            mins: aabb_min_point,
+            maxs: aabb_max_point,
+        };
+
+        physics_world
+            .physics_objects
+            .query_pipeline
+            .colliders_with_aabb_intersecting_aabb(&aabb, |handle| {
+                let mut valid_hit = false;
+                if let Some(collider) = physics_world.physics_objects.collider_set.get(*handle) {
+                    // type filder
+                    if collider.is_sensor() && collide_with_area {
+                        valid_hit = true;
+                    } else if !collider.is_sensor() && collide_with_body {
+                        valid_hit = true;
+                    }
+
+                    if valid_hit {
+                        valid_hit = !handle_excluded_callback(
+                            world_handle,
+                            collider_handle_to_handle(*handle),
+                            &physics_world.get_collider_user_data(*handle),
+                            handle_excluded_info,
+                        );
+                    }
                 }
 
-                if valid_hit {
-                    valid_hit = !handle_excluded_callback(
-                        world_handle,
-                        collider_handle_to_handle(*handle),
-                        &physics_world.get_collider_user_data(*handle),
-                        handle_excluded_info,
-                    );
+                if !valid_hit {
+                    return true; // continue
                 }
-            }
 
-            if !valid_hit {
-                return true; // continue
-            }
+                // Callback called on each collider hit by the ray.
+                hit_info_slice[cpt_hit].collider = collider_handle_to_handle(*handle);
+                hit_info_slice[cpt_hit].user_data = physics_world.get_collider_user_data(*handle);
+                cpt_hit += 1;
 
-            // Callback called on each collider hit by the ray.
-            hit_info_slice[cpt_hit].collider = collider_handle_to_handle(*handle);
-            hit_info_slice[cpt_hit].user_data = physics_world.get_collider_user_data(*handle);
-            cpt_hit += 1;
-            
-            cpt_hit < max_results // Continue to search collisions if we still have space for results.
-        });
-
+                cpt_hit < max_results // Continue to search collisions if we still have space for results.
+            });
+    }
     cpt_hit
 }
 
@@ -517,46 +519,44 @@ pub fn shapes_contact(
     let position1 = vector_pixels_to_meters(shape_info1.pixel_position);
     let position2 = vector_pixels_to_meters(shape_info2.pixel_position);
     let margin = pixels_to_meters(pixel_margin);
+    let mut result = ContactResult::default();
 
     let physics_engine = physics_engine();
 
     //let prediction = Real::max(0.002, margin);
     let prediction = margin;
 
-    let raw_shared_shape1 = physics_engine.get_shape(shape_info1.handle).clone();
-    let skewed_shape1 = skew_shape(&raw_shared_shape1, shape_info1.skew);
-    let shared_shape1 = scale_shape(
-        &skewed_shape1,
-        shape_info1.scale,
-    );
-    let raw_shared_shape2 = physics_engine.get_shape(shape_info2.handle).clone();
-    let skewed_shape2 = skew_shape(&raw_shared_shape2, shape_info2.skew);
-    let shared_shape2 = scale_shape(
-        &skewed_shape2,
-        shape_info2.scale,
-    );
+    if let Some(raw_shared_shape1) = physics_engine.get_shape(shape_info1.handle) {
+        let skewed_shape1 = skew_shape(raw_shared_shape1, shape_info1.skew);
+        let shared_shape1 = scale_shape(&skewed_shape1, shape_info1.scale);
+        if let Some(raw_shared_shape2) = physics_engine.get_shape(shape_info2.handle) {
+            let skewed_shape2 = skew_shape(raw_shared_shape2, shape_info2.skew);
+            let shared_shape2 = scale_shape(&skewed_shape2, shape_info2.scale);
 
-    let shape_transform1 = Isometry::new(position1, shape_info1.rotation);
-    let shape_transform2 = Isometry::new(position2, shape_info2.rotation);
+            let shape_transform1 = Isometry::new(position1, shape_info1.rotation);
+            let shape_transform2 = Isometry::new(position2, shape_info2.rotation);
 
-    let mut result = ContactResult::default();
-    if let Ok(Some(contact)) = parry::query::contact(
-        &shape_transform1,
-        shared_shape1.as_ref(),
-        &shape_transform2,
-        shared_shape2.as_ref(),
-        prediction,
-    ) {
-        // the distance is negative if there is intersection
-        // and positive if the objects are separated by distance less than margin
-        result.pixel_distance = meters_to_pixels(contact.dist);
-        result.within_margin = contact.dist > 0.0;
-        result.collided = true;
-        result.normal1 = contact.normal1.into_inner();
-        result.normal2 = contact.normal2.into_inner();
-        result.pixel_point1 = vector_meters_to_pixels((contact.point1 + contact.normal1.mul(prediction)).coords);
-        result.pixel_point2 = vector_meters_to_pixels(contact.point2.coords);
-        return result;
+            if let Ok(Some(contact)) = parry::query::contact(
+                &shape_transform1,
+                shared_shape1.as_ref(),
+                &shape_transform2,
+                shared_shape2.as_ref(),
+                prediction,
+            ) {
+                // the distance is negative if there is intersection
+                // and positive if the objects are separated by distance less than margin
+                result.pixel_distance = meters_to_pixels(contact.dist);
+                result.within_margin = contact.dist > 0.0;
+                result.collided = true;
+                result.normal1 = contact.normal1.into_inner();
+                result.normal2 = contact.normal2.into_inner();
+                result.pixel_point1 = vector_meters_to_pixels(
+                    (contact.point1 + contact.normal1.mul(prediction)).coords,
+                );
+                result.pixel_point2 = vector_meters_to_pixels(contact.point2.coords);
+                return result;
+            }
+        }
     }
     result
 }

@@ -109,8 +109,8 @@ impl IRapierShape2D for RapierConvexPolygonShape2D {
                 for i in 0..size {
                     let idx = i << 2;
                     self.points[i] = Point {
-                        pos: Vector2::new(arr[idx] as f32, arr[idx+1] as f32),
-                        normal: Vector2::new(arr[idx+1]  as f32, arr[idx+3]  as f32),
+                        pos: Vector2::new(arr[idx] as f32, arr[idx + 1] as f32),
+                        normal: Vector2::new(arr[idx + 1] as f32, arr[idx + 3] as f32),
                     };
                 }
             }
