@@ -123,7 +123,9 @@ impl RapierCollisionObject2D {
         p_shape_index: usize,
         mat: Material,
     ) -> Handle {
-        assert!(!shape.collider_handle.is_valid());
+        if shape.collider_handle.is_valid() {
+            godot_error!("collider is valid");
+        }
         let lock = shapes_singleton();
         let mut handle = invalid_handle();
         if let Some(shape_object) = lock.shapes.get_mut(&shape.shape) {
@@ -426,7 +428,10 @@ impl RapierCollisionObject2D {
         p_one_way_collision: bool,
         p_margin: real,
     ) {
-        assert!(p_idx < self.shapes.len());
+        if p_idx > self.shapes.len() {
+            godot_error!("invalid index");
+            return;
+        }
 
         let shape = &mut self.shapes[p_idx];
         shape.one_way_collision = p_one_way_collision;
@@ -434,13 +439,19 @@ impl RapierCollisionObject2D {
     }
 
     pub fn is_shape_set_as_one_way_collision(&self, p_idx: usize) -> bool {
-        assert!(p_idx < self.shapes.len());
+        if p_idx > self.shapes.len() {
+            godot_error!("invalid index");
+            return false;
+        }
 
         self.shapes[p_idx].one_way_collision
     }
 
     pub fn get_shape_one_way_collision_margin(&self, p_idx: usize) -> real {
-        assert!(p_idx < self.shapes.len());
+        if p_idx >= self.shapes.len() {
+            godot_error!("invalid index");
+            return 0.0;
+        }
 
         self.shapes[p_idx].one_way_collision_margin
     }
