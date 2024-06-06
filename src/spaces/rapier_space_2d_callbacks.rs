@@ -39,8 +39,7 @@ impl RapierSpace2D {
     pub fn active_body_callback(active_body_info: &ActiveBodyInfo) {
         let (rid, _) =
             RapierCollisionObject2D::get_collider_user_data(&active_body_info.body_user_data);
-        let lock = bodies_singleton();
-        if let Some(body) = lock.collision_objects.get_mut(&rid) {
+        if let Some(body) = bodies_singleton().collision_objects.get_mut(&rid) {
             if let Some(body) = body.get_mut_body() {
                 body.on_marked_active();
             }
@@ -51,13 +50,19 @@ impl RapierSpace2D {
         filter_info: &CollisionFilterInfo,
         r_colliders_info: &mut CollidersInfo,
     ) -> bool {
-        let lock = bodies_singleton();
         (r_colliders_info.object1, r_colliders_info.shape1) =
             RapierCollisionObject2D::get_collider_user_data(&filter_info.user_data1);
         (r_colliders_info.object2, r_colliders_info.shape2) =
             RapierCollisionObject2D::get_collider_user_data(&filter_info.user_data2);
-        if let Some(body1) = lock.collision_objects.get(&r_colliders_info.object1) {
-            if let Some(body2) = lock.collision_objects.get(&r_colliders_info.object2) {
+        let bodies_singleton = bodies_singleton();
+        if let Some(body1) = bodies_singleton
+            .collision_objects
+            .get(&r_colliders_info.object1)
+        {
+            if let Some(body2) = bodies_singleton
+                .collision_objects
+                .get(&r_colliders_info.object2)
+            {
                 return body1.get_base().interacts_with(body2.get_base());
             }
         }
@@ -69,10 +74,16 @@ impl RapierSpace2D {
         if !Self::collision_filter_common_callback(filter_info, &mut colliders_info) {
             return false;
         }
-        let lock = bodies_singleton();
-        if let Some(body1) = lock.collision_objects.get(&colliders_info.object1) {
+        let bodies_singleton = bodies_singleton();
+        if let Some(body1) = bodies_singleton
+            .collision_objects
+            .get(&colliders_info.object1)
+        {
             if let Some(body1) = body1.get_body() {
-                if let Some(body2) = lock.collision_objects.get(&colliders_info.object2) {
+                if let Some(body2) = bodies_singleton
+                    .collision_objects
+                    .get(&colliders_info.object2)
+                {
                     if let Some(body2) = body2.get_body() {
                         if body1.has_exception(body2.get_base().get_rid())
                             || body2.has_exception(body1.get_base().get_rid())
@@ -97,13 +108,13 @@ impl RapierSpace2D {
     ) -> OneWayDirection {
         let mut result = OneWayDirection::default();
 
-        let lock = bodies_singleton();
         let (object1, shape1) =
             RapierCollisionObject2D::get_collider_user_data(&filter_info.user_data1);
         let (object2, shape2) =
             RapierCollisionObject2D::get_collider_user_data(&filter_info.user_data2);
-        if let Some([collision_object_1, collision_object_2]) =
-            lock.collision_objects.get_many_mut([&object1, &object2])
+        if let Some([collision_object_1, collision_object_2]) = bodies_singleton()
+            .collision_objects
+            .get_many_mut([&object1, &object2])
         {
             let collision_base_1 = collision_object_1.get_base();
             let collision_base_2 = collision_object_2.get_base();
@@ -143,10 +154,8 @@ impl RapierSpace2D {
     }
 
     pub fn collision_event_callback(world_handle: Handle, event_info: &CollisionEventInfo) {
-        let spaces_lock = spaces_singleton();
-        let active_spaces_lock = active_spaces_singleton();
-        if let Some(space) = active_spaces_lock.active_spaces.get(&world_handle) {
-            if let Some(space) = spaces_lock.spaces.get_mut(space) {
+        if let Some(space) = active_spaces_singleton().active_spaces.get(&world_handle) {
+            if let Some(space) = spaces_singleton().spaces.get_mut(space) {
                 let (mut p_object1, mut shape1) =
                     RapierCollisionObject2D::get_collider_user_data(&event_info.user_data1);
                 let (mut p_object2, mut shape2) =
@@ -160,8 +169,8 @@ impl RapierSpace2D {
                 let (mut type1, mut type2) = (CollisionObjectType::Area, CollisionObjectType::Area);
 
                 if event_info.is_removed {
-                    let body_lock = bodies_singleton();
-                    if let Some(body) = body_lock.collision_objects.get(&p_object1) {
+                    let bodies_singleton = bodies_singleton();
+                    if let Some(body) = bodies_singleton.collision_objects.get(&p_object1) {
                         rid1 = body.get_base().get_rid();
                         instance_id1 = body.get_base().get_instance_id();
                         type1 = body.get_base().get_type();
@@ -173,7 +182,7 @@ impl RapierSpace2D {
                         type1 = removed_collider_info_1.collision_object_type;
                         shape1 = removed_collider_info_1.shape_index;
                     }
-                    if let Some(body) = body_lock.collision_objects.get(&p_object2) {
+                    if let Some(body) = bodies_singleton.collision_objects.get(&p_object2) {
                         rid2 = body.get_base().get_rid();
                         instance_id2 = body.get_base().get_instance_id();
                         type2 = body.get_base().get_type();
@@ -186,13 +195,13 @@ impl RapierSpace2D {
                         shape2 = removed_collider_info_2.shape_index;
                     }
                 } else {
-                    let body_lock = bodies_singleton();
-                    if let Some(body) = body_lock.collision_objects.get(&p_object1) {
+                    let bodies_singleton = bodies_singleton();
+                    if let Some(body) = bodies_singleton.collision_objects.get(&p_object1) {
                         rid1 = body.get_base().get_rid();
                         instance_id1 = body.get_base().get_instance_id();
                         type1 = body.get_base().get_type();
                     }
-                    if let Some(body) = body_lock.collision_objects.get(&p_object2) {
+                    if let Some(body) = bodies_singleton.collision_objects.get(&p_object2) {
                         rid2 = body.get_base().get_rid();
                         instance_id2 = body.get_base().get_instance_id();
                         type2 = body.get_base().get_type();
@@ -222,24 +231,27 @@ impl RapierSpace2D {
                         swap(&mut instance_id1, &mut instance_id2);
                     }
 
-                    let body_lock = bodies_singleton();
                     let mut p_collision_object1 = None;
                     let mut p_collision_object2 = None;
-                    if body_lock.collision_objects.contains_key(&p_object1)
-                        && body_lock.collision_objects.contains_key(&p_object2)
+                    let bodies_singleton = bodies_singleton();
+                    if bodies_singleton.collision_objects.contains_key(&p_object1)
+                        && bodies_singleton.collision_objects.contains_key(&p_object2)
                     {
-                        if let Some([p_object1, p_object2]) = body_lock
+                        if let Some([p_object1, p_object2]) = bodies_singleton
                             .collision_objects
                             .get_many_mut([&p_object1, &p_object2])
                         {
                             p_collision_object1 = Some(p_object1);
                             p_collision_object2 = Some(p_object2);
                         }
-                    } else if body_lock.collision_objects.contains_key(&p_object1) {
-                        if let Some(p_object1) = body_lock.collision_objects.get_mut(&p_object1) {
+                    } else if bodies_singleton.collision_objects.contains_key(&p_object1) {
+                        if let Some(p_object1) =
+                            bodies_singleton.collision_objects.get_mut(&p_object1)
+                        {
                             p_collision_object1 = Some(p_object1);
                         }
-                    } else if let Some(p_object2) = body_lock.collision_objects.get_mut(&p_object2)
+                    } else if let Some(p_object2) =
+                        bodies_singleton.collision_objects.get_mut(&p_object2)
                     {
                         p_collision_object2 = Some(p_object2);
                     }
@@ -361,11 +373,9 @@ impl RapierSpace2D {
         world_handle: Handle,
         event_info: &ContactForceEventInfo,
     ) -> bool {
-        let spaces_lock = spaces_singleton();
-        let active_spaces_lock = active_spaces_singleton();
         let mut send_contacts = false;
-        if let Some(space) = active_spaces_lock.active_spaces.get(&world_handle) {
-            if let Some(space) = spaces_lock.spaces.get(space) {
+        if let Some(space) = active_spaces_singleton().active_spaces.get(&world_handle) {
+            if let Some(space) = spaces_singleton().spaces.get(space) {
                 send_contacts = space.is_debugging_contacts();
             }
 
@@ -374,15 +384,15 @@ impl RapierSpace2D {
 
             let (p_object2, _) =
                 RapierCollisionObject2D::get_collider_user_data(&event_info.user_data2);
-            let bodies_lock = bodies_singleton();
-            if let Some(body1) = bodies_lock.collision_objects.get(&p_object1) {
+            let bodies_singleton = bodies_singleton();
+            if let Some(body1) = bodies_singleton.collision_objects.get(&p_object1) {
                 if let Some(body1) = body1.get_body() {
                     if body1.can_report_contacts() {
                         send_contacts = true;
                     }
                 }
             }
-            if let Some(body2) = bodies_lock.collision_objects.get(&p_object2) {
+            if let Some(body2) = bodies_singleton.collision_objects.get(&p_object2) {
                 if let Some(body2) = body2.get_body() {
                     if body2.can_report_contacts() {
                         send_contacts = true;
@@ -410,8 +420,7 @@ impl RapierSpace2D {
         );
 
         let mut keep_sending_contacts = false;
-        let active_lock = active_spaces_singleton();
-        if let Some(active_space) = active_lock.active_spaces.get(&world_handle) {
+        if let Some(active_space) = active_spaces_singleton().active_spaces.get(&world_handle) {
             if let Some(space) = spaces_singleton().spaces.get_mut(active_space) {
                 if space.is_debugging_contacts() {
                     keep_sending_contacts = true;
@@ -426,8 +435,7 @@ impl RapierSpace2D {
             RapierCollisionObject2D::get_collider_user_data(&event_info.user_data1);
         let (p_object2, shape2) =
             RapierCollisionObject2D::get_collider_user_data(&event_info.user_data2);
-        let bodies_lock = bodies_singleton();
-        if let Some([p_object1, p_object2]) = bodies_lock
+        if let Some([p_object1, p_object2]) = bodies_singleton()
             .collision_objects
             .get_many_mut([&p_object1, &p_object2])
         {

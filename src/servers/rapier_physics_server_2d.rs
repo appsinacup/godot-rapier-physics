@@ -237,7 +237,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         space: Rid,
     ) -> Option<Gd<classes::PhysicsDirectSpaceState2D>> {
         if let Some(space) = spaces_singleton().spaces.get(&space) {
-            return space.get_direct_state();
+            return space.get_direct_state().clone();
         }
         None
     }
@@ -248,7 +248,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     }
     fn space_get_contacts(&self, space: Rid) -> PackedVector2Array {
         if let Some(space) = spaces_singleton().spaces.get(&space) {
-            return space.get_debug_contacts();
+            return space.get_debug_contacts().clone();
         }
         PackedVector2Array::new()
     }
@@ -805,7 +805,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
                 let exceptions = body.get_exceptions();
                 let mut arr = Array::new();
                 for e in exceptions {
-                    arr.push(e);
+                    arr.push(*e);
                 }
                 return arr;
             }

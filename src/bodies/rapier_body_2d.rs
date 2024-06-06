@@ -163,8 +163,7 @@ impl RapierBody2D {
         }
 
         if self.calculate_inertia || self.calculate_center_of_mass {
-            let lock = spaces_singleton();
-            if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
+            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
                 space.body_add_to_mass_properties_update_list(self.base.get_rid());
             }
         } else {
@@ -183,7 +182,7 @@ impl RapierBody2D {
         }
 
         let com = rapier2d::na::Vector2::new(self.center_of_mass.x, self.center_of_mass.y);
-        if !self.base.get_space_handle().is_valid() || !self.base.get_body_handle().is_valid() {
+        if !self.base.is_valid() {
             return;
         }
 
@@ -307,12 +306,12 @@ impl RapierBody2D {
         if !self.base.get_space_handle().is_valid() || !body_handle.is_valid() {
             return;
         }
-        self.angular_velocity = 0.0;
         body_set_angular_velocity(
             self.base.get_space_handle(),
             body_handle,
             self.angular_velocity,
         );
+        self.angular_velocity = 0.0;
     }
     pub fn get_angular_velocity(&self) -> real {
         let body_handle = self.base.get_body_handle();
@@ -382,11 +381,8 @@ impl RapierBody2D {
     }
 
     pub fn update_area_override(&mut self) {
-        {
-            let lock = spaces_singleton();
-            if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
-                space.body_remove_from_area_update_list(self.base.get_rid());
-            }
+        if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+            space.body_remove_from_area_update_list(self.base.get_rid());
         }
 
         if self.base.mode == BodyMode::STATIC {
@@ -416,8 +412,7 @@ impl RapierBody2D {
             let mut areas = self.areas.clone();
             areas.reverse();
             for area_rid in areas {
-                let lock = bodies_singleton();
-                if let Some(area) = lock.collision_objects.get(&area_rid) {
+                if let Some(area) = bodies_singleton().collision_objects.get(&area_rid) {
                     if let Some(aa) = area.get_area() {
                         if !gravity_done {
                             let area_gravity_mode =
@@ -508,27 +503,23 @@ impl RapierBody2D {
         self._apply_linear_damping(total_linear_damping, !linear_damping_done);
         self._apply_angular_damping(total_angular_damping, !angular_damping_done);
 
-        {
-            let lock = spaces_singleton();
-            if let Some(space) = lock.spaces.get_mut(&self.base.get_space()) {
-                if self.using_area_gravity {
-                    // Add default gravity from space.
-                    if !gravity_done {
-                        self.total_gravity +=
-                            space.get_default_area_param(AreaParameter::GRAVITY).to();
-                    }
-
-                    // Apply gravity scale to computed value.
-                    self.total_gravity *= self.gravity_scale;
-
-                    // Disable simulation gravity and apply it manually instead.
-                    self._apply_gravity_scale(0.0);
-                    space.body_add_to_gravity_update_list(self.base.get_rid());
-                } else {
-                    // Enable simulation gravity.
-                    self._apply_gravity_scale(self.gravity_scale);
-                    space.body_remove_from_gravity_update_list(self.base.get_rid());
+        if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+            if self.using_area_gravity {
+                // Add default gravity from space.
+                if !gravity_done {
+                    self.total_gravity += space.get_default_area_param(AreaParameter::GRAVITY).to();
                 }
+
+                // Apply gravity scale to computed value.
+                self.total_gravity *= self.gravity_scale;
+
+                // Disable simulation gravity and apply it manually instead.
+                self._apply_gravity_scale(0.0);
+                space.body_add_to_gravity_update_list(self.base.get_rid());
+            } else {
+                // Enable simulation gravity.
+                self._apply_gravity_scale(self.gravity_scale);
+                space.body_remove_from_gravity_update_list(self.base.get_rid());
             }
         }
     }
@@ -628,8 +619,8 @@ impl RapierBody2D {
     pub fn has_exception(&self, exception: Rid) -> bool {
         self.exceptions.contains(&exception)
     }
-    pub fn get_exceptions(&self) -> HashSet<Rid> {
-        self.exceptions.clone()
+    pub fn get_exceptions(&self) -> &HashSet<Rid> {
+        &self.exceptions
     }
 
     pub fn set_omit_force_integration(&mut self, omit_force_integration: bool) {
@@ -645,12 +636,9 @@ impl RapierBody2D {
             self.impulse += p_impulse;
             return;
         }
-        self.angular_velocity = 0.0;
-        body_set_angular_velocity(
-            self.base.get_space_handle(),
-            body_handle,
-            self.angular_velocity,
-        );
+        let impulse = rapier2d::na::Vector2::new(p_impulse.x, p_impulse.y);
+        body_apply_impulse(self.base.get_space_handle(), body_handle, impulse);
+        self.impulse = Vector2::ZERO;
     }
 
     pub fn apply_impulse(&mut self, p_impulse: Vector2, p_position: Vector2) {
@@ -663,12 +651,14 @@ impl RapierBody2D {
         let impulse = rapier2d::na::Vector2::new(p_impulse.x, p_impulse.y);
         let pos = rapier2d::na::Vector2::new(p_position.x, p_position.y);
         body_apply_impulse_at_point(self.base.get_space_handle(), body_handle, impulse, pos);
+        self.impulse = Vector2::ZERO;
+        self.torque = 0.0;
     }
 
     pub fn apply_torque_impulse(&mut self, p_torque: real) {
         let body_handle = self.base.get_body_handle();
+        self.torque += p_torque;
         if !self.base.get_space_handle().is_valid() || !body_handle.is_valid() {
-            self.torque += p_torque;
             return;
         }
         body_apply_torque_impulse(self.base.get_space_handle(), body_handle, p_torque);

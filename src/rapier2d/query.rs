@@ -299,7 +299,6 @@ pub fn shape_casting(
     collide_with_area: bool,
     handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
-    ignore_intersecting: bool,
 ) -> ShapeCastResult {
     let mut result = ShapeCastResult::new();
 

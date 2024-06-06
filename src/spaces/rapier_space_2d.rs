@@ -5,7 +5,6 @@ use crate::rapier2d::physics_world::{
 use crate::rapier2d::settings::WorldSettings;
 use crate::servers::rapier_physics_singleton_2d::bodies_singleton;
 use crate::servers::rapier_project_settings::RapierProjectSettings;
-use crate::shapes::rapier_shape_2d::IRapierShape2D;
 use crate::spaces::rapier_direct_space_state_2d::RapierDirectSpaceState2D;
 use crate::{
     bodies::rapier_collision_object_2d::CollisionObjectType,
@@ -44,7 +43,7 @@ impl RemovedColliderInfo {
 pub struct RapierSpace2D {
     direct_access: Option<Gd<PhysicsDirectSpaceState2D>>,
     rid: Rid,
-    pub handle: Handle,
+    handle: Handle,
     removed_colliders: HashMap<Handle, RemovedColliderInfo>,
     active_list: HashSet<Rid>,
     mass_properties_update_list: HashSet<Rid>,
@@ -60,7 +59,6 @@ pub struct RapierSpace2D {
     default_gravity_value: real,
     default_linear_damping: real,
     default_angular_damping: real,
-    pub locked: bool,
     island_count: i32,
     active_objects: i32,
     collision_pairs: i32,
@@ -102,7 +100,6 @@ impl RapierSpace2D {
             default_gravity_value: 0.0,
             default_linear_damping: 0.0,
             default_angular_damping: 0.0,
-            locked: false,
             island_count: 0,
             active_objects: 0,
             collision_pairs: 0,
@@ -121,8 +118,8 @@ impl RapierSpace2D {
         self.handle
     }
 
-    pub fn set_rid(&mut self, p_rid: Rid) {
-        self.rid = p_rid;
+    pub fn is_valid(&self) -> bool {
+        self.handle.is_valid()
     }
 
     pub fn get_rid(&self) -> Rid {
@@ -194,64 +191,42 @@ impl RapierSpace2D {
 
     pub fn call_queries(&mut self) {
         for body_rid in self.state_query_list.clone() {
-            let mut direct_state = None;
-            let mut fi_callback_data = None;
-            let mut state_sync_callback = Callable::invalid();
-            {
-                let lock = bodies_singleton();
-                if let Some(body) = lock.collision_objects.get_mut(&body_rid) {
-                    if let Some(body) = body.get_mut_body() {
-                        if let Some(direct_state_gd) = body.get_direct_state() {
-                            direct_state = Some(direct_state_gd);
-                            fi_callback_data = body.get_force_integration_callback();
-                            state_sync_callback = body.get_state_sync_callback();
-                        }
+            if let Some(body) = bodies_singleton().collision_objects.get_mut(&body_rid) {
+                if let Some(body) = body.get_mut_body() {
+                    if !body.is_active() {
+                        self.body_remove_from_state_query_list(body.get_base().get_rid());
+                    }
+                    if let Some(direct_state) = body.get_direct_state() {
+                        let fi_callback_data = body.get_force_integration_callback();
 
-                        if !body.is_active() {
-                            self.body_remove_from_state_query_list(body.get_base().get_rid());
+                        if let Some(fi_callback_data) = fi_callback_data {
+                            if fi_callback_data.callable.is_valid() {
+                                let mut arg_array = Array::new();
+
+                                arg_array.push(direct_state.to_variant());
+                                arg_array.push(fi_callback_data.udata.clone());
+
+                                fi_callback_data.callable.callv(arg_array);
+                            }
+                        }
+                        let state_sync_callback = body.get_state_sync_callback();
+                        //  Sync body server with Godot by sending body direct state
+                        if state_sync_callback.is_valid() {
+                            let mut arg_array = Array::new();
+                            arg_array.push(direct_state.to_variant());
+                            state_sync_callback.callv(arg_array);
                         }
                     }
-                }
-            }
-            if let Some(fi_callback_data) = fi_callback_data {
-                if fi_callback_data.callable.is_valid() {
-                    if let Some(direct_state) = direct_state.clone() {
-                        let mut arg_array = Array::new();
-
-                        arg_array.push(direct_state.to_variant());
-                        arg_array.push(fi_callback_data.udata.clone());
-
-                        fi_callback_data.callable.callv(arg_array);
-                    }
-                }
-            }
-            //  Sync body server with Godot by sending body direct state
-            if state_sync_callback.is_valid() {
-                if let Some(direct_state) = direct_state.clone() {
-                    let mut arg_array = Array::new();
-                    arg_array.push(direct_state.to_variant());
-                    state_sync_callback.callv(arg_array);
                 }
             }
         }
         for area_rid in self.monitor_query_list.clone() {
-            let lock = bodies_singleton();
-            if let Some(area) = lock.collision_objects.get(&area_rid) {
+            if let Some(area) = bodies_singleton().collision_objects.get(&area_rid) {
                 if let Some(area) = area.get_area() {
                     area.call_queries(self);
                 }
             }
         }
-    }
-
-    pub fn is_locked(&self) -> bool {
-        self.locked
-    }
-    pub fn lock(&mut self) {
-        self.locked = true;
-    }
-    pub fn unlock(&mut self) {
-        self.locked = false;
     }
 
     pub fn get_last_step() -> real {
@@ -321,8 +296,8 @@ impl RapierSpace2D {
             self.contact_debug_count += 1;
         }
     }
-    pub fn get_debug_contacts(&self) -> PackedVector2Array {
-        self.contact_debug.clone()
+    pub fn get_debug_contacts(&self) -> &PackedVector2Array {
+        &self.contact_debug
     }
     pub fn get_debug_contact_count(&self) -> i32 {
         self.contact_debug_count as i32
@@ -336,8 +311,7 @@ impl RapierSpace2D {
         self.active_objects = world_get_active_objects_count(self.handle) as i32;
 
         for body in self.active_list.clone() {
-            let lock = bodies_singleton();
-            if let Some(body) = lock.collision_objects.get_mut(&body) {
+            if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
                 if let Some(body) = body.get_mut_body() {
                     body.on_update_active(self);
                 }
@@ -345,15 +319,8 @@ impl RapierSpace2D {
         }
     }
 
-    pub fn get_direct_state(&self) -> Option<Gd<PhysicsDirectSpaceState2D>> {
-        self.direct_access.clone()
-    }
-
-    pub fn get_rapier_direct_state(&self) -> Option<Gd<RapierDirectSpaceState2D>> {
-        if let Some(direct_access) = &self.direct_access {
-            return Some(direct_access.clone().cast());
-        }
-        None
+    pub fn get_direct_state(&self) -> &Option<Gd<PhysicsDirectSpaceState2D>> {
+        &self.direct_access
     }
 
     pub fn get_active_list(&self) -> &HashSet<Rid> {
