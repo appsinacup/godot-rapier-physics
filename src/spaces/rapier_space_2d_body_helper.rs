@@ -103,7 +103,7 @@ impl RapierSpace2D {
         handle_excluded_info.query_exclude_body = exclude_body.to_u64() as i64;
 
         intersect_aabb(
-            self.handle,
+            self.get_handle(),
             rect_begin,
             rect_end,
             collide_with_bodies,

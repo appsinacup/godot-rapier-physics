@@ -23,44 +23,23 @@ size = Vector2(42.2131, 68.4998)
 script = ExtResource("1_osmip")
 body = NodePath("RigidBody2D4")
 
-[node name="RigidBody2D6" type="RigidBody2D" parent="."]
-position = Vector2(-72, -19)
-
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="RigidBody2D6"]
-position = Vector2(-37, -152)
-rotation = -0.584078
-polygon = PackedVector2Array(-6, -38, 24, -30, 58, 40, -2, 46, 18, 11, -5, 18, -35, 35)
-
-[node name="RigidBody2D7" type="RigidBody2D" parent="."]
-position = Vector2(197, 52)
-rotation = -0.670343
-can_sleep = false
-
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="RigidBody2D7"]
-position = Vector2(-9, -154)
-rotation = -0.584078
-build_mode = 1
-polygon = PackedVector2Array(-6, -38, 24, -30, 58, 40, -2, 46, 18, 11, -5, 18, -35, 35)
+[node name="PinJoint2D" type="PinJoint2D" parent="."]
+position = Vector2(-75, -10)
+node_a = NodePath("../RigidBody2D")
+node_b = NodePath("../RigidBody2D5")
+disable_collision = false
 
 [node name="RigidBody2D" type="StaticBody2D" parent="."]
 position = Vector2(-74, -13)
 
 [node name="CollisionShape2D4" type="CollisionShape2D" parent="RigidBody2D"]
-position = Vector2(-33, -50)
 shape = SubResource("CircleShape2D_r2n1f")
 
-[node name="PinJoint2D" type="PinJoint2D" parent="RigidBody2D"]
-position = Vector2(-31, -48)
-node_a = NodePath("..")
-node_b = NodePath("../../RigidBody2D5")
-disable_collision = false
-
 [node name="RigidBody2D5" type="RigidBody2D" parent="."]
-position = Vector2(-2, -15)
+position = Vector2(-138, -20)
 script = ExtResource("1_4sybc")
 
 [node name="CollisionShape2D4" type="CollisionShape2D" parent="RigidBody2D5"]
-position = Vector2(-9, -26)
 shape = SubResource("RectangleShape2D_4v4tp")
 
 [node name="RigidBody2D2" type="RigidBody2D" parent="."]
@@ -78,7 +57,6 @@ script = ExtResource("1_4sybc")
 [node name="CollisionShape2D4" type="CollisionShape2D" parent="RigidBody2D3"]
 position = Vector2(-28, -86)
 rotation = -1.6004
-skew = 0.319395
 shape = SubResource("CapsuleShape2D_dyble")
 
 [node name="RigidBody2D10" type="RigidBody2D" parent="."]
@@ -88,7 +66,6 @@ script = ExtResource("1_4sybc")
 
 [node name="CollisionShape2D5" type="CollisionShape2D" parent="RigidBody2D10"]
 position = Vector2(0, -110)
-skew = 0.694641
 shape = SubResource("CapsuleShape2D_dyble")
 
 [node name="RigidBody2D4" type="RigidBody2D" parent="."]

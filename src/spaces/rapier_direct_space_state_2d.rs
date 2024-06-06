@@ -1,7 +1,9 @@
+use std::ops::Deref;
+
 use crate::{
     bodies::rapier_collision_object_2d::{IRapierCollisionObject2D, RapierCollisionObject2D},
     rapier2d::{
-        handle::{invalid_handle, Handle},
+        handle::Handle,
         query::{intersect_point, shape_casting, PointHitInfo, QueryExcludedInfo, RayHitInfo},
         shape::shape_info_from_body_shape,
         user_data::UserData,
@@ -44,35 +46,39 @@ pub fn is_handle_excluded_callback(
     }
 
     let (collision_object_2d, _) = RapierCollisionObject2D::get_collider_user_data(user_data);
-    let body_lock = bodies_singleton();
-    let collision_object_2d = body_lock
+    if let Some(collision_object_2d) = bodies_singleton()
         .collision_objects
         .get(&collision_object_2d)
-        .unwrap();
-    if handle_excluded_info.query_canvas_instance_id
-        != collision_object_2d.get_base().get_canvas_instance_id()
     {
-        return true;
+        let collision_object_base = collision_object_2d.get_base();
+        if handle_excluded_info.query_canvas_instance_id
+            != collision_object_base.get_canvas_instance_id()
+        {
+            return true;
+        }
+        if collision_object_base.get_collision_layer()
+            & handle_excluded_info.query_collision_layer_mask
+            == 0
+        {
+            return true;
+        }
+        if handle_excluded_info.query_exclude_body
+            == collision_object_base.get_rid().to_u64() as i64
+        {
+            return true;
+        }
+        if let Some(active_space) = active_spaces_singleton().active_spaces.get(&world_handle) {
+            if let Some(space) = spaces_singleton().spaces.get(active_space) {
+                if let Some(direct_space) = space.get_direct_state() {
+                    let direct_state = direct_space.clone().cast() as Gd<RapierDirectSpaceState2D>;
+                    let direct_space = direct_state.deref();
+                    return direct_space
+                        .is_body_excluded_from_query(collision_object_base.get_rid());
+                }
+            }
+        }
     }
-
-    if collision_object_2d.get_base().get_collision_layer()
-        & handle_excluded_info.query_collision_layer_mask
-        == 0
-    {
-        return true;
-    }
-
-    if handle_excluded_info.query_exclude_body
-        == collision_object_2d.get_base().get_rid().to_u64() as i64
-    {
-        return true;
-    }
-    let spaces_lock = spaces_singleton();
-    let active_spaces_lock = active_spaces_singleton();
-    let space = active_spaces_lock.active_spaces.get(&world_handle).unwrap();
-    let space = spaces_lock.spaces.get(space).unwrap();
-    let direct_state = space.get_rapier_direct_state().unwrap();
-    return direct_state.is_body_excluded_from_query(collision_object_2d.get_base().get_rid());
+    false
 }
 
 #[godot_api]
@@ -94,66 +100,55 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         hit_from_inside: bool,
         result: *mut godot::engine::native::PhysicsServer2DExtensionRayResult,
     ) -> bool {
-        let mut space_handle = invalid_handle();
-        {
-            let lock = spaces_singleton();
-            let space = lock.spaces.get(&self.space);
-            if let Some(space) = space {
-                if space.locked {
-                    return false;
-                }
-                space_handle = space.handle
+        if let Some(space) = spaces_singleton().spaces.get(&self.space) {
+            if !space.is_valid() {
+                return false;
             }
-        }
-        if !space_handle.is_valid() {
-            return false;
-        }
+            // Raycast Info
+            let end = to - from;
+            let dir = end.normalized();
 
-        // Raycast Info
-        let begin = from;
-        let end = to - from;
-        let dir = end.normalized();
-        let length = end.length();
+            let rapier_from = rapier2d::na::Vector2::new(from.x, from.y);
+            let rapier_dir = rapier2d::na::Vector2::new(dir.x, dir.y);
 
-        let rapier_from = rapier2d::na::Vector2::new(begin.x, begin.y);
-        let rapier_dir = rapier2d::na::Vector2::new(dir.x, dir.y);
+            let mut query_excluded_info = QueryExcludedInfo::default();
+            query_excluded_info.query_collision_layer_mask = collision_mask;
 
-        let mut query_excluded_info = QueryExcludedInfo::default();
-        query_excluded_info.query_collision_layer_mask = collision_mask;
+            let mut hit_info = RayHitInfo::default();
+            let collide = crate::rapier2d::query::intersect_ray(
+                space.get_handle(),
+                rapier_from,
+                rapier_dir,
+                end.length(),
+                collide_with_bodies,
+                collide_with_areas,
+                hit_from_inside,
+                &mut hit_info,
+                is_handle_excluded_callback,
+                &query_excluded_info,
+            );
 
-        let mut hit_info = RayHitInfo::default();
-        let collide = crate::rapier2d::query::intersect_ray(
-            space_handle,
-            rapier_from,
-            rapier_dir,
-            length,
-            collide_with_bodies,
-            collide_with_areas,
-            hit_from_inside,
-            &mut hit_info,
-            is_handle_excluded_callback,
-            &query_excluded_info,
-        );
-
-        if collide {
-            let result = &mut *result;
-            result.position = Vector2::new(hit_info.pixel_position.x, hit_info.pixel_position.y);
-            result.normal = Vector2::new(hit_info.normal.x, hit_info.normal.y);
-            let (rid, shape_index) =
-                RapierCollisionObject2D::get_collider_user_data(&hit_info.user_data);
-            result.rid = rid;
-            result.shape = shape_index as i32;
-            let lock = bodies_singleton();
-            let collision_object_2d = lock.collision_objects.get(&result.rid);
-            if let Some(collision_object_2d) = collision_object_2d {
-                let instance_id = collision_object_2d.get_base().get_instance_id();
-                result.collider_id = ObjectId { id: instance_id };
-                if instance_id != 0 {
-                    result.collider = RapierSpace2D::_get_object_instance_hack(instance_id);
+            if collide {
+                let result = &mut *result;
+                result.position =
+                    Vector2::new(hit_info.pixel_position.x, hit_info.pixel_position.y);
+                result.normal = Vector2::new(hit_info.normal.x, hit_info.normal.y);
+                let (rid, shape_index) =
+                    RapierCollisionObject2D::get_collider_user_data(&hit_info.user_data);
+                result.rid = rid;
+                result.shape = shape_index as i32;
+                if let Some(collision_object_2d) =
+                    bodies_singleton().collision_objects.get(&result.rid)
+                {
+                    let instance_id = collision_object_2d.get_base().get_instance_id();
+                    result.collider_id = ObjectId { id: instance_id };
+                    if instance_id != 0 {
+                        result.collider = RapierSpace2D::_get_object_instance_hack(instance_id);
+                    }
                 }
-            }
 
-            return true;
+                return true;
+            }
         }
         false
     }
@@ -172,70 +167,62 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         if max_results <= 0 {
             return 0;
         }
-        let mut space_handle = invalid_handle();
-        {
-            let lock = spaces_singleton();
-            let space = lock.spaces.get(&self.space);
-            if let Some(space) = space {
-                if space.locked {
-                    return 0;
-                }
-                space_handle = space.handle;
+        if let Some(space) = spaces_singleton().spaces.get(&self.space) {
+            if space.is_valid() {
+                return 0;
             }
-        }
-        if !space_handle.is_valid() {
-            return 0;
-        }
-        let rapier_pos = rapier2d::na::Vector2::new(position.x, position.y);
+            let rapier_pos = rapier2d::na::Vector2::new(position.x, position.y);
 
-        // Allocate memory for hit_info_array
-        let mut hit_info_array: Vec<PointHitInfo> = Vec::with_capacity(max_results);
-        let hit_info_ptr = hit_info_array.as_mut_ptr();
+            // Allocate memory for hit_info_array
+            let mut hit_info_array: Vec<PointHitInfo> = Vec::with_capacity(max_results);
+            let hit_info_ptr = hit_info_array.as_mut_ptr();
 
-        // Initialize query_excluded_info
-        let mut query_excluded_info = QueryExcludedInfo::default();
-        query_excluded_info.query_canvas_instance_id = canvas_instance_id;
-        query_excluded_info.query_collision_layer_mask = collision_mask;
+            // Initialize query_excluded_info
+            let mut query_excluded_info = QueryExcludedInfo::default();
+            query_excluded_info.query_canvas_instance_id = canvas_instance_id;
+            query_excluded_info.query_collision_layer_mask = collision_mask;
 
-        // Perform intersection
-        let mut result_count = intersect_point(
-            space_handle,
-            rapier_pos,
-            collide_with_bodies,
-            collide_with_areas,
-            hit_info_ptr,
-            max_results,
-            is_handle_excluded_callback,
-            &mut query_excluded_info,
-        );
-        if result_count > max_results {
-            result_count = max_results;
-        }
+            // Perform intersection
+            let mut result_count = intersect_point(
+                space.get_handle(),
+                rapier_pos,
+                collide_with_bodies,
+                collide_with_areas,
+                hit_info_ptr,
+                max_results,
+                is_handle_excluded_callback,
+                &mut query_excluded_info,
+            );
+            if result_count > max_results {
+                result_count = max_results;
+            }
 
-        let results_slice: &mut [godot::engine::native::PhysicsServer2DExtensionShapeResult] =
-            unsafe { std::slice::from_raw_parts_mut(results, max_results) };
+            let results_slice: &mut [godot::engine::native::PhysicsServer2DExtensionShapeResult] =
+                unsafe { std::slice::from_raw_parts_mut(results, max_results) };
 
-        for i in 0..max_results {
-            let hit_info = unsafe { &mut *hit_info_ptr.add(i) };
+            for i in 0..max_results {
+                let hit_info = unsafe { &mut *hit_info_ptr.add(i) };
 
-            let (rid, shape_index) =
-                RapierCollisionObject2D::get_collider_user_data(&hit_info.user_data);
-            results_slice[i].rid = rid;
-            results_slice[i].shape = shape_index as i32;
-            let lock = bodies_singleton();
-            let collision_object_2d = lock.collision_objects.get(&rid);
-            if let Some(collision_object_2d) = collision_object_2d {
-                let instance_id = collision_object_2d.get_base().get_instance_id();
-                results_slice[i].collider_id = ObjectId { id: instance_id };
+                let (rid, shape_index) =
+                    RapierCollisionObject2D::get_collider_user_data(&hit_info.user_data);
+                results_slice[i].rid = rid;
+                results_slice[i].shape = shape_index as i32;
+                let lock = bodies_singleton();
+                let collision_object_2d = lock.collision_objects.get(&rid);
+                if let Some(collision_object_2d) = collision_object_2d {
+                    let instance_id = collision_object_2d.get_base().get_instance_id();
+                    results_slice[i].collider_id = ObjectId { id: instance_id };
 
-                if instance_id != 0 {
-                    results_slice[i].collider =
-                        RapierSpace2D::_get_object_instance_hack(instance_id);
+                    if instance_id != 0 {
+                        results_slice[i].collider =
+                            RapierSpace2D::_get_object_instance_hack(instance_id);
+                    }
                 }
             }
-        }
 
-        result_count as i32
+            return result_count as i32;
+        }
+        0
     }
 
     unsafe fn intersect_shape(
@@ -251,76 +238,68 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         max_results: i32,
     ) -> i32 {
         let max_results = max_results as usize;
-        let mut shape_handle = invalid_handle();
-        let mut space_handle = invalid_handle();
-        {
-            let lock = shapes_singleton();
-            let shape = lock.shapes.get_mut(&shape_rid);
-            if let Some(shape) = shape {
-                shape_handle = shape.get_rapier_shape();
+        if let Some(shape) = shapes_singleton().shapes.get_mut(&shape_rid) {
+            if !shape.get_base().is_valid() {
+                return 0;
             }
-        }
-        {
-            let lock = spaces_singleton();
-            let space = lock.spaces.get(&self.space);
-            if let Some(space) = space {
-                space_handle = space.handle;
-            }
-        }
-        if !shape_handle.is_valid() || !space_handle.is_valid() {
-            return 0;
-        }
-        let rapier_motion = rapier2d::na::Vector2::new(motion.x, motion.y);
-        let shape_info = shape_info_from_body_shape(shape_handle, transform);
-
-        let mut query_excluded_info = QueryExcludedInfo::default();
-        query_excluded_info.query_collision_layer_mask = collision_mask;
-        let query_exclude: Vec<Handle> = Vec::with_capacity(max_results);
-        query_excluded_info.query_exclude = query_exclude;
-        query_excluded_info.query_exclude_size = 0;
-        let mut cpt = 0;
-        let results_slice: &mut [godot::engine::native::PhysicsServer2DExtensionShapeResult] =
-            unsafe { std::slice::from_raw_parts_mut(results, max_results) };
-        while cpt < max_results {
-            let result = shape_casting(
-                space_handle,
-                rapier_motion,
-                shape_info,
-                collide_with_bodies,
-                collide_with_areas,
-                is_handle_excluded_callback,
-                &query_excluded_info,
-                false,
-            );
-            if !result.collided {
-                break;
-            }
-            query_excluded_info.query_exclude[query_excluded_info.query_exclude_size] =
-                result.collider;
-            query_excluded_info.query_exclude_size += 1;
-            if !result.user_data.is_valid() {
-                continue;
-            }
-            let (rid, shape_index) =
-                RapierCollisionObject2D::get_collider_user_data(&result.user_data);
-            let lock = bodies_singleton();
-            let collision_object_2d = lock.collision_objects.get(&rid);
-            if let Some(collision_object_2d) = collision_object_2d {
-                results_slice[cpt].shape = shape_index as i32;
-                results_slice[cpt].rid = rid;
-
-                let instance_id = collision_object_2d.get_base().get_instance_id();
-                results_slice[cpt].collider_id = ObjectId { id: instance_id };
-
-                if instance_id != 0 {
-                    results_slice[cpt].collider =
-                        RapierSpace2D::_get_object_instance_hack(instance_id);
+            if let Some(space) = spaces_singleton().spaces.get(&self.space) {
+                if !space.is_valid() {
+                    return 0;
                 }
-                cpt += 1;
+                let rapier_motion = rapier2d::na::Vector2::new(motion.x, motion.y);
+                let shape_info =
+                    shape_info_from_body_shape(shape.get_base().get_handle(), transform);
+
+                let mut query_excluded_info = QueryExcludedInfo::default();
+                query_excluded_info.query_collision_layer_mask = collision_mask;
+                let query_exclude: Vec<Handle> = Vec::with_capacity(max_results);
+                query_excluded_info.query_exclude = query_exclude;
+                query_excluded_info.query_exclude_size = 0;
+                let mut cpt = 0;
+                let results_slice: &mut [godot::engine::native::PhysicsServer2DExtensionShapeResult] =
+            unsafe { std::slice::from_raw_parts_mut(results, max_results) };
+                while cpt < max_results {
+                    let result = shape_casting(
+                        space.get_handle(),
+                        rapier_motion,
+                        shape_info,
+                        collide_with_bodies,
+                        collide_with_areas,
+                        is_handle_excluded_callback,
+                        &query_excluded_info,
+                    );
+                    if !result.collided {
+                        break;
+                    }
+                    query_excluded_info.query_exclude[query_excluded_info.query_exclude_size] =
+                        result.collider;
+                    query_excluded_info.query_exclude_size += 1;
+                    if !result.user_data.is_valid() {
+                        continue;
+                    }
+                    let (rid, shape_index) =
+                        RapierCollisionObject2D::get_collider_user_data(&result.user_data);
+                    let lock = bodies_singleton();
+                    let collision_object_2d = lock.collision_objects.get(&rid);
+                    if let Some(collision_object_2d) = collision_object_2d {
+                        results_slice[cpt].shape = shape_index as i32;
+                        results_slice[cpt].rid = rid;
+
+                        let instance_id = collision_object_2d.get_base().get_instance_id();
+                        results_slice[cpt].collider_id = ObjectId { id: instance_id };
+
+                        if instance_id != 0 {
+                            results_slice[cpt].collider =
+                                RapierSpace2D::_get_object_instance_hack(instance_id);
+                        }
+                        cpt += 1;
+                    }
+                }
+
+                return cpt as i32;
             }
         }
-
-        cpt as i32
+        0
     }
 
     unsafe fn cast_motion(
@@ -335,49 +314,37 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         closest_safe: *mut f64,
         closest_unsafe: *mut f64,
     ) -> bool {
-        let mut space_handle = invalid_handle();
-        let mut shape_handle = invalid_handle();
-        {
-            let lock = spaces_singleton();
-            let space = lock.spaces.get(&self.space);
-            if let Some(space) = space {
-                if space.locked {
+        if let Some(shape) = shapes_singleton().shapes.get(&shape_rid) {
+            if !shape.get_base().is_valid() {
+                return false;
+            }
+            if let Some(space) = spaces_singleton().spaces.get(&self.space) {
+                if !space.is_valid() {
                     return false;
                 }
-                space_handle = space.handle;
+                let rapier_motion = rapier2d::na::Vector2::new(motion.x, motion.y);
+                let shape_info =
+                    shape_info_from_body_shape(shape.get_base().get_handle(), transform);
+
+                let mut query_excluded_info = QueryExcludedInfo::default();
+                query_excluded_info.query_collision_layer_mask = collision_mask;
+                let hit = shape_casting(
+                    space.get_handle(),
+                    rapier_motion,
+                    shape_info,
+                    collide_with_bodies,
+                    collide_with_areas,
+                    is_handle_excluded_callback,
+                    &query_excluded_info,
+                )
+                .toi;
+                // TODO
+                *closest_safe = hit as f64;
+                *closest_unsafe = hit as f64;
+                return true;
             }
         }
-        {
-            let lock = shapes_singleton();
-            let shape = lock.shapes.get(&shape_rid);
-            if let Some(shape) = shape {
-                shape_handle = shape.get_base().get_handle();
-            }
-        }
-        if !space_handle.is_valid() || !shape_handle.is_valid() {
-            return false;
-        }
-
-        let rapier_motion = rapier2d::na::Vector2::new(motion.x, motion.y);
-        let shape_info = shape_info_from_body_shape(shape_handle, transform);
-
-        let mut query_excluded_info = QueryExcludedInfo::default();
-        query_excluded_info.query_collision_layer_mask = collision_mask;
-        let hit = shape_casting(
-            space_handle,
-            rapier_motion,
-            shape_info,
-            collide_with_bodies,
-            collide_with_areas,
-            is_handle_excluded_callback,
-            &query_excluded_info,
-            false,
-        )
-        .toi;
-        // TODO
-        *closest_safe = hit as f64;
-        *closest_unsafe = hit as f64;
-        true
+        false
     }
 
     unsafe fn collide_shape(
@@ -393,71 +360,59 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         max_results: i32,
         result_count: *mut i32,
     ) -> bool {
-        let mut space_handle = invalid_handle();
-        let mut shape_handle = invalid_handle();
-        {
-            let lock = spaces_singleton();
-            let space = lock.spaces.get(&self.space);
-            if let Some(space) = space {
-                if space.locked {
+        if let Some(shape) = shapes_singleton().shapes.get(&shape_rid) {
+            if !shape.get_base().is_valid() {
+                return false;
+            }
+            if let Some(space) = spaces_singleton().spaces.get(&self.space) {
+                if !space.is_valid() {
                     return false;
                 }
-                space_handle = space.handle
+                let rapier_motion = rapier2d::na::Vector2::new(motion.x, motion.y);
+
+                let results_out = results as *mut Vector2;
+                let shape_info =
+                    shape_info_from_body_shape(shape.get_base().get_handle(), transform);
+                let mut query_excluded_info = QueryExcludedInfo::default();
+                query_excluded_info.query_collision_layer_mask = collision_mask;
+                let query_exclude: Vec<Handle> = Vec::with_capacity(max_results as usize);
+                query_excluded_info.query_exclude = query_exclude;
+                query_excluded_info.query_exclude_size = 0;
+
+                let mut array_idx = 0;
+                let mut cpt = 0;
+
+                while cpt < max_results {
+                    let result = shape_casting(
+                        space.get_handle(),
+                        rapier_motion,
+                        shape_info,
+                        collide_with_bodies,
+                        collide_with_areas,
+                        is_handle_excluded_callback,
+                        &mut query_excluded_info,
+                    );
+                    if !result.collided {
+                        break;
+                    }
+                    *result_count += 1;
+                    query_excluded_info.query_exclude[query_excluded_info.query_exclude_size] =
+                        result.collider;
+                    query_excluded_info.query_exclude_size += 1;
+                    unsafe {
+                        (*results_out.add(array_idx)) =
+                            Vector2::new(result.pixel_witness1.x, result.pixel_witness1.y);
+                        (*results_out.add(array_idx + 1)) =
+                            Vector2::new(result.pixel_witness2.x, result.pixel_witness2.y);
+                    }
+                    array_idx += 2;
+                    cpt += 1;
+                }
+
+                return array_idx > 0;
             }
         }
-        {
-            let lock = shapes_singleton();
-            let shape = lock.shapes.get(&shape_rid);
-            if let Some(shape) = shape {
-                shape_handle = shape.get_base().get_handle();
-            }
-        }
-        if !space_handle.is_valid() || !shape_handle.is_valid() {
-            return false;
-        }
-
-        let rapier_motion = rapier2d::na::Vector2::new(motion.x, motion.y);
-
-        let results_out = results as *mut Vector2;
-        let shape_info = shape_info_from_body_shape(shape_handle, transform);
-        let mut query_excluded_info = QueryExcludedInfo::default();
-        query_excluded_info.query_collision_layer_mask = collision_mask;
-        let query_exclude: Vec<Handle> = Vec::with_capacity(max_results as usize);
-        query_excluded_info.query_exclude = query_exclude;
-        query_excluded_info.query_exclude_size = 0;
-
-        let mut array_idx = 0;
-        let mut cpt = 0;
-
-        while cpt < max_results {
-            let result = shape_casting(
-                space_handle,
-                rapier_motion,
-                shape_info,
-                collide_with_bodies,
-                collide_with_areas,
-                is_handle_excluded_callback,
-                &mut query_excluded_info,
-                false,
-            );
-            if !result.collided {
-                break;
-            }
-            *result_count += 1;
-            query_excluded_info.query_exclude[query_excluded_info.query_exclude_size] =
-                result.collider;
-            query_excluded_info.query_exclude_size += 1;
-            unsafe {
-                (*results_out.add(array_idx)) =
-                    Vector2::new(result.pixel_witness1.x, result.pixel_witness1.y);
-                (*results_out.add(array_idx + 1)) =
-                    Vector2::new(result.pixel_witness2.x, result.pixel_witness2.y);
-            }
-            array_idx += 2;
-            cpt += 1;
-        }
-
-        array_idx > 0
+        false
     }
 
     unsafe fn rest_info(
@@ -471,68 +426,57 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         collide_with_areas: bool,
         rest_info: *mut godot::engine::native::PhysicsServer2DExtensionShapeRestInfo,
     ) -> bool {
-        let mut space_handle = invalid_handle();
-        let mut shape_handle = invalid_handle();
-        {
-            let lock = spaces_singleton();
-            let space = lock.spaces.get(&self.space);
-            if let Some(space) = space {
-                if space.locked {
+        if let Some(shape) = shapes_singleton().shapes.get(&shape_rid) {
+            if !shape.get_base().is_valid() {
+                return false;
+            }
+            if let Some(space) = spaces_singleton().spaces.get(&self.space) {
+                if !space.is_valid() {
                     return false;
                 }
-                space_handle = space.handle;
-            }
-        }
-        {
-            let lock = shapes_singleton();
-            let shape = lock.shapes.get(&shape_rid);
-            if let Some(shape) = shape {
-                shape_handle = shape.get_base().get_handle();
-            }
-        }
-        if !space_handle.is_valid() || !shape_handle.is_valid() {
-            return false;
-        }
+                let rapier_motion = rapier2d::na::Vector2::new(motion.x, motion.y);
+                let shape_info =
+                    shape_info_from_body_shape(shape.get_base().get_handle(), transform);
 
-        let rapier_motion = rapier2d::na::Vector2::new(motion.x, motion.y);
-        let shape_info = shape_info_from_body_shape(shape_handle, transform);
-
-        let mut query_excluded_info = QueryExcludedInfo::default();
-        query_excluded_info.query_collision_layer_mask = collision_mask;
-        let result = shape_casting(
-            space_handle,
-            rapier_motion,
-            shape_info,
-            collide_with_bodies,
-            collide_with_areas,
-            is_handle_excluded_callback,
-            &mut query_excluded_info,
-            false,
-        );
-        if !result.collided {
-            return false;
-        }
-        let (rid, shape_index) = RapierCollisionObject2D::get_collider_user_data(&result.user_data);
-        let lock = bodies_singleton();
-        let collision_object_2d = lock.collision_objects.get(&rid);
-        let r_info = &mut *rest_info;
-        if let Some(collision_object_2d) = collision_object_2d {
-            let instance_id = collision_object_2d.get_base().get_instance_id();
-            r_info.collider_id = ObjectId { id: instance_id };
-            if let Some(body) = collision_object_2d.get_body() {
-                let rel_vec = r_info.point
-                    - (body.get_base().get_transform().origin + body.get_center_of_mass());
-                r_info.linear_velocity = Vector2::new(
-                    -body.get_angular_velocity() * rel_vec.y,
-                    body.get_angular_velocity() * rel_vec.x,
-                ) + body.get_linear_velocity();
-            } else {
-                r_info.linear_velocity = Vector2::ZERO
+                let mut query_excluded_info = QueryExcludedInfo::default();
+                query_excluded_info.query_collision_layer_mask = collision_mask;
+                let result = shape_casting(
+                    space.get_handle(),
+                    rapier_motion,
+                    shape_info,
+                    collide_with_bodies,
+                    collide_with_areas,
+                    is_handle_excluded_callback,
+                    &mut query_excluded_info,
+                );
+                if !result.collided {
+                    return false;
+                }
+                let (rid, shape_index) =
+                    RapierCollisionObject2D::get_collider_user_data(&result.user_data);
+                let lock = bodies_singleton();
+                let collision_object_2d = lock.collision_objects.get(&rid);
+                let r_info = &mut *rest_info;
+                if let Some(collision_object_2d) = collision_object_2d {
+                    let instance_id = collision_object_2d.get_base().get_instance_id();
+                    r_info.collider_id = ObjectId { id: instance_id };
+                    if let Some(body) = collision_object_2d.get_body() {
+                        let rel_vec = r_info.point
+                            - (body.get_base().get_transform().origin + body.get_center_of_mass());
+                        r_info.linear_velocity = Vector2::new(
+                            -body.get_angular_velocity() * rel_vec.y,
+                            body.get_angular_velocity() * rel_vec.x,
+                        ) + body.get_linear_velocity();
+                    } else {
+                        r_info.linear_velocity = Vector2::ZERO
+                    }
+                    r_info.normal = Vector2::new(result.normal1.x, result.normal1.y);
+                    r_info.rid = rid;
+                    r_info.shape = shape_index as i32;
+                }
+                return true;
             }
-            r_info.normal = Vector2::new(result.normal1.x, result.normal1.y);
-            r_info.rid = rid;
-            r_info.shape = shape_index as i32;
         }
-        true
+        false
     }
 }

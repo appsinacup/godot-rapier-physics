@@ -333,6 +333,10 @@ impl RapierCollisionObject2D {
         self.space_handle
     }
 
+    pub fn is_valid(&self) -> bool {
+        self.body_handle.is_valid() && self.space_handle.is_valid()
+    }
+
     pub fn get_rid(&self) -> Rid {
         self.rid
     }
