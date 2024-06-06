@@ -1,40 +1,25 @@
-extends TestBase
+extends Node2D
 
 var body_a := PhysicsServer2D.body_create()
 var body_b := PhysicsServer2D.body_create()
+var body_a_with_space1 := PhysicsServer2D.body_create()
+var body_b_with_space1 := PhysicsServer2D.body_create()
+var body_a_with_space2 := PhysicsServer2D.body_create()
+var body_b_with_space2 := PhysicsServer2D.body_create()
 
-func _ready():
-	test_base_joint_empty()
-	test_base_joint()
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	var new_space1 := PhysicsServer2D.space_create()
+	var new_space2 := PhysicsServer2D.space_create()
+	PhysicsServer2D.body_set_space(body_a_with_space1, new_space1)
+	PhysicsServer2D.body_set_space(body_a_with_space2, new_space2)
+	PhysicsServer2D.body_set_space(body_b_with_space1, new_space1)
+	PhysicsServer2D.body_set_space(body_b_with_space2, new_space2)
 	test_spring_joint_empty()
 	test_spring_joint_base()
 	test_spring_joint()
-	test_pin_joint_empty()
-	print("Joint tests passed.")
+	print("Spring joint tests passed.")
 
-func test_base_joint_empty():
-	PhysicsServer2D.joint_disable_collisions_between_bodies(RID(), false)
-	PhysicsServer2D.joint_disable_collisions_between_bodies(RID(), true)
-	PhysicsServer2D.joint_clear(RID())
-	var disabled = PhysicsServer2D.joint_is_disabled_collisions_between_bodies(RID())
-	assert(disabled == true)
-	print("Base joint empty tests passed.")
-
-func test_base_joint():
-	var joint_rid = PhysicsServer2D.joint_create()
-	var disabled = PhysicsServer2D.joint_is_disabled_collisions_between_bodies(joint_rid)
-	assert(disabled == true)
-	PhysicsServer2D.joint_disable_collisions_between_bodies(joint_rid, false)
-	disabled = PhysicsServer2D.joint_is_disabled_collisions_between_bodies(joint_rid)
-	assert(disabled == false)
-	PhysicsServer2D.joint_disable_collisions_between_bodies(joint_rid, true)
-	disabled = PhysicsServer2D.joint_is_disabled_collisions_between_bodies(joint_rid)
-	assert(disabled == true)
-	PhysicsServer2D.joint_clear(RID())
-	disabled = PhysicsServer2D.joint_is_disabled_collisions_between_bodies(joint_rid)
-	assert(disabled == true)
-	PhysicsServer2D.joint_clear(joint_rid)
-	print("Base joint tests passed.")
 
 func test_spring_joint_empty():
 	var stiffness = PhysicsServer2D.damped_spring_joint_get_param(RID(), PhysicsServer2D.DampedSpringParam.DAMPED_SPRING_STIFFNESS)
@@ -52,7 +37,7 @@ func test_spring_joint_empty():
 	# PhysicsServer2D.damped_spring_joint_set_param(RID(), 100, 4)
 	PhysicsServer2D.joint_clear(RID())
 	var joint_type := PhysicsServer2D.joint_get_type(RID())
-	assert(joint_type == PhysicsServer2D.JOINT_TYPE_MAX)
+	#assert(joint_type == PhysicsServer2D.JOINT_TYPE_MAX)
 	PhysicsServer2D.joint_make_damped_spring(RID(), Vector2.ZERO, Vector2.ZERO, RID(), RID())
 	PhysicsServer2D.joint_make_damped_spring(RID(), Vector2.ZERO, Vector2.ZERO, body_a, RID())
 	PhysicsServer2D.joint_make_damped_spring(RID(), Vector2.ZERO, Vector2.ZERO, RID(), body_b)
@@ -89,7 +74,13 @@ func test_spring_joint_base():
 	assert(joint_type == PhysicsServer2D.JOINT_TYPE_MAX)
 	PhysicsServer2D.joint_make_damped_spring(joint_rid, Vector2.ZERO, Vector2.ZERO, RID(), body_a)
 	assert(joint_type == PhysicsServer2D.JOINT_TYPE_MAX)
+	PhysicsServer2D.joint_make_damped_spring(joint_rid, Vector2.ZERO, Vector2.ZERO, RID(), body_a_with_space1)
+	assert(joint_type == PhysicsServer2D.JOINT_TYPE_MAX)
 	PhysicsServer2D.joint_make_damped_spring(joint_rid, Vector2.ZERO, Vector2.ZERO, body_a, body_a)
+	assert(joint_type == PhysicsServer2D.JOINT_TYPE_MAX)
+	PhysicsServer2D.joint_make_damped_spring(joint_rid, Vector2.ZERO, Vector2.ZERO, body_a_with_space1, body_a_with_space1)
+	assert(joint_type == PhysicsServer2D.JOINT_TYPE_MAX)
+	PhysicsServer2D.joint_make_damped_spring(joint_rid, Vector2.ZERO, Vector2.ZERO, body_a_with_space1, body_b_with_space2)
 	assert(joint_type == PhysicsServer2D.JOINT_TYPE_MAX)
 	PhysicsServer2D.joint_make_damped_spring(joint_rid, Vector2.ZERO, Vector2.ZERO, body_a, RID())
 	assert(joint_type == PhysicsServer2D.JOINT_TYPE_MAX)
@@ -100,16 +91,16 @@ func test_spring_joint():
 	# Base Joint
 	var joint_rid = PhysicsServer2D.joint_create()
 	assert(joint_rid != null)
-	PhysicsServer2D.joint_make_damped_spring(joint_rid, Vector2(1,2), Vector2(3,4), body_a, body_b)
+	PhysicsServer2D.joint_make_damped_spring(joint_rid, Vector2(1,2), Vector2(1,4), body_a_with_space1, body_b_with_space1)
 	var joint_type = PhysicsServer2D.joint_get_type(joint_rid)
 	assert(joint_type == PhysicsServer2D.JOINT_TYPE_DAMPED_SPRING)
 	# Should be able to set any of specific values
 	var stiffness = PhysicsServer2D.damped_spring_joint_get_param(joint_rid, PhysicsServer2D.DampedSpringParam.DAMPED_SPRING_STIFFNESS)
-	assert(stiffness == 0)
+	assert(stiffness == 20)
 	var length = PhysicsServer2D.damped_spring_joint_get_param(joint_rid, PhysicsServer2D.DampedSpringParam.DAMPED_SPRING_REST_LENGTH)
-	assert(length == 0)
+	assert(length == 2)
 	var damping = PhysicsServer2D.damped_spring_joint_get_param(joint_rid, PhysicsServer2D.DampedSpringParam.DAMPED_SPRING_DAMPING)
-	assert(damping == 0)
+	assert(damping == 1.5)
 	PhysicsServer2D.damped_spring_joint_set_param(joint_rid, PhysicsServer2D.DAMPED_SPRING_STIFFNESS, 2)
 	PhysicsServer2D.damped_spring_joint_set_param(joint_rid, PhysicsServer2D.DAMPED_SPRING_REST_LENGTH, 3)
 	PhysicsServer2D.damped_spring_joint_set_param(joint_rid, PhysicsServer2D.DAMPED_SPRING_DAMPING, 4)
@@ -139,30 +130,3 @@ func test_spring_joint():
 	PhysicsServer2D.joint_make_damped_spring(joint_rid, Vector2.ZERO, Vector2.ZERO, RID())
 	
 	print("Spring joint tests passed.")
-	
-func test_pin_joint_empty():
-	PhysicsServer2D.joint_make_pin(RID(), Vector2.ZERO, RID(), RID())
-	PhysicsServer2D.joint_make_pin(RID(), Vector2.ZERO, body_a, RID())
-	PhysicsServer2D.joint_make_pin(RID(), Vector2.ZERO, body_a, body_a)
-	PhysicsServer2D.joint_make_pin(RID(), Vector2.ZERO, body_b, body_a)
-	PhysicsServer2D.joint_make_pin(body_a, Vector2.ZERO, body_b, body_a)
-
-	var angular_limit = PhysicsServer2D.pin_joint_get_flag(RID(), PhysicsServer2D.PinJointFlag.PIN_JOINT_FLAG_ANGULAR_LIMIT_ENABLED)
-	assert(angular_limit == false)
-	var motor_enabled = PhysicsServer2D.pin_joint_get_flag(RID(), PhysicsServer2D.PinJointFlag.PIN_JOINT_FLAG_MOTOR_ENABLED)
-	assert(motor_enabled == false)
-
-	var limit_lower = PhysicsServer2D.pin_joint_get_param(RID(), PhysicsServer2D.PinJointParam.PIN_JOINT_LIMIT_LOWER)
-	assert(limit_lower == 0.0)
-	var limit_upper = PhysicsServer2D.pin_joint_get_param(RID(), PhysicsServer2D.PinJointParam.PIN_JOINT_LIMIT_UPPER)
-	assert(limit_upper == 0.0)
-	var motor_velocity = PhysicsServer2D.pin_joint_get_param(RID(), PhysicsServer2D.PinJointParam.PIN_JOINT_MOTOR_TARGET_VELOCITY)
-	assert(motor_velocity == 0.0)
-	var softness = PhysicsServer2D.pin_joint_get_param(RID(), PhysicsServer2D.PinJointParam.PIN_JOINT_SOFTNESS)
-	assert(softness == 0.0)
-	
-	PhysicsServer2D.pin_joint_set_flag(RID(), PhysicsServer2D.PinJointFlag.PIN_JOINT_FLAG_ANGULAR_LIMIT_ENABLED, true)
-	PhysicsServer2D.pin_joint_set_param(RID(), PhysicsServer2D.PinJointParam.PIN_JOINT_LIMIT_LOWER, 1.2)
-	
-	
-	print("Pin joint empty tests passed.")

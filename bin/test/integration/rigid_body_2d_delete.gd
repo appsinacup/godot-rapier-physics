@@ -7,6 +7,6 @@ func _ready() -> void:
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	if randf() < 0.02:
+func _process(_delta: float) -> void:
+	if randf() < 0.01:
 		queue_free()
