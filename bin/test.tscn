@@ -26,7 +26,7 @@ position = Vector2(-72, -19)
 lock_rotation = true
 
 [node name="RigidBody2D" type="RigidBody2D" parent="."]
-position = Vector2(-25, -1)
+position = Vector2(-74, -13)
 script = ExtResource("1_4sybc")
 
 [node name="CollisionShape2D4" type="CollisionShape2D" parent="RigidBody2D"]
@@ -36,7 +36,7 @@ scale = Vector2(2.5, 1)
 shape = SubResource("CircleShape2D_r2n1f")
 
 [node name="PinJoint2D" type="PinJoint2D" parent="RigidBody2D"]
-position = Vector2(-9, -25)
+position = Vector2(-31, -48)
 node_a = NodePath("..")
 node_b = NodePath("../../RigidBody2D5")
 disable_collision = false
