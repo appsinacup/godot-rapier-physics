@@ -7,6 +7,7 @@ use crate::rapier2d::handle::{invalid_handle, Handle};
 use crate::servers::rapier_physics_singleton_2d::{shapes_singleton, spaces_singleton};
 use crate::spaces::rapier_space_2d::RapierSpace2D;
 use godot::builtin::{real, Transform2D};
+use godot::log::godot_error;
 use godot::meta::ToGodot;
 use godot::obj::EngineEnum;
 use godot::{
@@ -442,7 +443,10 @@ impl IRapierCollisionObject2D for RapierArea2D {
     }
 
     fn set_shape(&mut self, p_index: usize, p_shape: Rid) {
-        assert!(p_index < self.base.shapes.len());
+        if p_index >= self.base.shapes.len() {
+            godot_error!("invalid index");
+            return;
+        }
 
         self.base.shapes[p_index].collider_handle =
             self.base._destroy_shape(self.base.shapes[p_index], p_index);
@@ -473,7 +477,10 @@ impl IRapierCollisionObject2D for RapierArea2D {
     }
 
     fn set_shape_transform(&mut self, p_index: usize, p_transform: Transform2D) {
-        assert!(p_index < self.base.shapes.len());
+        if p_index >= self.base.shapes.len() {
+            godot_error!("invalid index");
+            return;
+        }
 
         self.base.shapes[p_index].xform = p_transform;
         let shape = &self.base.shapes[p_index];
@@ -486,7 +493,10 @@ impl IRapierCollisionObject2D for RapierArea2D {
     }
 
     fn set_shape_disabled(&mut self, p_index: usize, p_disabled: bool) {
-        assert!(p_index < self.base.shapes.len());
+        if p_index >= self.base.shapes.len() {
+            godot_error!("invalid index");
+            return;
+        }
         self.base.shapes[p_index].disabled = p_disabled;
         let shape = self.base.shapes[p_index];
         if shape.disabled == p_disabled {
@@ -521,7 +531,10 @@ impl IRapierCollisionObject2D for RapierArea2D {
 
     fn remove_shape_idx(&mut self, p_index: usize) {
         // remove anything from shape to be erased to end, so subindices don't change
-        assert!(p_index < self.base.shapes.len());
+        if p_index >= self.base.shapes.len() {
+            godot_error!("invalid index");
+            return;
+        }
 
         let shape = &self.base.shapes[p_index];
 

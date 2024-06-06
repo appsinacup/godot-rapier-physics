@@ -56,11 +56,16 @@ impl IRapierShape2D for RapierConcavePolygonShape2D {
             let point_count = self.points.len();
             let mut rapier_points = Vec::with_capacity(point_count + 1);
             for i in 0..point_count {
-                rapier_points[i] = rapier2d::na::Vector2::new(self.points[i].x, self.points[i].y);
+                rapier_points.push(rapier2d::na::Vector2::new(
+                    self.points[i].x,
+                    self.points[i].y,
+                ));
             }
             // Close the polyline shape
-            rapier_points[point_count] =
-                rapier2d::na::Vector2::new(rapier_points[0].x, rapier_points[0].y);
+            rapier_points.push(rapier2d::na::Vector2::new(
+                rapier_points[0].x,
+                rapier_points[0].y,
+            ));
             shape_create_concave_polyline(rapier_points)
         } else {
             godot_error!("ConcavePolygon2D must have at least three point");
@@ -75,6 +80,9 @@ impl IRapierShape2D for RapierConcavePolygonShape2D {
             VariantType::PACKED_VECTOR2_ARRAY => {
                 let arr: PackedVector2Array = data.to();
                 let len = arr.len();
+                if len == 0 {
+                    return;
+                }
                 if len % 2 != 0 {
                     godot_error!("ConcavePolygon2D must have an even number of points");
                     return;
@@ -83,10 +91,6 @@ impl IRapierShape2D for RapierConcavePolygonShape2D {
                 self.segments.clear();
                 self.points.clear();
 
-                if len == 0 {
-                    self.base.configure(aabb);
-                    return;
-                }
                 for i in (0..len).step_by(2) {
                     let p1 = arr[i];
                     let p2 = arr[i + 1];

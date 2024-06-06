@@ -180,6 +180,9 @@ pub fn intersect_point(
     handle_excluded_info: &QueryExcludedInfo,
 ) -> usize {
     let mut cpt_hit = 0;
+    if hit_info_length <= 0 {
+        return cpt_hit;
+    }
     if let Some(physics_world) = physics_engine().get_world(world_handle) {
         let position = vector_pixels_to_meters(pixel_position);
         let point = Point::new(position.x, position.y);
@@ -203,7 +206,6 @@ pub fn intersect_point(
 
         filter.predicate = Some(&predicate);
 
-        assert!(hit_info_length > 0);
         let hit_info_slice_opt;
         unsafe {
             hit_info_slice_opt = Some(std::slice::from_raw_parts_mut(

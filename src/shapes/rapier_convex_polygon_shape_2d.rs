@@ -68,14 +68,16 @@ impl IRapierShape2D for RapierConvexPolygonShape2D {
             VariantType::PACKED_VECTOR2_ARRAY => {
                 let arr: PackedVector2Array = data.to();
                 let size = arr.len();
-                assert!(size > 0);
+                if size <= 0 {
+                    return;
+                }
                 self.points = Vec::with_capacity(size);
 
                 for i in 0..size {
-                    self.points[i] = Point {
+                    self.points.push(Point {
                         pos: arr[i],
                         normal: Vector2::ZERO,
-                    };
+                    });
                 }
 
                 for i in 0..size {
@@ -88,30 +90,34 @@ impl IRapierShape2D for RapierConvexPolygonShape2D {
                 let arr: PackedFloat32Array = data.to();
 
                 let size = arr.len() / 4;
-                assert!(size > 0);
+                if size <= 0 {
+                    return;
+                }
                 self.points = Vec::with_capacity(size);
 
                 for i in 0..size {
                     let idx = i << 2;
-                    self.points[i] = Point {
+                    self.points.push(Point {
                         pos: Vector2::new(arr[idx], arr[idx + 1]),
                         normal: Vector2::new(arr[idx + 2], arr[idx + 3]),
-                    };
+                    });
                 }
             }
             VariantType::PACKED_FLOAT64_ARRAY => {
                 let arr: PackedFloat64Array = data.to();
 
                 let size = arr.len() / 4;
-                assert!(size > 0);
+                if size <= 0 {
+                    return;
+                }
                 self.points = Vec::with_capacity(size);
 
                 for i in 0..size {
                     let idx = i << 2;
-                    self.points[i] = Point {
+                    self.points.push(Point {
                         pos: Vector2::new(arr[idx] as f32, arr[idx + 1] as f32),
                         normal: Vector2::new(arr[idx + 1] as f32, arr[idx + 3] as f32),
-                    };
+                    });
                 }
             }
             _ => {

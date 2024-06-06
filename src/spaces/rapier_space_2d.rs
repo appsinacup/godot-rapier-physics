@@ -82,7 +82,6 @@ impl RapierSpace2D {
             smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
         };
         let handle = world_create(&world_settings);
-        assert!(handle.is_valid());
 
         Self {
             direct_access: Some(direct_access.upcast()),

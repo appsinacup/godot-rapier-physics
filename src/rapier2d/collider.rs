@@ -23,11 +23,13 @@ fn skew_polyline(vertices: &Vec<Point2<Real>>, skew: Real) -> SharedShape {
         skewed_vertices.push(skewed_vertex);
     }
 
-    if let Some(convex_polyline) = SharedShape::convex_hull(&skewed_vertices.clone()) {
-        return convex_polyline;
+    let len = vertices.len();
+    let mut indices = vec![];
+    for i in 0..len {
+        indices.push([i as u32, ((i + 1) % len) as u32]);
     }
-
-    SharedShape::polyline(skewed_vertices, None)
+    let collider = ColliderBuilder::convex_decomposition(&skewed_vertices, &indices);
+    collider.shape
 }
 
 // Function to skew a shape
@@ -298,8 +300,8 @@ pub fn collider_set_transform(world_handle: Handle, handle: Handle, shape_info: 
     let physics_engine = physics_engine();
 
     if let Some(shape) = physics_engine.get_shape(shape_info.handle) {
-        let skewed_shape = skew_shape(shape, shape_info.skew);
-        let new_shape = scale_shape(&skewed_shape, shape_info.scale);
+        let scaled_shape = scale_shape(shape, shape_info.scale);
+        let new_shape = skew_shape(&scaled_shape, shape_info.skew);
         if let Some(physics_world) = physics_engine.get_world(world_handle) {
             let collider_handle = handle_to_collider_handle(handle);
             if let Some(collider) = physics_world

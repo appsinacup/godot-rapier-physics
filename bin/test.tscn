@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://d4exls53gi0df"]
+[gd_scene load_steps=10 format=3 uid="uid://d4exls53gi0df"]
 
 [ext_resource type="Script" path="res://rigid_body_2d.gd" id="1_4sybc"]
 [ext_resource type="Script" path="res://test.gd" id="1_osmip"]
@@ -17,22 +17,36 @@ size = Vector2(42.2131, 68.4998)
 
 [sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_a3uwi"]
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_kc77y"]
+
 [node name="Test" type="Node2D" node_paths=PackedStringArray("body")]
 script = ExtResource("1_osmip")
 body = NodePath("RigidBody2D4")
 
 [node name="RigidBody2D6" type="RigidBody2D" parent="."]
 position = Vector2(-72, -19)
-lock_rotation = true
 
-[node name="RigidBody2D" type="RigidBody2D" parent="."]
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="RigidBody2D6"]
+position = Vector2(-37, -152)
+rotation = -0.584078
+polygon = PackedVector2Array(-6, -38, 24, -30, 58, 40, -2, 46, 18, 11, -5, 18, -35, 35)
+
+[node name="RigidBody2D7" type="RigidBody2D" parent="."]
+position = Vector2(197, 52)
+rotation = -0.670343
+can_sleep = false
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="RigidBody2D7"]
+position = Vector2(-9, -154)
+rotation = -0.584078
+build_mode = 1
+polygon = PackedVector2Array(-6, -38, 24, -30, 58, 40, -2, 46, 18, 11, -5, 18, -35, 35)
+
+[node name="RigidBody2D" type="StaticBody2D" parent="."]
 position = Vector2(-74, -13)
-script = ExtResource("1_4sybc")
 
 [node name="CollisionShape2D4" type="CollisionShape2D" parent="RigidBody2D"]
 position = Vector2(-33, -50)
-rotation = -1.39611
-scale = Vector2(2.5, 1)
 shape = SubResource("CircleShape2D_r2n1f")
 
 [node name="PinJoint2D" type="PinJoint2D" parent="RigidBody2D"]
@@ -63,9 +77,18 @@ script = ExtResource("1_4sybc")
 
 [node name="CollisionShape2D4" type="CollisionShape2D" parent="RigidBody2D3"]
 position = Vector2(-28, -86)
-rotation = -0.877817
-scale = Vector2(2.48, 1)
-skew = 0.151844
+rotation = -1.6004
+skew = 0.319395
+shape = SubResource("CapsuleShape2D_dyble")
+
+[node name="RigidBody2D10" type="RigidBody2D" parent="."]
+position = Vector2(25, 11)
+gravity_scale = 1.01
+script = ExtResource("1_4sybc")
+
+[node name="CollisionShape2D5" type="CollisionShape2D" parent="RigidBody2D10"]
+position = Vector2(0, -110)
+skew = 0.694641
 shape = SubResource("CapsuleShape2D_dyble")
 
 [node name="RigidBody2D4" type="RigidBody2D" parent="."]
@@ -80,7 +103,7 @@ shape = SubResource("RectangleShape2D_dwlgg")
 zoom = Vector2(4, 4)
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
-position = Vector2(0, 86)
+position = Vector2(-1, 86)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
 shape = SubResource("WorldBoundaryShape2D_a3uwi")
@@ -88,5 +111,18 @@ shape = SubResource("WorldBoundaryShape2D_a3uwi")
 [node name="Timer" type="Timer" parent="."]
 wait_time = 10.0
 autostart = true
+
+[node name="RigidBody2D8" type="RigidBody2D" parent="."]
+position = Vector2(85, -66)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D8"]
+shape = SubResource("CircleShape2D_kc77y")
+
+[node name="RigidBody2D9" type="RigidBody2D" parent="."]
+position = Vector2(-89, -185)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D9"]
+position = Vector2(42, -8)
+shape = SubResource("CircleShape2D_kc77y")
 
 [connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]
