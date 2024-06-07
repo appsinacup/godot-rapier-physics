@@ -39,6 +39,12 @@ impl RapierDampedSpringJoint2D {
         let bodies_singleton = bodies_singleton();
         if let Some(body_a) = bodies_singleton.collision_objects.get(&body_a) {
             if let Some(body_b) = bodies_singleton.collision_objects.get(&body_b) {
+                if !body_a.get_base().is_valid()
+                    || !body_b.get_base().is_valid()
+                    || body_a.get_base().get_space_handle() != body_b.get_base().get_space_handle()
+                {
+                    return invalid_joint;
+                }
                 let base_a = body_a.get_base();
                 let body_a_handle = base_a.get_body_handle();
                 let base_b = body_b.get_base();
@@ -51,9 +57,6 @@ impl RapierDampedSpringJoint2D {
                 let rapier_anchor_a = rapier2d::na::Vector2::new(anchor_a.x, anchor_a.y);
                 let rapier_anchor_b = rapier2d::na::Vector2::new(anchor_b.x, anchor_b.y);
                 let space_handle = body_a.get_base().get_space_handle();
-                if space_handle != body_b.get_base().get_space_handle() {
-                    return invalid_joint;
-                }
 
                 let handle = joint_create_spring(
                     space_handle,

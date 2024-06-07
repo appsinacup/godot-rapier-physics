@@ -19,21 +19,36 @@ pub struct RapierPinJoint2D {
 
 impl RapierPinJoint2D {
     pub fn new(rid: Rid, pos: Vector2, body_a: Rid, body_b: Rid) -> Self {
-        let lock = bodies_singleton();
-        if let Some(body_a) = lock.collision_objects.get(&body_a) {
-            let body_a_handle = body_a.get_base().get_body_handle();
-            let anchor_a = body_a.get_base().get_inv_transform().basis_xform(pos);
-            let rapier_anchor_a = rapier2d::na::Vector2::new(anchor_a.x, anchor_a.y);
-            if let Some(body_b) = lock.collision_objects.get(&body_b) {
-                let body_b_handle = body_b.get_base().get_body_handle();
+        let invalid_joint = Self {
+            angular_limit_lower: 0.0,
+            angular_limit_upper: 0.0,
+            motor_target_velocity: 0.0,
+            motor_enabled: false,
+            angular_limit_enabled: false,
+            base: RapierJointBase2D::new(invalid_handle(), invalid_handle(), rid),
+        };
+        if body_a == body_b {
+            return invalid_joint;
+        }
+        let bodies_singleton = bodies_singleton();
+        if let Some(body_a) = bodies_singleton.collision_objects.get(&body_a) {
+            if let Some(body_b) = bodies_singleton.collision_objects.get(&body_b) {
+                if !body_a.get_base().is_valid()
+                    || !body_b.get_base().is_valid()
+                    || body_a.get_base().get_space_handle() != body_b.get_base().get_space_handle()
+                {
+                    return invalid_joint;
+                }
+                let anchor_a = body_a.get_base().get_inv_transform().basis_xform(pos);
                 let anchor_b = body_b.get_base().get_inv_transform().basis_xform(pos);
+                let rapier_anchor_a = rapier2d::na::Vector2::new(anchor_a.x, anchor_a.y);
                 let rapier_anchor_b = rapier2d::na::Vector2::new(anchor_b.x, anchor_b.y);
                 let space_handle = body_a.get_base().get_space_handle();
 
                 let handle = joint_create_revolute(
                     space_handle,
-                    body_a_handle,
-                    body_b_handle,
+                    body_a.get_base().get_body_handle(),
+                    body_b.get_base().get_body_handle(),
                     rapier_anchor_a,
                     rapier_anchor_b,
                     0.0,
@@ -53,14 +68,7 @@ impl RapierPinJoint2D {
                 };
             }
         }
-        Self {
-            angular_limit_lower: 0.0,
-            angular_limit_upper: 0.0,
-            motor_target_velocity: 0.0,
-            motor_enabled: false,
-            angular_limit_enabled: false,
-            base: RapierJointBase2D::new(invalid_handle(), invalid_handle(), rid),
-        }
+        invalid_joint
     }
 
     pub fn set_param(&mut self, p_param: physics_server_2d::PinJointParam, p_value: f32) {
@@ -76,14 +84,12 @@ impl RapierPinJoint2D {
             }
             _ => {}
         }
-        let handle = self.get_base().get_handle();
-        let space_handle = self.get_base().get_space_handle();
-        if !handle.is_valid() || !space_handle.is_valid() {
+        if !self.base.is_valid() {
             return;
         }
         joint_change_revolute_params(
-            space_handle,
-            handle,
+            self.base.get_space_handle(),
+            self.base.get_handle(),
             self.angular_limit_lower,
             self.angular_limit_upper,
             self.angular_limit_enabled,
@@ -111,14 +117,12 @@ impl RapierPinJoint2D {
             }
             _ => {}
         }
-        let handle = self.get_base().get_handle();
-        let space_handle = self.get_base().get_space_handle();
-        if !handle.is_valid() || !space_handle.is_valid() {
+        if !self.base.is_valid() {
             return;
         }
         joint_change_revolute_params(
-            space_handle,
-            handle,
+            self.base.get_space_handle(),
+            self.base.get_handle(),
             self.angular_limit_lower,
             self.angular_limit_upper,
             self.angular_limit_enabled,
