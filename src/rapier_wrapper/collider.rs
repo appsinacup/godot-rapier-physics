@@ -1,8 +1,8 @@
-use crate::rapier2d::convert::*;
-use crate::rapier2d::handle::*;
-use crate::rapier2d::physics_world::*;
-use crate::rapier2d::shape::ShapeInfo;
-use crate::rapier2d::user_data::*;
+use crate::rapier_wrapper::convert::*;
+use crate::rapier_wrapper::handle::*;
+use crate::rapier_wrapper::physics_world::*;
+use crate::rapier_wrapper::shape::ShapeInfo;
+use crate::rapier_wrapper::user_data::*;
 use godot::log::godot_error;
 use rapier2d::na::Point2;
 use rapier2d::na::Vector2;

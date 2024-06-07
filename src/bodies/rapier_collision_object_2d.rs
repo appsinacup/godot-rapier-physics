@@ -1,7 +1,7 @@
 use std::any::Any;
 
 use crate::{
-    rapier2d::{
+    rapier_wrapper::{
         body::{
             body_create, body_destroy, body_get_angle, body_get_position, body_set_transform,
             BodyType,
@@ -14,12 +14,12 @@ use crate::{
         shape::ShapeInfo,
         user_data::UserData,
     },
-    servers::rapier_physics_singleton_2d::{shapes_singleton, spaces_singleton},
+    servers2d::rapier_physics_singleton_2d::{shapes_singleton, spaces_singleton},
 };
 use godot::{
     builtin::{real, Rid, Transform2D, Vector2},
     engine::physics_server_2d::{self, BodyMode},
-    log::{godot_error, godot_print},
+    log::godot_error,
 };
 
 use super::{rapier_area_2d::RapierArea2D, rapier_body_2d::RapierBody2D};

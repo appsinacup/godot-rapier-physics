@@ -2,13 +2,13 @@ use std::ops::Deref;
 
 use crate::{
     bodies::rapier_collision_object_2d::{IRapierCollisionObject2D, RapierCollisionObject2D},
-    rapier2d::{
+    rapier_wrapper::{
         handle::Handle,
         query::{intersect_point, shape_casting, PointHitInfo, QueryExcludedInfo, RayHitInfo},
         shape::shape_info_from_body_shape,
         user_data::UserData,
     },
-    servers::rapier_physics_singleton_2d::{
+    servers2d::rapier_physics_singleton_2d::{
         active_spaces_singleton, bodies_singleton, shapes_singleton, spaces_singleton,
     },
     spaces::rapier_space_2d::RapierSpace2D,
@@ -115,7 +115,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             query_excluded_info.query_collision_layer_mask = collision_mask;
 
             let mut hit_info = RayHitInfo::default();
-            let collide = crate::rapier2d::query::intersect_ray(
+            let collide = crate::rapier_wrapper::query::intersect_ray(
                 space.get_handle(),
                 rapier_from,
                 rapier_dir,

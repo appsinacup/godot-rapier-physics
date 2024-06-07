@@ -1,9 +1,9 @@
 use crate::{
-    rapier2d::{
+    rapier_wrapper::{
         handle::{invalid_handle, Handle},
         shape::shape_destroy,
     },
-    servers::rapier_physics_singleton_2d::bodies_singleton,
+    servers2d::rapier_physics_singleton_2d::bodies_singleton,
 };
 use godot::{engine::physics_server_2d::ShapeType, prelude::*};
 use std::{any::Any, collections::HashMap};

@@ -1,14 +1,14 @@
 use crate::bodies::rapier_collision_object_2d::*;
-use crate::rapier2d::body::*;
-use crate::rapier2d::collider::collider_set_contact_force_events_enabled;
-use crate::rapier2d::collider::Material;
-use crate::rapier2d::handle::invalid_handle;
-use crate::rapier2d::handle::Handle;
-use crate::servers::rapier_physics_server_2d::RapierBodyParam;
-use crate::servers::rapier_physics_singleton_2d::bodies_singleton;
-use crate::servers::rapier_physics_singleton_2d::shapes_singleton;
-use crate::servers::rapier_physics_singleton_2d::spaces_singleton;
-use crate::servers::rapier_project_settings::RapierProjectSettings;
+use crate::rapier_wrapper::body::*;
+use crate::rapier_wrapper::collider::collider_set_contact_force_events_enabled;
+use crate::rapier_wrapper::collider::Material;
+use crate::rapier_wrapper::handle::invalid_handle;
+use crate::rapier_wrapper::handle::Handle;
+use crate::servers2d::rapier_physics_server_2d::RapierBodyParam;
+use crate::servers2d::rapier_physics_singleton_2d::bodies_singleton;
+use crate::servers2d::rapier_physics_singleton_2d::shapes_singleton;
+use crate::servers2d::rapier_physics_singleton_2d::spaces_singleton;
+use crate::servers2d::rapier_project_settings_2d::*;
 use crate::spaces::rapier_space_2d::RapierSpace2D;
 use godot::engine::physics_server_2d::AreaParameter;
 use godot::engine::physics_server_2d::AreaSpaceOverrideMode;
@@ -125,7 +125,7 @@ impl RapierBody2D {
             friction: 1.0,
             mass: 1.0,
             inertia: 0.0,
-            contact_skin: RapierProjectSettings::get_contact_skin() as f32,
+            contact_skin: RapierProjectSettings2D::get_contact_skin() as f32,
             center_of_mass: Vector2::ZERO,
             calculate_inertia: true,
             calculate_center_of_mass: true,

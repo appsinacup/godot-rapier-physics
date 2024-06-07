@@ -1,8 +1,8 @@
 use crate::bodies::rapier_body_2d::RapierBody2D;
 use crate::bodies::rapier_collision_object_2d::{CollisionObjectType, IRapierCollisionObject2D};
-use crate::rapier2d::handle::Handle;
-use crate::rapier2d::query::PointHitInfo;
-use crate::rapier2d::query::{intersect_aabb, ContactResult, QueryExcludedInfo};
+use crate::rapier_wrapper::handle::Handle;
+use crate::rapier_wrapper::query::PointHitInfo;
+use crate::rapier_wrapper::query::{intersect_aabb, ContactResult, QueryExcludedInfo};
 use crate::shapes::rapier_shape_2d::IRapierShape2D;
 use godot::engine::physics_server_2d::BodyMode;
 use godot::{engine::native::PhysicsServer2DExtensionMotionResult, prelude::*};
@@ -137,7 +137,7 @@ impl RapierSpace2D {
 
             let body_aabb = p_body.get_aabb();
             // Undo the currently transform the physics server is aware of and apply the provided one
-            let margin_aabb = p_transform.basis_xform(body_aabb);
+            let margin_aabb = p_transform * body_aabb;
             let margin_aabb = margin_aabb.grow(p_margin);
 
             let result_count = self.rapier_intersect_aabb(
@@ -257,7 +257,7 @@ impl RapierSpace2D {
     ) {
         /*
         let body_aabb = p_body.get_aabb();
-        let margin_aabb = p_transform.basis_xform(body_aabb);
+        let margin_aabb = p_transform * body_aabb;
 
         let margin_aabb = margin_aabb.grow(p_margin);
         let mut motion_aabb = margin_aabb;
@@ -392,7 +392,7 @@ impl RapierSpace2D {
             return false;
         }
         let body_aabb = p_body.get_aabb();
-        let margin_aabb = p_transform.basis_xform(body_aabb);
+        let margin_aabb = p_transform * body_aabb;
         let margin_aabb = margin_aabb.grow(p_margin);
 
         // also check things at motion

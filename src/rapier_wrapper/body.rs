@@ -1,8 +1,8 @@
-use crate::rapier2d::collider::*;
-use crate::rapier2d::convert::*;
-use crate::rapier2d::handle::*;
-use crate::rapier2d::physics_world::*;
-use crate::rapier2d::user_data::UserData;
+use crate::rapier_wrapper::collider::*;
+use crate::rapier_wrapper::convert::*;
+use crate::rapier_wrapper::handle::*;
+use crate::rapier_wrapper::physics_world::*;
+use crate::rapier_wrapper::user_data::UserData;
 use nalgebra::Vector2;
 use rapier2d::prelude::*;
 

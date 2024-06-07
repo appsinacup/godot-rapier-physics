@@ -1,7 +1,7 @@
 use crate::{
     joints::rapier_joint_2d::IRapierJoint2D,
-    rapier2d::{handle::invalid_handle, joint::joint_create_prismatic},
-    servers::rapier_physics_singleton_2d::bodies_singleton,
+    rapier_wrapper::{handle::invalid_handle, joint::joint_create_prismatic},
+    servers2d::rapier_physics_singleton_2d::bodies_singleton,
 };
 use godot::{
     builtin::{Rid, Vector2},
@@ -41,8 +41,8 @@ impl RapierGrooveJoint2D {
                     return invalid_joint;
                 }
                 let base_a = body_a.get_base();
-                let point_a_1 = base_a.get_inv_transform().basis_xform(p_a_groove1);
-                let point_a_2 = base_a.get_inv_transform().basis_xform(p_a_groove2);
+                let point_a_1 = base_a.get_inv_transform() * p_a_groove1;
+                let point_a_2 = base_a.get_inv_transform() * p_a_groove2;
                 let axis = (point_a_2 - point_a_1).normalized();
                 let length = (point_a_2 - point_a_1).length();
                 let rapier_axis = rapier2d::na::Vector2::new(axis.x, axis.y);
@@ -50,7 +50,7 @@ impl RapierGrooveJoint2D {
                 let rapier_anchor_a = rapier2d::na::Vector2::new(point_a_1.x, point_a_1.y);
 
                 let base_b = body_b.get_base();
-                let anchor_b = base_b.get_inv_transform().basis_xform(p_b_anchor);
+                let anchor_b = base_b.get_inv_transform() * p_b_anchor;
                 let rapier_anchor_b = rapier2d::na::Vector2::new(anchor_b.x, anchor_b.y);
                 let space_handle = body_a.get_base().get_space_handle();
 

@@ -2,12 +2,12 @@ use std::mem::swap;
 
 use super::rapier_space_2d::RapierSpace2D;
 use crate::bodies::rapier_collision_object_2d::{CollisionObjectType, IRapierCollisionObject2D};
-use crate::servers::rapier_physics_singleton_2d::{
+use crate::servers2d::rapier_physics_singleton_2d::{
     active_spaces_singleton, bodies_singleton, spaces_singleton,
 };
 use crate::{
     bodies::rapier_collision_object_2d::RapierCollisionObject2D,
-    rapier2d::{
+    rapier_wrapper::{
         handle::Handle,
         physics_hooks::{CollisionFilterInfo, OneWayDirection},
         physics_world::{

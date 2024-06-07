@@ -1,14 +1,14 @@
 use crate::bodies::rapier_collision_object_2d::IRapierCollisionObject2D;
-use crate::rapier2d::physics_world::{
+use crate::rapier_wrapper::physics_world::{
     world_export_binary, world_export_json, world_get_active_objects_count,
 };
-use crate::rapier2d::settings::WorldSettings;
-use crate::servers::rapier_physics_singleton_2d::bodies_singleton;
-use crate::servers::rapier_project_settings::RapierProjectSettings;
+use crate::rapier_wrapper::settings::WorldSettings;
+use crate::servers2d::rapier_physics_singleton_2d::bodies_singleton;
+use crate::servers2d::rapier_project_settings_2d::RapierProjectSettings2D;
 use crate::spaces::rapier_direct_space_state_2d::RapierDirectSpaceState2D;
 use crate::{
     bodies::rapier_collision_object_2d::CollisionObjectType,
-    rapier2d::{handle::Handle, physics_world::world_create},
+    rapier_wrapper::{handle::Handle, physics_world::world_create},
 };
 use godot::engine::physics_server_2d::AreaParameter;
 use godot::{
@@ -76,8 +76,8 @@ impl RapierSpace2D {
         direct_access.bind_mut().set_space(rid);
 
         let world_settings = WorldSettings {
-            particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
-            smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
+            particle_radius: RapierProjectSettings2D::get_fluid_particle_radius() as real,
+            smoothing_factor: RapierProjectSettings2D::get_fluid_smoothing_factor() as real,
         };
         let handle = world_create(&world_settings);
 

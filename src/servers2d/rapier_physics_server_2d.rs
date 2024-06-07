@@ -7,10 +7,10 @@ use crate::joints::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 use crate::joints::rapier_groove_joint_2d::RapierGrooveJoint2D;
 use crate::joints::rapier_joint_2d::{IRapierJoint2D, RapierEmptyJoint2D};
 use crate::joints::rapier_pin_joint_2d::RapierPinJoint2D;
-use crate::rapier2d::physics_world::world_step;
-use crate::rapier2d::query::shape_collide;
-use crate::rapier2d::settings::SimulationSettings;
-use crate::rapier2d::shape::shape_info_from_body_shape;
+use crate::rapier_wrapper::physics_world::world_step;
+use crate::rapier_wrapper::query::shape_collide;
+use crate::rapier_wrapper::settings::SimulationSettings;
+use crate::rapier_wrapper::shape::shape_info_from_body_shape;
 use crate::shapes::rapier_capsule_shape_2d::RapierCapsuleShape2D;
 use crate::shapes::rapier_circle_shape_2d::RapierCircleShape2D;
 use crate::shapes::rapier_concave_polygon_shape_2d::RapierConcavePolygonShape2D;
@@ -31,7 +31,7 @@ use super::rapier_physics_singleton_2d::{
     active_spaces_singleton, bodies_singleton, fluids_singleton, joints_singleton,
     shapes_singleton, spaces_singleton,
 };
-use super::rapier_project_settings::RapierProjectSettings;
+use super::rapier_project_settings_2d::RapierProjectSettings2D;
 
 #[derive(GodotClass)]
 #[class(base=PhysicsServer2DExtension, tool)]
@@ -1257,8 +1257,8 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
                 .get_setting_with_override("physics/2d/default_gravity".into())
                 .to();
 
-            let fluid_default_gravity_dir = RapierProjectSettings::get_fluid_gravity_dir();
-            let fluid_default_gravity_value = RapierProjectSettings::get_fluid_gravity_value();
+            let fluid_default_gravity_dir = RapierProjectSettings2D::get_fluid_gravity_dir();
+            let fluid_default_gravity_value = RapierProjectSettings2D::get_fluid_gravity_value();
 
             //let default_linear_damping: real = project_settings.get_setting_with_override("physics/2d/default_linear_damp".into()).to();
             //let default_angular_damping: real = project_settings.get_setting_with_override("physics/2d/default_angular_damp".into()).to();
@@ -1273,12 +1273,13 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
                     default_gravity_dir.x * default_gravity_value,
                     default_gravity_dir.y * default_gravity_value,
                 ),
-                max_ccd_substeps: RapierProjectSettings::get_solver_max_ccd_substeps() as usize,
+                max_ccd_substeps: RapierProjectSettings2D::get_solver_max_ccd_substeps() as usize,
                 num_additional_friction_iterations:
-                    RapierProjectSettings::get_solver_num_additional_friction_iterations() as usize,
+                    RapierProjectSettings2D::get_solver_num_additional_friction_iterations()
+                        as usize,
                 num_internal_pgs_iterations:
-                    RapierProjectSettings::get_solver_num_internal_pgs_iterations() as usize,
-                num_solver_iterations: RapierProjectSettings::get_solver_num_solver_iterations()
+                    RapierProjectSettings2D::get_solver_num_internal_pgs_iterations() as usize,
+                num_solver_iterations: RapierProjectSettings2D::get_solver_num_solver_iterations()
                     as usize,
             };
             // this calls into rapier
