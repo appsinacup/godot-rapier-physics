@@ -279,7 +279,10 @@ dependencies = [
  "godot",
  "rapier2d",
  "rapier2d-f64",
+ "rapier3d 0.19.0",
+ "rapier3d-f64",
  "salva2d",
+ "salva3d",
  "serde",
  "serde_json",
 ]
@@ -551,6 +554,71 @@ dependencies = [
 ]
 
 [[package]]
+name = "parry3d"
+version = "0.13.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7d27f5ab3d42400056b5b6a6306dbaa91fc3033d8628146dca0d8ed7fbc20730"
+dependencies = [
+ "approx",
+ "arrayvec",
+ "bitflags",
+ "downcast-rs",
+ "either",
+ "nalgebra",
+ "num-derive",
+ "num-traits",
+ "rustc-hash",
+ "simba",
+ "slab",
+ "smallvec",
+ "spade",
+]
+
+[[package]]
+name = "parry3d"
+version = "0.15.1"
+source = "git+https://github.com/dimforge/parry?branch=master#9e723ee3f066da9b61eb4023fe393ff4f81125d3"
+dependencies = [
+ "approx",
+ "arrayvec",
+ "bitflags",
+ "downcast-rs",
+ "either",
+ "log",
+ "nalgebra",
+ "num-derive",
+ "num-traits",
+ "rustc-hash",
+ "serde",
+ "simba",
+ "slab",
+ "smallvec",
+ "spade",
+]
+
+[[package]]
+name = "parry3d-f64"
+version = "0.15.1"
+source = "git+https://github.com/dimforge/parry?branch=master#9e723ee3f066da9b61eb4023fe393ff4f81125d3"
+dependencies = [
+ "approx",
+ "arrayvec",
+ "bitflags",
+ "downcast-rs",
+ "either",
+ "log",
+ "nalgebra",
+ "num-derive",
+ "num-traits",
+ "rustc-hash",
+ "serde",
+ "simba",
+ "slab",
+ "smallvec",
+ "spade",
+]
+
+[[package]]
 name = "paste"
 version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -577,7 +645,7 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.19.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#cfcbe58920d7fa2177e9a1887b92cf20d5dab337"
+source = "git+https://github.com/dimforge/rapier?branch=master#d687fe97b10ec427a25e2b6579de0a271855fce5"
 dependencies = [
  "approx",
  "arrayvec",
@@ -601,7 +669,7 @@ dependencies = [
 [[package]]
 name = "rapier2d-f64"
 version = "0.19.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#cfcbe58920d7fa2177e9a1887b92cf20d5dab337"
+source = "git+https://github.com/dimforge/rapier?branch=master#d687fe97b10ec427a25e2b6579de0a271855fce5"
 dependencies = [
  "approx",
  "arrayvec",
@@ -620,6 +688,70 @@ dependencies = [
  "serde",
  "simba",
  "vec_map",
+]
+
+[[package]]
+name = "rapier3d"
+version = "0.18.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "92d07a833e0aa3bc57010caaa50bf75fa78afc03a74207607db740da4e4579a1"
+dependencies = [
+ "approx",
+ "arrayvec",
+ "bit-vec",
+ "bitflags",
+ "crossbeam",
+ "downcast-rs",
+ "nalgebra",
+ "num-derive",
+ "num-traits",
+ "parry3d 0.13.8",
+ "rustc-hash",
+ "simba",
+]
+
+[[package]]
+name = "rapier3d"
+version = "0.19.0"
+source = "git+https://github.com/dimforge/rapier?branch=master#d687fe97b10ec427a25e2b6579de0a271855fce5"
+dependencies = [
+ "approx",
+ "arrayvec",
+ "bit-vec",
+ "bitflags",
+ "crossbeam",
+ "downcast-rs",
+ "log",
+ "nalgebra",
+ "num-derive",
+ "num-traits",
+ "ordered-float",
+ "parry3d 0.15.1",
+ "rustc-hash",
+ "serde",
+ "simba",
+]
+
+[[package]]
+name = "rapier3d-f64"
+version = "0.19.0"
+source = "git+https://github.com/dimforge/rapier?branch=master#d687fe97b10ec427a25e2b6579de0a271855fce5"
+dependencies = [
+ "approx",
+ "arrayvec",
+ "bit-vec",
+ "bitflags",
+ "crossbeam",
+ "downcast-rs",
+ "log",
+ "nalgebra",
+ "num-derive",
+ "num-traits",
+ "ordered-float",
+ "parry3d-f64",
+ "rustc-hash",
+ "serde",
+ "simba",
 ]
 
 [[package]]
@@ -718,6 +850,22 @@ dependencies = [
  "num-traits",
  "parry2d",
  "rapier2d",
+]
+
+[[package]]
+name = "salva3d"
+version = "0.9.0"
+source = "git+https://github.com/ughuuu/salva?branch=update-to-rapier-0.19#badd003b434de8b25c648f17646fc91f9ab1bff8"
+dependencies = [
+ "approx",
+ "fnv",
+ "generational-arena",
+ "instant",
+ "itertools",
+ "nalgebra",
+ "num-traits",
+ "parry3d 0.15.1",
+ "rapier3d 0.18.0",
 ]
 
 [[package]]

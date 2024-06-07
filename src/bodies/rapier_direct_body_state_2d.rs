@@ -1,6 +1,6 @@
 use crate::{
     bodies::rapier_collision_object_2d::IRapierCollisionObject2D,
-    servers::rapier_physics_singleton_2d::{bodies_singleton, spaces_singleton},
+    servers2d::rapier_physics_singleton_2d::{bodies_singleton, spaces_singleton},
     spaces::rapier_space_2d::RapierSpace2D,
 };
 use godot::{
@@ -81,7 +81,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         if let Some(body) = bodies_singleton().collision_objects.get(&self.body) {
             let base = body.get_base();
             if let Some(body) = body.get_body() {
-                return base.get_transform().basis_xform(body.get_center_of_mass());
+                return base.get_transform() * body.get_center_of_mass();
             }
         }
         Vector2::ZERO

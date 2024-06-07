@@ -1,6 +1,6 @@
-use crate::rapier2d::convert::*;
-use crate::rapier2d::handle::*;
-use crate::rapier2d::physics_world::*;
+use crate::rapier_wrapper::convert::*;
+use crate::rapier_wrapper::handle::*;
+use crate::rapier_wrapper::physics_world::*;
 use nalgebra::UnitVector2;
 use nalgebra::Vector2;
 use rapier2d::prelude::*;

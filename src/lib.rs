@@ -2,8 +2,9 @@
 mod bodies;
 mod fluids;
 mod joints;
-mod rapier2d;
-mod servers;
+mod rapier_wrapper;
+mod servers2d;
+//mod servers3d;
 mod shapes;
 mod spaces;
 use godot::prelude::*;
@@ -20,10 +21,11 @@ unsafe impl ExtensionLibrary for RapierPhysics2DExtensionLibrary {
     fn on_level_init(level: InitLevel) {
         match level {
             InitLevel::Scene => {
-                servers::register_scene();
+                servers2d::register_scene();
+                //servers3d::register_scene();
             }
             InitLevel::Servers => {
-                servers::register_server();
+                servers2d::register_server();
             }
             _ => (),
         }
@@ -32,10 +34,10 @@ unsafe impl ExtensionLibrary for RapierPhysics2DExtensionLibrary {
     fn on_level_deinit(level: InitLevel) {
         match level {
             InitLevel::Scene => {
-                servers::unregister_scene();
+                servers2d::unregister_scene();
             }
             InitLevel::Servers => {
-                servers::unregister_server();
+                servers2d::unregister_server();
             }
             _ => (),
         }

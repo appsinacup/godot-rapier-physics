@@ -1,9 +1,9 @@
-use crate::rapier2d::convert::*;
-use crate::rapier2d::event_handler::ContactEventHandler;
-use crate::rapier2d::handle::*;
-use crate::rapier2d::physics_hooks::*;
-use crate::rapier2d::settings::*;
-use crate::rapier2d::user_data::*;
+use crate::rapier_wrapper::convert::*;
+use crate::rapier_wrapper::event_handler::ContactEventHandler;
+use crate::rapier_wrapper::handle::*;
+use crate::rapier_wrapper::physics_hooks::*;
+use crate::rapier_wrapper::settings::*;
+use crate::rapier_wrapper::user_data::*;
 use godot::log::godot_error;
 use nalgebra::Vector2;
 use rapier2d::crossbeam;

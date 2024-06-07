@@ -1,14 +1,14 @@
 use std::ops::Mul;
 
-use crate::rapier2d::collider::*;
-use crate::rapier2d::convert::meters_to_pixels;
-use crate::rapier2d::convert::pixels_to_meters;
-use crate::rapier2d::convert::vector_meters_to_pixels;
-use crate::rapier2d::convert::vector_pixels_to_meters;
-use crate::rapier2d::handle::*;
-use crate::rapier2d::physics_world::*;
-use crate::rapier2d::shape::*;
-use crate::rapier2d::user_data::*;
+use crate::rapier_wrapper::collider::*;
+use crate::rapier_wrapper::convert::meters_to_pixels;
+use crate::rapier_wrapper::convert::pixels_to_meters;
+use crate::rapier_wrapper::convert::vector_meters_to_pixels;
+use crate::rapier_wrapper::convert::vector_pixels_to_meters;
+use crate::rapier_wrapper::handle::*;
+use crate::rapier_wrapper::physics_world::*;
+use crate::rapier_wrapper::shape::*;
+use crate::rapier_wrapper::user_data::*;
 use godot::log::godot_error;
 use nalgebra::Vector2;
 use rapier2d::parry;

@@ -2,9 +2,9 @@ use crate::bodies::rapier_collision_object_2d::{CollisionObjectShape, CollisionO
 use crate::bodies::rapier_collision_object_2d::{
     IRapierCollisionObject2D, RapierCollisionObject2D,
 };
-use crate::rapier2d::collider::{default_material, Material};
-use crate::rapier2d::handle::{invalid_handle, Handle};
-use crate::servers::rapier_physics_singleton_2d::{shapes_singleton, spaces_singleton};
+use crate::rapier_wrapper::collider::{default_material, Material};
+use crate::rapier_wrapper::handle::{invalid_handle, Handle};
+use crate::servers2d::rapier_physics_singleton_2d::{shapes_singleton, spaces_singleton};
 use crate::spaces::rapier_space_2d::RapierSpace2D;
 use godot::builtin::{real, Transform2D};
 use godot::log::godot_error;

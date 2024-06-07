@@ -1,7 +1,7 @@
-use crate::rapier2d::convert::*;
-use crate::rapier2d::handle::*;
-use crate::rapier2d::physics_world::*;
-use crate::rapier2d::shape::*;
+use crate::rapier_wrapper::convert::*;
+use crate::rapier_wrapper::handle::*;
+use crate::rapier_wrapper::physics_world::*;
+use crate::rapier_wrapper::shape::*;
 use nalgebra::Vector2;
 use rapier2d::prelude::*;
 use salva2d::math::Vector as SalvaVector;

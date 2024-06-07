@@ -1,10 +1,10 @@
 use crate::{
     joints::rapier_joint_2d::IRapierJoint2D,
-    rapier2d::{
+    rapier_wrapper::{
         handle::invalid_handle,
         joint::{joint_change_spring_params, joint_create_spring},
     },
-    servers::rapier_physics_singleton_2d::bodies_singleton,
+    servers2d::rapier_physics_singleton_2d::bodies_singleton,
 };
 use godot::{
     builtin::{real, Rid, Vector2},
@@ -50,8 +50,8 @@ impl RapierDampedSpringJoint2D {
                 let base_b = body_b.get_base();
                 let body_b_handle = base_b.get_body_handle();
 
-                let anchor_a = base_a.get_inv_transform().basis_xform(p_anchor_a);
-                let anchor_b = base_b.get_inv_transform().basis_xform(p_anchor_b);
+                let anchor_a = base_a.get_inv_transform() * p_anchor_a;
+                let anchor_b = base_b.get_inv_transform() * p_anchor_b;
 
                 let rest_length = p_anchor_a.distance_to(p_anchor_b);
                 let rapier_anchor_a = rapier2d::na::Vector2::new(anchor_a.x, anchor_a.y);

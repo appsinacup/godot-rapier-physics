@@ -1,6 +1,6 @@
 use std::any::Any;
 
-use crate::rapier2d::{
+use crate::rapier_wrapper::{
     handle::{invalid_handle, Handle},
     joint::{joint_change_disable_collision, joint_destroy},
 };

@@ -5,7 +5,7 @@ use godot::{
     obj::Gd,
 };
 
-use crate::rapier2d::handle::{invalid_handle_double, HandleDouble};
+use crate::rapier_wrapper::handle::{invalid_handle_double, HandleDouble};
 
 use super::fluid_effect_2d::FluidEffect2D;
 

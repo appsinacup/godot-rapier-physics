@@ -1,5 +1,5 @@
-use crate::rapier2d::convert::*;
-use crate::rapier2d::user_data::*;
+use crate::rapier_wrapper::convert::*;
+use crate::rapier_wrapper::user_data::*;
 use rapier2d::prelude::*;
 
 pub struct OneWayDirection {
