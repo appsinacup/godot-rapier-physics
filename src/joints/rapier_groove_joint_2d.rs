@@ -25,27 +25,39 @@ impl RapierGrooveJoint2D {
         body_a: Rid,
         body_b: Rid,
     ) -> Self {
-        let lock = bodies_singleton();
-        if let Some(body_a) = lock.collision_objects.get(&body_a) {
-            let base_a = body_a.get_base();
-            let point_a_1 = base_a.get_inv_transform().basis_xform(p_a_groove1);
-            let point_a_2 = base_a.get_inv_transform().basis_xform(p_a_groove2);
-            let body_a_handle = body_a.get_base().get_body_handle();
-            let axis = (point_a_2 - point_a_1).normalized();
-            let length = (point_a_2 - point_a_1).length();
-            let rapier_axis = rapier2d::na::Vector2::new(axis.x, axis.y);
-            let rapier_limits = rapier2d::na::Vector2::new(0.0, length);
-            let rapier_anchor_a = rapier2d::na::Vector2::new(point_a_1.x, point_a_1.y);
-            let space_handle = body_a.get_base().get_space_handle();
-            if let Some(body_b) = lock.collision_objects.get(&body_b) {
-                let body_b_handle = body_b.get_base().get_body_handle();
+        let invalid_joint = Self {
+            base: RapierJointBase2D::new(invalid_handle(), invalid_handle(), rid),
+        };
+        if body_a == body_b {
+            return invalid_joint;
+        }
+        let bodies_singleton = bodies_singleton();
+        if let Some(body_a) = bodies_singleton.collision_objects.get(&body_a) {
+            if let Some(body_b) = bodies_singleton.collision_objects.get(&body_b) {
+                if !body_a.get_base().is_valid()
+                    || !body_b.get_base().is_valid()
+                    || body_a.get_base().get_space_handle() != body_b.get_base().get_space_handle()
+                {
+                    return invalid_joint;
+                }
+                let base_a = body_a.get_base();
+                let point_a_1 = base_a.get_inv_transform().basis_xform(p_a_groove1);
+                let point_a_2 = base_a.get_inv_transform().basis_xform(p_a_groove2);
+                let axis = (point_a_2 - point_a_1).normalized();
+                let length = (point_a_2 - point_a_1).length();
+                let rapier_axis = rapier2d::na::Vector2::new(axis.x, axis.y);
+                let rapier_limits = rapier2d::na::Vector2::new(0.0, length);
+                let rapier_anchor_a = rapier2d::na::Vector2::new(point_a_1.x, point_a_1.y);
+
                 let base_b = body_b.get_base();
                 let anchor_b = base_b.get_inv_transform().basis_xform(p_b_anchor);
                 let rapier_anchor_b = rapier2d::na::Vector2::new(anchor_b.x, anchor_b.y);
+                let space_handle = body_a.get_base().get_space_handle();
+
                 let handle = joint_create_prismatic(
                     space_handle,
-                    body_a_handle,
-                    body_b_handle,
+                    body_a.get_base().get_body_handle(),
+                    body_b.get_base().get_body_handle(),
                     rapier_axis,
                     rapier_anchor_a,
                     rapier_anchor_b,
@@ -57,9 +69,7 @@ impl RapierGrooveJoint2D {
                 };
             }
         }
-        Self {
-            base: RapierJointBase2D::new(invalid_handle(), invalid_handle(), rid),
-        }
+        invalid_joint
     }
 }
 

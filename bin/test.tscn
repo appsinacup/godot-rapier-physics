@@ -1,105 +1,37 @@
-[gd_scene load_steps=10 format=3 uid="uid://d4exls53gi0df"]
+[gd_scene load_steps=4 format=3 uid="uid://d4exls53gi0df"]
 
 [ext_resource type="Script" path="res://rigid_body_2d.gd" id="1_4sybc"]
-[ext_resource type="Script" path="res://test.gd" id="1_osmip"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_r2n1f"]
 radius = 16.6667
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_4v4tp"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_maxl6"]
-
-[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_dyble"]
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_dwlgg"]
-size = Vector2(42.2131, 68.4998)
-
-[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_a3uwi"]
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_kc77y"]
-
-[node name="Test" type="Node2D" node_paths=PackedStringArray("body")]
-script = ExtResource("1_osmip")
-body = NodePath("RigidBody2D4")
+[node name="Test" type="Node2D"]
 
 [node name="PinJoint2D" type="PinJoint2D" parent="."]
-position = Vector2(-75, -10)
+position = Vector2(119, -47)
 node_a = NodePath("../RigidBody2D")
 node_b = NodePath("../RigidBody2D5")
-disable_collision = false
 
 [node name="RigidBody2D" type="StaticBody2D" parent="."]
-position = Vector2(-74, -13)
+position = Vector2(118, -46)
 
 [node name="CollisionShape2D4" type="CollisionShape2D" parent="RigidBody2D"]
 shape = SubResource("CircleShape2D_r2n1f")
 
 [node name="RigidBody2D5" type="RigidBody2D" parent="."]
-position = Vector2(-138, -20)
+position = Vector2(54, -53)
 script = ExtResource("1_4sybc")
 
 [node name="CollisionShape2D4" type="CollisionShape2D" parent="RigidBody2D5"]
 shape = SubResource("RectangleShape2D_4v4tp")
 
-[node name="RigidBody2D2" type="RigidBody2D" parent="."]
-position = Vector2(25, -6)
-script = ExtResource("1_4sybc")
-
-[node name="CollisionShape2D4" type="CollisionShape2D" parent="RigidBody2D2"]
-shape = SubResource("RectangleShape2D_maxl6")
-
-[node name="RigidBody2D3" type="RigidBody2D" parent="."]
-position = Vector2(25, 11)
-gravity_scale = 1.01
-script = ExtResource("1_4sybc")
-
-[node name="CollisionShape2D4" type="CollisionShape2D" parent="RigidBody2D3"]
-position = Vector2(-28, -86)
-rotation = -1.6004
-shape = SubResource("CapsuleShape2D_dyble")
-
-[node name="RigidBody2D10" type="RigidBody2D" parent="."]
-position = Vector2(25, 11)
-gravity_scale = 1.01
-script = ExtResource("1_4sybc")
-
-[node name="CollisionShape2D5" type="CollisionShape2D" parent="RigidBody2D10"]
-position = Vector2(0, -110)
-shape = SubResource("CapsuleShape2D_dyble")
-
-[node name="RigidBody2D4" type="RigidBody2D" parent="."]
-position = Vector2(14, 23)
-script = ExtResource("1_4sybc")
-
-[node name="CollisionShape2D4" type="CollisionShape2D" parent="RigidBody2D4"]
-position = Vector2(2.08165e-12, 6.72)
-shape = SubResource("RectangleShape2D_dwlgg")
-
 [node name="Camera2D" type="Camera2D" parent="."]
 zoom = Vector2(4, 4)
-
-[node name="StaticBody2D" type="StaticBody2D" parent="."]
-position = Vector2(-1, 86)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
-shape = SubResource("WorldBoundaryShape2D_a3uwi")
 
 [node name="Timer" type="Timer" parent="."]
 wait_time = 10.0
 autostart = true
-
-[node name="RigidBody2D8" type="RigidBody2D" parent="."]
-position = Vector2(85, -66)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D8"]
-shape = SubResource("CircleShape2D_kc77y")
-
-[node name="RigidBody2D9" type="RigidBody2D" parent="."]
-position = Vector2(-89, -185)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D9"]
-position = Vector2(42, -8)
-shape = SubResource("CircleShape2D_kc77y")
 
 [connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]

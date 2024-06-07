@@ -19,7 +19,7 @@ use crate::{
 use godot::{
     builtin::{real, Rid, Transform2D, Vector2},
     engine::physics_server_2d::{self, BodyMode},
-    log::godot_error,
+    log::{godot_error, godot_print},
 };
 
 use super::{rapier_area_2d::RapierArea2D, rapier_body_2d::RapierBody2D};
@@ -167,30 +167,24 @@ impl RapierCollisionObject2D {
                 // skip
                 continue;
             }
-            {
-                let lock = spaces_singleton();
-                if let Some(space) = lock.spaces.get_mut(&self.space) {
-                    if self.area_detection_counter > 0 {
-                        // Keep track of body information for delayed removal
-                        space.add_removed_collider(
-                            shape.collider_handle,
-                            self.rid,
-                            self.instance_id,
-                            i,
-                            self.collision_object_type,
-                        );
-                    }
+            if let Some(space) = spaces_singleton().spaces.get_mut(&self.space) {
+                if self.area_detection_counter > 0 {
+                    // Keep track of body information for delayed removal
+                    space.add_removed_collider(
+                        shape.collider_handle,
+                        self.rid,
+                        self.instance_id,
+                        i,
+                        self.collision_object_type,
+                    );
+                }
 
-                    collider_destroy(self.space_handle, shape.collider_handle);
-                    shape_rid = shape.shape;
-                    shape.collider_handle = invalid_handle();
-                }
+                collider_destroy(self.space_handle, shape.collider_handle);
+                shape_rid = shape.shape;
+                shape.collider_handle = invalid_handle();
             }
-            {
-                let lock = shapes_singleton();
-                if let Some(shape) = lock.shapes.get_mut(&shape_rid) {
-                    shape.get_mut_base().destroy_rapier_shape();
-                }
+            if let Some(shape) = shapes_singleton().shapes.get_mut(&shape_rid) {
+                shape.get_mut_base().destroy_rapier_shape();
             }
             i += 1;
         }
@@ -202,8 +196,7 @@ impl RapierCollisionObject2D {
     ) -> Handle {
         let shape_rid = shape.shape;
         if self.space_handle.is_valid() && shape.collider_handle.is_valid() {
-            let lock = spaces_singleton();
-            if let Some(space) = lock.spaces.get_mut(&self.space) {
+            if let Some(space) = spaces_singleton().spaces.get_mut(&self.space) {
                 if self.area_detection_counter > 0 {
                     // Keep track of body information for delayed removal
                     space.add_removed_collider(
@@ -218,11 +211,8 @@ impl RapierCollisionObject2D {
                 collider_destroy(self.space_handle, shape.collider_handle);
             }
         }
-        {
-            let lock = shapes_singleton();
-            if let Some(shape) = lock.shapes.get_mut(&shape_rid) {
-                shape.get_mut_base().destroy_rapier_shape();
-            }
+        if let Some(shape) = shapes_singleton().shapes.get_mut(&shape_rid) {
+            shape.get_mut_base().destroy_rapier_shape();
         }
         invalid_handle()
     }
@@ -253,7 +243,7 @@ impl RapierCollisionObject2D {
     }
 
     pub(crate) fn update_transform(&mut self) {
-        if !self.space_handle.is_valid() || !self.body_handle.is_valid() {
+        if !self.is_valid() {
             return;
         }
 
@@ -285,14 +275,11 @@ impl RapierCollisionObject2D {
         }
 
         self.space = p_space;
-        {
-            let lock = spaces_singleton();
-            if let Some(space) = lock.spaces.get(&self.space) {
-                self.space_handle = space.get_handle();
-            } else {
-                self.space_handle = invalid_handle();
-                self.space = Rid::Invalid;
-            }
+        if let Some(space) = spaces_singleton().spaces.get(&self.space) {
+            self.space_handle = space.get_handle();
+        } else {
+            self.space_handle = invalid_handle();
+            self.space = Rid::Invalid;
         }
         if self.space_handle.is_valid() {
             let mut user_data = UserData::default();
@@ -394,7 +381,7 @@ impl RapierCollisionObject2D {
     pub fn set_transform(&mut self, p_transform: Transform2D, wake_up: bool) {
         self.transform = p_transform;
         self.inv_transform = self.transform.affine_inverse();
-        if !self.body_handle.is_valid() || !self.space_handle.is_valid() {
+        if !self.is_valid() {
             return;
         }
 

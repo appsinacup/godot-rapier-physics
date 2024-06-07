@@ -50,12 +50,12 @@ impl RapierJointBase2D {
     pub fn get_max_force(&self) -> f32 {
         self.max_force
     }
-    pub fn get_rid(&self) -> Rid {
-        self.rid
+    pub fn is_valid(&self) -> bool {
+        self.space_handle.is_valid() && self.handle.is_valid()
     }
     pub fn disable_collisions_between_bodies(&mut self, disabled: bool) {
         self.disabled_collisions_between_bodies = disabled;
-        if self.handle.is_valid() {
+        if self.is_valid() {
             joint_change_disable_collision(
                 self.space_handle,
                 self.handle,
@@ -74,7 +74,7 @@ impl RapierJointBase2D {
 
 impl Drop for RapierJointBase2D {
     fn drop(&mut self) {
-        if self.handle.is_valid() {
+        if self.is_valid() {
             joint_destroy(self.space_handle, self.handle);
         }
     }
