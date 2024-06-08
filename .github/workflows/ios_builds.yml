@@ -5,7 +5,7 @@ on:
 jobs:
   ios:
     runs-on: "macos-latest"
-    name: ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+    name: ${{ matrix.dimensions }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
     strategy:
       fail-fast: false
       matrix:
@@ -32,8 +32,8 @@ jobs:
           APPLE_DEV_PASSWORD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
           APPLE_DEV_APP_ID: ${{ secrets.PROD_MACOS_APPLE_DEV_APP_ID }}
         run: |
-          ./scripts/ci-sign-macos.ps1 bin${{ matrix.dimensions }}/addons/godot-rapier2d/bin/libphysics_server_rapier2d.ios.template_debug.dylib
-          ./scripts/ci-sign-macos.ps1 bin${{ matrix.dimensions }}/addons/godot-rapier2d/bin/libphysics_server_rapier2d.ios.template_release.dylib
+          ./scripts/ci-sign-macos.ps1 bin_${{ matrix.dimensions }}/addons/godot-rapier2d/bin/libphysics_server_rapier2d.ios.template_debug.dylib
+          ./scripts/ci-sign-macos.ps1 bin_${{ matrix.dimensions }}/addons/godot-rapier2d/bin/libphysics_server_rapier2d.ios.template_release.dylib
         if: ${{ env.APPLE_DEV_ID }}
 
       - name: Upload
@@ -41,7 +41,7 @@ jobs:
         with:
           name: godot-rapier-${{ matrix.dimensions }}-${{ matrix.precision }}-${{ matrix.features }}
           path: |
-            ${{ github.workspace }}/bin${{ matrix.dimensions }}/**
-            !${{ github.workspace }}/bin${{ matrix.dimensions }}/project.godot
+            ${{ github.workspace }}/bin_${{ matrix.dimensions }}/**
+            !${{ github.workspace }}/bin_${{ matrix.dimensions }}/project.godot
           if-no-files-found: error
           overwrite: true
