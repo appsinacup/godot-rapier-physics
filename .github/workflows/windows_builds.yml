@@ -24,7 +24,7 @@ jobs:
           features: ${{ matrix.features }}
 
       - name: Upload
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: godot-rapier-2d-${{ matrix.precision }}-${{ matrix.features }}
           path: |

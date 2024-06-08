@@ -38,7 +38,7 @@ jobs:
         if: ${{ env.APPLE_DEV_ID }}
 
       - name: Upload
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: godot-rapier-2d-${{ matrix.precision }}-${{ matrix.features }}
           path: |
