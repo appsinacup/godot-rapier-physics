@@ -24,7 +24,7 @@ jobs:
       - name: Copy to bin
         shell: sh
         run: |
-          ls target/release/libgodot_rapier.dylib
+          ls target/release
           mv target/release/libgodot_rapier.dylib bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.ios.framework/libgodot_rapier.ios.dylib
       - name: iOS Sign
         shell: pwsh
