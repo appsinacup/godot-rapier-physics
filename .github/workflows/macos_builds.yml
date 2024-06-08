@@ -12,7 +12,7 @@ jobs:
         arch:  ["x86_64-apple-darwin"]
         precision: [single]
         dimensions: [dim2, dim3]
-        features: [{"feature":"rapier2d/parallel,rapier2d/simd-stable", "name": "normal"}, {"feature":"rapier/enhanced-determinism", "name": "enhanced-determinism"}]
+        features: [{"feature":"parallel,simd-stable", "name": "normal"}, {"feature":"enhanced-determinism", "name": "enhanced-determinism"}]
 
     steps:
       - uses: actions/checkout@v4

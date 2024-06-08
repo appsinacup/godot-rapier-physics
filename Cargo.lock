@@ -294,6 +294,12 @@ source = "git+https://github.com/godot-rust/godot4-prebuilt?branch=4.2.2#5e6130a
 
 [[package]]
 name = "hashbrown"
+version = "0.12.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8a9ee70c43aaf417c914396645a0fa852624801b24ebb7ae78fe8272889ac888"
+
+[[package]]
+name = "hashbrown"
 version = "0.14.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1"
@@ -307,6 +313,17 @@ name = "heck"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "95505c38b4572b2d910cecb0281560f54b440a19336cbbcb27bf6ce6adc6f5a8"
+
+[[package]]
+name = "indexmap"
+version = "1.9.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd070e393353796e801d209ad339e89596eb4c8d430d18ede6a1cced8fafbd99"
+dependencies = [
+ "autocfg",
+ "hashbrown 0.12.3",
+ "serde",
+]
 
 [[package]]
 name = "instant"
@@ -337,6 +354,12 @@ name = "libc"
 version = "0.2.155"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97b3888a4aecf77e811145cadf6eef5901f4782c53886191b2f693f24761847c"
+
+[[package]]
+name = "libm"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7fc7aa29613bd6a620df431842069224d8bc9011086b1db4c0e0cd47fa03ec9a"
 
 [[package]]
 name = "libm"
@@ -456,7 +479,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841"
 dependencies = [
  "autocfg",
- "libm",
+ "libm 0.2.8",
 ]
 
 [[package]]
@@ -475,6 +498,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "packed_simd_2"
+version = "0.3.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a1914cd452d8fccd6f9db48147b29fd4ae05bea9dc5d9ad578509f72415de282"
+dependencies = [
+ "cfg-if",
+ "libm 0.1.4",
+]
+
+[[package]]
 name = "parry2d"
 version = "0.15.1"
 source = "git+https://github.com/dimforge/parry?branch=master#9e723ee3f066da9b61eb4023fe393ff4f81125d3"
@@ -484,6 +517,7 @@ dependencies = [
  "bitflags",
  "downcast-rs",
  "either",
+ "indexmap",
  "log",
  "nalgebra",
  "num-derive",
@@ -506,6 +540,7 @@ dependencies = [
  "bitflags",
  "downcast-rs",
  "either",
+ "indexmap",
  "log",
  "nalgebra",
  "num-derive",
@@ -549,6 +584,7 @@ dependencies = [
  "bitflags",
  "downcast-rs",
  "either",
+ "indexmap",
  "log",
  "nalgebra",
  "num-derive",
@@ -571,6 +607,7 @@ dependencies = [
  "bitflags",
  "downcast-rs",
  "either",
+ "indexmap",
  "log",
  "nalgebra",
  "num-derive",
@@ -628,6 +665,7 @@ dependencies = [
  "rustc-hash",
  "serde",
  "simba",
+ "vec_map",
 ]
 
 [[package]]
@@ -651,6 +689,7 @@ dependencies = [
  "rustc-hash",
  "serde",
  "simba",
+ "vec_map",
 ]
 
 [[package]]
@@ -694,6 +733,7 @@ dependencies = [
  "rustc-hash",
  "serde",
  "simba",
+ "vec_map",
 ]
 
 [[package]]
@@ -717,6 +757,7 @@ dependencies = [
  "rustc-hash",
  "serde",
  "simba",
+ "vec_map",
 ]
 
 [[package]]
@@ -871,8 +912,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "061507c94fc6ab4ba1c9a0305018408e312e17c041eb63bef8aa726fa33aceae"
 dependencies = [
  "approx",
+ "libm 0.2.8",
  "num-complex",
  "num-traits",
+ "packed_simd_2",
  "paste",
  "wide",
 ]
@@ -898,7 +941,7 @@ version = "2.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b20a809169ae442497e41a997fc5f14e2eea04e6ac590816a910d5d8068c8c0"
 dependencies = [
- "hashbrown",
+ "hashbrown 0.14.5",
  "num-traits",
  "robust",
  "smallvec",
@@ -946,6 +989,12 @@ checksum = "a183cf7feeba97b4dd1c0d46788634f6221d87fa961b305bed08c851829efcc0"
 dependencies = [
  "getrandom",
 ]
+
+[[package]]
+name = "vec_map"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f1bddf1187be692e79c5ffeab891132dfb0f236ed36a43c7ed39f1165ee20191"
 
 [[package]]
 name = "venial"

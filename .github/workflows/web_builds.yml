@@ -12,7 +12,7 @@ jobs:
         arch: ["wasm32-unknown-emscripten"]
         precision: [single]
         dimensions: [dim2, dim3]
-        features: [{"feature":"", "name": "normal"}, {"feature":"rapier/enhanced-determinism", "name": "enhanced-determinism"}]
+        features: [{"feature":"", "name": "normal"}, {"feature":"enhanced-determinism", "name": "enhanced-determinism"}]
 
     steps:
       - uses: actions/checkout@v4
