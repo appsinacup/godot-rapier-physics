@@ -17,8 +17,8 @@ jobs:
       #- name: Download artifacts
       #  uses: actions/download-artifact@v3
       #  with:
-      #    name: godot-rapier-2d-double-simd-stable
-      #    path: godot-rapier-2d-double-simd-stable
+      #    name: godot-rapier-2d-double-simd-parallel
+      #    path: godot-rapier-2d-double-simd-parallel
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
@@ -27,8 +27,8 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
-          name: godot-rapier-2d-single-simd-stable
-          path: godot-rapier-2d-single-simd-stable
+          name: godot-rapier-2d-single-simd-parallel
+          path: godot-rapier-2d-single-simd-parallel
       - name: Delete draft release(s)
         uses: hugo19941994/delete-draft-releases@v1.0.0
         env:
@@ -37,18 +37,18 @@ jobs:
         shell: sh
         run: |
           #zip -r "godot-rapier-2d-double-enhanced-determinism.zip" godot-rapier-2d-double-enhanced-determinism
-          #zip -r "godot-rapier-2d-double-simd-stable.zip" godot-rapier-2d-double-simd-stable
+          #zip -r "godot-rapier-2d-double-simd-parallel.zip" godot-rapier-2d-double-simd-parallel
           zip -r "godot-rapier-2d-single-enhanced-determinism.zip" godot-rapier-2d-single-enhanced-determinism
-          zip -r "godot-rapier-2d-single-simd-stable.zip" godot-rapier-2d-single-simd-stable
+          zip -r "godot-rapier-2d-single-simd-parallel.zip" godot-rapier-2d-single-simd-parallel
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
           name: Godot Rapier 2D
           #godot-rapier-2d-double-enhanced-determinism.zip
-          #godot-rapier-2d-double-simd-stable.zip
+          #godot-rapier-2d-double-simd-parallel.zip
           files: |
             godot-rapier-2d-single-enhanced-determinism.zip
-            godot-rapier-2d-single-simd-stable.zip
+            godot-rapier-2d-single-simd-parallel.zip
           generate_release_notes: true
           draft: true
           prerelease: true
