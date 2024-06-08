@@ -25,14 +25,11 @@ jobs:
       - name: Copy to bin
         shell: sh
         run: |
-          ls target/release/
           mv target/release/godot_rapier.dll bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.windows.dll
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}
           path: |
-            ${{ github.workspace }}/bin${{ matrix.dimensions.short }}//**
-            !${{ github.workspace }}/bin${{ matrix.dimensions.short }}//project.godot
+            bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.windows.dll
           if-no-files-found: error
-          overwrite: true
