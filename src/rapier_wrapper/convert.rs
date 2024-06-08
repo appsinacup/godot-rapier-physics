@@ -1,7 +1,7 @@
 use std::ops::Mul;
 
 use nalgebra::{SVector, Vector2};
-use rapier2d::prelude::*;
+use rapier::prelude::*;
 
 const PIXELS_PER_METER: Real = 128.0;
 const METERS_PER_PIXEL: Real = 1.0 / 128.0;

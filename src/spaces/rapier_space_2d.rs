@@ -42,7 +42,6 @@ impl RemovedColliderInfo {
 
 pub struct RapierSpace2D {
     direct_access: Option<Gd<PhysicsDirectSpaceState2D>>,
-    rid: Rid,
     handle: Handle,
     removed_colliders: HashMap<Handle, RemovedColliderInfo>,
     active_list: HashSet<Rid>,
@@ -53,8 +52,6 @@ pub struct RapierSpace2D {
     area_update_list: HashSet<Rid>,
     body_area_update_list: HashSet<Rid>,
     solver_iterations: i32,
-    fluid_default_gravity_dir: Vector2,
-    fluid_default_gravity_value: real,
     default_gravity_dir: Vector2,
     default_gravity_value: real,
     default_linear_damping: real,
@@ -83,7 +80,6 @@ impl RapierSpace2D {
 
         Self {
             direct_access: Some(direct_access.upcast()),
-            rid,
             handle,
             removed_colliders: HashMap::new(),
             active_list: HashSet::new(),
@@ -94,8 +90,6 @@ impl RapierSpace2D {
             area_update_list: HashSet::new(),
             body_area_update_list: HashSet::new(),
             solver_iterations,
-            fluid_default_gravity_dir: Vector2::ZERO,
-            fluid_default_gravity_value: 0.0,
             default_gravity_dir: Vector2::ZERO,
             default_gravity_value: 0.0,
             default_linear_damping: 0.0,
@@ -120,10 +114,6 @@ impl RapierSpace2D {
 
     pub fn is_valid(&self) -> bool {
         self.handle.is_valid()
-    }
-
-    pub fn get_rid(&self) -> Rid {
-        self.rid
     }
 
     pub fn body_add_to_mass_properties_update_list(&mut self, body: Rid) {

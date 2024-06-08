@@ -3,16 +3,16 @@ use crate::rapier_wrapper::handle::*;
 use crate::rapier_wrapper::physics_world::*;
 use crate::rapier_wrapper::shape::*;
 use nalgebra::Vector2;
-use rapier2d::prelude::*;
-use salva2d::math::Vector as SalvaVector;
-use salva2d::object::*;
-use salva2d::solver::Akinci2013SurfaceTension;
-use salva2d::solver::ArtificialViscosity;
-use salva2d::solver::Becker2009Elasticity;
-use salva2d::solver::DFSPHViscosity;
-use salva2d::solver::He2014SurfaceTension;
-use salva2d::solver::WCSPHSurfaceTension;
-use salva2d::solver::XSPHViscosity;
+use rapier::prelude::*;
+use salva::math::Vector as SalvaVector;
+use salva::object::*;
+use salva::solver::Akinci2013SurfaceTension;
+use salva::solver::ArtificialViscosity;
+use salva::solver::Becker2009Elasticity;
+use salva::solver::DFSPHViscosity;
+use salva::solver::He2014SurfaceTension;
+use salva::solver::WCSPHSurfaceTension;
+use salva::solver::XSPHViscosity;
 
 pub fn pixel_vector_array_to_vec(pixel_data: Vec<Vector2<Real>>) -> Vec<SalvaVector<Real>> {
     let mut vec = Vec::<SalvaVector<Real>>::with_capacity(pixel_data.len());

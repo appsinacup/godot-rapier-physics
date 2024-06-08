@@ -126,9 +126,8 @@ impl RapierCollisionObject2D {
         if shape.collider_handle.is_valid() {
             godot_error!("collider is valid");
         }
-        let lock = shapes_singleton();
         let mut handle = invalid_handle();
-        if let Some(shape_object) = lock.shapes.get_mut(&shape.shape) {
+        if let Some(shape_object) = shapes_singleton().shapes.get_mut(&shape.shape) {
             let shape_handle = shape_object.get_rapier_shape();
             if !shape_handle.is_valid() {
                 return handle;
@@ -222,7 +221,7 @@ impl RapierCollisionObject2D {
             return;
         }
         let origin = shape.xform.origin;
-        let position = rapier2d::na::Vector2::new(origin.x, origin.y);
+        let position = rapier::na::Vector2::new(origin.x, origin.y);
         let angle = shape.xform.rotation();
         let scale = shape.xform.scale();
         if let Some(rapier_shape) = shapes_singleton().shapes.get_mut(&shape.shape) {
@@ -236,7 +235,7 @@ impl RapierCollisionObject2D {
                 pixel_position: position,
                 rotation: angle,
                 skew: shape.xform.skew(),
-                scale: rapier2d::na::Vector2::new(scale.x, scale.y),
+                scale: rapier::na::Vector2::new(scale.x, scale.y),
             };
             collider_set_transform(self.space_handle, shape.collider_handle, shape_info);
         }
@@ -286,7 +285,7 @@ impl RapierCollisionObject2D {
             user_data.part1 = self.rid.to_u64();
 
             let position =
-                rapier2d::na::Vector2::new(self.transform.origin.x, self.transform.origin.y);
+                rapier::na::Vector2::new(self.transform.origin.x, self.transform.origin.y);
             let angle = self.transform.rotation();
             if self.mode == BodyMode::STATIC {
                 self.body_handle = body_create(
@@ -386,7 +385,7 @@ impl RapierCollisionObject2D {
         }
 
         let origin = self.transform.origin;
-        let position = rapier2d::na::Vector2::new(origin.x, origin.y);
+        let position = rapier::na::Vector2::new(origin.x, origin.y);
         let rotation = self.transform.rotation();
         body_set_transform(
             self.space_handle,

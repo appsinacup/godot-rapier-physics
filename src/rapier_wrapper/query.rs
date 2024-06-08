@@ -10,14 +10,15 @@ use crate::rapier_wrapper::physics_world::*;
 use crate::rapier_wrapper::shape::*;
 use crate::rapier_wrapper::user_data::*;
 use godot::log::godot_error;
-use nalgebra::Vector2;
-use rapier2d::parry;
-use rapier2d::parry::query::ShapeCastOptions;
-use rapier2d::prelude::*;
+use nalgebra::zero;
+use nalgebra::SVector;
+use rapier::parry;
+use rapier::parry::query::ShapeCastOptions;
+use rapier::prelude::*;
 
 pub struct RayHitInfo {
-    pub pixel_position: Vector2<Real>,
-    pub normal: Vector2<Real>,
+    pub pixel_position: SVector<Real, DIM>,
+    pub normal: SVector<Real, DIM>,
     pub collider: Handle,
     pub user_data: UserData,
 }
@@ -25,8 +26,8 @@ pub struct RayHitInfo {
 impl RayHitInfo {
     pub fn default() -> RayHitInfo {
         RayHitInfo {
-            pixel_position: Vector2::default(),
-            normal: Vector2::default(),
+            pixel_position: zero(),
+            normal: zero(),
             collider: invalid_handle(),
             user_data: UserData::invalid_user_data(),
         }
@@ -43,10 +44,10 @@ pub struct PointHitInfo {
 pub struct ShapeCastResult {
     pub collided: bool,
     pub toi: Real,
-    pub pixel_witness1: Vector2<Real>,
-    pub pixel_witness2: Vector2<Real>,
-    pub normal1: Vector2<Real>,
-    pub normal2: Vector2<Real>,
+    pub pixel_witness1: SVector<Real, DIM>,
+    pub pixel_witness2: SVector<Real, DIM>,
+    pub normal1: SVector<Real, DIM>,
+    pub normal2: SVector<Real, DIM>,
     pub collider: Handle,
     pub user_data: UserData,
 }
@@ -57,10 +58,10 @@ impl ShapeCastResult {
             collided: false,
             toi: 1.0,
             collider: invalid_handle(),
-            pixel_witness1: Vector2::default(),
-            pixel_witness2: Vector2::default(),
-            normal1: Vector2::default(),
-            normal2: Vector2::default(),
+            pixel_witness1: zero(),
+            pixel_witness2: zero(),
+            normal1: zero(),
+            normal2: zero(),
             user_data: UserData::invalid_user_data(),
         }
     }
@@ -71,10 +72,10 @@ pub struct ContactResult {
     pub collided: bool,
     pub within_margin: bool,
     pub pixel_distance: Real,
-    pub pixel_point1: Vector2<Real>,
-    pub pixel_point2: Vector2<Real>,
-    pub normal1: Vector2<Real>,
-    pub normal2: Vector2<Real>,
+    pub pixel_point1: SVector<Real, DIM>,
+    pub pixel_point2: SVector<Real, DIM>,
+    pub normal1: SVector<Real, DIM>,
+    pub normal2: SVector<Real, DIM>,
 }
 
 #[derive(Default)]
@@ -96,8 +97,8 @@ type QueryHandleExcludedCallback = fn(
 
 pub fn intersect_ray(
     world_handle: Handle,
-    pixel_from: Vector2<Real>,
-    dir: Vector2<Real>,
+    pixel_from: SVector<Real, DIM>,
+    dir: SVector<Real, DIM>,
     pixel_length: Real,
     collide_with_body: bool,
     collide_with_area: bool,
@@ -171,7 +172,7 @@ pub fn intersect_ray(
 
 pub fn intersect_point(
     world_handle: Handle,
-    pixel_position: Vector2<Real>,
+    pixel_position: SVector<Real, DIM>,
     collide_with_body: bool,
     collide_with_area: bool,
     hit_info_array: *mut PointHitInfo,
@@ -239,9 +240,9 @@ pub fn intersect_point(
 }
 
 pub fn shape_collide(
-    pixel_motion1: Vector2<Real>,
+    pixel_motion1: SVector<Real, DIM>,
     shape_info1: ShapeInfo,
-    pixel_motion2: Vector2<Real>,
+    pixel_motion2: SVector<Real, DIM>,
     shape_info2: ShapeInfo,
 ) -> ShapeCastResult {
     let mut result = ShapeCastResult::new();
@@ -293,7 +294,7 @@ pub fn shape_collide(
 
 pub fn shape_casting(
     world_handle: Handle,
-    pixel_motion: Vector2<Real>,
+    pixel_motion: SVector<Real, DIM>,
     shape_info: ShapeInfo,
     collide_with_body: bool,
     collide_with_area: bool,
@@ -447,8 +448,8 @@ pub fn intersect_shape(
 
 pub fn intersect_aabb(
     world_handle: Handle,
-    pixel_aabb_min: Vector2<Real>,
-    pixel_aabb_max: Vector2<Real>,
+    pixel_aabb_min: SVector<Real, DIM>,
+    pixel_aabb_max: SVector<Real, DIM>,
     collide_with_body: bool,
     collide_with_area: bool,
     hit_info_slice: &mut [PointHitInfo],

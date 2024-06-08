@@ -56,13 +56,10 @@ impl IRapierShape2D for RapierConcavePolygonShape2D {
             let point_count = self.points.len();
             let mut rapier_points = Vec::with_capacity(point_count + 1);
             for i in 0..point_count {
-                rapier_points.push(rapier2d::na::Vector2::new(
-                    self.points[i].x,
-                    self.points[i].y,
-                ));
+                rapier_points.push(rapier::na::Vector2::new(self.points[i].x, self.points[i].y));
             }
             // Close the polyline shape
-            rapier_points.push(rapier2d::na::Vector2::new(
+            rapier_points.push(rapier::na::Vector2::new(
                 rapier_points[0].x,
                 rapier_points[0].y,
             ));

@@ -4,13 +4,13 @@ use crate::rapier_wrapper::physics_world::*;
 use crate::rapier_wrapper::shape::ShapeInfo;
 use crate::rapier_wrapper::user_data::*;
 use godot::log::godot_error;
-use rapier2d::na::Point2;
-use rapier2d::na::Vector2;
-use rapier2d::prelude::*;
-use salva2d::integrations::rapier::ColliderSampling;
-use salva2d::object::Boundary;
-use salva2d::parry::either::Either::Left;
-use salva2d::parry::either::Either::Right;
+use rapier::na::Point2;
+use rapier::na::Vector2;
+use rapier::prelude::*;
+use salva::integrations::rapier::ColliderSampling;
+use salva::object::Boundary;
+use salva::parry::either::Either::Left;
+use salva::parry::either::Either::Right;
 
 const SUBDIVISIONS: u32 = 20;
 

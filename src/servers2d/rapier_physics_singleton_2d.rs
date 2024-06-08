@@ -25,52 +25,8 @@ pub struct RapierJointsSingleton2D {
 pub struct RapierFluidsSingleton2D {
     pub fluids: HashMap<Rid, Box<RapierFluid2D>>,
 }
-
-impl RapierShapesSingleton2D {
-    pub fn new() -> RapierShapesSingleton2D {
-        RapierShapesSingleton2D {
-            shapes: HashMap::new(),
-        }
-    }
-}
-impl RapierActiveSpacesSingleton2D {
-    pub fn new() -> RapierActiveSpacesSingleton2D {
-        RapierActiveSpacesSingleton2D {
-            active_spaces: HashMap::new(),
-        }
-    }
-}
-impl RapierSpacesSingleton2D {
-    pub fn new() -> RapierSpacesSingleton2D {
-        RapierSpacesSingleton2D {
-            spaces: HashMap::new(),
-        }
-    }
-}
-impl RapierBodiesSingleton2D {
-    pub fn new() -> RapierBodiesSingleton2D {
-        RapierBodiesSingleton2D {
-            collision_objects: HashMap::new(),
-        }
-    }
-}
-impl RapierJointsSingleton2D {
-    pub fn new() -> RapierJointsSingleton2D {
-        RapierJointsSingleton2D {
-            joints: HashMap::new(),
-        }
-    }
-}
-impl RapierFluidsSingleton2D {
-    pub fn new() -> RapierFluidsSingleton2D {
-        RapierFluidsSingleton2D {
-            fluids: HashMap::new(),
-        }
-    }
-}
 unsafe impl Send for RapierShapesSingleton2D {}
 unsafe impl Sync for RapierShapesSingleton2D {}
-
 unsafe impl Send for RapierSpacesSingleton2D {}
 unsafe impl Sync for RapierSpacesSingleton2D {}
 unsafe impl Send for RapierActiveSpacesSingleton2D {}

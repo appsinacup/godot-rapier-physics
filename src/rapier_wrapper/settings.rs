@@ -1,5 +1,5 @@
 use nalgebra::Vector2;
-use rapier2d::prelude::*;
+use rapier::prelude::*;
 
 pub struct WorldSettings {
     pub particle_radius: Real,

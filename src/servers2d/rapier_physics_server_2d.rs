@@ -166,8 +166,8 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
 
         let shape_a_info = shape_info_from_body_shape(shape_a_handle, xform_a);
         let shape_b_info = shape_info_from_body_shape(shape_b_handle, xform_b);
-        let rapier_a_motion = rapier2d::na::Vector2::new(motion_a.x, motion_a.y);
-        let rapier_b_motion = rapier2d::na::Vector2::new(motion_b.x, motion_b.y);
+        let rapier_a_motion = rapier::na::Vector2::new(motion_a.x, motion_a.y);
+        let rapier_b_motion = rapier::na::Vector2::new(motion_b.x, motion_b.y);
 
         let results_out: *mut Vector2 = results as *mut Vector2;
 
@@ -1264,12 +1264,12 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             //let default_angular_damping: real = project_settings.get_setting_with_override("physics/2d/default_angular_damp".into()).to();
 
             let settings = SimulationSettings {
-                pixel_liquid_gravity: rapier2d::na::Vector2::new(
+                pixel_liquid_gravity: rapier::na::Vector2::new(
                     fluid_default_gravity_dir.x * fluid_default_gravity_value as real,
                     fluid_default_gravity_dir.y * fluid_default_gravity_value as real,
                 ),
                 dt: step,
-                pixel_gravity: rapier2d::na::Vector2::new(
+                pixel_gravity: rapier::na::Vector2::new(
                     default_gravity_dir.x * default_gravity_value,
                     default_gravity_dir.y * default_gravity_value,
                 ),

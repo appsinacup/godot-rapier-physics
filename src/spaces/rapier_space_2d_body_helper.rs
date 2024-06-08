@@ -93,8 +93,8 @@ impl RapierSpace2D {
             return 0;
         }
 
-        let rect_begin = rapier2d::na::Vector2::new(aabb.position.x, aabb.position.y);
-        let rect_end = rapier2d::na::Vector2::new(aabb.end().x, aabb.end().y);
+        let rect_begin = rapier::na::Vector2::new(aabb.position.x, aabb.position.y);
+        let rect_end = rapier::na::Vector2::new(aabb.end().x, aabb.end().y);
         let mut handle_excluded_info = QueryExcludedInfo::default();
         let query_exclude: Vec<Handle> = Vec::with_capacity(max_results);
         handle_excluded_info.query_exclude = query_exclude;

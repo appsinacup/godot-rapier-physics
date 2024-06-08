@@ -52,10 +52,10 @@ impl IRapierShape2D for RapierSegmentShape2D {
         let p4 = self.b - perpendicular * height / 2.0;
 
         let rapier_points = [
-            rapier2d::na::Vector2::new(p1.x, p1.y),
-            rapier2d::na::Vector2::new(p2.x, p2.y),
-            rapier2d::na::Vector2::new(p3.x, p3.y),
-            rapier2d::na::Vector2::new(p4.x, p4.y),
+            rapier::na::Vector2::new(p1.x, p1.y),
+            rapier::na::Vector2::new(p2.x, p2.y),
+            rapier::na::Vector2::new(p3.x, p3.y),
+            rapier::na::Vector2::new(p4.x, p4.y),
         ];
 
         shape_create_convex_polyline(rapier_points.to_vec())

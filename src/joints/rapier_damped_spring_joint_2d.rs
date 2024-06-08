@@ -54,8 +54,8 @@ impl RapierDampedSpringJoint2D {
                 let anchor_b = base_b.get_inv_transform() * p_anchor_b;
 
                 let rest_length = p_anchor_a.distance_to(p_anchor_b);
-                let rapier_anchor_a = rapier2d::na::Vector2::new(anchor_a.x, anchor_a.y);
-                let rapier_anchor_b = rapier2d::na::Vector2::new(anchor_b.x, anchor_b.y);
+                let rapier_anchor_a = rapier::na::Vector2::new(anchor_a.x, anchor_a.y);
+                let rapier_anchor_b = rapier::na::Vector2::new(anchor_b.x, anchor_b.y);
                 let space_handle = body_a.get_base().get_space_handle();
 
                 let handle = joint_create_spring(
