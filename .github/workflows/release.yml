@@ -8,7 +8,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       #- name: Download artifacts
       #  uses: actions/download-artifact@v3
       #  with:
