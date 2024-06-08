@@ -10,22 +10,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       #- name: Download artifacts
-      #  uses: actions/download-artifact@v3
+      #  uses: actions/download-artifact@v4
       #  with:
       #    name: godot-rapier-2d-double-enhanced-determinism
       #    path: godot-rapier-2d-double-enhanced-determinism
       #- name: Download artifacts
-      #  uses: actions/download-artifact@v3
+      #  uses: actions/download-artifact@v4
       #  with:
       #    name: godot-rapier-2d-double-simd-parallel
       #    path: godot-rapier-2d-double-simd-parallel
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: godot-rapier-2d-single-enhanced-determinism
           path: godot-rapier-2d-single-enhanced-determinism
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: godot-rapier-2d-single-simd-parallel
           path: godot-rapier-2d-single-simd-parallel
