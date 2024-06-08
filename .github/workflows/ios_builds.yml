@@ -5,13 +5,13 @@ on:
 jobs:
   ios:
     runs-on: "macos-latest"
-    name: ${{ matrix.dimensions }} ${{ matrix.precision }} ${{ matrix.features.name }} ${{ matrix.arch }}
+    name: ${{ matrix.dimensions.short }} ${{ matrix.precision }} ${{ matrix.features.name }} ${{ matrix.arch }}
     strategy:
       fail-fast: false
       matrix:
         arch: ["aarch64-apple-ios"]
         precision: [single]
-        dimensions: [dim2, dim3]
+        dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
         features: [{"feature":"parallel,simd-stable", "name": "normal"}, {"feature":"enhanced-determinism", "name": "enhanced-determinism"}]
 
     steps:
@@ -20,8 +20,11 @@ jobs:
         uses: ./.github/actions/build
         with:
           arch: ${{ matrix.arch }}
-          features: ${{ matrix.features.feature }},${{ matrix.precision }}_${{ matrix.dimensions }}
-
+          features: ${{ matrix.features.feature }},${{ matrix.precision }}_${{ matrix.dimensions.feature }}
+      - name: Copy to bin
+        shell: sh
+        run: |
+          cp -rf target/release/libgodot_rapier.dylib bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.ios.framework/libgodot_rapier.ios.dylib
       - name: iOS Sign
         shell: pwsh
         env:
@@ -32,16 +35,15 @@ jobs:
           APPLE_DEV_PASSWORD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
           APPLE_DEV_APP_ID: ${{ secrets.PROD_MACOS_APPLE_DEV_APP_ID }}
         run: |
-          ./scripts/ci-sign-macos.ps1 bin_${{ matrix.dimensions }}/addons/godot-rapier2d/bin/libphysics_server_rapier2d.ios.template_debug.dylib
-          ./scripts/ci-sign-macos.ps1 bin_${{ matrix.dimensions }}/addons/godot-rapier2d/bin/libphysics_server_rapier2d.ios.template_release.dylib
+          ./scripts/ci-sign-macos.ps1 bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.ios.dylib
         if: ${{ env.APPLE_DEV_ID }}
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: godot-rapier-${{ matrix.dimensions }}-${{ matrix.precision }}-${{ matrix.features.name }}
+          name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}
           path: |
-            ${{ github.workspace }}/bin_${{ matrix.dimensions }}/**
-            !${{ github.workspace }}/bin_${{ matrix.dimensions }}/project.godot
+            ${{ github.workspace }}/bin${{ matrix.dimensions.short }}/**
+            !${{ github.workspace }}/bin${{ matrix.dimensions.short }}/project.godot
           if-no-files-found: error
           overwrite: true

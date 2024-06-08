@@ -5,13 +5,13 @@ on:
 jobs:
   macos:
     runs-on: "macos-latest"
-    name: ${{ matrix.dimensions }} ${{ matrix.precision }} ${{ matrix.features.name }} ${{ matrix.arch }}
+    name: ${{ matrix.dimensions.short }} ${{ matrix.precision }} ${{ matrix.features.name }} ${{ matrix.arch }}
     strategy:
       fail-fast: false
       matrix:
         arch:  ["x86_64-apple-darwin"]
         precision: [single]
-        dimensions: [dim2, dim3]
+        dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
         features: [{"feature":"parallel,simd-stable", "name": "normal"}, {"feature":"enhanced-determinism", "name": "enhanced-determinism"}]
 
     steps:
@@ -20,23 +20,15 @@ jobs:
         uses: ./.github/actions/build
         with:
           arch: ${{ matrix.arch }}
-          features: ${{ matrix.features.feature }},${{ matrix.precision }}_${{ matrix.dimensions }}
-      
+          features: ${{ matrix.features.feature }},${{ matrix.precision }}_${{ matrix.dimensions.feature }}
+      - name: Copy to bin
+        shell: sh
+        run: |
+          cp -rf target/release/libgodot_rapier.dylib bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
       - name: Mac Sign
         uses: ughuuu/godot-cpp-template/.github/actions/sign@add-more-stuff/options-to-build
         with:
-          FRAMEWORK_PATH: bin_${{ matrix.dimensions }}/addons/godot-rapier2d/bin/libphysics_server_rapier2d.macos.template_debug.framework
-          SIGN_FLAGS: "--deep"
-          APPLE_CERT_BASE64: ${{ secrets.APPLE_CERT_BASE64 }}
-          APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
-          APPLE_DEV_PASSWORD: ${{ secrets.APPLE_DEV_PASSWORD }}
-          APPLE_DEV_ID: ${{ secrets.APPLE_DEV_ID }}
-          APPLE_DEV_TEAM_ID: ${{ secrets.APPLE_DEV_TEAM_ID }}
-          APPLE_DEV_APP_ID: ${{ secrets.APPLE_DEV_APP_ID }}
-      - name: Mac Sign
-        uses: ughuuu/godot-cpp-template/.github/actions/sign@add-more-stuff/options-to-build
-        with:
-          FRAMEWORK_PATH: bin_${{ matrix.dimensions }}/addons/godot-rapier2d/bin/libphysics_server_rapier2d.macos.template_release.framework
+          FRAMEWORK_PATH: bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.macos.framework
           SIGN_FLAGS: "--deep"
           APPLE_CERT_BASE64: ${{ secrets.APPLE_CERT_BASE64 }}
           APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
@@ -48,9 +40,9 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: godot-rapier-${{ matrix.dimensions }}-${{ matrix.precision }}-${{ matrix.features.name }}
+          name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}
           path: |
-            ${{ github.workspace }}/bin_${{ matrix.dimensions }}/**
-            !${{ github.workspace }}/bin_${{ matrix.dimensions }}/project.godot
+            ${{ github.workspace }}/bin${{ matrix.dimensions.short }}/**
+            !${{ github.workspace }}/bin${{ matrix.dimensions.short }}/project.godot
           if-no-files-found: error
           overwrite: true

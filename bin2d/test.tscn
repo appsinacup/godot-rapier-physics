@@ -1,0 +1,37 @@
+[gd_scene load_steps=4 format=3 uid="uid://d4exls53gi0df"]
+
+[ext_resource type="Script" path="res://rigid_body_2d.gd" id="1_4sybc"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_r2n1f"]
+radius = 16.6667
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_4v4tp"]
+
+[node name="Test" type="Node2D"]
+
+[node name="PinJoint2D" type="PinJoint2D" parent="."]
+position = Vector2(119, -47)
+node_a = NodePath("../RigidBody2D")
+node_b = NodePath("../RigidBody2D5")
+
+[node name="RigidBody2D" type="StaticBody2D" parent="."]
+position = Vector2(118, -46)
+
+[node name="CollisionShape2D4" type="CollisionShape2D" parent="RigidBody2D"]
+shape = SubResource("CircleShape2D_r2n1f")
+
+[node name="RigidBody2D5" type="RigidBody2D" parent="."]
+position = Vector2(54, -53)
+script = ExtResource("1_4sybc")
+
+[node name="CollisionShape2D4" type="CollisionShape2D" parent="RigidBody2D5"]
+shape = SubResource("RectangleShape2D_4v4tp")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(4, 4)
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 10.0
+autostart = true
+
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]

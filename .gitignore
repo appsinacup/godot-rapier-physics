@@ -1,21 +1,21 @@
 # Ignore everything in bin folder by default
-bin_dim2/addons/godot-rapier2d/bin/*
-bin_dim2/.godot/**
-bin_dim2/samples/godot-rapier2d/addons/**
-bin_dim3/addons/godot-rapier2d/bin/*
-bin_dim3/.godot/**
-bin_dim3/samples/godot-rapier2d/addons/**
+bin2d/addons/godot-rapier2d/bin/*
+bin2d/.godot/**
+bin2d/samples/godot-rapier2d/addons/**
+bin3d/addons/godot-rapier2d/bin/*
+bin3d/.godot/**
+bin3d/samples/godot-rapier2d/addons/**
 target
 
-!bin_dim2/addons/godot-rapier2d/bin/libphysics_server_rapier2d.macos.template_debug.framework/Resources/Info.plist
-!bin_dim2/addons/godot-rapier2d/bin/libphysics_server_rapier2d.macos.template_release.framework/Resources/Info.plist
-!bin_dim2/addons/godot-rapier2d/bin/libphysics_server_rapier2d.ios.template_debug.framework/Info.plist
-!bin_dim2/addons/godot-rapier2d/bin/libphysics_server_rapier2d.ios.template_release.framework/Info.plist
+!bin2d/addons/godot-rapier2d/bin/libgodot_rapier.macos.framework/Resources/Info.plist
+!bin2d/addons/godot-rapier2d/bin/libgodot_rapier.macos.framework/Resources/Info.plist
+!bin2d/addons/godot-rapier2d/bin/libgodot_rapier.ios.framework/Info.plist
+!bin2d/addons/godot-rapier2d/bin/libgodot_rapier.ios.framework/Info.plist
 
-!bin_dim3/addons/godot-rapier2d/bin/libphysics_server_rapier3d.macos.template_debug.framework/Resources/Info.plist
-!bin_dim3/addons/godot-rapier2d/bin/libphysics_server_rapier3d.macos.template_release.framework/Resources/Info.plist
-!bin_dim3/addons/godot-rapier2d/bin/libphysics_server_rapier3d.ios.template_debug.framework/Info.plist
-!bin_dim3/addons/godot-rapier2d/bin/libphysics_server_rapier3d.ios.template_release.framework/Info.plist
+!bin3d/addons/godot-rapier2d/bin/libphysics_server_rapier3d.macos.framework/Resources/Info.plist
+!bin3d/addons/godot-rapier2d/bin/libphysics_server_rapier3d.macos.framework/Resources/Info.plist
+!bin3d/addons/godot-rapier2d/bin/libphysics_server_rapier3d.ios.framework/Info.plist
+!bin3d/addons/godot-rapier2d/bin/libphysics_server_rapier3d.ios.framework/Info.plist
 
 # Binaries
 *.os

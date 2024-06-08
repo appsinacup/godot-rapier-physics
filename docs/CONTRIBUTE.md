@@ -13,27 +13,8 @@ cargo build
 3. Copy the output to bin folder:
 
 ```
-cp target/debug/libgodot_rapier.dylib bin2/addons/godot-rapier2d/bin/libphysics_server_rapier2d.macos.template_debug.framework/libphysics_server_rapier2d.macos.template_debug.dylib
+cp target/debug/libgodot_rapier.dylib bin2/addons/godot-rapier2d/bin/libgodot_rapier.macos.template_debug.framework/libgodot_rapier.macos.template_debug.dylib
 ```
-
-# Compile the Rapier 2D extension
-
-This step will build the final Godot Rapier extension library.
-
-Steps to compile the extension:
-- Open a command line prompt in the root folder
-- Run `scons target=[TARGET] platform=[PLATFORM] debug_symbols=[DEBUG] dev_build=[DEBUG] -j[CORES]` with:
-`[TARGET]`: `template_debug` for godot debug export and `template_release` for godot release export
-`[PLATFORM]`: (optional) target platform if different from the current patform
-`[DEBUG]`: (optional) `yes` to generate symbols and disable optimization for a debug build (useful only for debugging the extension)
-`[CORES]`: (optional) number of cores to use in order to accelerate the build
-
-```
-scons target=template_debug generate_bindings=no
-```
-
-The library files will be found in `bin/addons/` folder.
-
 # How to debug using VSCode
 
 ## Clone Godot repo
