@@ -106,6 +106,7 @@ impl RapierArea2D {
         body_instance_id: u64,
         area_collider_handle: Handle,
         area_shape: usize,
+        space: &mut Box<RapierSpace2D>,
     ) {
         // Implementation needed
     }
@@ -120,9 +121,51 @@ impl RapierArea2D {
         area_collider_handle: Handle,
         area_shape: usize,
         update_detection: bool,
+        space: &mut Box<RapierSpace2D>,
     ) {
-        // if body is null, update_detection should be false
-        // Implementation needed
+        if update_detection {
+            // Remove from currently detected bodies
+            if let Some(detected_body) = self.detected_bodies.get_mut(&body_rid) {
+                detected_body.count -= 1;
+                if detected_body.count == 0 {
+                    self.detected_bodies.remove(&body_rid);
+                    if let Some(body) = body {
+                        if let Some(body) = body.get_mut_body() {
+                            body.remove_area(self.base.get_rid());
+                        }
+                    }
+                }
+            }
+        }
+
+        if self.monitor_callback.is_null() {
+            return;
+        }
+
+        if body.is_some() {
+            self.base.area_detection_counter -= 1;
+        }
+
+        let handle_pair_hash = handle_pair_hash(collider_handle, area_collider_handle);
+
+        if let std::collections::hash_map::Entry::Vacant(e) = self.monitored_objects.entry(handle_pair_hash) {
+            e.insert(MonitorInfo {
+                    rid: body_rid,
+                    instance_id: body_instance_id,
+                    object_shape_index: body_shape as u32,
+                    area_shape_index: area_shape as u32,
+                    collision_object_type: CollisionObjectType::Body,
+                    state: -1,
+                });
+
+            space.area_add_to_monitor_query_list(self.base.get_rid());
+        } else {
+            if self.monitored_objects[&handle_pair_hash].state != 1 {
+                godot_error!("Body is not being monitored");
+                return;
+            }
+            self.monitored_objects.remove(&handle_pair_hash);
+        }
     }
 
     pub fn on_area_enter(

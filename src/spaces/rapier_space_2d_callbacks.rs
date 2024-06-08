@@ -291,6 +291,7 @@ impl RapierSpace2D {
                                     instance_id2,
                                     collider_handle1,
                                     shape1,
+                                    space,
                                 );
                             } else if event_info.is_stopped {
                                 let update_detection = p_collision_object2.is_some();
@@ -303,6 +304,7 @@ impl RapierSpace2D {
                                     collider_handle1,
                                     shape1,
                                     update_detection,
+                                    space,
                                 );
                             }
                         }
@@ -345,6 +347,7 @@ impl RapierSpace2D {
                                         instance_id1,
                                         collider_handle2,
                                         shape2,
+                                        space,
                                     );
                                 }
                                 if event_info.is_stopped {
@@ -358,6 +361,7 @@ impl RapierSpace2D {
                                         collider_handle2,
                                         shape2,
                                         update_detection,
+                                        space,
                                     );
                                 }
                             }
