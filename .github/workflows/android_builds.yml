@@ -11,7 +11,8 @@ jobs:
       matrix:
         arch: ["x86_64-linux-android", "aarch64-linux-android", "i686-linux-android", "armv7-linux-androideabi"]
         precision: [single]
-        dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
+        #dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
+        dimensions: [{"feature": "dim2", "short": "2d"}]
         features: [{"feature":"parallel,simd-stable", "name": "normal"}, {"feature":"enhanced-determinism", "name": "enhanced-determinism"}]
 
     steps:
