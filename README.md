@@ -4,20 +4,20 @@
 <p align="center">
 	<a href="https://github.com/appsinacup/godot-rapier-2d/actions/workflows/runner.yml">
         <img src="https://github.com/appsinacup/godot-rapier-2d/actions/workflows/runner.yml/badge.svg?branch=main"
-            alt="Godot Rapier2D Build"></a>
-    <a href="https://github.com/dimforge/rapier/releases/tag/v0.18.0" alt="Rapier2D Version">
-        <img src="https://img.shields.io/badge/Rapier2D-v0.18.0-%23478cbf?logoColor=white" /></a>
+            alt="Godot Rapier Build"></a>
+    <a href="https://github.com/dimforge/rapier/releases/tag/v0.19.0" alt="Rapier Version">
+        <img src="https://img.shields.io/badge/Rapier-v0.19.0-%23478cbf?logoColor=white" /></a>
     <a href="https://github.com/dimforge/salva/releases/tag/v0.7.0" alt="Salva Version">
         <img src="https://img.shields.io/badge/Salva2D-v0.7.0-%23478cbf?logoColor=white" /></a>
     <a href="https://github.com/godotengine/godot-cpp" alt="Godot Version">
-        <img src="https://img.shields.io/badge/Godot-v4.2-%23478cbf?logo=godot-engine&logoColor=white" /></a>
-    <a href="https://github.com/appsinacup/godot-rapier-2d/graphs/contributors" alt="Contributors">
+        <img src="https://img.shields.io/badge/Godot-v4-%23478cbf?logo=godot-engine&logoColor=white" /></a>
+    <a href="https://github.com/appsinacup/godot-rapier/graphs/contributors" alt="Contributors">
     <a href="https://discord.gg/56dMud8HYn">
         <img src="https://img.shields.io/discord/1138836561102897172?logo=discord"
             alt="Chat on Discord"></a>
 </p>
 
-A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engine v4.2](https://github.com/godotengine/godot), implemented as a GDExtension. Also integrates with salva for 2d fluids.
+A [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engine v4](https://github.com/godotengine/godot), implemented as a GDExtension. Also integrates with salva for fluids.
 
 <p align="center">
 <img src="rapier-vid.gif"/>
@@ -29,8 +29,6 @@ A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engi
 - Parallel support and SIMD build for better performance.
 - Better physics stability.
 - Fluids with surface tension, viscosity and elasticity.
-- *DISABLED* 32 bits and 64 bits support.
-- *DISABLED* Cross platform determinism.
 
 # Limitations
 

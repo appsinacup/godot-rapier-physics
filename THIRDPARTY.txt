@@ -23,7 +23,7 @@ Godot Engine (https://github.com/godotengine/godot)
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
     IN THE SOFTWARE.
 
-godot-cpp (https://github.com/godot-jolt/godot-cpp)
+godot-cpp (https://github.com/godotengine/godot-cpp)
 
     Copyright (c) 2017-present Godot Engine contributors.
     Copyright (c) 2022-present Mikael Hermansson.

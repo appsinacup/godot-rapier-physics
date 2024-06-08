@@ -7,7 +7,6 @@ use crate::rapier_wrapper::handle::{handle_pair_hash, invalid_handle, Handle};
 use crate::servers2d::rapier_physics_singleton_2d::{
     bodies_singleton, shapes_singleton, spaces_singleton,
 };
-use crate::spaces;
 use crate::spaces::rapier_space_2d::RapierSpace2D;
 use godot::builtin::{real, Transform2D, VariantArray};
 use godot::engine::physics_server_2d::AreaBodyStatus;
@@ -101,7 +100,7 @@ impl RapierArea2D {
     pub fn on_body_enter(
         &mut self,
         collider_handle: Handle,
-        body: &Option<&mut Box<dyn IRapierCollisionObject2D>>,
+        body: &mut Option<&mut Box<dyn IRapierCollisionObject2D>>,
         body_shape: usize,
         body_rid: Rid,
         body_instance_id: u64,
@@ -114,7 +113,7 @@ impl RapierArea2D {
     pub fn on_body_exit(
         &mut self,
         collider_handle: Handle,
-        body: &Option<&mut Box<dyn IRapierCollisionObject2D>>,
+        body: &mut Option<&mut Box<dyn IRapierCollisionObject2D>>,
         body_shape: usize,
         body_rid: Rid,
         body_instance_id: u64,
@@ -129,33 +128,70 @@ impl RapierArea2D {
     pub fn on_area_enter(
         &mut self,
         collider_handle: Handle,
-        other_area: &Option<&mut Box<dyn IRapierCollisionObject2D>>,
+        other_area: &mut Option<&mut Box<dyn IRapierCollisionObject2D>>,
         other_area_shape: usize,
         other_area_rid: Rid,
         other_area_instance_id: u64,
         area_collider_handle: Handle,
         area_shape: usize,
+        space: &mut Box<RapierSpace2D>,
     ) {
-        // Implementation needed
+        if other_area.is_none() {
+            godot_error!("other area is null");
+            return;
+        }
+        if self.area_monitor_callback.is_null() {
+            return;
+        }
+        if let Some(other_area) = other_area {
+            if let Some(other_area) = other_area.get_mut_area() {
+                if !other_area.is_monitorable() {
+                    return;
+                }
+
+                other_area.base.area_detection_counter += 1;
+
+                let handle_pair_hash = handle_pair_hash(collider_handle, area_collider_handle);
+                if self.monitored_objects.contains_key(&handle_pair_hash) {
+                    // it's already monitored
+                    return;
+                }
+
+                self.monitored_objects.insert(
+                    handle_pair_hash,
+                    MonitorInfo {
+                        rid: other_area_rid,
+                        instance_id: other_area_instance_id,
+                        object_shape_index: other_area_shape as u32,
+                        area_shape_index: area_shape as u32,
+                        collision_object_type: CollisionObjectType::Area,
+                        state: 1,
+                    },
+                );
+
+                space.area_add_to_monitor_query_list(self.base.get_rid());
+            }
+        }
     }
 
     pub fn on_area_exit(
         &mut self,
         collider_handle: Handle,
-        other_area: &Option<&mut Box<dyn IRapierCollisionObject2D>>,
+        other_area: &mut Option<&mut Box<dyn IRapierCollisionObject2D>>,
         other_area_shape: usize,
         other_area_rid: Rid,
         other_area_instance_id: u64,
         area_collider_handle: Handle,
         area_shape: usize,
+        space: &mut Box<RapierSpace2D>,
     ) {
-        if (self.area_monitor_callback.is_null()) {
+        if self.area_monitor_callback.is_null() {
             return;
         }
 
-        if let Some(other_area) = &other_area {
+        if let Some(other_area) = other_area {
             if let Some(other_area) = other_area.get_mut_area() {
-                if (!other_area.is_monitorable()) {
+                if !other_area.is_monitorable() {
                     return;
                 }
                 if other_area.base.area_detection_counter == 0 {
@@ -168,27 +204,24 @@ impl RapierArea2D {
 
         let handle_pair_hash = handle_pair_hash(collider_handle, area_collider_handle);
 
-        if (self.monitored_objects.contains_key(&handle_pair_hash)) {
+        if let std::collections::hash_map::Entry::Occupied(mut e) =
+            self.monitored_objects.entry(handle_pair_hash)
+        {
+            e.insert(MonitorInfo {
+                rid: other_area_rid,
+                instance_id: other_area_instance_id,
+                object_shape_index: other_area_shape as u32,
+                area_shape_index: area_shape as u32,
+                collision_object_type: CollisionObjectType::Area,
+                state: -1,
+            });
+            space.area_add_to_monitor_query_list(self.base.get_rid());
+        } else {
             if self.monitored_objects[&handle_pair_hash].state != 1 {
                 godot_error!("Area is not being monitored");
                 return;
             }
             self.monitored_objects.remove(&handle_pair_hash);
-        } else {
-            self.monitored_objects.insert(
-                handle_pair_hash,
-                MonitorInfo {
-                    rid: other_area_rid,
-                    instance_id: other_area_instance_id,
-                    object_shape_index: other_area_shape as u32,
-                    area_shape_index: area_shape as u32,
-                    collision_object_type: CollisionObjectType::Area,
-                    state: -1,
-                },
-            );
-            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
-                space.area_add_to_monitor_query_list(self.base.get_rid());
-            }
         }
     }
 
