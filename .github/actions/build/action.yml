@@ -32,19 +32,22 @@ runs:
       run: |
         rustup install nightly
         rustup default nightly
+        rustup target add ${{ inputs.arch }}
         #rustup toolchain install nightly
         #rustup override set nightly
         #rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
-    - name: Build Rapier
+    - name: Build
       shell: sh
       run: |
-        rustup target add ${{ inputs.arch }}
         cargo build --target=${{ inputs.arch }} --release --features="${{ inputs.features }},${{ inputs.precision }}" ${{ inputs.extra_flags}}
-        mkdir -p target/release
-        rm -rf target/release
-        cp -rf target/${{ inputs.rust_target }}/release target/release
       env:
         RUSTFLAGS: ${{ inputs.env_flags }}
+    - name: Copy to release
+      shell: sh
+      run: |
+        mkdir -p target/release
+        rm -rf target/release
+        cp -rf target/${{ inputs.arch }}/release target/release
     - name: Build Rapier Macos Universal
       shell: sh
       
@@ -55,3 +58,8 @@ runs:
         rustup target add aarch64-apple-darwin
         cargo build --target=aarch64-apple-darwin --release --features="${{ inputs.features }},${{ inputs.precision }}"
         lipo -create -output target/release/librapier2d_wrapper.a target/aarch64-apple-darwin/release/librapier2d_wrapper.a target/x86_64-apple-darwin/release/librapier2d_wrapper.a
+    - name: Copy to bin
+      shell: sh
+      run: |
+        mkdir -p target/bin
+        cp -rf target/release/* target/bin
