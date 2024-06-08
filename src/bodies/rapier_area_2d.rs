@@ -148,15 +148,17 @@ impl RapierArea2D {
 
         let handle_pair_hash = handle_pair_hash(collider_handle, area_collider_handle);
 
-        if let std::collections::hash_map::Entry::Vacant(e) = self.monitored_objects.entry(handle_pair_hash) {
+        if let std::collections::hash_map::Entry::Vacant(e) =
+            self.monitored_objects.entry(handle_pair_hash)
+        {
             e.insert(MonitorInfo {
-                    rid: body_rid,
-                    instance_id: body_instance_id,
-                    object_shape_index: body_shape as u32,
-                    area_shape_index: area_shape as u32,
-                    collision_object_type: CollisionObjectType::Body,
-                    state: -1,
-                });
+                rid: body_rid,
+                instance_id: body_instance_id,
+                object_shape_index: body_shape as u32,
+                area_shape_index: area_shape as u32,
+                collision_object_type: CollisionObjectType::Body,
+                state: -1,
+            });
 
             space.area_add_to_monitor_query_list(self.base.get_rid());
         } else {
