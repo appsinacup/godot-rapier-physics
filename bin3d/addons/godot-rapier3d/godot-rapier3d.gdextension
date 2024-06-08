@@ -6,8 +6,7 @@ compatibility_minimum = 4.2
 
 [libraries]
 
-#macos.debug = "bin/libgodot_rapier.macos.framework"
-macos.debug = "bin/libgodot_rapier.macos.dylib"
+macos.debug = "bin/libgodot_rapier.macos.framework"
 macos.release = "bin/libgodot_rapier.macos.framework"
 windows.debug.x86_64 = "bin/libgodot_rapier.windows.x86_64.dll"
 windows.release.x86_64 = "bin/libgodot_rapier.windows.x86_64.dll"

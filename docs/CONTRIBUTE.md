@@ -13,7 +13,7 @@ cargo build
 3. Copy the output to bin folder:
 
 ```
-cp target/debug/libgodot_rapier.dylib bin2/addons/godot-rapier2d/bin/libgodot_rapier.macos.template_debug.framework/libgodot_rapier.macos.template_debug.dylib
+cp target/debug/libgodot_rapier.dylib bin2/addons/godot-rapier2d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
 ```
 # How to debug using VSCode
 
