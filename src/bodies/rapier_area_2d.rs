@@ -108,7 +108,44 @@ impl RapierArea2D {
         area_shape: usize,
         space: &mut Box<RapierSpace2D>,
     ) {
-        // Implementation needed
+        if let Some(body) = body {
+            if let Some(body) = body.get_mut_body() {
+                // Add to keep track of currently detected bodies
+                if let Some(detected_body) = self.detected_bodies.get_mut(&body_rid) {
+                    detected_body.count += 1;
+                } else {
+                    self.detected_bodies
+                        .insert(body_rid, BodyRefCount { count: 1 });
+                    body.add_area(self.base.get_rid())
+                }
+
+                if self.monitor_callback.is_null() {
+                    return;
+                }
+
+                self.base.area_detection_counter += 1;
+
+                let handle_pair_hash = handle_pair_hash(collider_handle, area_collider_handle);
+                if self.monitored_objects.contains_key(&handle_pair_hash) {
+                    // it's already monitored
+                    return;
+                }
+                self.monitored_objects.insert(
+                    handle_pair_hash,
+                    MonitorInfo {
+                        rid: body_rid,
+                        instance_id: body_instance_id,
+                        object_shape_index: body_shape as u32,
+                        area_shape_index: area_shape as u32,
+                        collision_object_type: CollisionObjectType::Body,
+                        state: 1,
+                    },
+                );
+                space.area_add_to_monitor_query_list(self.base.get_rid());
+            }
+        } else {
+            godot_error!("other body is null");
+        }
     }
 
     pub fn on_body_exit(
@@ -181,10 +218,6 @@ impl RapierArea2D {
         area_shape: usize,
         space: &mut Box<RapierSpace2D>,
     ) {
-        if other_area.is_none() {
-            godot_error!("other area is null");
-            return;
-        }
         if self.area_monitor_callback.is_null() {
             return;
         }
@@ -216,6 +249,8 @@ impl RapierArea2D {
 
                 space.area_add_to_monitor_query_list(self.base.get_rid());
             }
+        } else {
+            godot_error!("other area is null");
         }
     }
 

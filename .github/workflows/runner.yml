@@ -42,6 +42,21 @@ jobs:
   #  needs: static-checks
   #  uses: ./.github/workflows/web_builds.yml
 
+  merge:
+    runs-on: ubuntu-latest
+    name: Merge
+    needs: [ios-build, linux-build, macos-build, windows-build]
+    #needs: [android-build, ios-build, linux-build, macos-build, windows-build, web-build]
+    steps:
+      - uses: actions/upload-artifact/merge@v4
+        with:
+          name: godot-rapier-2d-single-simd-parallel
+          pattern: godot-rapier-2d-single-simd-parallel-*
+      - uses: actions/upload-artifact/merge@v4
+        with:
+          name: godot-rapier-2d-double-enhanced-determinism
+          pattern: godot-rapier-2d-double-enhanced-determinism-*
+
   release:
     name: Create Release
     permissions:
