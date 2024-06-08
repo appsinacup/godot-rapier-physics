@@ -5,14 +5,14 @@ on:
 jobs:
   web:
     runs-on: ubuntu-20.04
-    name: ${{ matrix.dimensions }} ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+    name: ${{ matrix.dimensions }} ${{ matrix.precision }} ${{ matrix.features.name }} ${{ matrix.arch }}
     strategy:
       fail-fast: false
       matrix:
         arch: ["wasm32-unknown-emscripten"]
         precision: [single]
         dimensions: [dim2, dim3]
-        features: ["", "rapier/enhanced-determinism"]
+        features: [{"feature":"", "name": "normal"}, {"feature":"rapier/enhanced-determinism", "name": "enhanced-determinism"}]
 
     steps:
       - uses: actions/checkout@v4
@@ -39,13 +39,13 @@ jobs:
           arch: ${{ matrix.arch.arch }}
           extra_flags: "-Z build-std=panic_abort,std"
           precision: ${{ matrix.precision }}
-          features: ${{ matrix.features }},${{ matrix.precision }}_${{ matrix.dimensions }}
+          features: ${{ matrix.features.feature }},${{ matrix.precision }}_${{ matrix.dimensions }}
           env_flags: "-C target-feature=+atomics,+bulk-memory"
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: godot-rapier-${{ matrix.dimensions }}/-${{ matrix.precision }}-${{ matrix.features }}
+          name: godot-rapier-${{ matrix.dimensions }}-${{ matrix.precision }}-${{ matrix.features.name }}
           path: |
             ${{ github.workspace }}/bin_${{ matrix.dimensions }}/**
             !${{ github.workspace }}/bin_${{ matrix.dimensions }}/project.godot

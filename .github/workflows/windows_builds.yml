@@ -5,14 +5,14 @@ on:
 jobs:
   build-windows:
     runs-on: "windows-latest"
-    name: ${{ matrix.dimensions }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+    name: ${{ matrix.dimensions }} ${{ matrix.precision }} ${{ matrix.features.name }} ${{ matrix.arch }}
     strategy:
       fail-fast: false
       matrix:
         arch: ["x86_64-pc-windows-msvc", "i686-pc-windows-msvc"]
         precision: [single]
         dimensions: [dim2, dim3]
-        features: ["rapier2d/parallel,rapier2d/simd-stable", "rapier/enhanced-determinism"]
+        features: [{"feature":"rapier2d/parallel,rapier2d/simd-stable", "name": "normal"}, {"feature":"rapier/enhanced-determinism", "name": "enhanced-determinism"}]
 
     steps:
       - uses: actions/checkout@v4
@@ -20,12 +20,12 @@ jobs:
         uses: ./.github/actions/build
         with:
           arch: ${{ matrix.arch }}
-          features: ${{ matrix.features }},${{ matrix.precision }}_${{ matrix.dimensions }}
+          features: ${{ matrix.features.feature }},${{ matrix.precision }}_${{ matrix.dimensions }}
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: godot-rapier-${{ matrix.dimensions }}-${{ matrix.precision }}-${{ matrix.features }}
+          name: godot-rapier-${{ matrix.dimensions }}-${{ matrix.precision }}-${{ matrix.features.name }}
           path: |
             ${{ github.workspace }}/bin_${{ matrix.dimensions }}//**
             !${{ github.workspace }}/bin_${{ matrix.dimensions }}//project.godot
