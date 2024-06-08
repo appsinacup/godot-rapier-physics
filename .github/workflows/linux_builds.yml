@@ -15,6 +15,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - name: "Install dependencies"
+        shell: sh
+        run: |
+          sudo apt-get update
+          sudo apt-get install libunwind-dev
+          sudo apt-get install build-essential
+          sudo apt-get install pkg-config
+          sudo apt-get install libssl-dev
+          sudo apt-get install zlib1g-dev
       - name: Build ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/build
         with:
