@@ -5,13 +5,14 @@ on:
 jobs:
   web:
     runs-on: ubuntu-20.04
-    name: ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+    name: ${{ matrix.dimensions }} ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
     strategy:
       fail-fast: false
       matrix:
         arch: ["wasm32-unknown-emscripten"]
         precision: [single]
-        features: ["", enhanced-determinism]
+        dimensions: [dim2, dim3]
+        features: ["", "rapier/enhanced-determinism"]
 
     steps:
       - uses: actions/checkout@v4
@@ -37,16 +38,17 @@ jobs:
         with:
           arch: ${{ matrix.arch.arch }}
           extra_flags: "-Z build-std=panic_abort,std"
-          platform: web
           precision: ${{ matrix.precision }}
-          features: ${{ matrix.features }}
+          features: ${{ matrix.features }},${{ matrix.precision }}_${{ matrix.dimensions }}
           env_flags: "-C target-feature=+atomics,+bulk-memory"
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: godot-rapier-2d-${{ matrix.precision }}-${{ matrix.features }}
+          name: godot-rapier-${{ matrix.dimensions }}/-${{ matrix.precision }}-${{ matrix.features }}
           path: |
-            ${{ github.workspace }}/bin/**
-            !${{ github.workspace }}/bin/project.godot
+            ${{ github.workspace }}/bin${{ matrix.dimensions }}/**
+            !${{ github.workspace }}/bin${{ matrix.dimensions }}/project.godot
+          if-no-files-found: error
+          overwrite: true
     

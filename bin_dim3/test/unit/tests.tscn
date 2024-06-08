@@ -1,0 +1,33 @@
+[gd_scene load_steps=7 format=3 uid="uid://cc2ig1s2mncgp"]
+
+[ext_resource type="Script" path="res://test/unit/test_body.gd" id="1_0cd54"]
+[ext_resource type="Script" path="res://test/unit/test_shape.gd" id="2_w8p45"]
+[ext_resource type="Script" path="res://test/unit/test_space.gd" id="4_k78f7"]
+[ext_resource type="Script" path="res://test/unit/test_joint_base.gd" id="4_vj35b"]
+[ext_resource type="Script" path="res://test/unit/test_spring_joint.gd" id="5_g8t46"]
+[ext_resource type="Script" path="res://test/unit/test_pin_joint.gd" id="6_0ffp6"]
+
+[node name="TestBody" type="Node2D"]
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(4, 4)
+
+[node name="TestBody" type="Node2D" parent="."]
+script = ExtResource("1_0cd54")
+
+[node name="TestShape" type="Node2D" parent="."]
+script = ExtResource("2_w8p45")
+
+[node name="TestJoint" type="Node2D" parent="."]
+
+[node name="TestJointBase" type="Node2D" parent="TestJoint"]
+script = ExtResource("4_vj35b")
+
+[node name="TestSpringJoint" type="Node2D" parent="TestJoint"]
+script = ExtResource("5_g8t46")
+
+[node name="TestPinJoint" type="Node2D" parent="TestJoint"]
+script = ExtResource("6_0ffp6")
+
+[node name="TestSpace" type="Node2D" parent="."]
+script = ExtResource("4_k78f7")

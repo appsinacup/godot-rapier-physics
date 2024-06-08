@@ -5,13 +5,14 @@ on:
 jobs:
   build-windows:
     runs-on: "windows-latest"
-    name: ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+    name: ${{ matrix.dimensions }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
     strategy:
       fail-fast: false
       matrix:
         arch: ["x86_64-pc-windows-msvc", "i686-pc-windows-msvc"]
         precision: [single]
-        features: [simd-stable, enhanced-determinism]
+        dimensions: [dim2, dim3]
+        features: ["rapier2d/parallel,rapier2d/simd-stable", "rapier/enhanced-determinism"]
 
     steps:
       - uses: actions/checkout@v4
@@ -19,14 +20,14 @@ jobs:
         uses: ./.github/actions/build
         with:
           arch: ${{ matrix.arch }}
-          platform: windows
-          precision: ${{ matrix.precision }}
-          features: ${{ matrix.features }}
+          features: ${{ matrix.features }},${{ matrix.precision }}_${{ matrix.dimensions }}
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: godot-rapier-2d-${{ matrix.precision }}-${{ matrix.features }}
+          name: godot-rapier-${{ matrix.dimensions }}-${{ matrix.precision }}-${{ matrix.features }}
           path: |
-            ${{ github.workspace }}/bin/**
-            !${{ github.workspace }}/bin/project.godot
+            ${{ github.workspace }}/bin${{ matrix.dimensions }}//**
+            !${{ github.workspace }}/bin${{ matrix.dimensions }}//project.godot
+          if-no-files-found: error
+          overwrite: true

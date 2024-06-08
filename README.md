@@ -20,8 +20,8 @@
 A [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engine v4](https://github.com/godotengine/godot), implemented as a GDExtension. Also integrates with salva for fluids.
 
 <p align="center">
-<img src="rapier-vid.gif"/>
-<img src="fluid_shader.gif"/>
+<img src="docs/rapier-vid.gif"/>
+<img src="docs/fluid_shader.gif"/>
 </p>
 
 # Features
@@ -46,23 +46,29 @@ A [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engine 
 - iOS (arm64)
 - *DISABLED* Web (wasm32)
 
-# Installation
+# Installation Rapier 2D
 
 - Automatic (Recommended): Download the plugin from the official [Godot Asset Store](https://godotengine.org/asset-library/asset/2267) using the `AssetLib` tab in Godot.
 
 - Manual: Download the github release and move only the `addons` folder into your project `addons` folder.
 
-- Build it yourself. Read more about it in the [contribute file](CONTRIBUTE.md).
-
 After installing, go to `Advanced Settings` -> `Physics` -> `2D`. Change `Physics Engine` to `Rapier2D`.
+
+# Installation Rapier 3D
+
+- Automatic (Recommended): Download the plugin from the official [Godot Asset Store](https://godotengine.org/asset-library/asset/2267) using the `AssetLib` tab in Godot.
+
+- Manual: Download the github release and move only the `addons` folder into your project `addons` folder.
+
+After installing, go to `Advanced Settings` -> `Physics` -> `3D`. Change `Physics Engine` to `Rapier3D`.
 
 # Samples
 
-After installing the addon, the samples are in the `samples/godot-rapier2d` folder. In order to run them, you have to enable the physics engine for some extra features to work (eg. fluids) as described above.
+After installing the addon, the samples are in the `bin2/samples/godot-rapier2d` and `bin3/samples/godot-rapier3d` folder. In order to run them, you have to enable the physics engine for some extra features to work (eg. fluids) as described above.
 
 # Contribute
 
-If you want to contribute, view [CONTRIBUTE.md](CONTRIBUTE.md) for more info.
+If you want to contribute, view [docs/CONTRIBUTE.md](docs/CONTRIBUTE.md) for more info.
 
 # [Discord](https://discord.gg/56dMud8HYn)
 

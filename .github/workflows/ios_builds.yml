@@ -11,7 +11,8 @@ jobs:
       matrix:
         arch: ["aarch64-apple-ios"]
         precision: [single]
-        features: ["simd-stable,parallel", enhanced-determinism]
+        dimensions: [dim2, dim3]
+        features: ["rapier2d/parallel,rapier2d/simd-stable", "rapier/enhanced-determinism"]
 
     steps:
       - uses: actions/checkout@v4
@@ -19,9 +20,7 @@ jobs:
         uses: ./.github/actions/build
         with:
           arch: ${{ matrix.arch }}
-          platform: ios
-          precision: ${{ matrix.precision }}
-          features: ${{ matrix.features }}
+          features: ${{ matrix.features }},${{ matrix.precision }}_${{ matrix.dimensions }}
 
       - name: iOS Sign
         shell: pwsh
@@ -33,14 +32,16 @@ jobs:
           APPLE_DEV_PASSWORD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
           APPLE_DEV_APP_ID: ${{ secrets.PROD_MACOS_APPLE_DEV_APP_ID }}
         run: |
-          ./scripts/ci-sign-macos.ps1 bin/addons/godot-rapier2d/bin/libphysics_server_rapier2d.ios.template_debug.dylib
-          ./scripts/ci-sign-macos.ps1 bin/addons/godot-rapier2d/bin/libphysics_server_rapier2d.ios.template_release.dylib
+          ./scripts/ci-sign-macos.ps1 bin${{ matrix.dimensions }}/addons/godot-rapier2d/bin/libphysics_server_rapier2d.ios.template_debug.dylib
+          ./scripts/ci-sign-macos.ps1 bin${{ matrix.dimensions }}/addons/godot-rapier2d/bin/libphysics_server_rapier2d.ios.template_release.dylib
         if: ${{ env.APPLE_DEV_ID }}
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: godot-rapier-2d-${{ matrix.precision }}-${{ matrix.features }}
+          name: godot-rapier-${{ matrix.dimensions }}-${{ matrix.precision }}-${{ matrix.features }}
           path: |
-            ${{ github.workspace }}/bin/**
-            !${{ github.workspace }}/bin/project.godot
+            ${{ github.workspace }}/bin${{ matrix.dimensions }}/**
+            !${{ github.workspace }}/bin${{ matrix.dimensions }}/project.godot
+          if-no-files-found: error
+          overwrite: true

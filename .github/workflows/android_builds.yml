@@ -5,13 +5,14 @@ on:
 jobs:
   android:
     runs-on: "ubuntu-20.04"
-    name: ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+    name: ${{ matrix.dimensions }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
     strategy:
       fail-fast: false
       matrix:
         arch: ["x86_64-linux-android", "aarch64-linux-android", "i686-linux-android", "armv7-linux-androideabi"]
         precision: [single]
-        features: ["simd-stable,parallel", enhanced-determinism]
+        dimensions: [dim2, dim3]
+        features: ["rapier2d/parallel,rapier2d/simd-stable", "rapier/enhanced-determinism"]
 
     steps:
       - uses: actions/checkout@v4
@@ -19,14 +20,18 @@ jobs:
         uses: ./.github/actions/build
         with:
           arch: ${{ matrix.arch }}
-          platform: android
-          precision: ${{ matrix.precision }}
-          features: ${{ matrix.features }}
-
+          features: ${{ matrix.features }},${{ matrix.precision }}_${{ matrix.dimensions }}
+      - name: Copy to bin
+        shell: sh
+        run: |
+          mkdir -p target/bin
+          cp -rf target/release/* target/bin
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: godot-rapier-2d-${{ matrix.precision }}-${{ matrix.features }}
+          name: godot-rapier-${{ matrix.dimensions }}-${{ matrix.precision }}-${{ matrix.features }}
           path: |
-            ${{ github.workspace }}/bin/**
-            !${{ github.workspace }}/bin/project.godot
+            ${{ github.workspace }}/bin${{ matrix.dimensions }}/**
+            !${{ github.workspace }}/bin${{ matrix.dimensions }}/project.godot
+          if-no-files-found: error
+          overwrite: true

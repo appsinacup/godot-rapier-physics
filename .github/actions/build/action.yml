@@ -2,9 +2,6 @@ name: Physics Server Rapier Build
 description: Build Godot Cpp and the Physics Server 2D Extension.
 
 inputs:
-  platform:
-    required: true
-    description: Target platform.
   arch:
     required: true
     default: ''
@@ -17,9 +14,6 @@ inputs:
     required: false
     default: ''
     description: RUSTFLAGS env var.
-  precision:
-    required: true
-    description: single or double
   features:
     required: true
     description: simd-nightly,simd-stable,parallel,enhanced-determinism
@@ -39,7 +33,7 @@ runs:
     - name: Build
       shell: sh
       run: |
-        cargo build --target=${{ inputs.arch }} --release --features="${{ inputs.features }},${{ inputs.precision }}" ${{ inputs.extra_flags}}
+        cargo build --target=${{ inputs.arch }} --release --features="${{ inputs.features }}" ${{ inputs.extra_flags}}
       env:
         RUSTFLAGS: ${{ inputs.env_flags }}
     - name: Copy to release
@@ -50,16 +44,10 @@ runs:
         cp -rf target/${{ inputs.arch }}/release target/release
     - name: Build Rapier Macos Universal
       shell: sh
-      
       # we already built for x86_64-apple-darwin for mac, now build arm64
-      if: ${{ inputs.platform == 'macos'}}
+      if: ${{ inputs.arch == 'x86_64-apple-darwin'}}
       run: |
         mkdir -p target/release
         rustup target add aarch64-apple-darwin
-        cargo build --target=aarch64-apple-darwin --release --features="${{ inputs.features }},${{ inputs.precision }}"
+        cargo build --target=aarch64-apple-darwin --release --features="${{ inputs.features }}"
         lipo -create -output target/release/libgodot_rapier.dylib target/aarch64-apple-darwin/release/libgodot_rapier.dylib target/x86_64-apple-darwin/release/libgodot_rapier.dylib
-    - name: Copy to bin
-      shell: sh
-      run: |
-        mkdir -p target/bin
-        cp -rf target/release/* target/bin

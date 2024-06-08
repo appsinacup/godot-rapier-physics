@@ -1,13 +1,22 @@
 # Ignore everything in bin folder by default
-bin/addons/godot-rapier2d/bin/*
-bin/.godot/**
-bin/samples/godot-rapier2d/addons/**
+bin_dim2/addons/godot-rapier2d/bin/*
+bin_dim2/.godot/**
+bin_dim2/samples/godot-rapier2d/addons/**
+bin_dim3/addons/godot-rapier2d/bin/*
+bin_dim3/.godot/**
+bin_dim3/samples/godot-rapier2d/addons/**
 target
 
-!bin/addons/godot-rapier2d/bin/libphysics_server_rapier2d.macos.template_debug.framework/Resources/Info.plist
-!bin/addons/godot-rapier2d/bin/libphysics_server_rapier2d.macos.template_release.framework/Resources/Info.plist
-!bin/addons/godot-rapier2d/bin/libphysics_server_rapier2d.ios.template_debug.framework/Info.plist
-!bin/addons/godot-rapier2d/bin/libphysics_server_rapier2d.ios.template_release.framework/Info.plist
+!bin_dim2/addons/godot-rapier2d/bin/libphysics_server_rapier2d.macos.template_debug.framework/Resources/Info.plist
+!bin_dim2/addons/godot-rapier2d/bin/libphysics_server_rapier2d.macos.template_release.framework/Resources/Info.plist
+!bin_dim2/addons/godot-rapier2d/bin/libphysics_server_rapier2d.ios.template_debug.framework/Info.plist
+!bin_dim2/addons/godot-rapier2d/bin/libphysics_server_rapier2d.ios.template_release.framework/Info.plist
+
+!bin_dim3/addons/godot-rapier2d/bin/libphysics_server_rapier3d.macos.template_debug.framework/Resources/Info.plist
+!bin_dim3/addons/godot-rapier2d/bin/libphysics_server_rapier3d.macos.template_release.framework/Resources/Info.plist
+!bin_dim3/addons/godot-rapier2d/bin/libphysics_server_rapier3d.ios.template_debug.framework/Info.plist
+!bin_dim3/addons/godot-rapier2d/bin/libphysics_server_rapier3d.ios.template_release.framework/Info.plist
+
 # Binaries
 *.os
 *.o

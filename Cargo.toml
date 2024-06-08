@@ -1,8 +1,7 @@
 [package]
 name = "godot-rapier"
-version = "0.1.0"
+version = "0.7.0"
 edition = "2021"
-rust-version = "1.77.1"
 license = "MIT"
 publish = false
 
@@ -15,11 +14,8 @@ dim2 = []
 dim3 = []
 single = []
 double = []
-enhanced-determinism = ["rapier2d/enhanced-determinism", "rapier2d-f64/enhanced-determinism"]
-simd-stable = ["rapier2d/simd-stable", "rapier2d-f64/simd-stable"]
-simd-nightly = ["rapier2d/simd-nightly", "rapier2d-f64/simd-nightly"]
-# wasm-bindgen = ["rapier2d/wasm-bindgen", "rapier2d-f64/wasm-bindgen"]
-parallel = ["rapier2d/parallel", "rapier2d-f64/parallel"]
+# wasm-bindgen = ["rapier2d/wasm-bindgen", "rapier2d-f64/wasm-bindgen", "rapier3d/wasm-bindgen", "rapier3d-f64/wasm-bindgen"]
+parallel = ["rapier2d/parallel", "rapier2d-f64/parallel", "rapier3d/parallel", "rapier3d-f64/parallel"]
 experimental-wasm = ["godot/experimental-wasm", "godot/lazy-function-tables"]
 single_dim2 = ["single", "dim2", "rapier2d", "salva2d"]
 double_dim2 = ["double", "dim2", "rapier2d-f64", "salva2d"]

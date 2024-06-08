@@ -5,14 +5,15 @@ on:
 jobs:
   linux:
     runs-on: ubuntu-20.04
-    name: ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+    name: ${{ matrix.dimensions }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
     strategy:
       fail-fast: false
       matrix:
         #arch: ["x86_64-unknown-linux-gnu", "i686-unknown-linux-gnu", "aarch64-unknown-linux-gnu"]
         arch: ["x86_64-unknown-linux-gnu"]
         precision: [single]
-        features: ["simd-stable,parallel", enhanced-determinism]
+        dimensions: [dim2, dim3]
+        features: ["rapier2d/parallel,rapier2d/simd-stable", "rapier/enhanced-determinism"]
 
     steps:
       - uses: actions/checkout@v4
@@ -29,15 +30,15 @@ jobs:
         uses: ./.github/actions/build
         with:
           arch: ${{ matrix.arch }}
-          platform: linux
-          precision: ${{ matrix.precision }}
-          features: ${{ matrix.features }}
+          features: ${{ matrix.features }},${{ matrix.precision }}_${{ matrix.dimensions }}
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: godot-rapier-2d-${{ matrix.precision }}-${{ matrix.features }}
+          name: godot-rapier-${{ matrix.dimensions }}-${{ matrix.precision }}-${{ matrix.features }}
           path: |
-            ${{ github.workspace }}/bin/**
-            !${{ github.workspace }}/bin/project.godot
+            ${{ github.workspace }}/bin${{ matrix.dimensions }}/**
+            !${{ github.workspace }}/bin${{ matrix.dimensions }}/project.godot
+          if-no-files-found: error
+          overwrite: true
     

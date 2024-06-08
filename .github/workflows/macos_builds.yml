@@ -5,13 +5,14 @@ on:
 jobs:
   macos:
     runs-on: "macos-latest"
-    name: ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+    name: ${{ matrix.dimensions }} ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
     strategy:
       fail-fast: false
       matrix:
         arch:  ["x86_64-apple-darwin"]
         precision: [single]
-        features: ["simd-stable,parallel", enhanced-determinism]
+        dimensions: [dim2, dim3]
+        features: ["rapier2d/parallel,rapier2d/simd-stable", "rapier/enhanced-determinism"]
 
     steps:
       - uses: actions/checkout@v4
@@ -19,14 +20,12 @@ jobs:
         uses: ./.github/actions/build
         with:
           arch: ${{ matrix.arch }}
-          platform: macos
-          precision: ${{ matrix.precision }}
-          features: ${{ matrix.features }}
+          features: ${{ matrix.features }},${{ matrix.precision }}_${{ matrix.dimensions }}
       
       - name: Mac Sign
         uses: ughuuu/godot-cpp-template/.github/actions/sign@add-more-stuff/options-to-build
         with:
-          FRAMEWORK_PATH: bin/addons/godot-rapier2d/bin/libphysics_server_rapier2d.macos.template_debug.framework
+          FRAMEWORK_PATH: bin${{ matrix.dimensions }}/addons/godot-rapier2d/bin/libphysics_server_rapier2d.macos.template_debug.framework
           SIGN_FLAGS: "--deep"
           APPLE_CERT_BASE64: ${{ secrets.APPLE_CERT_BASE64 }}
           APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
@@ -37,7 +36,7 @@ jobs:
       - name: Mac Sign
         uses: ughuuu/godot-cpp-template/.github/actions/sign@add-more-stuff/options-to-build
         with:
-          FRAMEWORK_PATH: bin/addons/godot-rapier2d/bin/libphysics_server_rapier2d.macos.template_release.framework
+          FRAMEWORK_PATH: bin${{ matrix.dimensions }}/addons/godot-rapier2d/bin/libphysics_server_rapier2d.macos.template_release.framework
           SIGN_FLAGS: "--deep"
           APPLE_CERT_BASE64: ${{ secrets.APPLE_CERT_BASE64 }}
           APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
@@ -49,7 +48,9 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: godot-rapier-2d-${{ matrix.precision }}-${{ matrix.features }}
+          name: godot-rapier-2d-${{ matrix.dimensions }}-${{ matrix.features }}
           path: |
-            ${{ github.workspace }}/bin/**
-            !${{ github.workspace }}/bin/project.godot
+            ${{ github.workspace }}/bin${{ matrix.dimensions }}/**
+            !${{ github.workspace }}/bin${{ matrix.dimensions }}/project.godot
+          if-no-files-found: error
+          overwrite: true
