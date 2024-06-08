@@ -57,7 +57,7 @@ runs:
         mkdir -p target/release
         rustup target add aarch64-apple-darwin
         cargo build --target=aarch64-apple-darwin --release --features="${{ inputs.features }},${{ inputs.precision }}"
-        lipo -create -output target/release/libgodot_rapier.a target/aarch64-apple-darwin/release/libgodot_rapier.a target/x86_64-apple-darwin/release/libgodot_rapier.a
+        lipo -create -output target/release/libgodot_rapier.dylib target/aarch64-apple-darwin/release/libgodot_rapier.dylib target/x86_64-apple-darwin/release/libgodot_rapier.dylib
     - name: Copy to bin
       shell: sh
       run: |
