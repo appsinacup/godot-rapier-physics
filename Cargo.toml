@@ -10,7 +10,7 @@ publish = false
 crate-type = ["cdylib"]
 
 [features]
-default = ["single", "dim2"]
+default = ["single_dim2"]
 dim2 = []
 dim3 = []
 single = []
@@ -21,16 +21,22 @@ simd-nightly = ["rapier2d/simd-nightly", "rapier2d-f64/simd-nightly"]
 # wasm-bindgen = ["rapier2d/wasm-bindgen", "rapier2d-f64/wasm-bindgen"]
 parallel = ["rapier2d/parallel", "rapier2d-f64/parallel"]
 experimental-wasm = ["godot/experimental-wasm", "godot/lazy-function-tables"]
+single_dim2 = ["single", "dim2", "rapier2d", "salva2d"]
+double_dim2 = ["double", "dim2", "rapier2d-f64", "salva2d"]
+single_dim3 = ["single", "dim3", "rapier3d", "salva3d"]
+double_dim3 = ["double", "dim3", "rapier3d-f64", "salva3d"]
+
 
 [dependencies]
 bincode = "1"
 godot = { git = "https://github.com/godot-rust/gdext", branch = "master", features=[] }
-rapier2d = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"]}
-rapier2d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"]}
-rapier3d = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"]}
-rapier3d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"]}
-salva2d = { git = "https://github.com/ughuuu/salva", branch = "update-to-rapier-0.19", features = ["rapier"] }
-salva3d = { git = "https://github.com/ughuuu/salva", branch = "update-to-rapier-0.19", features = ["rapier"] }
+
+rapier2d = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"], optional = true}
+rapier2d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"], optional = true}
+rapier3d = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"], optional = true}
+rapier3d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"], optional = true}
+salva2d = { git = "https://github.com/ughuuu/salva", branch = "update-to-rapier-0.19", features = ["rapier"], optional = true }
+salva3d = { git = "https://github.com/ughuuu/salva", branch = "update-to-rapier-0.19", features = ["rapier"], optional = true }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 

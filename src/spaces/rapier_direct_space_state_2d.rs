@@ -108,8 +108,8 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             let end = to - from;
             let dir = end.normalized();
 
-            let rapier_from = rapier2d::na::Vector2::new(from.x, from.y);
-            let rapier_dir = rapier2d::na::Vector2::new(dir.x, dir.y);
+            let rapier_from = rapier::na::Vector2::new(from.x, from.y);
+            let rapier_dir = rapier::na::Vector2::new(dir.x, dir.y);
 
             let mut query_excluded_info = QueryExcludedInfo::default();
             query_excluded_info.query_collision_layer_mask = collision_mask;
@@ -171,7 +171,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             if space.is_valid() {
                 return 0;
             }
-            let rapier_pos = rapier2d::na::Vector2::new(position.x, position.y);
+            let rapier_pos = rapier::na::Vector2::new(position.x, position.y);
 
             // Allocate memory for hit_info_array
             let mut hit_info_array: Vec<PointHitInfo> = Vec::with_capacity(max_results);
@@ -246,7 +246,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
                 if !space.is_valid() {
                     return 0;
                 }
-                let rapier_motion = rapier2d::na::Vector2::new(motion.x, motion.y);
+                let rapier_motion = rapier::na::Vector2::new(motion.x, motion.y);
                 let shape_info =
                     shape_info_from_body_shape(shape.get_base().get_handle(), transform);
 
@@ -322,7 +322,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
                 if !space.is_valid() {
                     return false;
                 }
-                let rapier_motion = rapier2d::na::Vector2::new(motion.x, motion.y);
+                let rapier_motion = rapier::na::Vector2::new(motion.x, motion.y);
                 let shape_info =
                     shape_info_from_body_shape(shape.get_base().get_handle(), transform);
 
@@ -368,7 +368,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
                 if !space.is_valid() {
                     return false;
                 }
-                let rapier_motion = rapier2d::na::Vector2::new(motion.x, motion.y);
+                let rapier_motion = rapier::na::Vector2::new(motion.x, motion.y);
 
                 let results_out = results as *mut Vector2;
                 let shape_info =
@@ -434,7 +434,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
                 if !space.is_valid() {
                     return false;
                 }
-                let rapier_motion = rapier2d::na::Vector2::new(motion.x, motion.y);
+                let rapier_motion = rapier::na::Vector2::new(motion.x, motion.y);
                 let shape_info =
                     shape_info_from_body_shape(shape.get_base().get_handle(), transform);
 

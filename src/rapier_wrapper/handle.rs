@@ -1,7 +1,7 @@
-use rapier2d::data::Index;
-use rapier2d::prelude::*;
-use salva2d::object::ContiguousArenaIndex;
-use salva2d::object::FluidHandle;
+use rapier::data::Index;
+use rapier::prelude::*;
+use salva::object::ContiguousArenaIndex;
+use salva::object::FluidHandle;
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -141,4 +141,11 @@ pub fn are_handles_equal(handle1: Handle, handle2: Handle) -> bool {
 
 pub fn are_handles_equal_double(handle1: HandleDouble, handle2: HandleDouble) -> bool {
     (handle1.id == handle2.id) && (handle1.generation == handle2.generation)
+}
+
+pub fn handle_pair_hash(handle1: Handle, handle2: Handle) -> u128 {
+    return handle1.id as u128
+        + (handle1.generation << 32) as u128
+        + (handle2.id << 64) as u128
+        + (handle2.generation << 96) as u128;
 }

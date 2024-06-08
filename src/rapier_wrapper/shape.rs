@@ -3,7 +3,7 @@ use crate::rapier_wrapper::handle::*;
 use crate::rapier_wrapper::physics_world::*;
 use godot::builtin::Transform2D;
 use nalgebra::Vector2;
-use rapier2d::prelude::*;
+use rapier::prelude::*;
 
 pub fn pixel_point_array_to_vec(pixel_data: Vec<Vector2<Real>>) -> Vec<Point<Real>> {
     let mut vec = Vec::<Point<Real>>::with_capacity(pixel_data.len());

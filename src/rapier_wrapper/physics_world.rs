@@ -6,10 +6,10 @@ use crate::rapier_wrapper::settings::*;
 use crate::rapier_wrapper::user_data::*;
 use godot::log::godot_error;
 use nalgebra::Vector2;
-use rapier2d::crossbeam;
-use rapier2d::data::Arena;
-use rapier2d::prelude::*;
-use salva2d::integrations::rapier::FluidsPipeline;
+use rapier::crossbeam;
+use rapier::data::Arena;
+use rapier::prelude::*;
+use salva::integrations::rapier::FluidsPipeline;
 use serde::{Deserialize, Serialize};
 use std::num::NonZeroUsize;
 

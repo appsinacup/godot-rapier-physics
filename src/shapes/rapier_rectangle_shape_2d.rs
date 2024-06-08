@@ -39,7 +39,7 @@ impl IRapierShape2D for RapierRectangleShape2D {
     }
 
     fn create_rapier_shape(&mut self) -> Handle {
-        let v = rapier2d::na::Vector2::new(self.half_extents.x * 2.0, self.half_extents.y * 2.0);
+        let v = rapier::na::Vector2::new(self.half_extents.x * 2.0, self.half_extents.y * 2.0);
         shape_create_box(v)
     }
 

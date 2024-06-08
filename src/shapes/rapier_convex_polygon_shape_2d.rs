@@ -54,7 +54,7 @@ impl IRapierShape2D for RapierConvexPolygonShape2D {
         if self.points.len() >= 3 {
             let mut rapier_points = Vec::with_capacity(self.points.len());
             for point in self.points.iter() {
-                rapier_points.push(rapier2d::na::Vector2::new(point.pos.x, point.pos.y));
+                rapier_points.push(rapier::na::Vector2::new(point.pos.x, point.pos.y));
             }
             shape_create_convex_polyline(rapier_points)
         } else {

@@ -45,13 +45,13 @@ impl RapierGrooveJoint2D {
                 let point_a_2 = base_a.get_inv_transform() * p_a_groove2;
                 let axis = (point_a_2 - point_a_1).normalized();
                 let length = (point_a_2 - point_a_1).length();
-                let rapier_axis = rapier2d::na::Vector2::new(axis.x, axis.y);
-                let rapier_limits = rapier2d::na::Vector2::new(0.0, length);
-                let rapier_anchor_a = rapier2d::na::Vector2::new(point_a_1.x, point_a_1.y);
+                let rapier_axis = rapier::na::Vector2::new(axis.x, axis.y);
+                let rapier_limits = rapier::na::Vector2::new(0.0, length);
+                let rapier_anchor_a = rapier::na::Vector2::new(point_a_1.x, point_a_1.y);
 
                 let base_b = body_b.get_base();
                 let anchor_b = base_b.get_inv_transform() * p_b_anchor;
-                let rapier_anchor_b = rapier2d::na::Vector2::new(anchor_b.x, anchor_b.y);
+                let rapier_anchor_b = rapier::na::Vector2::new(anchor_b.x, anchor_b.y);
                 let space_handle = body_a.get_base().get_space_handle();
 
                 let handle = joint_create_prismatic(

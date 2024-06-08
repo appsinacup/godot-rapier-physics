@@ -3,7 +3,7 @@ use crate::rapier_wrapper::handle::*;
 use crate::rapier_wrapper::physics_world::*;
 use nalgebra::UnitVector2;
 use nalgebra::Vector2;
-use rapier2d::prelude::*;
+use rapier::prelude::*;
 
 pub fn joint_create_revolute(
     world_handle: Handle,

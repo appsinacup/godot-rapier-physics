@@ -3,8 +3,9 @@ use crate::rapier_wrapper::convert::*;
 use crate::rapier_wrapper::handle::*;
 use crate::rapier_wrapper::physics_world::*;
 use crate::rapier_wrapper::user_data::UserData;
-use nalgebra::Vector2;
-use rapier2d::prelude::*;
+use nalgebra::zero;
+use nalgebra::SVector;
+use rapier::prelude::*;
 
 pub enum BodyType {
     Dynamic,
@@ -14,7 +15,7 @@ pub enum BodyType {
 
 fn set_rigid_body_properties_internal(
     rigid_body: &mut RigidBody,
-    pixel_pos: Vector2<Real>,
+    pixel_pos: SVector<Real, DIM>,
     rot: Real,
     wake_up: bool,
 ) {
@@ -29,7 +30,7 @@ fn set_rigid_body_properties_internal(
 
 pub fn body_create(
     world_handle: Handle,
-    pixel_pos: Vector2<Real>,
+    pixel_pos: SVector<Real, DIM>,
     rot: Real,
     user_data: &UserData,
     body_type: BodyType,
@@ -95,7 +96,7 @@ pub fn body_destroy(world_handle: Handle, body_handle: Handle) {
     }
 }
 
-pub fn body_get_position(world_handle: Handle, body_handle: Handle) -> Vector2<Real> {
+pub fn body_get_position(world_handle: Handle, body_handle: Handle) -> SVector<Real, DIM> {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
@@ -129,7 +130,7 @@ pub fn body_get_angle(world_handle: Handle, body_handle: Handle) -> Real {
 pub fn body_set_transform(
     world_handle: Handle,
     body_handle: Handle,
-    pixel_pos: Vector2<Real>,
+    pixel_pos: SVector<Real, DIM>,
     rot: Real,
     wake_up: bool,
 ) {
@@ -146,7 +147,7 @@ pub fn body_set_transform(
     }
 }
 
-pub fn body_get_linear_velocity(world_handle: Handle, body_handle: Handle) -> Vector2<Real> {
+pub fn body_get_linear_velocity(world_handle: Handle, body_handle: Handle) -> SVector<Real, DIM> {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
@@ -159,13 +160,13 @@ pub fn body_get_linear_velocity(world_handle: Handle, body_handle: Handle) -> Ve
             return vector_meters_to_pixels(*body_vel);
         }
     }
-    vector_meters_to_pixels(Vector2::default())
+    vector_meters_to_pixels(zero())
 }
 
 pub fn body_set_linear_velocity(
     world_handle: Handle,
     body_handle: Handle,
-    pixel_vel: Vector2<Real>,
+    pixel_vel: SVector<Real, DIM>,
 ) {
     let vel = vector_pixels_to_meters(pixel_vel);
 
@@ -330,7 +331,7 @@ pub fn body_set_mass_properties(
     body_handle: Handle,
     mass: Real,
     pixel_inertia: Real,
-    pixel_local_com: Vector2<Real>,
+    pixel_local_com: SVector<Real, DIM>,
     wake_up: bool,
     force_update: bool,
 ) {
@@ -358,7 +359,7 @@ pub fn body_set_mass_properties(
     }
 }
 
-pub fn body_add_force(world_handle: Handle, body_handle: Handle, pixel_force: Vector2<Real>) {
+pub fn body_add_force(world_handle: Handle, body_handle: Handle, pixel_force: SVector<Real, DIM>) {
     let force = vector_pixels_to_meters(pixel_force);
 
     let physics_engine = physics_engine();
@@ -377,8 +378,8 @@ pub fn body_add_force(world_handle: Handle, body_handle: Handle, pixel_force: Ve
 pub fn body_add_force_at_point(
     world_handle: Handle,
     body_handle: Handle,
-    pixel_force: Vector2<Real>,
-    pixel_point: Vector2<Real>,
+    pixel_force: SVector<Real, DIM>,
+    pixel_point: SVector<Real, DIM>,
 ) {
     let force = vector_pixels_to_meters(pixel_force);
     let point = vector_pixels_to_meters(pixel_point);
@@ -412,7 +413,11 @@ pub fn body_add_torque(world_handle: Handle, body_handle: Handle, pixel_torque: 
     }
 }
 
-pub fn body_apply_impulse(world_handle: Handle, body_handle: Handle, pixel_impulse: Vector2<Real>) {
+pub fn body_apply_impulse(
+    world_handle: Handle,
+    body_handle: Handle,
+    pixel_impulse: SVector<Real, DIM>,
+) {
     let impulse = vector_pixels_to_meters(pixel_impulse);
 
     let physics_engine = physics_engine();
@@ -431,8 +436,8 @@ pub fn body_apply_impulse(world_handle: Handle, body_handle: Handle, pixel_impul
 pub fn body_apply_impulse_at_point(
     world_handle: Handle,
     body_handle: Handle,
-    pixel_impulse: Vector2<Real>,
-    pixel_point: Vector2<Real>,
+    pixel_impulse: SVector<Real, DIM>,
+    pixel_point: SVector<Real, DIM>,
 ) {
     let impulse = vector_pixels_to_meters(pixel_impulse);
     let point = vector_pixels_to_meters(pixel_point);
@@ -452,7 +457,7 @@ pub fn body_apply_impulse_at_point(
     }
 }
 
-pub fn body_get_constant_force(world_handle: Handle, body_handle: Handle) -> Vector2<Real> {
+pub fn body_get_constant_force(world_handle: Handle, body_handle: Handle) -> SVector<Real, DIM> {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = handle_to_rigid_body_handle(body_handle);

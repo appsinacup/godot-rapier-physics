@@ -1,4 +1,23 @@
 #![feature(map_many_mut)]
+
+#[cfg(all(feature = "single", feature = "dim2"))]
+extern crate rapier2d as rapier;
+#[cfg(all(feature = "double", feature = "dim2"))]
+extern crate rapier2d_f64 as rapier;
+#[cfg(all(feature = "single", feature = "dim3"))]
+extern crate rapier3d as rapier;
+#[cfg(all(feature = "double", feature = "dim3"))]
+extern crate rapier3d_f64 as rapier;
+
+#[cfg(all(feature = "single", feature = "dim2"))]
+extern crate salva2d as salva;
+#[cfg(all(feature = "double", feature = "dim2"))]
+extern crate salva2d as salva;
+#[cfg(all(feature = "single", feature = "dim3"))]
+extern crate salva3d as salva;
+#[cfg(all(feature = "double", feature = "dim3"))]
+extern crate salva3d as salva;
+
 mod bodies;
 mod fluids;
 mod joints;
