@@ -28,6 +28,7 @@ runs:
   using: composite
   steps:
     - name: Rust Install Nightly
+      shell: sh
       run: |
         rustup install nightly
         rustup default nightly
