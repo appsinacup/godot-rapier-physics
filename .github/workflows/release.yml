@@ -22,13 +22,15 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
+          pattern: godot-rapier-2d-single-enhanced-determinism-*
+          merge-multiple: true
           name: godot-rapier-2d-single-enhanced-determinism
-          path: godot-rapier-2d-single-enhanced-determinism
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
+          pattern: godot-rapier-2d-single-simd-parallel-*
+          merge-multiple: true
           name: godot-rapier-2d-single-simd-parallel
-          path: godot-rapier-2d-single-simd-parallel
       - name: Delete draft release(s)
         uses: hugo19941994/delete-draft-releases@v1.0.0
         env:
