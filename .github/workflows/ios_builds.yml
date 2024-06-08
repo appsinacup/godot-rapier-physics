@@ -38,7 +38,9 @@ jobs:
         if: ${{ env.APPLE_DEV_ID }}
 
       - name: Upload
-        uses: ./.github/actions/upload
+        uses: actions/upload-artifact@v3
         with:
-          precision: ${{ matrix.precision }}
-          features: ${{ matrix.features }}
+          name: godot-rapier-2d-${{ matrix.precision }}-${{ matrix.features }}
+          path: |
+            ${{ github.workspace }}/bin/**
+            !${{ github.workspace }}/bin/project.godot
