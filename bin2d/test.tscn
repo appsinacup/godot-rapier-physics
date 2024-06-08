@@ -1,6 +1,7 @@
-[gd_scene load_steps=4 format=3 uid="uid://d4exls53gi0df"]
+[gd_scene load_steps=5 format=3 uid="uid://d4exls53gi0df"]
 
 [ext_resource type="Script" path="res://rigid_body_2d.gd" id="1_4sybc"]
+[ext_resource type="Texture2D" uid="uid://dlky5ym28a5id" path="res://logo_square.png" id="2_xob12"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_r2n1f"]
 radius = 16.6667
@@ -28,10 +29,13 @@ script = ExtResource("1_4sybc")
 shape = SubResource("RectangleShape2D_4v4tp")
 
 [node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(4, 4)
 
 [node name="Timer" type="Timer" parent="."]
 wait_time = 10.0
 autostart = true
+
+[node name="LogoSquare" type="Sprite2D" parent="."]
+position = Vector2(0, 4)
+texture = ExtResource("2_xob12")
 
 [connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]

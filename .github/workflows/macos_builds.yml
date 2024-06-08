@@ -24,6 +24,7 @@ jobs:
       - name: Copy to bin
         shell: sh
         run: |
+          ls target/release/libgodot_rapier.dylib
           mv target/release/libgodot_rapier.dylib bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
       - name: Mac Sign
         uses: ughuuu/godot-cpp-template/.github/actions/sign@add-more-stuff/options-to-build

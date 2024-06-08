@@ -34,6 +34,7 @@ jobs:
       - name: Copy to bin
         shell: sh
         run: |
+          ls target/release/libgodot_rapier.dylib
           mv target/release/libgodot_rapier.so bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.linux.so
       - name: Upload
         uses: actions/upload-artifact@v4
