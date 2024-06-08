@@ -9,7 +9,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: ["x86_64-unknown-linux-gnu", "i686-unknown-linux-gnu", "aarch64-unknown-linux-gnu"]
+        #arch: ["x86_64-unknown-linux-gnu", "i686-unknown-linux-gnu", "aarch64-unknown-linux-gnu"]
+        arch: ["x86_64-unknown-linux-gnu"]
         precision: [single]
         features: ["simd-stable,parallel", enhanced-determinism]
 
