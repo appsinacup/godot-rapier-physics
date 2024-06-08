@@ -5,7 +5,7 @@ inputs:
   platform:
     required: true
     description: Target platform.
-  target:
+  arch:
     required: true
     default: ''
     description: Rust target platform.
@@ -30,8 +30,8 @@ runs:
     - name: Build Rapier
       shell: sh
       run: |
-        rustup target add ${{ inputs.target }}
-        cargo build --target=${{ inputs.target }} --release --features="${{ inputs.features }},${{ inputs.precision }}" ${{ inputs.extra_flags}}
+        rustup target add ${{ inputs.arch }}
+        cargo build --target=${{ inputs.arch }} --release --features="${{ inputs.features }},${{ inputs.precision }}" ${{ inputs.extra_flags}}
         mkdir -p target/release
         rm -rf target/release
         cp -rf target/${{ inputs.rust_target }}/release target/release
