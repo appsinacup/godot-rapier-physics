@@ -5,32 +5,25 @@ on:
 jobs:
   build-windows:
     runs-on: "windows-latest"
-    name: ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+    name: ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
     strategy:
       fail-fast: false
       matrix:
-        arch: [{arch: "x86_64", rust: "x86_64-pc-windows-msvc"}, {arch: "x86_32", rust: "i686-pc-windows-msvc"}]
+        arch: ["x86_64-pc-windows-msvc", "i686-pc-windows-msvc"]
         precision: [single]
         features: [simd-stable, enhanced-determinism]
 
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
-          fetch-depth: 0
-      - name: Setup MSVC problem matcher
-        uses: ammaraskar/msvc-problem-matcher@master
-
-      - name: Build ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+      - name: Build ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/build
         with:
-          arch: ${{ matrix.arch.arch }}
-          rust_target: ${{ matrix.arch.rust }}
+          arch: ${{ matrix.arch }}
           platform: windows
           precision: ${{ matrix.precision }}
           features: ${{ matrix.features }}
 
-      - name: Upload ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+      - name: Upload ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/upload
         with:
           precision: ${{ matrix.precision }}

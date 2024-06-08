@@ -5,42 +5,28 @@ on:
 jobs:
   android:
     runs-on: "ubuntu-20.04"
-    name: ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+    name: ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
     strategy:
       fail-fast: false
       matrix:
-        # TODO add these as well {arch: "x86_32", rust: "i686-linux-android"}, {arch: "arm32", rust: "armv7-linux-androideabi"}]
-        # Right now it's giving these errors:
-        # ld: error: cannot open crtbegin_so.o: No such file or directory
-        # ld: error: unable to find library -lc++
-        # ld: error: cannot open crtend_so.o: No such file or directory
-        arch: [{arch: "x86_64", rust: "x86_64-linux-android"}, {arch: "arm64",rust: "aarch64-linux-android"},]
+        arch: ["x86_64-linux-android", "aarch64-linux-android", "i686-linux-android", "armv7-linux-androideabi"]
         precision: [single]
-        features: [simd-stable, enhanced-determinism]
-        rust_features: ["simd-stable,parallel", enhanced-determinism]
+        features: ["simd-stable,parallel", enhanced-determinism]
 
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
-          fetch-depth: 0
-      - name: Set up Java 11
-        uses: actions/setup-java@v3
-        with:
-          distribution: temurin
-          java-version: 11
-
-      - name: Build ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+      - name: Build
         uses: ./.github/actions/build
         with:
-          arch: ${{ matrix.arch.arch }}
-          rust_target: ${{ matrix.arch.rust }}
+          arch: ${{ matrix.arch }}
           platform: android
           precision: ${{ matrix.precision }}
-          features: ${{ matrix.rust_features }}
-
-      - name: Upload ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
-        uses: ./.github/actions/upload
-        with:
-          precision: ${{ matrix.precision }}
           features: ${{ matrix.features }}
+
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: godot-rapier-2d-${{ matrix.precision }}-${{ matrix.features }}
+          path: |
+            ${{ github.workspace }}/bin/**
+            !${{ github.workspace }}/bin/project.godot

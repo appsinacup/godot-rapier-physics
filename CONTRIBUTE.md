@@ -1,34 +1,19 @@
-# Build godot-cpp
-
-Official C++ bindings for Godot API (https://github.com/godotengine/godot-cpp). In order to build the extension you need to build godot-cpp first.
-
-```
-cd godot-cpp
-scons target=template_debug generate_bindings=yes
-```
-
-See [Building the C++ bindings](https://docs.godotengine.org/en/stable/tutorials/scripting/gdextension/gdextension_cpp_example.html#building-the-c-bindings) from the official documentation for more details about building the bindings.
-
 # Build the Rapier 2D wrapper
 
-Prerequisites:
+1. Prerequisites:
 - Install `cargo` for Rust support
 
-
-1. Generate the C bindings header file (in `src/rapier2d-wrapper/includes/`)
-
-Go to `src/rapier2d-wrapper` folder and run `cbindgen`
-
-```
-cd src/rapier2d-wrapper
-cargo install --force cbindgen
-cbindgen --config cbindgen.toml --crate rapier2d-wrapper --output includes/rapier2d_wrapper.h
-```
 
 2. Compile the rust release Rapier2D library:
 
 ```
-cargo build --release
+cargo build
+```
+
+3. Copy the output to bin folder:
+
+```
+cp target/debug/libgodot_rapier.dylib bin/addons/godot-rapier2d/bin/libphysics_server_rapier2d.macos.template_debug.framework/libphysics_server_rapier2d.macos.template_debug.dylib
 ```
 
 # Compile the Rapier 2D extension

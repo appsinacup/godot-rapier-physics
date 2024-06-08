@@ -8,11 +8,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout 
-        uses: actions/checkout@v2
-        with:
-          submodules: true
-          fetch-depth: 0
+      - uses: actions/checkout@v2
       #- name: Download artifacts
       #  uses: actions/download-artifact@v3
       #  with:

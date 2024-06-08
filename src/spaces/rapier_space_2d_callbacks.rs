@@ -262,49 +262,48 @@ impl RapierSpace2D {
                                 if event_info.is_started {
                                     p_area1.on_area_enter(
                                         collider_handle2,
-                                        &p_collision_object2,
+                                        &mut p_collision_object2,
                                         shape2,
                                         rid2,
                                         instance_id2,
                                         collider_handle1,
                                         shape1,
+                                        space,
                                     );
-                                }
-                                if event_info.is_stopped {
+                                } else if event_info.is_stopped {
                                     p_area1.on_area_exit(
                                         collider_handle2,
-                                        &p_collision_object2,
+                                        &mut p_collision_object2,
                                         shape2,
                                         rid2,
                                         instance_id2,
                                         collider_handle1,
                                         shape1,
+                                        space,
                                     );
                                 }
-                            } else {
-                                if event_info.is_started {
-                                    p_area1.on_body_enter(
-                                        collider_handle2,
-                                        &p_collision_object2,
-                                        shape2,
-                                        rid2,
-                                        instance_id2,
-                                        collider_handle1,
-                                        shape1,
-                                    );
-                                }
-                                if event_info.is_stopped {
-                                    p_area1.on_body_exit(
-                                        collider_handle2,
-                                        &p_collision_object2,
-                                        shape2,
-                                        rid2,
-                                        instance_id2,
-                                        collider_handle1,
-                                        shape1,
-                                        p_collision_object2.is_some(),
-                                    );
-                                }
+                            } else if event_info.is_started {
+                                p_area1.on_body_enter(
+                                    collider_handle2,
+                                    &mut p_collision_object2,
+                                    shape2,
+                                    rid2,
+                                    instance_id2,
+                                    collider_handle1,
+                                    shape1,
+                                );
+                            } else if event_info.is_stopped {
+                                let update_detection = p_collision_object2.is_some();
+                                p_area1.on_body_exit(
+                                    collider_handle2,
+                                    &mut p_collision_object2,
+                                    shape2,
+                                    rid2,
+                                    instance_id2,
+                                    collider_handle1,
+                                    shape1,
+                                    update_detection,
+                                );
                             }
                         }
                     }
@@ -315,30 +314,32 @@ impl RapierSpace2D {
                                 if event_info.is_started {
                                     p_area2.on_area_enter(
                                         collider_handle1,
-                                        &p_collision_object1,
+                                        &mut p_collision_object1,
                                         shape1,
                                         rid1,
                                         instance_id1,
                                         collider_handle2,
                                         shape2,
+                                        space,
                                     );
                                 }
                                 if event_info.is_stopped {
                                     p_area2.on_area_exit(
                                         collider_handle1,
-                                        &p_collision_object1,
+                                        &mut p_collision_object1,
                                         shape1,
                                         rid1,
                                         instance_id1,
                                         collider_handle2,
                                         shape2,
+                                        space,
                                     );
                                 }
                             } else {
                                 if event_info.is_started {
                                     p_area2.on_body_enter(
                                         collider_handle1,
-                                        &p_collision_object1,
+                                        &mut p_collision_object1,
                                         shape1,
                                         rid1,
                                         instance_id1,
@@ -347,15 +348,16 @@ impl RapierSpace2D {
                                     );
                                 }
                                 if event_info.is_stopped {
+                                    let update_detection = p_collision_object1.is_some();
                                     p_area2.on_body_exit(
                                         collider_handle1,
-                                        &p_collision_object1,
+                                        &mut p_collision_object1,
                                         shape1,
                                         rid1,
                                         instance_id1,
                                         collider_handle2,
                                         shape2,
-                                        p_collision_object1.is_some(),
+                                        update_detection,
                                     );
                                 }
                             }

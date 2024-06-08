@@ -9,17 +9,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [{arch: "wasm32", rust: "wasm32-unknown-emscripten", rust_extra_flags: "-Z build-std=panic_abort,std"}]
+        arch: ["wasm32-unknown-emscripten"]
         precision: [single]
-        features: [simd-stable, enhanced-determinism]
-        # Web doesnt support simd-stable
-        rust_features: ["", enhanced-determinism]
+        features: ["", enhanced-determinism]
 
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
-          fetch-depth: 0
 
       - name: Set up Emscripten latest
         uses: mymindstorm/setup-emsdk@v12
@@ -37,18 +32,17 @@ jobs:
           rustup override set nightly
           rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
 
-      - name: Build ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+      - name: Build ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/build
         with:
           arch: ${{ matrix.arch.arch }}
-          rust_target: ${{ matrix.arch.rust }}
-          rust_extra_flags: ${{ matrix.arch.rust_extra_flags }}
+          extra_flags: "-Z build-std=panic_abort,std"
           platform: web
           precision: ${{ matrix.precision }}
-          features: ${{ matrix.rust_features }}
-          rust_env_flags: "-C target-feature=+atomics,+bulk-memory"
+          features: ${{ matrix.features }}
+          env_flags: "-C target-feature=+atomics,+bulk-memory"
 
-      - name: Upload ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+      - name: Upload ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/upload
         with:
           precision: ${{ matrix.precision }}
