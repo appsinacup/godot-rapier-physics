@@ -38,6 +38,7 @@ jobs:
       - name: Archive
         shell: sh
         run: |
+          ls
           #zip -r "godot-rapier-2d-double-enhanced-determinism.zip" godot-rapier-2d-double-enhanced-determinism
           #zip -r "godot-rapier-2d-double-simd-parallel.zip" godot-rapier-2d-double-simd-parallel
           zip -r "godot-rapier-2d-single-enhanced-determinism.zip" godot-rapier-2d-single-enhanced-determinism
