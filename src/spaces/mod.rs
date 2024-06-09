@@ -1,4 +1,17 @@
+#[cfg(feature = "dim2")]
 pub mod rapier_direct_space_state_2d;
-pub mod rapier_space_2d;
-pub mod rapier_space_2d_body_helper;
-pub mod rapier_space_2d_callbacks;
+#[cfg(feature = "dim3")]
+pub mod rapier_direct_space_state_3d;
+#[cfg(feature = "dim2")]
+pub type RapierDirectSpaceState = rapier_direct_space_state_2d::RapierDirectSpaceState2D;
+#[cfg(feature = "dim2")]
+pub type PhysicsDirectSpaceState = godot::engine::PhysicsDirectSpaceState2D;
+
+#[cfg(feature = "dim3")]
+pub type RapierDirectSpaceState = rapier_direct_space_state_3d::RapierDirectSpaceState3D;
+#[cfg(feature = "dim3")]
+pub type PhysicsDirectSpaceState = godot::engine::PhysicsDirectSpaceState3D;
+
+pub mod rapier_space;
+pub mod rapier_space_body_helper;
+pub mod rapier_space_callbacks;

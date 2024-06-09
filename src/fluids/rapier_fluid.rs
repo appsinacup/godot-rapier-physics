@@ -1,27 +1,30 @@
 use std::collections::VecDeque;
 
 use godot::{
-    builtin::{Array, Rid, Vector2},
+    builtin::{Array, Rid},
     obj::Gd,
 };
 
-use crate::rapier_wrapper::handle::{invalid_handle_double, HandleDouble};
+use crate::{
+    rapier_wrapper::handle::{invalid_handle_double, HandleDouble},
+    Vector,
+};
 
-use super::fluid_effect_2d::FluidEffect2D;
+use super::fluid_effect::FluidEffect;
 
-pub struct RapierFluid2D {
+pub struct RapierFluid {
     rid: Rid,
     enabled: bool,
     density: f64,
     space: Rid,
-    effects: Array<Gd<FluidEffect2D>>,
+    effects: Array<Gd<FluidEffect>>,
     fluid_handle: HandleDouble,
-    points: Vec<Vector2>,
-    velocities: Vec<Vector2>,
-    accelerations: Vec<Vector2>,
+    points: Vec<Vector>,
+    velocities: Vec<Vector>,
+    accelerations: Vec<Vector>,
 }
 
-impl RapierFluid2D {
+impl RapierFluid {
     pub fn new(rid: Rid) -> Self {
         Self {
             rid,
@@ -36,16 +39,16 @@ impl RapierFluid2D {
         }
     }
 
-    pub fn set_points(&mut self, points: Vec<Vector2>) {
+    pub fn set_points(&mut self, points: Vec<Vector>) {
         self.points = points;
     }
 
-    pub fn set_points_and_velocities(&mut self, points: Vec<Vector2>, velocities: Vec<Vector2>) {
+    pub fn set_points_and_velocities(&mut self, points: Vec<Vector>, velocities: Vec<Vector>) {
         self.points = points;
         self.velocities = velocities;
     }
 
-    pub fn add_points_and_velocities(&mut self, points: Vec<Vector2>, velocities: Vec<Vector2>) {
+    pub fn add_points_and_velocities(&mut self, points: Vec<Vector>, velocities: Vec<Vector>) {
         self.points.extend(points);
         self.velocities.extend(velocities);
     }
@@ -61,19 +64,19 @@ impl RapierFluid2D {
         }
     }
 
-    pub fn get_points(&self) -> Vec<Vector2> {
+    pub fn get_points(&self) -> Vec<Vector> {
         self.points.clone()
     }
 
-    pub fn get_velocities(&self) -> Vec<Vector2> {
+    pub fn get_velocities(&self) -> Vec<Vector> {
         self.velocities.clone()
     }
 
-    pub fn get_accelerations(&self) -> Vec<Vector2> {
+    pub fn get_accelerations(&self) -> Vec<Vector> {
         self.accelerations.clone()
     }
 
-    pub fn set_effects(&mut self, effects: Array<Gd<FluidEffect2D>>) {
+    pub fn set_effects(&mut self, effects: Array<Gd<FluidEffect>>) {
         self.effects = effects;
     }
 
@@ -102,7 +105,7 @@ impl RapierFluid2D {
     }
 }
 
-impl Drop for RapierFluid2D {
+impl Drop for RapierFluid {
     fn drop(&mut self) {
         // Cleanup code here
     }

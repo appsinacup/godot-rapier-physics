@@ -1,37 +1,26 @@
-use crate::bodies3d::rapier_area_3d::RapierArea3D;
-use crate::bodies3d::rapier_body_3d::RapierBody3D;
-use crate::bodies3d::rapier_collision_object_3d::IRapierCollisionObject3D;
-use crate::fluids3d::fluid_effect_3d::FluidEffect3D;
-use crate::fluids3d::rapier_fluid_3d::RapierFluid3D;
-use crate::joints3d::rapier_damped_spring_joint_3d::RapierDampedSpringJoint3D;
-use crate::joints3d::rapier_groove_joint_3d::RapierGrooveJoint3D;
-use crate::joints3d::rapier_joint_3d::{IRapierJoint3D, RapierEmptyJoint3D};
-use crate::joints3d::rapier_pin_joint_3d::RapierPinJoint3D;
-use crate::rapier3d::physics_world::world_step;
-use crate::rapier3d::query::shape_collide;
-use crate::rapier3d::settings::SimulationSettings;
-use crate::rapier3d::shape::shape_info_from_body_shape;
-use crate::shapes3d::rapier_capsule_shape_3d::RapierCapsuleShape3D;
-use crate::shapes3d::rapier_circle_shape_3d::RapierCircleShape3D;
-use crate::shapes3d::rapier_concave_polygon_shape_3d::RapierConcavePolygonShape3D;
-use crate::shapes3d::rapier_convex_polygon_shape_3d::RapierConvexPolygonShape3D;
-use crate::shapes3d::rapier_rectangle_shape_3d::RapierRectangleShape3D;
-use crate::shapes3d::rapier_segment_shape_3d::RapierSegmentShape3D;
-use crate::shapes3d::rapier_separation_ray_shape_3d::RapierSeparationRayShape3D;
-use crate::shapes3d::rapier_shape_3d::RapierShapeBase3D;
-use crate::shapes3d::rapier_world_boundary_shape_3d::RapierWorldBoundaryShape3D;
-use crate::spaces3d::rapier_space_3d::RapierSpace3D;
+use crate::bodies::rapier_area::RapierArea;
+use crate::bodies::rapier_body::RapierBody;
+use crate::bodies::rapier_collision_object::IRapierCollisionObject;
+use crate::fluids::rapier_fluid::RapierFluid;
+use crate::rapier_wrapper::convert::vector_to_rapier;
+use crate::rapier_wrapper::physics_world::world_step;
+use crate::rapier_wrapper::query::shape_collide;
+use crate::rapier_wrapper::settings::SimulationSettings;
+use crate::rapier_wrapper::shape::shape_info_from_body_shape;
+use crate::spaces::rapier_space::RapierSpace;
+use crate::PackedVectorArray;
 use godot::classes::{self, IPhysicsServer3DExtension, PhysicsServer3DExtension, ProjectSettings};
 use godot::engine::native::PhysicsServer3DExtensionMotionResult;
 use godot::engine::utilities::{rid_allocate_id, rid_from_int64};
 use godot::prelude::*;
+use rapier::math::Real;
 use std::ffi::c_void;
 
-use super::rapier_physics_singleton_3d::{
+use super::rapier_physics_singleton::{
     active_spaces_singleton, bodies_singleton, fluids_singleton, joints_singleton,
     shapes_singleton, spaces_singleton,
 };
-use super::rapier_project_settings_3d::RapierProjectSettings3D;
+use super::rapier_project_settings::RapierProjectSettings;
 
 #[derive(GodotClass)]
 #[class(base=PhysicsServer3DExtension, tool)]
@@ -58,48 +47,6 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
             collision_pairs: 0,
             base,
         }
-    }
-    fn world_boundary_shape_create(&mut self) -> Rid {
-        let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierWorldBoundaryShape3D::new(rid);
-        shapes_singleton().shapes.insert(rid, Box::new(shape));
-        rid
-    }
-    fn separation_ray_shape_create(&mut self) -> Rid {
-        let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierSeparationRayShape3D::new(rid);
-        shapes_singleton().shapes.insert(rid, Box::new(shape));
-        rid
-    }
-    fn sphere_shape_create(&mut self) -> Rid {
-        let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierCircleShape3D::new(rid);
-        shapes_singleton().shapes.insert(rid, Box::new(shape));
-        rid
-    }
-    fn cylinder_shape_create(&mut self) -> Rid {
-        let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierRectangleShape3D::new(rid);
-        shapes_singleton().shapes.insert(rid, Box::new(shape));
-        rid
-    }
-    fn capsule_shape_create(&mut self) -> Rid {
-        let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierCapsuleShape3D::new(rid);
-        shapes_singleton().shapes.insert(rid, Box::new(shape));
-        rid
-    }
-    fn convex_polygon_shape_create(&mut self) -> Rid {
-        let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierConvexPolygonShape3D::new(rid);
-        shapes_singleton().shapes.insert(rid, Box::new(shape));
-        rid
-    }
-    fn concave_polygon_shape_create(&mut self) -> Rid {
-        let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierConcavePolygonShape3D::new(rid);
-        shapes_singleton().shapes.insert(rid, Box::new(shape));
-        rid
     }
     fn shape_set_data(&mut self, shape: Rid, data: Variant) {
         let mut owners = None;
@@ -134,7 +81,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
     }
     fn space_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
-        let space = RapierSpace3D::new(rid);
+        let space = RapierSpace::new(rid);
         spaces_singleton().spaces.insert(rid, Box::new(space));
         rid
     }
@@ -193,11 +140,11 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
             space.set_debug_contacts(max_contacts);
         }
     }
-    fn space_get_contacts(&self, space: Rid) -> PackedVector2Array {
+    fn space_get_contacts(&self, space: Rid) -> PackedVectorArray {
         if let Some(space) = spaces_singleton().spaces.get(&space) {
             return space.get_debug_contacts().clone();
         }
-        PackedVector2Array::new()
+        PackedVectorArray::new()
     }
     fn space_get_contact_count(&self, space: Rid) -> i32 {
         if let Some(space) = spaces_singleton().spaces.get(&space) {
@@ -207,7 +154,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
     }
     fn area_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
-        let area = RapierArea3D::new(rid);
+        let area = RapierArea::new(rid);
         bodies_singleton()
             .collision_objects
             .insert(rid, Box::new(area));
@@ -356,11 +303,6 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
             }
         }
     }
-    fn area_set_ray_pickable(&mut self, area: Rid, pickable: bool) {
-        if let Some(area) = bodies_singleton().collision_objects.get_mut(&area) {
-            area.get_mut_base().set_pickable(pickable);
-        }
-    }
     fn area_set_monitor_callback(&mut self, area: Rid, callback: Callable) {
         if let Some(area) = bodies_singleton().collision_objects.get_mut(&area) {
             if let Some(area) = area.get_mut_area() {
@@ -377,7 +319,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
     }
     fn body_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
-        let body = RapierBody3D::new(rid);
+        let body = RapierBody::new(rid);
         bodies_singleton()
             .collision_objects
             .insert(rid, Box::new(body));
@@ -570,92 +512,92 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         }
         Variant::nil()
     }
-    fn body_apply_central_impulse(&mut self, body: Rid, impulse: Vector2) {
+    fn body_apply_central_impulse(&mut self, body: Rid, impulse: Vector3) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.apply_central_impulse(impulse);
             }
         }
     }
-    fn body_apply_torque_impulse(&mut self, body: Rid, impulse: f32) {
+    fn body_apply_torque_impulse(&mut self, body: Rid, impulse: Vector3) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.apply_torque_impulse(impulse);
             }
         }
     }
-    fn body_apply_impulse(&mut self, body: Rid, impulse: Vector2, position: Vector2) {
+    fn body_apply_impulse(&mut self, body: Rid, impulse: Vector3, position: Vector3) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.apply_impulse(impulse, position);
             }
         }
     }
-    fn body_apply_central_force(&mut self, body: Rid, force: Vector2) {
+    fn body_apply_central_force(&mut self, body: Rid, force: Vector3) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.apply_central_force(force);
             }
         }
     }
-    fn body_apply_force(&mut self, body: Rid, force: Vector2, position: Vector2) {
+    fn body_apply_force(&mut self, body: Rid, force: Vector3, position: Vector3) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.apply_force(force, position);
             }
         }
     }
-    fn body_apply_torque(&mut self, body: Rid, torque: f32) {
+    fn body_apply_torque(&mut self, body: Rid, torque: Vector3) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.apply_torque(torque);
             }
         }
     }
-    fn body_add_constant_central_force(&mut self, body: Rid, force: Vector2) {
+    fn body_add_constant_central_force(&mut self, body: Rid, force: Vector3) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.add_constant_central_force(force);
             }
         }
     }
-    fn body_add_constant_force(&mut self, body: Rid, force: Vector2, position: Vector2) {
+    fn body_add_constant_force(&mut self, body: Rid, force: Vector3, position: Vector3) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.add_constant_force(force, position);
             }
         }
     }
-    fn body_add_constant_torque(&mut self, body: Rid, torque: f32) {
+    fn body_add_constant_torque(&mut self, body: Rid, torque: Vector3) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.add_constant_torque(torque);
             }
         }
     }
-    fn body_set_constant_force(&mut self, body: Rid, force: Vector2) {
+    fn body_set_constant_force(&mut self, body: Rid, force: Vector3) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.set_constant_force(force);
             }
         }
     }
-    fn body_get_constant_force(&self, body: Rid) -> Vector2 {
+    fn body_get_constant_force(&self, body: Rid) -> Vector3 {
         if let Some(body) = bodies_singleton().collision_objects.get(&body) {
             if let Some(body) = body.get_body() {
                 return body.get_constant_force();
             }
         }
-        Vector2::default()
+        Vector3::default()
     }
-    fn body_set_constant_torque(&mut self, body: Rid, torque: f32) {
+    fn body_set_constant_torque(&mut self, body: Rid, torque: Vector3) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.set_constant_torque(torque);
             }
         }
     }
-    fn body_get_constant_torque(&self, body: Rid) -> f32 {
+    fn body_get_constant_torque(&self, body: Rid) -> Vector3 {
         if let Some(body) = bodies_singleton().collision_objects.get(&body) {
             if let Some(body) = body.get_body() {
                 return body.get_constant_torque();
@@ -663,7 +605,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         }
         0.0
     }
-    fn body_set_axis_velocity(&mut self, body: Rid, axis_velocity: Vector2) {
+    fn body_set_axis_velocity(&mut self, body: Rid, axis_velocity: Vector3) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 let mut v = body.get_linear_velocity();
@@ -756,11 +698,6 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
             }
         }
     }
-    fn body_set_ray_pickable(&mut self, body: Rid, pickable: bool) {
-        if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
-            body.get_mut_base().set_pickable(pickable);
-        }
-    }
     fn body_get_direct_state(
         &mut self,
         body: Rid,
@@ -771,36 +708,6 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
             }
         }
         None
-    }
-    unsafe fn body_test_motion(
-        &self,
-        body: Rid,
-        from: Transform3D,
-        motion: Vector2,
-        margin: f32,
-        collide_separation_ray: bool,
-        recovery_as_collision: bool,
-        result: *mut PhysicsServer3DExtensionMotionResult,
-    ) -> bool {
-        let mut body_rid = Rid::Invalid;
-        let mut space_rid = Rid::Invalid;
-        if let Some(body) = bodies_singleton().collision_objects.get(&body) {
-            body_rid = body.get_base().get_rid();
-            space_rid = body.get_base().get_space();
-        }
-        if let Some(space) = spaces_singleton().spaces.get(&space_rid) {
-            let result: &PhysicsServer3DExtensionMotionResult = &*result;
-            return space.test_body_motion(
-                body_rid,
-                from,
-                motion,
-                margin.into(),
-                collide_separation_ray,
-                recovery_as_collision,
-                result,
-            );
-        }
-        false
     }
     fn joint_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
@@ -830,23 +737,6 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
             return joint.get_base().is_disabled_collisions_between_bodies();
         }
         true
-    }
-    fn joint_make_pin(&mut self, rid: Rid, anchor: Vector2, body_a: Rid, body_b: Rid) {
-        let joints_singleton = joints_singleton();
-        let mut joint = RapierPinJoint3D::new(rid, anchor, body_a, body_b);
-        if let Some(prev_joint) = joints_singleton.joints.remove(&rid) {
-            joint
-                .get_mut_base()
-                .copy_settings_from(prev_joint.get_base());
-            // insert old one back
-            if !joint.get_base().get_handle().is_valid() {
-                joints_singleton.joints.insert(rid, prev_joint);
-                return;
-            }
-        }
-        if joint.get_base().get_handle().is_valid() {
-            joints_singleton.joints.insert(rid, Box::new(joint));
-        }
     }
     fn pin_joint_set_param(
         &mut self,
@@ -986,49 +876,43 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
 
             let project_settings = ProjectSettings::singleton();
 
-            let default_gravity_dir: Vector2 = project_settings
-                .get_setting_with_override("physics/3d/default_gravity_vector".into())
+            let default_gravity_dir: Vector3 = project_settings
+                .get_setting_with_override("physics/2d/default_gravity_vector".into())
                 .to();
             let default_gravity_value: real = project_settings
-                .get_setting_with_override("physics/3d/default_gravity".into())
+                .get_setting_with_override("physics/2d/default_gravity".into())
                 .to();
 
-            let fluid_default_gravity_dir = RapierProjectSettings3D::get_fluid_gravity_dir();
-            let fluid_default_gravity_value = RapierProjectSettings3D::get_fluid_gravity_value();
+            let fluid_default_gravity_dir = RapierProjectSettings::get_fluid_gravity_dir();
+            let fluid_default_gravity_value = RapierProjectSettings::get_fluid_gravity_value();
 
-            //let default_linear_damping: real = project_settings.get_setting_with_override("physics/3d/default_linear_damp".into()).to();
-            //let default_angular_damping: real = project_settings.get_setting_with_override("physics/3d/default_angular_damp".into()).to();
+            //let default_linear_damping: real = project_settings.get_setting_with_override("physics/2d/default_linear_damp".into()).to();
+            //let default_angular_damping: real = project_settings.get_setting_with_override("physics/2d/default_angular_damp".into()).to();
 
             let settings = SimulationSettings {
-                pixel_liquid_gravity: rapier3d::na::Vector2::new(
-                    fluid_default_gravity_dir.x * fluid_default_gravity_value as real,
-                    fluid_default_gravity_dir.y * fluid_default_gravity_value as real,
-                ),
+                pixel_liquid_gravity: vector_to_rapier(fluid_default_gravity_dir)
+                    * fluid_default_gravity_value,
                 dt: step,
-                pixel_gravity: rapier3d::na::Vector2::new(
-                    default_gravity_dir.x * default_gravity_value,
-                    default_gravity_dir.y * default_gravity_value,
-                ),
-                max_ccd_substeps: RapierProjectSettings3D::get_solver_max_ccd_substeps() as usize,
+                pixel_gravity: vector_to_rapier(default_gravity_dir) * default_gravity_value,
+                max_ccd_substeps: RapierProjectSettings::get_solver_max_ccd_substeps() as usize,
                 num_additional_friction_iterations:
-                    RapierProjectSettings3D::get_solver_num_additional_friction_iterations()
-                        as usize,
+                    RapierProjectSettings::get_solver_num_additional_friction_iterations() as usize,
                 num_internal_pgs_iterations:
-                    RapierProjectSettings3D::get_solver_num_internal_pgs_iterations() as usize,
-                num_solver_iterations: RapierProjectSettings3D::get_solver_num_solver_iterations()
+                    RapierProjectSettings::get_solver_num_internal_pgs_iterations() as usize,
+                num_solver_iterations: RapierProjectSettings::get_solver_num_solver_iterations()
                     as usize,
             };
             // this calls into rapier
             world_step(
                 space_handle,
                 &settings,
-                RapierSpace3D::active_body_callback,
-                RapierSpace3D::collision_filter_body_callback,
-                RapierSpace3D::collision_filter_sensor_callback,
-                RapierSpace3D::collision_modify_contacts_callback,
-                RapierSpace3D::collision_event_callback,
-                RapierSpace3D::contact_force_event_callback,
-                RapierSpace3D::contact_point_callback,
+                RapierSpace::active_body_callback,
+                RapierSpace::collision_filter_body_callback,
+                RapierSpace::collision_filter_sensor_callback,
+                RapierSpace::collision_modify_contacts_callback,
+                RapierSpace::collision_event_callback,
+                RapierSpace::contact_force_event_callback,
+                RapierSpace::contact_point_callback,
             );
 
             if let Some(space) = spaces_singleton().spaces.get_mut(space) {
@@ -1070,144 +954,6 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
             classes::physics_server_3d::ProcessInfo::COLLISION_PAIRS => self.collision_pairs,
             classes::physics_server_3d::ProcessInfo::ISLAND_COUNT => self.island_count,
             _ => 0,
-        }
-    }
-}
-
-pub enum RapierBodyParam {
-    ContactSkin = 0,
-}
-
-impl From<i32> for RapierBodyParam {
-    fn from(i: i32) -> Self {
-        match i {
-            0 => RapierBodyParam::ContactSkin,
-            _ => RapierBodyParam::ContactSkin,
-        }
-    }
-}
-
-#[godot_api]
-impl RapierPhysicsServer3D {
-    #[func]
-    fn body_set_extra_param(&mut self, body: Rid, param: i32, value: Variant) {
-        if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.set_extra_param(RapierBodyParam::from(param), value);
-            }
-        }
-    }
-    #[func]
-    fn body_get_extra_param(&self, body: Rid, param: i32) -> Variant {
-        if let Some(body) = bodies_singleton().collision_objects.get(&body) {
-            if let Some(body) = body.get_body() {
-                return body.get_extra_param(RapierBodyParam::from(param));
-            }
-        }
-        0.0.to_variant()
-    }
-    #[func]
-    fn space_export_json(&mut self, world: Rid) -> String {
-        if let Some(world) = spaces_singleton().spaces.get_mut(&world) {
-            world.export_json();
-        }
-        "{}".to_string()
-    }
-    #[func]
-    fn space_export_binary(&mut self, world: Rid) -> PackedByteArray {
-        if let Some(world) = spaces_singleton().spaces.get_mut(&world) {
-            world.export_binary();
-        }
-        PackedByteArray::new()
-    }
-    #[func]
-    fn fluid_create(&mut self) -> Rid {
-        let rid = rid_from_int64(rid_allocate_id());
-        let fluid = RapierFluid3D::new(rid);
-        fluids_singleton().fluids.insert(rid, Box::new(fluid));
-        rid
-    }
-
-    #[func]
-    fn fluid_set_space(&mut self, fluid_rid: Rid, space_rid: Rid) {
-        if let Some(fluid) = fluids_singleton().fluids.get_mut(&fluid_rid) {
-            fluid.set_space(space_rid);
-        }
-    }
-
-    #[func]
-    fn fluid_set_density(&mut self, fluid_rid: Rid, density: f64) {
-        if let Some(fluid) = fluids_singleton().fluids.get_mut(&fluid_rid) {
-            fluid.set_density(density);
-        }
-    }
-
-    #[func]
-    fn fluid_set_effects(&mut self, fluid_rid: Rid, params: Array<Gd<FluidEffect3D>>) {
-        if let Some(fluid) = fluids_singleton().fluids.get_mut(&fluid_rid) {
-            fluid.set_effects(params);
-        }
-    }
-
-    #[func]
-    fn fluid_get_points(&self, fluid_rid: Rid) -> PackedVector2Array {
-        if let Some(fluid) = fluids_singleton().fluids.get(&fluid_rid) {
-            return PackedVector2Array::from(fluid.get_points().as_slice());
-        }
-        PackedVector2Array::default()
-    }
-
-    #[func]
-    fn fluid_get_velocities(&self, fluid_rid: Rid) -> PackedVector2Array {
-        if let Some(fluid) = fluids_singleton().fluids.get(&fluid_rid) {
-            return PackedVector2Array::from(fluid.get_velocities().as_slice());
-        }
-        PackedVector2Array::default()
-    }
-
-    #[func]
-    fn fluid_get_accelerations(&self, fluid_rid: Rid) -> PackedVector2Array {
-        if let Some(fluid) = fluids_singleton().fluids.get(&fluid_rid) {
-            return PackedVector2Array::from(fluid.get_accelerations().as_slice());
-        }
-        PackedVector2Array::default()
-    }
-
-    #[func]
-    fn fluid_set_points(&mut self, fluid_rid: Rid, points: PackedVector2Array) {
-        if let Some(fluid) = fluids_singleton().fluids.get_mut(&fluid_rid) {
-            fluid.set_points(points.to_vec());
-        }
-    }
-
-    #[func]
-    fn fluid_set_points_and_velocities(
-        &mut self,
-        fluid_rid: Rid,
-        points: PackedVector2Array,
-        velocities: PackedVector2Array,
-    ) {
-        if let Some(fluid) = fluids_singleton().fluids.get_mut(&fluid_rid) {
-            fluid.set_points_and_velocities(points.to_vec(), velocities.to_vec());
-        }
-    }
-
-    #[func]
-    fn fluid_add_points_and_velocities(
-        &mut self,
-        fluid_rid: Rid,
-        points: PackedVector2Array,
-        velocities: PackedVector2Array,
-    ) {
-        if let Some(fluid) = fluids_singleton().fluids.get_mut(&fluid_rid) {
-            fluid.add_points_and_velocities(points.to_vec(), velocities.to_vec());
-        }
-    }
-
-    #[func]
-    fn fluid_delete_points(&mut self, fluid_rid: Rid, indices: PackedInt32Array) {
-        if let Some(fluid) = fluids_singleton().fluids.get_mut(&fluid_rid) {
-            fluid.delete_points(indices.to_vec());
         }
     }
 }

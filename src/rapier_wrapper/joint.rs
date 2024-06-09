@@ -1,16 +1,14 @@
 use crate::rapier_wrapper::convert::*;
 use crate::rapier_wrapper::handle::*;
 use crate::rapier_wrapper::physics_world::*;
-use nalgebra::UnitVector2;
-use nalgebra::Vector2;
 use rapier::prelude::*;
 
 pub fn joint_create_revolute(
     world_handle: Handle,
     body_handle_1: Handle,
     body_handle_2: Handle,
-    pixel_anchor_1: Vector2<Real>,
-    pixel_anchor_2: Vector2<Real>,
+    pixel_anchor_1: Vector<Real>,
+    pixel_anchor_2: Vector<Real>,
     angular_limit_lower: Real,
     angular_limit_upper: Real,
     angular_limit_enabled: bool,
@@ -26,8 +24,8 @@ pub fn joint_create_revolute(
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let mut joint = RevoluteJointBuilder::new()
-            .local_anchor1(point!(anchor_1.x, anchor_1.y))
-            .local_anchor2(point!(anchor_2.x, anchor_2.y))
+            .local_anchor1(Point { coords: anchor_1 })
+            .local_anchor2(Point { coords: anchor_2 })
             .motor_model(MotorModel::ForceBased)
             .contacts_enabled(!disable_collision);
         if angular_limit_enabled {
@@ -80,10 +78,10 @@ pub fn joint_create_prismatic(
     world_handle: Handle,
     body_handle_1: Handle,
     body_handle_2: Handle,
-    axis: Vector2<Real>,
-    pixel_anchor_1: Vector2<Real>,
-    pixel_anchor_2: Vector2<Real>,
-    pixel_limits: Vector2<Real>,
+    axis: Vector<Real>,
+    pixel_anchor_1: Vector<Real>,
+    pixel_anchor_2: Vector<Real>,
+    pixel_limits: Vector<Real>,
     disable_collision: bool,
 ) -> Handle {
     let anchor_1 = &vector_pixels_to_meters(pixel_anchor_1);
@@ -92,7 +90,7 @@ pub fn joint_create_prismatic(
 
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        let joint = PrismaticJointBuilder::new(UnitVector2::new_unchecked(axis))
+        let joint = PrismaticJointBuilder::new(UnitVector::new_unchecked(axis))
             .local_anchor1(point!(anchor_1.x, anchor_1.y))
             .local_anchor2(point!(anchor_2.x, anchor_2.y))
             .limits([limits.x, limits.y])
@@ -107,8 +105,8 @@ pub fn joint_create_spring(
     world_handle: Handle,
     body_handle_1: Handle,
     body_handle_2: Handle,
-    pixel_anchor_1: Vector2<Real>,
-    pixel_anchor_2: Vector2<Real>,
+    pixel_anchor_1: Vector<Real>,
+    pixel_anchor_2: Vector<Real>,
     stiffness: Real,
     damping: Real,
     pixel_rest_length: Real,

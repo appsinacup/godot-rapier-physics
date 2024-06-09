@@ -1,11 +1,9 @@
 use crate::rapier_wrapper::convert::*;
 use crate::rapier_wrapper::handle::*;
 use crate::rapier_wrapper::physics_world::*;
-use crate::rapier_wrapper::shape::ShapeInfo;
+use crate::rapier_wrapper::shape_2d::ShapeInfo;
 use crate::rapier_wrapper::user_data::*;
 use godot::log::godot_error;
-use rapier::na::Point2;
-use rapier::na::Vector2;
 use rapier::prelude::*;
 use salva::integrations::rapier::ColliderSampling;
 use salva::object::Boundary;
@@ -14,7 +12,7 @@ use salva::parry::either::Either::Right;
 
 const SUBDIVISIONS: u32 = 20;
 
-fn skew_polyline(vertices: &Vec<Point2<Real>>, skew: Real) -> SharedShape {
+fn skew_polyline(vertices: &Vec<Point<Real>>, skew: Real) -> SharedShape {
     // Apply skew transformation to the vertices
     let mut skewed_vertices = Vec::new();
     for vertex in vertices {
@@ -82,7 +80,7 @@ pub fn skew_shape(shape: &SharedShape, skew: Real) -> SharedShape {
     shape.clone()
 }
 
-pub fn scale_shape(shape: &SharedShape, scale: Vector2<Real>) -> SharedShape {
+pub fn scale_shape(shape: &SharedShape, scale: Vector<Real>) -> SharedShape {
     if scale.x == 1.0 && scale.y == 1.0 {
         return shape.clone();
     }
@@ -264,7 +262,7 @@ pub fn collider_destroy(world_handle: Handle, handle: Handle) {
     }
 }
 
-pub fn collider_get_position(world_handle: Handle, handle: Handle) -> Vector2<Real> {
+pub fn collider_get_position(world_handle: Handle, handle: Handle) -> Vector<Real> {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let collider_handle = handle_to_collider_handle(handle);

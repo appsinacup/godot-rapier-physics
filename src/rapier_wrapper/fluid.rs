@@ -1,8 +1,7 @@
 use crate::rapier_wrapper::convert::*;
 use crate::rapier_wrapper::handle::*;
 use crate::rapier_wrapper::physics_world::*;
-use crate::rapier_wrapper::shape::*;
-use nalgebra::Vector2;
+use crate::rapier_wrapper::shape_2d::*;
 use rapier::prelude::*;
 use salva::math::Vector as SalvaVector;
 use salva::object::*;
@@ -14,7 +13,7 @@ use salva::solver::He2014SurfaceTension;
 use salva::solver::WCSPHSurfaceTension;
 use salva::solver::XSPHViscosity;
 
-pub fn pixel_vector_array_to_vec(pixel_data: Vec<Vector2<Real>>) -> Vec<SalvaVector<Real>> {
+pub fn pixel_vector_array_to_vec(pixel_data: Vec<Vector<Real>>) -> Vec<SalvaVector<Real>> {
     let mut vec = Vec::<SalvaVector<Real>>::with_capacity(pixel_data.len());
     for pixel_point in pixel_data {
         let point = &vector_pixels_to_meters(pixel_point);
@@ -51,8 +50,8 @@ pub fn fluid_change_density(world_handle: Handle, fluid_handle: HandleDouble, de
 pub fn fluid_change_points_and_velocities(
     world_handle: Handle,
     fluid_handle: HandleDouble,
-    pixel_points: Vec<Vector2<Real>>,
-    velocity_points: Vec<Vector2<Real>>,
+    pixel_points: Vec<Vector<Real>>,
+    velocity_points: Vec<Vector<Real>>,
 ) {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
@@ -87,7 +86,7 @@ pub fn fluid_change_points_and_velocities(
 pub fn fluid_change_points(
     world_handle: Handle,
     fluid_handle: HandleDouble,
-    pixel_points: Vec<Vector2<Real>>,
+    pixel_points: Vec<Vector<Real>>,
 ) {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
@@ -181,8 +180,8 @@ pub fn fluid_delete_points(
 pub fn fluid_add_points_and_velocities(
     world_handle: Handle,
     fluid_handle: HandleDouble,
-    pixel_points: Vec<Vector2<Real>>,
-    velocity_points: Vec<Vector2<Real>>,
+    pixel_points: Vec<Vector<Real>>,
+    velocity_points: Vec<Vector<Real>>,
 ) {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
@@ -216,7 +215,7 @@ pub fn fluid_add_points_and_velocities(
 pub fn fluid_get_points(
     world_handle: Handle,
     fluid_handle: HandleDouble,
-    pixel_points: &mut Vector2<Real>,
+    pixel_points: &mut Vector<Real>,
     point_count: usize,
 ) {
     let physics_engine = physics_engine();
@@ -244,7 +243,7 @@ pub fn fluid_get_points(
 pub fn fluid_get_velocities(
     world_handle: Handle,
     fluid_handle: HandleDouble,
-    pixel_velocities: &mut Vector2<Real>,
+    pixel_velocities: &mut Vector<Real>,
     velocity_count: usize,
 ) {
     let physics_engine = physics_engine();
@@ -272,7 +271,7 @@ pub fn fluid_get_velocities(
 pub fn fluid_get_accelerations(
     world_handle: Handle,
     fluid_handle: HandleDouble,
-    pixel_acceleration: &mut Vector2<Real>,
+    pixel_acceleration: &mut Vector<Real>,
     acceleration_count: usize,
 ) {
     let physics_engine = physics_engine();

@@ -1,25 +1,24 @@
-use crate::bodies::rapier_collision_object_2d::{CollisionObjectShape, CollisionObjectType};
-use crate::bodies::rapier_collision_object_2d::{
-    IRapierCollisionObject2D, RapierCollisionObject2D,
-};
+use crate::bodies::rapier_collision_object::{CollisionObjectShape, CollisionObjectType};
+use crate::bodies::rapier_collision_object::{IRapierCollisionObject, RapierCollisionObject};
 use crate::rapier_wrapper::collider::{default_material, Material};
 use crate::rapier_wrapper::handle::{handle_pair_hash, invalid_handle, Handle};
-use crate::servers2d::rapier_physics_singleton_2d::{
+use crate::servers::rapier_physics_singleton::{
     bodies_singleton, shapes_singleton, spaces_singleton,
 };
-use crate::spaces::rapier_space_2d::RapierSpace2D;
+use crate::spaces::rapier_space::RapierSpace;
+use crate::{Transform, Vector};
 use godot::builtin::{real, Transform2D, VariantArray};
 use godot::engine::physics_server_2d::AreaBodyStatus;
 use godot::log::godot_error;
 use godot::meta::ToGodot;
 use godot::obj::EngineEnum;
 use godot::{
-    builtin::{Callable, Rid, Variant, Vector2},
+    builtin::{Callable, Rid, Variant},
     engine::physics_server_2d::{AreaParameter, AreaSpaceOverrideMode},
 };
 use std::collections::HashMap;
 
-use super::rapier_body_2d::RapierBody2D;
+use super::rapier_body::RapierBody;
 
 struct MonitorInfo {
     pub rid: Rid,
@@ -35,12 +34,12 @@ struct BodyRefCount {
     count: u32,
 }
 
-pub struct RapierArea2D {
+pub struct RapierArea {
     gravity_override_mode: AreaSpaceOverrideMode,
     linear_damping_override_mode: AreaSpaceOverrideMode,
     angular_damping_override_mode: AreaSpaceOverrideMode,
     gravity: real,
-    gravity_vector: Vector2,
+    gravity_vector: Vector,
     gravity_is_point: bool,
     gravity_point_unit_distance: real,
     linear_damp: real,
@@ -53,17 +52,17 @@ pub struct RapierArea2D {
     detected_bodies: HashMap<Rid, BodyRefCount>,
     monitor_query_list: Vec<Rid>,
     area_override_update_list: Vec<Rid>,
-    base: RapierCollisionObject2D,
+    base: RapierCollisionObject,
 }
 
-impl RapierArea2D {
+impl RapierArea {
     pub fn new(rid: Rid) -> Self {
         Self {
             gravity_override_mode: AreaSpaceOverrideMode::DISABLED,
             linear_damping_override_mode: AreaSpaceOverrideMode::DISABLED,
             angular_damping_override_mode: AreaSpaceOverrideMode::DISABLED,
             gravity: 0.0,
-            gravity_vector: Vector2::new(0.0, 0.0),
+            gravity_vector: Vector::default(),
             gravity_is_point: false,
             gravity_point_unit_distance: 0.0,
             linear_damp: 0.0,
@@ -76,7 +75,7 @@ impl RapierArea2D {
             detected_bodies: HashMap::new(),
             monitor_query_list: Vec::new(),
             area_override_update_list: Vec::new(),
-            base: RapierCollisionObject2D::new(rid, CollisionObjectType::Area),
+            base: RapierCollisionObject::new(rid, CollisionObjectType::Area),
         }
     }
 
@@ -100,13 +99,13 @@ impl RapierArea2D {
     pub fn on_body_enter(
         &mut self,
         collider_handle: Handle,
-        body: &mut Option<&mut Box<dyn IRapierCollisionObject2D>>,
+        body: &mut Option<&mut Box<dyn IRapierCollisionObject>>,
         body_shape: usize,
         body_rid: Rid,
         body_instance_id: u64,
         area_collider_handle: Handle,
         area_shape: usize,
-        space: &mut Box<RapierSpace2D>,
+        space: &mut Box<RapierSpace>,
     ) {
         if let Some(body) = body {
             if let Some(body) = body.get_mut_body() {
@@ -151,14 +150,14 @@ impl RapierArea2D {
     pub fn on_body_exit(
         &mut self,
         collider_handle: Handle,
-        body: &mut Option<&mut Box<dyn IRapierCollisionObject2D>>,
+        body: &mut Option<&mut Box<dyn IRapierCollisionObject>>,
         body_shape: usize,
         body_rid: Rid,
         body_instance_id: u64,
         area_collider_handle: Handle,
         area_shape: usize,
         update_detection: bool,
-        space: &mut Box<RapierSpace2D>,
+        space: &mut Box<RapierSpace>,
     ) {
         if update_detection {
             // Remove from currently detected bodies
@@ -210,13 +209,13 @@ impl RapierArea2D {
     pub fn on_area_enter(
         &mut self,
         collider_handle: Handle,
-        other_area: &mut Option<&mut Box<dyn IRapierCollisionObject2D>>,
+        other_area: &mut Option<&mut Box<dyn IRapierCollisionObject>>,
         other_area_shape: usize,
         other_area_rid: Rid,
         other_area_instance_id: u64,
         area_collider_handle: Handle,
         area_shape: usize,
-        space: &mut Box<RapierSpace2D>,
+        space: &mut Box<RapierSpace>,
     ) {
         if self.area_monitor_callback.is_null() {
             return;
@@ -257,13 +256,13 @@ impl RapierArea2D {
     pub fn on_area_exit(
         &mut self,
         collider_handle: Handle,
-        other_area: &mut Option<&mut Box<dyn IRapierCollisionObject2D>>,
+        other_area: &mut Option<&mut Box<dyn IRapierCollisionObject>>,
         other_area_shape: usize,
         other_area_rid: Rid,
         other_area_instance_id: u64,
         area_collider_handle: Handle,
         area_shape: usize,
-        space: &mut Box<RapierSpace2D>,
+        space: &mut Box<RapierSpace>,
     ) {
         if self.area_monitor_callback.is_null() {
             return;
@@ -489,11 +488,11 @@ impl RapierArea2D {
         self.gravity
     }
 
-    pub fn set_gravity_vector(&mut self, gravity: Vector2) {
+    pub fn set_gravity_vector(&mut self, gravity: Vector) {
         self.gravity_vector = gravity;
     }
 
-    pub fn get_gravity_vector(&self) -> Vector2 {
+    pub fn get_gravity_vector(&self) -> Vector {
         self.gravity_vector
     }
 
@@ -545,7 +544,7 @@ impl RapierArea2D {
         self.monitorable
     }
 
-    pub fn call_queries(&self, space: &mut RapierSpace2D) {
+    pub fn call_queries(&self, space: &mut RapierSpace) {
         if self.monitored_objects.is_empty() {
             return;
         }
@@ -577,7 +576,7 @@ impl RapierArea2D {
         }
     }
 
-    pub fn compute_gravity(&self, position: Vector2) -> Vector2 {
+    pub fn compute_gravity(&self, position: Vector) -> Vector {
         if self.is_gravity_point() {
             let gr_unit_dist = self.get_gravity_point_unit_distance();
             let v = self.get_base().get_transform() * self.gravity_vector - position;
@@ -587,7 +586,7 @@ impl RapierArea2D {
                     let gravity_strength = self.gravity * gr_unit_dist * gr_unit_dist / v_length_sq;
                     v.normalized() * gravity_strength
                 } else {
-                    Vector2::default()
+                    Vector::default()
                 }
             } else {
                 v.normalized() * self.gravity
@@ -598,11 +597,11 @@ impl RapierArea2D {
     }
 }
 
-impl IRapierCollisionObject2D for RapierArea2D {
-    fn get_base(&self) -> &RapierCollisionObject2D {
+impl IRapierCollisionObject for RapierArea {
+    fn get_base(&self) -> &RapierCollisionObject {
         &self.base
     }
-    fn get_mut_base(&mut self) -> &mut RapierCollisionObject2D {
+    fn get_mut_base(&mut self) -> &mut RapierCollisionObject {
         &mut self.base
     }
     fn set_space(&mut self, p_space: Rid) {
@@ -635,26 +634,26 @@ impl IRapierCollisionObject2D for RapierArea2D {
         self.base._set_space(p_space);
     }
 
-    fn get_body(&self) -> Option<&RapierBody2D> {
+    fn get_body(&self) -> Option<&RapierBody> {
         None
     }
 
-    fn get_area(&self) -> Option<&RapierArea2D> {
+    fn get_area(&self) -> Option<&RapierArea> {
         Some(self)
     }
 
-    fn get_mut_body(&mut self) -> Option<&mut RapierBody2D> {
+    fn get_mut_body(&mut self) -> Option<&mut RapierBody> {
         None
     }
 
-    fn get_mut_area(&mut self) -> Option<&mut RapierArea2D> {
+    fn get_mut_area(&mut self) -> Option<&mut RapierArea> {
         Some(self)
     }
 
     fn add_shape(
         &mut self,
         p_shape: godot::prelude::Rid,
-        p_transform: godot::prelude::Transform2D,
+        p_transform: Transform,
         p_disabled: bool,
     ) {
         let mut shape = CollisionObjectShape {
@@ -709,7 +708,7 @@ impl IRapierCollisionObject2D for RapierArea2D {
         }
     }
 
-    fn set_shape_transform(&mut self, p_index: usize, p_transform: Transform2D) {
+    fn set_shape_transform(&mut self, p_index: usize, p_transform: Transform) {
         if p_index >= self.base.shapes.len() {
             godot_error!("invalid index");
             return;

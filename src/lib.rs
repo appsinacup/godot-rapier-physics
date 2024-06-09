@@ -18,12 +18,34 @@ extern crate salva3d as salva;
 #[cfg(all(feature = "double", feature = "dim3"))]
 extern crate salva3d as salva;
 
+#[cfg(feature = "dim2")]
+pub type Transform = Transform2D;
+#[cfg(feature = "dim2")]
+pub type Rect = Rect2;
+#[cfg(feature = "dim3")]
+pub type Transform = Transform3D;
+#[cfg(feature = "dim3")]
+pub type Rect = Aabb;
+
+#[cfg(feature = "dim2")]
+pub type Vector = Vector2;
+#[cfg(feature = "dim2")]
+pub type PackedVectorArray = PackedVector2Array;
+#[cfg(feature = "dim2")]
+pub type Angle = Real;
+
+#[cfg(feature = "dim3")]
+pub type Vector = Vector3;
+#[cfg(feature = "dim3")]
+pub type PackedVectorArray = PackedVector3Array;
+#[cfg(feature = "dim3")]
+pub type Angle = Vector3;
+
 mod bodies;
 mod fluids;
 mod joints;
 mod rapier_wrapper;
-mod servers2d;
-//mod servers3d;
+mod servers;
 mod shapes;
 mod spaces;
 use godot::prelude::*;
@@ -40,11 +62,10 @@ unsafe impl ExtensionLibrary for RapierPhysics2DExtensionLibrary {
     fn on_level_init(level: InitLevel) {
         match level {
             InitLevel::Scene => {
-                servers2d::register_scene();
-                //servers3d::register_scene();
+                servers::register_scene();
             }
             InitLevel::Servers => {
-                servers2d::register_server();
+                servers::register_server();
             }
             _ => (),
         }
@@ -53,10 +74,10 @@ unsafe impl ExtensionLibrary for RapierPhysics2DExtensionLibrary {
     fn on_level_deinit(level: InitLevel) {
         match level {
             InitLevel::Scene => {
-                servers2d::unregister_scene();
+                servers::unregister_scene();
             }
             InitLevel::Servers => {
-                servers2d::unregister_server();
+                servers::unregister_server();
             }
             _ => (),
         }

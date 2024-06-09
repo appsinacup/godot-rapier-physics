@@ -135,14 +135,6 @@ pub fn invalid_handle_double() -> HandleDouble {
     }
 }
 
-pub fn are_handles_equal(handle1: Handle, handle2: Handle) -> bool {
-    (handle1.id == handle2.id) && (handle1.generation == handle2.generation)
-}
-
-pub fn are_handles_equal_double(handle1: HandleDouble, handle2: HandleDouble) -> bool {
-    (handle1.id == handle2.id) && (handle1.generation == handle2.generation)
-}
-
 pub fn handle_pair_hash(handle1: Handle, handle2: Handle) -> u128 {
     handle1.id as u128
         + ((handle1.generation as u128) << 32)

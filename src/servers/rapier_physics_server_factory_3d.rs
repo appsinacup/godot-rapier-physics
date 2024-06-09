@@ -1,4 +1,4 @@
-use crate::servers3d::rapier_physics_server_3d::*;
+use crate::servers::rapier_physics_server_3d::*;
 use godot::{obj::NewAlloc, prelude::*};
 
 #[derive(GodotClass, Default)]

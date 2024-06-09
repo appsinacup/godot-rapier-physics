@@ -3,16 +3,17 @@ use crate::{
         handle::{invalid_handle, Handle},
         shape::shape_destroy,
     },
-    servers2d::rapier_physics_singleton_2d::bodies_singleton,
+    servers::rapier_physics_singleton::bodies_singleton,
+    Rect, Vector,
 };
 use godot::{engine::physics_server_2d::ShapeType, prelude::*};
 use std::{any::Any, collections::HashMap};
 
-pub trait IRapierShape2D: Any {
-    fn get_base(&self) -> &RapierShapeBase2D;
-    fn get_mut_base(&mut self) -> &mut RapierShapeBase2D;
+pub trait IRapierShape: Any {
+    fn get_base(&self) -> &RapierShapeBase;
+    fn get_mut_base(&mut self) -> &mut RapierShapeBase;
     fn get_type(&self) -> ShapeType;
-    fn get_moment_of_inertia(&self, mass: f32, scale: Vector2) -> f32;
+    fn get_moment_of_inertia(&self, mass: f32, scale: Vector) -> f32;
     fn allows_one_way_collision(&self) -> bool;
     fn create_rapier_shape(&mut self) -> Handle;
     fn set_data(&mut self, data: Variant);
@@ -21,15 +22,15 @@ pub trait IRapierShape2D: Any {
 }
 
 #[derive(Debug)]
-pub struct RapierShapeBase2D {
+pub struct RapierShapeBase {
     rid: Rid,
-    aabb: Rect2,
+    aabb: Rect,
     configured: bool,
     owners: HashMap<Rid, i32>,
     handle: Handle,
 }
 
-impl RapierShapeBase2D {
+impl RapierShapeBase {
     pub fn new(rid: Rid) -> Self {
         Self {
             rid,
@@ -58,7 +59,7 @@ impl RapierShapeBase2D {
         }
     }
 
-    pub fn get_aabb(&self, origin: Vector2) -> Rect2 {
+    pub fn get_aabb(&self, origin: Vector) -> Rect {
         let mut aabb_clone = self.aabb;
         aabb_clone.position += origin;
         aabb_clone
@@ -105,10 +106,10 @@ impl RapierShapeBase2D {
     }
 }
 
-impl Drop for RapierShapeBase2D {
+impl Drop for RapierShapeBase {
     fn drop(&mut self) {
         if !self.owners.is_empty() {
-            godot_error!("RapierShapeBase2D leaked {} owners", self.owners.len());
+            godot_error!("RapierShapeBase leaked {} owners", self.owners.len());
         }
         if self.handle.is_valid() {
             self.destroy_rapier_shape();

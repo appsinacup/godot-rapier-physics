@@ -11,14 +11,13 @@ use crate::rapier_wrapper::shape::*;
 use crate::rapier_wrapper::user_data::*;
 use godot::log::godot_error;
 use nalgebra::zero;
-use nalgebra::SVector;
 use rapier::parry;
 use rapier::parry::query::ShapeCastOptions;
 use rapier::prelude::*;
 
 pub struct RayHitInfo {
-    pub pixel_position: SVector<Real, DIM>,
-    pub normal: SVector<Real, DIM>,
+    pub pixel_position: Vector<Real>,
+    pub normal: Vector<Real>,
     pub collider: Handle,
     pub user_data: UserData,
 }
@@ -44,10 +43,10 @@ pub struct PointHitInfo {
 pub struct ShapeCastResult {
     pub collided: bool,
     pub toi: Real,
-    pub pixel_witness1: SVector<Real, DIM>,
-    pub pixel_witness2: SVector<Real, DIM>,
-    pub normal1: SVector<Real, DIM>,
-    pub normal2: SVector<Real, DIM>,
+    pub pixel_witness1: Vector<Real>,
+    pub pixel_witness2: Vector<Real>,
+    pub normal1: Vector<Real>,
+    pub normal2: Vector<Real>,
     pub collider: Handle,
     pub user_data: UserData,
 }
@@ -72,10 +71,10 @@ pub struct ContactResult {
     pub collided: bool,
     pub within_margin: bool,
     pub pixel_distance: Real,
-    pub pixel_point1: SVector<Real, DIM>,
-    pub pixel_point2: SVector<Real, DIM>,
-    pub normal1: SVector<Real, DIM>,
-    pub normal2: SVector<Real, DIM>,
+    pub pixel_point1: Vector<Real>,
+    pub pixel_point2: Vector<Real>,
+    pub normal1: Vector<Real>,
+    pub normal2: Vector<Real>,
 }
 
 #[derive(Default)]
@@ -97,8 +96,8 @@ type QueryHandleExcludedCallback = fn(
 
 pub fn intersect_ray(
     world_handle: Handle,
-    pixel_from: SVector<Real, DIM>,
-    dir: SVector<Real, DIM>,
+    pixel_from: Vector<Real>,
+    dir: Vector<Real>,
     pixel_length: Real,
     collide_with_body: bool,
     collide_with_area: bool,
@@ -113,7 +112,7 @@ pub fn intersect_ray(
         let from = vector_pixels_to_meters(pixel_from);
         let length = pixels_to_meters(pixel_length);
 
-        let ray = Ray::new(point![from.x, from.y], dir);
+        let ray = Ray::new(Point { coords: from }, dir);
         let mut filter = QueryFilter::new();
 
         if !collide_with_body {
@@ -172,7 +171,7 @@ pub fn intersect_ray(
 
 pub fn intersect_point(
     world_handle: Handle,
-    pixel_position: SVector<Real, DIM>,
+    pixel_position: Vector<Real>,
     collide_with_body: bool,
     collide_with_area: bool,
     hit_info_array: *mut PointHitInfo,
@@ -186,7 +185,7 @@ pub fn intersect_point(
     }
     if let Some(physics_world) = physics_engine().get_world(world_handle) {
         let position = vector_pixels_to_meters(pixel_position);
-        let point = Point::new(position.x, position.y);
+        let point = Point { coords: position };
         let mut filter = QueryFilter::new();
 
         if !collide_with_body {
@@ -240,9 +239,9 @@ pub fn intersect_point(
 }
 
 pub fn shape_collide(
-    pixel_motion1: SVector<Real, DIM>,
+    pixel_motion1: Vector<Real>,
     shape_info1: ShapeInfo,
-    pixel_motion2: SVector<Real, DIM>,
+    pixel_motion2: Vector<Real>,
     shape_info2: ShapeInfo,
 ) -> ShapeCastResult {
     let mut result = ShapeCastResult::new();
@@ -294,7 +293,7 @@ pub fn shape_collide(
 
 pub fn shape_casting(
     world_handle: Handle,
-    pixel_motion: SVector<Real, DIM>,
+    pixel_motion: Vector<Real>,
     shape_info: ShapeInfo,
     collide_with_body: bool,
     collide_with_area: bool,
@@ -389,8 +388,7 @@ pub fn intersect_shape(
 
         if let Some(physics_world) = physics_engine.get_world(world_handle) {
             let position = vector_pixels_to_meters(shape_info.pixel_position);
-            let shape_transform =
-                Isometry::new(vector![position.x, position.y], shape_info.rotation);
+            let shape_transform = Isometry::new(position, shape_info.rotation);
 
             let mut filter = QueryFilter::new();
 
@@ -448,8 +446,8 @@ pub fn intersect_shape(
 
 pub fn intersect_aabb(
     world_handle: Handle,
-    pixel_aabb_min: SVector<Real, DIM>,
-    pixel_aabb_max: SVector<Real, DIM>,
+    pixel_aabb_min: Vector<Real>,
+    pixel_aabb_max: Vector<Real>,
     collide_with_body: bool,
     collide_with_area: bool,
     hit_info_slice: &mut [PointHitInfo],
@@ -464,8 +462,8 @@ pub fn intersect_aabb(
         let aabb_max = vector_pixels_to_meters(pixel_aabb_max);
 
         // let aabb_transform = Isometry::new(vector![position.x, position.y], rotation);
-        let aabb_min_point = Point::new(aabb_min.x, aabb_min.y);
-        let aabb_max_point = Point::new(aabb_max.x, aabb_max.y);
+        let aabb_min_point = Point { coords: aabb_min };
+        let aabb_max_point = Point { coords: aabb_max };
 
         // let transformed_aabb_min = aabb_transform * aabb_min_point;
         // let transformed_aabb_max = aabb_transform * aabb_max_point;

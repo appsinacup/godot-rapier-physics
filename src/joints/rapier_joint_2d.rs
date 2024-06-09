@@ -10,7 +10,7 @@ use super::{
     rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D, rapier_pin_joint_2d::RapierPinJoint2D,
 };
 
-pub trait IRapierJoint2D: Any {
+pub trait IRapierJoint: Any {
     fn get_base(&self) -> &RapierJointBase2D;
     fn get_mut_base(&mut self) -> &mut RapierJointBase2D;
     fn get_type(&self) -> physics_server_2d::JointType;
@@ -92,7 +92,7 @@ impl RapierEmptyJoint2D {
     }
 }
 
-impl IRapierJoint2D for RapierEmptyJoint2D {
+impl IRapierJoint for RapierEmptyJoint2D {
     fn get_type(&self) -> physics_server_2d::JointType {
         physics_server_2d::JointType::MAX
     }

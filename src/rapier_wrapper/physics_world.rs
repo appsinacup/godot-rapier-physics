@@ -5,7 +5,6 @@ use crate::rapier_wrapper::physics_hooks::*;
 use crate::rapier_wrapper::settings::*;
 use crate::rapier_wrapper::user_data::*;
 use godot::log::godot_error;
-use nalgebra::Vector2;
 use rapier::crossbeam;
 use rapier::data::Arena;
 use rapier::prelude::*;
@@ -18,22 +17,13 @@ pub struct ActiveBodyInfo {
     pub body_user_data: UserData,
 }
 
-impl ActiveBodyInfo {
-    fn new() -> ActiveBodyInfo {
-        ActiveBodyInfo {
-            body_handle: invalid_handle(),
-            body_user_data: UserData::invalid_user_data(),
-        }
-    }
-}
-
 #[derive(Default)]
 pub struct ContactPointInfo {
-    pub pixel_local_pos_1: Vector2<Real>,
-    pub pixel_local_pos_2: Vector2<Real>,
-    pub pixel_velocity_pos_1: Vector2<Real>,
-    pub pixel_velocity_pos_2: Vector2<Real>,
-    pub normal: Vector2<Real>,
+    pub pixel_local_pos_1: Vector<Real>,
+    pub pixel_local_pos_2: Vector<Real>,
+    pub pixel_velocity_pos_1: Vector<Real>,
+    pub pixel_velocity_pos_2: Vector<Real>,
+    pub normal: Vector<Real>,
     pub pixel_distance: Real,
     pub pixel_impulse: Real,
     pub pixel_tangent_impulse: Real,

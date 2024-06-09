@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://d4exls53gi0df"]
+[gd_scene load_steps=6 format=3 uid="uid://d4exls53gi0df"]
 
 [ext_resource type="Script" path="res://rigid_body_2d.gd" id="1_4sybc"]
+[ext_resource type="Script" path="res://test.gd" id="1_25l3y"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_r2n1f"]
 radius = 16.6667
@@ -10,6 +11,7 @@ radius = 16.6667
 [sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_j5l1g"]
 
 [node name="Test" type="Node2D"]
+script = ExtResource("1_25l3y")
 
 [node name="JointStatic" type="Node2D" parent="."]
 

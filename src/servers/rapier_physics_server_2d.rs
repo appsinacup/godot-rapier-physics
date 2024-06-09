@@ -1,11 +1,11 @@
-use crate::bodies::rapier_area_2d::RapierArea2D;
-use crate::bodies::rapier_body_2d::RapierBody2D;
-use crate::bodies::rapier_collision_object_2d::IRapierCollisionObject2D;
-use crate::fluids::fluid_effect_2d::FluidEffect2D;
-use crate::fluids::rapier_fluid_2d::RapierFluid2D;
+use crate::bodies::rapier_area::RapierArea;
+use crate::bodies::rapier_body::RapierBody;
+use crate::bodies::rapier_collision_object::IRapierCollisionObject;
+use crate::fluids::fluid_effect::FluidEffect;
+use crate::fluids::rapier_fluid::RapierFluid;
 use crate::joints::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 use crate::joints::rapier_groove_joint_2d::RapierGrooveJoint2D;
-use crate::joints::rapier_joint_2d::{IRapierJoint2D, RapierEmptyJoint2D};
+use crate::joints::rapier_joint_2d::{IRapierJoint, RapierEmptyJoint2D};
 use crate::joints::rapier_pin_joint_2d::RapierPinJoint2D;
 use crate::rapier_wrapper::physics_world::world_step;
 use crate::rapier_wrapper::query::shape_collide;
@@ -18,20 +18,21 @@ use crate::shapes::rapier_convex_polygon_shape_2d::RapierConvexPolygonShape2D;
 use crate::shapes::rapier_rectangle_shape_2d::RapierRectangleShape2D;
 use crate::shapes::rapier_segment_shape_2d::RapierSegmentShape2D;
 use crate::shapes::rapier_separation_ray_shape_2d::RapierSeparationRayShape2D;
-use crate::shapes::rapier_shape_2d::RapierShapeBase2D;
+use crate::shapes::rapier_shape::RapierShapeBase;
 use crate::shapes::rapier_world_boundary_shape_2d::RapierWorldBoundaryShape2D;
-use crate::spaces::rapier_space_2d::RapierSpace2D;
+use crate::spaces::rapier_space::RapierSpace;
 use godot::classes::{self, IPhysicsServer2DExtension, PhysicsServer2DExtension, ProjectSettings};
 use godot::engine::native::PhysicsServer2DExtensionMotionResult;
 use godot::engine::utilities::{rid_allocate_id, rid_from_int64};
 use godot::prelude::*;
+use rapier::math::Real;
 use std::ffi::c_void;
 
-use super::rapier_physics_singleton_2d::{
+use super::rapier_physics_singleton::{
     active_spaces_singleton, bodies_singleton, fluids_singleton, joints_singleton,
     shapes_singleton, spaces_singleton,
 };
-use super::rapier_project_settings_2d::RapierProjectSettings2D;
+use super::rapier_project_settings::RapierProjectSettings;
 
 #[derive(GodotClass)]
 #[class(base=PhysicsServer2DExtension, tool)]
@@ -116,7 +117,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             }
         }
         if let Some(owners) = owners {
-            RapierShapeBase2D::call_shape_changed(owners, shape);
+            RapierShapeBase::call_shape_changed(owners, shape);
         }
     }
     fn shape_set_custom_solver_bias(&mut self, _shape: Rid, _bias: f32) {}
@@ -166,8 +167,8 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
 
         let shape_a_info = shape_info_from_body_shape(shape_a_handle, xform_a);
         let shape_b_info = shape_info_from_body_shape(shape_b_handle, xform_b);
-        let rapier_a_motion = rapier::na::Vector2::new(motion_a.x, motion_a.y);
-        let rapier_b_motion = rapier::na::Vector2::new(motion_b.x, motion_b.y);
+        let rapier_a_motion = vector_to_rapier(motion_a.x, motion_a.y);
+        let rapier_b_motion = vector_to_rapier(motion_b.x, motion_b.y);
 
         let results_out: *mut Vector2 = results as *mut Vector2;
 
@@ -187,7 +188,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     }
     fn space_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
-        let space = RapierSpace2D::new(rid);
+        let space = RapierSpace::new(rid);
         spaces_singleton().spaces.insert(rid, Box::new(space));
         rid
     }
@@ -246,11 +247,11 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             space.set_debug_contacts(max_contacts);
         }
     }
-    fn space_get_contacts(&self, space: Rid) -> PackedVector2Array {
+    fn space_get_contacts(&self, space: Rid) -> PackedVectorArray {
         if let Some(space) = spaces_singleton().spaces.get(&space) {
             return space.get_debug_contacts().clone();
         }
-        PackedVector2Array::new()
+        PackedVectorArray::new()
     }
     fn space_get_contact_count(&self, space: Rid) -> i32 {
         if let Some(space) = spaces_singleton().spaces.get(&space) {
@@ -260,7 +261,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     }
     fn area_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
-        let area = RapierArea2D::new(rid);
+        let area = RapierArea::new(rid);
         bodies_singleton()
             .collision_objects
             .insert(rid, Box::new(area));
@@ -441,7 +442,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     }
     fn body_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
-        let body = RapierBody2D::new(rid);
+        let body = RapierBody::new(rid);
         bodies_singleton()
             .collision_objects
             .insert(rid, Box::new(body));
@@ -928,23 +929,24 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         recovery_as_collision: bool,
         result: *mut PhysicsServer2DExtensionMotionResult,
     ) -> bool {
-        let mut body_rid = Rid::Invalid;
-        let mut space_rid = Rid::Invalid;
-        if let Some(body) = bodies_singleton().collision_objects.get(&body) {
-            body_rid = body.get_base().get_rid();
-            space_rid = body.get_base().get_space();
-        }
-        if let Some(space) = spaces_singleton().spaces.get(&space_rid) {
-            let result: &PhysicsServer2DExtensionMotionResult = &*result;
-            return space.test_body_motion(
-                body_rid,
-                from,
-                motion,
-                margin.into(),
-                collide_separation_ray,
-                recovery_as_collision,
-                result,
-            );
+        if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
+            if let Some(body) = body.get_mut_body() {
+                if let Some(space) = spaces_singleton()
+                    .spaces
+                    .get_mut(&body.get_base().get_space())
+                {
+                    let result: &mut PhysicsServer2DExtensionMotionResult = &mut *result;
+                    return space.test_body_motion(
+                        body,
+                        from,
+                        motion,
+                        margin,
+                        collide_separation_ray,
+                        recovery_as_collision,
+                        result,
+                    );
+                }
+            }
         }
         false
     }
@@ -1257,42 +1259,41 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
                 .get_setting_with_override("physics/2d/default_gravity".into())
                 .to();
 
-            let fluid_default_gravity_dir = RapierProjectSettings2D::get_fluid_gravity_dir();
-            let fluid_default_gravity_value = RapierProjectSettings2D::get_fluid_gravity_value();
+            let fluid_default_gravity_dir = RapierProjectSettings::get_fluid_gravity_dir();
+            let fluid_default_gravity_value = RapierProjectSettings::get_fluid_gravity_value();
 
             //let default_linear_damping: real = project_settings.get_setting_with_override("physics/2d/default_linear_damp".into()).to();
             //let default_angular_damping: real = project_settings.get_setting_with_override("physics/2d/default_angular_damp".into()).to();
 
             let settings = SimulationSettings {
-                pixel_liquid_gravity: rapier::na::Vector2::new(
+                pixel_liquid_gravity: vector_to_rapier(
                     fluid_default_gravity_dir.x * fluid_default_gravity_value as real,
                     fluid_default_gravity_dir.y * fluid_default_gravity_value as real,
                 ),
                 dt: step,
-                pixel_gravity: rapier::na::Vector2::new(
+                pixel_gravity: vector_to_rapier(
                     default_gravity_dir.x * default_gravity_value,
                     default_gravity_dir.y * default_gravity_value,
                 ),
-                max_ccd_substeps: RapierProjectSettings2D::get_solver_max_ccd_substeps() as usize,
+                max_ccd_substeps: RapierProjectSettings::get_solver_max_ccd_substeps() as usize,
                 num_additional_friction_iterations:
-                    RapierProjectSettings2D::get_solver_num_additional_friction_iterations()
-                        as usize,
+                    RapierProjectSettings::get_solver_num_additional_friction_iterations() as usize,
                 num_internal_pgs_iterations:
-                    RapierProjectSettings2D::get_solver_num_internal_pgs_iterations() as usize,
-                num_solver_iterations: RapierProjectSettings2D::get_solver_num_solver_iterations()
+                    RapierProjectSettings::get_solver_num_internal_pgs_iterations() as usize,
+                num_solver_iterations: RapierProjectSettings::get_solver_num_solver_iterations()
                     as usize,
             };
             // this calls into rapier
             world_step(
                 space_handle,
                 &settings,
-                RapierSpace2D::active_body_callback,
-                RapierSpace2D::collision_filter_body_callback,
-                RapierSpace2D::collision_filter_sensor_callback,
-                RapierSpace2D::collision_modify_contacts_callback,
-                RapierSpace2D::collision_event_callback,
-                RapierSpace2D::contact_force_event_callback,
-                RapierSpace2D::contact_point_callback,
+                RapierSpace::active_body_callback,
+                RapierSpace::collision_filter_body_callback,
+                RapierSpace::collision_filter_sensor_callback,
+                RapierSpace::collision_modify_contacts_callback,
+                RapierSpace::collision_event_callback,
+                RapierSpace::contact_force_event_callback,
+                RapierSpace::contact_point_callback,
             );
 
             if let Some(space) = spaces_singleton().spaces.get_mut(space) {
@@ -1334,144 +1335,6 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             classes::physics_server_2d::ProcessInfo::COLLISION_PAIRS => self.collision_pairs,
             classes::physics_server_2d::ProcessInfo::ISLAND_COUNT => self.island_count,
             _ => 0,
-        }
-    }
-}
-
-pub enum RapierBodyParam {
-    ContactSkin = 0,
-}
-
-impl From<i32> for RapierBodyParam {
-    fn from(i: i32) -> Self {
-        match i {
-            0 => RapierBodyParam::ContactSkin,
-            _ => RapierBodyParam::ContactSkin,
-        }
-    }
-}
-
-#[godot_api]
-impl RapierPhysicsServer2D {
-    #[func]
-    fn body_set_extra_param(&mut self, body: Rid, param: i32, value: Variant) {
-        if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.set_extra_param(RapierBodyParam::from(param), value);
-            }
-        }
-    }
-    #[func]
-    fn body_get_extra_param(&self, body: Rid, param: i32) -> Variant {
-        if let Some(body) = bodies_singleton().collision_objects.get(&body) {
-            if let Some(body) = body.get_body() {
-                return body.get_extra_param(RapierBodyParam::from(param));
-            }
-        }
-        0.0.to_variant()
-    }
-    #[func]
-    fn space_export_json(&mut self, world: Rid) -> String {
-        if let Some(world) = spaces_singleton().spaces.get_mut(&world) {
-            world.export_json();
-        }
-        "{}".to_string()
-    }
-    #[func]
-    fn space_export_binary(&mut self, world: Rid) -> PackedByteArray {
-        if let Some(world) = spaces_singleton().spaces.get_mut(&world) {
-            world.export_binary();
-        }
-        PackedByteArray::new()
-    }
-    #[func]
-    fn fluid_create(&mut self) -> Rid {
-        let rid = rid_from_int64(rid_allocate_id());
-        let fluid = RapierFluid2D::new(rid);
-        fluids_singleton().fluids.insert(rid, Box::new(fluid));
-        rid
-    }
-
-    #[func]
-    fn fluid_set_space(&mut self, fluid_rid: Rid, space_rid: Rid) {
-        if let Some(fluid) = fluids_singleton().fluids.get_mut(&fluid_rid) {
-            fluid.set_space(space_rid);
-        }
-    }
-
-    #[func]
-    fn fluid_set_density(&mut self, fluid_rid: Rid, density: f64) {
-        if let Some(fluid) = fluids_singleton().fluids.get_mut(&fluid_rid) {
-            fluid.set_density(density);
-        }
-    }
-
-    #[func]
-    fn fluid_set_effects(&mut self, fluid_rid: Rid, params: Array<Gd<FluidEffect2D>>) {
-        if let Some(fluid) = fluids_singleton().fluids.get_mut(&fluid_rid) {
-            fluid.set_effects(params);
-        }
-    }
-
-    #[func]
-    fn fluid_get_points(&self, fluid_rid: Rid) -> PackedVector2Array {
-        if let Some(fluid) = fluids_singleton().fluids.get(&fluid_rid) {
-            return PackedVector2Array::from(fluid.get_points().as_slice());
-        }
-        PackedVector2Array::default()
-    }
-
-    #[func]
-    fn fluid_get_velocities(&self, fluid_rid: Rid) -> PackedVector2Array {
-        if let Some(fluid) = fluids_singleton().fluids.get(&fluid_rid) {
-            return PackedVector2Array::from(fluid.get_velocities().as_slice());
-        }
-        PackedVector2Array::default()
-    }
-
-    #[func]
-    fn fluid_get_accelerations(&self, fluid_rid: Rid) -> PackedVector2Array {
-        if let Some(fluid) = fluids_singleton().fluids.get(&fluid_rid) {
-            return PackedVector2Array::from(fluid.get_accelerations().as_slice());
-        }
-        PackedVector2Array::default()
-    }
-
-    #[func]
-    fn fluid_set_points(&mut self, fluid_rid: Rid, points: PackedVector2Array) {
-        if let Some(fluid) = fluids_singleton().fluids.get_mut(&fluid_rid) {
-            fluid.set_points(points.to_vec());
-        }
-    }
-
-    #[func]
-    fn fluid_set_points_and_velocities(
-        &mut self,
-        fluid_rid: Rid,
-        points: PackedVector2Array,
-        velocities: PackedVector2Array,
-    ) {
-        if let Some(fluid) = fluids_singleton().fluids.get_mut(&fluid_rid) {
-            fluid.set_points_and_velocities(points.to_vec(), velocities.to_vec());
-        }
-    }
-
-    #[func]
-    fn fluid_add_points_and_velocities(
-        &mut self,
-        fluid_rid: Rid,
-        points: PackedVector2Array,
-        velocities: PackedVector2Array,
-    ) {
-        if let Some(fluid) = fluids_singleton().fluids.get_mut(&fluid_rid) {
-            fluid.add_points_and_velocities(points.to_vec(), velocities.to_vec());
-        }
-    }
-
-    #[func]
-    fn fluid_delete_points(&mut self, fluid_rid: Rid, indices: PackedInt32Array) {
-        if let Some(fluid) = fluids_singleton().fluids.get_mut(&fluid_rid) {
-            fluid.delete_points(indices.to_vec());
         }
     }
 }

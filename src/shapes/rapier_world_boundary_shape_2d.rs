@@ -1,13 +1,14 @@
 use crate::rapier_wrapper::handle::Handle;
 use crate::rapier_wrapper::shape::shape_create_halfspace;
-use crate::shapes::rapier_shape_2d::{IRapierShape2D, RapierShapeBase2D};
+use crate::shapes::rapier_shape::{IRapierShape, RapierShapeBase};
 use godot::{engine::physics_server_2d::ShapeType, prelude::*};
+use rapier::math::Real;
 
 pub struct RapierWorldBoundaryShape2D {
     normal: Vector2,
     d: f32,
 
-    pub base: RapierShapeBase2D,
+    pub base: RapierShapeBase,
 }
 
 impl RapierWorldBoundaryShape2D {
@@ -15,16 +16,16 @@ impl RapierWorldBoundaryShape2D {
         Self {
             normal: Vector2::ZERO,
             d: 0.0,
-            base: RapierShapeBase2D::new(rid),
+            base: RapierShapeBase::new(rid),
         }
     }
 }
 
-impl IRapierShape2D for RapierWorldBoundaryShape2D {
-    fn get_base(&self) -> &RapierShapeBase2D {
+impl IRapierShape for RapierWorldBoundaryShape2D {
+    fn get_base(&self) -> &RapierShapeBase {
         &self.base
     }
-    fn get_mut_base(&mut self) -> &mut RapierShapeBase2D {
+    fn get_mut_base(&mut self) -> &mut RapierShapeBase {
         &mut self.base
     }
     fn get_type(&self) -> ShapeType {
@@ -40,7 +41,7 @@ impl IRapierShape2D for RapierWorldBoundaryShape2D {
     }
 
     fn create_rapier_shape(&mut self) -> Handle {
-        let v = rapier::na::Vector2::new(self.normal.x, -self.normal.y);
+        let v = vector_to_rapier(self.normal.x, -self.normal.y);
         shape_create_halfspace(v, -self.d)
     }
 

@@ -6,7 +6,7 @@ use godot::{
 
 #[derive(GodotClass)]
 #[class(base=Resource)]
-pub struct FluidEffect2D {
+pub struct FluidEffect {
     fluid_effect_type: FluidEffectType,
 
     base: Base<Resource>,
@@ -24,7 +24,7 @@ pub enum FluidEffectType {
 }
 
 #[godot_api]
-impl IResource for FluidEffect2D {
+impl IResource for FluidEffect {
     fn init(base: Base<Resource>) -> Self {
         Self {
             fluid_effect_type: FluidEffectType::FluidEffectElasticity,
@@ -33,7 +33,7 @@ impl IResource for FluidEffect2D {
     }
 }
 
-impl FluidEffect2D {
+impl FluidEffect {
     fn get_fluid_effect_type(&self) -> FluidEffectType {
         self.fluid_effect_type
     }

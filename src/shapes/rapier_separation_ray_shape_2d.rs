@@ -1,11 +1,11 @@
 use crate::rapier_wrapper::handle::{invalid_handle, Handle};
-use crate::shapes::rapier_shape_2d::{IRapierShape2D, RapierShapeBase2D};
+use crate::shapes::rapier_shape::{IRapierShape, RapierShapeBase};
 use godot::{engine::physics_server_2d::ShapeType, prelude::*};
 
 pub struct RapierSeparationRayShape2D {
     length: f32,
     slide_on_slope: bool,
-    pub base: RapierShapeBase2D,
+    pub base: RapierShapeBase,
 }
 
 impl RapierSeparationRayShape2D {
@@ -13,16 +13,16 @@ impl RapierSeparationRayShape2D {
         Self {
             length: 0.0,
             slide_on_slope: false,
-            base: RapierShapeBase2D::new(rid),
+            base: RapierShapeBase::new(rid),
         }
     }
 }
 
-impl IRapierShape2D for RapierSeparationRayShape2D {
-    fn get_base(&self) -> &RapierShapeBase2D {
+impl IRapierShape for RapierSeparationRayShape2D {
+    fn get_base(&self) -> &RapierShapeBase {
         &self.base
     }
-    fn get_mut_base(&mut self) -> &mut RapierShapeBase2D {
+    fn get_mut_base(&mut self) -> &mut RapierShapeBase {
         &mut self.base
     }
     fn get_type(&self) -> ShapeType {

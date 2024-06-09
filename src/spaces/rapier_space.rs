@@ -1,21 +1,23 @@
-use crate::bodies::rapier_collision_object_2d::IRapierCollisionObject2D;
+use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::rapier_wrapper::physics_world::{
     world_export_binary, world_export_json, world_get_active_objects_count,
 };
 use crate::rapier_wrapper::settings::WorldSettings;
-use crate::servers2d::rapier_physics_singleton_2d::bodies_singleton;
-use crate::servers2d::rapier_project_settings_2d::RapierProjectSettings2D;
-use crate::spaces::rapier_direct_space_state_2d::RapierDirectSpaceState2D;
+use crate::servers::rapier_physics_singleton::bodies_singleton;
+use crate::servers::rapier_project_settings::RapierProjectSettings;
 use crate::{
-    bodies::rapier_collision_object_2d::CollisionObjectType,
+    bodies::rapier_collision_object::CollisionObjectType,
     rapier_wrapper::{handle::Handle, physics_world::world_create},
 };
+use crate::{PackedVectorArray, Vector};
 use godot::engine::physics_server_2d::AreaParameter;
 use godot::{
-    engine::{physics_server_2d, PhysicsDirectSpaceState2D, ProjectSettings},
+    engine::{physics_server_2d, ProjectSettings},
     prelude::*,
 };
 use std::collections::{HashMap, HashSet};
+
+use super::{PhysicsDirectSpaceState, RapierDirectSpaceState};
 
 pub struct RemovedColliderInfo {
     pub rid: Rid,
@@ -40,8 +42,8 @@ impl RemovedColliderInfo {
     }
 }
 
-pub struct RapierSpace2D {
-    direct_access: Option<Gd<PhysicsDirectSpaceState2D>>,
+pub struct RapierSpace {
+    direct_access: Option<Gd<PhysicsDirectSpaceState>>,
     handle: Handle,
     removed_colliders: HashMap<Handle, RemovedColliderInfo>,
     active_list: HashSet<Rid>,
@@ -52,29 +54,30 @@ pub struct RapierSpace2D {
     area_update_list: HashSet<Rid>,
     body_area_update_list: HashSet<Rid>,
     solver_iterations: i32,
-    default_gravity_dir: Vector2,
+    pub(crate) contact_max_allowed_penetration: real,
+    default_gravity_dir: Vector,
     default_gravity_value: real,
     default_linear_damping: real,
     default_angular_damping: real,
     island_count: i32,
     active_objects: i32,
     collision_pairs: i32,
-    contact_debug: PackedVector2Array,
+    contact_debug: PackedVectorArray,
     contact_debug_count: usize,
 }
 
-impl RapierSpace2D {
+impl RapierSpace {
     pub fn new(rid: Rid) -> Self {
         let project_settings = ProjectSettings::singleton();
         let solver_iterations = project_settings
             .get_setting_with_override("physics/2d/solver/solver_iterations".into())
             .to();
-        let mut direct_access = RapierDirectSpaceState2D::new_alloc();
+        let mut direct_access = RapierDirectSpaceState::new_alloc();
         direct_access.bind_mut().set_space(rid);
 
         let world_settings = WorldSettings {
-            particle_radius: RapierProjectSettings2D::get_fluid_particle_radius() as real,
-            smoothing_factor: RapierProjectSettings2D::get_fluid_smoothing_factor() as real,
+            particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
+            smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
         };
         let handle = world_create(&world_settings);
 
@@ -90,14 +93,15 @@ impl RapierSpace2D {
             area_update_list: HashSet::new(),
             body_area_update_list: HashSet::new(),
             solver_iterations,
-            default_gravity_dir: Vector2::ZERO,
+            contact_max_allowed_penetration: 0.0,
+            default_gravity_dir: Vector::ZERO,
             default_gravity_value: 0.0,
             default_linear_damping: 0.0,
             default_angular_damping: 0.0,
             island_count: 0,
             active_objects: 0,
             collision_pairs: 0,
-            contact_debug: PackedVector2Array::new(),
+            contact_debug: PackedVectorArray::new(),
             contact_debug_count: 0,
         }
     }
@@ -173,10 +177,6 @@ impl RapierSpace2D {
     }
     pub fn get_removed_collider_info(&mut self, handle: &Handle) -> Option<&RemovedColliderInfo> {
         self.removed_colliders.get(handle)
-    }
-
-    pub fn get_solver_iterations(&self) -> i32 {
-        self.solver_iterations
     }
 
     pub fn call_queries(&mut self) {
@@ -280,13 +280,13 @@ impl RapierSpace2D {
     pub fn is_debugging_contacts(&self) -> bool {
         !self.contact_debug.is_empty()
     }
-    pub fn add_debug_contact(&mut self, contact: Vector2) {
+    pub fn add_debug_contact(&mut self, contact: Vector) {
         if self.contact_debug_count < self.contact_debug.len() {
             self.contact_debug[self.contact_debug_count] = contact;
             self.contact_debug_count += 1;
         }
     }
-    pub fn get_debug_contacts(&self) -> &PackedVector2Array {
+    pub fn get_debug_contacts(&self) -> &PackedVectorArray {
         &self.contact_debug
     }
     pub fn get_debug_contact_count(&self) -> i32 {
@@ -309,7 +309,7 @@ impl RapierSpace2D {
         }
     }
 
-    pub fn get_direct_state(&self) -> &Option<Gd<PhysicsDirectSpaceState2D>> {
+    pub fn get_direct_state(&self) -> &Option<Gd<PhysicsDirectSpaceState>> {
         &self.direct_access
     }
 

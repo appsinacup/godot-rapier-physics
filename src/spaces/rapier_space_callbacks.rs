@@ -1,12 +1,14 @@
 use std::mem::swap;
 
-use super::rapier_space_2d::RapierSpace2D;
-use crate::bodies::rapier_collision_object_2d::{CollisionObjectType, IRapierCollisionObject2D};
-use crate::servers2d::rapier_physics_singleton_2d::{
+use super::rapier_space::RapierSpace;
+use crate::bodies::rapier_collision_object::{CollisionObjectType, IRapierCollisionObject};
+use crate::rapier_wrapper::convert::vector_to_godot;
+use crate::servers::rapier_physics_singleton::{
     active_spaces_singleton, bodies_singleton, spaces_singleton,
 };
+use crate::Vector;
 use crate::{
-    bodies::rapier_collision_object_2d::RapierCollisionObject2D,
+    bodies::rapier_collision_object::RapierCollisionObject,
     rapier_wrapper::{
         handle::Handle,
         physics_hooks::{CollisionFilterInfo, OneWayDirection},
@@ -35,10 +37,10 @@ impl Default for CollidersInfo {
     }
 }
 
-impl RapierSpace2D {
+impl RapierSpace {
     pub fn active_body_callback(active_body_info: &ActiveBodyInfo) {
         let (rid, _) =
-            RapierCollisionObject2D::get_collider_user_data(&active_body_info.body_user_data);
+            RapierCollisionObject::get_collider_user_data(&active_body_info.body_user_data);
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&rid) {
             if let Some(body) = body.get_mut_body() {
                 body.on_marked_active();
@@ -51,9 +53,9 @@ impl RapierSpace2D {
         r_colliders_info: &mut CollidersInfo,
     ) -> bool {
         (r_colliders_info.object1, r_colliders_info.shape1) =
-            RapierCollisionObject2D::get_collider_user_data(&filter_info.user_data1);
+            RapierCollisionObject::get_collider_user_data(&filter_info.user_data1);
         (r_colliders_info.object2, r_colliders_info.shape2) =
-            RapierCollisionObject2D::get_collider_user_data(&filter_info.user_data2);
+            RapierCollisionObject::get_collider_user_data(&filter_info.user_data2);
         let bodies_singleton = bodies_singleton();
         if let Some(body1) = bodies_singleton
             .collision_objects
@@ -109,9 +111,9 @@ impl RapierSpace2D {
         let mut result = OneWayDirection::default();
 
         let (object1, shape1) =
-            RapierCollisionObject2D::get_collider_user_data(&filter_info.user_data1);
+            RapierCollisionObject::get_collider_user_data(&filter_info.user_data1);
         let (object2, shape2) =
-            RapierCollisionObject2D::get_collider_user_data(&filter_info.user_data2);
+            RapierCollisionObject::get_collider_user_data(&filter_info.user_data2);
         if let Some([collision_object_1, collision_object_2]) = bodies_singleton()
             .collision_objects
             .get_many_mut([&object1, &object2])
@@ -132,10 +134,10 @@ impl RapierSpace2D {
                     if let Some(body2) = collision_object_2.get_mut_body() {
                         let static_linear_velocity1 = body1.get_static_linear_velocity();
                         let static_linear_velocity2 = body2.get_static_linear_velocity();
-                        if static_linear_velocity1 != Vector2::default() {
+                        if static_linear_velocity1 != Vector::default() {
                             body2.to_add_static_constant_linear_velocity(static_linear_velocity1);
                         }
-                        if static_linear_velocity2 != Vector2::default() {
+                        if static_linear_velocity2 != Vector::default() {
                             body1.to_add_static_constant_linear_velocity(static_linear_velocity2);
                         }
                         let static_angular_velocity1 = body1.get_static_angular_velocity();
@@ -157,9 +159,9 @@ impl RapierSpace2D {
         if let Some(space) = active_spaces_singleton().active_spaces.get(&world_handle) {
             if let Some(space) = spaces_singleton().spaces.get_mut(space) {
                 let (mut p_object1, mut shape1) =
-                    RapierCollisionObject2D::get_collider_user_data(&event_info.user_data1);
+                    RapierCollisionObject::get_collider_user_data(&event_info.user_data1);
                 let (mut p_object2, mut shape2) =
-                    RapierCollisionObject2D::get_collider_user_data(&event_info.user_data2);
+                    RapierCollisionObject::get_collider_user_data(&event_info.user_data2);
 
                 let mut collider_handle1 = event_info.collider1;
                 let mut collider_handle2 = event_info.collider2;
@@ -386,10 +388,10 @@ impl RapierSpace2D {
             }
 
             let (p_object1, _) =
-                RapierCollisionObject2D::get_collider_user_data(&event_info.user_data1);
+                RapierCollisionObject::get_collider_user_data(&event_info.user_data1);
 
             let (p_object2, _) =
-                RapierCollisionObject2D::get_collider_user_data(&event_info.user_data2);
+                RapierCollisionObject::get_collider_user_data(&event_info.user_data2);
             let bodies_singleton = bodies_singleton();
             if let Some(body1) = bodies_singleton.collision_objects.get(&p_object1) {
                 if let Some(body1) = body1.get_body() {
@@ -416,14 +418,8 @@ impl RapierSpace2D {
         contact_info: &ContactPointInfo,
         event_info: &ContactForceEventInfo,
     ) -> bool {
-        let pos1 = Vector2::new(
-            contact_info.pixel_local_pos_1.x,
-            contact_info.pixel_local_pos_1.y,
-        );
-        let pos2 = Vector2::new(
-            contact_info.pixel_local_pos_2.x,
-            contact_info.pixel_local_pos_2.y,
-        );
+        let pos1 = vector_to_godot(contact_info.pixel_local_pos_1);
+        let pos2 = vector_to_godot(contact_info.pixel_local_pos_2);
 
         let mut keep_sending_contacts = false;
         if let Some(active_space) = active_spaces_singleton().active_spaces.get(&world_handle) {
@@ -435,30 +431,25 @@ impl RapierSpace2D {
                 }
             }
         }
-        false;
 
         let (p_object1, shape1) =
-            RapierCollisionObject2D::get_collider_user_data(&event_info.user_data1);
+            RapierCollisionObject::get_collider_user_data(&event_info.user_data1);
         let (p_object2, shape2) =
-            RapierCollisionObject2D::get_collider_user_data(&event_info.user_data2);
+            RapierCollisionObject::get_collider_user_data(&event_info.user_data2);
         if let Some([p_object1, p_object2]) = bodies_singleton()
             .collision_objects
             .get_many_mut([&p_object1, &p_object2])
         {
             let depth = real::max(0.0, -contact_info.pixel_distance); // negative distance means penetration
-            let normal = Vector2::new(contact_info.normal.x, contact_info.normal.y);
-            let tangent = normal.orthogonal();
-            let impulse =
-                contact_info.pixel_impulse * normal + contact_info.pixel_tangent_impulse * tangent;
+            let normal = vector_to_godot(contact_info.normal);
+            // TODO calculate impulse for 2d and 3d
+            let impulse = Vector::default();
+            //let tangent = normal.orthogonal();
+            //let impulse =
+            //    contact_info.pixel_impulse * normal + contact_info.pixel_tangent_impulse * tangent;
 
-            let vel_pos1 = Vector2::new(
-                contact_info.pixel_velocity_pos_1.x,
-                contact_info.pixel_velocity_pos_1.y,
-            );
-            let vel_pos2 = Vector2::new(
-                contact_info.pixel_velocity_pos_2.x,
-                contact_info.pixel_velocity_pos_2.y,
-            );
+            let vel_pos1 = vector_to_godot(contact_info.pixel_velocity_pos_1);
+            let vel_pos2 = vector_to_godot(contact_info.pixel_velocity_pos_2);
             if let Some(body1) = p_object1.get_mut_body() {
                 if let Some(body2) = p_object2.get_mut_body() {
                     if body1.can_report_contacts() {
