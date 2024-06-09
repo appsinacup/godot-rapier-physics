@@ -7,6 +7,10 @@ pub mod rapier_direct_body_state_2d;
 pub mod rapier_direct_body_state_3d;
 
 #[cfg(feature = "dim2")]
-pub type PhysicsDirectBodyState = rapier_direct_body_state_2d::PhysicsDirectBodyState2D;
+pub type RapierDirectBodyState = rapier_direct_body_state_2d::RapierDirectBodyState2D;
+#[cfg(feature = "dim2")]
+pub type PhysicsDirectBodyState = godot::engine::PhysicsDirectBodyState2D;
 #[cfg(feature = "dim3")]
-pub type PhysicsDirectBodyState = rapier_direct_body_state_3d::PhysicsDirectBodyState3D;
+pub type RapierDirectBodyState = rapier_direct_body_state_3d::RapierDirectBodyState3D;
+#[cfg(feature = "dim3")]
+pub type PhysicsDirectBodyState = godot::engine::PhysicsDirectBodyState3D;

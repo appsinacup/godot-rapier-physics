@@ -1,29 +1,13 @@
-use crate::bodies::rapier_area::RapierArea;
-use crate::bodies::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::fluids::fluid_effect::FluidEffect;
 use crate::fluids::rapier_fluid::RapierFluid;
-use crate::joints::rapier_joint_2d::{IRapierJoint, RapierEmptyJoint2D};
-use crate::rapier_wrapper::physics_world::world_step;
-use crate::rapier_wrapper::query::shape_collide;
-use crate::rapier_wrapper::settings::SimulationSettings;
-use crate::rapier_wrapper::shape::shape_info_from_body_shape;
 use crate::servers::RapierPhysicsServer;
-use crate::shapes::rapier_shape::RapierShapeBase;
-use crate::spaces::rapier_space::RapierSpace;
 use crate::PackedVectorArray;
-use godot::classes::{self, IPhysicsServer2DExtension, PhysicsServer2DExtension, ProjectSettings};
-use godot::engine::native::PhysicsServer2DExtensionMotionResult;
+use godot::classes::IPhysicsServer2DExtension;
 use godot::engine::utilities::{rid_allocate_id, rid_from_int64};
 use godot::prelude::*;
-use rapier::math::Real;
-use std::ffi::c_void;
 
-use super::rapier_physics_singleton::{
-    active_spaces_singleton, bodies_singleton, fluids_singleton, joints_singleton,
-    shapes_singleton, spaces_singleton,
-};
-use super::rapier_project_settings::RapierProjectSettings;
+use super::rapier_physics_singleton::{bodies_singleton, fluids_singleton, spaces_singleton};
 
 pub enum RapierBodyParam {
     ContactSkin = 0,

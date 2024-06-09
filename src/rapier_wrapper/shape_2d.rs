@@ -1,8 +1,9 @@
 use crate::rapier_wrapper::convert::*;
 use crate::rapier_wrapper::handle::*;
 use crate::rapier_wrapper::physics_world::*;
-use crate::Transform;
 use rapier::prelude::*;
+
+use super::shape::pixel_point_array_to_vec;
 
 pub fn shape_create_box(pixel_size: Vector<Real>) -> Handle {
     let size = vector_pixels_to_meters(pixel_size);

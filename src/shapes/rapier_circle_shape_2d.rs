@@ -1,6 +1,6 @@
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::{
-    rapier_wrapper::{handle::Handle, shape::shape_create_circle},
+    rapier_wrapper::{handle::Handle, shape_2d::shape_create_circle},
     shapes::rapier_shape::RapierShapeBase,
 };
 use godot::{engine::physics_server_2d::ShapeType, prelude::*};

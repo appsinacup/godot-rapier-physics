@@ -1,7 +1,6 @@
 use crate::rapier_wrapper::convert::*;
 use crate::rapier_wrapper::handle::*;
 use crate::rapier_wrapper::physics_world::*;
-use crate::rapier_wrapper::shape_2d::*;
 use rapier::prelude::*;
 use salva::math::Vector as SalvaVector;
 use salva::object::*;
@@ -12,6 +11,8 @@ use salva::solver::DFSPHViscosity;
 use salva::solver::He2014SurfaceTension;
 use salva::solver::WCSPHSurfaceTension;
 use salva::solver::XSPHViscosity;
+
+use super::shape::pixel_point_array_to_vec;
 
 pub fn pixel_vector_array_to_vec(pixel_data: Vec<Vector<Real>>) -> Vec<SalvaVector<Real>> {
     let mut vec = Vec::<SalvaVector<Real>>::with_capacity(pixel_data.len());
@@ -464,7 +465,7 @@ pub fn fluid_add_effect_viscosity_xsph(
 pub fn fluid_destroy(world_handle: Handle, fluid_handle: HandleDouble) {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        if let Some(fluid) = physics_world
+        if let Some(_fluid) = physics_world
             .fluids_pipeline
             .liquid_world
             .fluids_mut()

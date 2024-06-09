@@ -7,7 +7,7 @@ use crate::servers::rapier_physics_singleton::{
 };
 use crate::spaces::rapier_space::RapierSpace;
 use crate::{Transform, Vector};
-use godot::builtin::{real, Transform2D, VariantArray};
+use godot::builtin::{real, VariantArray};
 use godot::engine::physics_server_2d::AreaBodyStatus;
 use godot::log::godot_error;
 use godot::meta::ToGodot;

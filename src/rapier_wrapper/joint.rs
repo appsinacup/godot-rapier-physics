@@ -24,8 +24,8 @@ pub fn joint_create_revolute(
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let mut joint = RevoluteJointBuilder::new()
-            .local_anchor1(Point { coords: anchor_1 })
-            .local_anchor2(Point { coords: anchor_2 })
+            .local_anchor1(Point { coords: *anchor_1 })
+            .local_anchor2(Point { coords: *anchor_2 })
             .motor_model(MotorModel::ForceBased)
             .contacts_enabled(!disable_collision);
         if angular_limit_enabled {
@@ -145,7 +145,7 @@ pub fn joint_change_spring_params(
         {
             joint
                 .data
-                .set_motor_position(JointAxis::X, rest_length, stiffness, damping);
+                .set_motor_position(JointAxis::AngX, rest_length, stiffness, damping);
         }
     }
 }

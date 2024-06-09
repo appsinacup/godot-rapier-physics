@@ -1,9 +1,9 @@
+use crate::rapier_wrapper::convert::vector_to_rapier;
 use crate::rapier_wrapper::handle::{invalid_handle, Handle};
-use crate::rapier_wrapper::shape::shape_create_convex_polyline;
+use crate::rapier_wrapper::shape_2d::shape_create_convex_polyline;
 use crate::shapes::rapier_shape::{IRapierShape, RapierShapeBase};
 use godot::engine::physics_server_2d::ShapeType;
 use godot::prelude::*;
-use rapier::math::Real;
 
 pub struct RapierConvexPolygonShape2D {
     points: Vec<Point>,
@@ -55,7 +55,7 @@ impl IRapierShape for RapierConvexPolygonShape2D {
         if self.points.len() >= 3 {
             let mut rapier_points = Vec::with_capacity(self.points.len());
             for point in self.points.iter() {
-                rapier_points.push(vector_to_rapier(point.pos.x, point.pos.y));
+                rapier_points.push(vector_to_rapier(point.pos));
             }
             shape_create_convex_polyline(rapier_points)
         } else {

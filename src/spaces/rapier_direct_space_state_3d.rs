@@ -25,7 +25,6 @@ use godot::{
 use rapier::math::Real;
 
 use super::rapier_space_body_helper::is_handle_excluded_callback;
-pub type RapierDirectSpaceState = RapierDirectSpaceState3D;
 
 #[derive(GodotClass)]
 #[class(base=PhysicsDirectSpaceState3DExtension,tool)]

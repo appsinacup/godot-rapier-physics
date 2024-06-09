@@ -1,13 +1,14 @@
 use crate::{
     joints::rapier_joint_2d::IRapierJoint,
-    rapier_wrapper::{handle::invalid_handle, joint::joint_create_prismatic},
+    rapier_wrapper::{
+        convert::vector_to_rapier, handle::invalid_handle, joint::joint_create_prismatic,
+    },
     servers::rapier_physics_singleton::bodies_singleton,
 };
 use godot::{
     builtin::{Rid, Vector2},
     engine::physics_server_2d,
 };
-use rapier::math::Real;
 
 use super::{
     rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D, rapier_joint_2d::RapierJointBase2D,
@@ -46,13 +47,13 @@ impl RapierGrooveJoint2D {
                 let point_a_2 = base_a.get_inv_transform() * p_a_groove2;
                 let axis = (point_a_2 - point_a_1).normalized();
                 let length = (point_a_2 - point_a_1).length();
-                let rapier_axis = vector_to_rapier(axis.x, axis.y);
-                let rapier_limits = vector_to_rapier(0.0, length);
-                let rapier_anchor_a = vector_to_rapier(point_a_1.x, point_a_1.y);
+                let rapier_axis = vector_to_rapier(axis);
+                let rapier_limits = vector_to_rapier(Vector2::new(0.0, length));
+                let rapier_anchor_a = vector_to_rapier(point_a_1);
 
                 let base_b = body_b.get_base();
                 let anchor_b = base_b.get_inv_transform() * p_b_anchor;
-                let rapier_anchor_b = vector_to_rapier(anchor_b.x, anchor_b.y);
+                let rapier_anchor_b = vector_to_rapier(anchor_b);
                 let space_handle = body_a.get_base().get_space_handle();
 
                 let handle = joint_create_prismatic(

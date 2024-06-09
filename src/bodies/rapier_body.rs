@@ -22,7 +22,6 @@ use godot::engine::physics_server_2d::AreaParameter;
 use godot::engine::physics_server_2d::AreaSpaceOverrideMode;
 use godot::engine::physics_server_2d::{BodyDampMode, BodyMode, BodyParameter, BodyState, CcdMode};
 use godot::prelude::*;
-use rapier::math::Real;
 use std::collections::HashSet;
 
 use super::rapier_area::RapierArea;
@@ -1346,7 +1345,7 @@ impl RapierBody {
                 } else {
                     // TODO not 100% correct, we don't take into consideration rotation here.
                     body_aabb = body_aabb.merge(
-                        &shape
+                        shape
                             .get_base()
                             .get_aabb(self.base.get_shape_transform(i).origin),
                     );

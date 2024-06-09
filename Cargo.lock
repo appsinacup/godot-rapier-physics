@@ -204,7 +204,7 @@ checksum = "9e05e7e6723e3455f4818c7b26e855439f7546cf617ef669d1adedb8669e5cb9"
 [[package]]
 name = "godot"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#dcfd5dfb2c8b26d032a08a55b6b70d66afab7e80"
+source = "git+https://github.com/godot-rust/gdext?branch=master#529654cf2dec8f7d6670155b058aa36927bbf4d6"
 dependencies = [
  "godot-core",
  "godot-macros",
@@ -213,7 +213,7 @@ dependencies = [
 [[package]]
 name = "godot-bindings"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#dcfd5dfb2c8b26d032a08a55b6b70d66afab7e80"
+source = "git+https://github.com/godot-rust/gdext?branch=master#529654cf2dec8f7d6670155b058aa36927bbf4d6"
 dependencies = [
  "godot4-prebuilt",
 ]
@@ -221,12 +221,12 @@ dependencies = [
 [[package]]
 name = "godot-cell"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#dcfd5dfb2c8b26d032a08a55b6b70d66afab7e80"
+source = "git+https://github.com/godot-rust/gdext?branch=master#529654cf2dec8f7d6670155b058aa36927bbf4d6"
 
 [[package]]
 name = "godot-codegen"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#dcfd5dfb2c8b26d032a08a55b6b70d66afab7e80"
+source = "git+https://github.com/godot-rust/gdext?branch=master#529654cf2dec8f7d6670155b058aa36927bbf4d6"
 dependencies = [
  "godot-bindings",
  "heck",
@@ -239,7 +239,7 @@ dependencies = [
 [[package]]
 name = "godot-core"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#dcfd5dfb2c8b26d032a08a55b6b70d66afab7e80"
+source = "git+https://github.com/godot-rust/gdext?branch=master#529654cf2dec8f7d6670155b058aa36927bbf4d6"
 dependencies = [
  "glam",
  "godot-bindings",
@@ -251,7 +251,7 @@ dependencies = [
 [[package]]
 name = "godot-ffi"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#dcfd5dfb2c8b26d032a08a55b6b70d66afab7e80"
+source = "git+https://github.com/godot-rust/gdext?branch=master#529654cf2dec8f7d6670155b058aa36927bbf4d6"
 dependencies = [
  "gensym",
  "godot-bindings",
@@ -263,7 +263,7 @@ dependencies = [
 [[package]]
 name = "godot-macros"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#dcfd5dfb2c8b26d032a08a55b6b70d66afab7e80"
+source = "git+https://github.com/godot-rust/gdext?branch=master#529654cf2dec8f7d6670155b058aa36927bbf4d6"
 dependencies = [
  "godot-bindings",
  "proc-macro2",
@@ -277,9 +277,9 @@ version = "0.7.0"
 dependencies = [
  "bincode",
  "godot",
- "rapier2d 0.20.0",
+ "rapier2d",
  "rapier2d-f64",
- "rapier3d 0.20.0",
+ "rapier3d",
  "rapier3d-f64",
  "salva2d",
  "salva3d",
@@ -625,28 +625,6 @@ dependencies = [
 
 [[package]]
 name = "rapier2d"
-version = "0.19.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "535b70552dc42dab9054d3d5a80e8430ced502e20acb0bf6118c344ff356f62a"
-dependencies = [
- "approx",
- "arrayvec",
- "bit-vec",
- "bitflags",
- "crossbeam",
- "downcast-rs",
- "log",
- "nalgebra",
- "num-derive",
- "num-traits",
- "ordered-float",
- "parry2d",
- "rustc-hash",
- "simba",
-]
-
-[[package]]
-name = "rapier2d"
 version = "0.20.0"
 source = "git+https://github.com/dimforge/rapier?branch=master#b3dc1c1960274139b7fd8e2860a0af0387b0de6e"
 dependencies = [
@@ -693,28 +671,6 @@ dependencies = [
  "simba",
  "thiserror",
  "vec_map",
-]
-
-[[package]]
-name = "rapier3d"
-version = "0.19.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "93ce0398df94b282787ddd36a3a9c7e1ca19fa1e79722a2debc49c9f7c06e889"
-dependencies = [
- "approx",
- "arrayvec",
- "bit-vec",
- "bitflags",
- "crossbeam",
- "downcast-rs",
- "log",
- "nalgebra",
- "num-derive",
- "num-traits",
- "ordered-float",
- "parry3d",
- "rustc-hash",
- "simba",
 ]
 
 [[package]]
@@ -852,7 +808,7 @@ dependencies = [
 [[package]]
 name = "salva2d"
 version = "0.10.0"
-source = "git+https://github.com/ughuuu/salva?branch=update-to-rapier-0.19#28ac0c5a6f51aa41411ac511eeb2638b58fce6a0"
+source = "git+https://github.com/ughuuu/salva?branch=update-to-rapier-0.19#7d143774e7d20526b7dd6bf2109c34414ed4b84a"
 dependencies = [
  "approx",
  "fnv",
@@ -862,13 +818,13 @@ dependencies = [
  "nalgebra",
  "num-traits",
  "parry2d",
- "rapier2d 0.19.0",
+ "rapier2d",
 ]
 
 [[package]]
 name = "salva3d"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=update-to-rapier-0.19#28ac0c5a6f51aa41411ac511eeb2638b58fce6a0"
+source = "git+https://github.com/ughuuu/salva?branch=update-to-rapier-0.19#7d143774e7d20526b7dd6bf2109c34414ed4b84a"
 dependencies = [
  "approx",
  "fnv",
@@ -878,7 +834,7 @@ dependencies = [
  "nalgebra",
  "num-traits",
  "parry3d",
- "rapier3d 0.19.0",
+ "rapier3d",
 ]
 
 [[package]]

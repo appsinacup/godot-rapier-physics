@@ -1,28 +1,20 @@
-use std::ops::Deref;
-
 use crate::{
     bodies::rapier_collision_object::{IRapierCollisionObject, RapierCollisionObject},
     rapier_wrapper::{
-        convert::vector_to_godot,
+        convert::{vector_to_godot, vector_to_rapier},
         handle::Handle,
         query::{intersect_point, shape_casting, PointHitInfo, QueryExcludedInfo, RayHitInfo},
         shape::shape_info_from_body_shape,
-        user_data::UserData,
     },
-    servers::rapier_physics_singleton::{
-        active_spaces_singleton, bodies_singleton, shapes_singleton, spaces_singleton,
-    },
+    servers::rapier_physics_singleton::{bodies_singleton, shapes_singleton, spaces_singleton},
     spaces::rapier_space::RapierSpace,
     Vector,
 };
-use godot::{
-    engine::{
-        native::ObjectId, IPhysicsDirectSpaceState2DExtension, PhysicsDirectSpaceState2DExtension,
-    },
-    prelude::*,
-};
-use rapier::math::Real;
-pub type RapierDirectSpaceState = RapierDirectSpaceState2D;
+use godot::prelude::*;
+
+use super::rapier_space_body_helper::is_handle_excluded_callback;
+use godot::classes::*;
+use godot::classes::native::*;
 
 #[derive(GodotClass)]
 #[class(base=PhysicsDirectSpaceState2DExtension,tool)]
@@ -54,7 +46,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         collide_with_bodies: bool,
         collide_with_areas: bool,
         hit_from_inside: bool,
-        result: *mut godot::engine::native::PhysicsServer2DExtensionRayResult,
+        result: *mut PhysicsServer2DExtensionRayResult,
     ) -> bool {
         if let Some(space) = spaces_singleton().spaces.get(&self.space) {
             if !space.is_valid() {
@@ -64,8 +56,8 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             let end = to - from;
             let dir = end.normalized();
 
-            let rapier_from = vector_to_rapier(from.x, from.y);
-            let rapier_dir = vector_to_rapier(dir.x, dir.y);
+            let rapier_from = vector_to_rapier(from);
+            let rapier_dir = vector_to_rapier(dir);
 
             let mut query_excluded_info = QueryExcludedInfo::default();
             query_excluded_info.query_collision_layer_mask = collision_mask;
@@ -126,7 +118,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             if space.is_valid() {
                 return 0;
             }
-            let rapier_pos = vector_to_rapier(position.x, position.y);
+            let rapier_pos = vector_to_rapier(position);
 
             // Allocate memory for hit_info_array
             let mut hit_info_array: Vec<PointHitInfo> = Vec::with_capacity(max_results);
@@ -201,7 +193,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
                 if !space.is_valid() {
                     return 0;
                 }
-                let rapier_motion = vector_to_rapier(motion.x, motion.y);
+                let rapier_motion = vector_to_rapier(motion);
                 let shape_info =
                     shape_info_from_body_shape(shape.get_base().get_handle(), transform);
 
@@ -277,7 +269,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
                 if !space.is_valid() {
                     return false;
                 }
-                let rapier_motion = vector_to_rapier(motion.x, motion.y);
+                let rapier_motion = vector_to_rapier(motion);
                 let shape_info =
                     shape_info_from_body_shape(shape.get_base().get_handle(), transform);
 
@@ -323,7 +315,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
                 if !space.is_valid() {
                     return false;
                 }
-                let rapier_motion = vector_to_rapier(motion.x, motion.y);
+                let rapier_motion = vector_to_rapier(motion);
 
                 let results_out = results as *mut Vector;
                 let shape_info =
@@ -389,7 +381,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
                 if !space.is_valid() {
                     return false;
                 }
-                let rapier_motion = vector_to_rapier(motion.x, motion.y);
+                let rapier_motion = vector_to_rapier(motion);
                 let shape_info =
                     shape_info_from_body_shape(shape.get_base().get_handle(), transform);
 

@@ -20,7 +20,7 @@ use rapier::math::Real;
 use rapier::na::RealField;
 
 use super::rapier_space::RapierSpace;
-use super::PhysicsDirectSpaceState;
+use super::RapierDirectSpaceState;
 use std::f32::EPSILON;
 use std::ops::Deref;
 
@@ -67,7 +67,7 @@ pub fn is_handle_excluded_callback(
         if let Some(active_space) = active_spaces_singleton().active_spaces.get(&world_handle) {
             if let Some(space) = spaces_singleton().spaces.get(active_space) {
                 if let Some(direct_space) = space.get_direct_state() {
-                    let direct_state = direct_space.clone().cast() as Gd<PhysicsDirectSpaceState>;
+                    let direct_state = direct_space.clone().cast() as Gd<RapierDirectSpaceState>;
                     let direct_space = direct_state.deref();
                     return direct_space
                         .is_body_excluded_from_query(collision_object_base.get_rid());

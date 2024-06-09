@@ -1,6 +1,7 @@
 use crate::{
     joints::rapier_joint_2d::IRapierJoint,
     rapier_wrapper::{
+        convert::vector_to_rapier,
         handle::invalid_handle,
         joint::{joint_change_spring_params, joint_create_spring},
     },
@@ -10,7 +11,6 @@ use godot::{
     builtin::{real, Rid, Vector2},
     engine::physics_server_2d,
 };
-use rapier::math::Real;
 
 use super::{rapier_joint_2d::RapierJointBase2D, rapier_pin_joint_2d::RapierPinJoint2D};
 pub struct RapierDampedSpringJoint2D {
@@ -55,8 +55,8 @@ impl RapierDampedSpringJoint2D {
                 let anchor_b = base_b.get_inv_transform() * p_anchor_b;
 
                 let rest_length = p_anchor_a.distance_to(p_anchor_b);
-                let rapier_anchor_a = vector_to_rapier(anchor_a.x, anchor_a.y);
-                let rapier_anchor_b = vector_to_rapier(anchor_b.x, anchor_b.y);
+                let rapier_anchor_a = vector_to_rapier(anchor_a);
+                let rapier_anchor_b = vector_to_rapier(anchor_b);
                 let space_handle = body_a.get_base().get_space_handle();
 
                 let handle = joint_create_spring(

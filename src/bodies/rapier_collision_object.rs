@@ -23,7 +23,6 @@ use godot::{
     engine::physics_server_2d::{self, BodyMode},
     log::godot_error,
 };
-use rapier::math::Real;
 
 use super::{rapier_area::RapierArea, rapier_body::RapierBody};
 

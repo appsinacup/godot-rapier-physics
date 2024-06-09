@@ -1,9 +1,7 @@
 use std::ops::Mul;
 
 use godot::builtin::Vector2;
-use godot::builtin::Vector3;
 use rapier::prelude::*;
-use salva::math::AngularVector;
 
 use crate::Angle;
 
@@ -58,10 +56,10 @@ pub fn angle_to_godot(angle: AngVector<Real>) -> Angle {
 
 #[cfg(feature = "dim2")]
 pub fn angle_to_rapier(angle: Angle) -> Real {
-    return angle;
+    angle
 }
 
 #[cfg(feature = "dim2")]
 pub fn angle_to_godot(angle: Real) -> Angle {
-    return angle;
+    angle
 }

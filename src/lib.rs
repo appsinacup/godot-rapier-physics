@@ -32,7 +32,7 @@ pub type Vector = Vector2;
 #[cfg(feature = "dim2")]
 pub type PackedVectorArray = PackedVector2Array;
 #[cfg(feature = "dim2")]
-pub type Angle = Real;
+pub type Angle = real;
 
 #[cfg(feature = "dim3")]
 pub type Vector = Vector3;

@@ -1,7 +1,7 @@
 use crate::rapier_wrapper::convert::*;
 use crate::rapier_wrapper::handle::*;
 use crate::rapier_wrapper::physics_world::*;
-use crate::rapier_wrapper::shape_2d::ShapeInfo;
+use crate::rapier_wrapper::shape::ShapeInfo;
 use crate::rapier_wrapper::user_data::*;
 use godot::log::godot_error;
 use rapier::prelude::*;

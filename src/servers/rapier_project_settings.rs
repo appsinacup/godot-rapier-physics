@@ -2,6 +2,9 @@ use godot::{
     builtin::{meta::ToGodot, Dictionary, Variant, Vector2},
     engine::{global::PropertyHint, ProjectSettings},
 };
+use rapier::math::Real;
+
+use crate::Vector;
 
 const SOLVER_NUM_ITERATIONS: &str = "physics/rapier/solver/num_iterations";
 const SOLVER_NUM_ADDITIONAL_FRICTION_ITERATIONS: &str =
@@ -149,20 +152,20 @@ impl RapierProjectSettings {
         RapierProjectSettings::get_setting_int(SOLVER_NUM_INTERNAL_PGS_ITERATIONS)
     }
 
-    pub fn get_fluid_gravity_dir() -> Vector2 {
+    pub fn get_fluid_gravity_dir() -> Vector {
         RapierProjectSettings::get_setting_vector2(FLUID_GRAVITY_DIR)
     }
 
-    pub fn get_fluid_gravity_value() -> f64 {
-        RapierProjectSettings::get_setting_double(FLUID_GRAVITY_VALUE)
+    pub fn get_fluid_gravity_value() -> Real {
+        RapierProjectSettings::get_setting_double(FLUID_GRAVITY_VALUE) as Real
     }
 
-    pub fn get_fluid_particle_radius() -> f64 {
-        RapierProjectSettings::get_setting_double(FLUID_PARTICLE_RADIUS)
+    pub fn get_fluid_particle_radius() -> Real {
+        RapierProjectSettings::get_setting_double(FLUID_PARTICLE_RADIUS) as Real
     }
 
-    pub fn get_fluid_smoothing_factor() -> f64 {
-        RapierProjectSettings::get_setting_double(FLUID_SMOOTHING_FACTOR)
+    pub fn get_fluid_smoothing_factor() -> Real {
+        RapierProjectSettings::get_setting_double(FLUID_SMOOTHING_FACTOR) as Real
     }
 
     pub fn get_contact_skin() -> f64 {

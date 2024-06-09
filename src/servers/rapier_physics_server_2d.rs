@@ -1,12 +1,11 @@
 use crate::bodies::rapier_area::RapierArea;
 use crate::bodies::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
-use crate::fluids::fluid_effect::FluidEffect;
-use crate::fluids::rapier_fluid::RapierFluid;
 use crate::joints::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 use crate::joints::rapier_groove_joint_2d::RapierGrooveJoint2D;
 use crate::joints::rapier_joint_2d::{IRapierJoint, RapierEmptyJoint2D};
 use crate::joints::rapier_pin_joint_2d::RapierPinJoint2D;
+use crate::rapier_wrapper::convert::vector_to_rapier;
 use crate::rapier_wrapper::physics_world::world_step;
 use crate::rapier_wrapper::query::shape_collide;
 use crate::rapier_wrapper::settings::SimulationSettings;
@@ -21,11 +20,11 @@ use crate::shapes::rapier_separation_ray_shape_2d::RapierSeparationRayShape2D;
 use crate::shapes::rapier_shape::RapierShapeBase;
 use crate::shapes::rapier_world_boundary_shape_2d::RapierWorldBoundaryShape2D;
 use crate::spaces::rapier_space::RapierSpace;
+use crate::PackedVectorArray;
 use godot::classes::{self, IPhysicsServer2DExtension, PhysicsServer2DExtension, ProjectSettings};
 use godot::engine::native::PhysicsServer2DExtensionMotionResult;
 use godot::engine::utilities::{rid_allocate_id, rid_from_int64};
 use godot::prelude::*;
-use rapier::math::Real;
 use std::ffi::c_void;
 
 use super::rapier_physics_singleton::{
@@ -167,8 +166,8 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
 
         let shape_a_info = shape_info_from_body_shape(shape_a_handle, xform_a);
         let shape_b_info = shape_info_from_body_shape(shape_b_handle, xform_b);
-        let rapier_a_motion = vector_to_rapier(motion_a.x, motion_a.y);
-        let rapier_b_motion = vector_to_rapier(motion_b.x, motion_b.y);
+        let rapier_a_motion = vector_to_rapier(motion_a);
+        let rapier_b_motion = vector_to_rapier(motion_b);
 
         let results_out: *mut Vector2 = results as *mut Vector2;
 
@@ -1266,15 +1265,10 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             //let default_angular_damping: real = project_settings.get_setting_with_override("physics/2d/default_angular_damp".into()).to();
 
             let settings = SimulationSettings {
-                pixel_liquid_gravity: vector_to_rapier(
-                    fluid_default_gravity_dir.x * fluid_default_gravity_value as real,
-                    fluid_default_gravity_dir.y * fluid_default_gravity_value as real,
-                ),
+                pixel_liquid_gravity: vector_to_rapier(fluid_default_gravity_dir)
+                    * fluid_default_gravity_value,
                 dt: step,
-                pixel_gravity: vector_to_rapier(
-                    default_gravity_dir.x * default_gravity_value,
-                    default_gravity_dir.y * default_gravity_value,
-                ),
+                pixel_gravity: vector_to_rapier(default_gravity_dir) * default_gravity_value,
                 max_ccd_substeps: RapierProjectSettings::get_solver_max_ccd_substeps() as usize,
                 num_additional_friction_iterations:
                     RapierProjectSettings::get_solver_num_additional_friction_iterations() as usize,
