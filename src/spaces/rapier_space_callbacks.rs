@@ -1,19 +1,18 @@
 use std::mem::swap;
 
+use godot::prelude::*;
+
 use super::rapier_space::RapierSpace;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::*;
 use crate::*;
-use godot::prelude::*;
-
 pub struct CollidersInfo {
     pub shape1: usize,
     pub object1: Rid,
     pub shape2: usize,
     pub object2: Rid,
 }
-
 impl Default for CollidersInfo {
     fn default() -> Self {
         Self {
@@ -24,7 +23,6 @@ impl Default for CollidersInfo {
         }
     }
 }
-
 impl RapierSpace {
     pub fn active_body_callback(active_body_info: &ActiveBodyInfo) {
         let (rid, _) =
@@ -84,7 +82,6 @@ impl RapierSpace {
                 }
             }
         }
-
         true
     }
 
@@ -97,7 +94,6 @@ impl RapierSpace {
         filter_info: &CollisionFilterInfo,
     ) -> OneWayDirection {
         let mut result = OneWayDirection::default();
-
         let (object1, shape1) =
             RapierCollisionObject::get_collider_user_data(&filter_info.user_data1);
         let (object2, shape2) =
@@ -150,21 +146,19 @@ impl RapierSpace {
                     RapierCollisionObject::get_collider_user_data(&event_info.user_data1);
                 let (mut p_object2, mut shape2) =
                     RapierCollisionObject::get_collider_user_data(&event_info.user_data2);
-
                 let mut collider_handle1 = event_info.collider1;
                 let mut collider_handle2 = event_info.collider2;
-
                 let (mut rid1, mut rid2) = (Rid::Invalid, Rid::Invalid);
                 let (mut instance_id1, mut instance_id2) = (0, 0);
                 let (mut type1, mut type2) = (CollisionObjectType::Area, CollisionObjectType::Area);
-
                 if event_info.is_removed {
                     let bodies_singleton = bodies_singleton();
                     if let Some(body) = bodies_singleton.collision_objects.get(&p_object1) {
                         rid1 = body.get_base().get_rid();
                         instance_id1 = body.get_base().get_instance_id();
                         type1 = body.get_base().get_type();
-                    } else if let Some(removed_collider_info_1) =
+                    }
+                    else if let Some(removed_collider_info_1) =
                         space.get_removed_collider_info(&collider_handle1)
                     {
                         rid1 = removed_collider_info_1.rid;
@@ -176,7 +170,8 @@ impl RapierSpace {
                         rid2 = body.get_base().get_rid();
                         instance_id2 = body.get_base().get_instance_id();
                         type2 = body.get_base().get_type();
-                    } else if let Some(removed_collider_info_2) =
+                    }
+                    else if let Some(removed_collider_info_2) =
                         space.get_removed_collider_info(&collider_handle2)
                     {
                         rid2 = removed_collider_info_2.rid;
@@ -184,7 +179,8 @@ impl RapierSpace {
                         type2 = removed_collider_info_2.collision_object_type;
                         shape2 = removed_collider_info_2.shape_index;
                     }
-                } else {
+                }
+                else {
                     let bodies_singleton = bodies_singleton();
                     if let Some(body) = bodies_singleton.collision_objects.get(&p_object1) {
                         rid1 = body.get_base().get_rid();
@@ -197,7 +193,6 @@ impl RapierSpace {
                         type2 = body.get_base().get_type();
                     }
                 }
-
                 if event_info.is_sensor {
                     if instance_id1 == 0 {
                         godot_error!("Should be able to get info about a removed object if the other one is still valid.");
@@ -207,7 +202,6 @@ impl RapierSpace {
                         godot_error!( "Should be able to get info about a removed object if the other one is still valid.");
                         return;
                     }
-
                     if type1 != CollisionObjectType::Area {
                         if type2 != CollisionObjectType::Area {
                             godot_error!("Expected Area.");
@@ -220,7 +214,6 @@ impl RapierSpace {
                         swap(&mut rid1, &mut rid2);
                         swap(&mut instance_id1, &mut instance_id2);
                     }
-
                     let mut p_collision_object1 = None;
                     let mut p_collision_object2 = None;
                     let bodies_singleton = bodies_singleton();
@@ -234,13 +227,15 @@ impl RapierSpace {
                             p_collision_object1 = Some(p_object1);
                             p_collision_object2 = Some(p_object2);
                         }
-                    } else if bodies_singleton.collision_objects.contains_key(&p_object1) {
+                    }
+                    else if bodies_singleton.collision_objects.contains_key(&p_object1) {
                         if let Some(p_object1) =
                             bodies_singleton.collision_objects.get_mut(&p_object1)
                         {
                             p_collision_object1 = Some(p_object1);
                         }
-                    } else if let Some(p_object2) =
+                    }
+                    else if let Some(p_object2) =
                         bodies_singleton.collision_objects.get_mut(&p_object2)
                     {
                         p_collision_object2 = Some(p_object2);
@@ -260,7 +255,8 @@ impl RapierSpace {
                                         shape1,
                                         space,
                                     );
-                                } else if event_info.is_stopped {
+                                }
+                                else if event_info.is_stopped {
                                     p_area1.on_area_exit(
                                         collider_handle2,
                                         &mut p_collision_object2,
@@ -272,7 +268,8 @@ impl RapierSpace {
                                         space,
                                     );
                                 }
-                            } else if event_info.is_started {
+                            }
+                            else if event_info.is_started {
                                 p_area1.on_body_enter(
                                     collider_handle2,
                                     &mut p_collision_object2,
@@ -283,7 +280,8 @@ impl RapierSpace {
                                     shape1,
                                     space,
                                 );
-                            } else if event_info.is_stopped {
+                            }
+                            else if event_info.is_stopped {
                                 let update_detection = p_collision_object2.is_some();
                                 p_area1.on_body_exit(
                                     collider_handle2,
@@ -327,7 +325,8 @@ impl RapierSpace {
                                         space,
                                     );
                                 }
-                            } else {
+                            }
+                            else {
                                 if event_info.is_started {
                                     p_area2.on_body_enter(
                                         collider_handle1,
@@ -357,7 +356,8 @@ impl RapierSpace {
                             }
                         }
                     }
-                } else {
+                }
+                else {
                     // Body contacts use contact_force_event_callback instead
                     godot_error!("Shouldn't receive rigidbody collision events.");
                 }
@@ -374,10 +374,8 @@ impl RapierSpace {
             if let Some(space) = spaces_singleton().spaces.get(space) {
                 send_contacts = space.is_debugging_contacts();
             }
-
             let (p_object1, _) =
                 RapierCollisionObject::get_collider_user_data(&event_info.user_data1);
-
             let (p_object2, _) =
                 RapierCollisionObject::get_collider_user_data(&event_info.user_data2);
             let bodies_singleton = bodies_singleton();
@@ -395,7 +393,6 @@ impl RapierSpace {
                     }
                 }
             }
-
             return send_contacts;
         }
         false
@@ -408,7 +405,6 @@ impl RapierSpace {
     ) -> bool {
         let pos1 = vector_to_godot(contact_info.pixel_local_pos_1);
         let pos2 = vector_to_godot(contact_info.pixel_local_pos_2);
-
         let mut keep_sending_contacts = false;
         if let Some(active_space) = active_spaces_singleton().active_spaces.get(&world_handle) {
             if let Some(space) = spaces_singleton().spaces.get_mut(active_space) {
@@ -419,7 +415,6 @@ impl RapierSpace {
                 }
             }
         }
-
         let (p_object1, shape1) =
             RapierCollisionObject::get_collider_user_data(&event_info.user_data1);
         let (p_object2, shape2) =
@@ -435,7 +430,6 @@ impl RapierSpace {
             //let tangent = normal.orthogonal();
             //let impulse =
             //    contact_info.pixel_impulse * normal + contact_info.pixel_tangent_impulse * tangent;
-
             let vel_pos1 = vector_to_godot(contact_info.pixel_velocity_pos_1);
             let vel_pos2 = vector_to_godot(contact_info.pixel_velocity_pos_2);
             if let Some(body1) = p_object1.get_mut_body() {
@@ -457,7 +451,6 @@ impl RapierSpace {
                             impulse,
                         );
                     }
-
                     if body2.can_report_contacts() {
                         keep_sending_contacts = true;
                         let instance_id1 = body2.get_base().get_instance_id();
@@ -478,7 +471,6 @@ impl RapierSpace {
                 }
             }
         }
-
         keep_sending_contacts
     }
 }

@@ -3,7 +3,6 @@ pub struct UserData {
     pub part1: u64,
     pub part2: u64,
 }
-
 impl UserData {
     pub fn new(data: u128) -> UserData {
         let data2: u128 = data >> 64;

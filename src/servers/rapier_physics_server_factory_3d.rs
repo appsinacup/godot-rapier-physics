@@ -1,10 +1,10 @@
-use crate::servers::rapier_physics_server_3d::*;
-use godot::{obj::NewAlloc, prelude::*};
+use godot::obj::NewAlloc;
+use godot::prelude::*;
 
+use crate::servers::rapier_physics_server_3d::*;
 #[derive(GodotClass, Default)]
 #[class(base=Object,init,tool)]
 pub struct RapierPhysicsServerFactory3D;
-
 #[godot_api]
 impl RapierPhysicsServerFactory3D {
     #[func]

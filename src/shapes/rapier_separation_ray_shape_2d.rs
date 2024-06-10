@@ -1,13 +1,14 @@
-use crate::rapier_wrapper::prelude::*;
-use crate::shapes::rapier_shape::{IRapierShape, RapierShapeBase};
-use godot::{engine::physics_server_2d::ShapeType, prelude::*};
+use godot::engine::physics_server_2d::ShapeType;
+use godot::prelude::*;
 
+use crate::rapier_wrapper::prelude::*;
+use crate::shapes::rapier_shape::IRapierShape;
+use crate::shapes::rapier_shape::RapierShapeBase;
 pub struct RapierSeparationRayShape2D {
     length: f32,
     slide_on_slope: bool,
     pub base: RapierShapeBase,
 }
-
 impl RapierSeparationRayShape2D {
     pub fn new(rid: Rid) -> Self {
         Self {
@@ -17,14 +18,15 @@ impl RapierSeparationRayShape2D {
         }
     }
 }
-
 impl IRapierShape for RapierSeparationRayShape2D {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base
     }
+
     fn get_mut_base(&mut self) -> &mut RapierShapeBase {
         &mut self.base
     }
+
     fn get_type(&self) -> ShapeType {
         ShapeType::SEPARATION_RAY
     }

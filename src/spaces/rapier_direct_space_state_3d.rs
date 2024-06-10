@@ -1,20 +1,17 @@
 use std::ops::Deref;
 
-use crate::bodies::rapier_collision_object::*;
-use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::*;
-use crate::spaces::rapier_space::RapierSpace;
-use crate::Vector;
 use godot::classes::native::*;
 use godot::classes::*;
 use godot::prelude::*;
 use rapier::math::Real;
 
-use super::{
-    rapier_direct_space_state_impl::RapierDirectSpaceStateImpl,
-    rapier_space_body_helper::is_handle_excluded_callback,
-};
-
+use super::rapier_direct_space_state_impl::RapierDirectSpaceStateImpl;
+use super::rapier_space_body_helper::is_handle_excluded_callback;
+use crate::bodies::rapier_collision_object::*;
+use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::*;
+use crate::spaces::rapier_space::RapierSpace;
+use crate::Vector;
 #[derive(GodotClass)]
 #[class(base=PhysicsDirectSpaceState3DExtension,tool)]
 pub struct RapierDirectSpaceState3D {
@@ -22,14 +19,12 @@ pub struct RapierDirectSpaceState3D {
     space: Rid,
     base: Base<PhysicsDirectSpaceState3DExtension>,
 }
-
 impl RapierDirectSpaceState3D {
     pub fn set_space(&mut self, space: Rid) {
         self.space = space;
         self.inner.space = space;
     }
 }
-
 #[godot_api]
 impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
     fn init(base: Base<PhysicsDirectSpaceState3DExtension>) -> Self {

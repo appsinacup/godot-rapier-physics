@@ -1,14 +1,13 @@
-use crate::rapier_wrapper::prelude::*;
-use crate::shapes::rapier_shape::*;
 use godot::engine::physics_server_2d::ShapeType;
 use godot::prelude::*;
 
+use crate::rapier_wrapper::prelude::*;
+use crate::shapes::rapier_shape::*;
 pub struct RapierConcavePolygonShape2D {
     points: Vec<Vector2>,
     segments: Vec<[i32; 2]>,
     pub base: RapierShapeBase,
 }
-
 impl RapierConcavePolygonShape2D {
     pub fn new(rid: Rid) -> Self {
         Self {
@@ -18,7 +17,6 @@ impl RapierConcavePolygonShape2D {
         }
     }
 }
-
 fn find_or_insert_point(points: &mut Vec<Vector2>, new_point: Vector2) -> usize {
     for (idx, &point) in points.iter().enumerate() {
         if point.distance_squared_to(new_point) < 1e-4 {
@@ -30,14 +28,15 @@ fn find_or_insert_point(points: &mut Vec<Vector2>, new_point: Vector2) -> usize 
     points.push(new_point);
     idx
 }
-
 impl IRapierShape for RapierConcavePolygonShape2D {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base
     }
+
     fn get_mut_base(&mut self) -> &mut RapierShapeBase {
         &mut self.base
     }
+
     fn get_type(&self) -> ShapeType {
         ShapeType::CONCAVE_POLYGON
     }
@@ -60,7 +59,8 @@ impl IRapierShape for RapierConcavePolygonShape2D {
             // Close the polyline shape
             rapier_points.push(rapier_points[0]);
             shape_create_concave_polyline(rapier_points)
-        } else {
+        }
+        else {
             godot_error!("ConcavePolygon2D must have at least three point");
             invalid_handle()
         }
@@ -68,7 +68,6 @@ impl IRapierShape for RapierConcavePolygonShape2D {
 
     fn set_data(&mut self, data: Variant) {
         let mut aabb = Rect2::default();
-
         match data.get_type() {
             VariantType::PACKED_VECTOR2_ARRAY => {
                 let arr: PackedVector2Array = data.to();
@@ -80,23 +79,18 @@ impl IRapierShape for RapierConcavePolygonShape2D {
                     godot_error!("ConcavePolygon2D must have an even number of points");
                     return;
                 }
-
                 self.segments.clear();
                 self.points.clear();
-
                 for i in (0..len).step_by(2) {
                     let p1 = arr[i];
                     let p2 = arr[i + 1];
-
                     // Find or insert the points into the `points` vector
                     let idx_p1 = find_or_insert_point(&mut self.points, p1);
                     let idx_p2 = find_or_insert_point(&mut self.points, p2);
-
                     // Create the segment with the indices of the points
                     let s = [idx_p1 as i32, idx_p2 as i32];
                     self.segments.push(s);
                 }
-
                 for &p in self.points.iter() {
                     aabb = aabb.expand(p);
                 }
@@ -107,7 +101,6 @@ impl IRapierShape for RapierConcavePolygonShape2D {
                 return;
             }
         }
-
         self.base.configure(aabb);
     }
 
@@ -116,7 +109,6 @@ impl IRapierShape for RapierConcavePolygonShape2D {
         if len == 0 {
             return Variant::nil();
         }
-
         let mut rsegments = PackedVector2Array::new();
         rsegments.resize(len * 2);
         for i in 0..len {
@@ -125,7 +117,6 @@ impl IRapierShape for RapierConcavePolygonShape2D {
             rsegments[i << 1] = self.points[idx0];
             rsegments[(i << 1) + 1] = self.points[idx1];
         }
-
         rsegments.to_variant()
     }
 

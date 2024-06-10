@@ -1,19 +1,18 @@
-use crate::rapier_wrapper::prelude::*;
-use crate::shapes::rapier_shape::{IRapierShape, RapierShapeBase};
 use godot::classes::physics_server_2d::ShapeType;
 use godot::prelude::*;
 
+use crate::rapier_wrapper::prelude::*;
+use crate::shapes::rapier_shape::IRapierShape;
+use crate::shapes::rapier_shape::RapierShapeBase;
 pub struct RapierConvexPolygonShape2D {
     points: Vec<Point>,
     pub base: RapierShapeBase,
 }
-
 #[derive(Clone, Copy)]
 struct Point {
     pos: Vector2,
     normal: Vector2,
 }
-
 impl RapierConvexPolygonShape2D {
     pub fn new(rid: Rid) -> Self {
         Self {
@@ -22,14 +21,15 @@ impl RapierConvexPolygonShape2D {
         }
     }
 }
-
 impl IRapierShape for RapierConvexPolygonShape2D {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base
     }
+
     fn get_mut_base(&mut self) -> &mut RapierShapeBase {
         &mut self.base
     }
+
     fn get_type(&self) -> ShapeType {
         ShapeType::CONVEX_POLYGON
     }
@@ -56,7 +56,8 @@ impl IRapierShape for RapierConvexPolygonShape2D {
                 rapier_points.push(vector_to_rapier(point.pos));
             }
             shape_create_convex_polyline(rapier_points)
-        } else {
+        }
+        else {
             godot_error!("ConvexPolygon2D must have at least three point");
             invalid_handle()
         }
@@ -71,14 +72,12 @@ impl IRapierShape for RapierConvexPolygonShape2D {
                     return;
                 }
                 self.points = Vec::with_capacity(size);
-
                 for i in 0..size {
                     self.points.push(Point {
                         pos: arr[i],
                         normal: Vector2::ZERO,
                     });
                 }
-
                 for i in 0..size {
                     let p = self.points[i].pos;
                     let pn = self.points[(i + 1) % size].pos;
@@ -87,13 +86,11 @@ impl IRapierShape for RapierConvexPolygonShape2D {
             }
             VariantType::PACKED_FLOAT32_ARRAY => {
                 let arr: PackedFloat32Array = data.to();
-
                 let size = arr.len() / 4;
                 if size <= 0 {
                     return;
                 }
                 self.points = Vec::with_capacity(size);
-
                 for i in 0..size {
                     let idx = i << 2;
                     self.points.push(Point {
@@ -104,13 +101,11 @@ impl IRapierShape for RapierConvexPolygonShape2D {
             }
             VariantType::PACKED_FLOAT64_ARRAY => {
                 let arr: PackedFloat64Array = data.to();
-
                 let size = arr.len() / 4;
                 if size <= 0 {
                     return;
                 }
                 self.points = Vec::with_capacity(size);
-
                 for i in 0..size {
                     let idx = i << 2;
                     self.points.push(Point {
@@ -132,7 +127,6 @@ impl IRapierShape for RapierConvexPolygonShape2D {
         for point in self.points.iter() {
             aabb = aabb.expand(point.pos);
         }
-
         self.base.configure(aabb);
     }
 

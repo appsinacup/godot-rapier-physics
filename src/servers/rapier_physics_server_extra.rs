@@ -1,16 +1,15 @@
+use godot::engine::utilities::rid_allocate_id;
+use godot::engine::utilities::rid_from_int64;
+use godot::prelude::*;
+
+use super::rapier_physics_singleton::*;
 use crate::fluids::fluid_effect::FluidEffect;
 use crate::fluids::rapier_fluid::RapierFluid;
 use crate::servers::RapierPhysicsServer;
 use crate::PackedVectorArray;
-use godot::engine::utilities::{rid_allocate_id, rid_from_int64};
-use godot::prelude::*;
-
-use super::rapier_physics_singleton::*;
-
 pub enum RapierBodyParam {
     ContactSkin = 0,
 }
-
 impl From<i32> for RapierBodyParam {
     fn from(i: i32) -> Self {
         match i {
@@ -19,7 +18,6 @@ impl From<i32> for RapierBodyParam {
         }
     }
 }
-
 #[godot_api]
 impl RapierPhysicsServer {
     #[func]
@@ -30,6 +28,7 @@ impl RapierPhysicsServer {
             }
         }
     }
+
     #[func]
     fn body_get_extra_param(&self, body: Rid, param: i32) -> Variant {
         if let Some(body) = bodies_singleton().collision_objects.get(&body) {
@@ -39,6 +38,7 @@ impl RapierPhysicsServer {
         }
         0.0.to_variant()
     }
+
     #[func]
     fn space_export_json(&mut self, world: Rid) -> String {
         if let Some(world) = spaces_singleton().spaces.get_mut(&world) {
@@ -46,6 +46,7 @@ impl RapierPhysicsServer {
         }
         "{}".to_string()
     }
+
     #[func]
     fn space_export_binary(&mut self, world: Rid) -> PackedByteArray {
         if let Some(world) = spaces_singleton().spaces.get_mut(&world) {
@@ -53,6 +54,7 @@ impl RapierPhysicsServer {
         }
         PackedByteArray::new()
     }
+
     #[func]
     fn fluid_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());

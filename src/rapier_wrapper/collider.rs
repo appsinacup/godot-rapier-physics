@@ -1,4 +1,3 @@
-use crate::rapier_wrapper::prelude::*;
 use godot::log::godot_error;
 use rapier::prelude::*;
 use salva::integrations::rapier::ColliderSampling;
@@ -6,8 +5,8 @@ use salva::object::Boundary;
 use salva::parry::either::Either::Left;
 use salva::parry::either::Either::Right;
 
+use crate::rapier_wrapper::prelude::*;
 const SUBDIVISIONS: u32 = 20;
-
 fn skew_polyline(vertices: &Vec<Point<Real>>, skew: Real) -> SharedShape {
     // Apply skew transformation to the vertices
     let mut skewed_vertices = Vec::new();
@@ -16,7 +15,6 @@ fn skew_polyline(vertices: &Vec<Point<Real>>, skew: Real) -> SharedShape {
         skewed_vertex.x -= skewed_vertex.y * skew;
         skewed_vertices.push(skewed_vertex);
     }
-
     let len = vertices.len();
     let mut indices = vec![];
     for i in 0..len {
@@ -25,7 +23,6 @@ fn skew_polyline(vertices: &Vec<Point<Real>>, skew: Real) -> SharedShape {
     let collider = ColliderBuilder::convex_decomposition(&skewed_vertices, &indices);
     collider.shape
 }
-
 // Function to skew a shape
 pub fn skew_shape(shape: &SharedShape, skew: Real) -> SharedShape {
     if skew == 0.0 {
@@ -75,7 +72,6 @@ pub fn skew_shape(shape: &SharedShape, skew: Real) -> SharedShape {
     }
     shape.clone()
 }
-
 pub fn scale_shape(shape: &SharedShape, scale: Vector<Real>) -> SharedShape {
     if scale.x == 1.0 && scale.y == 1.0 {
         return shape.clone();
@@ -142,13 +138,11 @@ pub fn scale_shape(shape: &SharedShape, scale: Vector<Real>) -> SharedShape {
     }
     shape.clone()
 }
-
 pub struct Material {
     pub friction: Real,
     pub restitution: Real,
     pub contact_skin: Real,
 }
-
 pub fn default_material() -> Material {
     Material {
         friction: 1.0,
@@ -156,7 +150,6 @@ pub fn default_material() -> Material {
         contact_skin: 0.0,
     }
 }
-
 fn shape_is_halfspace(shape: &SharedShape) -> bool {
     if shape.shape_type() == ShapeType::Compound {
         if let Some(shape) = shape.as_compound() {
@@ -169,7 +162,6 @@ fn shape_is_halfspace(shape: &SharedShape) -> bool {
     }
     shape.shape_type() == ShapeType::HalfSpace
 }
-
 pub fn collider_create_solid(
     world_handle: Handle,
     shape_handle: Handle,
@@ -219,7 +211,6 @@ pub fn collider_create_solid(
     }
     invalid_handle()
 }
-
 pub fn collider_create_sensor(
     world_handle: Handle,
     shape_handle: Handle,
@@ -245,7 +236,6 @@ pub fn collider_create_sensor(
     }
     invalid_handle()
 }
-
 pub fn collider_destroy(world_handle: Handle, handle: Handle) {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
@@ -257,7 +247,6 @@ pub fn collider_destroy(world_handle: Handle, handle: Handle) {
         physics_world.remove_collider(handle);
     }
 }
-
 pub fn collider_get_position(world_handle: Handle, handle: Handle) -> Vector<Real> {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
@@ -273,7 +262,6 @@ pub fn collider_get_position(world_handle: Handle, handle: Handle) -> Vector<Rea
     }
     Vector::default()
 }
-
 pub fn collider_get_angle(world_handle: Handle, handle: Handle) -> Real {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
@@ -288,11 +276,9 @@ pub fn collider_get_angle(world_handle: Handle, handle: Handle) -> Real {
     }
     0.0
 }
-
 pub fn collider_set_transform(world_handle: Handle, handle: Handle, shape_info: ShapeInfo) {
     let position = vector_pixels_to_meters(shape_info.pixel_position);
     let physics_engine = physics_engine();
-
     if let Some(shape) = physics_engine.get_shape(shape_info.handle) {
         let scaled_shape = scale_shape(shape, shape_info.scale);
         let new_shape = skew_shape(&scaled_shape, shape_info.skew);
@@ -309,7 +295,6 @@ pub fn collider_set_transform(world_handle: Handle, handle: Handle, shape_info: 
         }
     }
 }
-
 pub fn collider_set_collision_events_enabled(world_handle: Handle, handle: Handle, enable: bool) {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
@@ -322,14 +307,14 @@ pub fn collider_set_collision_events_enabled(world_handle: Handle, handle: Handl
             let mut active_events = collider.active_events();
             if enable {
                 active_events |= ActiveEvents::COLLISION_EVENTS;
-            } else {
+            }
+            else {
                 active_events &= !ActiveEvents::COLLISION_EVENTS;
             }
             collider.set_active_events(active_events);
         }
     }
 }
-
 pub fn collider_set_contact_force_events_enabled(
     world_handle: Handle,
     handle: Handle,
@@ -346,7 +331,8 @@ pub fn collider_set_contact_force_events_enabled(
             let mut active_events = collider.active_events();
             if enable {
                 active_events |= ActiveEvents::CONTACT_FORCE_EVENTS;
-            } else {
+            }
+            else {
                 active_events &= !ActiveEvents::CONTACT_FORCE_EVENTS;
             }
             collider.set_active_events(active_events);

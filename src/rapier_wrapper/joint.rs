@@ -1,6 +1,6 @@
-use crate::rapier_wrapper::prelude::*;
 use rapier::prelude::*;
 
+use crate::rapier_wrapper::prelude::*;
 pub fn joint_create_revolute(
     world_handle: Handle,
     body_handle_1: RigidBodyHandle,
@@ -16,9 +16,7 @@ pub fn joint_create_revolute(
 ) -> Handle {
     let anchor_1 = &vector_pixels_to_meters(pixel_anchor_1);
     let anchor_2 = &vector_pixels_to_meters(pixel_anchor_2);
-
     let motor_target_velocity = pixels_to_meters(pixel_motor_target_velocity);
-
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let mut joint = RevoluteJointBuilder::new()
@@ -32,12 +30,10 @@ pub fn joint_create_revolute(
         if motor_enabled {
             joint = joint.motor_velocity(motor_target_velocity, 0.0);
         }
-
         return physics_world.insert_joint(body_handle_1, body_handle_2, joint);
     }
     invalid_handle()
 }
-
 pub fn joint_change_revolute_params(
     world_handle: Handle,
     joint_handle: Handle,
@@ -48,7 +44,6 @@ pub fn joint_change_revolute_params(
     motor_enabled: bool,
 ) {
     let motor_target_velocity = pixels_to_meters(pixel_motor_target_velocity);
-
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         if let Some(joint) = physics_world
@@ -61,7 +56,8 @@ pub fn joint_change_revolute_params(
                     joint
                         .set_motor_velocity(motor_target_velocity, 0.0)
                         .set_motor_max_force(Real::MAX);
-                } else {
+                }
+                else {
                     joint.set_motor_velocity(0.0, 0.0).set_motor_max_force(0.0);
                 }
                 if angular_limit_enabled {
@@ -71,7 +67,6 @@ pub fn joint_change_revolute_params(
         }
     }
 }
-
 pub fn joint_create_prismatic(
     world_handle: Handle,
     body_handle_1: RigidBodyHandle,
@@ -85,7 +80,6 @@ pub fn joint_create_prismatic(
     let anchor_1 = vector_pixels_to_meters(pixel_anchor_1);
     let anchor_2 = vector_pixels_to_meters(pixel_anchor_2);
     let limits = &vector_pixels_to_meters(pixel_limits);
-
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let joint = PrismaticJointBuilder::new(UnitVector::new_unchecked(axis))
@@ -93,12 +87,10 @@ pub fn joint_create_prismatic(
             .local_anchor2(Point { coords: anchor_2 })
             .limits([limits.x, limits.y])
             .contacts_enabled(!disable_collision);
-
         return physics_world.insert_joint(body_handle_1, body_handle_2, joint);
     }
     invalid_handle()
 }
-
 pub fn joint_create_spring(
     world_handle: Handle,
     body_handle_1: RigidBodyHandle,
@@ -113,7 +105,6 @@ pub fn joint_create_spring(
     let anchor_1 = vector_pixels_to_meters(pixel_anchor_1);
     let anchor_2 = vector_pixels_to_meters(pixel_anchor_2);
     let rest_length = pixels_to_meters(pixel_rest_length);
-
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let joint = SpringJointBuilder::new(rest_length, stiffness, damping)
@@ -124,7 +115,6 @@ pub fn joint_create_spring(
     }
     invalid_handle()
 }
-
 pub fn joint_change_spring_params(
     world_handle: Handle,
     joint_handle: Handle,
@@ -133,7 +123,6 @@ pub fn joint_change_spring_params(
     pixel_rest_length: Real,
 ) {
     let rest_length = pixels_to_meters(pixel_rest_length);
-
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         if let Some(joint) = physics_world
@@ -147,14 +136,12 @@ pub fn joint_change_spring_params(
         }
     }
 }
-
 pub fn joint_destroy(world_handle: Handle, joint_handle: Handle) {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         physics_world.remove_joint(joint_handle);
     }
 }
-
 pub fn joint_change_disable_collision(
     world_handle: Handle,
     joint_handle: Handle,

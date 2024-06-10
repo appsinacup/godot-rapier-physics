@@ -1,14 +1,15 @@
-use crate::rapier_wrapper::prelude::*;
-use crate::shapes::rapier_shape::{IRapierShape, RapierShapeBase};
-use godot::{classes::physics_server_2d::ShapeType, prelude::*};
+use godot::classes::physics_server_2d::ShapeType;
+use godot::prelude::*;
 
+use crate::rapier_wrapper::prelude::*;
+use crate::shapes::rapier_shape::IRapierShape;
+use crate::shapes::rapier_shape::RapierShapeBase;
 pub struct RapierSegmentShape2D {
     a: Vector2,
     b: Vector2,
     n: Vector2,
     pub base: RapierShapeBase,
 }
-
 impl RapierSegmentShape2D {
     pub fn new(rid: Rid) -> Self {
         Self {
@@ -19,14 +20,15 @@ impl RapierSegmentShape2D {
         }
     }
 }
-
 impl IRapierShape for RapierSegmentShape2D {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base
     }
+
     fn get_mut_base(&mut self) -> &mut RapierShapeBase {
         &mut self.base
     }
+
     fn get_type(&self) -> ShapeType {
         ShapeType::SEGMENT
     }
@@ -44,19 +46,16 @@ impl IRapierShape for RapierSegmentShape2D {
         let direction_normalized = direction.normalized();
         let perpendicular = Vector2::new(-direction_normalized.y, direction_normalized.x);
         let height = 0.1;
-
         let p1 = self.a + perpendicular * height / 2.0;
         let p2 = self.a - perpendicular * height / 2.0;
         let p3 = self.b + perpendicular * height / 2.0;
         let p4 = self.b - perpendicular * height / 2.0;
-
         let rapier_points = [
             vector_to_rapier(p1),
             vector_to_rapier(p2),
             vector_to_rapier(p3),
             vector_to_rapier(p4),
         ];
-
         shape_create_convex_polyline(rapier_points.to_vec())
     }
 
@@ -69,7 +68,6 @@ impl IRapierShape for RapierSegmentShape2D {
         self.a = r.position;
         self.b = r.position + r.size;
         self.n = (self.b - self.a).orthogonal();
-
         let mut aabb = Rect2::new(self.a, self.b);
         if aabb.size.x == 0.0 {
             aabb.size.x = 0.001;

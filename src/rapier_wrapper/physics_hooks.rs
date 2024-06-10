@@ -1,13 +1,12 @@
-use crate::rapier_wrapper::prelude::*;
 use rapier::prelude::*;
 
+use crate::rapier_wrapper::prelude::*;
 pub struct OneWayDirection {
     pub body1: bool,
     pub body2: bool,
     pub pixel_body1_margin: Real,
     pub pixel_body2_margin: Real,
 }
-
 impl OneWayDirection {
     pub fn default() -> OneWayDirection {
         OneWayDirection {
@@ -18,15 +17,12 @@ impl OneWayDirection {
         }
     }
 }
-
 pub type CollisionFilterCallback = fn(filter_info: &CollisionFilterInfo) -> bool;
 pub type CollisionModifyContactsCallback = fn(filter_info: &CollisionFilterInfo) -> OneWayDirection;
-
 pub struct CollisionFilterInfo {
     pub user_data1: UserData,
     pub user_data2: UserData,
 }
-
 impl CollisionFilterInfo {
     pub fn new() -> CollisionFilterInfo {
         CollisionFilterInfo {
@@ -35,38 +31,31 @@ impl CollisionFilterInfo {
         }
     }
 }
-
 pub struct PhysicsHooksCollisionFilter<'a> {
     pub collision_filter_body_callback: &'a CollisionFilterCallback,
     pub collision_filter_sensor_callback: &'a CollisionFilterCallback,
     pub collision_modify_contacts_callback: &'a CollisionModifyContactsCallback,
 }
-
 impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
     fn filter_contact_pair(&self, context: &PairFilterContext) -> Option<SolverFlags> {
         let user_data1 = context.colliders[context.collider1].user_data;
         let user_data2 = context.colliders[context.collider2].user_data;
-
         let mut filter_info = CollisionFilterInfo::new();
         filter_info.user_data1 = UserData::new(user_data1);
         filter_info.user_data2 = UserData::new(user_data2);
-
         // Handle contact filtering for rigid bodies
         if !(self.collision_filter_body_callback)(&filter_info) {
             return None;
         }
-
         Some(SolverFlags::COMPUTE_IMPULSES)
     }
 
     fn filter_intersection_pair(&self, context: &PairFilterContext) -> bool {
         let user_data1 = context.colliders[context.collider1].user_data;
         let user_data2 = context.colliders[context.collider2].user_data;
-
         let mut filter_info = CollisionFilterInfo::new();
         filter_info.user_data1 = UserData::new(user_data1);
         filter_info.user_data2 = UserData::new(user_data2);
-
         // Handle intersection filtering for sensors
         (self.collision_filter_sensor_callback)(&filter_info)
     }
@@ -87,7 +76,6 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
         if let Some(contact) = context.manifold.find_deepest_contact() {
             dist = contact.dist;
         }
-
         if one_way_direction.body1 {
             let motion_len = body2.linvel().magnitude();
             let body_margin1 = pixels_to_meters(one_way_direction.pixel_body1_margin);
@@ -96,7 +84,8 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
                 + body_margin1;
             contact_is_pass_through =
                 body2.linvel().dot(&allowed_local_n1) <= DEFAULT_EPSILON || dist < -max_allowed;
-        } else if one_way_direction.body2 {
+        }
+        else if one_way_direction.body2 {
             let motion_len = body1.linvel().magnitude();
             let body_margin2 = pixels_to_meters(one_way_direction.pixel_body2_margin);
             let max_allowed = motion_len

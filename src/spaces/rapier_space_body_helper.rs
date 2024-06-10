@@ -1,33 +1,32 @@
-use crate::bodies::rapier_body::RapierBody;
-use crate::bodies::rapier_collision_object::*;
-use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::*;
-use crate::shapes::rapier_shape::IRapierShape;
-use crate::{Rect, Transform, Vector};
 use godot::classes::native::ObjectId;
 use godot::classes::physics_server_2d::BodyMode;
 use godot::prelude::*;
 use rapier::math::Real;
 use rapier::na::RealField;
 
+use crate::bodies::rapier_body::RapierBody;
+use crate::bodies::rapier_collision_object::*;
+use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::*;
+use crate::shapes::rapier_shape::IRapierShape;
+use crate::Rect;
+use crate::Transform;
+use crate::Vector;
 #[cfg(feature = "dim2")]
 type PhysicsServerExtensionMotionResult =
     godot::classes::native::PhysicsServer2DExtensionMotionResult;
 #[cfg(feature = "dim3")]
 type PhysicsServerExtensionMotionResult =
     godot::classes::native::PhysicsServer3DExtensionMotionResult;
-
-use super::rapier_space::RapierSpace;
-use super::RapierDirectSpaceState;
 use std::f32::EPSILON;
 use std::ops::Deref;
 
+use super::rapier_space::RapierSpace;
+use super::RapierDirectSpaceState;
 const TEST_MOTION_MARGIN: Real = 1e-4;
-
 const TEST_MOTION_MIN_CONTACT_DEPTH_FACTOR: Real = 0.05;
 const BODY_MOTION_RECOVER_ATTEMPTS: i32 = 4;
 const BODY_MOTION_RECOVER_RATIO: Real = 0.4;
-
 pub fn is_handle_excluded_callback(
     world_handle: Handle,
     collider_handle: Handle,
@@ -39,7 +38,6 @@ pub fn is_handle_excluded_callback(
             return true;
         }
     }
-
     let (collision_object_2d, _) = RapierCollisionObject::get_collider_user_data(user_data);
     if let Some(collision_object_2d) = bodies_singleton()
         .collision_objects
@@ -75,7 +73,6 @@ pub fn is_handle_excluded_callback(
     }
     false
 }
-
 impl RapierSpace {
     pub fn test_body_motion(
         &mut self,
@@ -94,7 +91,6 @@ impl RapierSpace {
                                        // if yes, "recover" / "push" out of this collider
         let mut recover_motion = Vector::ZERO;
         let margin = Real::max(margin, TEST_MOTION_MARGIN);
-
         let recovered = self.body_motion_recover(
             body,
             &mut body_transform,
@@ -118,7 +114,6 @@ impl RapierSpace {
             &mut best_unsafe,
             &mut best_body_shape,
         );
-
         // Step 3: Rest Info
         // Apply the motion and fill the collision information
         let mut collided = false;
@@ -126,11 +121,9 @@ impl RapierSpace {
             if best_safe >= 1.0 {
                 best_body_shape = -1; //no best shape with cast, reset to -1
             }
-
             // Get the rest info in unsafe advance
             let unsafe_motion = motion * best_unsafe;
             body_transform.origin += unsafe_motion;
-
             collided = self.body_motion_collide(
                 body,
                 &mut body_transform,
@@ -140,20 +133,19 @@ impl RapierSpace {
                 result,
             );
         }
-
         if collided {
             result.travel += recover_motion + motion * best_safe;
             result.remainder = motion - motion * best_safe;
             result.collision_safe_fraction = best_safe;
             result.collision_unsafe_fraction = best_unsafe;
-        } else {
+        }
+        else {
             result.travel += recover_motion + motion;
             result.remainder = Vector::default();
             result.collision_depth = 0.0;
             result.collision_safe_fraction = 1.0;
             result.collision_unsafe_fraction = 1.0;
         }
-
         collided
     }
 
@@ -171,7 +163,6 @@ impl RapierSpace {
         if max_results < 1 {
             return 0;
         }
-
         let rect_begin = vector_to_rapier(aabb.position);
         let rect_end = vector_to_rapier(aabb.end());
         let mut handle_excluded_info = QueryExcludedInfo::default();
@@ -180,7 +171,6 @@ impl RapierSpace {
         handle_excluded_info.query_collision_layer_mask = collision_mask;
         handle_excluded_info.query_exclude_size = 0;
         handle_excluded_info.query_exclude_body = exclude_body.to_u64() as i64;
-
         intersect_aabb(
             self.get_handle(),
             rect_begin,
@@ -207,17 +197,14 @@ impl RapierSpace {
             return false;
         }
         let min_contact_depth = p_margin * TEST_MOTION_MIN_CONTACT_DEPTH_FACTOR;
-
         let mut recovered = false;
         let mut recover_attempts = BODY_MOTION_RECOVER_ATTEMPTS;
         loop {
             let mut results = [PointHitInfo::default(); 32];
-
             let body_aabb = p_body.get_aabb();
             // Undo the currently transform the physics server is aware of and apply the provided one
             let margin_aabb = *p_transform * body_aabb;
             let margin_aabb = margin_aabb.grow(p_margin);
-
             let result_count = self.rapier_intersect_aabb(
                 margin_aabb,
                 p_body.get_base().get_collision_mask(),
@@ -231,15 +218,12 @@ impl RapierSpace {
             if result_count == 0 {
                 break;
             }
-
             let mut recover_step = Vector::default();
-
             for body_shape_idx in 0..p_body.get_base().get_shape_count() {
                 let body_shape_idx = body_shape_idx as usize;
                 if p_body.get_base().is_shape_disabled(body_shape_idx) {
                     continue;
                 }
-
                 if let Some(body_shape) = shapes_singleton()
                     .shapes
                     .get_mut(&p_body.get_base().get_shape(body_shape_idx))
@@ -250,7 +234,6 @@ impl RapierSpace {
                         body_shape.get_rapier_shape(),
                         body_shape_transform,
                     );
-
                     for result_idx in 0..result_count {
                         let result_idx = result_idx as usize;
                         let result = &mut results[result_idx];
@@ -277,10 +260,8 @@ impl RapierSpace {
                                         col_shape.get_rapier_shape(),
                                         col_shape_transform,
                                     );
-
                                     let contact =
                                         shapes_contact(body_shape_info, col_shape_info, p_margin);
-
                                     if !contact.collided {
                                         continue;
                                     }
@@ -298,14 +279,11 @@ impl RapierSpace {
                                     }
                                     let a = vector_to_godot(contact.pixel_point1);
                                     let b = vector_to_godot(contact.pixel_point2);
-
                                     recovered = true;
-
                                     // Compute plane on b towards a.
                                     let n = vector_to_godot(contact.normal1);
                                     // Move it outside as to fit the margin
                                     let d = n.dot(b);
-
                                     // Compute depth on recovered motion.
                                     let depth = n.dot(a + recover_step) - d;
                                     if depth > min_contact_depth + EPSILON {
@@ -333,7 +311,6 @@ impl RapierSpace {
                 break;
             }
         }
-
         recovered
     }
 
@@ -351,12 +328,10 @@ impl RapierSpace {
     ) {
         let body_aabb = p_body.get_aabb();
         let margin_aabb = *p_transform * body_aabb;
-
         let margin_aabb = margin_aabb.grow(p_margin);
         let mut motion_aabb = margin_aabb;
         motion_aabb.position += p_motion;
         motion_aabb = motion_aabb.merge(margin_aabb);
-
         let mut results = [PointHitInfo::default(); 32];
         let result_count = self.rapier_intersect_aabb(
             motion_aabb,
@@ -367,17 +342,14 @@ impl RapierSpace {
             32,
             p_body.get_base().get_rid(),
         );
-
         if result_count == 0 {
             return;
         }
-
         for body_shape_idx in 0..p_body.get_base().get_shape_count() {
             let body_shape_idx = body_shape_idx as usize;
             if p_body.get_base().is_shape_disabled(body_shape_idx) {
                 continue;
             }
-
             if let Some(body_shape) = shapes_singleton()
                 .shapes
                 .get_mut(&p_body.get_base().get_shape(body_shape_idx))
@@ -386,7 +358,6 @@ impl RapierSpace {
                     *p_transform * p_body.get_base().get_shape_transform(body_shape_idx);
                 let body_shape_info =
                     shape_info_from_body_shape(body_shape.get_rapier_shape(), body_shape_transform);
-
                 // Colliding separation rays allows to properly snap to the ground,
                 // otherwise it's not needed in regular motion.
                 //if !p_collide_separation_ray
@@ -399,14 +370,11 @@ impl RapierSpace {
                 //    continue;
                 //}
                 //}
-
                 let mut best_safe = 1.0;
                 let mut best_unsafe = 1.0;
-
                 for result_idx in 0..result_count {
                     let result_idx = result_idx as usize;
                     let result = &mut results[result_idx];
-
                     if !result.user_data.is_valid() {
                         continue;
                     }
@@ -427,10 +395,8 @@ impl RapierSpace {
                                     col_shape.get_rapier_shape(),
                                     col_shape_transform,
                                 );
-
                                 let contact =
                                     shapes_contact(body_shape_info, col_shape_info, p_margin);
-
                                 if !contact.collided {
                                     continue;
                                 }
@@ -448,12 +414,10 @@ impl RapierSpace {
                                 }
                                 let a = vector_to_godot(contact.pixel_point1);
                                 let b = vector_to_godot(contact.pixel_point2);
-
                                 // Compute plane on b towards a.
                                 let n = vector_to_godot(contact.normal1);
                                 // Move it outside as to fit the margin
                                 let d = n.dot(b);
-
                                 // Compute depth on recovered motion.
                                 let depth = n.dot(a + p_motion) - d;
                                 if depth > EPSILON {
@@ -493,12 +457,10 @@ impl RapierSpace {
         let body_aabb = p_body.get_aabb();
         let margin_aabb = *p_transform * body_aabb;
         let margin_aabb = margin_aabb.grow(p_margin);
-
         // also check things at motion
         let mut motion_aabb = margin_aabb;
         motion_aabb.position += p_motion;
         motion_aabb = motion_aabb.merge(margin_aabb);
-
         let mut results = [PointHitInfo::default(); 32];
         let result_count = self.rapier_intersect_aabb(
             motion_aabb,
@@ -513,21 +475,21 @@ impl RapierSpace {
         if result_count == 0 {
             return false;
         }
-
         let mut min_distance = f32::INFINITY;
         let mut best_collision_body = None;
         let mut best_collision_shape_index: i32 = -1;
         let mut best_body_shape_index = -1;
         let mut best_contact = ContactResult::default();
-
         let from_shape = if p_best_body_shape != -1 {
             p_best_body_shape
-        } else {
+        }
+        else {
             0
         };
         let to_shape = if p_best_body_shape != -1 {
             p_best_body_shape + 1
-        } else {
+        }
+        else {
             p_body.get_base().get_shape_count()
         };
         for body_shape_idx in from_shape..to_shape {
@@ -542,10 +504,8 @@ impl RapierSpace {
             let body_shape_obj = shapes_singleton().shapes.get_mut(&body_shape).unwrap();
             let body_shape_info =
                 shape_info_from_body_shape(body_shape_obj.get_rapier_shape(), body_shape_transform);
-
             for result_idx in 0..result_count {
                 let result = &mut results[result_idx as usize];
-
                 if !result.user_data.is_valid() {
                     continue;
                 }
@@ -563,12 +523,10 @@ impl RapierSpace {
                                 col_shape.get_rapier_shape(),
                                 col_shape_transform,
                             );
-
                             let contact = shapes_contact(body_shape_info, col_shape_info, p_margin);
                             if !contact.collided {
                                 continue;
                             }
-
                             if should_skip_collision_one_dir(
                                 &contact,
                                 body_shape_obj,
@@ -611,18 +569,15 @@ impl RapierSpace {
             p_result.collision_normal = vector_to_godot(best_contact.normal2);
             // compute distance without sign
             p_result.collision_depth = p_margin - best_contact.pixel_distance;
-
             let local_position =
                 p_result.collision_point - best_collision_body.get_base().get_transform().origin;
             p_result.collider_velocity =
                 best_collision_body.get_velocity_at_local_point(local_position);
             return true;
         }
-
         false
     }
 }
-
 fn should_skip_collision_one_dir(
     contact: &ContactResult,
     body_shape: &Box<dyn IRapierShape>,
@@ -641,12 +596,10 @@ fn should_skip_collision_one_dir(
             .is_shape_set_as_one_way_collision(shape_index)
     {
         let valid_dir = col_shape_transform.origin.normalized();
-
         let owc_margin = collision_body
             .get_base()
             .get_shape_one_way_collision_margin(shape_index);
         let mut valid_depth = owc_margin.max(p_margin);
-
         if collision_body.get_base().get_type() == CollisionObjectType::Body {
             let b = collision_body.get_body().unwrap();
             if b.get_base().mode.ord() >= BodyMode::KINEMATIC.ord() {

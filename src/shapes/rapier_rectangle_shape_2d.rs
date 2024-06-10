@@ -1,13 +1,13 @@
-use crate::rapier_wrapper::prelude::*;
-use crate::shapes::rapier_shape::{IRapierShape, RapierShapeBase};
 use godot::classes::physics_server_2d::ShapeType;
 use godot::prelude::*;
 
+use crate::rapier_wrapper::prelude::*;
+use crate::shapes::rapier_shape::IRapierShape;
+use crate::shapes::rapier_shape::RapierShapeBase;
 pub struct RapierRectangleShape2D {
     half_extents: Vector2,
     pub base: RapierShapeBase,
 }
-
 impl RapierRectangleShape2D {
     pub fn new(rid: Rid) -> Self {
         Self {
@@ -16,14 +16,15 @@ impl RapierRectangleShape2D {
         }
     }
 }
-
 impl IRapierShape for RapierRectangleShape2D {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base
     }
+
     fn get_mut_base(&mut self) -> &mut RapierShapeBase {
         &mut self.base
     }
+
     fn get_type(&self) -> ShapeType {
         ShapeType::RECTANGLE
     }
@@ -54,7 +55,8 @@ impl IRapierShape for RapierRectangleShape2D {
                 aabb.size.y = 0.001;
             }
             self.base.configure(aabb);
-        } else {
+        }
+        else {
             godot_error!("Invalid data type for RapierRectangleShape2D");
         }
     }

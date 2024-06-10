@@ -1,3 +1,14 @@
+use std::collections::HashSet;
+
+#[cfg(feature = "dim2")]
+use godot::classes::physics_server_2d::*;
+#[cfg(feature = "dim3")]
+use godot::classes::physics_server_3d::*;
+use godot::prelude::*;
+
+use super::rapier_area::RapierArea;
+use super::PhysicsDirectBodyState;
+use super::RapierDirectBodyState;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_server_extra::RapierBodyParam;
@@ -5,17 +16,6 @@ use crate::servers::rapier_physics_singleton::*;
 use crate::servers::rapier_project_settings::*;
 use crate::spaces::rapier_space::RapierSpace;
 use crate::*;
-#[cfg(feature = "dim2")]
-use godot::classes::physics_server_2d::*;
-#[cfg(feature = "dim3")]
-use godot::classes::physics_server_3d::*;
-use godot::prelude::*;
-use std::collections::HashSet;
-
-use super::rapier_area::RapierArea;
-use super::PhysicsDirectBodyState;
-use super::RapierDirectBodyState;
-
 #[derive(Clone)]
 pub struct Contact {
     pub local_pos: Vector,
@@ -30,7 +30,6 @@ pub struct Contact {
     pub collider_velocity_at_pos: Vector,
     pub impulse: Vector,
 }
-
 impl Default for Contact {
     fn default() -> Self {
         Self {
@@ -48,19 +47,16 @@ impl Default for Contact {
         }
     }
 }
-
 #[derive(Clone)]
 pub struct ForceIntegrationCallbackData {
     pub callable: Callable,
     pub udata: Variant,
 }
-
 impl ForceIntegrationCallbackData {
     fn new(callable: Callable, udata: Variant) -> Self {
         Self { callable, udata }
     }
 }
-
 // Define the RapierBody struct
 pub struct RapierBody {
     linear_damping_mode: BodyDampMode,
@@ -105,7 +101,6 @@ pub struct RapierBody {
     direct_state: Option<Gd<PhysicsDirectBodyState>>,
     base: RapierCollisionObject,
 }
-
 impl RapierBody {
     pub fn new(rid: Rid) -> Self {
         Self {
@@ -157,12 +152,12 @@ impl RapierBody {
         if self.base.mode.ord() < BodyMode::RIGID.ord() {
             return;
         }
-
         if self.calculate_inertia || self.calculate_center_of_mass {
             if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
                 space.body_add_to_mass_properties_update_list(self.base.get_rid());
             }
-        } else {
+        }
+        else {
             self._apply_mass_properties(false);
         }
     }
@@ -171,14 +166,11 @@ impl RapierBody {
         if self.base.mode.ord() < BodyMode::RIGID.ord() || !self.base.is_valid() {
             return;
         }
-
         let mut inertia_value = self.inertia;
         if self.base.mode == BodyMode::RIGID_LINEAR {
             inertia_value = ANGLE_ZERO;
         }
-
         let com = vector_to_rapier(self.center_of_mass);
-
         // Force update means local properties will be re-calculated internally,
         // it's needed for applying forces right away (otherwise it's updated on next step)
         body_set_mass_properties(
@@ -257,6 +249,7 @@ impl RapierBody {
     pub fn to_add_static_constant_linear_velocity(&mut self, linear_velocity: Vector) {
         self.to_add_linear_velocity = linear_velocity;
     }
+
     pub fn to_add_static_constant_angular_velocity(&mut self, angular_velocity: Angle) {
         self.to_add_angular_velocity = angular_velocity;
     }
@@ -277,6 +270,7 @@ impl RapierBody {
             velocity,
         );
     }
+
     pub fn get_linear_velocity(&self) -> Vector {
         if !self.base.is_valid() {
             return self.linear_velocity;
@@ -285,6 +279,7 @@ impl RapierBody {
             body_get_linear_velocity(self.base.get_space_handle(), self.base.get_body_handle());
         vector_to_godot(vel)
     }
+
     pub fn get_static_linear_velocity(&self) -> Vector {
         self.linear_velocity
     }
@@ -294,7 +289,6 @@ impl RapierBody {
         if self.base.mode == BodyMode::STATIC {
             return;
         }
-
         if !self.base.is_valid() {
             return;
         }
@@ -305,6 +299,7 @@ impl RapierBody {
         );
         self.angular_velocity = ANGLE_ZERO;
     }
+
     pub fn get_angular_velocity(&self) -> Angle {
         if !self.base.is_valid() {
             return self.angular_velocity;
@@ -314,6 +309,7 @@ impl RapierBody {
             self.base.get_body_handle(),
         ))
     }
+
     pub fn get_static_angular_velocity(&self) -> Angle {
         self.angular_velocity
     }
@@ -321,13 +317,16 @@ impl RapierBody {
     pub fn set_state_sync_callback(&mut self, p_callable: Callable) {
         self.body_state_callback = p_callable;
     }
+
     pub fn get_state_sync_callback(&self) -> Callable {
         self.body_state_callback.clone()
     }
+
     pub fn set_force_integration_callback(&mut self, p_callable: Callable, p_udata: Variant) {
         if p_callable.is_valid() {
             self.fi_callback_data = Some(ForceIntegrationCallbackData::new(p_callable, p_udata));
-        } else {
+        }
+        else {
             self.fi_callback_data = None;
         }
     }
@@ -360,6 +359,7 @@ impl RapierBody {
             }
         }
     }
+
     pub fn remove_area(&mut self, area: Rid) {
         if self.base.area_detection_counter == 0 {
             godot_error!("Area detection counter is zero.");
@@ -369,6 +369,7 @@ impl RapierBody {
         self.areas.retain(|&x| x != area);
         self.on_area_updated(area);
     }
+
     pub fn on_area_updated(&mut self, _area: Rid) {
         if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
             space.body_add_to_area_update_list(self.base.get_rid());
@@ -379,7 +380,6 @@ impl RapierBody {
         if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
             space.body_remove_from_area_update_list(self.base.get_rid());
         }
-
         if self.base.mode == BodyMode::STATIC {
             return;
         }
@@ -387,17 +387,14 @@ impl RapierBody {
             godot_error!("Space handle is invalid.");
             return;
         }
-
         // Reset area override flags.
         self.using_area_gravity = false;
         self.using_area_linear_damping = false;
         self.using_area_angular_damping = false;
-
         // Start with no effect.
         self.total_gravity = Vector::default();
         let mut total_linear_damping = 0.0;
         let mut total_angular_damping = 0.0;
-
         // Combine gravity and damping from overlapping areas in priority order.
         let ac = self.areas.len();
         let mut gravity_done = false; // always calculate to be able to change scale on area gravity
@@ -489,35 +486,32 @@ impl RapierBody {
                 }
             }
         }
-
         // Override or combine damping with body's values.
         total_linear_damping += self.linear_damping;
         total_angular_damping += self.angular_damping;
-
         // Apply to the simulation.
         self._apply_linear_damping(total_linear_damping, !linear_damping_done);
         self._apply_angular_damping(total_angular_damping, !angular_damping_done);
-
         if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
             if self.using_area_gravity {
                 // Add default gravity from space.
                 if !gravity_done {
                     self.total_gravity += space.get_default_area_param(AreaParameter::GRAVITY).to();
                 }
-
                 // Apply gravity scale to computed value.
                 self.total_gravity *= self.gravity_scale;
-
                 // Disable simulation gravity and apply it manually instead.
                 self._apply_gravity_scale(0.0);
                 space.body_add_to_gravity_update_list(self.base.get_rid());
-            } else {
+            }
+            else {
                 // Enable simulation gravity.
                 self._apply_gravity_scale(self.gravity_scale);
                 space.body_remove_from_gravity_update_list(self.base.get_rid());
             }
         }
     }
+
     pub fn update_gravity(&mut self, p_step: real) {
         if !self.using_area_gravity {
             return;
@@ -541,15 +535,19 @@ impl RapierBody {
         self.contacts.resize(size as usize, Contact::default());
         self.contact_count = 0;
     }
+
     pub fn reset_contact_count(&mut self) {
         self.contact_count = 0;
     }
+
     pub fn get_max_contacts_reported(&self) -> i32 {
         self.contacts.len() as i32
     }
+
     pub fn can_report_contacts(&self) -> bool {
         !self.contacts.is_empty()
     }
+
     pub fn add_contact(
         &mut self,
         local_pos: Vector,
@@ -565,17 +563,15 @@ impl RapierBody {
         impulse: Vector,
     ) {
         let c_max = self.contacts.len();
-
         if c_max == 0 {
             return;
         }
-
         let mut idx = -1;
-
         if self.contact_count < c_max as i32 {
             idx = self.contact_count;
             self.contact_count += 1;
-        } else {
+        }
+        else {
             let mut least_depth = f32::INFINITY;
             let mut least_deep: i32 = -1;
             for (i, contact) in self.contacts.iter().enumerate() {
@@ -584,7 +580,6 @@ impl RapierBody {
                     least_depth = contact.depth;
                 }
             }
-
             if least_deep >= 0 && least_depth < depth {
                 idx = least_deep;
             }
@@ -592,7 +587,6 @@ impl RapierBody {
                 return; // none less deep than this
             }
         }
-
         let c = &mut self.contacts[idx as usize];
         c.local_pos = local_pos;
         c.local_normal = local_normal;
@@ -610,12 +604,15 @@ impl RapierBody {
     pub fn add_exception(&mut self, exception: Rid) {
         self.exceptions.insert(exception);
     }
+
     pub fn remove_exception(&mut self, exception: Rid) {
         self.exceptions.remove(&exception);
     }
+
     pub fn has_exception(&self, exception: Rid) -> bool {
         self.exceptions.contains(&exception)
     }
+
     pub fn get_exceptions(&self) -> &HashSet<Rid> {
         &self.exceptions
     }
@@ -623,6 +620,7 @@ impl RapierBody {
     pub fn set_omit_force_integration(&mut self, omit_force_integration: bool) {
         self.omit_force_integration = omit_force_integration;
     }
+
     pub fn get_omit_force_integration(&self) -> bool {
         self.omit_force_integration
     }
@@ -694,7 +692,6 @@ impl RapierBody {
             self.torque += (p_position - self.get_center_of_mass()).cross(p_force) * last_delta;
             return;
         }
-
         let force = vector_to_rapier(p_force) * last_delta;
         let pos = vector_to_rapier(p_position);
         body_apply_impulse_at_point(
@@ -773,14 +770,13 @@ impl RapierBody {
             force,
         );
     }
+
     pub fn get_constant_force(&self) -> Vector {
         if !self.base.is_valid() {
             return self.constant_force;
         }
-
         let force =
             body_get_constant_force(self.base.get_space_handle(), self.base.get_body_handle());
-
         vector_to_godot(force)
     }
 
@@ -796,6 +792,7 @@ impl RapierBody {
             angle_to_rapier(p_torque),
         );
     }
+
     pub fn get_constant_torque(&self) -> Angle {
         if !self.base.is_valid() {
             return self.constant_torque;
@@ -810,20 +807,21 @@ impl RapierBody {
         if self.active == p_active {
             return;
         }
-
         self.active = p_active;
-
         if self.active {
             if self.base.mode == BodyMode::STATIC {
                 // Static bodies can't be active.
                 self.active = false;
-            } else {
+            }
+            else {
                 space.body_add_to_active_list(self.base.get_rid());
             }
-        } else {
+        }
+        else {
             space.body_remove_from_active_list(self.base.get_rid());
         }
     }
+
     pub fn is_active(&self) -> bool {
         self.active
     }
@@ -851,15 +849,14 @@ impl RapierBody {
             }
         }
     }
+
     pub fn on_update_active(&mut self, space: &mut RapierSpace) {
         if !self.marked_active {
             self.set_active(false, space);
             return;
         }
         self.marked_active = false;
-
         self.base.update_transform();
-
         space.body_add_to_state_query_list(self.base.get_rid());
         if self.base.mode.ord() >= BodyMode::RIGID.ord() {
             if self.to_add_angular_velocity != ANGLE_ZERO {
@@ -881,19 +878,18 @@ impl RapierBody {
         if !self.base.is_valid() {
             return;
         }
-
         body_wake_up(
             self.base.get_space_handle(),
             self.base.get_body_handle(),
             true,
         );
     }
+
     pub fn force_sleep(&mut self) {
         self.sleep = true;
         if !self.base.is_valid() {
             return;
         }
-
         body_force_sleep(self.base.get_space_handle(), self.base.get_body_handle());
     }
 
@@ -905,7 +901,8 @@ impl RapierBody {
                 }
                 if p_param == BodyParameter::BOUNCE {
                     self.bounce = p_value.to();
-                } else {
+                }
+                else {
                     self.friction = p_value.to();
                 }
                 if !self.base.is_valid() {
@@ -938,7 +935,8 @@ impl RapierBody {
                 let inertia_value = p_value.to();
                 if inertia_value == ANG_ZERO {
                     self.calculate_inertia = true;
-                } else {
+                }
+                else {
                     self.calculate_inertia = false;
                     self.inertia = inertia_value;
                 }
@@ -979,7 +977,8 @@ impl RapierBody {
                     }
                     if self.using_area_linear_damping {
                         // Update linear damping from areas
-                    } else {
+                    }
+                    else {
                         self._apply_linear_damping(self.linear_damping, true);
                     }
                 }
@@ -996,7 +995,8 @@ impl RapierBody {
                     }
                     if self.using_area_angular_damping {
                         // Update angular damping from areas
-                    } else {
+                    }
+                    else {
                         self._apply_angular_damping(self.angular_damping, true);
                     }
                 }
@@ -1028,6 +1028,7 @@ impl RapierBody {
             _ => {}
         }
     }
+
     pub fn get_param(&self, p_param: BodyParameter) -> Variant {
         match p_param {
             BodyParameter::BOUNCE => self.bounce.to_variant(),
@@ -1056,7 +1057,6 @@ impl RapierBody {
                 let mat = self._init_material();
                 let body_handle = self.base.get_body_handle();
                 let space_handle = self.base.get_space_handle();
-
                 if !self.base.is_valid() {
                     body_update_material(space_handle, body_handle, &mat);
                 }
@@ -1074,7 +1074,6 @@ impl RapierBody {
         if self.base.mode == p_mode {
             return;
         }
-
         let prev_mode = self.base.mode;
         self.base.mode = p_mode;
         let rid = self.base.get_rid();
@@ -1108,7 +1107,6 @@ impl RapierBody {
             }
             if p_mode == BodyMode::STATIC {
                 self.force_sleep();
-
                 if self.marked_active {
                     return;
                 }
@@ -1147,14 +1145,14 @@ impl RapierBody {
                     return;
                 }
                 self.sleep = p_variant.to();
-
                 if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
                     if self.sleep {
                         if self.can_sleep {
                             self.force_sleep();
                             self.set_active(false, space);
                         }
-                    } else if self.base.mode != BodyMode::STATIC {
+                    }
+                    else if self.base.mode != BodyMode::STATIC {
                         self.wakeup();
                         self.set_active(true, space);
                     }
@@ -1212,7 +1210,6 @@ impl RapierBody {
         if self.base.mode.ord() < BodyMode::RIGID.ord() {
             return;
         }
-
         let mut total_area = 0.0;
         let shape_count = self.base.get_shape_count() as usize;
         for i in 0..shape_count {
@@ -1223,16 +1220,13 @@ impl RapierBody {
                 total_area += shape.get_base().get_aabb_area(Vector::default());
             }
         }
-
         if self.calculate_center_of_mass {
             self.center_of_mass = Vector::default();
-
             if total_area != 0.0 {
                 for i in 0..shape_count {
                     if self.base.is_shape_disabled(i) {
                         continue;
                     }
-
                     if let Some(shape) = shapes_singleton().shapes.get(&self.base.get_shape(i)) {
                         let shape_area = shape.get_base().get_aabb_area(Vector::default());
                         if shape_area == 0.0 || self.mass == 0.0 {
@@ -1243,28 +1237,22 @@ impl RapierBody {
                         self.center_of_mass += shape_mass * self.base.get_shape_transform(i).origin;
                     }
                 }
-
                 self.center_of_mass /= self.mass;
             }
         }
-
         if self.calculate_inertia {
             self.inertia = ANGLE_ZERO;
-
             if total_area != 0.0 {
                 for i in 0..shape_count {
                     if self.base.is_shape_disabled(i) {
                         continue;
                     }
-
                     if let Some(shape) = shapes_singleton().shapes.get(&self.base.get_shape(i)) {
                         let shape_area = shape.get_base().get_aabb_area(Vector::default());
                         if shape_area == 0.0 || self.mass == 0.0 {
                             continue;
                         }
-
                         let shape_mass = shape_area * self.mass / total_area;
-
                         let mtx = self.base.get_shape_transform(i);
                         let scale = mtx.scale();
                         let shape_origin = mtx.origin - self.center_of_mass;
@@ -1274,7 +1262,6 @@ impl RapierBody {
                 }
             }
         }
-
         self._apply_mass_properties(force_update);
     }
 
@@ -1283,7 +1270,6 @@ impl RapierBody {
             // Nothing to do, already calculated
             return;
         }
-
         self.calculate_inertia = true;
         self.calculate_center_of_mass = true;
         self._mass_properties_changed();
@@ -1292,12 +1278,14 @@ impl RapierBody {
     pub fn get_center_of_mass(&self) -> Vector {
         self.center_of_mass
     }
+
     pub fn get_inv_mass(&self) -> real {
         if self.mass != 0.0 {
             return 1.0 / self.mass;
         }
         0.0
     }
+
     pub fn get_inv_inertia(&self) -> Angle {
         if self.inertia != ANGLE_ZERO {
             return 1.0 / self.inertia;
@@ -1330,7 +1318,8 @@ impl RapierBody {
                         .get_base()
                         .get_aabb(self.base.get_shape_transform(i).origin);
                     shapes_found = true;
-                } else {
+                }
+                else {
                     // TODO not 100% correct, we don't take into consideration rotation here.
                     body_aabb = body_aabb.merge(
                         shape
@@ -1346,30 +1335,36 @@ impl RapierBody {
     pub fn total_linear_damping(&self) -> real {
         self.total_linear_damping
     }
+
     pub fn total_angular_damping(&self) -> real {
         self.total_angular_damping
     }
+
     pub fn total_gravity(&self) -> Vector {
         self.total_gravity
     }
+
     pub fn gravity_scale(&self) -> real {
         self.gravity_scale
     }
+
     pub fn using_area_gravity(&self) -> bool {
         self.using_area_gravity
     }
+
     pub fn contact_count(&self) -> i32 {
         self.contact_count
     }
+
     pub fn contacts(&self) -> &Vec<Contact> {
         &self.contacts
     }
 }
-
 impl IRapierCollisionObject for RapierBody {
     fn get_base(&self) -> &RapierCollisionObject {
         &self.base
     }
+
     fn get_mut_base(&mut self) -> &mut RapierCollisionObject {
         &mut self.base
     }
@@ -1387,6 +1382,7 @@ impl IRapierCollisionObject for RapierBody {
             self.base.update_shape_transform(&self.base.shapes[i]);
         }
     }
+
     fn set_space(&mut self, space: Rid) {
         // delete previous space
         if self.base.get_space_handle().is_valid() {
@@ -1400,20 +1396,19 @@ impl IRapierCollisionObject for RapierBody {
         }
         self.base._set_space(space);
         self.recreate_shapes();
-
         if self.base.get_space_handle().is_valid()
             && self.base.mode.ord() >= BodyMode::KINEMATIC.ord()
         {
             if !self.can_sleep {
                 self.set_can_sleep(false);
             }
-
             if self.active || !self.sleep {
                 self.wakeup();
                 if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
                     space.body_add_to_active_list(self.base.get_rid());
                 }
-            } else if self.can_sleep && self.sleep {
+            }
+            else if self.can_sleep && self.sleep {
                 self.force_sleep();
             }
             if self.base.mode.ord() >= BodyMode::RIGID.ord() {
@@ -1424,7 +1419,6 @@ impl IRapierCollisionObject for RapierBody {
                 if self.angular_damping_mode == BodyDampMode::COMBINE {
                     self._apply_angular_damping(self.angular_damping, true);
                 }
-
                 self._mass_properties_changed();
                 if self.linear_velocity != Vector::default() {
                     self.set_linear_velocity(self.linear_velocity);
@@ -1484,17 +1478,14 @@ impl IRapierCollisionObject for RapierBody {
             one_way_collision_margin: 0.0,
             collider_handle: invalid_handle(),
         };
-
         if !shape.disabled {
             shape.collider_handle = self.create_shape(shape, self.base.shapes.len());
             self.base.update_shape_transform(&shape);
         }
-
         self.base.shapes.push(shape);
         if let Some(shape) = shapes_singleton().shapes.get_mut(&p_shape) {
             shape.get_mut_base().add_owner(self.base.get_rid());
         }
-
         if self.base.get_space_handle().is_valid() {
             self._shapes_changed();
         }
@@ -1504,7 +1495,6 @@ impl IRapierCollisionObject for RapierBody {
         if p_index >= self.base.shapes.len() {
             return;
         }
-
         self.base.shapes[p_index].collider_handle =
             self.base._destroy_shape(self.base.shapes[p_index], p_index);
         let shape = self.base.shapes[p_index];
@@ -1515,13 +1505,11 @@ impl IRapierCollisionObject for RapierBody {
         if let Some(shape) = shapes_singleton().shapes.get_mut(&p_shape) {
             shape.get_mut_base().add_owner(self.base.get_rid());
         }
-
         if !shape.disabled {
             self.base
                 ._create_shape(shape, p_index, self._init_material());
             self.base.update_shape_transform(&shape);
         }
-
         if self.base.get_space_handle().is_valid() {
             self._shapes_changed();
         }
@@ -1531,12 +1519,9 @@ impl IRapierCollisionObject for RapierBody {
         if p_index >= self.base.shapes.len() {
             return;
         }
-
         self.base.shapes[p_index].xform = p_transform;
         let shape = &self.base.shapes[p_index];
-
         self.base.update_shape_transform(shape);
-
         if self.base.get_space_handle().is_valid() {
             self._shapes_changed();
         }
@@ -1554,13 +1539,11 @@ impl IRapierCollisionObject for RapierBody {
         if shape.disabled {
             self.base.shapes[p_index].collider_handle = self.base._destroy_shape(shape, p_index);
         }
-
         if !shape.disabled {
             self.base
                 ._create_shape(shape, p_index, self._init_material());
             self.base.update_shape_transform(&shape);
         }
-
         if self.base.get_space_handle().is_valid() {
             self._shapes_changed();
         }
@@ -1572,7 +1555,8 @@ impl IRapierCollisionObject for RapierBody {
         while i < self.base.shapes.len() {
             if self.base.shapes[i].shape == shape {
                 self.remove_shape_idx(i);
-            } else {
+            }
+            else {
                 i += 1;
             }
         }
@@ -1580,13 +1564,10 @@ impl IRapierCollisionObject for RapierBody {
 
     fn remove_shape_idx(&mut self, p_index: usize) {
         // remove anything from shape to be erased to end, so subindices don't change
-
         if p_index >= self.base.shapes.len() {
             return;
         }
-
         let shape = &self.base.shapes[p_index];
-
         if !shape.disabled {
             self.base._destroy_shape(*shape, p_index);
         }
@@ -1595,9 +1576,7 @@ impl IRapierCollisionObject for RapierBody {
         if let Some(shape) = shapes_singleton().shapes.get_mut(&shape.shape) {
             shape.get_mut_base().remove_owner(self.base.get_rid());
         }
-
         self.base.shapes.remove(p_index);
-
         if self.base.get_space_handle().is_valid() {
             self._shapes_changed();
         }
@@ -1638,16 +1617,13 @@ impl IRapierCollisionObject for RapierBody {
             if self.base.shapes[i].collider_handle.is_valid() {
                 self.base.shapes[i].collider_handle = self.base._destroy_shape(shape, i);
             }
-
             self.base
                 ._create_shape(self.base.shapes[i], i, self._init_material());
             self.base.update_shape_transform(&self.base.shapes[i]);
         }
-
         self._shapes_changed();
     }
 }
-
 impl Drop for RapierBody {
     fn drop(&mut self) {
         if let Some(direct_state) = &self.direct_state {

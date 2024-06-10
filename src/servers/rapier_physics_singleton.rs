@@ -1,12 +1,13 @@
+use std::collections::HashMap;
+
+use godot::prelude::*;
+
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::fluids::rapier_fluid::RapierFluid;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::spaces::rapier_space::RapierSpace;
-use godot::prelude::*;
-use std::collections::HashMap;
-
 pub struct RapierShapesSingleton {
     pub shapes: HashMap<Rid, Box<dyn IRapierShape>>,
 }
@@ -37,7 +38,6 @@ unsafe impl Send for RapierJointsSingleton {}
 unsafe impl Sync for RapierJointsSingleton {}
 unsafe impl Send for RapierFluidsSingleton {}
 unsafe impl Sync for RapierFluidsSingleton {}
-
 pub fn shapes_singleton() -> &'static mut RapierShapesSingleton {
     static mut SINGLETON: Option<RapierShapesSingleton> = None;
     unsafe {
@@ -49,7 +49,6 @@ pub fn shapes_singleton() -> &'static mut RapierShapesSingleton {
         SINGLETON.as_mut().unwrap()
     }
 }
-
 pub fn active_spaces_singleton() -> &'static mut RapierActiveSpacesSingleton {
     static mut SINGLETON: Option<RapierActiveSpacesSingleton> = None;
     unsafe {

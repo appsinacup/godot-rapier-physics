@@ -1,12 +1,16 @@
-use crate::rapier_wrapper::prelude::*;
-use crate::{servers::rapier_physics_singleton::bodies_singleton, Rect, Vector};
+use std::any::Any;
+use std::collections::HashMap;
+
 #[cfg(feature = "dim2")]
 use godot::engine::physics_server_2d::*;
 #[cfg(feature = "dim3")]
 use godot::engine::physics_server_3d::*;
 use godot::prelude::*;
-use std::{any::Any, collections::HashMap};
 
+use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::bodies_singleton;
+use crate::Rect;
+use crate::Vector;
 pub trait IRapierShape: Any {
     fn get_base(&self) -> &RapierShapeBase;
     fn get_mut_base(&mut self) -> &mut RapierShapeBase;
@@ -18,7 +22,6 @@ pub trait IRapierShape: Any {
     fn get_data(&self) -> Variant;
     fn get_rapier_shape(&mut self) -> Handle;
 }
-
 #[derive(Debug)]
 pub struct RapierShapeBase {
     rid: Rid,
@@ -27,7 +30,6 @@ pub struct RapierShapeBase {
     owners: HashMap<Rid, i32>,
     handle: Handle,
 }
-
 impl RapierShapeBase {
     pub fn new(rid: Rid) -> Self {
         Self {
@@ -38,16 +40,20 @@ impl RapierShapeBase {
             handle: invalid_handle(),
         }
     }
+
     pub fn set_handle(&mut self, handle: Handle) {
         self.handle = handle;
     }
+
     pub fn get_handle(&self) -> Handle {
         self.handle
     }
+
     pub fn configure(&mut self, aabb: Rect) {
         self.aabb = aabb;
         self.configured = true;
     }
+
     pub fn call_shape_changed(owners: HashMap<Rid, i32>, shape_rid: Rid) {
         for (owner, _) in owners {
             let owner = bodies_singleton().collision_objects.get_mut(&owner);
@@ -109,7 +115,6 @@ impl RapierShapeBase {
         }
     }
 }
-
 impl Drop for RapierShapeBase {
     fn drop(&mut self) {
         if !self.owners.is_empty() {

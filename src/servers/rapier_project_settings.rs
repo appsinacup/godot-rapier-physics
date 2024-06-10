@@ -1,8 +1,9 @@
-use godot::{classes::*, global::*, prelude::*};
+use godot::classes::*;
+use godot::global::*;
+use godot::prelude::*;
 use rapier::math::Real;
 
 use crate::Vector;
-
 const SOLVER_NUM_ITERATIONS: &str = "physics/rapier/solver/num_iterations";
 const SOLVER_NUM_ADDITIONAL_FRICTION_ITERATIONS: &str =
     "physics/rapier/solver/num_additional_friction_iterations";
@@ -22,7 +23,6 @@ const LENGTH_UNIT_VALUE: real = 100.0;
 const LENGTH_UNIT: &str = "physics/rapier/solver/length_unit_3d";
 #[cfg(feature = "dim3")]
 const LENGTH_UNIT_VALUE: real = 1.0;
-
 pub fn register_setting(
     p_name: &str,
     p_value: Variant,
@@ -34,7 +34,6 @@ pub fn register_setting(
     if !project_settings.has_setting(p_name.into_godot()) {
         project_settings.set(p_name.into(), p_value.clone());
     }
-
     let mut property_info = Dictionary::new();
     let _ = property_info.insert("name", p_name);
     let _ = property_info.insert("type", p_value.get_type());
@@ -43,18 +42,15 @@ pub fn register_setting(
     project_settings.add_property_info(property_info);
     project_settings.set_initial_value(p_name.into(), p_value);
     project_settings.set_restart_if_changed(p_name.into(), p_needs_restart);
-
     static mut ORDER: i32 = 1000000;
     unsafe {
         project_settings.set_order(p_name.into(), ORDER);
         ORDER += 1;
     }
 }
-
 pub fn register_setting_plain(p_name: &str, p_value: Variant, p_needs_restart: bool) {
     register_setting(p_name, p_value, p_needs_restart, PropertyHint::NONE, "");
 }
-
 pub fn register_setting_ranged(
     p_name: &str,
     p_value: Variant,
@@ -69,10 +65,8 @@ pub fn register_setting_ranged(
         p_hint_string,
     );
 }
-
 #[derive(Debug)]
 pub struct RapierProjectSettings;
-
 impl RapierProjectSettings {
     pub fn register_settings() {
         register_setting_ranged(
@@ -136,11 +130,13 @@ impl RapierProjectSettings {
         let setting_value = project_settings.get_setting_with_override(p_setting.into());
         setting_value.to::<i64>()
     }
+
     fn get_setting_double(p_setting: &str) -> f64 {
         let project_settings = ProjectSettings::singleton();
         let setting_value = project_settings.get_setting_with_override(p_setting.into());
         setting_value.to::<f64>()
     }
+
     fn get_setting_vector(p_setting: &str) -> Vector {
         let project_settings = ProjectSettings::singleton();
         let setting_value = project_settings.get_setting_with_override(p_setting.into());

@@ -1,8 +1,5 @@
-use crate::bodies::rapier_collision_object::*;
-use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::*;
-use crate::spaces::rapier_space::*;
-use crate::*;
+use std::collections::HashMap;
+
 #[cfg(feature = "dim2")]
 use godot::engine::physics_server_2d::*;
 #[cfg(feature = "dim3")]
@@ -11,10 +8,13 @@ use godot::log::godot_error;
 use godot::meta::ToGodot;
 use godot::obj::EngineEnum;
 use godot::prelude::*;
-use std::collections::HashMap;
 
 use super::rapier_body::RapierBody;
-
+use crate::bodies::rapier_collision_object::*;
+use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::*;
+use crate::spaces::rapier_space::*;
+use crate::*;
 struct MonitorInfo {
     pub rid: Rid,
     pub instance_id: u64,
@@ -23,12 +23,10 @@ struct MonitorInfo {
     pub collision_object_type: CollisionObjectType,
     pub state: i32,
 }
-
 #[derive(Clone, Copy)]
 struct BodyRefCount {
     count: u32,
 }
-
 pub struct RapierArea {
     gravity_override_mode: AreaSpaceOverrideMode,
     linear_damping_override_mode: AreaSpaceOverrideMode,
@@ -47,7 +45,6 @@ pub struct RapierArea {
     detected_bodies: HashMap<Rid, BodyRefCount>,
     base: RapierCollisionObject,
 }
-
 impl RapierArea {
     pub fn new(rid: Rid) -> Self {
         Self {
@@ -84,6 +81,7 @@ impl RapierArea {
             space.area_remove_from_area_update_list(rid);
         }
     }
+
     pub fn _disable_space_override(&self) {
         if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
             let rid = self.base.get_rid();
@@ -98,6 +96,7 @@ impl RapierArea {
             space.area_remove_from_area_update_list(rid);
         }
     }
+
     pub fn _reset_space_override(&self) {
         if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
             let rid = self.base.get_rid();
@@ -129,18 +128,16 @@ impl RapierArea {
                 // Add to keep track of currently detected bodies
                 if let Some(detected_body) = self.detected_bodies.get_mut(&body_rid) {
                     detected_body.count += 1;
-                } else {
+                }
+                else {
                     self.detected_bodies
                         .insert(body_rid, BodyRefCount { count: 1 });
                     body.add_area(self.base.get_rid())
                 }
-
                 if self.monitor_callback.is_null() {
                     return;
                 }
-
                 self.base.area_detection_counter += 1;
-
                 let handle_pair_hash = handle_pair_hash(collider_handle, area_collider_handle);
                 if self.monitored_objects.contains_key(&handle_pair_hash) {
                     // it's already monitored
@@ -159,7 +156,8 @@ impl RapierArea {
                 );
                 space.area_add_to_monitor_query_list(self.base.get_rid());
             }
-        } else {
+        }
+        else {
             godot_error!("other body is null");
         }
     }
@@ -190,17 +188,13 @@ impl RapierArea {
                 }
             }
         }
-
         if self.monitor_callback.is_null() {
             return;
         }
-
         if body.is_some() {
             self.base.area_detection_counter -= 1;
         }
-
         let handle_pair_hash = handle_pair_hash(collider_handle, area_collider_handle);
-
         if let std::collections::hash_map::Entry::Vacant(e) =
             self.monitored_objects.entry(handle_pair_hash)
         {
@@ -212,9 +206,9 @@ impl RapierArea {
                 collision_object_type: CollisionObjectType::Body,
                 state: -1,
             });
-
             space.area_add_to_monitor_query_list(self.base.get_rid());
-        } else {
+        }
+        else {
             if self.monitored_objects[&handle_pair_hash].state != 1 {
                 godot_error!("Body is not being monitored");
                 return;
@@ -242,15 +236,12 @@ impl RapierArea {
                 if !other_area.is_monitorable() {
                     return;
                 }
-
                 other_area.base.area_detection_counter += 1;
-
                 let handle_pair_hash = handle_pair_hash(collider_handle, area_collider_handle);
                 if self.monitored_objects.contains_key(&handle_pair_hash) {
                     // it's already monitored
                     return;
                 }
-
                 self.monitored_objects.insert(
                     handle_pair_hash,
                     MonitorInfo {
@@ -262,10 +253,10 @@ impl RapierArea {
                         state: 1,
                     },
                 );
-
                 space.area_add_to_monitor_query_list(self.base.get_rid());
             }
-        } else {
+        }
+        else {
             godot_error!("other area is null");
         }
     }
@@ -284,7 +275,6 @@ impl RapierArea {
         if self.area_monitor_callback.is_null() {
             return;
         }
-
         if let Some(other_area) = other_area {
             if let Some(other_area) = other_area.get_mut_area() {
                 if !other_area.is_monitorable() {
@@ -297,9 +287,7 @@ impl RapierArea {
                 other_area.base.area_detection_counter -= 1;
             }
         }
-
         let handle_pair_hash = handle_pair_hash(collider_handle, area_collider_handle);
-
         if let std::collections::hash_map::Entry::Occupied(mut e) =
             self.monitored_objects.entry(handle_pair_hash)
         {
@@ -312,7 +300,8 @@ impl RapierArea {
                 state: -1,
             });
             space.area_add_to_monitor_query_list(self.base.get_rid());
-        } else {
+        }
+        else {
             if self.monitored_objects[&handle_pair_hash].state != 1 {
                 godot_error!("Area is not being monitored");
                 return;
@@ -354,12 +343,12 @@ impl RapierArea {
                 let had_override = self.has_any_space_override();
                 self.gravity_override_mode = AreaSpaceOverrideMode::from_ord(p_value.to());
                 let has_override = self.has_any_space_override();
-
                 // Update currently detected bodies if needed
                 if has_override != had_override {
                     if has_override {
                         self._enable_space_override();
-                    } else {
+                    }
+                    else {
                         self._disable_space_override();
                     }
                 }
@@ -425,12 +414,12 @@ impl RapierArea {
                 let had_override = self.has_any_space_override();
                 self.linear_damping_override_mode = AreaSpaceOverrideMode::from_ord(p_value.to());
                 let has_override = self.has_any_space_override();
-
                 // Update currently detected bodies if needed
                 if has_override != had_override {
                     if has_override {
                         self._enable_space_override();
-                    } else {
+                    }
+                    else {
                         self._disable_space_override();
                     }
                 }
@@ -453,12 +442,12 @@ impl RapierArea {
                 let had_override = self.has_any_space_override();
                 self.angular_damping_override_mode = AreaSpaceOverrideMode::from_ord(p_value.to());
                 let has_override = self.has_any_space_override();
-
                 // Update currently detected bodies if needed
                 if has_override != had_override {
                     if has_override {
                         self._enable_space_override();
-                    } else {
+                    }
+                    else {
                         self._disable_space_override();
                     }
                 }
@@ -537,29 +526,28 @@ impl RapierArea {
         if self.monitored_objects.is_empty() {
             return;
         }
-
         for (_, monitor_info) in &self.monitored_objects {
             let mut arg_array = VariantArray::new();
             arg_array.resize(5, &Variant::nil());
             if monitor_info.state == 0 {
                 continue;
             }
-
             if monitor_info.state > 0 {
                 arg_array.set(0, AreaBodyStatus::ADDED.to_variant());
-            } else {
+            }
+            else {
                 arg_array.set(0, AreaBodyStatus::REMOVED.to_variant());
             }
             arg_array.set(1, monitor_info.rid.to_variant());
             arg_array.set(2, monitor_info.instance_id.to_variant());
             arg_array.set(3, monitor_info.object_shape_index.to_variant());
             arg_array.set(4, monitor_info.area_shape_index.to_variant());
-
             if monitor_info.collision_object_type == CollisionObjectType::Body {
                 if self.monitor_callback.is_valid() {
                     self.monitor_callback.callv(arg_array);
                 }
-            } else if self.area_monitor_callback.is_valid() {
+            }
+            else if self.area_monitor_callback.is_valid() {
                 self.area_monitor_callback.callv(arg_array);
             }
         }
@@ -574,30 +562,33 @@ impl RapierArea {
                 if v_length_sq > 0.0 {
                     let gravity_strength = self.gravity * gr_unit_dist * gr_unit_dist / v_length_sq;
                     v.normalized() * gravity_strength
-                } else {
+                }
+                else {
                     Vector::default()
                 }
-            } else {
+            }
+            else {
                 v.normalized() * self.gravity
             }
-        } else {
+        }
+        else {
             self.gravity_vector * self.gravity
         }
     }
 }
-
 impl IRapierCollisionObject for RapierArea {
     fn get_base(&self) -> &RapierCollisionObject {
         &self.base
     }
+
     fn get_mut_base(&mut self) -> &mut RapierCollisionObject {
         &mut self.base
     }
+
     fn set_space(&mut self, p_space: Rid) {
         if p_space == self.base.get_space() {
             return;
         }
-
         if self.base.get_space().is_invalid() {
             // Need to keep in list to handle remove events for bodies
             if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
@@ -613,13 +604,10 @@ impl IRapierCollisionObject for RapierArea {
                     }
                 }
                 self.detected_bodies.clear();
-
                 space.area_remove_from_area_update_list(self.base.get_rid());
             }
         }
-
         self.monitored_objects.clear();
-
         self.base._set_space(p_space);
     }
 
@@ -653,17 +641,14 @@ impl IRapierCollisionObject for RapierArea {
             one_way_collision_margin: 0.0,
             collider_handle: invalid_handle(),
         };
-
         if !shape.disabled {
             shape.collider_handle = self.create_shape(shape, self.base.shapes.len());
             self.base.update_shape_transform(&shape);
         }
-
         self.base.shapes.push(shape);
         if let Some(shape) = shapes_singleton().shapes.get_mut(&p_shape) {
             shape.get_mut_base().add_owner(self.base.get_rid());
         }
-
         if self.base.get_space_handle().is_valid() {
             self._shapes_changed();
         }
@@ -673,7 +658,6 @@ impl IRapierCollisionObject for RapierArea {
         if p_index >= self.base.shapes.len() {
             return;
         }
-
         self.base.shapes[p_index].collider_handle =
             self.base._destroy_shape(self.base.shapes[p_index], p_index);
         let shape = self.base.shapes[p_index];
@@ -684,13 +668,11 @@ impl IRapierCollisionObject for RapierArea {
         if let Some(shape) = shapes_singleton().shapes.get_mut(&p_shape) {
             shape.get_mut_base().add_owner(self.base.get_rid());
         }
-
         if !shape.disabled {
             self.base
                 ._create_shape(shape, p_index, self._init_material());
             self.base.update_shape_transform(&shape);
         }
-
         if self.base.get_space_handle().is_valid() {
             self._shapes_changed();
         }
@@ -700,12 +682,9 @@ impl IRapierCollisionObject for RapierArea {
         if p_index >= self.base.shapes.len() {
             return;
         }
-
         self.base.shapes[p_index].xform = p_transform;
         let shape = &self.base.shapes[p_index];
-
         self.base.update_shape_transform(shape);
-
         if self.base.get_space_handle().is_valid() {
             self._shapes_changed();
         }
@@ -723,13 +702,11 @@ impl IRapierCollisionObject for RapierArea {
         if shape.disabled {
             self.base._destroy_shape(shape, p_index);
         }
-
         if !shape.disabled {
             self.base
                 ._create_shape(shape, p_index, self._init_material());
             self.base.update_shape_transform(&shape);
         }
-
         if self.base.get_space_handle().is_valid() {
             self._shapes_changed();
         }
@@ -741,7 +718,8 @@ impl IRapierCollisionObject for RapierArea {
         while i < self.base.shapes.len() {
             if self.base.shapes[i].shape == shape {
                 self.remove_shape_idx(i);
-            } else {
+            }
+            else {
                 i += 1;
             }
         }
@@ -752,9 +730,7 @@ impl IRapierCollisionObject for RapierArea {
         if p_index >= self.base.shapes.len() {
             return;
         }
-
         let shape = &self.base.shapes[p_index];
-
         if !shape.disabled {
             self.base._destroy_shape(*shape, p_index);
         }
@@ -763,9 +739,7 @@ impl IRapierCollisionObject for RapierArea {
         if let Some(shape) = shapes_singleton().shapes.get_mut(&shape.shape) {
             shape.get_mut_base().remove_owner(self.base.get_rid());
         }
-
         self.base.shapes.remove(p_index);
-
         if self.base.get_space_handle().is_valid() {
             self._shapes_changed();
         }
@@ -776,7 +750,6 @@ impl IRapierCollisionObject for RapierArea {
             return invalid_handle();
         }
         let mat = self._init_material();
-
         self.base._create_shape(shape, p_shape_index, mat)
     }
 
@@ -793,14 +766,11 @@ impl IRapierCollisionObject for RapierArea {
             if shape.shape != p_shape || shape.disabled {
                 continue;
             }
-
             self.base.shapes[i].collider_handle = self.base._destroy_shape(shape, i);
-
             self.base
                 ._create_shape(self.base.shapes[i], i, self._init_material());
             self.base.update_shape_transform(&self.base.shapes[i]);
         }
-
         self._shapes_changed();
     }
 

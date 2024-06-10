@@ -1,11 +1,10 @@
-use crate::rapier_wrapper::prelude::*;
 use rapier::prelude::*;
 use salva::math::Vector as SalvaVector;
 use salva::object::*;
 use salva::solver::*;
 
 use super::shape::pixel_point_array_to_vec;
-
+use crate::rapier_wrapper::prelude::*;
 pub fn pixel_vector_array_to_vec(pixel_data: Vec<Vector<Real>>) -> Vec<SalvaVector<Real>> {
     let mut vec = Vec::<SalvaVector<Real>>::with_capacity(pixel_data.len());
     for pixel_point in pixel_data {
@@ -15,7 +14,6 @@ pub fn pixel_vector_array_to_vec(pixel_data: Vec<Vector<Real>>) -> Vec<SalvaVect
     }
     vec
 }
-
 pub fn fluid_create(world_handle: Handle, density: Real) -> HandleDouble {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
@@ -25,7 +23,6 @@ pub fn fluid_create(world_handle: Handle, density: Real) -> HandleDouble {
     }
     invalid_handle_double()
 }
-
 pub fn fluid_change_density(world_handle: Handle, fluid_handle: HandleDouble, density: Real) {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
@@ -39,7 +36,6 @@ pub fn fluid_change_density(world_handle: Handle, fluid_handle: HandleDouble, de
         }
     }
 }
-
 pub fn fluid_change_points_and_velocities(
     world_handle: Handle,
     fluid_handle: HandleDouble,
@@ -75,7 +71,6 @@ pub fn fluid_change_points_and_velocities(
         }
     }
 }
-
 pub fn fluid_change_points(
     world_handle: Handle,
     fluid_handle: HandleDouble,
@@ -115,7 +110,6 @@ pub fn fluid_change_points(
         }
     }
 }
-
 pub fn fluid_delete_points(
     world_handle: Handle,
     fluid_handle: HandleDouble,
@@ -169,7 +163,6 @@ pub fn fluid_delete_points(
         }
     }
 }
-
 pub fn fluid_add_points_and_velocities(
     world_handle: Handle,
     fluid_handle: HandleDouble,
@@ -204,7 +197,6 @@ pub fn fluid_add_points_and_velocities(
         }
     }
 }
-
 pub fn fluid_get_points(
     world_handle: Handle,
     fluid_handle: HandleDouble,
@@ -232,7 +224,6 @@ pub fn fluid_get_points(
         }
     }
 }
-
 pub fn fluid_get_velocities(
     world_handle: Handle,
     fluid_handle: HandleDouble,
@@ -260,7 +251,6 @@ pub fn fluid_get_velocities(
         }
     }
 }
-
 pub fn fluid_get_accelerations(
     world_handle: Handle,
     fluid_handle: HandleDouble,
@@ -289,7 +279,6 @@ pub fn fluid_get_accelerations(
         }
     }
 }
-
 pub fn fluid_clear_effects(world_handle: Handle, fluid_handle: HandleDouble) {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
@@ -303,7 +292,6 @@ pub fn fluid_clear_effects(world_handle: Handle, fluid_handle: HandleDouble) {
         }
     }
 }
-
 pub fn fluid_add_effect_elasticity(
     world_handle: Handle,
     fluid_handle: HandleDouble,
@@ -325,7 +313,6 @@ pub fn fluid_add_effect_elasticity(
         }
     }
 }
-
 pub fn fluid_add_effect_surface_tension_akinci(
     world_handle: Handle,
     fluid_handle: HandleDouble,
@@ -348,7 +335,6 @@ pub fn fluid_add_effect_surface_tension_akinci(
         }
     }
 }
-
 pub fn fluid_add_effect_surface_tension_he(
     world_handle: Handle,
     fluid_handle: HandleDouble,
@@ -369,7 +355,6 @@ pub fn fluid_add_effect_surface_tension_he(
         }
     }
 }
-
 pub fn fluid_add_effect_surface_tension_wcsph(
     world_handle: Handle,
     fluid_handle: HandleDouble,
@@ -390,7 +375,6 @@ pub fn fluid_add_effect_surface_tension_wcsph(
         }
     }
 }
-
 pub fn fluid_add_effect_viscosity_artificial(
     world_handle: Handle,
     fluid_handle: HandleDouble,
@@ -413,7 +397,6 @@ pub fn fluid_add_effect_viscosity_artificial(
         }
     }
 }
-
 pub fn fluid_add_effect_viscosity_dfsph(
     world_handle: Handle,
     fluid_handle: HandleDouble,
@@ -432,7 +415,6 @@ pub fn fluid_add_effect_viscosity_dfsph(
         }
     }
 }
-
 pub fn fluid_add_effect_viscosity_xsph(
     world_handle: Handle,
     fluid_handle: HandleDouble,
@@ -453,7 +435,6 @@ pub fn fluid_add_effect_viscosity_xsph(
         }
     }
 }
-
 pub fn fluid_destroy(world_handle: Handle, fluid_handle: HandleDouble) {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {

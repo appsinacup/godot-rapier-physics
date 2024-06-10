@@ -1,11 +1,12 @@
+use godot::classes::*;
+use godot::prelude::*;
+use rapier::math::Vector;
+
+use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::joints::rapier_joint::RapierJointBase;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::bodies_singleton;
-use godot::{classes::*, prelude::*};
-use rapier::math::Vector;
-
-use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 pub struct RapierPinJoint2D {
     angular_limit_lower: f32,
     angular_limit_upper: f32,
@@ -14,7 +15,6 @@ pub struct RapierPinJoint2D {
     angular_limit_enabled: bool,
     base: RapierJointBase,
 }
-
 impl RapierPinJoint2D {
     pub fn new(pos: Vector2, body_a: Rid, body_b: Rid) -> Self {
         let invalid_joint = Self {
@@ -37,13 +37,11 @@ impl RapierPinJoint2D {
                 {
                     return invalid_joint;
                 }
-
                 let anchor_a = body_a.get_base().get_inv_transform() * pos;
                 let anchor_b = body_b.get_base().get_inv_transform() * pos;
                 let rapier_anchor_a = Vector::new(anchor_a.x, anchor_a.y);
                 let rapier_anchor_b = Vector::new(anchor_b.x, anchor_b.y);
                 let space_handle = body_a.get_base().get_space_handle();
-
                 let handle = joint_create_revolute(
                     space_handle,
                     body_a.get_base().get_body_handle(),
@@ -138,14 +136,15 @@ impl RapierPinJoint2D {
         }
     }
 }
-
 impl IRapierJoint for RapierPinJoint2D {
     fn get_base(&self) -> &RapierJointBase {
         &self.base
     }
+
     fn get_mut_base(&mut self) -> &mut RapierJointBase {
         &mut self.base
     }
+
     fn get_type(&self) -> physics_server_2d::JointType {
         physics_server_2d::JointType::PIN
     }
@@ -153,6 +152,7 @@ impl IRapierJoint for RapierPinJoint2D {
     fn get_damped_spring(&self) -> Option<&RapierDampedSpringJoint2D> {
         None
     }
+
     fn get_pin(&self) -> Option<&RapierPinJoint2D> {
         Some(self)
     }
@@ -160,6 +160,7 @@ impl IRapierJoint for RapierPinJoint2D {
     fn get_mut_damped_spring(&mut self) -> Option<&mut RapierDampedSpringJoint2D> {
         None
     }
+
     fn get_mut_pin(&mut self) -> Option<&mut RapierPinJoint2D> {
         Some(self)
     }

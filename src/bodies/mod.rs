@@ -5,7 +5,6 @@ pub mod rapier_collision_object;
 pub mod rapier_direct_body_state_2d;
 #[cfg(feature = "dim3")]
 pub mod rapier_direct_body_state_3d;
-
 #[cfg(feature = "dim2")]
 pub type RapierDirectBodyState = rapier_direct_body_state_2d::RapierDirectBodyState2D;
 #[cfg(feature = "dim2")]

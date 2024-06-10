@@ -1,9 +1,10 @@
+use std::collections::VecDeque;
+
+use godot::prelude::*;
+
 use super::fluid_effect::FluidEffect;
 use crate::rapier_wrapper::prelude::*;
 use crate::Vector;
-use godot::prelude::*;
-use std::collections::VecDeque;
-
 pub struct RapierFluid {
     rid: Rid,
     enabled: bool,
@@ -15,7 +16,6 @@ pub struct RapierFluid {
     velocities: Vec<Vector>,
     accelerations: Vec<Vector>,
 }
-
 impl RapierFluid {
     pub fn new(rid: Rid) -> Self {
         Self {
@@ -96,7 +96,6 @@ impl RapierFluid {
         self.space
     }
 }
-
 impl Drop for RapierFluid {
     fn drop(&mut self) {
         // Cleanup code here

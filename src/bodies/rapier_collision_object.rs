@@ -1,16 +1,17 @@
-use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::*;
-use crate::*;
+use std::any::Any;
+
 #[cfg(feature = "dim2")]
 use godot::engine::physics_server_2d::*;
 #[cfg(feature = "dim3")]
 use godot::engine::physics_server_3d::*;
 use godot::prelude::*;
 use rapier::dynamics::RigidBodyHandle;
-use std::any::Any;
 
-use super::{rapier_area::RapierArea, rapier_body::RapierBody};
-
+use super::rapier_area::RapierArea;
+use super::rapier_body::RapierBody;
+use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::*;
+use crate::*;
 pub trait IRapierCollisionObject: Any {
     fn get_base(&self) -> &RapierCollisionObject;
     fn get_mut_base(&mut self) -> &mut RapierCollisionObject;
@@ -27,19 +28,15 @@ pub trait IRapierCollisionObject: Any {
     fn remove_shape_idx(&mut self, shape_idx: usize);
     fn remove_shape_rid(&mut self, shape_rid: Rid);
     fn create_shape(&mut self, shape: CollisionObjectShape, p_shape_index: usize) -> Handle;
-
     fn _init_material(&self) -> Material;
     fn _shapes_changed(&mut self);
-
     fn _shape_changed(&mut self, p_shape: Rid);
 }
-
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum CollisionObjectType {
     Area,
     Body,
 }
-
 #[derive(Clone, Copy)]
 pub struct CollisionObjectShape {
     pub xform: Transform,
@@ -49,7 +46,6 @@ pub struct CollisionObjectShape {
     pub one_way_collision_margin: real,
     pub collider_handle: Handle,
 }
-
 impl Default for CollisionObjectShape {
     fn default() -> Self {
         Self {
@@ -62,7 +58,6 @@ impl Default for CollisionObjectShape {
         }
     }
 }
-
 pub struct RapierCollisionObject {
     collision_object_type: CollisionObjectType,
     rid: Rid,
@@ -81,7 +76,6 @@ pub struct RapierCollisionObject {
     space_handle: Handle,
     pub(crate) area_detection_counter: u32,
 }
-
 impl RapierCollisionObject {
     pub fn new(rid: Rid, collision_object_type: CollisionObjectType) -> Self {
         Self {
@@ -119,10 +113,8 @@ impl RapierCollisionObject {
             if !shape_handle.is_valid() {
                 return handle;
             }
-
             let mut user_data = UserData::default();
             self.set_collider_user_data(&mut user_data, p_shape_index);
-
             match self.collision_object_type {
                 CollisionObjectType::Body => {
                     handle = collider_create_solid(
@@ -145,6 +137,7 @@ impl RapierCollisionObject {
         }
         handle
     }
+
     pub(crate) fn _destroy_shapes(&mut self) {
         let mut i = 0;
         for shape in &mut self.shapes {
@@ -164,7 +157,6 @@ impl RapierCollisionObject {
                         self.collision_object_type,
                     );
                 }
-
                 collider_destroy(self.space_handle, shape.collider_handle);
                 shape_rid = shape.shape;
                 shape.collider_handle = invalid_handle();
@@ -175,6 +167,7 @@ impl RapierCollisionObject {
             i += 1;
         }
     }
+
     pub(crate) fn _destroy_shape(
         &self,
         shape: CollisionObjectShape,
@@ -193,7 +186,6 @@ impl RapierCollisionObject {
                         self.get_type(),
                     );
                 }
-
                 collider_destroy(self.space_handle, shape.collider_handle);
             }
         }
@@ -236,7 +228,6 @@ impl RapierCollisionObject {
         if !self.is_valid() {
             return;
         }
-
         let position = body_get_position(self.space_handle, self.body_handle);
         let angle = body_get_angle(self.space_handle, self.body_handle);
         let origin = Vector2::new(position.x, position.y);
@@ -253,6 +244,7 @@ impl RapierCollisionObject {
             self.inv_transform = self.transform.affine_inverse();
         }
     }
+
     pub(crate) fn _set_space(&mut self, p_space: Rid) {
         // previous space
         if self.space_handle.is_valid() {
@@ -261,24 +253,21 @@ impl RapierCollisionObject {
                 body_destroy(self.space_handle, self.body_handle);
                 self.body_handle = RigidBodyHandle::invalid();
             }
-
             self._destroy_shapes();
-
             // Reset area detection counter to keep it consistent for new detections
             self.area_detection_counter = 0;
         }
-
         self.space = p_space;
         if let Some(space) = spaces_singleton().spaces.get(&self.space) {
             self.space_handle = space.get_handle();
-        } else {
+        }
+        else {
             self.space_handle = invalid_handle();
             self.space = Rid::Invalid;
         }
         if self.space_handle.is_valid() {
             let mut user_data = UserData::default();
             user_data.part1 = self.rid.to_u64();
-
             let position = vector_to_rapier(self.transform.origin);
             let angle = self.transform.rotation();
             if self.mode == BodyMode::STATIC {
@@ -289,7 +278,8 @@ impl RapierCollisionObject {
                     &user_data,
                     BodyType::Static,
                 );
-            } else if self.mode == BodyMode::KINEMATIC {
+            }
+            else if self.mode == BodyMode::KINEMATIC {
                 self.body_handle = body_create(
                     self.space_handle,
                     position,
@@ -297,7 +287,8 @@ impl RapierCollisionObject {
                     &user_data,
                     BodyType::Kinematic,
                 );
-            } else {
+            }
+            else {
                 self.body_handle = body_create(
                     self.space_handle,
                     position,
@@ -362,7 +353,6 @@ impl RapierCollisionObject {
         if let Some(shape) = self.shapes.get(idx) {
             return shape.shape;
         }
-
         Rid::Invalid
     }
 
@@ -384,7 +374,6 @@ impl RapierCollisionObject {
         if !self.is_valid() {
             return;
         }
-
         let origin = self.transform.origin;
         let position = vector_to_rapier(origin);
         let rotation = self.transform.rotation();
@@ -413,7 +402,6 @@ impl RapierCollisionObject {
         if let Some(shape) = self.shapes.get(idx) {
             return shape.disabled;
         }
-
         true
     }
 
@@ -433,7 +421,6 @@ impl RapierCollisionObject {
         if let Some(shape) = self.shapes.get(p_idx) {
             return shape.one_way_collision;
         }
-
         false
     }
 
@@ -441,7 +428,6 @@ impl RapierCollisionObject {
         if let Some(shape) = self.shapes.get(p_idx) {
             return shape.one_way_collision_margin;
         }
-
         0.0
     }
 

@@ -1,13 +1,12 @@
-use crate::rapier_wrapper::prelude::*;
-use crate::shapes::rapier_shape::*;
 use godot::classes::physics_server_2d::*;
 use godot::prelude::*;
 
+use crate::rapier_wrapper::prelude::*;
+use crate::shapes::rapier_shape::*;
 pub struct RapierCircleShape2D {
     radius: f32,
     pub base: RapierShapeBase,
 }
-
 impl RapierCircleShape2D {
     pub fn new(rid: Rid) -> Self {
         Self {
@@ -16,14 +15,15 @@ impl RapierCircleShape2D {
         }
     }
 }
-
 impl IRapierShape for RapierCircleShape2D {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base
     }
+
     fn get_mut_base(&mut self) -> &mut RapierShapeBase {
         &mut self.base
     }
+
     fn get_type(&self) -> ShapeType {
         ShapeType::CIRCLE
     }

@@ -1,25 +1,26 @@
+use std::collections::HashMap;
+use std::collections::HashSet;
+
+use godot::classes::ProjectSettings;
+#[cfg(feature = "dim2")]
+use godot::engine::physics_server_2d::*;
+#[cfg(feature = "dim3")]
+use godot::engine::physics_server_3d::*;
+use godot::prelude::*;
+
+use super::PhysicsDirectSpaceState;
+use super::RapierDirectSpaceState;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::*;
 use crate::servers::rapier_project_settings::*;
 use crate::*;
-use godot::classes::ProjectSettings;
-use godot::prelude::*;
-use std::collections::{HashMap, HashSet};
-
-use super::{PhysicsDirectSpaceState, RapierDirectSpaceState};
-#[cfg(feature = "dim2")]
-use godot::engine::physics_server_2d::*;
-#[cfg(feature = "dim3")]
-use godot::engine::physics_server_3d::*;
-
 pub struct RemovedColliderInfo {
     pub rid: Rid,
     pub instance_id: u64,
     pub shape_index: usize,
     pub collision_object_type: CollisionObjectType,
 }
-
 impl RemovedColliderInfo {
     pub fn new(
         rid: Rid,
@@ -35,7 +36,6 @@ impl RemovedColliderInfo {
         }
     }
 }
-
 pub struct RapierSpace {
     direct_access: Option<Gd<PhysicsDirectSpaceState>>,
     handle: Handle,
@@ -59,7 +59,6 @@ pub struct RapierSpace {
     contact_debug: PackedVectorArray,
     contact_debug_count: usize,
 }
-
 impl RapierSpace {
     pub fn new(rid: Rid) -> Self {
         let project_settings = ProjectSettings::singleton();
@@ -68,13 +67,11 @@ impl RapierSpace {
             .to();
         let mut direct_access = RapierDirectSpaceState::new_alloc();
         direct_access.bind_mut().set_space(rid);
-
         let world_settings = WorldSettings {
             particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
             smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
         };
         let handle = world_create(&world_settings);
-
         Self {
             direct_access: Some(direct_access.upcast()),
             handle,
@@ -117,12 +114,15 @@ impl RapierSpace {
     pub fn body_add_to_mass_properties_update_list(&mut self, body: Rid) {
         self.mass_properties_update_list.insert(body);
     }
+
     pub fn body_remove_from_mass_properties_update_list(&mut self, body: Rid) {
         self.mass_properties_update_list.remove(&body);
     }
+
     pub fn body_add_to_gravity_update_list(&mut self, body: Rid) {
         self.gravity_update_list.insert(body);
     }
+
     pub fn body_remove_from_gravity_update_list(&mut self, body: Rid) {
         self.gravity_update_list.remove(&body);
     }
@@ -130,12 +130,15 @@ impl RapierSpace {
     pub fn body_add_to_active_list(&mut self, body: Rid) {
         self.active_list.insert(body);
     }
+
     pub fn body_remove_from_active_list(&mut self, body: Rid) {
         self.active_list.remove(&body);
     }
+
     pub fn body_add_to_state_query_list(&mut self, body: Rid) {
         self.state_query_list.insert(body);
     }
+
     pub fn body_remove_from_state_query_list(&mut self, body: Rid) {
         self.state_query_list.remove(&body);
     }
@@ -143,15 +146,19 @@ impl RapierSpace {
     pub fn area_add_to_monitor_query_list(&mut self, area: Rid) {
         self.monitor_query_list.insert(area);
     }
+
     pub fn area_add_to_area_update_list(&mut self, area: Rid) {
         self.area_update_list.insert(area);
     }
+
     pub fn area_remove_from_area_update_list(&mut self, area: Rid) {
         self.area_update_list.remove(&area);
     }
+
     pub fn body_add_to_area_update_list(&mut self, body: Rid) {
         self.body_area_update_list.insert(body);
     }
+
     pub fn body_remove_from_area_update_list(&mut self, body: Rid) {
         self.body_area_update_list.remove(&body);
     }
@@ -169,6 +176,7 @@ impl RapierSpace {
             RemovedColliderInfo::new(rid, instance_id, shape_index, collision_object_type),
         );
     }
+
     pub fn get_removed_collider_info(&mut self, handle: &Handle) -> Option<&RemovedColliderInfo> {
         self.removed_colliders.get(handle)
     }
@@ -182,14 +190,11 @@ impl RapierSpace {
                     }
                     if let Some(direct_state) = body.get_direct_state() {
                         let fi_callback_data = body.get_force_integration_callback();
-
                         if let Some(fi_callback_data) = fi_callback_data {
                             if fi_callback_data.callable.is_valid() {
                                 let mut arg_array = Array::new();
-
                                 arg_array.push(direct_state.to_variant());
                                 arg_array.push(fi_callback_data.udata.clone());
-
                                 fi_callback_data.callable.callv(arg_array);
                             }
                         }
@@ -246,6 +251,7 @@ impl RapierSpace {
             _ => {}
         }
     }
+
     pub fn get_default_area_param(&self, param: AreaParameter) -> Variant {
         match param {
             AreaParameter::GRAVITY => self.default_gravity_value.to_variant(),
@@ -271,29 +277,34 @@ impl RapierSpace {
     pub fn set_debug_contacts(&mut self, max_contacts: i32) {
         self.contact_debug.resize(max_contacts as usize);
     }
+
     pub fn is_debugging_contacts(&self) -> bool {
         !self.contact_debug.is_empty()
     }
+
     pub fn add_debug_contact(&mut self, contact: Vector) {
         if self.contact_debug_count < self.contact_debug.len() {
             self.contact_debug[self.contact_debug_count] = contact;
             self.contact_debug_count += 1;
         }
     }
+
     pub fn get_debug_contacts(&self) -> &PackedVectorArray {
         &self.contact_debug
     }
+
     pub fn get_debug_contact_count(&self) -> i32 {
         self.contact_debug_count as i32
     }
+
     pub fn before_step(&mut self) {
         self.contact_debug_count = 0
     }
+
     pub fn after_step(&mut self) {
         // Needed only for one physics step to retrieve lost info
         self.removed_colliders.clear();
         self.active_objects = world_get_active_objects_count(self.handle) as i32;
-
         for body in self.active_list.clone() {
             if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
                 if let Some(body) = body.get_mut_body() {
@@ -310,15 +321,19 @@ impl RapierSpace {
     pub fn get_active_list(&self) -> &HashSet<Rid> {
         &self.active_list
     }
+
     pub fn get_mass_properties_update_list(&self) -> &HashSet<Rid> {
         &self.mass_properties_update_list
     }
+
     pub fn get_area_update_list(&self) -> &HashSet<Rid> {
         &self.area_update_list
     }
+
     pub fn get_body_area_update_list(&self) -> &HashSet<Rid> {
         &self.body_area_update_list
     }
+
     pub fn get_gravity_update_list(&self) -> &HashSet<Rid> {
         &self.gravity_update_list
     }
@@ -326,6 +341,7 @@ impl RapierSpace {
     pub fn export_json(&self) -> String {
         world_export_json(self.handle)
     }
+
     pub fn export_binary(&self) -> PackedByteArray {
         let mut buf = PackedByteArray::new();
         let binary_data = world_export_binary(self.handle);

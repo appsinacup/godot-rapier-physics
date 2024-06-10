@@ -1,9 +1,10 @@
-use crate::{
-    bodies::rapier_collision_object::IRapierCollisionObject, servers::rapier_physics_singleton::*,
-    spaces::rapier_space::RapierSpace, Vector,
-};
-use godot::{classes::*, prelude::*};
+use godot::classes::*;
+use godot::prelude::*;
 
+use crate::bodies::rapier_collision_object::IRapierCollisionObject;
+use crate::servers::rapier_physics_singleton::*;
+use crate::spaces::rapier_space::RapierSpace;
+use crate::Vector;
 #[derive(GodotClass)]
 #[class(base=PhysicsDirectBodyState3DExtension,tool)]
 pub struct RapierDirectBodyState3D {
@@ -11,13 +12,11 @@ pub struct RapierDirectBodyState3D {
 
     base: Base<PhysicsDirectBodyState3DExtension>,
 }
-
 impl RapierDirectBodyState3D {
     pub fn set_body(&mut self, body: Rid) {
         self.body = body;
     }
 }
-
 #[godot_api]
 impl IPhysicsDirectBodyState3DExtension for RapierDirectBodyState3D {
     fn init(base: Base<PhysicsDirectBodyState3DExtension>) -> Self {
@@ -35,7 +34,8 @@ impl IPhysicsDirectBodyState3DExtension for RapierDirectBodyState3D {
             if let Some(body) = body.get_body() {
                 if body.using_area_gravity() {
                     return body.total_gravity();
-                } else {
+                }
+                else {
                     gravity_scale = body.gravity_scale();
                 }
             }

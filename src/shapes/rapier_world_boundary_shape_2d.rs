@@ -1,15 +1,16 @@
-use crate::rapier_wrapper::prelude::*;
-use crate::shapes::rapier_shape::{IRapierShape, RapierShapeBase};
-use godot::{engine::physics_server_2d::ShapeType, prelude::*};
+use godot::engine::physics_server_2d::ShapeType;
+use godot::prelude::*;
 use rapier::math::Real;
 
+use crate::rapier_wrapper::prelude::*;
+use crate::shapes::rapier_shape::IRapierShape;
+use crate::shapes::rapier_shape::RapierShapeBase;
 pub struct RapierWorldBoundaryShape2D {
     normal: Vector2,
     d: f32,
 
     pub base: RapierShapeBase,
 }
-
 impl RapierWorldBoundaryShape2D {
     pub fn new(rid: Rid) -> Self {
         Self {
@@ -19,14 +20,15 @@ impl RapierWorldBoundaryShape2D {
         }
     }
 }
-
 impl IRapierShape for RapierWorldBoundaryShape2D {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base
     }
+
     fn get_mut_base(&mut self) -> &mut RapierShapeBase {
         &mut self.base
     }
+
     fn get_type(&self) -> ShapeType {
         ShapeType::WORLD_BOUNDARY
     }

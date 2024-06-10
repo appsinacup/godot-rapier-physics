@@ -1,9 +1,9 @@
-use super::rapier_direct_space_state_impl::RapierDirectSpaceStateImpl;
-use crate::Vector;
 use godot::classes::native::*;
 use godot::classes::*;
 use godot::prelude::*;
 
+use super::rapier_direct_space_state_impl::RapierDirectSpaceStateImpl;
+use crate::Vector;
 #[derive(GodotClass)]
 #[class(base=PhysicsDirectSpaceState2DExtension,tool)]
 pub struct RapierDirectSpaceState2D {
@@ -11,14 +11,12 @@ pub struct RapierDirectSpaceState2D {
     space: Rid,
     base: Base<PhysicsDirectSpaceState2DExtension>,
 }
-
 impl RapierDirectSpaceState2D {
     pub fn set_space(&mut self, space: Rid) {
         self.space = space;
         self.inner.space = space;
     }
 }
-
 #[godot_api]
 impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
     fn init(base: Base<PhysicsDirectSpaceState2DExtension>) -> Self {

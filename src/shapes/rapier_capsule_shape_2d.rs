@@ -1,14 +1,13 @@
-use crate::rapier_wrapper::prelude::*;
-use crate::shapes::rapier_shape::*;
 use godot::classes::physics_server_2d::*;
 use godot::prelude::*;
 
+use crate::rapier_wrapper::prelude::*;
+use crate::shapes::rapier_shape::*;
 pub struct RapierCapsuleShape2D {
     height: f32,
     radius: f32,
     pub base: RapierShapeBase,
 }
-
 impl RapierCapsuleShape2D {
     pub fn new(rid: Rid) -> Self {
         Self {
@@ -18,14 +17,15 @@ impl RapierCapsuleShape2D {
         }
     }
 }
-
 impl IRapierShape for RapierCapsuleShape2D {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base
     }
+
     fn get_mut_base(&mut self) -> &mut RapierShapeBase {
         &mut self.base
     }
+
     fn get_type(&self) -> ShapeType {
         ShapeType::CAPSULE
     }
@@ -63,7 +63,6 @@ impl IRapierShape for RapierCapsuleShape2D {
                 return;
             }
         }
-
         let he = Vector2::new(self.radius, self.height * 0.5);
         self.base.configure(Rect2::new(-he, he * 2.0));
     }
@@ -71,6 +70,7 @@ impl IRapierShape for RapierCapsuleShape2D {
     fn get_data(&self) -> Variant {
         Vector2::new(self.radius, self.height).to_variant()
     }
+
     fn get_rapier_shape(&mut self) -> Handle {
         if !self.base.get_handle().is_valid() {
             let handle = self.create_rapier_shape();

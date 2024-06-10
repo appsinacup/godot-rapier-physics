@@ -1,5 +1,4 @@
 #![feature(map_many_mut)]
-
 #[cfg(all(feature = "single", feature = "dim2"))]
 extern crate rapier2d as rapier;
 #[cfg(all(feature = "double", feature = "dim2"))]
@@ -8,7 +7,6 @@ extern crate rapier2d_f64 as rapier;
 extern crate rapier3d as rapier;
 #[cfg(all(feature = "double", feature = "dim3"))]
 extern crate rapier3d_f64 as rapier;
-
 #[cfg(all(feature = "single", feature = "dim2"))]
 extern crate salva2d as salva;
 #[cfg(all(feature = "double", feature = "dim2"))]
@@ -17,7 +15,6 @@ extern crate salva2d as salva;
 extern crate salva3d as salva;
 #[cfg(all(feature = "double", feature = "dim3"))]
 extern crate salva3d as salva;
-
 #[cfg(feature = "dim2")]
 pub type Transform = Transform2D;
 #[cfg(feature = "dim2")]
@@ -26,7 +23,6 @@ pub type Rect = Rect2;
 pub type Transform = Transform3D;
 #[cfg(feature = "dim3")]
 pub type Rect = Aabb;
-
 #[cfg(feature = "dim2")]
 pub type Vector = Vector2;
 #[cfg(feature = "dim2")]
@@ -35,7 +31,6 @@ pub type PackedVectorArray = PackedVector2Array;
 pub type Angle = real;
 #[cfg(feature = "dim2")]
 pub const ANGLE_ZERO: Angle = 0.0;
-
 #[cfg(feature = "dim3")]
 pub type Vector = Vector3;
 #[cfg(feature = "dim3")]
@@ -44,7 +39,6 @@ pub type PackedVectorArray = PackedVector3Array;
 pub type Angle = Vector3;
 #[cfg(feature = "dim3")]
 pub const ANGLE_ZERO: Angle = Vector3::ZERO;
-
 mod bodies;
 mod fluids;
 mod joints;
@@ -53,16 +47,15 @@ mod servers;
 mod shapes;
 mod spaces;
 use godot::prelude::*;
-
 #[derive(GodotClass)]
 #[class(base=Object, init)]
 pub struct RapierPhysics2DExtensionLibrary {}
-
 #[gdextension]
 unsafe impl ExtensionLibrary for RapierPhysics2DExtensionLibrary {
     fn min_level() -> InitLevel {
         InitLevel::Servers
     }
+
     fn on_level_init(level: InitLevel) {
         match level {
             InitLevel::Scene => {

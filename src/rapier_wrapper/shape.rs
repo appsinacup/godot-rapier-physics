@@ -1,7 +1,7 @@
-use crate::rapier_wrapper::prelude::*;
-use crate::Transform;
 use rapier::prelude::*;
 
+use crate::rapier_wrapper::prelude::*;
+use crate::Transform;
 pub fn pixel_point_array_to_vec(pixel_data: Vec<Vector<Real>>) -> Vec<Point<Real>> {
     let mut vec = Vec::<Point<Real>>::with_capacity(pixel_data.len());
     for pixel_point in pixel_data {
@@ -10,7 +10,6 @@ pub fn pixel_point_array_to_vec(pixel_data: Vec<Vector<Real>>) -> Vec<Point<Real
     }
     vec
 }
-
 #[derive(Copy, Clone, Debug)]
 pub struct ShapeInfo {
     pub handle: Handle,
@@ -19,7 +18,6 @@ pub struct ShapeInfo {
     pub skew: Real,
     pub scale: Vector<Real>,
 }
-
 pub fn shape_info_from_body_shape(shape_handle: Handle, transform: Transform) -> ShapeInfo {
     let origin = transform.origin;
     let scale = transform.scale();
@@ -35,7 +33,6 @@ pub fn shape_info_from_body_shape(shape_handle: Handle, transform: Transform) ->
         scale: vector_to_rapier(scale),
     }
 }
-
 pub fn shape_destroy(shape_handle: Handle) {
     physics_engine().remove_shape(shape_handle)
 }
