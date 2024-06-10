@@ -1,8 +1,6 @@
-use crate::rapier_wrapper::convert::vector_to_rapier;
-use crate::rapier_wrapper::handle::{invalid_handle, Handle};
-use crate::rapier_wrapper::shape_2d::shape_create_convex_polyline;
+use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::{IRapierShape, RapierShapeBase};
-use godot::engine::physics_server_2d::ShapeType;
+use godot::classes::physics_server_2d::ShapeType;
 use godot::prelude::*;
 
 pub struct RapierConvexPolygonShape2D {

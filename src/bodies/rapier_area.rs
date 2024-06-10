@@ -1,21 +1,16 @@
-use crate::bodies::rapier_collision_object::{CollisionObjectShape, CollisionObjectType};
-use crate::bodies::rapier_collision_object::{IRapierCollisionObject, RapierCollisionObject};
-use crate::rapier_wrapper::collider::{default_material, Material};
-use crate::rapier_wrapper::handle::{handle_pair_hash, invalid_handle, Handle};
-use crate::servers::rapier_physics_singleton::{
-    bodies_singleton, shapes_singleton, spaces_singleton,
-};
-use crate::spaces::rapier_space::RapierSpace;
-use crate::{Transform, Vector};
-use godot::builtin::{real, VariantArray};
-use godot::engine::physics_server_2d::AreaBodyStatus;
+use crate::bodies::rapier_collision_object::*;
+use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::*;
+use crate::spaces::rapier_space::*;
+use crate::*;
+#[cfg(feature = "dim2")]
+use godot::engine::physics_server_2d::*;
+#[cfg(feature = "dim3")]
+use godot::engine::physics_server_3d::*;
 use godot::log::godot_error;
 use godot::meta::ToGodot;
 use godot::obj::EngineEnum;
-use godot::{
-    builtin::{Callable, Rid, Variant},
-    engine::physics_server_2d::{AreaParameter, AreaSpaceOverrideMode},
-};
+use godot::prelude::*;
 use std::collections::HashMap;
 
 use super::rapier_body::RapierBody;
@@ -50,8 +45,6 @@ pub struct RapierArea {
     area_monitor_callback: Callable,
     monitored_objects: HashMap<u128, MonitorInfo>,
     detected_bodies: HashMap<Rid, BodyRefCount>,
-    monitor_query_list: Vec<Rid>,
-    area_override_update_list: Vec<Rid>,
     base: RapierCollisionObject,
 }
 
@@ -73,27 +66,51 @@ impl RapierArea {
             area_monitor_callback: Callable::invalid(),
             monitored_objects: HashMap::new(),
             detected_bodies: HashMap::new(),
-            monitor_query_list: Vec::new(),
-            area_override_update_list: Vec::new(),
             base: RapierCollisionObject::new(rid, CollisionObjectType::Area),
         }
     }
 
-    pub fn _set_space_override_mode(
-        &mut self,
-        r_mode: AreaSpaceOverrideMode,
-        p_value: AreaSpaceOverrideMode,
-    ) {
-        // Implementation needed
+    pub fn _enable_space_override(&self) {
+        if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+            let rid = self.base.get_rid();
+            for (key, _) in self.detected_bodies.iter() {
+                if let Some(body) = bodies_singleton().collision_objects.get_mut(key) {
+                    if let Some(body) = body.get_mut_body() {
+                        body.add_area(rid);
+                    }
+                }
+            }
+            // No need to update anymore if it was scheduled before
+            space.area_remove_from_area_update_list(rid);
+        }
     }
-    pub fn _enable_space_override() {
-        // Implementation needed
-    }
-    pub fn _disable_space_override() {
-        // Implementation needed
+    pub fn _disable_space_override(&self) {
+        if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+            let rid = self.base.get_rid();
+            for (key, _) in self.detected_bodies.iter() {
+                if let Some(body) = bodies_singleton().collision_objects.get_mut(key) {
+                    if let Some(body) = body.get_mut_body() {
+                        body.remove_area(rid);
+                    }
+                }
+            }
+            // No need to update anymore if it was scheduled before
+            space.area_remove_from_area_update_list(rid);
+        }
     }
     pub fn _reset_space_override(&self) {
-        // Implementation needed
+        if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+            let rid = self.base.get_rid();
+            for (key, _) in self.detected_bodies.iter() {
+                if let Some(body) = bodies_singleton().collision_objects.get_mut(key) {
+                    if let Some(body) = body.get_mut_body() {
+                        body.remove_area(rid);
+                        body.add_area(rid);
+                    }
+                }
+            }
+            space.area_remove_from_area_update_list(rid);
+        }
     }
 
     pub fn on_body_enter(
@@ -327,25 +344,25 @@ impl RapierArea {
         self.monitor_callback = callback;
     }
 
-    pub fn has_monitor_callback(&self) -> bool {
-        self.monitor_callback.is_valid()
-    }
-
     pub fn set_area_monitor_callback(&mut self, callback: Callable) {
         self.area_monitor_callback = callback;
-    }
-
-    pub fn has_area_monitor_callback(&self) -> bool {
-        self.area_monitor_callback.is_valid()
     }
 
     pub fn set_param(&mut self, p_param: AreaParameter, p_value: Variant) {
         match p_param {
             AreaParameter::GRAVITY_OVERRIDE_MODE => {
-                self._set_space_override_mode(
-                    self.gravity_override_mode,
-                    AreaSpaceOverrideMode::from_ord(p_value.to()),
-                );
+                let had_override = self.has_any_space_override();
+                self.gravity_override_mode = AreaSpaceOverrideMode::from_ord(p_value.to());
+                let has_override = self.has_any_space_override();
+
+                // Update currently detected bodies if needed
+                if has_override != had_override {
+                    if has_override {
+                        self._enable_space_override();
+                    } else {
+                        self._disable_space_override();
+                    }
+                }
             }
 
             AreaParameter::GRAVITY => {
@@ -405,10 +422,18 @@ impl RapierArea {
                 }
             }
             AreaParameter::LINEAR_DAMP_OVERRIDE_MODE => {
-                self._set_space_override_mode(
-                    self.linear_damping_override_mode,
-                    AreaSpaceOverrideMode::from_ord(p_value.to()),
-                );
+                let had_override = self.has_any_space_override();
+                self.linear_damping_override_mode = AreaSpaceOverrideMode::from_ord(p_value.to());
+                let has_override = self.has_any_space_override();
+
+                // Update currently detected bodies if needed
+                if has_override != had_override {
+                    if has_override {
+                        self._enable_space_override();
+                    } else {
+                        self._disable_space_override();
+                    }
+                }
             }
             AreaParameter::LINEAR_DAMP => {
                 let new_linear_damp = p_value.to();
@@ -425,10 +450,18 @@ impl RapierArea {
                 }
             }
             AreaParameter::ANGULAR_DAMP_OVERRIDE_MODE => {
-                self._set_space_override_mode(
-                    self.angular_damping_override_mode,
-                    AreaSpaceOverrideMode::from_ord(p_value.to()),
-                );
+                let had_override = self.has_any_space_override();
+                self.angular_damping_override_mode = AreaSpaceOverrideMode::from_ord(p_value.to());
+                let has_override = self.has_any_space_override();
+
+                // Update currently detected bodies if needed
+                if has_override != had_override {
+                    if has_override {
+                        self._enable_space_override();
+                    } else {
+                        self._disable_space_override();
+                    }
+                }
             }
             AreaParameter::ANGULAR_DAMP => {
                 let new_angular_damp = p_value.to();
@@ -480,60 +513,16 @@ impl RapierArea {
         }
     }
 
-    pub fn set_gravity(&mut self, gravity: real) {
-        self.gravity = gravity;
-    }
-
-    pub fn get_gravity(&self) -> real {
-        self.gravity
-    }
-
-    pub fn set_gravity_vector(&mut self, gravity: Vector) {
-        self.gravity_vector = gravity;
-    }
-
-    pub fn get_gravity_vector(&self) -> Vector {
-        self.gravity_vector
-    }
-
-    pub fn set_gravity_as_point(&mut self, enable: bool) {
-        self.gravity_is_point = enable;
-    }
-
-    pub fn is_gravity_point(&self) -> bool {
-        self.gravity_is_point
-    }
-
-    pub fn set_gravity_point_unit_distance(&mut self, scale: real) {
-        self.gravity_point_unit_distance = scale;
-    }
-
     pub fn get_gravity_point_unit_distance(&self) -> real {
         self.gravity_point_unit_distance
-    }
-
-    pub fn set_linear_damp(&mut self, linear_damp: real) {
-        self.linear_damp = linear_damp;
     }
 
     pub fn get_linear_damp(&self) -> real {
         self.linear_damp
     }
 
-    pub fn set_angular_damp(&mut self, angular_damp: real) {
-        self.angular_damp = angular_damp;
-    }
-
     pub fn get_angular_damp(&self) -> real {
         self.angular_damp
-    }
-
-    pub fn set_priority(&mut self, priority: i32) {
-        self.priority = priority;
-    }
-
-    pub fn get_priority(&self) -> i32 {
-        self.priority
     }
 
     pub fn set_monitorable(&mut self, monitorable: bool) {
@@ -544,7 +533,7 @@ impl RapierArea {
         self.monitorable
     }
 
-    pub fn call_queries(&self, space: &mut RapierSpace) {
+    pub fn call_queries(&self) {
         if self.monitored_objects.is_empty() {
             return;
         }
@@ -577,7 +566,7 @@ impl RapierArea {
     }
 
     pub fn compute_gravity(&self, position: Vector) -> Vector {
-        if self.is_gravity_point() {
+        if self.gravity_is_point {
             let gr_unit_dist = self.get_gravity_point_unit_distance();
             let v = self.get_base().get_transform() * self.gravity_vector - position;
             if gr_unit_dist > 0.0 {

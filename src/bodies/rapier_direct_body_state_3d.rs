@@ -1,16 +1,8 @@
 use crate::{
-    bodies::rapier_collision_object::IRapierCollisionObject,
-    servers::rapier_physics_singleton::{bodies_singleton, spaces_singleton},
-    spaces::rapier_space::RapierSpace,
-    Vector,
+    bodies::rapier_collision_object::IRapierCollisionObject, servers::rapier_physics_singleton::*,
+    spaces::rapier_space::RapierSpace, Vector,
 };
-use godot::{
-    engine::{
-        physics_server_3d, IPhysicsDirectBodyState3DExtension, PhysicsDirectBodyState3DExtension,
-        PhysicsDirectSpaceState2D, PhysicsDirectSpaceState3D,
-    },
-    prelude::*,
-};
+use godot::{classes::*, prelude::*};
 
 #[derive(GodotClass)]
 #[class(base=PhysicsDirectBodyState3DExtension,tool)]

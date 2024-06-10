@@ -1,26 +1,17 @@
-use crate::bodies::rapier_collision_object::IRapierCollisionObject;
-use crate::rapier_wrapper::physics_world::{
-    world_export_binary, world_export_json, world_get_active_objects_count,
-};
-use crate::rapier_wrapper::settings::WorldSettings;
-use crate::servers::rapier_physics_singleton::bodies_singleton;
-use crate::servers::rapier_project_settings::RapierProjectSettings;
-use crate::{
-    bodies::rapier_collision_object::CollisionObjectType,
-    rapier_wrapper::{handle::Handle, physics_world::world_create},
-};
-use crate::{PackedVectorArray, Vector};
-use godot::{
-    engine::{physics_server_2d, ProjectSettings},
-    prelude::*,
-};
+use crate::bodies::rapier_collision_object::*;
+use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::*;
+use crate::servers::rapier_project_settings::*;
+use crate::*;
+use godot::classes::ProjectSettings;
+use godot::prelude::*;
 use std::collections::{HashMap, HashSet};
 
 use super::{PhysicsDirectSpaceState, RapierDirectSpaceState};
 #[cfg(feature = "dim2")]
-use godot::engine::physics_server_2d::AreaParameter;
+use godot::engine::physics_server_2d::*;
 #[cfg(feature = "dim3")]
-use godot::engine::physics_server_3d::AreaParameter;
+use godot::engine::physics_server_3d::*;
 
 pub struct RemovedColliderInfo {
     pub rid: Rid,
@@ -216,7 +207,7 @@ impl RapierSpace {
         for area_rid in self.monitor_query_list.clone() {
             if let Some(area) = bodies_singleton().collision_objects.get(&area_rid) {
                 if let Some(area) = area.get_area() {
-                    area.call_queries(self);
+                    area.call_queries();
                 }
             }
         }
@@ -233,15 +224,15 @@ impl RapierSpace {
         last_step
     }
 
-    pub fn set_param(&mut self, param: physics_server_2d::SpaceParameter, value: real) {
-        if param == physics_server_2d::SpaceParameter::SOLVER_ITERATIONS {
+    pub fn set_param(&mut self, param: SpaceParameter, value: real) {
+        if param == SpaceParameter::SOLVER_ITERATIONS {
             self.solver_iterations = value as i32;
         }
     }
 
-    pub fn get_param(&self, param: physics_server_2d::SpaceParameter) -> real {
+    pub fn get_param(&self, param: SpaceParameter) -> real {
         match param {
-            physics_server_2d::SpaceParameter::SOLVER_ITERATIONS => self.solver_iterations as real,
+            SpaceParameter::SOLVER_ITERATIONS => self.solver_iterations as real,
             _ => 0.0,
         }
     }

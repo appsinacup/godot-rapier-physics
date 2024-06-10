@@ -1,13 +1,11 @@
-use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::fluids::fluid_effect::FluidEffect;
 use crate::fluids::rapier_fluid::RapierFluid;
 use crate::servers::RapierPhysicsServer;
 use crate::PackedVectorArray;
-use godot::classes::IPhysicsServer2DExtension;
 use godot::engine::utilities::{rid_allocate_id, rid_from_int64};
 use godot::prelude::*;
 
-use super::rapier_physics_singleton::{bodies_singleton, fluids_singleton, spaces_singleton};
+use super::rapier_physics_singleton::*;
 
 pub enum RapierBodyParam {
     ContactSkin = 0,

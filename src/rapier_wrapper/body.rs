@@ -1,13 +1,9 @@
-use crate::rapier_wrapper::collider::*;
-use crate::rapier_wrapper::convert::*;
-use crate::rapier_wrapper::handle::*;
-use crate::rapier_wrapper::physics_world::*;
-use crate::rapier_wrapper::user_data::UserData;
+use crate::rapier_wrapper::prelude::*;
 use nalgebra::zero;
 use nalgebra::Point;
 use rapier::prelude::*;
 
-use super::AngZERO;
+use super::ANG_ZERO;
 
 pub enum BodyType {
     Dynamic,
@@ -228,7 +224,7 @@ pub fn body_get_angular_velocity(world_handle: Handle, body_handle: Handle) -> A
             return body.angvel();
         }
     }
-    AngZERO
+    ANG_ZERO
 }
 
 pub fn body_set_angular_velocity(world_handle: Handle, body_handle: Handle, vel: AngVector<Real>) {
@@ -483,7 +479,7 @@ pub fn body_get_constant_torque(world_handle: Handle, body_handle: Handle) -> An
             return angle_meters_to_pixels(angle_meters_to_pixels(body.user_torque()));
         }
     }
-    AngZERO
+    ANG_ZERO
 }
 
 pub fn body_apply_torque_impulse(
@@ -491,7 +487,7 @@ pub fn body_apply_torque_impulse(
     body_handle: Handle,
     pixel_torque_impulse: AngVector<Real>,
 ) {
-    let torque_impulse = pixels_to_meters(pixels_to_meters(pixel_torque_impulse));
+    let torque_impulse = angle_pixels_to_meters(angle_pixels_to_meters(pixel_torque_impulse));
 
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {

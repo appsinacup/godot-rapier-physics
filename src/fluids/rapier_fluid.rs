@@ -1,16 +1,8 @@
-use std::collections::VecDeque;
-
-use godot::{
-    builtin::{Array, Rid},
-    obj::Gd,
-};
-
-use crate::{
-    rapier_wrapper::handle::{invalid_handle_double, HandleDouble},
-    Vector,
-};
-
 use super::fluid_effect::FluidEffect;
+use crate::rapier_wrapper::prelude::*;
+use crate::Vector;
+use godot::prelude::*;
+use std::collections::VecDeque;
 
 pub struct RapierFluid {
     rid: Rid,

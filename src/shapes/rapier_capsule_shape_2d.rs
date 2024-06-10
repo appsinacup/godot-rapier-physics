@@ -1,9 +1,6 @@
-use crate::shapes::rapier_shape::IRapierShape;
-use crate::{
-    rapier_wrapper::{handle::Handle, shape_2d::shape_create_capsule},
-    shapes::rapier_shape::RapierShapeBase,
-};
-use godot::engine::physics_server_2d::ShapeType;
+use crate::rapier_wrapper::prelude::*;
+use crate::shapes::rapier_shape::*;
+use godot::classes::physics_server_2d::*;
 use godot::prelude::*;
 
 pub struct RapierCapsuleShape2D {

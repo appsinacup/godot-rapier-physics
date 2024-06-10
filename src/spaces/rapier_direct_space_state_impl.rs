@@ -1,28 +1,23 @@
-use crate::{
-    bodies::rapier_collision_object::{IRapierCollisionObject, RapierCollisionObject},
-    rapier_wrapper::{
-        convert::{vector_to_godot, vector_to_rapier},
-        handle::Handle,
-        query::{intersect_point, shape_casting, PointHitInfo, QueryExcludedInfo, RayHitInfo},
-        shape::shape_info_from_body_shape,
-    },
-    servers::rapier_physics_singleton::{bodies_singleton, shapes_singleton, spaces_singleton},
-    spaces::rapier_space::RapierSpace,
-    Transform, Vector,
-};
-use godot::prelude::*;
-
 use super::rapier_space_body_helper::is_handle_excluded_callback;
+use crate::{
+    bodies::rapier_collision_object::*, rapier_wrapper::prelude::*,
+    servers::rapier_physics_singleton::*, spaces::rapier_space::RapierSpace, Transform, Vector,
+};
 use godot::classes::native::*;
+use godot::prelude::*;
 
 #[cfg(feature = "dim2")]
 type PhysicsServerExtensionShapeResult = PhysicsServer2DExtensionShapeResult;
 #[cfg(feature = "dim2")]
 type PhysicsServerExtensionRayResult = PhysicsServer2DExtensionRayResult;
+#[cfg(feature = "dim2")]
+type PhysicsServerExtensionShapeRestInfo = PhysicsServer2DExtensionShapeRestInfo;
 #[cfg(feature = "dim3")]
 type PhysicsServerExtensionShapeResult = PhysicsServer3DExtensionShapeResult;
 #[cfg(feature = "dim3")]
 type PhysicsServerExtensionRayResult = PhysicsServer3DExtensionRayResult;
+#[cfg(feature = "dim3")]
+type PhysicsServerExtensionShapeRestInfo = PhysicsServer3DExtensionShapeRestInfo;
 
 pub struct RapierDirectSpaceStateImpl {
     pub space: Rid,
@@ -201,7 +196,7 @@ impl RapierDirectSpaceStateImpl {
                 query_excluded_info.query_exclude_size = 0;
                 let mut cpt = 0;
                 let results_slice: &mut [PhysicsServerExtensionShapeResult] =
-            unsafe { std::slice::from_raw_parts_mut(results, max_results) };
+                    unsafe { std::slice::from_raw_parts_mut(results, max_results) };
                 while cpt < max_results {
                     let result = shape_casting(
                         space.get_handle(),
@@ -366,7 +361,7 @@ impl RapierDirectSpaceStateImpl {
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
-        rest_info: *mut godot::engine::native::PhysicsServer2DExtensionShapeRestInfo,
+        rest_info: *mut PhysicsServerExtensionShapeRestInfo,
     ) -> bool {
         if let Some(shape) = shapes_singleton().shapes.get(&shape_rid) {
             if !shape.get_base().is_valid() {
@@ -403,13 +398,12 @@ impl RapierDirectSpaceStateImpl {
                     let instance_id = collision_object_2d.get_base().get_instance_id();
                     r_info.collider_id = ObjectId { id: instance_id };
                     if let Some(body) = collision_object_2d.get_body() {
-                        // TODO fix linvel result
-                        //let rel_vec = r_info.point
-                        //    - (body.get_base().get_transform().origin + body.get_center_of_mass());
-                        //r_info.linear_velocity = Vector::new(
-                        //    -body.get_angular_velocity() * rel_vec.y,
-                        //    body.get_angular_velocity() * rel_vec.x,
-                        //) + body.get_linear_velocity();
+                        let rel_vec = r_info.point
+                            - (body.get_base().get_transform().origin + body.get_center_of_mass());
+                        r_info.linear_velocity = Vector::new(
+                            -body.get_angular_velocity() * rel_vec.y,
+                            body.get_angular_velocity() * rel_vec.x,
+                        ) + body.get_linear_velocity();
                     } else {
                         r_info.linear_velocity = Vector::ZERO
                     }

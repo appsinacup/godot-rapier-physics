@@ -94,7 +94,7 @@ position = Vector2(118, -46)
 shape = SubResource("CircleShape2D_r2n1f")
 
 [node name="PinJoint2D" type="PinJoint2D" parent="JoinStaticRigidAngleLimitHigh/StaticBodyPin"]
-position = Vector2(1, -1)
+position = Vector2(0, -1)
 node_a = NodePath("..")
 node_b = NodePath("../../RigidBodyPin")
 angular_limit_enabled = true

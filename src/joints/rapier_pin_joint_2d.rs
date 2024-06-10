@@ -1,11 +1,8 @@
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::joints::rapier_joint::RapierJointBase;
-use crate::rapier_wrapper::handle::invalid_handle;
-use crate::rapier_wrapper::joint::joint_change_revolute_params;
-use crate::rapier_wrapper::joint::joint_create_revolute;
+use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::bodies_singleton;
-use godot::builtin::Vector2;
-use godot::{builtin::Rid, engine::physics_server_2d};
+use godot::{classes::*, prelude::*};
 use rapier::math::Vector;
 
 use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;

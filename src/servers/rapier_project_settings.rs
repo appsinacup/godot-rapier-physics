@@ -1,7 +1,4 @@
-use godot::{
-    builtin::{meta::ToGodot, Dictionary, Variant, Vector2},
-    engine::{global::PropertyHint, ProjectSettings},
-};
+use godot::{classes::*, global::*, prelude::*};
 use rapier::math::Real;
 
 use crate::Vector;
@@ -130,10 +127,10 @@ impl RapierProjectSettings {
         let setting_value = project_settings.get_setting_with_override(p_setting.into());
         setting_value.to::<f64>()
     }
-    fn get_setting_vector2(p_setting: &str) -> Vector2 {
+    fn get_setting_vector(p_setting: &str) -> Vector {
         let project_settings = ProjectSettings::singleton();
         let setting_value = project_settings.get_setting_with_override(p_setting.into());
-        setting_value.to::<Vector2>()
+        setting_value.to::<Vector>()
     }
 
     pub fn get_solver_max_ccd_substeps() -> i64 {
@@ -153,7 +150,7 @@ impl RapierProjectSettings {
     }
 
     pub fn get_fluid_gravity_dir() -> Vector {
-        RapierProjectSettings::get_setting_vector2(FLUID_GRAVITY_DIR)
+        RapierProjectSettings::get_setting_vector(FLUID_GRAVITY_DIR)
     }
 
     pub fn get_fluid_gravity_value() -> Real {

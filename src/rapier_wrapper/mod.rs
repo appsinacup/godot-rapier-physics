@@ -7,6 +7,7 @@ pub mod handle;
 pub mod joint;
 pub mod physics_hooks;
 pub mod physics_world;
+pub mod prelude;
 pub mod query;
 pub mod settings;
 pub mod shape;
@@ -14,6 +15,7 @@ pub mod shape;
 pub mod shape_2d;
 pub mod user_data;
 #[cfg(feature = "dim2")]
-pub const AngZERO: rapier::math::Real = 0.0;
+pub const ANG_ZERO: rapier::math::Real = 0.0;
 #[cfg(feature = "dim3")]
-pub const AngZERO: rapier::math::Vector3<Real> = zeroes();
+pub const ANG_ZERO: rapier::na::Vector3<rapier::math::Real> =
+    rapier::na::Vector3::new(0.0, 0.0, 0.0);

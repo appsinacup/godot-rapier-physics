@@ -34,7 +34,7 @@ pub type PackedVectorArray = PackedVector2Array;
 #[cfg(feature = "dim2")]
 pub type Angle = real;
 #[cfg(feature = "dim2")]
-pub const AngleZERO: Angle = 0.0;
+pub const ANGLE_ZERO: Angle = 0.0;
 
 #[cfg(feature = "dim3")]
 pub type Vector = Vector3;
@@ -43,7 +43,7 @@ pub type PackedVectorArray = PackedVector3Array;
 #[cfg(feature = "dim3")]
 pub type Angle = Vector3;
 #[cfg(feature = "dim3")]
-pub const AngleZERO: Angle = Vector3::ZERO;
+pub const ANGLE_ZERO: Angle = Vector3::ZERO;
 
 mod bodies;
 mod fluids;

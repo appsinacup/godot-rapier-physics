@@ -1,16 +1,8 @@
-use crate::rapier_wrapper::convert::*;
-use crate::rapier_wrapper::handle::*;
-use crate::rapier_wrapper::physics_world::*;
+use crate::rapier_wrapper::prelude::*;
 use rapier::prelude::*;
 use salva::math::Vector as SalvaVector;
 use salva::object::*;
-use salva::solver::Akinci2013SurfaceTension;
-use salva::solver::ArtificialViscosity;
-use salva::solver::Becker2009Elasticity;
-use salva::solver::DFSPHViscosity;
-use salva::solver::He2014SurfaceTension;
-use salva::solver::WCSPHSurfaceTension;
-use salva::solver::XSPHViscosity;
+use salva::solver::*;
 
 use super::shape::pixel_point_array_to_vec;
 

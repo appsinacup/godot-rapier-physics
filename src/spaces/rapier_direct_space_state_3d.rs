@@ -1,20 +1,10 @@
 use std::ops::Deref;
 
-use crate::{
-    bodies::rapier_collision_object::{IRapierCollisionObject, RapierCollisionObject},
-    rapier_wrapper::{
-        convert::{vector_to_godot, vector_to_rapier},
-        handle::Handle,
-        query::{intersect_point, shape_casting, PointHitInfo, QueryExcludedInfo, RayHitInfo},
-        shape::shape_info_from_body_shape,
-        user_data::UserData,
-    },
-    servers::rapier_physics_singleton::{
-        active_spaces_singleton, bodies_singleton, shapes_singleton, spaces_singleton,
-    },
-    spaces::rapier_space::RapierSpace,
-    Vector,
-};
+use crate::bodies::rapier_collision_object::*;
+use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::*;
+use crate::spaces::rapier_space::RapierSpace;
+use crate::Vector;
 use godot::classes::native::*;
 use godot::classes::*;
 use godot::prelude::*;

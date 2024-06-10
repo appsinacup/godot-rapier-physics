@@ -1,14 +1,9 @@
-use std::any::Any;
-
-use crate::rapier_wrapper::{
-    handle::{invalid_handle, Handle},
-    joint::{joint_change_disable_collision, joint_destroy},
-};
-use godot::{builtin::Rid, engine::physics_server_2d};
-
 use super::{
     rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D, rapier_pin_joint_2d::RapierPinJoint2D,
 };
+use crate::rapier_wrapper::prelude::*;
+use godot::{classes::*, prelude::*};
+use std::any::Any;
 
 pub trait IRapierJoint: Any {
     fn get_base(&self) -> &RapierJointBase;

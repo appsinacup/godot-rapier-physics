@@ -1,9 +1,4 @@
-use crate::rapier_wrapper::convert::*;
-use crate::rapier_wrapper::event_handler::ContactEventHandler;
-use crate::rapier_wrapper::handle::*;
-use crate::rapier_wrapper::physics_hooks::*;
-use crate::rapier_wrapper::settings::*;
-use crate::rapier_wrapper::user_data::*;
+use crate::rapier_wrapper::prelude::*;
 use godot::log::godot_error;
 use rapier::crossbeam;
 use rapier::data::Arena;

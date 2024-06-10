@@ -1,28 +1,21 @@
 use crate::bodies::rapier_body::RapierBody;
-use crate::bodies::rapier_collision_object::{
-    CollisionObjectType, IRapierCollisionObject, RapierCollisionObject,
-};
-use crate::rapier_wrapper::convert::{vector_to_godot, vector_to_rapier};
-use crate::rapier_wrapper::handle::Handle;
-use crate::rapier_wrapper::query::{intersect_aabb, ContactResult, QueryExcludedInfo};
-use crate::rapier_wrapper::query::{shapes_contact, PointHitInfo};
-use crate::rapier_wrapper::shape::shape_info_from_body_shape;
-use crate::rapier_wrapper::user_data::UserData;
-use crate::servers::rapier_physics_singleton::{
-    active_spaces_singleton, bodies_singleton, shapes_singleton, spaces_singleton,
-};
+use crate::bodies::rapier_collision_object::*;
+use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::{Rect, Transform, Vector};
-use godot::engine::native::ObjectId;
-use godot::engine::physics_server_2d::BodyMode;
-use godot::{prelude::*};
+use godot::classes::native::ObjectId;
+use godot::classes::physics_server_2d::BodyMode;
+use godot::prelude::*;
 use rapier::math::Real;
 use rapier::na::RealField;
 
 #[cfg(feature = "dim2")]
-type PhysicsServerExtensionMotionResult = godot::engine::native::PhysicsServer2DExtensionMotionResult;
+type PhysicsServerExtensionMotionResult =
+    godot::classes::native::PhysicsServer2DExtensionMotionResult;
 #[cfg(feature = "dim3")]
-type PhysicsServerExtensionMotionResult = godot::engine::native::PhysicsServer3DExtensionMotionResult;
+type PhysicsServerExtensionMotionResult =
+    godot::classes::native::PhysicsServer3DExtensionMotionResult;
 
 use super::rapier_space::RapierSpace;
 use super::RapierDirectSpaceState;
@@ -613,8 +606,7 @@ impl RapierSpace {
             p_result.collider_shape = best_collision_shape_index;
             p_result.collision_local_shape = best_body_shape_index;
             // World position from the moving body to get the contact point
-            p_result.collision_point =
-                vector_to_godot(best_contact.pixel_point1);
+            p_result.collision_point = vector_to_godot(best_contact.pixel_point1);
             // Normal from the collided object to get the contact normal
             p_result.collision_normal = vector_to_godot(best_contact.normal2);
             // compute distance without sign

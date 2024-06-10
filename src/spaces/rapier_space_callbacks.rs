@@ -1,22 +1,10 @@
 use std::mem::swap;
 
 use super::rapier_space::RapierSpace;
-use crate::bodies::rapier_collision_object::{CollisionObjectType, IRapierCollisionObject};
-use crate::rapier_wrapper::convert::vector_to_godot;
-use crate::servers::rapier_physics_singleton::{
-    active_spaces_singleton, bodies_singleton, spaces_singleton,
-};
-use crate::{
-    bodies::rapier_collision_object::RapierCollisionObject,
-    rapier_wrapper::{
-        handle::Handle,
-        physics_hooks::{CollisionFilterInfo, OneWayDirection},
-        physics_world::{
-            ActiveBodyInfo, CollisionEventInfo, ContactForceEventInfo, ContactPointInfo,
-        },
-    },
-};
-use crate::{AngleZERO, Vector};
+use crate::bodies::rapier_collision_object::*;
+use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::*;
+use crate::*;
 use godot::prelude::*;
 
 pub struct CollidersInfo {
@@ -142,10 +130,10 @@ impl RapierSpace {
                         }
                         let static_angular_velocity1 = body1.get_static_angular_velocity();
                         let static_angular_velocity2 = body2.get_static_angular_velocity();
-                        if static_angular_velocity1 != AngleZERO {
+                        if static_angular_velocity1 != ANGLE_ZERO {
                             body2.to_add_static_constant_angular_velocity(static_angular_velocity1);
                         }
-                        if static_angular_velocity2 != AngleZERO {
+                        if static_angular_velocity2 != ANGLE_ZERO {
                             body1.to_add_static_constant_angular_velocity(static_angular_velocity2);
                         }
                     }

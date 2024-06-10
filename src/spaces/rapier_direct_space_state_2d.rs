@@ -1,9 +1,8 @@
-use crate::Vector;
-use godot::prelude::*;
-
 use super::rapier_direct_space_state_impl::RapierDirectSpaceStateImpl;
+use crate::Vector;
 use godot::classes::native::*;
 use godot::classes::*;
+use godot::prelude::*;
 
 #[derive(GodotClass)]
 #[class(base=PhysicsDirectSpaceState2DExtension,tool)]

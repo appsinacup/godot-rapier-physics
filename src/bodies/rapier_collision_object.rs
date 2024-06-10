@@ -1,28 +1,12 @@
+use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::*;
+use crate::*;
+#[cfg(feature = "dim2")]
+use godot::engine::physics_server_2d::*;
+#[cfg(feature = "dim3")]
+use godot::engine::physics_server_3d::*;
+use godot::prelude::*;
 use std::any::Any;
-
-use crate::{
-    rapier_wrapper::{
-        body::{
-            body_create, body_destroy, body_get_angle, body_get_position, body_set_transform,
-            BodyType,
-        },
-        collider::{
-            collider_create_sensor, collider_create_solid, collider_destroy,
-            collider_set_transform, Material,
-        },
-        convert::vector_to_rapier,
-        handle::{invalid_handle, Handle},
-        shape::ShapeInfo,
-        user_data::UserData,
-    },
-    servers::rapier_physics_singleton::{shapes_singleton, spaces_singleton},
-    Transform,
-};
-use godot::{
-    builtin::{real, Rid, Vector2},
-    engine::physics_server_2d::{self, BodyMode},
-    log::godot_error,
-};
 
 use super::{rapier_area::RapierArea, rapier_body::RapierBody};
 
@@ -112,7 +96,7 @@ impl RapierCollisionObject {
             collision_mask: 1,
             collision_layer: 1,
             collision_priority: 1.0,
-            mode: physics_server_2d::BodyMode::RIGID,
+            mode: BodyMode::RIGID,
             body_handle: invalid_handle(),
             space_handle: invalid_handle(),
             area_detection_counter: 0,
@@ -475,14 +459,6 @@ impl RapierCollisionObject {
 
     pub fn set_pickable(&mut self, p_pickable: bool) {
         self.pickable = p_pickable;
-    }
-
-    pub fn is_pickable(&self) -> bool {
-        self.pickable
-    }
-
-    pub fn collides_with(&self, p_other: &RapierCollisionObject) -> bool {
-        p_other.collision_layer & self.collision_mask != 0
     }
 
     pub fn interacts_with(&self, p_other: &RapierCollisionObject) -> bool {

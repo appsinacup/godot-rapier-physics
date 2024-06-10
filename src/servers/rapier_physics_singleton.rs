@@ -1,10 +1,10 @@
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::fluids::rapier_fluid::RapierFluid;
 use crate::joints::rapier_joint::IRapierJoint;
-use crate::rapier_wrapper::handle::Handle;
+use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::spaces::rapier_space::RapierSpace;
-use godot::builtin::Rid;
+use godot::prelude::*;
 use std::collections::HashMap;
 
 pub struct RapierShapesSingleton {

@@ -1,28 +1,14 @@
 use crate::bodies::rapier_collision_object::*;
-use crate::rapier_wrapper::body::*;
-use crate::rapier_wrapper::collider::collider_set_contact_force_events_enabled;
-use crate::rapier_wrapper::collider::Material;
-use crate::rapier_wrapper::convert::angle_to_godot;
-use crate::rapier_wrapper::convert::angle_to_rapier;
-use crate::rapier_wrapper::convert::vector_to_godot;
-use crate::rapier_wrapper::convert::vector_to_rapier;
-use crate::rapier_wrapper::handle::invalid_handle;
-use crate::rapier_wrapper::handle::Handle;
-use crate::rapier_wrapper::AngZERO;
+use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_server_extra::RapierBodyParam;
-use crate::servers::rapier_physics_singleton::bodies_singleton;
-use crate::servers::rapier_physics_singleton::shapes_singleton;
-use crate::servers::rapier_physics_singleton::spaces_singleton;
+use crate::servers::rapier_physics_singleton::*;
 use crate::servers::rapier_project_settings::*;
 use crate::spaces::rapier_space::RapierSpace;
-use crate::Angle;
-use crate::AngleZERO;
-use crate::Rect;
-use crate::Transform;
-use crate::Vector;
-use godot::engine::physics_server_2d::AreaParameter;
-use godot::engine::physics_server_2d::AreaSpaceOverrideMode;
-use godot::engine::physics_server_2d::{BodyDampMode, BodyMode, BodyParameter, BodyState, CcdMode};
+use crate::*;
+#[cfg(feature = "dim2")]
+use godot::classes::physics_server_2d::*;
+#[cfg(feature = "dim3")]
+use godot::classes::physics_server_3d::*;
 use godot::prelude::*;
 use std::collections::HashSet;
 
@@ -134,7 +120,7 @@ impl RapierBody {
             bounce: 0.0,
             friction: 1.0,
             mass: 1.0,
-            inertia: AngleZERO,
+            inertia: ANGLE_ZERO,
             contact_skin: RapierProjectSettings::get_contact_skin() as f32,
             center_of_mass: Vector::ZERO,
             calculate_inertia: true,
@@ -151,10 +137,10 @@ impl RapierBody {
             constant_force: Vector::ZERO,
             linear_velocity: Vector::ZERO,
             impulse: Vector::ZERO,
-            torque: AngleZERO,
-            angular_velocity: AngleZERO,
-            constant_torque: AngleZERO,
-            to_add_angular_velocity: AngleZERO,
+            torque: ANGLE_ZERO,
+            angular_velocity: ANGLE_ZERO,
+            constant_torque: ANGLE_ZERO,
+            to_add_angular_velocity: ANGLE_ZERO,
             to_add_linear_velocity: Vector::ZERO,
             sleep: false,
             areas: Vec::new(),
@@ -188,7 +174,7 @@ impl RapierBody {
 
         let mut inertia_value = self.inertia;
         if self.base.mode == BodyMode::RIGID_LINEAR {
-            inertia_value = AngleZERO;
+            inertia_value = ANGLE_ZERO;
         }
 
         let com = vector_to_rapier(self.center_of_mass);
@@ -317,7 +303,7 @@ impl RapierBody {
             self.base.get_body_handle(),
             angle_to_rapier(self.angular_velocity),
         );
-        self.angular_velocity = AngleZERO;
+        self.angular_velocity = ANGLE_ZERO;
     }
     pub fn get_angular_velocity(&self) -> Angle {
         if !self.base.is_valid() {
@@ -670,7 +656,7 @@ impl RapierBody {
             pos,
         );
         self.impulse = Vector::ZERO;
-        self.torque = AngleZERO;
+        self.torque = ANGLE_ZERO;
     }
 
     pub fn apply_torque_impulse(&mut self, p_torque: Angle) {
@@ -876,9 +862,9 @@ impl RapierBody {
 
         space.body_add_to_state_query_list(self.base.get_rid());
         if self.base.mode.ord() >= BodyMode::RIGID.ord() {
-            if self.to_add_angular_velocity != AngleZERO {
+            if self.to_add_angular_velocity != ANGLE_ZERO {
                 self.set_angular_velocity(self.to_add_angular_velocity);
-                self.to_add_angular_velocity = AngleZERO;
+                self.to_add_angular_velocity = ANGLE_ZERO;
             }
             if self.to_add_linear_velocity != Vector::default() {
                 self.set_linear_velocity(self.to_add_linear_velocity);
@@ -950,7 +936,7 @@ impl RapierBody {
                     return;
                 }
                 let inertia_value = p_value.to();
-                if inertia_value == AngZERO {
+                if inertia_value == ANG_ZERO {
                     self.calculate_inertia = true;
                 } else {
                     self.calculate_inertia = false;
@@ -1263,7 +1249,7 @@ impl RapierBody {
         }
 
         if self.calculate_inertia {
-            self.inertia = AngleZERO;
+            self.inertia = ANGLE_ZERO;
 
             if total_area != 0.0 {
                 for i in 0..shape_count {
@@ -1313,10 +1299,10 @@ impl RapierBody {
         0.0
     }
     pub fn get_inv_inertia(&self) -> Angle {
-        if self.inertia != AngleZERO {
+        if self.inertia != ANGLE_ZERO {
             return 1.0 / self.inertia;
         }
-        AngleZERO
+        ANGLE_ZERO
     }
 
     pub fn get_velocity_at_local_point(&self, rel_pos: Vector) -> Vector {
@@ -1443,19 +1429,19 @@ impl IRapierCollisionObject for RapierBody {
                 if self.linear_velocity != Vector::default() {
                     self.set_linear_velocity(self.linear_velocity);
                 }
-                if self.angular_velocity != AngleZERO {
+                if self.angular_velocity != ANGLE_ZERO {
                     self.set_angular_velocity(self.angular_velocity);
                 }
                 if self.constant_force != Vector::default() {
                     self.set_constant_force(self.constant_force);
                 }
-                if self.constant_torque != AngleZERO {
+                if self.constant_torque != ANGLE_ZERO {
                     self.set_constant_torque(self.constant_torque);
                 }
                 if self.impulse != Vector::default() {
                     self.apply_impulse(self.impulse, Vector::default());
                 }
-                if self.torque != AngleZERO {
+                if self.torque != ANGLE_ZERO {
                     self.apply_torque_impulse(self.torque);
                 }
                 self.set_continuous_collision_detection_mode(self.ccd_mode);

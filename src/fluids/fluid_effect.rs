@@ -1,8 +1,4 @@
-use godot::{
-    engine::{IResource, Resource},
-    obj::Base,
-    register::{godot_api, GodotClass},
-};
+use godot::prelude::*;
 
 #[derive(GodotClass)]
 #[class(base=Resource)]

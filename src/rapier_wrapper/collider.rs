@@ -1,14 +1,9 @@
-use crate::rapier_wrapper::convert::*;
-use crate::rapier_wrapper::handle::*;
-use crate::rapier_wrapper::physics_world::*;
-use crate::rapier_wrapper::shape::ShapeInfo;
-use crate::rapier_wrapper::user_data::*;
+use crate::rapier_wrapper::prelude::*;
 use godot::log::godot_error;
 use rapier::prelude::*;
 use salva::integrations::rapier::ColliderSampling;
 use salva::object::Boundary;
-use salva::parry::either::Either::Left;
-use salva::parry::either::Either::Right;
+use salva::parry::either::Either::*;
 
 const SUBDIVISIONS: u32 = 20;
 

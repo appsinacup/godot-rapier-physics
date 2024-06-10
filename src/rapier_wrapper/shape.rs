@@ -1,6 +1,4 @@
-use crate::rapier_wrapper::convert::*;
-use crate::rapier_wrapper::handle::*;
-use crate::rapier_wrapper::physics_world::*;
+use crate::rapier_wrapper::prelude::*;
 use crate::Transform;
 use rapier::prelude::*;
 

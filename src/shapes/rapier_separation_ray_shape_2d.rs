@@ -1,4 +1,4 @@
-use crate::rapier_wrapper::handle::{invalid_handle, Handle};
+use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::{IRapierShape, RapierShapeBase};
 use godot::{engine::physics_server_2d::ShapeType, prelude::*};
 
