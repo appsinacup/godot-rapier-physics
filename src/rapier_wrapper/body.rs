@@ -297,10 +297,15 @@ pub fn body_set_can_sleep(world_handle: Handle, body_handle: RigidBodyHandle, ca
             .rigid_body_set
             .get_mut(rigid_body_handle)
         {
-            if !can_sleep && body.activation().angular_threshold != -1.0 {
+            if !can_sleep {
                 let activation = body.activation_mut();
                 activation.angular_threshold = -1.0;
                 activation.normalized_linear_threshold = -1.0;
+            } else {
+                let activation = body.activation_mut();
+                let default_activation = RigidBodyActivation::default();
+                activation.angular_threshold = default_activation.angular_threshold;
+                activation.normalized_linear_threshold = default_activation.normalized_linear_threshold;
             }
             // TODO: Check if is requiered
             if !can_sleep && body.is_sleeping() {

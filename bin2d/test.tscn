@@ -75,13 +75,13 @@ node_b = NodePath("../../RigidBodyPin")
 angular_limit_enabled = true
 angular_limit_lower = -0.872665
 motor_enabled = true
-motor_target_velocity = -0.174533
+motor_target_velocity = -17.4533
 
 [node name="JoinStaticRigidAngleLimitHigh" type="Node2D" parent="."]
 position = Vector2(-151, -6)
 
 [node name="RigidBodyPin" type="RigidBody2D" parent="JoinStaticRigidAngleLimitHigh"]
-position = Vector2(54, -53)
+position = Vector2(77, -52)
 script = ExtResource("1_4sybc")
 
 [node name="CollisionShape2D4" type="CollisionShape2D" parent="JoinStaticRigidAngleLimitHigh/RigidBodyPin"]
@@ -100,12 +100,13 @@ node_b = NodePath("../../RigidBodyPin")
 angular_limit_enabled = true
 angular_limit_upper = 0.872665
 motor_enabled = true
-motor_target_velocity = 0.174533
+motor_target_velocity = 17.4533
 
 [node name="JointRigid" type="Node2D" parent="."]
 
 [node name="RigidBodyPin2" type="RigidBody2D" parent="JointRigid"]
 position = Vector2(52, -104)
+constant_force = Vector2(1000, 2.08165e-12)
 script = ExtResource("1_4sybc")
 
 [node name="CollisionShape2D4" type="CollisionShape2D" parent="JointRigid/RigidBodyPin2"]
@@ -117,6 +118,7 @@ node_b = NodePath("../../RigidBodyPin3")
 
 [node name="RigidBodyPin3" type="RigidBody2D" parent="JointRigid"]
 position = Vector2(114, -104)
+constant_torque = 5000.0
 script = ExtResource("1_4sybc")
 
 [node name="CollisionShape2D4" type="CollisionShape2D" parent="JointRigid/RigidBodyPin3"]
@@ -124,7 +126,7 @@ shape = SubResource("RectangleShape2D_4v4tp")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 scale = Vector2(4, 4)
-zoom = Vector2(4, 4)
+zoom = Vector2(2, 2)
 
 [node name="Timer" type="Timer" parent="."]
 wait_time = 10.0

@@ -111,6 +111,22 @@
 				]
 			},
 			{
+				"name": "Physics Test",
+				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.dev.arm64",
+				"type": "cppdbg",
+				"request": "launch",
+				"cwd": "${workspaceFolder:godot-rapier-2d}",
+				"osx": {
+					"MIMode": "lldb"
+				},
+				"args": [
+					"--path",
+					"/Users/dragosdaian/Documents/Godot-Physics-Tests",
+					"--debug-collisions",
+					"tests/nodes/DirectSpaceState/direct_space_state_2d.tscn"
+				]
+			},
+			{
 				"name": "Integration Body Delete Test",
 				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.dev.arm64",
 				"type": "cppdbg",

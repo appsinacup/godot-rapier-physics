@@ -137,7 +137,7 @@ pub fn intersect_ray(
                         hit_info.normal = hit_normal;
                         hit_info.collider = collider_handle_to_handle(handle);
                         hit_info.user_data = physics_world.get_collider_user_data(handle);
-                        //return false; // We found a collision hit.
+                        return false; // We found a collision hit.
                     }
                     true // Continue to search.
                 },

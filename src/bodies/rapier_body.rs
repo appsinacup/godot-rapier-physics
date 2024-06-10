@@ -70,6 +70,7 @@ pub struct RapierBody {
     bounce: real,
     friction: real,
     mass: real,
+    mass_properties_update_pending: bool,
     inertia: Angle,
     contact_skin: real,
     center_of_mass: Vector,
@@ -115,6 +116,7 @@ impl RapierBody {
             bounce: 0.0,
             friction: 1.0,
             mass: 1.0,
+            mass_properties_update_pending: false,
             inertia: ANGLE_ZERO,
             contact_skin: RapierProjectSettings::get_contact_skin(),
             center_of_mass: Vector::ZERO,
@@ -155,6 +157,7 @@ impl RapierBody {
         if self.calculate_inertia || self.calculate_center_of_mass {
             if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
                 space.body_add_to_mass_properties_update_list(self.base.get_rid());
+                self.mass_properties_update_pending = true;
             }
         }
         else {
@@ -630,6 +633,10 @@ impl RapierBody {
             self.impulse += p_impulse;
             return;
         }
+        if self.mass_properties_update_pending {
+            // Force update internal mass properties to calculate proper impulse
+            self.update_mass_properties(true);
+        }
         let impulse = vector_to_rapier(p_impulse);
         body_apply_impulse(
             self.base.get_space_handle(),
@@ -644,6 +651,10 @@ impl RapierBody {
             self.impulse += p_impulse;
             self.torque += (p_position - self.get_center_of_mass()).cross(p_impulse);
             return;
+        }
+        if self.mass_properties_update_pending {
+            // Force update internal mass properties to calculate proper impulse
+            self.update_mass_properties(true);
         }
         let impulse = vector_to_rapier(p_impulse);
         let pos = vector_to_rapier(p_position);
@@ -662,6 +673,10 @@ impl RapierBody {
         if !self.base.is_valid() {
             return;
         }
+        if self.mass_properties_update_pending {
+            // Force update internal mass properties to calculate proper impulse
+            self.update_mass_properties(true);
+        }
         body_apply_torque_impulse(
             self.base.get_space_handle(),
             self.base.get_body_handle(),
@@ -675,6 +690,10 @@ impl RapierBody {
         if !self.base.is_valid() {
             self.impulse += p_force * last_delta;
             return;
+        }
+        if self.mass_properties_update_pending {
+            // Force update internal mass properties to calculate proper impulse
+            self.update_mass_properties(true);
         }
         let force = vector_to_rapier(p_force) * last_delta;
         body_apply_impulse(
@@ -691,6 +710,10 @@ impl RapierBody {
             self.impulse += p_force * last_delta;
             self.torque += (p_position - self.get_center_of_mass()).cross(p_force) * last_delta;
             return;
+        }
+        if self.mass_properties_update_pending {
+            // Force update internal mass properties to calculate proper impulse
+            self.update_mass_properties(true);
         }
         let force = vector_to_rapier(p_force) * last_delta;
         let pos = vector_to_rapier(p_position);
@@ -709,6 +732,10 @@ impl RapierBody {
             self.torque += Angle::from(p_torque * last_delta);
             return;
         }
+        if self.mass_properties_update_pending {
+            // Force update internal mass properties to calculate proper impulse
+            self.update_mass_properties(true);
+        }
         body_apply_torque_impulse(
             self.base.get_space_handle(),
             self.base.get_body_handle(),
@@ -720,6 +747,10 @@ impl RapierBody {
         self.constant_force += p_force;
         if !self.base.is_valid() {
             return;
+        }
+        if self.mass_properties_update_pending {
+            // Force update internal mass properties to calculate proper impulse
+            self.update_mass_properties(true);
         }
         let force = vector_to_rapier(p_force);
         body_add_force(
@@ -734,6 +765,10 @@ impl RapierBody {
         self.constant_force += p_force;
         if !self.base.is_valid() {
             return;
+        }
+        if self.mass_properties_update_pending {
+            // Force update internal mass properties to calculate proper impulse
+            self.update_mass_properties(true);
         }
         let force = vector_to_rapier(p_force);
         let pos = vector_to_rapier(p_position);
@@ -750,6 +785,10 @@ impl RapierBody {
         if !self.base.is_valid() {
             return;
         }
+        if self.mass_properties_update_pending {
+            // Force update internal mass properties to calculate proper impulse
+            self.update_mass_properties(true);
+        }
         body_add_torque(
             self.base.get_space_handle(),
             self.base.get_body_handle(),
@@ -761,6 +800,10 @@ impl RapierBody {
         self.constant_force = p_force;
         if !self.base.is_valid() {
             return;
+        }
+        if self.mass_properties_update_pending {
+            // Force update internal mass properties to calculate proper impulse
+            self.update_mass_properties(true);
         }
         let force = vector_to_rapier(p_force);
         body_reset_forces(self.base.get_space_handle(), self.base.get_body_handle());
@@ -784,6 +827,10 @@ impl RapierBody {
         self.constant_torque = p_torque;
         if !self.base.is_valid() {
             return;
+        }
+        if self.mass_properties_update_pending {
+            // Force update internal mass properties to calculate proper impulse
+            self.update_mass_properties(true);
         }
         body_reset_torques(self.base.get_space_handle(), self.base.get_body_handle());
         body_add_torque(
@@ -1204,6 +1251,7 @@ impl RapierBody {
     }
 
     pub fn update_mass_properties(&mut self, force_update: bool) {
+        self.mass_properties_update_pending = false;
         if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
             space.body_remove_from_mass_properties_update_list(self.base.get_rid());
         }
