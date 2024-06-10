@@ -2,16 +2,15 @@
 <img src="https://github.com/appsinacup/godot-rapier2d/blob/main/logo.jpg?raw=true" width="256px"/>
 </p>
 <p align="center">
-	<a href="https://github.com/appsinacup/godot-rapier-2d/actions/workflows/runner.yml">
-        <img src="https://github.com/appsinacup/godot-rapier-2d/actions/workflows/runner.yml/badge.svg?branch=main"
+	<a href="https://github.com/appsinacup/godot-rapier/actions/workflows/runner.yml">
+        <img src="https://github.com/appsinacup/godot-rapier/actions/workflows/runner.yml/badge.svg?branch=main"
             alt="Godot Rapier Build"></a>
-    <a href="https://github.com/dimforge/rapier/releases/tag/v0.19.0" alt="Rapier Version">
-        <img src="https://img.shields.io/badge/Rapier-v0.19.0-%23478cbf?logoColor=white" /></a>
+    <a href="https://github.com/dimforge/rapier/releases/tag/v0.20.0" alt="Rapier Version">
+        <img src="https://img.shields.io/badge/Rapier-v0.20.0-%23478cbf?logoColor=white" /></a>
     <a href="https://github.com/dimforge/salva/releases/tag/v0.7.0" alt="Salva Version">
         <img src="https://img.shields.io/badge/Salva2D-v0.7.0-%23478cbf?logoColor=white" /></a>
     <a href="https://github.com/godotengine/godot-cpp" alt="Godot Version">
-        <img src="https://img.shields.io/badge/Godot-v4-%23478cbf?logo=godot-engine&logoColor=white" /></a>
-    <a href="https://github.com/appsinacup/godot-rapier/graphs/contributors" alt="Contributors">
+        <img src="https://img.shields.io/badge/Godot-v4.3-%23478cbf?logo=godot-engine&logoColor=white" /></a>
     <a href="https://discord.gg/56dMud8HYn">
         <img src="https://img.shields.io/discord/1138836561102897172?logo=discord"
             alt="Chat on Discord"></a>
@@ -32,10 +31,10 @@ A [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engine 
 
 # Limitations
 
-- SeparationRay2D missing [issues/5](https://github.com/appsinacup/godot-rapier-2d/issues/5)
-- Web exports not working [issues/23](https://github.com/appsinacup/godot-rapier-2d/issues/23)
-- Cross platform determinism isn't working [issues/47](https://github.com/appsinacup/godot-rapier-2d/issues/47)
-- Double build isn't working [issues/61](https://github.com/appsinacup/godot-rapier-2d/issues/61)
+- SeparationRay2D missing [issues/5](https://github.com/appsinacup/godot-rapier/issues/5)
+- Web exports not working [issues/23](https://github.com/appsinacup/godot-rapier/issues/23)
+- Cross platform determinism isn't working [issues/47](https://github.com/appsinacup/godot-rapier/issues/47)
+- Double build isn't working [issues/61](https://github.com/appsinacup/godot-rapier/issues/61)
 
 # Supported Platforms
 
