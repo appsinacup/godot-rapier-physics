@@ -1,5 +1,5 @@
 use crate::{
-    joints::rapier_joint_2d::IRapierJoint,
+    joints::rapier_joint::IRapierJoint,
     rapier_wrapper::{
         convert::vector_to_rapier, handle::invalid_handle, joint::joint_create_prismatic,
     },
@@ -11,11 +11,11 @@ use godot::{
 };
 
 use super::{
-    rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D, rapier_joint_2d::RapierJointBase2D,
+    rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D, rapier_joint::RapierJointBase,
     rapier_pin_joint_2d::RapierPinJoint2D,
 };
 pub struct RapierGrooveJoint2D {
-    base: RapierJointBase2D,
+    base: RapierJointBase,
 }
 
 impl RapierGrooveJoint2D {
@@ -28,7 +28,7 @@ impl RapierGrooveJoint2D {
         body_b: Rid,
     ) -> Self {
         let invalid_joint = Self {
-            base: RapierJointBase2D::new(invalid_handle(), invalid_handle(), rid),
+            base: RapierJointBase::new(invalid_handle(), invalid_handle(), rid),
         };
         if body_a == body_b {
             return invalid_joint;
@@ -67,7 +67,7 @@ impl RapierGrooveJoint2D {
                     true,
                 );
                 return Self {
-                    base: RapierJointBase2D::new(space_handle, handle, rid),
+                    base: RapierJointBase::new(space_handle, handle, rid),
                 };
             }
         }
@@ -80,11 +80,11 @@ impl IRapierJoint for RapierGrooveJoint2D {
         physics_server_2d::JointType::GROOVE
     }
 
-    fn get_base(&self) -> &RapierJointBase2D {
+    fn get_base(&self) -> &RapierJointBase {
         &self.base
     }
 
-    fn get_mut_base(&mut self) -> &mut RapierJointBase2D {
+    fn get_mut_base(&mut self) -> &mut RapierJointBase {
         &mut self.base
     }
 

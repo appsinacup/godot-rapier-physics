@@ -34,7 +34,7 @@ impl RapierShapeBase {
     pub fn new(rid: Rid) -> Self {
         Self {
             rid,
-            aabb: Rect2::default(),
+            aabb: Rect::default(),
             configured: false,
             owners: HashMap::new(),
             handle: invalid_handle(),
@@ -46,7 +46,7 @@ impl RapierShapeBase {
     pub fn get_handle(&self) -> Handle {
         self.handle
     }
-    pub fn configure(&mut self, aabb: Rect2) {
+    pub fn configure(&mut self, aabb: Rect) {
         self.aabb = aabb;
         self.configured = true;
     }
@@ -63,6 +63,16 @@ impl RapierShapeBase {
         let mut aabb_clone = self.aabb;
         aabb_clone.position += origin;
         aabb_clone
+    }
+
+    #[cfg(feature = "dim2")]
+    pub fn get_aabb_area(&self, origin: Vector) -> real {
+        self.get_aabb(origin).area()
+    }
+
+    #[cfg(feature = "dim3")]
+    pub fn get_aabb_area(&self, origin: Vector) -> real {
+        self.get_aabb(origin).volume()
     }
 
     pub fn is_configured(&self) -> bool {

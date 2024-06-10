@@ -11,8 +11,8 @@ use super::{
 };
 
 pub trait IRapierJoint: Any {
-    fn get_base(&self) -> &RapierJointBase2D;
-    fn get_mut_base(&mut self) -> &mut RapierJointBase2D;
+    fn get_base(&self) -> &RapierJointBase;
+    fn get_mut_base(&mut self) -> &mut RapierJointBase;
     fn get_type(&self) -> physics_server_2d::JointType;
     fn get_damped_spring(&self) -> Option<&RapierDampedSpringJoint2D>;
     fn get_pin(&self) -> Option<&RapierPinJoint2D>;
@@ -20,7 +20,7 @@ pub trait IRapierJoint: Any {
     fn get_mut_pin(&mut self) -> Option<&mut RapierPinJoint2D>;
 }
 
-pub struct RapierJointBase2D {
+pub struct RapierJointBase {
     max_force: f32,
     rid: Rid,
     handle: Handle,
@@ -28,7 +28,7 @@ pub struct RapierJointBase2D {
     disabled_collisions_between_bodies: bool,
 }
 
-impl RapierJointBase2D {
+impl RapierJointBase {
     pub fn new(space_handle: Handle, handle: Handle, rid: Rid) -> Self {
         Self {
             max_force: f32::MAX,
@@ -66,13 +66,13 @@ impl RapierJointBase2D {
     pub fn is_disabled_collisions_between_bodies(&self) -> bool {
         self.disabled_collisions_between_bodies
     }
-    pub fn copy_settings_from(&mut self, joint: &RapierJointBase2D) {
+    pub fn copy_settings_from(&mut self, joint: &RapierJointBase) {
         self.set_max_force(joint.get_max_force());
         self.disable_collisions_between_bodies(joint.is_disabled_collisions_between_bodies());
     }
 }
 
-impl Drop for RapierJointBase2D {
+impl Drop for RapierJointBase {
     fn drop(&mut self) {
         if self.is_valid() {
             joint_destroy(self.space_handle, self.handle);
@@ -80,26 +80,26 @@ impl Drop for RapierJointBase2D {
     }
 }
 
-pub struct RapierEmptyJoint2D {
-    base: RapierJointBase2D,
+pub struct RapierEmptyJoint {
+    base: RapierJointBase,
 }
 
-impl RapierEmptyJoint2D {
+impl RapierEmptyJoint {
     pub fn new(rid: Rid) -> Self {
         Self {
-            base: RapierJointBase2D::new(invalid_handle(), invalid_handle(), rid),
+            base: RapierJointBase::new(invalid_handle(), invalid_handle(), rid),
         }
     }
 }
 
-impl IRapierJoint for RapierEmptyJoint2D {
+impl IRapierJoint for RapierEmptyJoint {
     fn get_type(&self) -> physics_server_2d::JointType {
         physics_server_2d::JointType::MAX
     }
-    fn get_base(&self) -> &RapierJointBase2D {
+    fn get_base(&self) -> &RapierJointBase {
         &self.base
     }
-    fn get_mut_base(&mut self) -> &mut RapierJointBase2D {
+    fn get_mut_base(&mut self) -> &mut RapierJointBase {
         &mut self.base
     }
     fn get_damped_spring(&self) -> Option<&RapierDampedSpringJoint2D> {

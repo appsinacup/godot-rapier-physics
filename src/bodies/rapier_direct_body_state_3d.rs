@@ -49,11 +49,9 @@ impl IPhysicsDirectBodyState3DExtension for RapierDirectBodyState3D {
             }
         }
         if let Some(space) = spaces_singleton().spaces.get(&space_rid) {
-            let default_gravity: f32 = space
-                .get_default_area_param(physics_server_3d::AreaParameter::GRAVITY)
-                .to();
+            let default_gravity: f32 = space.get_default_area_param(AreaParameter::GRAVITY).to();
             let default_gravity_vector: Vector = space
-                .get_default_area_param(physics_server_3d::AreaParameter::GRAVITY_VECTOR)
+                .get_default_area_param(AreaParameter::GRAVITY_VECTOR)
                 .to();
             return default_gravity_vector * gravity_scale * default_gravity;
         }

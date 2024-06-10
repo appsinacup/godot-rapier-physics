@@ -7,6 +7,8 @@ use nalgebra::zero;
 use nalgebra::Point;
 use rapier::prelude::*;
 
+use super::AngZERO;
+
 pub enum BodyType {
     Dynamic,
     Kinematic,
@@ -226,7 +228,7 @@ pub fn body_get_angular_velocity(world_handle: Handle, body_handle: Handle) -> A
             return body.angvel();
         }
     }
-    0.0
+    AngZERO
 }
 
 pub fn body_set_angular_velocity(world_handle: Handle, body_handle: Handle, vel: AngVector<Real>) {
@@ -336,7 +338,7 @@ pub fn body_set_mass_properties(
     force_update: bool,
 ) {
     let local_com = vector_pixels_to_meters(pixel_local_com);
-    let inertia = pixels_to_meters(pixels_to_meters(pixel_inertia));
+    let inertia = angle_pixels_to_meters(angle_pixels_to_meters(pixel_inertia));
 
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
@@ -399,7 +401,7 @@ pub fn body_add_force_at_point(
 }
 
 pub fn body_add_torque(world_handle: Handle, body_handle: Handle, pixel_torque: AngVector<Real>) {
-    let torque = pixels_to_meters(pixels_to_meters(pixel_torque));
+    let torque = angle_pixels_to_meters(angle_pixels_to_meters(pixel_torque));
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
@@ -478,10 +480,10 @@ pub fn body_get_constant_torque(world_handle: Handle, body_handle: Handle) -> An
             .rigid_body_set
             .get_mut(rigid_body_handle)
         {
-            return meters_to_pixels(meters_to_pixels(body.user_torque()));
+            return angle_meters_to_pixels(angle_meters_to_pixels(body.user_torque()));
         }
     }
-    0.0
+    AngZERO
 }
 
 pub fn body_apply_torque_impulse(

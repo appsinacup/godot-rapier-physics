@@ -1,5 +1,5 @@
-use crate::joints::rapier_joint_2d::IRapierJoint;
-use crate::joints::rapier_joint_2d::RapierJointBase2D;
+use crate::joints::rapier_joint::IRapierJoint;
+use crate::joints::rapier_joint::RapierJointBase;
 use crate::rapier_wrapper::handle::invalid_handle;
 use crate::rapier_wrapper::joint::joint_change_revolute_params;
 use crate::rapier_wrapper::joint::joint_create_revolute;
@@ -15,7 +15,7 @@ pub struct RapierPinJoint2D {
     motor_target_velocity: f32,
     motor_enabled: bool,
     angular_limit_enabled: bool,
-    base: RapierJointBase2D,
+    base: RapierJointBase,
 }
 
 impl RapierPinJoint2D {
@@ -26,7 +26,7 @@ impl RapierPinJoint2D {
             motor_target_velocity: 0.0,
             motor_enabled: false,
             angular_limit_enabled: false,
-            base: RapierJointBase2D::new(invalid_handle(), invalid_handle(), rid),
+            base: RapierJointBase::new(invalid_handle(), invalid_handle(), rid),
         };
         if body_a == body_b {
             return invalid_joint;
@@ -66,7 +66,7 @@ impl RapierPinJoint2D {
                     motor_target_velocity: 0.0,
                     motor_enabled: false,
                     angular_limit_enabled: false,
-                    base: RapierJointBase2D::new(space_handle, handle, rid),
+                    base: RapierJointBase::new(space_handle, handle, rid),
                 };
             }
         }
@@ -143,10 +143,10 @@ impl RapierPinJoint2D {
 }
 
 impl IRapierJoint for RapierPinJoint2D {
-    fn get_base(&self) -> &RapierJointBase2D {
+    fn get_base(&self) -> &RapierJointBase {
         &self.base
     }
-    fn get_mut_base(&mut self) -> &mut RapierJointBase2D {
+    fn get_mut_base(&mut self) -> &mut RapierJointBase {
         &mut self.base
     }
     fn get_type(&self) -> physics_server_2d::JointType {

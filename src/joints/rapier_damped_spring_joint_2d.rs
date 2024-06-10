@@ -1,5 +1,5 @@
 use crate::{
-    joints::rapier_joint_2d::IRapierJoint,
+    joints::rapier_joint::IRapierJoint,
     rapier_wrapper::{
         convert::vector_to_rapier,
         handle::invalid_handle,
@@ -12,12 +12,12 @@ use godot::{
     engine::physics_server_2d,
 };
 
-use super::{rapier_joint_2d::RapierJointBase2D, rapier_pin_joint_2d::RapierPinJoint2D};
+use super::{rapier_joint::RapierJointBase, rapier_pin_joint_2d::RapierPinJoint2D};
 pub struct RapierDampedSpringJoint2D {
     rest_length: real,
     stiffness: real,
     damping: real,
-    base: RapierJointBase2D,
+    base: RapierJointBase,
 }
 
 impl RapierDampedSpringJoint2D {
@@ -32,7 +32,7 @@ impl RapierDampedSpringJoint2D {
             rest_length: 0.0,
             stiffness: 20.0,
             damping: 1.5,
-            base: RapierJointBase2D::new(invalid_handle(), invalid_handle(), rid),
+            base: RapierJointBase::new(invalid_handle(), invalid_handle(), rid),
         };
         if body_a == body_b {
             return invalid_joint;
@@ -78,7 +78,7 @@ impl RapierDampedSpringJoint2D {
                     rest_length,
                     stiffness: 20.0,
                     damping: 1.5,
-                    base: RapierJointBase2D::new(space_handle, handle, rid),
+                    base: RapierJointBase::new(space_handle, handle, rid),
                 };
             }
         }
@@ -126,10 +126,10 @@ impl IRapierJoint for RapierDampedSpringJoint2D {
     fn get_type(&self) -> physics_server_2d::JointType {
         physics_server_2d::JointType::DAMPED_SPRING
     }
-    fn get_mut_base(&mut self) -> &mut RapierJointBase2D {
+    fn get_mut_base(&mut self) -> &mut RapierJointBase {
         &mut self.base
     }
-    fn get_base(&self) -> &RapierJointBase2D {
+    fn get_base(&self) -> &RapierJointBase {
         &self.base
     }
 

@@ -1,6 +1,6 @@
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::fluids::rapier_fluid::RapierFluid;
-use crate::joints::rapier_joint_2d::IRapierJoint;
+use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::handle::Handle;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::spaces::rapier_space::RapierSpace;

@@ -18,7 +18,7 @@ pub fn pixel_vector_array_to_vec(pixel_data: Vec<Vector<Real>>) -> Vec<SalvaVect
     let mut vec = Vec::<SalvaVector<Real>>::with_capacity(pixel_data.len());
     for pixel_point in pixel_data {
         let point = &vector_pixels_to_meters(pixel_point);
-        let salva_vector = SalvaVector::<Real>::new(point.x, point.y);
+        let salva_vector = SalvaVector::<Real>::from_data(point.data);
         vec.push(salva_vector);
     }
     vec

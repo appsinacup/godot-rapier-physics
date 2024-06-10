@@ -16,6 +16,14 @@ pub fn vector_pixels_to_meters(v: Vector<Real>) -> Vector<Real> {
     v.mul(PIXELS_PER_METER)
 }
 
+pub fn angle_pixels_to_meters(v: AngVector<Real>) -> AngVector<Real> {
+    v.mul(PIXELS_PER_METER)
+}
+
+pub fn angle_meters_to_pixels(v: AngVector<Real>) -> AngVector<Real> {
+    v.mul(PIXELS_PER_METER)
+}
+
 pub fn meters_to_pixels(x: Real) -> Real {
     METERS_PER_PIXEL * x
 }

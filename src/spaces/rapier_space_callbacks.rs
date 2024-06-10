@@ -6,7 +6,6 @@ use crate::rapier_wrapper::convert::vector_to_godot;
 use crate::servers::rapier_physics_singleton::{
     active_spaces_singleton, bodies_singleton, spaces_singleton,
 };
-use crate::Vector;
 use crate::{
     bodies::rapier_collision_object::RapierCollisionObject,
     rapier_wrapper::{
@@ -17,6 +16,7 @@ use crate::{
         },
     },
 };
+use crate::{AngleZERO, Vector};
 use godot::prelude::*;
 
 pub struct CollidersInfo {
@@ -142,10 +142,10 @@ impl RapierSpace {
                         }
                         let static_angular_velocity1 = body1.get_static_angular_velocity();
                         let static_angular_velocity2 = body2.get_static_angular_velocity();
-                        if static_angular_velocity1 != 0.0 {
+                        if static_angular_velocity1 != AngleZERO {
                             body2.to_add_static_constant_angular_velocity(static_angular_velocity1);
                         }
-                        if static_angular_velocity2 != 0.0 {
+                        if static_angular_velocity2 != AngleZERO {
                             body1.to_add_static_constant_angular_velocity(static_angular_velocity2);
                         }
                     }

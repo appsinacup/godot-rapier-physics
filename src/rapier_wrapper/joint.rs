@@ -84,15 +84,15 @@ pub fn joint_create_prismatic(
     pixel_limits: Vector<Real>,
     disable_collision: bool,
 ) -> Handle {
-    let anchor_1 = &vector_pixels_to_meters(pixel_anchor_1);
-    let anchor_2 = &vector_pixels_to_meters(pixel_anchor_2);
+    let anchor_1 = vector_pixels_to_meters(pixel_anchor_1);
+    let anchor_2 = vector_pixels_to_meters(pixel_anchor_2);
     let limits = &vector_pixels_to_meters(pixel_limits);
 
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let joint = PrismaticJointBuilder::new(UnitVector::new_unchecked(axis))
-            .local_anchor1(point!(anchor_1.x, anchor_1.y))
-            .local_anchor2(point!(anchor_2.x, anchor_2.y))
+            .local_anchor1(Point { coords: anchor_1 })
+            .local_anchor2(Point { coords: anchor_2 })
             .limits([limits.x, limits.y])
             .contacts_enabled(!disable_collision);
 
@@ -112,15 +112,15 @@ pub fn joint_create_spring(
     pixel_rest_length: Real,
     disable_collision: bool,
 ) -> Handle {
-    let anchor_1 = &vector_pixels_to_meters(pixel_anchor_1);
-    let anchor_2 = &vector_pixels_to_meters(pixel_anchor_2);
+    let anchor_1 = vector_pixels_to_meters(pixel_anchor_1);
+    let anchor_2 = vector_pixels_to_meters(pixel_anchor_2);
     let rest_length = pixels_to_meters(pixel_rest_length);
 
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let joint = SpringJointBuilder::new(rest_length, stiffness, damping)
-            .local_anchor1(point!(anchor_1.x, anchor_1.y))
-            .local_anchor2(point!(anchor_2.x, anchor_2.y))
+            .local_anchor1(Point { coords: anchor_1 })
+            .local_anchor2(Point { coords: anchor_2 })
             .contacts_enabled(!disable_collision);
         return physics_world.insert_joint(body_handle_1, body_handle_2, joint);
     }

@@ -3,7 +3,7 @@ use crate::bodies::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::joints::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 use crate::joints::rapier_groove_joint_2d::RapierGrooveJoint2D;
-use crate::joints::rapier_joint_2d::{IRapierJoint, RapierEmptyJoint2D};
+use crate::joints::rapier_joint::{IRapierJoint, RapierEmptyJoint};
 use crate::joints::rapier_pin_joint_2d::RapierPinJoint2D;
 use crate::rapier_wrapper::convert::vector_to_rapier;
 use crate::rapier_wrapper::physics_world::world_step;
@@ -20,7 +20,7 @@ use crate::shapes::rapier_separation_ray_shape_2d::RapierSeparationRayShape2D;
 use crate::shapes::rapier_shape::RapierShapeBase;
 use crate::shapes::rapier_world_boundary_shape_2d::RapierWorldBoundaryShape2D;
 use crate::spaces::rapier_space::RapierSpace;
-use crate::PackedVectorArray;
+use crate::{PackedVectorArray};
 use godot::classes::{self, IPhysicsServer2DExtension, PhysicsServer2DExtension, ProjectSettings};
 use godot::engine::native::PhysicsServer2DExtensionMotionResult;
 use godot::engine::utilities::{rid_allocate_id, rid_from_int64};
@@ -953,12 +953,12 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let rid = rid_from_int64(rid_allocate_id());
         joints_singleton()
             .joints
-            .insert(rid, Box::new(RapierEmptyJoint2D::new(rid)));
+            .insert(rid, Box::new(RapierEmptyJoint::new(rid)));
         rid
     }
     fn joint_clear(&mut self, rid: Rid) {
         if let Some(prev_joint) = joints_singleton().joints.remove(&rid) {
-            let mut joint = RapierEmptyJoint2D::new(rid);
+            let mut joint = RapierEmptyJoint::new(rid);
             joint
                 .get_mut_base()
                 .copy_settings_from(prev_joint.get_base());

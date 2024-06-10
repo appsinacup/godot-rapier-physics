@@ -12,6 +12,7 @@ pub type RapierDirectSpaceState = rapier_direct_space_state_3d::RapierDirectSpac
 #[cfg(feature = "dim3")]
 pub type PhysicsDirectSpaceState = godot::engine::PhysicsDirectSpaceState3D;
 
+pub mod rapier_direct_space_state_impl;
 pub mod rapier_space;
 pub mod rapier_space_body_helper;
 pub mod rapier_space_callbacks;

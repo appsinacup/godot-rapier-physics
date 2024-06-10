@@ -8,6 +8,7 @@ use crate::rapier_wrapper::convert::vector_to_godot;
 use crate::rapier_wrapper::convert::vector_to_rapier;
 use crate::rapier_wrapper::handle::invalid_handle;
 use crate::rapier_wrapper::handle::Handle;
+use crate::rapier_wrapper::AngZERO;
 use crate::servers::rapier_physics_server_extra::RapierBodyParam;
 use crate::servers::rapier_physics_singleton::bodies_singleton;
 use crate::servers::rapier_physics_singleton::shapes_singleton;
@@ -15,6 +16,7 @@ use crate::servers::rapier_physics_singleton::spaces_singleton;
 use crate::servers::rapier_project_settings::*;
 use crate::spaces::rapier_space::RapierSpace;
 use crate::Angle;
+use crate::AngleZERO;
 use crate::Rect;
 use crate::Transform;
 use crate::Vector;
@@ -132,7 +134,7 @@ impl RapierBody {
             bounce: 0.0,
             friction: 1.0,
             mass: 1.0,
-            inertia: 0.0,
+            inertia: AngleZERO,
             contact_skin: RapierProjectSettings::get_contact_skin() as f32,
             center_of_mass: Vector::ZERO,
             calculate_inertia: true,
@@ -149,10 +151,10 @@ impl RapierBody {
             constant_force: Vector::ZERO,
             linear_velocity: Vector::ZERO,
             impulse: Vector::ZERO,
-            torque: 0.0,
-            angular_velocity: 0.0,
-            constant_torque: 0.0,
-            to_add_angular_velocity: 0.0,
+            torque: AngleZERO,
+            angular_velocity: AngleZERO,
+            constant_torque: AngleZERO,
+            to_add_angular_velocity: AngleZERO,
             to_add_linear_velocity: Vector::ZERO,
             sleep: false,
             areas: Vec::new(),
@@ -186,7 +188,7 @@ impl RapierBody {
 
         let mut inertia_value = self.inertia;
         if self.base.mode == BodyMode::RIGID_LINEAR {
-            inertia_value = 0.0;
+            inertia_value = AngleZERO;
         }
 
         let com = vector_to_rapier(self.center_of_mass);
@@ -197,7 +199,7 @@ impl RapierBody {
             self.base.get_space_handle(),
             self.base.get_body_handle(),
             self.mass,
-            inertia_value,
+            angle_to_rapier(inertia_value),
             com,
             false,
             force_update,
@@ -315,7 +317,7 @@ impl RapierBody {
             self.base.get_body_handle(),
             angle_to_rapier(self.angular_velocity),
         );
-        self.angular_velocity = 0.0;
+        self.angular_velocity = AngleZERO;
     }
     pub fn get_angular_velocity(&self) -> Angle {
         if !self.base.is_valid() {
@@ -668,7 +670,7 @@ impl RapierBody {
             pos,
         );
         self.impulse = Vector::ZERO;
-        self.torque = 0.0;
+        self.torque = AngleZERO;
     }
 
     pub fn apply_torque_impulse(&mut self, p_torque: Angle) {
@@ -721,7 +723,7 @@ impl RapierBody {
         // Note: using last delta assuming constant physics time
         let last_delta = RapierSpace::get_last_step();
         if !self.base.is_valid() {
-            self.torque += p_torque * last_delta;
+            self.torque += Angle::from(p_torque * last_delta);
             return;
         }
         body_apply_torque_impulse(
@@ -874,9 +876,9 @@ impl RapierBody {
 
         space.body_add_to_state_query_list(self.base.get_rid());
         if self.base.mode.ord() >= BodyMode::RIGID.ord() {
-            if self.to_add_angular_velocity != 0.0 {
+            if self.to_add_angular_velocity != AngleZERO {
                 self.set_angular_velocity(self.to_add_angular_velocity);
-                self.to_add_angular_velocity = 0.0;
+                self.to_add_angular_velocity = AngleZERO;
             }
             if self.to_add_linear_velocity != Vector::default() {
                 self.set_linear_velocity(self.to_add_linear_velocity);
@@ -948,7 +950,7 @@ impl RapierBody {
                     return;
                 }
                 let inertia_value = p_value.to();
-                if inertia_value <= 0.0 {
+                if inertia_value == AngZERO {
                     self.calculate_inertia = true;
                 } else {
                     self.calculate_inertia = false;
@@ -1232,7 +1234,7 @@ impl RapierBody {
                 continue;
             }
             if let Some(shape) = shapes_singleton().shapes.get(&self.base.get_shape(i)) {
-                total_area += shape.get_base().get_aabb(Vector::default()).area();
+                total_area += shape.get_base().get_aabb_area(Vector::default());
             }
         }
 
@@ -1246,7 +1248,7 @@ impl RapierBody {
                     }
 
                     if let Some(shape) = shapes_singleton().shapes.get(&self.base.get_shape(i)) {
-                        let shape_area = shape.get_base().get_aabb(Vector::default()).area();
+                        let shape_area = shape.get_base().get_aabb_area(Vector::default());
                         if shape_area == 0.0 || self.mass == 0.0 {
                             continue;
                         }
@@ -1261,7 +1263,7 @@ impl RapierBody {
         }
 
         if self.calculate_inertia {
-            self.inertia = 0.0;
+            self.inertia = AngleZERO;
 
             if total_area != 0.0 {
                 for i in 0..shape_count {
@@ -1270,7 +1272,7 @@ impl RapierBody {
                     }
 
                     if let Some(shape) = shapes_singleton().shapes.get(&self.base.get_shape(i)) {
-                        let shape_area = shape.get_base().get_aabb(Vector::default()).area();
+                        let shape_area = shape.get_base().get_aabb_area(Vector::default());
                         if shape_area == 0.0 || self.mass == 0.0 {
                             continue;
                         }
@@ -1311,10 +1313,10 @@ impl RapierBody {
         0.0
     }
     pub fn get_inv_inertia(&self) -> Angle {
-        if self.inertia != 0.0 {
+        if self.inertia != AngleZERO {
             return 1.0 / self.inertia;
         }
-        0.0
+        AngleZERO
     }
 
     pub fn get_velocity_at_local_point(&self, rel_pos: Vector) -> Vector {
@@ -1441,19 +1443,19 @@ impl IRapierCollisionObject for RapierBody {
                 if self.linear_velocity != Vector::default() {
                     self.set_linear_velocity(self.linear_velocity);
                 }
-                if self.angular_velocity != 0.0 {
+                if self.angular_velocity != AngleZERO {
                     self.set_angular_velocity(self.angular_velocity);
                 }
                 if self.constant_force != Vector::default() {
                     self.set_constant_force(self.constant_force);
                 }
-                if self.constant_torque != 0.0 {
+                if self.constant_torque != AngleZERO {
                     self.set_constant_torque(self.constant_torque);
                 }
                 if self.impulse != Vector::default() {
                     self.apply_impulse(self.impulse, Vector::default());
                 }
-                if self.torque != 0.0 {
+                if self.torque != AngleZERO {
                     self.apply_torque_impulse(self.torque);
                 }
                 self.set_continuous_collision_detection_mode(self.ccd_mode);

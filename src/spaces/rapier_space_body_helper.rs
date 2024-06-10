@@ -2,7 +2,7 @@ use crate::bodies::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::{
     CollisionObjectType, IRapierCollisionObject, RapierCollisionObject,
 };
-use crate::rapier_wrapper::convert::vector_to_rapier;
+use crate::rapier_wrapper::convert::{vector_to_godot, vector_to_rapier};
 use crate::rapier_wrapper::handle::Handle;
 use crate::rapier_wrapper::query::{intersect_aabb, ContactResult, QueryExcludedInfo};
 use crate::rapier_wrapper::query::{shapes_contact, PointHitInfo};
@@ -12,12 +12,17 @@ use crate::servers::rapier_physics_singleton::{
     active_spaces_singleton, bodies_singleton, shapes_singleton, spaces_singleton,
 };
 use crate::shapes::rapier_shape::IRapierShape;
-use crate::Rect;
+use crate::{Rect, Transform, Vector};
 use godot::engine::native::ObjectId;
 use godot::engine::physics_server_2d::BodyMode;
-use godot::{engine::native::PhysicsServer2DExtensionMotionResult, prelude::*};
+use godot::{prelude::*};
 use rapier::math::Real;
 use rapier::na::RealField;
+
+#[cfg(feature = "dim2")]
+type PhysicsServerExtensionMotionResult = godot::engine::native::PhysicsServer2DExtensionMotionResult;
+#[cfg(feature = "dim3")]
+type PhysicsServerExtensionMotionResult = godot::engine::native::PhysicsServer3DExtensionMotionResult;
 
 use super::rapier_space::RapierSpace;
 use super::RapierDirectSpaceState;
@@ -82,19 +87,19 @@ impl RapierSpace {
     pub fn test_body_motion(
         &mut self,
         body: &mut RapierBody,
-        from: Transform2D,
-        motion: Vector2,
+        from: Transform,
+        motion: Vector,
         margin: Real,
         collide_separation_ray: bool,
         recovery_as_collision: bool,
-        result: &mut PhysicsServer2DExtensionMotionResult,
+        result: &mut PhysicsServerExtensionMotionResult,
     ) -> bool {
-        result.travel = Vector2::default();
+        result.travel = Vector::default();
         let mut body_transform = from; // Because body_transform needs to be modified during recovery
                                        // Step 1: recover motion.
                                        // Expand the body colliders by the margin (grow) and check if now it collides with a collider,
                                        // if yes, "recover" / "push" out of this collider
-        let mut recover_motion = Vector2::ZERO;
+        let mut recover_motion = Vector::ZERO;
         let margin = Real::max(margin, TEST_MOTION_MARGIN);
 
         let recovered = self.body_motion_recover(
@@ -150,7 +155,7 @@ impl RapierSpace {
             result.collision_unsafe_fraction = best_unsafe;
         } else {
             result.travel += recover_motion + motion;
-            result.remainder = Vector2::default();
+            result.remainder = Vector::default();
             result.collision_depth = 0.0;
             result.collision_safe_fraction = 1.0;
             result.collision_unsafe_fraction = 1.0;
@@ -199,10 +204,10 @@ impl RapierSpace {
     fn body_motion_recover(
         &mut self,
         p_body: &mut RapierBody,
-        p_transform: &mut Transform2D,
-        p_motion: Vector2,
+        p_transform: &mut Transform,
+        p_motion: Vector,
         p_margin: f32,
-        p_recover_motion: &mut Vector2,
+        p_recover_motion: &mut Vector,
     ) -> bool {
         let shape_count = p_body.get_base().get_shape_count();
         if shape_count < 1 {
@@ -234,7 +239,7 @@ impl RapierSpace {
                 break;
             }
 
-            let mut recover_step = Vector2::default();
+            let mut recover_step = Vector::default();
 
             for body_shape_idx in 0..p_body.get_base().get_shape_count() {
                 let body_shape_idx = body_shape_idx as usize;
@@ -298,19 +303,13 @@ impl RapierSpace {
                                     ) {
                                         continue;
                                     }
-                                    let a = Vector2::new(
-                                        contact.pixel_point1.x,
-                                        contact.pixel_point1.y,
-                                    );
-                                    let b = Vector2::new(
-                                        contact.pixel_point2.x,
-                                        contact.pixel_point2.y,
-                                    );
+                                    let a = vector_to_godot(contact.pixel_point1);
+                                    let b = vector_to_godot(contact.pixel_point2);
 
                                     recovered = true;
 
                                     // Compute plane on b towards a.
-                                    let n = Vector2::new(contact.normal1.x, contact.normal1.y);
+                                    let n = vector_to_godot(contact.normal1);
                                     // Move it outside as to fit the margin
                                     let d = n.dot(b);
 
@@ -328,7 +327,7 @@ impl RapierSpace {
                     }
                 }
             }
-            if recover_step == Vector2::default() {
+            if recover_step == Vector::default() {
                 recovered = false;
                 break;
             }
@@ -348,8 +347,8 @@ impl RapierSpace {
     fn cast_motion(
         &mut self,
         p_body: &mut RapierBody,
-        p_transform: &Transform2D,
-        p_motion: Vector2,
+        p_transform: &Transform,
+        p_motion: Vector,
         _p_collide_separation_ray: bool,
         _contact_max_allowed_penetration: f32,
         p_margin: f32,
@@ -454,13 +453,11 @@ impl RapierSpace {
                                 ) {
                                     continue;
                                 }
-                                let a =
-                                    Vector2::new(contact.pixel_point1.x, contact.pixel_point1.y);
-                                let b =
-                                    Vector2::new(contact.pixel_point2.x, contact.pixel_point2.y);
+                                let a = vector_to_godot(contact.pixel_point1);
+                                let b = vector_to_godot(contact.pixel_point2);
 
                                 // Compute plane on b towards a.
-                                let n = Vector2::new(contact.normal1.x, contact.normal1.y);
+                                let n = vector_to_godot(contact.normal1);
                                 // Move it outside as to fit the margin
                                 let d = n.dot(b);
 
@@ -490,11 +487,11 @@ impl RapierSpace {
     fn body_motion_collide(
         &mut self,
         p_body: &mut RapierBody,
-        p_transform: &Transform2D,
-        p_motion: Vector2,
+        p_transform: &Transform,
+        p_motion: Vector,
         p_best_body_shape: i32,
         p_margin: f32,
-        p_result: &mut PhysicsServer2DExtensionMotionResult,
+        p_result: &mut PhysicsServerExtensionMotionResult,
     ) -> bool {
         let shape_count = p_body.get_base().get_shape_count();
         if shape_count < 1 {
@@ -605,7 +602,7 @@ impl RapierSpace {
         }
         if let Some(best_collision_body) = best_collision_body {
             // conveyer belt
-            if best_collision_body.get_static_linear_velocity() != Vector2::default() {
+            if best_collision_body.get_static_linear_velocity() != Vector::default() {
                 p_result.travel +=
                     best_collision_body.get_static_linear_velocity() * RapierSpace::get_last_step();
             }
@@ -617,10 +614,9 @@ impl RapierSpace {
             p_result.collision_local_shape = best_body_shape_index;
             // World position from the moving body to get the contact point
             p_result.collision_point =
-                Vector2::new(best_contact.pixel_point1.x, best_contact.pixel_point1.y);
+                vector_to_godot(best_contact.pixel_point1);
             // Normal from the collided object to get the contact normal
-            p_result.collision_normal =
-                Vector2::new(best_contact.normal2.x, best_contact.normal2.y);
+            p_result.collision_normal = vector_to_godot(best_contact.normal2);
             // compute distance without sign
             p_result.collision_depth = p_margin - best_contact.pixel_distance;
 
@@ -640,10 +636,10 @@ fn should_skip_collision_one_dir(
     body_shape: &Box<dyn IRapierShape>,
     collision_body: &dyn IRapierCollisionObject,
     shape_index: usize,
-    col_shape_transform: &Transform2D,
+    col_shape_transform: &Transform,
     p_margin: f32,
     last_step: f32,
-    p_motion: Vector2,
+    p_motion: Vector,
 ) -> bool {
     let dist = contact.pixel_distance;
     if !contact.within_margin

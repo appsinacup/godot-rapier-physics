@@ -1,7 +1,7 @@
 use crate::{
     bodies::rapier_collision_object::IRapierCollisionObject,
     servers::rapier_physics_singleton::{bodies_singleton, spaces_singleton},
-    spaces::rapier_space::RapierSpace,
+    spaces::rapier_space::RapierSpace, AngleZERO,
 };
 use godot::{
     engine::{
@@ -111,7 +111,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
                 return body.get_inv_inertia();
             }
         }
-        0.0
+        AngleZERO
     }
 
     fn set_linear_velocity(&mut self, velocity: Vector2) {
@@ -145,7 +145,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
                 return body.get_angular_velocity();
             }
         }
-        0.0
+        AngleZERO
     }
 
     fn set_transform(&mut self, transform: Transform2D) {
@@ -277,7 +277,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
                 return body.get_constant_torque();
             }
         }
-        0.0
+        AngleZERO
     }
 
     fn set_sleep_state(&mut self, enabled: bool) {

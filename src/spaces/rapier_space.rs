@@ -10,7 +10,6 @@ use crate::{
     rapier_wrapper::{handle::Handle, physics_world::world_create},
 };
 use crate::{PackedVectorArray, Vector};
-use godot::engine::physics_server_2d::AreaParameter;
 use godot::{
     engine::{physics_server_2d, ProjectSettings},
     prelude::*,
@@ -18,6 +17,10 @@ use godot::{
 use std::collections::{HashMap, HashSet};
 
 use super::{PhysicsDirectSpaceState, RapierDirectSpaceState};
+#[cfg(feature = "dim2")]
+use godot::engine::physics_server_2d::AreaParameter;
+#[cfg(feature = "dim3")]
+use godot::engine::physics_server_3d::AreaParameter;
 
 pub struct RemovedColliderInfo {
     pub rid: Rid,

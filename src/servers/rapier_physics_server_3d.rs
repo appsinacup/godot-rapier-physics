@@ -2,6 +2,7 @@ use crate::bodies::rapier_area::RapierArea;
 use crate::bodies::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::fluids::rapier_fluid::RapierFluid;
+use crate::joints::rapier_joint::RapierEmptyJoint;
 use crate::rapier_wrapper::convert::vector_to_rapier;
 use crate::rapier_wrapper::physics_world::world_step;
 use crate::rapier_wrapper::query::shape_collide;
@@ -713,12 +714,12 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         let rid = rid_from_int64(rid_allocate_id());
         joints_singleton()
             .joints
-            .insert(rid, Box::new(RapierEmptyJoint3D::new(rid)));
+            .insert(rid, Box::new(RapierEmptyJoint::new(rid)));
         rid
     }
     fn joint_clear(&mut self, rid: Rid) {
         if let Some(prev_joint) = joints_singleton().joints.remove(&rid) {
-            let mut joint = RapierEmptyJoint3D::new(rid);
+            let mut joint = RapierEmptyJoint::new(rid);
             joint
                 .get_mut_base()
                 .copy_settings_from(prev_joint.get_base());
