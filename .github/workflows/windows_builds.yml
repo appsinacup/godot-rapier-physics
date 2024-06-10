@@ -31,5 +31,5 @@ jobs:
         with:
           name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch}}
           path: |
-            bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.windows.dll
+            bin${{ matrix.dimensions.short }}/**/*.dll
           if-no-files-found: error
