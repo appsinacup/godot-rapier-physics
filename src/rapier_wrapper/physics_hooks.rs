@@ -6,7 +6,6 @@ pub struct OneWayDirection {
     pub body2: bool,
     pub pixel_body1_margin: Real,
     pub pixel_body2_margin: Real,
-    pub last_timestep: Real,
 }
 
 impl OneWayDirection {
@@ -16,7 +15,6 @@ impl OneWayDirection {
             body2: false,
             pixel_body1_margin: 0.0,
             pixel_body2_margin: 0.0,
-            last_timestep: 0.001,
         }
     }
 }

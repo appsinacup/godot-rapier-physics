@@ -3,7 +3,8 @@ use godot::log::godot_error;
 use rapier::prelude::*;
 use salva::integrations::rapier::ColliderSampling;
 use salva::object::Boundary;
-use salva::parry::either::Either::*;
+use salva::parry::either::Either::Left;
+use salva::parry::either::Either::Right;
 
 const SUBDIVISIONS: u32 = 20;
 
@@ -173,7 +174,7 @@ pub fn collider_create_solid(
     world_handle: Handle,
     shape_handle: Handle,
     mat: &Material,
-    body_handle: Handle,
+    body_handle: RigidBodyHandle,
     user_data: &UserData,
 ) -> Handle {
     let physics_engine = physics_engine();
@@ -222,7 +223,7 @@ pub fn collider_create_solid(
 pub fn collider_create_sensor(
     world_handle: Handle,
     shape_handle: Handle,
-    body_handle: Handle,
+    body_handle: RigidBodyHandle,
     user_data: &UserData,
 ) -> Handle {
     let physics_engine = physics_engine();

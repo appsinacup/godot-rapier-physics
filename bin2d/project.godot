@@ -27,3 +27,4 @@ enabled=PackedStringArray()
 [physics]
 
 2d/physics_engine="Rapier2D"
+rapier/solver/length_unit_2d=1.0

@@ -81,18 +81,6 @@ pub fn handle_to_collider_handle(handle: Handle) -> ColliderHandle {
     ColliderHandle::from_raw_parts(handle.id, handle.generation)
 }
 
-pub fn rigid_body_handle_to_handle(rigid_body_handle: RigidBodyHandle) -> Handle {
-    let raw_parts = rigid_body_handle.into_raw_parts();
-    Handle {
-        id: raw_parts.0,
-        generation: raw_parts.1,
-    }
-}
-
-pub fn handle_to_rigid_body_handle(handle: Handle) -> RigidBodyHandle {
-    RigidBodyHandle::from_raw_parts(handle.id, handle.generation)
-}
-
 pub fn joint_handle_to_handle(joint_handle: ImpulseJointHandle) -> Handle {
     let raw_parts = joint_handle.into_raw_parts();
     Handle {

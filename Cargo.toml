@@ -10,6 +10,7 @@ crate-type = ["cdylib"]
 
 [features]
 default = ["single_dim2"]
+convert_pixels_to_meters = []
 dim2 = []
 dim3 = []
 single = []
@@ -49,6 +50,8 @@ rapier3d = {git = "https://github.com/dimforge/rapier", branch = "master"}
 rapier3d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master"}
 parry3d = {git = "https://github.com/dimforge/parry", branch = "master"}
 parry3d-f64 = {git = "https://github.com/dimforge/parry", branch = "master"}
+
+#glam = { version = "0.27", features = ["default-features = false }
 
 [profile.release]
 codegen-units = 1

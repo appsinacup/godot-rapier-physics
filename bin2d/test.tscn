@@ -117,6 +117,7 @@ node_b = NodePath("../../RigidBodyPin3")
 
 [node name="RigidBodyPin3" type="RigidBody2D" parent="JointRigid"]
 position = Vector2(114, -104)
+constant_force = Vector2(100, 2.08165e-12)
 script = ExtResource("1_4sybc")
 
 [node name="CollisionShape2D4" type="CollisionShape2D" parent="JointRigid/RigidBodyPin3"]

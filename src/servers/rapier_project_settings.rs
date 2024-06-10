@@ -14,6 +14,14 @@ const FLUID_GRAVITY_DIR: &str = "physics/rapier/fluid/fluid_gravity_dir";
 const FLUID_GRAVITY_VALUE: &str = "physics/rapier/fluid/fluid_gravity_value";
 const FLUID_PARTICLE_RADIUS: &str = "physics/rapier/fluid/fluid_particle_radius";
 const FLUID_SMOOTHING_FACTOR: &str = "physics/rapier/fluid/fluid_smoothing_factor";
+#[cfg(feature = "dim2")]
+const LENGTH_UNIT: &str = "physics/rapier/solver/length_unit_2d";
+#[cfg(feature = "dim2")]
+const LENGTH_UNIT_VALUE: real = 100.0;
+#[cfg(feature = "dim3")]
+const LENGTH_UNIT: &str = "physics/rapier/solver/length_unit_3d";
+#[cfg(feature = "dim3")]
+const LENGTH_UNIT_VALUE: real = 1.0;
 
 pub fn register_setting(
     p_name: &str,
@@ -115,6 +123,12 @@ impl RapierProjectSettings {
             "0,10,0.00001,suffix:%",
             true,
         );
+        register_setting_ranged(
+            LENGTH_UNIT,
+            Variant::from(LENGTH_UNIT_VALUE),
+            "1,100,1,suffix:length_unit",
+            false,
+        );
     }
 
     fn get_setting_int(p_setting: &str) -> i64 {
@@ -165,7 +179,11 @@ impl RapierProjectSettings {
         RapierProjectSettings::get_setting_double(FLUID_SMOOTHING_FACTOR) as Real
     }
 
-    pub fn get_contact_skin() -> f64 {
-        RapierProjectSettings::get_setting_double(CONTACT_SKIN)
+    pub fn get_contact_skin() -> Real {
+        RapierProjectSettings::get_setting_double(CONTACT_SKIN) as Real
+    }
+
+    pub fn get_length_unit() -> Real {
+        RapierProjectSettings::get_setting_double(LENGTH_UNIT) as Real
     }
 }

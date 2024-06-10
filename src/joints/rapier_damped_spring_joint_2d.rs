@@ -13,18 +13,12 @@ pub struct RapierDampedSpringJoint2D {
 }
 
 impl RapierDampedSpringJoint2D {
-    pub fn new(
-        rid: Rid,
-        p_anchor_a: Vector2,
-        p_anchor_b: Vector2,
-        body_a: Rid,
-        body_b: Rid,
-    ) -> Self {
+    pub fn new(p_anchor_a: Vector2, p_anchor_b: Vector2, body_a: Rid, body_b: Rid) -> Self {
         let invalid_joint = Self {
             rest_length: 0.0,
             stiffness: 20.0,
             damping: 1.5,
-            base: RapierJointBase::new(invalid_handle(), invalid_handle(), rid),
+            base: RapierJointBase::new(invalid_handle(), invalid_handle()),
         };
         if body_a == body_b {
             return invalid_joint;
@@ -70,7 +64,7 @@ impl RapierDampedSpringJoint2D {
                     rest_length,
                     stiffness: 20.0,
                     damping: 1.5,
-                    base: RapierJointBase::new(space_handle, handle, rid),
+                    base: RapierJointBase::new(space_handle, handle),
                 };
             }
         }

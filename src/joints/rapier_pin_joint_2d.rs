@@ -16,14 +16,14 @@ pub struct RapierPinJoint2D {
 }
 
 impl RapierPinJoint2D {
-    pub fn new(rid: Rid, pos: Vector2, body_a: Rid, body_b: Rid) -> Self {
+    pub fn new(pos: Vector2, body_a: Rid, body_b: Rid) -> Self {
         let invalid_joint = Self {
             angular_limit_lower: 0.0,
             angular_limit_upper: 0.0,
             motor_target_velocity: 0.0,
             motor_enabled: false,
             angular_limit_enabled: false,
-            base: RapierJointBase::new(invalid_handle(), invalid_handle(), rid),
+            base: RapierJointBase::new(invalid_handle(), invalid_handle()),
         };
         if body_a == body_b {
             return invalid_joint;
@@ -63,7 +63,7 @@ impl RapierPinJoint2D {
                     motor_target_velocity: 0.0,
                     motor_enabled: false,
                     angular_limit_enabled: false,
-                    base: RapierJointBase::new(space_handle, handle, rid),
+                    base: RapierJointBase::new(space_handle, handle),
                 };
             }
         }

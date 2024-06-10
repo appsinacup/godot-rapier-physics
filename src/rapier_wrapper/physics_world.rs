@@ -8,7 +8,6 @@ use serde::{Deserialize, Serialize};
 use std::num::NonZeroUsize;
 
 pub struct ActiveBodyInfo {
-    pub body_handle: Handle,
     pub body_user_data: UserData,
 }
 
@@ -48,8 +47,6 @@ pub struct CollisionEventInfo {
 }
 
 pub struct ContactForceEventInfo {
-    pub collider1: Handle,
-    pub collider2: Handle,
     pub user_data1: UserData,
     pub user_data2: UserData,
 }
@@ -113,7 +110,7 @@ impl PhysicsWorld {
         contact_point_callback: ContactPointCallback,
     ) {
         let mut integration_parameters = IntegrationParameters::default();
-
+        integration_parameters.length_unit = settings.length_unit;
         integration_parameters.dt = settings.dt;
         integration_parameters.max_ccd_substeps = settings.max_ccd_substeps;
         if settings.num_solver_iterations > 0 {
@@ -164,7 +161,6 @@ impl PhysicsWorld {
         for handle in self.physics_objects.island_manager.active_dynamic_bodies() {
             // Send the active body event.
             let active_body_info = ActiveBodyInfo {
-                body_handle: rigid_body_handle_to_handle(*handle),
                 body_user_data: self.get_rigid_body_user_data(*handle),
             };
 
@@ -177,7 +173,6 @@ impl PhysicsWorld {
         {
             // Send the active body event.
             let active_body_info = ActiveBodyInfo {
-                body_handle: rigid_body_handle_to_handle(*handle),
                 body_user_data: self.get_rigid_body_user_data(*handle),
             };
 
@@ -217,8 +212,6 @@ impl PhysicsWorld {
 
             // Handle the contact force event.
             let event_info = ContactForceEventInfo {
-                collider1: collider_handle_to_handle(contact_force_event.collider1),
-                collider2: collider_handle_to_handle(contact_force_event.collider2),
                 user_data1: UserData::new(collider1.user_data),
                 user_data2: UserData::new(collider2.user_data),
             };
@@ -295,9 +288,9 @@ impl PhysicsWorld {
         }
     }
 
-    pub fn insert_collider(&mut self, collider: Collider, body_handle: Handle) -> Handle {
-        if body_handle.is_valid() {
-            let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
+    pub fn insert_collider(&mut self, collider: Collider, body_handle: RigidBodyHandle) -> Handle {
+        if body_handle != RigidBodyHandle::invalid() {
+            let rigid_body_handle = body_handle;
             let collider_handle = self.physics_objects.collider_set.insert_with_parent(
                 collider,
                 rigid_body_handle,
@@ -336,8 +329,8 @@ impl PhysicsWorld {
         None
     }
 
-    pub fn remove_rigid_body(&mut self, body_handle: Handle) {
-        let rigid_body_handle = handle_to_rigid_body_handle(body_handle);
+    pub fn remove_rigid_body(&mut self, body_handle: RigidBodyHandle) {
+        let rigid_body_handle = body_handle;
         self.physics_objects.rigid_body_set.remove(
             rigid_body_handle,
             &mut self.physics_objects.island_manager,
@@ -358,12 +351,12 @@ impl PhysicsWorld {
 
     pub fn insert_joint(
         &mut self,
-        body_handle_1: Handle,
-        body_handle_2: Handle,
+        body_handle_1: RigidBodyHandle,
+        body_handle_2: RigidBodyHandle,
         joint: impl Into<GenericJoint>,
     ) -> Handle {
-        let rigid_body_1_handle = handle_to_rigid_body_handle(body_handle_1);
-        let rigid_body_2_handle = handle_to_rigid_body_handle(body_handle_2);
+        let rigid_body_1_handle = body_handle_1;
+        let rigid_body_2_handle = body_handle_2;
 
         let joint_handle = self.physics_objects.impulse_joint_set.insert(
             rigid_body_1_handle,

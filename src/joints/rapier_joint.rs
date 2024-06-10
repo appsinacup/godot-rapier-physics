@@ -2,7 +2,7 @@ use super::{
     rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D, rapier_pin_joint_2d::RapierPinJoint2D,
 };
 use crate::rapier_wrapper::prelude::*;
-use godot::{classes::*, prelude::*};
+use godot::classes::*;
 use std::any::Any;
 
 pub trait IRapierJoint: Any {
@@ -17,17 +17,15 @@ pub trait IRapierJoint: Any {
 
 pub struct RapierJointBase {
     max_force: f32,
-    rid: Rid,
     handle: Handle,
     space_handle: Handle,
     disabled_collisions_between_bodies: bool,
 }
 
 impl RapierJointBase {
-    pub fn new(space_handle: Handle, handle: Handle, rid: Rid) -> Self {
+    pub fn new(space_handle: Handle, handle: Handle) -> Self {
         Self {
             max_force: f32::MAX,
-            rid,
             handle,
             space_handle,
             disabled_collisions_between_bodies: true,
@@ -80,9 +78,9 @@ pub struct RapierEmptyJoint {
 }
 
 impl RapierEmptyJoint {
-    pub fn new(rid: Rid) -> Self {
+    pub fn new() -> Self {
         Self {
-            base: RapierJointBase::new(invalid_handle(), invalid_handle(), rid),
+            base: RapierJointBase::new(invalid_handle(), invalid_handle()),
         }
     }
 }

@@ -8,6 +8,7 @@ pub struct WorldSettings {
 pub struct SimulationSettings {
     /// The timestep length (default: `1.0 / 60.0`)
     pub dt: Real,
+    pub length_unit: Real,
 
     /// The number of solver iterations run by the constraints solver for calculating forces (default: `4`).
     pub num_solver_iterations: usize,

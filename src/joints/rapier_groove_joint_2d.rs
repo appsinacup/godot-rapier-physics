@@ -13,7 +13,6 @@ pub struct RapierGrooveJoint2D {
 
 impl RapierGrooveJoint2D {
     pub fn new(
-        rid: Rid,
         p_a_groove1: Vector2,
         p_a_groove2: Vector2,
         p_b_anchor: Vector2,
@@ -21,7 +20,7 @@ impl RapierGrooveJoint2D {
         body_b: Rid,
     ) -> Self {
         let invalid_joint = Self {
-            base: RapierJointBase::new(invalid_handle(), invalid_handle(), rid),
+            base: RapierJointBase::new(invalid_handle(), invalid_handle()),
         };
         if body_a == body_b {
             return invalid_joint;
@@ -60,7 +59,7 @@ impl RapierGrooveJoint2D {
                     true,
                 );
                 return Self {
-                    base: RapierJointBase::new(space_handle, handle, rid),
+                    base: RapierJointBase::new(space_handle, handle),
                 };
             }
         }

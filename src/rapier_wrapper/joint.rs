@@ -3,8 +3,8 @@ use rapier::prelude::*;
 
 pub fn joint_create_revolute(
     world_handle: Handle,
-    body_handle_1: Handle,
-    body_handle_2: Handle,
+    body_handle_1: RigidBodyHandle,
+    body_handle_2: RigidBodyHandle,
     pixel_anchor_1: Vector<Real>,
     pixel_anchor_2: Vector<Real>,
     angular_limit_lower: Real,
@@ -74,8 +74,8 @@ pub fn joint_change_revolute_params(
 
 pub fn joint_create_prismatic(
     world_handle: Handle,
-    body_handle_1: Handle,
-    body_handle_2: Handle,
+    body_handle_1: RigidBodyHandle,
+    body_handle_2: RigidBodyHandle,
     axis: Vector<Real>,
     pixel_anchor_1: Vector<Real>,
     pixel_anchor_2: Vector<Real>,
@@ -101,8 +101,8 @@ pub fn joint_create_prismatic(
 
 pub fn joint_create_spring(
     world_handle: Handle,
-    body_handle_1: Handle,
-    body_handle_2: Handle,
+    body_handle_1: RigidBodyHandle,
+    body_handle_2: RigidBodyHandle,
     pixel_anchor_1: Vector<Real>,
     pixel_anchor_2: Vector<Real>,
     stiffness: Real,

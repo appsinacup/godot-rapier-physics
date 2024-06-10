@@ -1,35 +1,71 @@
-use std::ops::Mul;
-
 use godot::builtin::Vector2;
 use rapier::prelude::*;
 
 use crate::Angle;
 
+#[cfg(feature = "convert_pixels_to_meters")]
 const PIXELS_PER_METER: Real = 128.0;
+#[cfg(feature = "convert_pixels_to_meters")]
 const METERS_PER_PIXEL: Real = 1.0 / 128.0;
 
+#[cfg(not(feature = "convert_pixels_to_meters"))]
 pub fn pixels_to_meters(x: Real) -> Real {
-    PIXELS_PER_METER * x
+    x
 }
 
+#[cfg(not(feature = "convert_pixels_to_meters"))]
 pub fn vector_pixels_to_meters(v: Vector<Real>) -> Vector<Real> {
-    v.mul(PIXELS_PER_METER)
+    v
 }
 
+#[cfg(not(feature = "convert_pixels_to_meters"))]
 pub fn angle_pixels_to_meters(v: AngVector<Real>) -> AngVector<Real> {
-    v.mul(PIXELS_PER_METER)
+    v
 }
 
+#[cfg(not(feature = "convert_pixels_to_meters"))]
 pub fn angle_meters_to_pixels(v: AngVector<Real>) -> AngVector<Real> {
-    v.mul(PIXELS_PER_METER)
+    v
 }
 
+#[cfg(not(feature = "convert_pixels_to_meters"))]
 pub fn meters_to_pixels(x: Real) -> Real {
+    x
+}
+
+#[cfg(not(feature = "convert_pixels_to_meters"))]
+pub fn vector_meters_to_pixels(v: Vector<Real>) -> Vector<Real> {
+    v
+}
+
+#[cfg(feature = "convert_pixels_to_meters")]
+pub fn pixels_to_meters(x: Real) -> Real {
     METERS_PER_PIXEL * x
 }
 
+#[cfg(feature = "convert_pixels_to_meters")]
+pub fn vector_pixels_to_meters(v: Vector<Real>) -> Vector<Real> {
+    v * METERS_PER_PIXEL
+}
+
+#[cfg(feature = "convert_pixels_to_meters")]
+pub fn angle_pixels_to_meters(v: AngVector<Real>) -> AngVector<Real> {
+    v * METERS_PER_PIXEL
+}
+
+#[cfg(feature = "convert_pixels_to_meters")]
+pub fn angle_meters_to_pixels(v: AngVector<Real>) -> AngVector<Real> {
+    v * PIXELS_PER_METER
+}
+
+#[cfg(feature = "convert_pixels_to_meters")]
+pub fn meters_to_pixels(x: Real) -> Real {
+    PIXELS_PER_METER * x
+}
+
+#[cfg(feature = "convert_pixels_to_meters")]
 pub fn vector_meters_to_pixels(v: Vector<Real>) -> Vector<Real> {
-    v.mul(METERS_PER_PIXEL)
+    v * PIXELS_PER_METER
 }
 
 #[cfg(feature = "dim3")]

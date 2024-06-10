@@ -949,12 +949,12 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let rid = rid_from_int64(rid_allocate_id());
         joints_singleton()
             .joints
-            .insert(rid, Box::new(RapierEmptyJoint::new(rid)));
+            .insert(rid, Box::new(RapierEmptyJoint::new()));
         rid
     }
     fn joint_clear(&mut self, rid: Rid) {
         if let Some(prev_joint) = joints_singleton().joints.remove(&rid) {
-            let mut joint = RapierEmptyJoint::new(rid);
+            let mut joint = RapierEmptyJoint::new();
             joint
                 .get_mut_base()
                 .copy_settings_from(prev_joint.get_base());
@@ -996,7 +996,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     }
     fn joint_make_pin(&mut self, rid: Rid, anchor: Vector2, body_a: Rid, body_b: Rid) {
         let joints_singleton = joints_singleton();
-        let mut joint = RapierPinJoint2D::new(rid, anchor, body_a, body_b);
+        let mut joint = RapierPinJoint2D::new(anchor, body_a, body_b);
         if let Some(prev_joint) = joints_singleton.joints.remove(&rid) {
             joint
                 .get_mut_base()
@@ -1021,8 +1021,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         body_b: Rid,
     ) {
         let joints_singleton = joints_singleton();
-        let mut joint =
-            RapierGrooveJoint2D::new(rid, a_groove1, a_groove2, b_anchor, body_a, body_b);
+        let mut joint = RapierGrooveJoint2D::new(a_groove1, a_groove2, b_anchor, body_a, body_b);
         if let Some(prev_joint) = joints_singleton.joints.remove(&rid) {
             joint
                 .get_mut_base()
@@ -1046,7 +1045,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         body_b: Rid,
     ) {
         let joints_singleton = joints_singleton();
-        let mut joint = RapierDampedSpringJoint2D::new(rid, anchor_a, anchor_b, body_a, body_b);
+        let mut joint = RapierDampedSpringJoint2D::new(anchor_a, anchor_b, body_a, body_b);
         if let Some(prev_joint) = joints_singleton.joints.remove(&rid) {
             joint
                 .get_mut_base()
@@ -1264,6 +1263,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
                 pixel_liquid_gravity: vector_to_rapier(fluid_default_gravity_dir)
                     * fluid_default_gravity_value,
                 dt: step,
+                length_unit: RapierProjectSettings::get_length_unit(),
                 pixel_gravity: vector_to_rapier(default_gravity_dir) * default_gravity_value,
                 max_ccd_substeps: RapierProjectSettings::get_solver_max_ccd_substeps() as usize,
                 num_additional_friction_iterations:

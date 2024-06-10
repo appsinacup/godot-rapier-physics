@@ -6,6 +6,7 @@ use godot::engine::physics_server_2d::*;
 #[cfg(feature = "dim3")]
 use godot::engine::physics_server_3d::*;
 use godot::prelude::*;
+use rapier::dynamics::RigidBodyHandle;
 use std::any::Any;
 
 use super::{rapier_area::RapierArea, rapier_body::RapierBody};
@@ -76,7 +77,7 @@ pub struct RapierCollisionObject {
     collision_layer: u32,
     collision_priority: real,
     pub(crate) mode: BodyMode,
-    body_handle: Handle,
+    body_handle: RigidBodyHandle,
     space_handle: Handle,
     pub(crate) area_detection_counter: u32,
 }
@@ -97,7 +98,7 @@ impl RapierCollisionObject {
             collision_layer: 1,
             collision_priority: 1.0,
             mode: BodyMode::RIGID,
-            body_handle: invalid_handle(),
+            body_handle: RigidBodyHandle::invalid(),
             space_handle: invalid_handle(),
             area_detection_counter: 0,
         }
@@ -216,11 +217,15 @@ impl RapierCollisionObject {
                 godot_error!("Rapier shape is invalid");
                 return;
             }
+            let mut skew = 0.0;
+            if shape.xform.a != Vector::ZERO {
+                skew = shape.xform.skew();
+            }
             let shape_info = ShapeInfo {
                 handle: shape_handle,
                 pixel_position: position,
                 rotation: angle,
-                skew: shape.xform.skew(),
+                skew,
                 scale: vector_to_rapier(scale),
             };
             collider_set_transform(self.space_handle, shape.collider_handle, shape_info);
@@ -235,22 +240,26 @@ impl RapierCollisionObject {
         let position = body_get_position(self.space_handle, self.body_handle);
         let angle = body_get_angle(self.space_handle, self.body_handle);
         let origin = Vector2::new(position.x, position.y);
-        self.transform = Transform::from_angle_scale_skew_origin(
-            angle,
-            self.transform.scale(),
-            self.transform.skew(),
-            origin,
-        );
-
-        self.inv_transform = self.transform.affine_inverse();
+        let mut skew = 0.0;
+        if self.transform.a != Vector::ZERO {
+            skew = self.transform.skew();
+        }
+        self.transform =
+            Transform::from_angle_scale_skew_origin(angle, self.transform.scale(), skew, origin);
+        if self.transform.a != Vector::ZERO
+            && self.transform.b != Vector::ZERO
+            && self.transform.origin != Vector::ZERO
+        {
+            self.inv_transform = self.transform.affine_inverse();
+        }
     }
     pub(crate) fn _set_space(&mut self, p_space: Rid) {
         // previous space
         if self.space_handle.is_valid() {
-            if self.body_handle.is_valid() {
+            if self.body_handle != RigidBodyHandle::invalid() {
                 // This call also destroys the colliders
                 body_destroy(self.space_handle, self.body_handle);
-                self.body_handle = invalid_handle();
+                self.body_handle = RigidBodyHandle::invalid();
             }
 
             self._destroy_shapes();
@@ -305,7 +314,7 @@ impl RapierCollisionObject {
     }
 
     pub fn is_valid(&self) -> bool {
-        self.body_handle.is_valid() && self.space_handle.is_valid()
+        self.body_handle != RigidBodyHandle::invalid() && self.space_handle.is_valid()
     }
 
     pub fn get_rid(&self) -> Rid {
@@ -320,7 +329,7 @@ impl RapierCollisionObject {
         self.instance_id
     }
 
-    pub fn get_body_handle(&self) -> Handle {
+    pub fn get_body_handle(&self) -> RigidBodyHandle {
         self.body_handle
     }
 
@@ -350,16 +359,28 @@ impl RapierCollisionObject {
     }
 
     pub fn get_shape(&self, idx: usize) -> Rid {
-        self.shapes[idx].shape
+        if let Some(shape) = self.shapes.get(idx) {
+            return shape.shape;
+        }
+
+        Rid::Invalid
     }
 
     pub fn get_shape_transform(&self, idx: usize) -> Transform {
-        self.shapes[idx].xform
+        if let Some(shape) = self.shapes.get(idx) {
+            return shape.xform;
+        }
+        Transform::default()
     }
 
     pub fn set_transform(&mut self, p_transform: Transform, wake_up: bool) {
         self.transform = p_transform;
-        self.inv_transform = self.transform.affine_inverse();
+        if self.transform.a != Vector::ZERO
+            && self.transform.b != Vector::ZERO
+            && self.transform.origin != Vector::ZERO
+        {
+            self.inv_transform = self.transform.affine_inverse();
+        }
         if !self.is_valid() {
             return;
         }
@@ -389,7 +410,11 @@ impl RapierCollisionObject {
     }
 
     pub fn is_shape_disabled(&self, idx: usize) -> bool {
-        self.shapes[idx].disabled
+        if let Some(shape) = self.shapes.get(idx) {
+            return shape.disabled;
+        }
+
+        true
     }
 
     pub fn set_shape_as_one_way_collision(
@@ -398,32 +423,26 @@ impl RapierCollisionObject {
         p_one_way_collision: bool,
         p_margin: real,
     ) {
-        if p_idx > self.shapes.len() {
-            godot_error!("invalid index");
-            return;
+        if let Some(shape) = self.shapes.get_mut(p_idx) {
+            shape.one_way_collision = p_one_way_collision;
+            shape.one_way_collision_margin = p_margin;
         }
-
-        let shape = &mut self.shapes[p_idx];
-        shape.one_way_collision = p_one_way_collision;
-        shape.one_way_collision_margin = p_margin;
     }
 
     pub fn is_shape_set_as_one_way_collision(&self, p_idx: usize) -> bool {
-        if p_idx > self.shapes.len() {
-            godot_error!("invalid index");
-            return false;
+        if let Some(shape) = self.shapes.get(p_idx) {
+            return shape.one_way_collision;
         }
 
-        self.shapes[p_idx].one_way_collision
+        false
     }
 
     pub fn get_shape_one_way_collision_margin(&self, p_idx: usize) -> real {
-        if p_idx >= self.shapes.len() {
-            godot_error!("invalid index");
-            return 0.0;
+        if let Some(shape) = self.shapes.get(p_idx) {
+            return shape.one_way_collision_margin;
         }
 
-        self.shapes[p_idx].one_way_collision_margin
+        0.0
     }
 
     pub fn set_collision_mask(&mut self, p_mask: u32) {

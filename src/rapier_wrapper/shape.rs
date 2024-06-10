@@ -23,11 +23,15 @@ pub struct ShapeInfo {
 pub fn shape_info_from_body_shape(shape_handle: Handle, transform: Transform) -> ShapeInfo {
     let origin = transform.origin;
     let scale = transform.scale();
+    let mut skew = 0.0;
+    if transform.a != crate::Vector::ZERO {
+        skew = transform.skew();
+    }
     ShapeInfo {
         handle: shape_handle,
         pixel_position: vector_to_rapier(origin),
         rotation: transform.rotation(),
-        skew: transform.skew(),
+        skew,
         scale: vector_to_rapier(scale),
     }
 }

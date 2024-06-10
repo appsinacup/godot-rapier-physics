@@ -671,7 +671,6 @@ impl IRapierCollisionObject for RapierArea {
 
     fn set_shape(&mut self, p_index: usize, p_shape: Rid) {
         if p_index >= self.base.shapes.len() {
-            godot_error!("invalid index");
             return;
         }
 
@@ -699,7 +698,6 @@ impl IRapierCollisionObject for RapierArea {
 
     fn set_shape_transform(&mut self, p_index: usize, p_transform: Transform) {
         if p_index >= self.base.shapes.len() {
-            godot_error!("invalid index");
             return;
         }
 
@@ -715,7 +713,6 @@ impl IRapierCollisionObject for RapierArea {
 
     fn set_shape_disabled(&mut self, p_index: usize, p_disabled: bool) {
         if p_index >= self.base.shapes.len() {
-            godot_error!("invalid index");
             return;
         }
         self.base.shapes[p_index].disabled = p_disabled;
@@ -753,7 +750,6 @@ impl IRapierCollisionObject for RapierArea {
     fn remove_shape_idx(&mut self, p_index: usize) {
         // remove anything from shape to be erased to end, so subindices don't change
         if p_index >= self.base.shapes.len() {
-            godot_error!("invalid index");
             return;
         }
 

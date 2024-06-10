@@ -98,10 +98,6 @@ impl RapierShapeBase {
         &self.owners
     }
 
-    pub fn is_owner(&self, owner: Rid) -> bool {
-        self.owners.contains_key(&owner)
-    }
-
     pub fn get_rid(&self) -> Rid {
         self.rid
     }

@@ -121,7 +121,7 @@ impl RapierBody {
             friction: 1.0,
             mass: 1.0,
             inertia: ANGLE_ZERO,
-            contact_skin: RapierProjectSettings::get_contact_skin() as f32,
+            contact_skin: RapierProjectSettings::get_contact_skin(),
             center_of_mass: Vector::ZERO,
             calculate_inertia: true,
             calculate_center_of_mass: true,
@@ -755,7 +755,7 @@ impl RapierBody {
         }
         body_add_torque(
             self.base.get_space_handle(),
-            self.base.get_space_handle(),
+            self.base.get_body_handle(),
             angle_to_rapier(p_torque),
         );
     }
@@ -766,10 +766,10 @@ impl RapierBody {
             return;
         }
         let force = vector_to_rapier(p_force);
-        body_reset_forces(self.base.get_space_handle(), self.base.get_space_handle());
+        body_reset_forces(self.base.get_space_handle(), self.base.get_body_handle());
         body_add_force(
             self.base.get_space_handle(),
-            self.base.get_space_handle(),
+            self.base.get_body_handle(),
             force,
         );
     }
@@ -779,7 +779,7 @@ impl RapierBody {
         }
 
         let force =
-            body_get_constant_force(self.base.get_space_handle(), self.base.get_space_handle());
+            body_get_constant_force(self.base.get_space_handle(), self.base.get_body_handle());
 
         vector_to_godot(force)
     }
@@ -789,10 +789,10 @@ impl RapierBody {
         if !self.base.is_valid() {
             return;
         }
-        body_reset_torques(self.base.get_space_handle(), self.base.get_space_handle());
+        body_reset_torques(self.base.get_space_handle(), self.base.get_body_handle());
         body_add_torque(
             self.base.get_space_handle(),
-            self.base.get_space_handle(),
+            self.base.get_body_handle(),
             angle_to_rapier(p_torque),
         );
     }
@@ -802,7 +802,7 @@ impl RapierBody {
         }
         angle_to_godot(body_get_constant_torque(
             self.base.get_space_handle(),
-            self.base.get_space_handle(),
+            self.base.get_body_handle(),
         ))
     }
 
@@ -834,7 +834,7 @@ impl RapierBody {
         }
         body_set_can_sleep(
             self.base.get_space_handle(),
-            self.base.get_space_handle(),
+            self.base.get_body_handle(),
             p_can_sleep,
         );
     }
@@ -884,7 +884,7 @@ impl RapierBody {
 
         body_wake_up(
             self.base.get_space_handle(),
-            self.base.get_space_handle(),
+            self.base.get_body_handle(),
             true,
         );
     }
@@ -894,7 +894,7 @@ impl RapierBody {
             return;
         }
 
-        body_force_sleep(self.base.get_space_handle(), self.base.get_space_handle());
+        body_force_sleep(self.base.get_space_handle(), self.base.get_body_handle());
     }
 
     pub fn set_param(&mut self, p_param: BodyParameter, p_value: Variant) {
@@ -914,7 +914,7 @@ impl RapierBody {
                 let mat = self._init_material();
                 body_update_material(
                     self.base.get_space_handle(),
-                    self.base.get_space_handle(),
+                    self.base.get_body_handle(),
                     &mat,
                 );
             }
@@ -1196,7 +1196,7 @@ impl RapierBody {
         }
         body_set_ccd_enabled(
             self.base.get_space_handle(),
-            self.base.get_space_handle(),
+            self.base.get_body_handle(),
             self.ccd_mode != CcdMode::DISABLED,
         );
     }
@@ -1502,7 +1502,6 @@ impl IRapierCollisionObject for RapierBody {
 
     fn set_shape(&mut self, p_index: usize, p_shape: Rid) {
         if p_index >= self.base.shapes.len() {
-            godot_error!("invalid index");
             return;
         }
 
@@ -1530,7 +1529,6 @@ impl IRapierCollisionObject for RapierBody {
 
     fn set_shape_transform(&mut self, p_index: usize, p_transform: Transform) {
         if p_index >= self.base.shapes.len() {
-            godot_error!("invalid index");
             return;
         }
 
@@ -1546,7 +1544,6 @@ impl IRapierCollisionObject for RapierBody {
 
     fn set_shape_disabled(&mut self, p_index: usize, p_disabled: bool) {
         if p_index >= self.base.shapes.len() {
-            godot_error!("invalid index");
             return;
         }
         self.base.shapes[p_index].disabled = p_disabled;
@@ -1585,7 +1582,6 @@ impl IRapierCollisionObject for RapierBody {
         // remove anything from shape to be erased to end, so subindices don't change
 
         if p_index >= self.base.shapes.len() {
-            godot_error!("invalid index");
             return;
         }
 

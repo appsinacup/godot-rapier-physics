@@ -76,7 +76,7 @@
 				},
 				"args": [
 					"--path",
-					"${workspaceFolder:godot-rapier-2d}/bin",
+					"${workspaceFolder:godot-rapier-2d}/bin2d",
 					"--debug-collisions",
 					"test.tscn"
 				]
@@ -105,7 +105,7 @@
 				},
 				"args": [
 					"--path",
-					"${workspaceFolder:godot-rapier-2d}/bin",
+					"${workspaceFolder:godot-rapier-2d}/bin2d",
 					"--debug-collisions",
 					"test/unit/tests.tscn"
 				]
@@ -121,7 +121,7 @@
 				},
 				"args": [
 					"--path",
-					"${workspaceFolder:godot-rapier-2d}/bin",
+					"${workspaceFolder:godot-rapier-2d}/bin2d",
 					"--debug-collisions",
 					"test/integration/test_body_delete.tscn"
 				]
