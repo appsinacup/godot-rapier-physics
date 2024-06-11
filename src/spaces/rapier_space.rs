@@ -101,12 +101,6 @@ impl RapierSpace {
         }
     }
 
-    pub fn _get_object_instance_hack(instance_id: u64) -> *mut Gd<Object> {
-        let mut object: Gd<Object> = Gd::from_instance_id(InstanceId::from_i64(instance_id as i64));
-        let raw_ptr: *mut Gd<Object> = &mut object as *mut _;
-        raw_ptr
-    }
-
     pub fn get_handle(&self) -> Handle {
         self.handle
     }

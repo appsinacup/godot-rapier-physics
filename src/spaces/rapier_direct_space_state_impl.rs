@@ -5,7 +5,6 @@ use super::rapier_space_body_helper::is_handle_excluded_callback;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::*;
-use crate::spaces::rapier_space::RapierSpace;
 use crate::Transform;
 use crate::Vector;
 #[cfg(feature = "dim2")]
@@ -78,7 +77,7 @@ impl RapierDirectSpaceStateImpl {
                     let instance_id = collision_object_2d.get_base().get_instance_id();
                     result.collider_id = ObjectId { id: instance_id };
                     if instance_id != 0 {
-                        result.collider = RapierSpace::_get_object_instance_hack(instance_id);
+                        result.set_collider(Gd::from_instance_id(InstanceId::from_i64(instance_id as i64)), false);
                     }
                 }
                 return true;
@@ -141,8 +140,7 @@ impl RapierDirectSpaceStateImpl {
                     let instance_id = collision_object_2d.get_base().get_instance_id();
                     results_slice[i].collider_id = ObjectId { id: instance_id };
                     if instance_id != 0 {
-                        results_slice[i].collider =
-                            RapierSpace::_get_object_instance_hack(instance_id);
+                        results_slice[i].set_collider(Gd::from_instance_id(InstanceId::from_i64(instance_id as i64)), false);
                     }
                 }
             }
@@ -212,8 +210,7 @@ impl RapierDirectSpaceStateImpl {
                         let instance_id = collision_object_2d.get_base().get_instance_id();
                         results_slice[cpt].collider_id = ObjectId { id: instance_id };
                         if instance_id != 0 {
-                            results_slice[cpt].collider =
-                                RapierSpace::_get_object_instance_hack(instance_id);
+                            results_slice[cpt].set_collider(Gd::from_instance_id(InstanceId::from_i64(instance_id as i64)), false);
                         }
                         cpt += 1;
                     }
