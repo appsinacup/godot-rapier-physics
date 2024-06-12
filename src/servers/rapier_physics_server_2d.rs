@@ -7,6 +7,8 @@ use godot::classes::{self};
 use godot::engine::native::PhysicsServer2DExtensionMotionResult;
 use godot::engine::utilities::rid_allocate_id;
 use godot::engine::utilities::rid_from_int64;
+use godot::engine::Performance;
+use godot::engine::PhysicsServer2D;
 use godot::prelude::*;
 use rapier::dynamics::ImpulseJointHandle;
 
@@ -16,6 +18,7 @@ use super::rapier_physics_singleton::fluids_singleton;
 use super::rapier_physics_singleton::joints_singleton;
 use super::rapier_physics_singleton::shapes_singleton;
 use super::rapier_physics_singleton::spaces_singleton;
+use super::rapier_project_settings;
 use super::rapier_project_settings::RapierProjectSettings;
 use crate::bodies::rapier_area::RapierArea;
 use crate::bodies::rapier_body::RapierBody;
@@ -46,12 +49,31 @@ pub struct RapierPhysicsServer2D {
     island_count: i32,
     active_objects: i32,
     collision_pairs: i32,
-
+    counters: HashMap<Rid, Counters>,
     base: Base<PhysicsServer2DExtension>,
+}
+pub fn register_monitors() {
+    for monitor in rapier_project_settings::MONITORS {
+        if RapierProjectSettings::get_monitor_enabled(monitor) {
+            let callable = Callable::from_fn(
+                (monitor.to_string() + "_function").as_str(),
+                |_args: &[&Variant]| {
+                    let physics_server = PhysicsServer2D::singleton();
+                    let rapier_physics_server: Gd<RapierPhysicsServer2D> = physics_server.cast();
+                    let rapier_physics_server = rapier_physics_server.bind();
+                    Ok(rapier_physics_server.active_objects.to_variant())
+                },
+            );
+            let mut performance = Performance::singleton();
+            performance
+                .add_custom_monitor(StringName::from("rapier/".to_string() + monitor), callable);
+        }
+    }
 }
 #[godot_api]
 impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn init(base: Base<PhysicsServer2DExtension>) -> Self {
+        register_monitors();
         Self {
             active: true,
             flushing_queries: false,
@@ -59,6 +81,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             island_count: 0,
             active_objects: 0,
             collision_pairs: 0,
+            counters: HashMap::new(),
             base,
         }
     }
@@ -1318,8 +1341,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         self.island_count = 0;
         self.active_objects = 0;
         self.collision_pairs = 0;
-        let active_spaces = active_spaces_singleton().active_spaces.clone();
-        for space in active_spaces.values() {
+        for space in active_spaces_singleton().active_spaces.values() {
             let active_list;
             let mass_properties_update_list;
             let area_update_list;
@@ -1399,7 +1421,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
                     as usize,
             };
             // this calls into rapier
-            world_step(
+            let counters = world_step(
                 space_handle,
                 &settings,
                 RapierSpace::active_body_callback,

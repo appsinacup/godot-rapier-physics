@@ -28,7 +28,8 @@ pub trait IRapierCollisionObject: Any {
     fn set_shape_disabled(&mut self, shape_idx: usize, disabled: bool);
     fn remove_shape_idx(&mut self, shape_idx: usize);
     fn remove_shape_rid(&mut self, shape_rid: Rid);
-    fn create_shape(&mut self, shape: CollisionObjectShape, p_shape_index: usize) -> ColliderHandle;
+    fn create_shape(&mut self, shape: CollisionObjectShape, p_shape_index: usize)
+        -> ColliderHandle;
     fn _init_material(&self) -> Material;
     fn _shapes_changed(&mut self);
     fn _shape_changed(&mut self, p_shape: Rid);
@@ -79,6 +80,10 @@ pub struct RapierCollisionObject {
 }
 impl RapierCollisionObject {
     pub fn new(rid: Rid, collision_object_type: CollisionObjectType) -> Self {
+        let mut mode = BodyMode::RIGID;
+        if collision_object_type == CollisionObjectType::Area {
+            mode = BodyMode::STATIC;
+        }
         Self {
             collision_object_type,
             rid,
@@ -92,7 +97,7 @@ impl RapierCollisionObject {
             collision_mask: 1,
             collision_layer: 1,
             collision_priority: 1.0,
-            mode: BodyMode::RIGID,
+            mode,
             body_handle: RigidBodyHandle::invalid(),
             space_handle: invalid_handle(),
             area_detection_counter: 0,

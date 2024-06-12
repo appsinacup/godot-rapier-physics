@@ -1424,7 +1424,7 @@ impl IRapierCollisionObject for RapierBody {
                 continue;
             }
             self.base.shapes[i].collider_handle = self.create_shape(self.base.shapes[i], i);
-            if self.base.shapes[i].collider_handle != ColliderHandle::invalid() {
+            if self.base.shapes[i].collider_handle == ColliderHandle::invalid() {
                 self.base.shapes[i].disabled = true;
                 continue;
             }
@@ -1434,14 +1434,12 @@ impl IRapierCollisionObject for RapierBody {
 
     fn set_space(&mut self, space: Rid) {
         // delete previous space
-        if self.base.get_space_handle().is_valid() {
-            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
-                space.body_remove_from_mass_properties_update_list(self.base.get_rid());
-                space.body_remove_from_gravity_update_list(self.base.get_rid());
-                space.body_remove_from_active_list(self.base.get_rid());
-                space.body_remove_from_state_query_list(self.base.get_rid());
-                space.body_remove_from_area_update_list(self.base.get_rid());
-            }
+        if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+            space.body_remove_from_mass_properties_update_list(self.base.get_rid());
+            space.body_remove_from_gravity_update_list(self.base.get_rid());
+            space.body_remove_from_active_list(self.base.get_rid());
+            space.body_remove_from_state_query_list(self.base.get_rid());
+            space.body_remove_from_area_update_list(self.base.get_rid());
         }
         self.base._set_space(space);
         self.recreate_shapes();
@@ -1631,7 +1629,11 @@ impl IRapierCollisionObject for RapierBody {
         }
     }
 
-    fn create_shape(&mut self, shape: CollisionObjectShape, p_shape_index: usize) -> ColliderHandle {
+    fn create_shape(
+        &mut self,
+        shape: CollisionObjectShape,
+        p_shape_index: usize,
+    ) -> ColliderHandle {
         if !self.base.get_space_handle().is_valid() {
             return ColliderHandle::invalid();
         }

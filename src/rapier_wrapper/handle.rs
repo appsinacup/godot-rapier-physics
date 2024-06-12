@@ -86,6 +86,9 @@ pub fn invalid_handle_double() -> HandleDouble {
         generation: u64::MAX,
     }
 }
-pub fn handle_pair_hash(handle1: ColliderHandle, handle2: ColliderHandle) -> (ColliderHandle, ColliderHandle) {
+pub fn handle_pair_hash(
+    handle1: ColliderHandle,
+    handle2: ColliderHandle,
+) -> (ColliderHandle, ColliderHandle) {
     (handle1, handle2)
 }

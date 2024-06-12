@@ -2,6 +2,7 @@ use rapier::prelude::*;
 pub struct WorldSettings {
     pub particle_radius: Real,
     pub smoothing_factor: Real,
+    pub counters_enabled: bool,
 }
 pub struct SimulationSettings {
     /// The timestep length (default: `1.0 / 60.0`)

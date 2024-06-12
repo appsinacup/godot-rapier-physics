@@ -15,6 +15,10 @@ const FLUID_GRAVITY_DIR: &str = "physics/rapier/fluid/fluid_gravity_dir";
 const FLUID_GRAVITY_VALUE: &str = "physics/rapier/fluid/fluid_gravity_value";
 const FLUID_PARTICLE_RADIUS: &str = "physics/rapier/fluid/fluid_particle_radius";
 const FLUID_SMOOTHING_FACTOR: &str = "physics/rapier/fluid/fluid_smoothing_factor";
+pub enum Monitors {
+    Step = 0,
+}
+pub const MONITORS: [&str; 1] = ["step"];
 #[cfg(feature = "dim2")]
 const LENGTH_UNIT: &str = "physics/rapier/solver/length_unit_2d";
 #[cfg(feature = "dim2")]
@@ -123,6 +127,13 @@ impl RapierProjectSettings {
             "1,100,1,suffix:length_unit",
             false,
         );
+        for monitor in MONITORS {
+            register_setting_plain(
+                ("physics/rapier/monitor/".to_string() + monitor).as_str(),
+                Variant::from(false),
+                true,
+            );
+        }
     }
 
     fn get_setting_int(p_setting: &str) -> i64 {
@@ -141,6 +152,12 @@ impl RapierProjectSettings {
         let project_settings = ProjectSettings::singleton();
         let setting_value = project_settings.get_setting_with_override(p_setting.into());
         setting_value.to::<Vector>()
+    }
+
+    fn get_setting_bool(p_setting: &str) -> bool {
+        let project_settings = ProjectSettings::singleton();
+        let setting_value = project_settings.get_setting_with_override(p_setting.into());
+        setting_value.to::<bool>()
     }
 
     pub fn get_solver_max_ccd_substeps() -> i64 {
@@ -181,5 +198,19 @@ impl RapierProjectSettings {
 
     pub fn get_length_unit() -> Real {
         RapierProjectSettings::get_setting_double(LENGTH_UNIT) as Real
+    }
+
+    pub fn get_monitor_enabled(monitor: &str) -> bool {
+        RapierProjectSettings::get_setting_bool(
+            ("physics/rapier/monitor/".to_string() + monitor).as_str(),
+        )
+    }
+    pub fn counters_enabled() -> bool {
+        for monitor in MONITORS {
+            if RapierProjectSettings::get_monitor_enabled(monitor) {
+                return true;
+            }
+        }
+        false
     }
 }

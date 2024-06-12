@@ -1,6 +1,7 @@
 use std::num::NonZeroUsize;
 
 use godot::log::godot_error;
+use rapier::counters::Counters;
 use rapier::crossbeam;
 use rapier::data::Arena;
 use rapier::prelude::*;
@@ -68,6 +69,10 @@ pub struct PhysicsWorld {
 }
 impl PhysicsWorld {
     pub fn new(settings: &WorldSettings) -> PhysicsWorld {
+        let mut physics_pipeline = PhysicsPipeline::new();
+        if settings.counters_enabled {
+            physics_pipeline.counters.enable();
+        }
         PhysicsWorld {
             physics_objects: PhysicsObjects {
                 query_pipeline: QueryPipeline::new(),
@@ -83,7 +88,7 @@ impl PhysicsWorld {
 
                 handle: invalid_handle(),
             },
-            physics_pipeline: PhysicsPipeline::new(),
+            physics_pipeline: physics_pipeline,
             fluids_pipeline: FluidsPipeline::new(
                 pixels_to_meters(settings.particle_radius),
                 settings.smoothing_factor,
@@ -101,7 +106,7 @@ impl PhysicsWorld {
         collision_event_callback: CollisionEventCallback,
         contact_force_event_callback: ContactForceEventCallback,
         contact_point_callback: ContactPointCallback,
-    ) {
+    ) -> Counters{
         let mut integration_parameters = IntegrationParameters::default();
         integration_parameters.length_unit = settings.length_unit;
         integration_parameters.dt = settings.dt;
@@ -262,9 +267,14 @@ impl PhysicsWorld {
                 }
             }
         }
+        self.physics_pipeline.counters
     }
 
-    pub fn insert_collider(&mut self, collider: Collider, body_handle: RigidBodyHandle) -> ColliderHandle {
+    pub fn insert_collider(
+        &mut self,
+        collider: Collider,
+        body_handle: RigidBodyHandle,
+    ) -> ColliderHandle {
         if body_handle != RigidBodyHandle::invalid() {
             let rigid_body_handle = body_handle;
             self.physics_objects.collider_set.insert_with_parent(
@@ -331,7 +341,6 @@ impl PhysicsWorld {
     ) -> ImpulseJointHandle {
         let rigid_body_1_handle = body_handle_1;
         let rigid_body_2_handle = body_handle_2;
-        
         self.physics_objects.impulse_joint_set.insert(
             rigid_body_1_handle,
             rigid_body_2_handle,
@@ -424,10 +433,10 @@ pub fn world_step(
     collision_event_callback: CollisionEventCallback,
     contact_force_event_callback: ContactForceEventCallback,
     contact_point_callback: ContactPointCallback,
-) {
+) -> Counters {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        physics_world.step(
+        return physics_world.step(
             settings,
             active_body_callback,
             collision_filter_body_callback,
@@ -438,6 +447,7 @@ pub fn world_step(
             contact_point_callback,
         );
     }
+    Counters::default()
 }
 pub fn world_get_active_objects_count(world_handle: Handle) -> usize {
     let physics_engine = physics_engine();

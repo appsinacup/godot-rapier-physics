@@ -245,7 +245,10 @@ pub fn collider_destroy(world_handle: Handle, collider_handle: ColliderHandle) {
         physics_world.remove_collider(collider_handle);
     }
 }
-pub fn collider_get_position(world_handle: Handle, collider_handle: ColliderHandle) -> Vector<Real> {
+pub fn collider_get_position(
+    world_handle: Handle,
+    collider_handle: ColliderHandle,
+) -> Vector<Real> {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         if let Some(collider) = physics_world
@@ -272,7 +275,11 @@ pub fn collider_get_angle(world_handle: Handle, collider_handle: ColliderHandle)
     }
     0.0
 }
-pub fn collider_set_transform(world_handle: Handle, collider_handle: ColliderHandle, shape_info: ShapeInfo) {
+pub fn collider_set_transform(
+    world_handle: Handle,
+    collider_handle: ColliderHandle,
+    shape_info: ShapeInfo,
+) {
     let position = vector_pixels_to_meters(shape_info.pixel_position);
     let physics_engine = physics_engine();
     if let Some(shape) = physics_engine.get_shape(shape_info.handle) {
@@ -290,7 +297,11 @@ pub fn collider_set_transform(world_handle: Handle, collider_handle: ColliderHan
         }
     }
 }
-pub fn collider_set_collision_events_enabled(world_handle: Handle, collider_handle: ColliderHandle, enable: bool) {
+pub fn collider_set_collision_events_enabled(
+    world_handle: Handle,
+    collider_handle: ColliderHandle,
+    enable: bool,
+) {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         if let Some(collider) = physics_world

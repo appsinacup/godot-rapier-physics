@@ -42,7 +42,7 @@ pub struct RapierArea {
     monitorable: bool,
     monitor_callback: Callable,
     area_monitor_callback: Callable,
-    monitored_objects: HashMap<(ColliderHandle,ColliderHandle), MonitorInfo>,
+    monitored_objects: HashMap<(ColliderHandle, ColliderHandle), MonitorInfo>,
     detected_bodies: HashMap<Rid, BodyRefCount>,
     base: RapierCollisionObject,
 }
@@ -590,26 +590,24 @@ impl IRapierCollisionObject for RapierArea {
         if p_space == self.base.get_space() {
             return;
         }
-        if self.base.get_space().is_invalid() {
-            // Need to keep in list to handle remove events for bodies
-            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
-                if !self.detected_bodies.is_empty() {
-                    space.area_add_to_monitor_query_list(self.base.get_rid());
-                }
-                for (detected_body, _) in self.detected_bodies.clone() {
-                    if let Some(body) = bodies_singleton().collision_objects.get_mut(&detected_body)
-                    {
-                        if let Some(body) = body.get_mut_body() {
-                            body.remove_area(self.base.get_rid());
-                        }
+        // Need to keep in list to handle remove events for bodies
+        if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+            if !self.detected_bodies.is_empty() {
+                space.area_add_to_monitor_query_list(self.base.get_rid());
+            }
+            for (detected_body, _) in self.detected_bodies.clone() {
+                if let Some(body) = bodies_singleton().collision_objects.get_mut(&detected_body) {
+                    if let Some(body) = body.get_mut_body() {
+                        body.remove_area(self.base.get_rid());
                     }
                 }
-                self.detected_bodies.clear();
-                space.area_remove_from_area_update_list(self.base.get_rid());
             }
+            self.detected_bodies.clear();
+            space.area_remove_from_area_update_list(self.base.get_rid());
         }
         self.monitored_objects.clear();
         self.base._set_space(p_space);
+        self.recreate_shapes();
     }
 
     fn get_body(&self) -> Option<&RapierBody> {
@@ -746,7 +744,11 @@ impl IRapierCollisionObject for RapierArea {
         }
     }
 
-    fn create_shape(&mut self, shape: CollisionObjectShape, p_shape_index: usize) -> ColliderHandle {
+    fn create_shape(
+        &mut self,
+        shape: CollisionObjectShape,
+        p_shape_index: usize,
+    ) -> ColliderHandle {
         if !self.base.get_space_handle().is_valid() {
             return ColliderHandle::invalid();
         }
@@ -781,6 +783,10 @@ impl IRapierCollisionObject for RapierArea {
                 continue;
             }
             self.base.shapes[i].collider_handle = self.create_shape(self.base.shapes[i], i);
+            if self.base.shapes[i].collider_handle == ColliderHandle::invalid() {
+                self.base.shapes[i].disabled = true;
+                continue;
+            }
             self.base.update_shape_transform(&self.base.shapes[i]);
         }
     }
