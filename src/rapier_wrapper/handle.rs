@@ -60,26 +60,6 @@ pub fn shape_handle_to_handle(shape_handle: Index) -> Handle {
 pub fn handle_to_shape_handle(handle: Handle) -> Index {
     Index::from_raw_parts(handle.id, handle.generation)
 }
-pub fn collider_handle_to_handle(collider_handle: ColliderHandle) -> Handle {
-    let raw_parts = collider_handle.into_raw_parts();
-    Handle {
-        id: raw_parts.0,
-        generation: raw_parts.1,
-    }
-}
-pub fn handle_to_collider_handle(handle: Handle) -> ColliderHandle {
-    ColliderHandle::from_raw_parts(handle.id, handle.generation)
-}
-pub fn joint_handle_to_handle(joint_handle: ImpulseJointHandle) -> Handle {
-    let raw_parts = joint_handle.into_raw_parts();
-    Handle {
-        id: raw_parts.0,
-        generation: raw_parts.1,
-    }
-}
-pub fn handle_to_joint_handle(handle: Handle) -> ImpulseJointHandle {
-    ImpulseJointHandle::from_raw_parts(handle.id, handle.generation)
-}
 pub fn fluid_handle_to_handle(fluid_handle: FluidHandle) -> HandleDouble {
     let contiguous_index: ContiguousArenaIndex = fluid_handle.into();
     let raw_parts = contiguous_index.into_raw_parts();
@@ -106,9 +86,6 @@ pub fn invalid_handle_double() -> HandleDouble {
         generation: u64::MAX,
     }
 }
-pub fn handle_pair_hash(handle1: Handle, handle2: Handle) -> u128 {
-    handle1.id as u128
-        + ((handle1.generation as u128) << 32)
-        + ((handle2.id as u128) << 64)
-        + ((handle2.generation as u128) << 96)
+pub fn handle_pair_hash(handle1: ColliderHandle, handle2: ColliderHandle) -> (ColliderHandle, ColliderHandle) {
+    (handle1, handle2)
 }

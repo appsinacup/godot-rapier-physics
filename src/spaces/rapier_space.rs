@@ -5,6 +5,7 @@ use crate::servers::rapier_project_settings::*;
 use crate::*;
 use godot::classes::ProjectSettings;
 use godot::prelude::*;
+use rapier::geometry::ColliderHandle;
 use std::collections::*;
 
 use super::PhysicsDirectSpaceState;
@@ -40,7 +41,7 @@ impl RemovedColliderInfo {
 pub struct RapierSpace {
     direct_access: Option<Gd<PhysicsDirectSpaceState>>,
     handle: Handle,
-    removed_colliders: HashMap<Handle, RemovedColliderInfo>,
+    removed_colliders: HashMap<ColliderHandle, RemovedColliderInfo>,
     active_list: HashSet<Rid>,
     mass_properties_update_list: HashSet<Rid>,
     gravity_update_list: HashSet<Rid>,
@@ -153,7 +154,7 @@ impl RapierSpace {
 
     pub fn add_removed_collider(
         &mut self,
-        handle: Handle,
+        handle: ColliderHandle,
         rid: Rid,
         instance_id: u64,
         shape_index: usize,
@@ -164,7 +165,7 @@ impl RapierSpace {
             RemovedColliderInfo::new(rid, instance_id, shape_index, collision_object_type),
         );
     }
-    pub fn get_removed_collider_info(&mut self, handle: &Handle) -> Option<&RemovedColliderInfo> {
+    pub fn get_removed_collider_info(&mut self, handle: &ColliderHandle) -> Option<&RemovedColliderInfo> {
         self.removed_colliders.get(handle)
     }
 

@@ -1,6 +1,7 @@
 use godot::classes::native::ObjectId;
 use godot::classes::physics_server_2d::BodyMode;
 use godot::prelude::*;
+use rapier::geometry::ColliderHandle;
 use rapier::math::Real;
 use rapier::na::RealField;
 
@@ -29,7 +30,7 @@ const BODY_MOTION_RECOVER_ATTEMPTS: i32 = 4;
 const BODY_MOTION_RECOVER_RATIO: Real = 0.4;
 pub fn is_handle_excluded_callback(
     world_handle: Handle,
-    collider_handle: Handle,
+    collider_handle: ColliderHandle,
     user_data: &UserData,
     handle_excluded_info: &QueryExcludedInfo,
 ) -> bool {
@@ -166,7 +167,7 @@ impl RapierSpace {
         let rect_begin = vector_to_rapier(aabb.position);
         let rect_end = vector_to_rapier(aabb.end());
         let mut handle_excluded_info = QueryExcludedInfo::default();
-        let query_exclude: Vec<Handle> = Vec::with_capacity(max_results);
+        let query_exclude: Vec<ColliderHandle> = Vec::with_capacity(max_results);
         handle_excluded_info.query_exclude = query_exclude;
         handle_excluded_info.query_collision_layer_mask = collision_mask;
         handle_excluded_info.query_exclude_size = 0;

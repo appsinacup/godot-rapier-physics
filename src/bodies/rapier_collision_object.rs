@@ -6,6 +6,7 @@ use godot::engine::physics_server_2d::*;
 use godot::engine::physics_server_3d::*;
 use godot::prelude::*;
 use rapier::dynamics::RigidBodyHandle;
+use rapier::geometry::ColliderHandle;
 
 use super::rapier_area::RapierArea;
 use super::rapier_body::RapierBody;
@@ -27,7 +28,7 @@ pub trait IRapierCollisionObject: Any {
     fn set_shape_disabled(&mut self, shape_idx: usize, disabled: bool);
     fn remove_shape_idx(&mut self, shape_idx: usize);
     fn remove_shape_rid(&mut self, shape_rid: Rid);
-    fn create_shape(&mut self, shape: CollisionObjectShape, p_shape_index: usize) -> Handle;
+    fn create_shape(&mut self, shape: CollisionObjectShape, p_shape_index: usize) -> ColliderHandle;
     fn _init_material(&self) -> Material;
     fn _shapes_changed(&mut self);
     fn _shape_changed(&mut self, p_shape: Rid);
@@ -44,7 +45,7 @@ pub struct CollisionObjectShape {
     pub disabled: bool,
     pub one_way_collision: bool,
     pub one_way_collision_margin: real,
-    pub collider_handle: Handle,
+    pub collider_handle: ColliderHandle,
 }
 impl Default for CollisionObjectShape {
     fn default() -> Self {
@@ -54,7 +55,7 @@ impl Default for CollisionObjectShape {
             disabled: false,
             one_way_collision: false,
             one_way_collision_margin: 0.0,
-            collider_handle: invalid_handle(),
+            collider_handle: ColliderHandle::invalid(),
         }
     }
 }
@@ -103,11 +104,11 @@ impl RapierCollisionObject {
         shape: CollisionObjectShape,
         p_shape_index: usize,
         mat: Material,
-    ) -> Handle {
-        if shape.collider_handle.is_valid() {
+    ) -> ColliderHandle {
+        if shape.collider_handle != ColliderHandle::invalid() {
             godot_error!("collider is valid");
         }
-        let mut handle = invalid_handle();
+        let mut handle = ColliderHandle::invalid();
         if let Some(shape_object) = shapes_singleton().shapes.get_mut(&shape.shape) {
             let shape_handle = shape_object.get_rapier_shape();
             if !shape_handle.is_valid() {
@@ -142,7 +143,7 @@ impl RapierCollisionObject {
         let mut i = 0;
         for shape in &mut self.shapes {
             let mut shape_rid = Rid::Invalid;
-            if !self.space_handle.is_valid() || !shape.collider_handle.is_valid() {
+            if !self.space_handle.is_valid() || shape.collider_handle == ColliderHandle::invalid() {
                 // skip
                 continue;
             }
@@ -159,7 +160,7 @@ impl RapierCollisionObject {
                 }
                 collider_destroy(self.space_handle, shape.collider_handle);
                 shape_rid = shape.shape;
-                shape.collider_handle = invalid_handle();
+                shape.collider_handle = ColliderHandle::invalid();
             }
             if let Some(shape) = shapes_singleton().shapes.get_mut(&shape_rid) {
                 shape.get_mut_base().destroy_rapier_shape();
@@ -172,9 +173,9 @@ impl RapierCollisionObject {
         &self,
         shape: CollisionObjectShape,
         p_shape_index: usize,
-    ) -> Handle {
+    ) -> ColliderHandle {
         let shape_rid = shape.shape;
-        if self.space_handle.is_valid() && shape.collider_handle.is_valid() {
+        if self.space_handle.is_valid() && shape.collider_handle != ColliderHandle::invalid() {
             if let Some(space) = spaces_singleton().spaces.get_mut(&self.space) {
                 if self.area_detection_counter > 0 {
                     // Keep track of body information for delayed removal
@@ -192,11 +193,11 @@ impl RapierCollisionObject {
         if let Some(shape) = shapes_singleton().shapes.get_mut(&shape_rid) {
             shape.get_mut_base().destroy_rapier_shape();
         }
-        invalid_handle()
+        ColliderHandle::invalid()
     }
 
     pub(crate) fn update_shape_transform(&self, shape: &CollisionObjectShape) {
-        if !self.space_handle.is_valid() || !shape.collider_handle.is_valid() {
+        if !self.space_handle.is_valid() || shape.collider_handle == ColliderHandle::invalid() {
             return;
         }
         let origin = shape.xform.origin;

@@ -5,6 +5,7 @@ use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
 use godot::classes::physics_server_3d::*;
 use godot::prelude::*;
+use rapier::geometry::ColliderHandle;
 
 use super::rapier_area::RapierArea;
 use super::PhysicsDirectBodyState;
@@ -238,7 +239,7 @@ impl RapierBody {
         );
     }
 
-    fn _init_collider(&self, collider_handle: Handle, space_handle: Handle) {
+    fn _init_collider(&self, collider_handle: ColliderHandle, space_handle: Handle) {
         // Send contact infos for dynamic bodies
         if self.base.mode.ord() >= BodyMode::KINEMATIC.ord() {
             let mut send_contacts = self.can_report_contacts();
@@ -1423,7 +1424,7 @@ impl IRapierCollisionObject for RapierBody {
                 continue;
             }
             self.base.shapes[i].collider_handle = self.create_shape(self.base.shapes[i], i);
-            if !self.base.shapes[i].collider_handle.is_valid() {
+            if self.base.shapes[i].collider_handle != ColliderHandle::invalid() {
                 self.base.shapes[i].disabled = true;
                 continue;
             }
@@ -1524,7 +1525,7 @@ impl IRapierCollisionObject for RapierBody {
             disabled: p_disabled,
             one_way_collision: false,
             one_way_collision_margin: 0.0,
-            collider_handle: invalid_handle(),
+            collider_handle: ColliderHandle::invalid(),
         };
         if !shape.disabled {
             shape.collider_handle = self.create_shape(shape, self.base.shapes.len());
@@ -1620,7 +1621,7 @@ impl IRapierCollisionObject for RapierBody {
             self.base._destroy_shape(*shape, p_index);
         }
         let shape = &mut self.base.shapes[p_index];
-        shape.collider_handle = invalid_handle();
+        shape.collider_handle = ColliderHandle::invalid();
         if let Some(shape) = shapes_singleton().shapes.get_mut(&shape.shape) {
             shape.get_mut_base().remove_owner(self.base.get_rid());
         }
@@ -1630,9 +1631,9 @@ impl IRapierCollisionObject for RapierBody {
         }
     }
 
-    fn create_shape(&mut self, shape: CollisionObjectShape, p_shape_index: usize) -> Handle {
+    fn create_shape(&mut self, shape: CollisionObjectShape, p_shape_index: usize) -> ColliderHandle {
         if !self.base.get_space_handle().is_valid() {
-            return invalid_handle();
+            return ColliderHandle::invalid();
         }
         let mat = self._init_material();
         let handle = self.base._create_shape(shape, p_shape_index, mat);
@@ -1662,7 +1663,7 @@ impl IRapierCollisionObject for RapierBody {
             if shape.shape != p_shape || shape.disabled {
                 continue;
             }
-            if self.base.shapes[i].collider_handle.is_valid() {
+            if self.base.shapes[i].collider_handle != ColliderHandle::invalid() {
                 self.base.shapes[i].collider_handle = self.base._destroy_shape(shape, i);
             }
             self.base

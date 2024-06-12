@@ -13,7 +13,7 @@ pub fn joint_create_revolute(
     pixel_motor_target_velocity: Real,
     motor_enabled: bool,
     disable_collision: bool,
-) -> Handle {
+) -> ImpulseJointHandle {
     let anchor_1 = &vector_pixels_to_meters(pixel_anchor_1);
     let anchor_2 = &vector_pixels_to_meters(pixel_anchor_2);
     let motor_target_velocity = pixels_to_meters(pixel_motor_target_velocity);
@@ -32,11 +32,11 @@ pub fn joint_create_revolute(
         }
         return physics_world.insert_joint(body_handle_1, body_handle_2, joint);
     }
-    invalid_handle()
+    ImpulseJointHandle::invalid()
 }
 pub fn joint_change_revolute_params(
     world_handle: Handle,
-    joint_handle: Handle,
+    joint_handle: ImpulseJointHandle,
     angular_limit_lower: Real,
     angular_limit_upper: Real,
     angular_limit_enabled: bool,
@@ -49,7 +49,7 @@ pub fn joint_change_revolute_params(
         if let Some(joint) = physics_world
             .physics_objects
             .impulse_joint_set
-            .get_mut(handle_to_joint_handle(joint_handle))
+            .get_mut(joint_handle)
         {
             if let Some(joint) = joint.data.as_revolute_mut() {
                 if motor_enabled {
@@ -76,7 +76,7 @@ pub fn joint_create_prismatic(
     pixel_anchor_2: Vector<Real>,
     pixel_limits: Vector<Real>,
     disable_collision: bool,
-) -> Handle {
+) -> ImpulseJointHandle {
     let anchor_1 = vector_pixels_to_meters(pixel_anchor_1);
     let anchor_2 = vector_pixels_to_meters(pixel_anchor_2);
     let limits = &vector_pixels_to_meters(pixel_limits);
@@ -89,7 +89,7 @@ pub fn joint_create_prismatic(
             .contacts_enabled(!disable_collision);
         return physics_world.insert_joint(body_handle_1, body_handle_2, joint);
     }
-    invalid_handle()
+    ImpulseJointHandle::invalid()
 }
 pub fn joint_create_spring(
     world_handle: Handle,
@@ -101,7 +101,7 @@ pub fn joint_create_spring(
     damping: Real,
     pixel_rest_length: Real,
     disable_collision: bool,
-) -> Handle {
+) -> ImpulseJointHandle {
     let anchor_1 = vector_pixels_to_meters(pixel_anchor_1);
     let anchor_2 = vector_pixels_to_meters(pixel_anchor_2);
     let rest_length = pixels_to_meters(pixel_rest_length);
@@ -113,11 +113,11 @@ pub fn joint_create_spring(
             .contacts_enabled(!disable_collision);
         return physics_world.insert_joint(body_handle_1, body_handle_2, joint);
     }
-    invalid_handle()
+    ImpulseJointHandle::invalid()
 }
 pub fn joint_change_spring_params(
     world_handle: Handle,
-    joint_handle: Handle,
+    joint_handle: ImpulseJointHandle,
     stiffness: Real,
     damping: Real,
     pixel_rest_length: Real,
@@ -128,7 +128,7 @@ pub fn joint_change_spring_params(
         if let Some(joint) = physics_world
             .physics_objects
             .impulse_joint_set
-            .get_mut(handle_to_joint_handle(joint_handle))
+            .get_mut(joint_handle)
         {
             joint
                 .data
@@ -136,7 +136,7 @@ pub fn joint_change_spring_params(
         }
     }
 }
-pub fn joint_destroy(world_handle: Handle, joint_handle: Handle) {
+pub fn joint_destroy(world_handle: Handle, joint_handle: ImpulseJointHandle) {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         physics_world.remove_joint(joint_handle);
@@ -144,7 +144,7 @@ pub fn joint_destroy(world_handle: Handle, joint_handle: Handle) {
 }
 pub fn joint_change_disable_collision(
     world_handle: Handle,
-    joint_handle: Handle,
+    joint_handle: ImpulseJointHandle,
     disable_collision: bool,
 ) {
     let physics_engine = physics_engine();
@@ -152,7 +152,7 @@ pub fn joint_change_disable_collision(
         if let Some(joint) = physics_world
             .physics_objects
             .impulse_joint_set
-            .get_mut(handle_to_joint_handle(joint_handle))
+            .get_mut(joint_handle)
         {
             joint.data.set_contacts_enabled(!disable_collision);
         }

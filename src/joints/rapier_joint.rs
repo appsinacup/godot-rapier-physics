@@ -1,6 +1,7 @@
 use std::any::Any;
 
 use godot::classes::*;
+use rapier::dynamics::ImpulseJointHandle;
 
 use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 use super::rapier_pin_joint_2d::RapierPinJoint2D;
@@ -16,12 +17,12 @@ pub trait IRapierJoint: Any {
 }
 pub struct RapierJointBase {
     max_force: f32,
-    handle: Handle,
+    handle: ImpulseJointHandle,
     space_handle: Handle,
     disabled_collisions_between_bodies: bool,
 }
 impl RapierJointBase {
-    pub fn new(space_handle: Handle, handle: Handle) -> Self {
+    pub fn new(space_handle: Handle, handle: ImpulseJointHandle) -> Self {
         Self {
             max_force: f32::MAX,
             handle,
@@ -30,7 +31,7 @@ impl RapierJointBase {
         }
     }
 
-    pub fn get_handle(&self) -> Handle {
+    pub fn get_handle(&self) -> ImpulseJointHandle {
         self.handle
     }
 
@@ -47,7 +48,7 @@ impl RapierJointBase {
     }
 
     pub fn is_valid(&self) -> bool {
-        self.space_handle.is_valid() && self.handle.is_valid()
+        self.space_handle.is_valid() && self.handle != ImpulseJointHandle::invalid()
     }
 
     pub fn disable_collisions_between_bodies(&mut self, disabled: bool) {
@@ -83,7 +84,7 @@ pub struct RapierEmptyJoint {
 impl RapierEmptyJoint {
     pub fn new() -> Self {
         Self {
-            base: RapierJointBase::new(invalid_handle(), invalid_handle()),
+            base: RapierJointBase::new(invalid_handle(), ImpulseJointHandle::invalid()),
         }
     }
 }

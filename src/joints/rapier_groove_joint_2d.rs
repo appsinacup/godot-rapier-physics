@@ -1,5 +1,6 @@
 use godot::classes::*;
 use godot::prelude::*;
+use rapier::dynamics::ImpulseJointHandle;
 
 use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 use super::rapier_joint::RapierJointBase;
@@ -19,7 +20,7 @@ impl RapierGrooveJoint2D {
         body_b: Rid,
     ) -> Self {
         let invalid_joint = Self {
-            base: RapierJointBase::new(invalid_handle(), invalid_handle()),
+            base: RapierJointBase::new(invalid_handle(), ImpulseJointHandle::invalid()),
         };
         if body_a == body_b {
             return invalid_joint;

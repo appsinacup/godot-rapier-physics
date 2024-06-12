@@ -1,5 +1,6 @@
 use godot::classes::*;
 use godot::prelude::*;
+use rapier::dynamics::ImpulseJointHandle;
 
 use super::rapier_joint::RapierJointBase;
 use super::rapier_pin_joint_2d::RapierPinJoint2D;
@@ -18,7 +19,7 @@ impl RapierDampedSpringJoint2D {
             rest_length: 0.0,
             stiffness: 20.0,
             damping: 1.5,
-            base: RapierJointBase::new(invalid_handle(), invalid_handle()),
+            base: RapierJointBase::new(invalid_handle(), ImpulseJointHandle::invalid()),
         };
         if body_a == body_b {
             return invalid_joint;
@@ -53,7 +54,7 @@ impl RapierDampedSpringJoint2D {
                     rest_length,
                     true,
                 );
-                if !handle.is_valid() {
+                if handle == ImpulseJointHandle::invalid() {
                     return invalid_joint;
                 }
                 return Self {
@@ -82,7 +83,7 @@ impl RapierDampedSpringJoint2D {
         }
         let handle = self.get_base().get_handle();
         let space_handle = self.get_base().get_space_handle();
-        if !handle.is_valid() || !space_handle.is_valid() {
+        if handle == ImpulseJointHandle::invalid() || !space_handle.is_valid() {
             return;
         }
         joint_change_spring_params(

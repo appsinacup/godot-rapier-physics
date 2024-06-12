@@ -1,5 +1,6 @@
 use godot::classes::native::*;
 use godot::prelude::*;
+use rapier::geometry::ColliderHandle;
 
 use super::rapier_space_body_helper::is_handle_excluded_callback;
 use crate::bodies::rapier_collision_object::*;
@@ -77,7 +78,7 @@ impl RapierDirectSpaceStateImpl {
                     let instance_id = collision_object_2d.get_base().get_instance_id();
                     result.collider_id = ObjectId { id: instance_id };
                     if instance_id != 0 {
-                        result.set_collider(Gd::from_instance_id(InstanceId::from_i64(instance_id as i64)), false);
+                        result.set_collider(Gd::<Node>::from_instance_id(InstanceId::from_i64(instance_id as i64)));
                     }
                 }
                 return true;
@@ -140,7 +141,7 @@ impl RapierDirectSpaceStateImpl {
                     let instance_id = collision_object_2d.get_base().get_instance_id();
                     results_slice[i].collider_id = ObjectId { id: instance_id };
                     if instance_id != 0 {
-                        results_slice[i].set_collider(Gd::from_instance_id(InstanceId::from_i64(instance_id as i64)), false);
+                        results_slice[i].set_collider(Gd::<Node>::from_instance_id(InstanceId::from_i64(instance_id as i64)));
                     }
                 }
             }
@@ -175,7 +176,7 @@ impl RapierDirectSpaceStateImpl {
                     shape_info_from_body_shape(shape.get_base().get_handle(), transform);
                 let mut query_excluded_info = QueryExcludedInfo::default();
                 query_excluded_info.query_collision_layer_mask = collision_mask;
-                let query_exclude: Vec<Handle> = Vec::with_capacity(max_results);
+                let query_exclude: Vec<ColliderHandle> = Vec::with_capacity(max_results);
                 query_excluded_info.query_exclude = query_exclude;
                 query_excluded_info.query_exclude_size = 0;
                 let mut cpt = 0;
@@ -210,7 +211,7 @@ impl RapierDirectSpaceStateImpl {
                         let instance_id = collision_object_2d.get_base().get_instance_id();
                         results_slice[cpt].collider_id = ObjectId { id: instance_id };
                         if instance_id != 0 {
-                            results_slice[cpt].set_collider(Gd::from_instance_id(InstanceId::from_i64(instance_id as i64)), false);
+                            results_slice[cpt].set_collider(Gd::<Node>::from_instance_id(InstanceId::from_i64(instance_id as i64)));
                         }
                         cpt += 1;
                     }
@@ -292,7 +293,7 @@ impl RapierDirectSpaceStateImpl {
                     shape_info_from_body_shape(shape.get_base().get_handle(), transform);
                 let mut query_excluded_info = QueryExcludedInfo::default();
                 query_excluded_info.query_collision_layer_mask = collision_mask;
-                let query_exclude: Vec<Handle> = Vec::with_capacity(max_results as usize);
+                let query_exclude: Vec<ColliderHandle> = Vec::with_capacity(max_results as usize);
                 query_excluded_info.query_exclude = query_exclude;
                 query_excluded_info.query_exclude_size = 0;
                 let mut array_idx = 0;

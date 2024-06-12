@@ -8,6 +8,7 @@ use godot::engine::native::PhysicsServer2DExtensionMotionResult;
 use godot::engine::utilities::rid_allocate_id;
 use godot::engine::utilities::rid_from_int64;
 use godot::prelude::*;
+use rapier::dynamics::ImpulseJointHandle;
 
 use super::rapier_physics_singleton::active_spaces_singleton;
 use super::rapier_physics_singleton::bodies_singleton;
@@ -1119,12 +1120,12 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
                 .get_mut_base()
                 .copy_settings_from(prev_joint.get_base());
             // insert old one back
-            if !joint.get_base().get_handle().is_valid() {
+            if joint.get_base().get_handle() == ImpulseJointHandle::invalid() {
                 joints_singleton.joints.insert(rid, prev_joint);
                 return;
             }
         }
-        if joint.get_base().get_handle().is_valid() {
+        if joint.get_base().get_handle() != ImpulseJointHandle::invalid() {
             joints_singleton.joints.insert(rid, Box::new(joint));
         }
     }
@@ -1145,12 +1146,12 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
                 .get_mut_base()
                 .copy_settings_from(prev_joint.get_base());
             // insert old one back
-            if !joint.get_base().get_handle().is_valid() {
+            if joint.get_base().get_handle() == ImpulseJointHandle::invalid() {
                 joints_singleton.joints.insert(rid, prev_joint);
                 return;
             }
         }
-        if joint.get_base().get_handle().is_valid() {
+        if joint.get_base().get_handle() != ImpulseJointHandle::invalid() {
             joints_singleton.joints.insert(rid, Box::new(joint));
         }
     }
@@ -1170,12 +1171,12 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
                 .get_mut_base()
                 .copy_settings_from(prev_joint.get_base());
             // insert old one back
-            if !joint.get_base().get_handle().is_valid() {
+            if joint.get_base().get_handle() == ImpulseJointHandle::invalid() {
                 joints_singleton.joints.insert(rid, prev_joint);
                 return;
             }
         }
-        if joint.get_base().get_handle().is_valid() {
+        if joint.get_base().get_handle() != ImpulseJointHandle::invalid() {
             joints_singleton.joints.insert(rid, Box::new(joint));
         }
     }

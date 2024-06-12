@@ -10,7 +10,7 @@ use crate::rapier_wrapper::prelude::*;
 pub struct RayHitInfo {
     pub pixel_position: Vector<Real>,
     pub normal: Vector<Real>,
-    pub collider: Handle,
+    pub collider: ColliderHandle,
     pub user_data: UserData,
 }
 impl RayHitInfo {
@@ -18,14 +18,14 @@ impl RayHitInfo {
         RayHitInfo {
             pixel_position: zero(),
             normal: zero(),
-            collider: invalid_handle(),
+            collider: ColliderHandle::invalid(),
             user_data: UserData::invalid_user_data(),
         }
     }
 }
 #[derive(Copy, Clone, Default)]
 pub struct PointHitInfo {
-    pub collider: Handle,
+    pub collider: ColliderHandle,
     pub user_data: UserData,
 }
 #[derive(Default)]
@@ -36,7 +36,7 @@ pub struct ShapeCastResult {
     pub pixel_witness2: Vector<Real>,
     pub normal1: Vector<Real>,
     pub normal2: Vector<Real>,
-    pub collider: Handle,
+    pub collider: ColliderHandle,
     pub user_data: UserData,
 }
 impl ShapeCastResult {
@@ -44,7 +44,7 @@ impl ShapeCastResult {
         ShapeCastResult {
             collided: false,
             toi: 1.0,
-            collider: invalid_handle(),
+            collider: ColliderHandle::invalid(),
             pixel_witness1: zero(),
             pixel_witness2: zero(),
             normal1: zero(),
@@ -68,13 +68,13 @@ pub struct QueryExcludedInfo {
     pub query_collision_layer_mask: u32,
     pub query_canvas_instance_id: u64,
     // Pointer to array of objects
-    pub query_exclude: Vec<Handle>,
+    pub query_exclude: Vec<ColliderHandle>,
     pub query_exclude_size: usize,
     pub query_exclude_body: i64,
 }
 type QueryHandleExcludedCallback = fn(
     world_handle: Handle,
-    collider_handle: Handle,
+    collider_handle: ColliderHandle,
     user_data: &UserData,
     handle_excluded_info: &QueryExcludedInfo,
 ) -> bool;
@@ -105,7 +105,7 @@ pub fn intersect_ray(
         let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
             !handle_excluded_callback(
                 world_handle,
-                collider_handle_to_handle(handle),
+                handle,
                 &physics_world.get_collider_user_data(handle),
                 handle_excluded_info,
             )
@@ -135,7 +135,7 @@ pub fn intersect_ray(
                         let hit_normal = intersection.normal;
                         hit_info.pixel_position = vector_meters_to_pixels(hit_point.coords);
                         hit_info.normal = hit_normal;
-                        hit_info.collider = collider_handle_to_handle(handle);
+                        hit_info.collider = handle;
                         hit_info.user_data = physics_world.get_collider_user_data(handle);
                         return false; // We found a collision hit.
                     }
@@ -172,7 +172,7 @@ pub fn intersect_point(
         let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
             !handle_excluded_callback(
                 world_handle,
-                collider_handle_to_handle(handle),
+                handle,
                 &physics_world.get_collider_user_data(handle),
                 handle_excluded_info,
             )
@@ -197,7 +197,7 @@ pub fn intersect_point(
                 filter,
                 |handle| {
                     // Callback called on each collider hit by the ray.
-                    hit_info_slice[cpt_hit].collider = collider_handle_to_handle(handle);
+                    hit_info_slice[cpt_hit].collider = handle;
                     hit_info_slice[cpt_hit].user_data =
                         physics_world.get_collider_user_data(handle);
                     cpt_hit += 1;
@@ -284,7 +284,7 @@ pub fn shape_casting(
             let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
                 !handle_excluded_callback(
                     world_handle,
-                    collider_handle_to_handle(handle),
+                    handle,
                     &physics_world.get_collider_user_data(handle),
                     handle_excluded_info,
                 )
@@ -309,7 +309,7 @@ pub fn shape_casting(
                 result.toi = hit.time_of_impact;
                 result.normal1 = hit.normal1.into_inner();
                 result.normal2 = hit.normal2.into_inner();
-                result.collider = collider_handle_to_handle(collider_handle);
+                result.collider = collider_handle;
                 result.user_data = physics_world.get_collider_user_data(collider_handle);
                 // first is world space
                 let witness1 = hit.witness1;
@@ -353,7 +353,7 @@ pub fn intersect_shape(
             let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
                 !handle_excluded_callback(
                     world_handle,
-                    collider_handle_to_handle(handle),
+                    handle,
                     &physics_world.get_collider_user_data(handle),
                     handle_excluded_info,
                 )
@@ -379,7 +379,7 @@ pub fn intersect_shape(
                     filter,
                     |handle| {
                         // Callback called on each collider hit by the ray.
-                        hit_info_slice[cpt_hit].collider = collider_handle_to_handle(handle);
+                        hit_info_slice[cpt_hit].collider = handle;
                         hit_info_slice[cpt_hit].user_data =
                             physics_world.get_collider_user_data(handle);
                         cpt_hit += 1;
@@ -431,7 +431,7 @@ pub fn intersect_aabb(
                     if valid_hit {
                         valid_hit = !handle_excluded_callback(
                             world_handle,
-                            collider_handle_to_handle(*handle),
+                            *handle,
                             &physics_world.get_collider_user_data(*handle),
                             handle_excluded_info,
                         );
@@ -441,7 +441,7 @@ pub fn intersect_aabb(
                     return true; // continue
                 }
                 // Callback called on each collider hit by the ray.
-                hit_info_slice[cpt_hit].collider = collider_handle_to_handle(*handle);
+                hit_info_slice[cpt_hit].collider = *handle;
                 hit_info_slice[cpt_hit].user_data = physics_world.get_collider_user_data(*handle);
                 cpt_hit += 1;
                 cpt_hit < max_results // Continue to search collisions if we still have space for results.

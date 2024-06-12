@@ -33,8 +33,8 @@ type ContactPointCallback = fn(
     event_info: &ContactForceEventInfo,
 ) -> bool;
 pub struct CollisionEventInfo {
-    pub collider1: Handle,
-    pub collider2: Handle,
+    pub collider1: ColliderHandle,
+    pub collider2: ColliderHandle,
     pub user_data1: UserData,
     pub user_data2: UserData,
     pub is_sensor: bool,
@@ -174,8 +174,8 @@ impl PhysicsWorld {
                 is_removed: collision_event.removed(),
                 is_started: collision_event.started(),
                 is_stopped: collision_event.stopped(),
-                collider1: collider_handle_to_handle(handle1),
-                collider2: collider_handle_to_handle(handle2),
+                collider1: handle1,
+                collider2: handle2,
                 user_data1: self.get_collider_user_data(handle1),
                 user_data2: self.get_collider_user_data(handle2),
             };
@@ -264,24 +264,21 @@ impl PhysicsWorld {
         }
     }
 
-    pub fn insert_collider(&mut self, collider: Collider, body_handle: RigidBodyHandle) -> Handle {
+    pub fn insert_collider(&mut self, collider: Collider, body_handle: RigidBodyHandle) -> ColliderHandle {
         if body_handle != RigidBodyHandle::invalid() {
             let rigid_body_handle = body_handle;
-            let collider_handle = self.physics_objects.collider_set.insert_with_parent(
+            self.physics_objects.collider_set.insert_with_parent(
                 collider,
                 rigid_body_handle,
                 &mut self.physics_objects.rigid_body_set,
-            );
-            collider_handle_to_handle(collider_handle)
+            )
         }
         else {
-            let collider_handle = self.physics_objects.collider_set.insert(collider);
-            collider_handle_to_handle(collider_handle)
+            self.physics_objects.collider_set.insert(collider)
         }
     }
 
-    pub fn remove_collider(&mut self, handle: Handle) {
-        let collider_handle = handle_to_collider_handle(handle);
+    pub fn remove_collider(&mut self, collider_handle: ColliderHandle) {
         self.physics_objects.collider_set.remove(
             collider_handle,
             &mut self.physics_objects.island_manager,
@@ -331,20 +328,20 @@ impl PhysicsWorld {
         body_handle_1: RigidBodyHandle,
         body_handle_2: RigidBodyHandle,
         joint: impl Into<GenericJoint>,
-    ) -> Handle {
+    ) -> ImpulseJointHandle {
         let rigid_body_1_handle = body_handle_1;
         let rigid_body_2_handle = body_handle_2;
-        let joint_handle = self.physics_objects.impulse_joint_set.insert(
+        
+        self.physics_objects.impulse_joint_set.insert(
             rigid_body_1_handle,
             rigid_body_2_handle,
             joint,
             true,
-        );
-        joint_handle_to_handle(joint_handle)
+        )
     }
 
-    pub fn remove_joint(&mut self, handle: Handle) {
-        let joint_handle = handle_to_joint_handle(handle);
+    pub fn remove_joint(&mut self, handle: ImpulseJointHandle) {
+        let joint_handle = handle;
         self.physics_objects
             .impulse_joint_set
             .remove(joint_handle, true);

@@ -8,6 +8,7 @@ use godot::log::godot_error;
 use godot::meta::ToGodot;
 use godot::obj::EngineEnum;
 use godot::prelude::*;
+use rapier::geometry::ColliderHandle;
 
 use super::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;
@@ -41,7 +42,7 @@ pub struct RapierArea {
     monitorable: bool,
     monitor_callback: Callable,
     area_monitor_callback: Callable,
-    monitored_objects: HashMap<u128, MonitorInfo>,
+    monitored_objects: HashMap<(ColliderHandle,ColliderHandle), MonitorInfo>,
     detected_bodies: HashMap<Rid, BodyRefCount>,
     base: RapierCollisionObject,
 }
@@ -114,12 +115,12 @@ impl RapierArea {
 
     pub fn on_body_enter(
         &mut self,
-        collider_handle: Handle,
+        collider_handle: ColliderHandle,
         body: &mut Option<&mut Box<dyn IRapierCollisionObject>>,
         body_shape: usize,
         body_rid: Rid,
         body_instance_id: u64,
-        area_collider_handle: Handle,
+        area_collider_handle: ColliderHandle,
         area_shape: usize,
         space: &mut Box<RapierSpace>,
     ) {
@@ -164,12 +165,12 @@ impl RapierArea {
 
     pub fn on_body_exit(
         &mut self,
-        collider_handle: Handle,
+        collider_handle: ColliderHandle,
         body: &mut Option<&mut Box<dyn IRapierCollisionObject>>,
         body_shape: usize,
         body_rid: Rid,
         body_instance_id: u64,
-        area_collider_handle: Handle,
+        area_collider_handle: ColliderHandle,
         area_shape: usize,
         update_detection: bool,
         space: &mut Box<RapierSpace>,
@@ -219,12 +220,12 @@ impl RapierArea {
 
     pub fn on_area_enter(
         &mut self,
-        collider_handle: Handle,
+        collider_handle: ColliderHandle,
         other_area: &mut Option<&mut Box<dyn IRapierCollisionObject>>,
         other_area_shape: usize,
         other_area_rid: Rid,
         other_area_instance_id: u64,
-        area_collider_handle: Handle,
+        area_collider_handle: ColliderHandle,
         area_shape: usize,
         space: &mut Box<RapierSpace>,
     ) {
@@ -263,12 +264,12 @@ impl RapierArea {
 
     pub fn on_area_exit(
         &mut self,
-        collider_handle: Handle,
+        collider_handle: ColliderHandle,
         other_area: &mut Option<&mut Box<dyn IRapierCollisionObject>>,
         other_area_shape: usize,
         other_area_rid: Rid,
         other_area_instance_id: u64,
-        area_collider_handle: Handle,
+        area_collider_handle: ColliderHandle,
         area_shape: usize,
         space: &mut Box<RapierSpace>,
     ) {
@@ -639,7 +640,7 @@ impl IRapierCollisionObject for RapierArea {
             disabled: p_disabled,
             one_way_collision: false,
             one_way_collision_margin: 0.0,
-            collider_handle: invalid_handle(),
+            collider_handle: ColliderHandle::invalid(),
         };
         if !shape.disabled {
             shape.collider_handle = self.create_shape(shape, self.base.shapes.len());
@@ -735,7 +736,7 @@ impl IRapierCollisionObject for RapierArea {
             self.base._destroy_shape(*shape, p_index);
         }
         let shape = &mut self.base.shapes[p_index];
-        shape.collider_handle = invalid_handle();
+        shape.collider_handle = ColliderHandle::invalid();
         if let Some(shape) = shapes_singleton().shapes.get_mut(&shape.shape) {
             shape.get_mut_base().remove_owner(self.base.get_rid());
         }
@@ -745,9 +746,9 @@ impl IRapierCollisionObject for RapierArea {
         }
     }
 
-    fn create_shape(&mut self, shape: CollisionObjectShape, p_shape_index: usize) -> Handle {
+    fn create_shape(&mut self, shape: CollisionObjectShape, p_shape_index: usize) -> ColliderHandle {
         if !self.base.get_space_handle().is_valid() {
-            return invalid_handle();
+            return ColliderHandle::invalid();
         }
         let mat = self._init_material();
         self.base._create_shape(shape, p_shape_index, mat)

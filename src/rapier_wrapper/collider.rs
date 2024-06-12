@@ -168,7 +168,7 @@ pub fn collider_create_solid(
     mat: &Material,
     body_handle: RigidBodyHandle,
     user_data: &UserData,
-) -> Handle {
+) -> ColliderHandle {
     let physics_engine = physics_engine();
     if let Some(shape) = physics_engine.get_shape(shape_handle) {
         let is_shape_halfspace = shape_is_halfspace(shape);
@@ -192,9 +192,8 @@ pub fn collider_create_solid(
             ActiveHooks::FILTER_CONTACT_PAIRS | ActiveHooks::MODIFY_SOLVER_CONTACTS,
         );
         if let Some(physics_world) = physics_engine.get_world(world_handle) {
-            let handle = physics_world.insert_collider(collider, body_handle);
+            let collider_handle = physics_world.insert_collider(collider, body_handle);
             // register fluid coupling. Dynamic coupling doens't work for halfspace
-            let collider_handle = handle_to_collider_handle(handle);
             if !is_shape_halfspace {
                 let boundary_handle = physics_world
                     .fluids_pipeline
@@ -206,17 +205,17 @@ pub fn collider_create_solid(
                     ColliderSampling::DynamicContactSampling,
                 );
             }
-            return handle;
+            return collider_handle;
         }
     }
-    invalid_handle()
+    ColliderHandle::invalid()
 }
 pub fn collider_create_sensor(
     world_handle: Handle,
     shape_handle: Handle,
     body_handle: RigidBodyHandle,
     user_data: &UserData,
-) -> Handle {
+) -> ColliderHandle {
     let physics_engine = physics_engine();
     if let Some(shape) = physics_engine.get_shape(shape_handle) {
         let mut collider = ColliderBuilder::new(shape.clone()).build();
@@ -234,23 +233,21 @@ pub fn collider_create_sensor(
             return physics_world.insert_collider(collider, body_handle);
         }
     }
-    invalid_handle()
+    ColliderHandle::invalid()
 }
-pub fn collider_destroy(world_handle: Handle, handle: Handle) {
+pub fn collider_destroy(world_handle: Handle, collider_handle: ColliderHandle) {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        let collider_handle = handle_to_collider_handle(handle);
         physics_world
             .fluids_pipeline
             .coupling
             .unregister_coupling(collider_handle);
-        physics_world.remove_collider(handle);
+        physics_world.remove_collider(collider_handle);
     }
 }
-pub fn collider_get_position(world_handle: Handle, handle: Handle) -> Vector<Real> {
+pub fn collider_get_position(world_handle: Handle, collider_handle: ColliderHandle) -> Vector<Real> {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        let collider_handle = handle_to_collider_handle(handle);
         if let Some(collider) = physics_world
             .physics_objects
             .collider_set
@@ -262,10 +259,9 @@ pub fn collider_get_position(world_handle: Handle, handle: Handle) -> Vector<Rea
     }
     Vector::default()
 }
-pub fn collider_get_angle(world_handle: Handle, handle: Handle) -> Real {
+pub fn collider_get_angle(world_handle: Handle, collider_handle: ColliderHandle) -> Real {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        let collider_handle = handle_to_collider_handle(handle);
         if let Some(collider) = physics_world
             .physics_objects
             .collider_set
@@ -276,14 +272,13 @@ pub fn collider_get_angle(world_handle: Handle, handle: Handle) -> Real {
     }
     0.0
 }
-pub fn collider_set_transform(world_handle: Handle, handle: Handle, shape_info: ShapeInfo) {
+pub fn collider_set_transform(world_handle: Handle, collider_handle: ColliderHandle, shape_info: ShapeInfo) {
     let position = vector_pixels_to_meters(shape_info.pixel_position);
     let physics_engine = physics_engine();
     if let Some(shape) = physics_engine.get_shape(shape_info.handle) {
         let scaled_shape = scale_shape(shape, shape_info.scale);
         let new_shape = skew_shape(&scaled_shape, shape_info.skew);
         if let Some(physics_world) = physics_engine.get_world(world_handle) {
-            let collider_handle = handle_to_collider_handle(handle);
             if let Some(collider) = physics_world
                 .physics_objects
                 .collider_set
@@ -295,10 +290,9 @@ pub fn collider_set_transform(world_handle: Handle, handle: Handle, shape_info: 
         }
     }
 }
-pub fn collider_set_collision_events_enabled(world_handle: Handle, handle: Handle, enable: bool) {
+pub fn collider_set_collision_events_enabled(world_handle: Handle, collider_handle: ColliderHandle, enable: bool) {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        let collider_handle = handle_to_collider_handle(handle);
         if let Some(collider) = physics_world
             .physics_objects
             .collider_set
@@ -317,12 +311,11 @@ pub fn collider_set_collision_events_enabled(world_handle: Handle, handle: Handl
 }
 pub fn collider_set_contact_force_events_enabled(
     world_handle: Handle,
-    handle: Handle,
+    collider_handle: ColliderHandle,
     enable: bool,
 ) {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        let collider_handle = handle_to_collider_handle(handle);
         if let Some(collider) = physics_world
             .physics_objects
             .collider_set
