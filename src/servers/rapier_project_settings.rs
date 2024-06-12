@@ -205,6 +205,7 @@ impl RapierProjectSettings {
             ("physics/rapier/monitor/".to_string() + monitor).as_str(),
         )
     }
+
     pub fn counters_enabled() -> bool {
         for monitor in MONITORS {
             if RapierProjectSettings::get_monitor_enabled(monitor) {

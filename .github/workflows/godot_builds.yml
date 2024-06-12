@@ -3,7 +3,7 @@ on:
   workflow_call:
 
 jobs:
-  ios:
+  godot:
     runs-on: "ubuntu-latest"
     name: ${{ matrix.dimensions }} ${{ matrix.precision }} ${{ matrix.features }}
     strategy:

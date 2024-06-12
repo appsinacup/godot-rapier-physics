@@ -88,7 +88,7 @@ impl PhysicsWorld {
 
                 handle: invalid_handle(),
             },
-            physics_pipeline: physics_pipeline,
+            physics_pipeline,
             fluids_pipeline: FluidsPipeline::new(
                 pixels_to_meters(settings.particle_radius),
                 settings.smoothing_factor,
@@ -106,7 +106,7 @@ impl PhysicsWorld {
         collision_event_callback: CollisionEventCallback,
         contact_force_event_callback: ContactForceEventCallback,
         contact_point_callback: ContactPointCallback,
-    ) -> Counters{
+    ) -> Counters {
         let mut integration_parameters = IntegrationParameters::default();
         integration_parameters.length_unit = settings.length_unit;
         integration_parameters.dt = settings.dt;

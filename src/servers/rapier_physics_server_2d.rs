@@ -10,7 +10,9 @@ use godot::engine::utilities::rid_from_int64;
 use godot::engine::Performance;
 use godot::engine::PhysicsServer2D;
 use godot::prelude::*;
+use rapier::counters::Counters;
 use rapier::dynamics::ImpulseJointHandle;
+use salva::parry::utils::hashmap::HashMap;
 
 use super::rapier_physics_singleton::active_spaces_singleton;
 use super::rapier_physics_singleton::bodies_singleton;
@@ -81,7 +83,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             island_count: 0,
             active_objects: 0,
             collision_pairs: 0,
-            counters: HashMap::new(),
+            counters: HashMap::default(),
             base,
         }
     }

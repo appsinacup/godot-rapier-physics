@@ -78,7 +78,11 @@ impl RapierDirectSpaceStateImpl {
                     let instance_id = collision_object_2d.get_base().get_instance_id();
                     result.collider_id = ObjectId { id: instance_id };
                     if instance_id != 0 {
-                        if let Ok(object) = Gd::<Node>::try_from_instance_id(InstanceId::from_i64(instance_id as i64)) { result.set_collider(object) }
+                        if let Ok(object) = Gd::<Node>::try_from_instance_id(InstanceId::from_i64(
+                            instance_id as i64,
+                        )) {
+                            result.set_collider(object)
+                        }
                     }
                 }
                 return true;
@@ -141,7 +145,11 @@ impl RapierDirectSpaceStateImpl {
                     let instance_id = collision_object_2d.get_base().get_instance_id();
                     results_slice[i].collider_id = ObjectId { id: instance_id };
                     if instance_id != 0 {
-                        if let Ok(object) = Gd::<Node>::try_from_instance_id(InstanceId::from_i64(instance_id as i64)) { results_slice[i].set_collider(object) }
+                        if let Ok(object) = Gd::<Node>::try_from_instance_id(InstanceId::from_i64(
+                            instance_id as i64,
+                        )) {
+                            results_slice[i].set_collider(object)
+                        }
                     }
                 }
             }
@@ -211,7 +219,11 @@ impl RapierDirectSpaceStateImpl {
                         let instance_id = collision_object_2d.get_base().get_instance_id();
                         results_slice[cpt].collider_id = ObjectId { id: instance_id };
                         if instance_id != 0 {
-                            if let Ok(object) = Gd::<Node>::try_from_instance_id(InstanceId::from_i64(instance_id as i64)) { results_slice[cpt].set_collider(object) }
+                            if let Ok(object) = Gd::<Node>::try_from_instance_id(
+                                InstanceId::from_i64(instance_id as i64),
+                            ) {
+                                results_slice[cpt].set_collider(object)
+                            }
                         }
                         cpt += 1;
                     }
