@@ -44,8 +44,13 @@ impl IRapierShape for RapierCircleShape2D {
 
     fn set_data(&mut self, data: Variant) {
         match data.get_type() {
-            VariantType::FLOAT | VariantType::INT => {
-                self.radius = data.to();
+            VariantType::FLOAT => {
+                let float_data = data.to();
+                self.radius = float_data;
+            }
+            VariantType::INT => {
+                let int_data: i32 = data.to();
+                self.radius = int_data as f32;
             }
             _ => {
                 godot_error!("Invalid shape data");

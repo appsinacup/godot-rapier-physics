@@ -34,7 +34,7 @@ impl IRapierShape for RapierWorldBoundaryShape2D {
     }
 
     fn get_moment_of_inertia(&self, _mass: f32, _scale: Vector2) -> f32 {
-        0.0
+        f32::MAX
     }
 
     fn allows_one_way_collision(&self) -> bool {
