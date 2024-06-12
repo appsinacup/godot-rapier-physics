@@ -123,8 +123,23 @@
 					"--path",
 					"/Users/dragosdaian/Documents/Godot-Physics-Tests",
 					"--debug-collisions",
-					"test.tscn",
-					"--verbose"
+					"tests/nodes/DirectSpaceState/tests/2d/intersect_shape.tscn",
+				]
+			},
+			{
+				"name": "Physics Test Fast",
+				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.dev.arm64",
+				"type": "cppdbg",
+				"request": "launch",
+				"cwd": "${workspaceFolder:godot-rapier-2d}",
+				"osx": {
+					"MIMode": "lldb"
+				},
+				"args": [
+					"--path",
+					"/Users/dragosdaian/Documents/Godot-Physics-Tests",
+					"--debug-collisions",
+					"tests/performance/collisions/tests/2d/avg_fps_before_low_fps.tscn",
 				]
 			},
 			{

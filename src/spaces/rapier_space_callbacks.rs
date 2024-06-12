@@ -139,281 +139,261 @@ impl RapierSpace {
         result
     }
 
-    pub fn collision_event_callback(world_handle: Handle, event_info: &CollisionEventInfo) {
-        if let Some(space) = active_spaces_singleton().active_spaces.get(&world_handle) {
-            if let Some(space) = spaces_singleton().spaces.get_mut(space) {
-                let (mut p_object1, mut shape1) =
-                    RapierCollisionObject::get_collider_user_data(&event_info.user_data1);
-                let (mut p_object2, mut shape2) =
-                    RapierCollisionObject::get_collider_user_data(&event_info.user_data2);
-                let mut collider_handle1 = event_info.collider1;
-                let mut collider_handle2 = event_info.collider2;
-                let (mut rid1, mut rid2) = (Rid::Invalid, Rid::Invalid);
-                let (mut instance_id1, mut instance_id2) = (0, 0);
-                let (mut type1, mut type2) = (CollisionObjectType::Area, CollisionObjectType::Area);
-                if event_info.is_removed {
-                    let bodies_singleton = bodies_singleton();
-                    if let Some(body) = bodies_singleton.collision_objects.get(&p_object1) {
-                        rid1 = body.get_base().get_rid();
-                        instance_id1 = body.get_base().get_instance_id();
-                        type1 = body.get_base().get_type();
-                    }
-                    else if let Some(removed_collider_info_1) =
-                        space.get_removed_collider_info(&collider_handle1)
-                    {
-                        rid1 = removed_collider_info_1.rid;
-                        instance_id1 = removed_collider_info_1.instance_id;
-                        type1 = removed_collider_info_1.collision_object_type;
-                        shape1 = removed_collider_info_1.shape_index;
-                    }
-                    if let Some(body) = bodies_singleton.collision_objects.get(&p_object2) {
-                        rid2 = body.get_base().get_rid();
-                        instance_id2 = body.get_base().get_instance_id();
-                        type2 = body.get_base().get_type();
-                    }
-                    else if let Some(removed_collider_info_2) =
-                        space.get_removed_collider_info(&collider_handle2)
-                    {
-                        rid2 = removed_collider_info_2.rid;
-                        instance_id2 = removed_collider_info_2.instance_id;
-                        type2 = removed_collider_info_2.collision_object_type;
-                        shape2 = removed_collider_info_2.shape_index;
-                    }
+    pub fn collision_event_callback(event_info: &CollisionEventInfo, space: &mut RapierSpace) {
+        let (mut p_object1, mut shape1) =
+            RapierCollisionObject::get_collider_user_data(&event_info.user_data1);
+        let (mut p_object2, mut shape2) =
+            RapierCollisionObject::get_collider_user_data(&event_info.user_data2);
+        let mut collider_handle1 = event_info.collider1;
+        let mut collider_handle2 = event_info.collider2;
+        let (mut rid1, mut rid2) = (Rid::Invalid, Rid::Invalid);
+        let (mut instance_id1, mut instance_id2) = (0, 0);
+        let (mut type1, mut type2) = (CollisionObjectType::Area, CollisionObjectType::Area);
+        if event_info.is_removed {
+            let bodies_singleton = bodies_singleton();
+            if let Some(body) = bodies_singleton.collision_objects.get(&p_object1) {
+                rid1 = body.get_base().get_rid();
+                instance_id1 = body.get_base().get_instance_id();
+                type1 = body.get_base().get_type();
+            }
+            else if let Some(removed_collider_info_1) =
+                space.get_removed_collider_info(&collider_handle1)
+            {
+                rid1 = removed_collider_info_1.rid;
+                instance_id1 = removed_collider_info_1.instance_id;
+                type1 = removed_collider_info_1.collision_object_type;
+                shape1 = removed_collider_info_1.shape_index;
+            }
+            if let Some(body) = bodies_singleton.collision_objects.get(&p_object2) {
+                rid2 = body.get_base().get_rid();
+                instance_id2 = body.get_base().get_instance_id();
+                type2 = body.get_base().get_type();
+            }
+            else if let Some(removed_collider_info_2) =
+                space.get_removed_collider_info(&collider_handle2)
+            {
+                rid2 = removed_collider_info_2.rid;
+                instance_id2 = removed_collider_info_2.instance_id;
+                type2 = removed_collider_info_2.collision_object_type;
+                shape2 = removed_collider_info_2.shape_index;
+            }
+        }
+        else {
+            let bodies_singleton = bodies_singleton();
+            if let Some(body) = bodies_singleton.collision_objects.get(&p_object1) {
+                rid1 = body.get_base().get_rid();
+                instance_id1 = body.get_base().get_instance_id();
+                type1 = body.get_base().get_type();
+            }
+            if let Some(body) = bodies_singleton.collision_objects.get(&p_object2) {
+                rid2 = body.get_base().get_rid();
+                instance_id2 = body.get_base().get_instance_id();
+                type2 = body.get_base().get_type();
+            }
+        }
+        if event_info.is_sensor {
+            if instance_id1 == 0 {
+                godot_error!("Should be able to get info about a removed object if the other one is still valid.");
+                return;
+            }
+            if instance_id2 == 0 {
+                godot_error!( "Should be able to get info about a removed object if the other one is still valid.");
+                return;
+            }
+            if type1 != CollisionObjectType::Area {
+                if type2 != CollisionObjectType::Area {
+                    godot_error!("Expected Area.");
+                    return;
                 }
-                else {
-                    let bodies_singleton = bodies_singleton();
-                    if let Some(body) = bodies_singleton.collision_objects.get(&p_object1) {
-                        rid1 = body.get_base().get_rid();
-                        instance_id1 = body.get_base().get_instance_id();
-                        type1 = body.get_base().get_type();
-                    }
-                    if let Some(body) = bodies_singleton.collision_objects.get(&p_object2) {
-                        rid2 = body.get_base().get_rid();
-                        instance_id2 = body.get_base().get_instance_id();
-                        type2 = body.get_base().get_type();
-                    }
-                }
-                if event_info.is_sensor {
-                    if instance_id1 == 0 {
-                        godot_error!("Should be able to get info about a removed object if the other one is still valid.");
-                        return;
-                    }
-                    if instance_id2 == 0 {
-                        godot_error!( "Should be able to get info about a removed object if the other one is still valid.");
-                        return;
-                    }
-                    if type1 != CollisionObjectType::Area {
-                        if type2 != CollisionObjectType::Area {
-                            godot_error!("Expected Area.");
-                            return;
-                        }
-                        swap(&mut p_object1, &mut p_object2);
-                        swap(&mut type1, &mut type2);
-                        swap(&mut shape1, &mut shape2);
-                        swap(&mut collider_handle1, &mut collider_handle2);
-                        swap(&mut rid1, &mut rid2);
-                        swap(&mut instance_id1, &mut instance_id2);
-                    }
-                    let mut p_collision_object1 = None;
-                    let mut p_collision_object2 = None;
-                    let bodies_singleton = bodies_singleton();
-                    if bodies_singleton.collision_objects.contains_key(&p_object1)
-                        && bodies_singleton.collision_objects.contains_key(&p_object2)
-                    {
-                        if let Some([p_object1, p_object2]) = bodies_singleton
-                            .collision_objects
-                            .get_many_mut([&p_object1, &p_object2])
-                        {
-                            p_collision_object1 = Some(p_object1);
-                            p_collision_object2 = Some(p_object2);
-                        }
-                    }
-                    else if bodies_singleton.collision_objects.contains_key(&p_object1) {
-                        if let Some(p_object1) =
-                            bodies_singleton.collision_objects.get_mut(&p_object1)
-                        {
-                            p_collision_object1 = Some(p_object1);
-                        }
-                    }
-                    else if let Some(p_object2) =
-                        bodies_singleton.collision_objects.get_mut(&p_object2)
-                    {
-                        p_collision_object2 = Some(p_object2);
-                    }
-                    // collision object 1 area
-                    if let Some(ref mut p_collision_object1) = p_collision_object1 {
-                        if let Some(p_area1) = p_collision_object1.get_mut_area() {
-                            if type2 == CollisionObjectType::Area {
-                                if event_info.is_started {
-                                    p_area1.on_area_enter(
-                                        collider_handle2,
-                                        &mut p_collision_object2,
-                                        shape2,
-                                        rid2,
-                                        instance_id2,
-                                        collider_handle1,
-                                        shape1,
-                                        space,
-                                    );
-                                }
-                                else if event_info.is_stopped {
-                                    p_area1.on_area_exit(
-                                        collider_handle2,
-                                        &mut p_collision_object2,
-                                        shape2,
-                                        rid2,
-                                        instance_id2,
-                                        collider_handle1,
-                                        shape1,
-                                        space,
-                                    );
-                                }
-                            }
-                            else if event_info.is_started {
-                                p_area1.on_body_enter(
-                                    collider_handle2,
-                                    &mut p_collision_object2,
-                                    shape2,
-                                    rid2,
-                                    instance_id2,
-                                    collider_handle1,
-                                    shape1,
-                                    space,
-                                );
-                            }
-                            else if event_info.is_stopped {
-                                let update_detection = p_collision_object2.is_some();
-                                p_area1.on_body_exit(
-                                    collider_handle2,
-                                    &mut p_collision_object2,
-                                    shape2,
-                                    rid2,
-                                    instance_id2,
-                                    collider_handle1,
-                                    shape1,
-                                    update_detection,
-                                    space,
-                                );
-                            }
-                        }
-                    }
-                    // collision object 2 area
-                    if let Some(p_collision_object2) = p_collision_object2 {
-                        if let Some(p_area2) = p_collision_object2.get_mut_area() {
-                            if type1 == CollisionObjectType::Area {
-                                if event_info.is_started {
-                                    p_area2.on_area_enter(
-                                        collider_handle1,
-                                        &mut p_collision_object1,
-                                        shape1,
-                                        rid1,
-                                        instance_id1,
-                                        collider_handle2,
-                                        shape2,
-                                        space,
-                                    );
-                                }
-                                if event_info.is_stopped {
-                                    p_area2.on_area_exit(
-                                        collider_handle1,
-                                        &mut p_collision_object1,
-                                        shape1,
-                                        rid1,
-                                        instance_id1,
-                                        collider_handle2,
-                                        shape2,
-                                        space,
-                                    );
-                                }
-                            }
-                            else {
-                                if event_info.is_started {
-                                    p_area2.on_body_enter(
-                                        collider_handle1,
-                                        &mut p_collision_object1,
-                                        shape1,
-                                        rid1,
-                                        instance_id1,
-                                        collider_handle2,
-                                        shape2,
-                                        space,
-                                    );
-                                }
-                                if event_info.is_stopped {
-                                    let update_detection = p_collision_object1.is_some();
-                                    p_area2.on_body_exit(
-                                        collider_handle1,
-                                        &mut p_collision_object1,
-                                        shape1,
-                                        rid1,
-                                        instance_id1,
-                                        collider_handle2,
-                                        shape2,
-                                        update_detection,
-                                        space,
-                                    );
-                                }
-                            }
-                        }
-                    }
-                }
-                else {
-                    // Body contacts use contact_force_event_callback instead
-                    godot_error!("Shouldn't receive rigidbody collision events.");
+                swap(&mut p_object1, &mut p_object2);
+                swap(&mut type1, &mut type2);
+                swap(&mut shape1, &mut shape2);
+                swap(&mut collider_handle1, &mut collider_handle2);
+                swap(&mut rid1, &mut rid2);
+                swap(&mut instance_id1, &mut instance_id2);
+            }
+            let mut p_collision_object1 = None;
+            let mut p_collision_object2 = None;
+            let bodies_singleton = bodies_singleton();
+            if bodies_singleton.collision_objects.contains_key(&p_object1)
+                && bodies_singleton.collision_objects.contains_key(&p_object2)
+            {
+                if let Some([p_object1, p_object2]) = bodies_singleton
+                    .collision_objects
+                    .get_many_mut([&p_object1, &p_object2])
+                {
+                    p_collision_object1 = Some(p_object1);
+                    p_collision_object2 = Some(p_object2);
                 }
             }
+            else if bodies_singleton.collision_objects.contains_key(&p_object1) {
+                if let Some(p_object1) = bodies_singleton.collision_objects.get_mut(&p_object1) {
+                    p_collision_object1 = Some(p_object1);
+                }
+            }
+            else if let Some(p_object2) = bodies_singleton.collision_objects.get_mut(&p_object2) {
+                p_collision_object2 = Some(p_object2);
+            }
+            // collision object 1 area
+            if let Some(ref mut p_collision_object1) = p_collision_object1 {
+                if let Some(p_area1) = p_collision_object1.get_mut_area() {
+                    if type2 == CollisionObjectType::Area {
+                        if event_info.is_started {
+                            p_area1.on_area_enter(
+                                collider_handle2,
+                                &mut p_collision_object2,
+                                shape2,
+                                rid2,
+                                instance_id2,
+                                collider_handle1,
+                                shape1,
+                                space,
+                            );
+                        }
+                        else if event_info.is_stopped {
+                            p_area1.on_area_exit(
+                                collider_handle2,
+                                &mut p_collision_object2,
+                                shape2,
+                                rid2,
+                                instance_id2,
+                                collider_handle1,
+                                shape1,
+                                space,
+                            );
+                        }
+                    }
+                    else if event_info.is_started {
+                        p_area1.on_body_enter(
+                            collider_handle2,
+                            &mut p_collision_object2,
+                            shape2,
+                            rid2,
+                            instance_id2,
+                            collider_handle1,
+                            shape1,
+                            space,
+                        );
+                    }
+                    else if event_info.is_stopped {
+                        let update_detection = p_collision_object2.is_some();
+                        p_area1.on_body_exit(
+                            collider_handle2,
+                            &mut p_collision_object2,
+                            shape2,
+                            rid2,
+                            instance_id2,
+                            collider_handle1,
+                            shape1,
+                            update_detection,
+                            space,
+                        );
+                    }
+                }
+            }
+            // collision object 2 area
+            if let Some(p_collision_object2) = p_collision_object2 {
+                if let Some(p_area2) = p_collision_object2.get_mut_area() {
+                    if type1 == CollisionObjectType::Area {
+                        if event_info.is_started {
+                            p_area2.on_area_enter(
+                                collider_handle1,
+                                &mut p_collision_object1,
+                                shape1,
+                                rid1,
+                                instance_id1,
+                                collider_handle2,
+                                shape2,
+                                space,
+                            );
+                        }
+                        if event_info.is_stopped {
+                            p_area2.on_area_exit(
+                                collider_handle1,
+                                &mut p_collision_object1,
+                                shape1,
+                                rid1,
+                                instance_id1,
+                                collider_handle2,
+                                shape2,
+                                space,
+                            );
+                        }
+                    }
+                    else {
+                        if event_info.is_started {
+                            p_area2.on_body_enter(
+                                collider_handle1,
+                                &mut p_collision_object1,
+                                shape1,
+                                rid1,
+                                instance_id1,
+                                collider_handle2,
+                                shape2,
+                                space,
+                            );
+                        }
+                        if event_info.is_stopped {
+                            let update_detection = p_collision_object1.is_some();
+                            p_area2.on_body_exit(
+                                collider_handle1,
+                                &mut p_collision_object1,
+                                shape1,
+                                rid1,
+                                instance_id1,
+                                collider_handle2,
+                                shape2,
+                                update_detection,
+                                space,
+                            );
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            // Body contacts use contact_force_event_callback instead
+            godot_error!("Shouldn't receive rigidbody collision events.");
         }
     }
 
     pub fn contact_force_event_callback(
-        world_handle: Handle,
         event_info: &ContactForceEventInfo,
+        space: &mut RapierSpace,
     ) -> bool {
-        let mut send_contacts = false;
-        if let Some(space) = active_spaces_singleton().active_spaces.get(&world_handle) {
-            if let Some(space) = spaces_singleton().spaces.get(space) {
-                send_contacts = space.is_debugging_contacts();
-            }
-            let (p_object1, _) =
-                RapierCollisionObject::get_collider_user_data(&event_info.user_data1);
-            let (p_object2, _) =
-                RapierCollisionObject::get_collider_user_data(&event_info.user_data2);
-            let bodies_singleton = bodies_singleton();
-            if let Some(body1) = bodies_singleton.collision_objects.get(&p_object1) {
-                if let Some(body1) = body1.get_body() {
-                    if body1.can_report_contacts() {
-                        send_contacts = true;
-                    }
+        let mut send_contacts = space.is_debugging_contacts();
+        let (p_object1, _) = RapierCollisionObject::get_collider_user_data(&event_info.user_data1);
+        let (p_object2, _) = RapierCollisionObject::get_collider_user_data(&event_info.user_data2);
+        let bodies_singleton = bodies_singleton();
+        if let Some(body1) = bodies_singleton.collision_objects.get(&p_object1) {
+            if let Some(body1) = body1.get_body() {
+                if body1.can_report_contacts() {
+                    send_contacts = true;
                 }
             }
-            if let Some(body2) = bodies_singleton.collision_objects.get(&p_object2) {
-                if let Some(body2) = body2.get_body() {
-                    if body2.can_report_contacts() {
-                        send_contacts = true;
-                    }
-                }
-            }
-            return send_contacts;
         }
-        false
+        if let Some(body2) = bodies_singleton.collision_objects.get(&p_object2) {
+            if let Some(body2) = body2.get_body() {
+                if body2.can_report_contacts() {
+                    send_contacts = true;
+                }
+            }
+        }
+        send_contacts
     }
 
     pub fn contact_point_callback(
-        world_handle: Handle,
         contact_info: &ContactPointInfo,
         event_info: &ContactForceEventInfo,
+        space: &mut RapierSpace,
     ) -> bool {
         let pos1 = vector_to_godot(contact_info.pixel_local_pos_1);
         let pos2 = vector_to_godot(contact_info.pixel_local_pos_2);
         let mut keep_sending_contacts = false;
-        if let Some(active_space) = active_spaces_singleton().active_spaces.get(&world_handle) {
-            if let Some(space) = spaces_singleton().spaces.get_mut(active_space) {
-                if space.is_debugging_contacts() {
-                    keep_sending_contacts = true;
-                    space.add_debug_contact(pos1);
-                    space.add_debug_contact(pos2);
-                }
-            }
+        if space.is_debugging_contacts() {
+            keep_sending_contacts = true;
+            space.add_debug_contact(pos1);
+            space.add_debug_contact(pos2);
         }
         let (p_object1, shape1) =
             RapierCollisionObject::get_collider_user_data(&event_info.user_data1);

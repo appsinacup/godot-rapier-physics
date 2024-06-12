@@ -106,7 +106,7 @@ impl RapierDirectSpaceStateImpl {
             return 0;
         }
         if let Some(space) = spaces_singleton().spaces.get(&self.space) {
-            if space.is_valid() {
+            if !space.is_valid() {
                 return 0;
             }
             let rapier_pos = vector_to_rapier(position);
@@ -139,8 +139,7 @@ impl RapierDirectSpaceStateImpl {
                     RapierCollisionObject::get_collider_user_data(&hit_info.user_data);
                 results_slice[i].rid = rid;
                 results_slice[i].shape = shape_index as i32;
-                let lock = bodies_singleton();
-                let collision_object_2d = lock.collision_objects.get(&rid);
+                let collision_object_2d = bodies_singleton().collision_objects.get(&rid);
                 if let Some(collision_object_2d) = collision_object_2d {
                     let instance_id = collision_object_2d.get_base().get_instance_id();
                     results_slice[i].collider_id = ObjectId { id: instance_id };
@@ -211,8 +210,7 @@ impl RapierDirectSpaceStateImpl {
                     }
                     let (rid, shape_index) =
                         RapierCollisionObject::get_collider_user_data(&result.user_data);
-                    let lock = bodies_singleton();
-                    let collision_object_2d = lock.collision_objects.get(&rid);
+                    let collision_object_2d = bodies_singleton().collision_objects.get(&rid);
                     if let Some(collision_object_2d) = collision_object_2d {
                         results_slice[cpt].shape = shape_index as i32;
                         results_slice[cpt].rid = rid;
@@ -378,8 +376,7 @@ impl RapierDirectSpaceStateImpl {
                 }
                 let (rid, shape_index) =
                     RapierCollisionObject::get_collider_user_data(&result.user_data);
-                let lock = bodies_singleton();
-                let collision_object_2d = lock.collision_objects.get(&rid);
+                let collision_object_2d = bodies_singleton().collision_objects.get(&rid);
                 let r_info = &mut *rest_info;
                 if let Some(collision_object_2d) = collision_object_2d {
                     let instance_id = collision_object_2d.get_base().get_instance_id();

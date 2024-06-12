@@ -636,6 +636,9 @@ impl RapierBody {
         }
         if self.mass_properties_update_pending {
             // Force update internal mass properties to calculate proper impulse
+            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+                space.body_remove_from_mass_properties_update_list(self.base.get_rid());
+            }
             self.update_mass_properties(true);
         }
         let impulse = vector_to_rapier(p_impulse);
@@ -655,6 +658,9 @@ impl RapierBody {
         }
         if self.mass_properties_update_pending {
             // Force update internal mass properties to calculate proper impulse
+            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+                space.body_remove_from_mass_properties_update_list(self.base.get_rid());
+            }
             self.update_mass_properties(true);
         }
         let impulse = vector_to_rapier(p_impulse);
@@ -676,6 +682,9 @@ impl RapierBody {
         }
         if self.mass_properties_update_pending {
             // Force update internal mass properties to calculate proper impulse
+            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+                space.body_remove_from_mass_properties_update_list(self.base.get_rid());
+            }
             self.update_mass_properties(true);
         }
         body_apply_torque_impulse(
@@ -694,6 +703,9 @@ impl RapierBody {
         }
         if self.mass_properties_update_pending {
             // Force update internal mass properties to calculate proper impulse
+            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+                space.body_remove_from_mass_properties_update_list(self.base.get_rid());
+            }
             self.update_mass_properties(true);
         }
         let force = vector_to_rapier(p_force) * last_delta;
@@ -714,6 +726,9 @@ impl RapierBody {
         }
         if self.mass_properties_update_pending {
             // Force update internal mass properties to calculate proper impulse
+            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+                space.body_remove_from_mass_properties_update_list(self.base.get_rid());
+            }
             self.update_mass_properties(true);
         }
         let force = vector_to_rapier(p_force) * last_delta;
@@ -735,6 +750,9 @@ impl RapierBody {
         }
         if self.mass_properties_update_pending {
             // Force update internal mass properties to calculate proper impulse
+            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+                space.body_remove_from_mass_properties_update_list(self.base.get_rid());
+            }
             self.update_mass_properties(true);
         }
         body_apply_torque_impulse(
@@ -751,6 +769,9 @@ impl RapierBody {
         }
         if self.mass_properties_update_pending {
             // Force update internal mass properties to calculate proper impulse
+            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+                space.body_remove_from_mass_properties_update_list(self.base.get_rid());
+            }
             self.update_mass_properties(true);
         }
         let force = vector_to_rapier(p_force);
@@ -769,6 +790,9 @@ impl RapierBody {
         }
         if self.mass_properties_update_pending {
             // Force update internal mass properties to calculate proper impulse
+            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+                space.body_remove_from_mass_properties_update_list(self.base.get_rid());
+            }
             self.update_mass_properties(true);
         }
         let force = vector_to_rapier(p_force);
@@ -788,6 +812,9 @@ impl RapierBody {
         }
         if self.mass_properties_update_pending {
             // Force update internal mass properties to calculate proper impulse
+            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+                space.body_remove_from_mass_properties_update_list(self.base.get_rid());
+            }
             self.update_mass_properties(true);
         }
         body_add_torque(
@@ -804,6 +831,9 @@ impl RapierBody {
         }
         if self.mass_properties_update_pending {
             // Force update internal mass properties to calculate proper impulse
+            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+                space.body_remove_from_mass_properties_update_list(self.base.get_rid());
+            }
             self.update_mass_properties(true);
         }
         let force = vector_to_rapier(p_force);
@@ -831,6 +861,9 @@ impl RapierBody {
         }
         if self.mass_properties_update_pending {
             // Force update internal mass properties to calculate proper impulse
+            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+                space.body_remove_from_mass_properties_update_list(self.base.get_rid());
+            }
             self.update_mass_properties(true);
         }
         body_reset_torques(self.base.get_space_handle(), self.base.get_body_handle());
@@ -1253,9 +1286,6 @@ impl RapierBody {
 
     pub fn update_mass_properties(&mut self, force_update: bool) {
         self.mass_properties_update_pending = false;
-        if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
-            space.body_remove_from_mass_properties_update_list(self.base.get_rid());
-        }
         if self.base.mode.ord() < BodyMode::RIGID.ord() {
             return;
         }

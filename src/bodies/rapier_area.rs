@@ -122,7 +122,7 @@ impl RapierArea {
         body_instance_id: u64,
         area_collider_handle: ColliderHandle,
         area_shape: usize,
-        space: &mut Box<RapierSpace>,
+        space: &mut RapierSpace,
     ) {
         if let Some(body) = body {
             if let Some(body) = body.get_mut_body() {
@@ -173,7 +173,7 @@ impl RapierArea {
         area_collider_handle: ColliderHandle,
         area_shape: usize,
         update_detection: bool,
-        space: &mut Box<RapierSpace>,
+        space: &mut RapierSpace,
     ) {
         if update_detection {
             // Remove from currently detected bodies
@@ -227,7 +227,7 @@ impl RapierArea {
         other_area_instance_id: u64,
         area_collider_handle: ColliderHandle,
         area_shape: usize,
-        space: &mut Box<RapierSpace>,
+        space: &mut RapierSpace,
     ) {
         if self.area_monitor_callback.is_null() {
             return;
@@ -271,7 +271,7 @@ impl RapierArea {
         other_area_instance_id: u64,
         area_collider_handle: ColliderHandle,
         area_shape: usize,
-        space: &mut Box<RapierSpace>,
+        space: &mut RapierSpace,
     ) {
         if self.area_monitor_callback.is_null() {
             return;
@@ -311,14 +311,12 @@ impl RapierArea {
         }
     }
 
-    pub fn update_area_override(&mut self) {
-        if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
-            space.area_remove_from_area_update_list(self.base.get_rid());
-            for (detected_body, _) in self.detected_bodies.clone() {
-                if let Some(body) = bodies_singleton().collision_objects.get_mut(&detected_body) {
-                    if let Some(body) = body.get_mut_body() {
-                        body.update_area_override();
-                    }
+    pub fn update_area_override(&mut self, space: &mut RapierSpace) {
+        space.area_remove_from_area_update_list(self.base.get_rid());
+        for (detected_body, _) in self.detected_bodies.clone() {
+            if let Some(body) = bodies_singleton().collision_objects.get_mut(&detected_body) {
+                if let Some(body) = body.get_mut_body() {
+                    body.update_area_override();
                 }
             }
         }

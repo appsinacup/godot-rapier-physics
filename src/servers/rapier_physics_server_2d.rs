@@ -1344,44 +1344,38 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         self.active_objects = 0;
         self.collision_pairs = 0;
         for space in active_spaces_singleton().active_spaces.values() {
-            let active_list;
-            let mass_properties_update_list;
-            let area_update_list;
             let body_area_update_list;
             let gravity_update_list;
             let space_handle;
             if let Some(space) = spaces_singleton().spaces.get_mut(space) {
-                active_list = space.get_active_list().clone();
-                mass_properties_update_list = space.get_mass_properties_update_list().clone();
-                area_update_list = space.get_area_update_list().clone();
                 body_area_update_list = space.get_body_area_update_list().clone();
                 gravity_update_list = space.get_gravity_update_list().clone();
                 space_handle = space.get_handle();
                 space.before_step();
+                for body in space.get_active_list() {
+                    if let Some(body) = bodies_singleton().collision_objects.get_mut(body) {
+                        if let Some(body) = body.get_mut_body() {
+                            body.reset_contact_count();
+                        }
+                    }
+                }
+                for body in space.get_mass_properties_update_list() {
+                    if let Some(body) = bodies_singleton().collision_objects.get_mut(body) {
+                        if let Some(body) = body.get_mut_body() {
+                            body.update_mass_properties(false);
+                        }
+                    }
+                }
+                for area in space.get_area_update_list().clone() {
+                    if let Some(area) = bodies_singleton().collision_objects.get_mut(&area) {
+                        if let Some(area) = area.get_mut_area() {
+                            area.update_area_override(space);
+                        }
+                    }
+                }
             }
             else {
                 continue;
-            }
-            for body in active_list {
-                if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
-                    if let Some(body) = body.get_mut_body() {
-                        body.reset_contact_count();
-                    }
-                }
-            }
-            for body in mass_properties_update_list {
-                if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
-                    if let Some(body) = body.get_mut_body() {
-                        body.update_mass_properties(false);
-                    }
-                }
-            }
-            for area in area_update_list {
-                if let Some(area) = bodies_singleton().collision_objects.get_mut(&area) {
-                    if let Some(area) = area.get_mut_area() {
-                        area.update_area_override();
-                    }
-                }
             }
             for body in body_area_update_list {
                 if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
@@ -1422,19 +1416,20 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
                 num_solver_iterations: RapierProjectSettings::get_solver_num_solver_iterations()
                     as usize,
             };
-            // this calls into rapier
-            let counters = world_step(
-                space_handle,
-                &settings,
-                RapierSpace::active_body_callback,
-                RapierSpace::collision_filter_body_callback,
-                RapierSpace::collision_filter_sensor_callback,
-                RapierSpace::collision_modify_contacts_callback,
-                RapierSpace::collision_event_callback,
-                RapierSpace::contact_force_event_callback,
-                RapierSpace::contact_point_callback,
-            );
             if let Some(space) = spaces_singleton().spaces.get_mut(space) {
+                // this calls into rapier
+                let counters = world_step(
+                    space_handle,
+                    &settings,
+                    RapierSpace::active_body_callback,
+                    RapierSpace::collision_filter_body_callback,
+                    RapierSpace::collision_filter_sensor_callback,
+                    RapierSpace::collision_modify_contacts_callback,
+                    RapierSpace::collision_event_callback,
+                    RapierSpace::contact_force_event_callback,
+                    RapierSpace::contact_point_callback,
+                    space,
+                );
                 space.after_step();
                 self.island_count += space.get_island_count();
                 self.active_objects += space.get_active_objects();
