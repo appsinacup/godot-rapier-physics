@@ -44,4 +44,5 @@ jobs:
           name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch}}
           path: |
             bin${{ matrix.dimensions.short }}/**/*.dylib
+            bin${{ matrix.dimensions.short }}/**/CodeResources
           if-no-files-found: error

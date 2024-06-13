@@ -1,4 +1,3 @@
-use godot::builtin::Vector2;
 use rapier::prelude::*;
 
 use crate::Angle;
@@ -24,6 +23,10 @@ pub fn angle_meters_to_pixels(v: AngVector<Real>) -> AngVector<Real> {
 }
 #[cfg(not(feature = "convert_pixels_to_meters"))]
 pub fn meters_to_pixels(x: Real) -> Real {
+    x
+}
+#[cfg(not(feature = "convert_pixels_to_meters"))]
+pub fn tangent_meters_to_pixels(x: TangentImpulse<Real>) -> TangentImpulse<Real> {
     x
 }
 #[cfg(not(feature = "convert_pixels_to_meters"))]
@@ -55,20 +58,20 @@ pub fn vector_meters_to_pixels(v: Vector<Real>) -> Vector<Real> {
     v * PIXELS_PER_METER
 }
 #[cfg(feature = "dim3")]
-pub fn vector_to_rapier(vec: Vector3) -> nalgebra::Vector3<Real> {
+pub fn vector_to_rapier(vec: crate::Vector3) -> nalgebra::Vector3<Real> {
     nalgebra::Vector3::<Real>::new(vec.x, vec.y, vec.z)
 }
 #[cfg(feature = "dim2")]
-pub fn vector_to_rapier(vec: Vector2) -> nalgebra::Vector2<Real> {
+pub fn vector_to_rapier(vec: crate::Vector2) -> nalgebra::Vector2<Real> {
     nalgebra::Vector2::<Real>::new(vec.x, vec.y)
 }
 #[cfg(feature = "dim3")]
-pub fn vector_to_godot(vec: nalgebra::Vector3<Real>) -> Vector3 {
-    Vector3::new(vec.x, vec.y, vec.z)
+pub fn vector_to_godot(vec: nalgebra::Vector3<Real>) -> crate::Vector {
+    crate::Vector::new(vec.x, vec.y, vec.z)
 }
 #[cfg(feature = "dim2")]
 pub fn vector_to_godot(vec: nalgebra::Vector2<Real>) -> Vector2 {
-    Vector2::new(vec.x, vec.y)
+    crate::Vector2::new(vec.x, vec.y)
 }
 #[cfg(feature = "dim3")]
 pub fn angle_to_rapier(angle: Angle) -> AngVector<Real> {

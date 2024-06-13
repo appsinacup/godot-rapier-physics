@@ -202,6 +202,7 @@ pub fn body_update_material(world_handle: Handle, body_handle: RigidBodyHandle, 
         }
     }
 }
+#[cfg(feature = "dim2")]
 pub fn body_get_angular_velocity(
     world_handle: Handle,
     body_handle: RigidBodyHandle,
@@ -215,6 +216,24 @@ pub fn body_get_angular_velocity(
             .get(rigid_body_handle)
         {
             return body.angvel();
+        }
+    }
+    ANG_ZERO
+}
+#[cfg(feature = "dim3")]
+pub fn body_get_angular_velocity(
+    world_handle: Handle,
+    body_handle: RigidBodyHandle,
+) -> AngVector<Real> {
+    let physics_engine = physics_engine();
+    if let Some(physics_world) = physics_engine.get_world(world_handle) {
+        let rigid_body_handle = body_handle;
+        if let Some(body) = physics_world
+            .physics_objects
+            .rigid_body_set
+            .get(rigid_body_handle)
+        {
+            return *body.angvel();
         }
     }
     ANG_ZERO

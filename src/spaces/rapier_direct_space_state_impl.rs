@@ -1,6 +1,5 @@
 use godot::classes::native::*;
 use godot::prelude::*;
-use rapier::geometry::ColliderHandle;
 
 use super::rapier_space_body_helper::is_handle_excluded_callback;
 use crate::bodies::rapier_collision_object::*;
@@ -8,6 +7,7 @@ use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::*;
 use crate::Transform;
 use crate::Vector;
+use crate::Angle;
 #[cfg(feature = "dim2")]
 type PhysicsServerExtensionShapeResult = PhysicsServer2DExtensionShapeResult;
 #[cfg(feature = "dim2")]
@@ -22,6 +22,17 @@ type PhysicsServerExtensionRayResult = PhysicsServer3DExtensionRayResult;
 type PhysicsServerExtensionShapeRestInfo = PhysicsServer3DExtensionShapeRestInfo;
 pub struct RapierDirectSpaceStateImpl {
     pub space: Rid,
+}
+#[cfg(feature = "dim3")]
+fn cross_product(a: Vector, b: Vector) -> Vector {
+    a.cross(b)
+}
+#[cfg(feature = "dim2")]
+fn cross_product(a: Angle, b: Vector) -> Vector {
+    Vector::new(
+        -a * b.y,
+        a * b.x,
+    )
 }
 impl RapierDirectSpaceStateImpl {
     pub fn default() -> Self {
@@ -111,7 +122,8 @@ impl RapierDirectSpaceStateImpl {
             }
             let rapier_pos = vector_to_rapier(position);
             // Allocate memory for hit_info_array
-            let mut hit_info_array: Vec<PointHitInfo> = Vec::with_capacity(max_results);
+            let mut hit_info_array = Vec::new();
+            hit_info_array.resize_with(max_results, Default::default);
             let hit_info_ptr = hit_info_array.as_mut_ptr();
             // Initialize query_excluded_info
             let mut query_excluded_info = QueryExcludedInfo::default();
@@ -171,19 +183,16 @@ impl RapierDirectSpaceStateImpl {
     ) -> i32 {
         let max_results = max_results as usize;
         if let Some(shape) = shapes_singleton().shapes.get_mut(&shape_rid) {
-            if !shape.get_base().is_valid() {
-                return 0;
-            }
-            if let Some(space) = spaces_singleton().spaces.get(&self.space) {
+            if let Some(space) = spaces_singleton().spaces.get_mut(&self.space) {
                 if !space.is_valid() {
                     return 0;
                 }
                 let rapier_motion = vector_to_rapier(motion);
-                let shape_info =
-                    shape_info_from_body_shape(shape.get_base().get_handle(), transform);
+                let shape_info = shape_info_from_body_shape(shape.get_rapier_shape(), transform);
                 let mut query_excluded_info = QueryExcludedInfo::default();
                 query_excluded_info.query_collision_layer_mask = collision_mask;
-                let query_exclude: Vec<ColliderHandle> = Vec::with_capacity(max_results);
+                let mut query_exclude = Vec::new();
+                query_exclude.resize_with(max_results, Default::default);
                 query_excluded_info.query_exclude = query_exclude;
                 query_excluded_info.query_exclude_size = 0;
                 let mut cpt = 0;
@@ -244,17 +253,13 @@ impl RapierDirectSpaceStateImpl {
         closest_safe: *mut f64,
         closest_unsafe: *mut f64,
     ) -> bool {
-        if let Some(shape) = shapes_singleton().shapes.get(&shape_rid) {
-            if !shape.get_base().is_valid() {
-                return false;
-            }
+        if let Some(shape) = shapes_singleton().shapes.get_mut(&shape_rid) {
             if let Some(space) = spaces_singleton().spaces.get(&self.space) {
                 if !space.is_valid() {
                     return false;
                 }
                 let rapier_motion = vector_to_rapier(motion);
-                let shape_info =
-                    shape_info_from_body_shape(shape.get_base().get_handle(), transform);
+                let shape_info = shape_info_from_body_shape(shape.get_rapier_shape(), transform);
                 let mut query_excluded_info = QueryExcludedInfo::default();
                 query_excluded_info.query_collision_layer_mask = collision_mask;
                 let hit = shape_casting(
@@ -267,9 +272,11 @@ impl RapierDirectSpaceStateImpl {
                     &query_excluded_info,
                 )
                 .toi;
-                // TODO
-                *closest_safe = hit as f64;
-                *closest_unsafe = hit as f64;
+                // TODO compute actual safe and unsafe
+                let closest_safe = closest_safe as *mut real;
+                *closest_safe = hit;
+                let closest_unsafe = closest_unsafe as *mut real;
+                *closest_unsafe = hit;
                 return true;
             }
         }
@@ -289,21 +296,19 @@ impl RapierDirectSpaceStateImpl {
         max_results: i32,
         result_count: *mut i32,
     ) -> bool {
-        if let Some(shape) = shapes_singleton().shapes.get(&shape_rid) {
-            if !shape.get_base().is_valid() {
-                return false;
-            }
+        let max_results = max_results as usize;
+        if let Some(shape) = shapes_singleton().shapes.get_mut(&shape_rid) {
             if let Some(space) = spaces_singleton().spaces.get(&self.space) {
                 if !space.is_valid() {
                     return false;
                 }
                 let rapier_motion = vector_to_rapier(motion);
                 let results_out = results as *mut Vector;
-                let shape_info =
-                    shape_info_from_body_shape(shape.get_base().get_handle(), transform);
+                let shape_info = shape_info_from_body_shape(shape.get_rapier_shape(), transform);
                 let mut query_excluded_info = QueryExcludedInfo::default();
                 query_excluded_info.query_collision_layer_mask = collision_mask;
-                let query_exclude: Vec<ColliderHandle> = Vec::with_capacity(max_results as usize);
+                let mut query_exclude = Vec::new();
+                query_exclude.resize_with(max_results, Default::default);
                 query_excluded_info.query_exclude = query_exclude;
                 query_excluded_info.query_exclude_size = 0;
                 let mut array_idx = 0;
@@ -349,17 +354,13 @@ impl RapierDirectSpaceStateImpl {
         collide_with_areas: bool,
         rest_info: *mut PhysicsServerExtensionShapeRestInfo,
     ) -> bool {
-        if let Some(shape) = shapes_singleton().shapes.get(&shape_rid) {
-            if !shape.get_base().is_valid() {
-                return false;
-            }
+        if let Some(shape) = shapes_singleton().shapes.get_mut(&shape_rid) {
             if let Some(space) = spaces_singleton().spaces.get(&self.space) {
                 if !space.is_valid() {
                     return false;
                 }
                 let rapier_motion = vector_to_rapier(motion);
-                let shape_info =
-                    shape_info_from_body_shape(shape.get_base().get_handle(), transform);
+                let shape_info = shape_info_from_body_shape(shape.get_rapier_shape(), transform);
                 let mut query_excluded_info = QueryExcludedInfo::default();
                 query_excluded_info.query_collision_layer_mask = collision_mask;
                 let result = shape_casting(
@@ -384,10 +385,7 @@ impl RapierDirectSpaceStateImpl {
                     if let Some(body) = collision_object_2d.get_body() {
                         let rel_vec = r_info.point
                             - (body.get_base().get_transform().origin + body.get_center_of_mass());
-                        r_info.linear_velocity = Vector::new(
-                            -body.get_angular_velocity() * rel_vec.y,
-                            body.get_angular_velocity() * rel_vec.x,
-                        ) + body.get_linear_velocity();
+                        r_info.linear_velocity = body.get_linear_velocity() + cross_product(body.get_angular_velocity(), rel_vec);
                     }
                     else {
                         r_info.linear_velocity = Vector::ZERO

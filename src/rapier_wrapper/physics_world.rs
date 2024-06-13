@@ -23,7 +23,7 @@ pub struct ContactPointInfo {
     pub normal: Vector<Real>,
     pub pixel_distance: Real,
     pub pixel_impulse: Real,
-    pub pixel_tangent_impulse: Real,
+    pub pixel_tangent_impulse: TangentImpulse<Real>,
 }
 type ActiveBodyCallback = fn(active_body_info: &ActiveBodyInfo);
 type CollisionEventCallback = fn(event_info: &CollisionEventInfo, space: &mut RapierSpace);
@@ -252,7 +252,7 @@ impl PhysicsWorld {
                         contact_info.pixel_distance = meters_to_pixels(contact_point.dist);
                         contact_info.pixel_impulse = meters_to_pixels(contact_point.data.impulse);
                         contact_info.pixel_tangent_impulse =
-                            meters_to_pixels(contact_point.data.tangent_impulse.x);
+                            tangent_meters_to_pixels(contact_point.data.tangent_impulse);
                         send_contact_points =
                             (contact_point_callback)(&contact_info, &event_info, space);
                         if !send_contact_points {

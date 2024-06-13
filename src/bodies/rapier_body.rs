@@ -99,7 +99,7 @@ pub struct RapierBody {
     contacts: Vec<Contact>,
     contact_count: i32,
     body_state_callback: Callable,
-    fi_callback_data: Option<ForceIntegrationCallbackData>,
+    pub fi_callback_data: Option<ForceIntegrationCallbackData>,
     direct_state: Option<Gd<PhysicsDirectBodyState>>,
     base: RapierCollisionObject,
 }
@@ -322,8 +322,8 @@ impl RapierBody {
         self.body_state_callback = p_callable;
     }
 
-    pub fn get_state_sync_callback(&self) -> Callable {
-        self.body_state_callback.clone()
+    pub fn get_state_sync_callback(&self) -> &Callable {
+        &self.body_state_callback
     }
 
     pub fn set_force_integration_callback(&mut self, p_callable: Callable, p_udata: Variant) {
@@ -335,17 +335,17 @@ impl RapierBody {
         }
     }
 
-    pub fn get_force_integration_callback(&self) -> Option<ForceIntegrationCallbackData> {
-        self.fi_callback_data.clone()
+    pub fn get_force_integration_callback(&self) -> Option<&ForceIntegrationCallbackData> {
+        self.fi_callback_data.as_ref()
     }
 
-    pub fn get_direct_state(&mut self) -> Option<Gd<PhysicsDirectBodyState>> {
+    pub fn get_direct_state(&mut self) -> Option<&Gd<PhysicsDirectBodyState>> {
         if self.direct_state.is_none() {
             let mut direct_space_state = RapierDirectBodyState::new_alloc();
             direct_space_state.bind_mut().set_body(self.base.get_rid());
             self.direct_state = Some(direct_space_state.upcast());
         }
-        self.direct_state.clone()
+        self.direct_state.as_ref()
     }
 
     pub fn add_area(&mut self, p_area: Rid) {
@@ -1014,7 +1014,7 @@ impl RapierBody {
                     return;
                 }
                 let inertia_value = p_value.to();
-                if inertia_value == ANG_ZERO {
+                if inertia_value == ANGLE_ZERO {
                     self.calculate_inertia = true;
                 }
                 else {

@@ -406,10 +406,9 @@ impl RapierSpace {
             let depth = real::max(0.0, -contact_info.pixel_distance); // negative distance means penetration
             let normal = vector_to_godot(contact_info.normal);
             // TODO calculate impulse for 2d and 3d
-            let impulse = Vector::default();
-            //let tangent = normal.orthogonal();
-            //let impulse =
-            //    contact_info.pixel_impulse * normal + contact_info.pixel_tangent_impulse * tangent;
+            let tangent = normal.orthogonal();
+            let impulse =
+                contact_info.pixel_impulse * normal + contact_info.pixel_tangent_impulse * tangent;
             let vel_pos1 = vector_to_godot(contact_info.pixel_velocity_pos_1);
             let vel_pos2 = vector_to_godot(contact_info.pixel_velocity_pos_2);
             if let Some(body1) = p_object1.get_mut_body() {

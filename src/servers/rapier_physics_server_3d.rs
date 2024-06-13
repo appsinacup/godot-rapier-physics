@@ -21,10 +21,13 @@ use crate::bodies::rapier_area::RapierArea;
 use crate::bodies::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::fluids::rapier_fluid::RapierFluid;
+use crate::joints::rapier_joint::IRapierJoint;
 use crate::joints::rapier_joint::RapierEmptyJoint;
 use crate::rapier_wrapper::prelude::*;
+use crate::shapes::rapier_shape::RapierShapeBase;
 use crate::spaces::rapier_space::RapierSpace;
 use crate::PackedVectorArray;
+use crate::ANGLE_ZERO;
 #[derive(GodotClass)]
 #[class(base=PhysicsServer3DExtension, tool)]
 pub struct RapierPhysicsServer3D {
@@ -60,7 +63,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
             }
         }
         if let Some(owners) = owners {
-            RapierShapeBase3D::call_shape_changed(owners, shape);
+            RapierShapeBase::call_shape_changed(owners, shape);
         }
     }
 
@@ -684,7 +687,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
                 return body.get_constant_torque();
             }
         }
-        0.0
+        ANGLE_ZERO
     }
 
     fn body_set_axis_velocity(&mut self, body: Rid, axis_velocity: Vector3) {
@@ -798,7 +801,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
     ) -> Option<Gd<classes::PhysicsDirectBodyState3D>> {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                return body.get_direct_state();
+                return body.get_direct_state().cloned();
             }
         }
         None
@@ -808,13 +811,13 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         let rid = rid_from_int64(rid_allocate_id());
         joints_singleton()
             .joints
-            .insert(rid, Box::new(RapierEmptyJoint::new(rid)));
+            .insert(rid, Box::new(RapierEmptyJoint::new()));
         rid
     }
 
     fn joint_clear(&mut self, rid: Rid) {
         if let Some(prev_joint) = joints_singleton().joints.remove(&rid) {
-            let mut joint = RapierEmptyJoint::new(rid);
+            let mut joint = RapierEmptyJoint::new();
             joint
                 .get_mut_base()
                 .copy_settings_from(prev_joint.get_base());
@@ -835,32 +838,6 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
             return joint.get_base().is_disabled_collisions_between_bodies();
         }
         true
-    }
-
-    fn pin_joint_set_param(
-        &mut self,
-        joint: Rid,
-        param: classes::physics_server_3d::PinJointParam,
-        value: f32,
-    ) {
-        if let Some(joint) = joints_singleton().joints.get_mut(&joint) {
-            if let Some(joint) = joint.get_mut_pin() {
-                joint.set_param(param, value)
-            }
-        }
-    }
-
-    fn pin_joint_get_param(
-        &self,
-        joint: Rid,
-        param: classes::physics_server_3d::PinJointParam,
-    ) -> f32 {
-        if let Some(joint) = joints_singleton().joints.get(&joint) {
-            if let Some(joint) = joint.get_pin() {
-                return joint.get_param(param);
-            }
-        }
-        0.0
     }
 
     fn joint_get_type(&self, joint: Rid) -> classes::physics_server_3d::JointType {
@@ -922,46 +899,39 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         self.island_count = 0;
         self.active_objects = 0;
         self.collision_pairs = 0;
-        let active_spaces = active_spaces_singleton().active_spaces.clone();
-        for space in active_spaces.values() {
-            let active_list;
-            let mass_properties_update_list;
-            let area_update_list;
+        for space_rid in active_spaces_singleton().active_spaces.values() {
             let body_area_update_list;
             let gravity_update_list;
             let space_handle;
-            if let Some(space) = spaces_singleton().spaces.get_mut(space) {
-                active_list = space.get_active_list().clone();
-                mass_properties_update_list = space.get_mass_properties_update_list().clone();
-                area_update_list = space.get_area_update_list().clone();
+            if let Some(space) = spaces_singleton().spaces.get_mut(space_rid) {
                 body_area_update_list = space.get_body_area_update_list().clone();
                 gravity_update_list = space.get_gravity_update_list().clone();
                 space_handle = space.get_handle();
                 space.before_step();
+                for body in space.get_active_list() {
+                    if let Some(body) = bodies_singleton().collision_objects.get_mut(body) {
+                        if let Some(body) = body.get_mut_body() {
+                            body.reset_contact_count();
+                        }
+                    }
+                }
+                for body in space.get_mass_properties_update_list() {
+                    if let Some(body) = bodies_singleton().collision_objects.get_mut(body) {
+                        if let Some(body) = body.get_mut_body() {
+                            body.update_mass_properties(false);
+                        }
+                    }
+                }
+                for area in space.get_area_update_list().clone() {
+                    if let Some(area) = bodies_singleton().collision_objects.get_mut(&area) {
+                        if let Some(area) = area.get_mut_area() {
+                            area.update_area_override(space);
+                        }
+                    }
+                }
             }
             else {
                 continue;
-            }
-            for body in active_list {
-                if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
-                    if let Some(body) = body.get_mut_body() {
-                        body.reset_contact_count();
-                    }
-                }
-            }
-            for body in mass_properties_update_list {
-                if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
-                    if let Some(body) = body.get_mut_body() {
-                        body.update_mass_properties(false);
-                    }
-                }
-            }
-            for area in area_update_list {
-                if let Some(area) = bodies_singleton().collision_objects.get_mut(&area) {
-                    if let Some(area) = area.get_mut_area() {
-                        area.update_area_override();
-                    }
-                }
             }
             for body in body_area_update_list {
                 if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
@@ -979,10 +949,10 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
             }
             let project_settings = ProjectSettings::singleton();
             let default_gravity_dir: Vector3 = project_settings
-                .get_setting_with_override("physics/2d/default_gravity_vector".into())
+                .get_setting_with_override("physics/3d/default_gravity_vector".into())
                 .to();
             let default_gravity_value: real = project_settings
-                .get_setting_with_override("physics/2d/default_gravity".into())
+                .get_setting_with_override("physics/3d/default_gravity".into())
                 .to();
             let fluid_default_gravity_dir = RapierProjectSettings::get_fluid_gravity_dir();
             let fluid_default_gravity_value = RapierProjectSettings::get_fluid_gravity_value();
@@ -992,6 +962,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
                 pixel_liquid_gravity: vector_to_rapier(fluid_default_gravity_dir)
                     * fluid_default_gravity_value,
                 dt: step,
+                length_unit: RapierProjectSettings::get_length_unit(),
                 pixel_gravity: vector_to_rapier(default_gravity_dir) * default_gravity_value,
                 max_ccd_substeps: RapierProjectSettings::get_solver_max_ccd_substeps() as usize,
                 num_additional_friction_iterations:
@@ -1001,19 +972,20 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
                 num_solver_iterations: RapierProjectSettings::get_solver_num_solver_iterations()
                     as usize,
             };
-            // this calls into rapier
-            world_step(
-                space_handle,
-                &settings,
-                RapierSpace::active_body_callback,
-                RapierSpace::collision_filter_body_callback,
-                RapierSpace::collision_filter_sensor_callback,
-                RapierSpace::collision_modify_contacts_callback,
-                RapierSpace::collision_event_callback,
-                RapierSpace::contact_force_event_callback,
-                RapierSpace::contact_point_callback,
-            );
-            if let Some(space) = spaces_singleton().spaces.get_mut(space) {
+            if let Some(space) = spaces_singleton().spaces.get_mut(space_rid) {
+                // this calls into rapier
+                let counters = world_step(
+                    space_handle,
+                    &settings,
+                    RapierSpace::active_body_callback,
+                    RapierSpace::collision_filter_body_callback,
+                    RapierSpace::collision_filter_sensor_callback,
+                    RapierSpace::collision_modify_contacts_callback,
+                    RapierSpace::collision_event_callback,
+                    RapierSpace::contact_force_event_callback,
+                    RapierSpace::contact_point_callback,
+                    space,
+                );
                 space.after_step();
                 self.island_count += space.get_island_count();
                 self.active_objects += space.get_active_objects();

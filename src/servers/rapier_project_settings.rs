@@ -15,10 +15,7 @@ const FLUID_GRAVITY_DIR: &str = "physics/rapier/fluid/fluid_gravity_dir";
 const FLUID_GRAVITY_VALUE: &str = "physics/rapier/fluid/fluid_gravity_value";
 const FLUID_PARTICLE_RADIUS: &str = "physics/rapier/fluid/fluid_particle_radius";
 const FLUID_SMOOTHING_FACTOR: &str = "physics/rapier/fluid/fluid_smoothing_factor";
-pub enum Monitors {
-    Step = 0,
-}
-pub const MONITORS: [&str; 1] = ["step"];
+pub const MONITORS: [&str; 4] = ["inner_step", "step", "before_step", "flush"];
 #[cfg(feature = "dim2")]
 const LENGTH_UNIT: &str = "physics/rapier/solver/length_unit_2d";
 #[cfg(feature = "dim2")]

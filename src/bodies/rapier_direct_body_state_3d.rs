@@ -1,5 +1,9 @@
 use godot::classes::*;
 use godot::prelude::*;
+#[cfg(feature = "dim2")]
+use physics_server_2d::AreaParameter;
+#[cfg(feature = "dim3")]
+use physics_server_3d::AreaParameter;
 
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::servers::rapier_physics_singleton::*;

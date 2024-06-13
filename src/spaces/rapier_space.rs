@@ -186,13 +186,13 @@ impl RapierSpace {
                     if !body.is_active() {
                         self.body_remove_from_state_query_list(body.get_base().get_rid());
                     }
-                    if let Some(direct_state) = body.get_direct_state() {
+                    if let Some(direct_state) = body.get_direct_state().cloned() {
                         let fi_callback_data = body.get_force_integration_callback();
                         if let Some(fi_callback_data) = fi_callback_data {
                             if fi_callback_data.callable.is_valid() {
                                 let mut arg_array = Array::new();
                                 arg_array.push(direct_state.to_variant());
-                                arg_array.push(fi_callback_data.udata);
+                                arg_array.push(fi_callback_data.udata.to_variant());
                                 fi_callback_data.callable.callv(arg_array);
                             }
                         }

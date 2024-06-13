@@ -3,6 +3,7 @@ use godot::classes::physics_server_2d::BodyMode;
 use godot::prelude::*;
 use rapier::geometry::ColliderHandle;
 use rapier::math::Real;
+use rapier::math::DEFAULT_EPSILON;
 use rapier::na::RealField;
 
 use crate::bodies::rapier_body::RapierBody;
@@ -19,7 +20,6 @@ type PhysicsServerExtensionMotionResult =
 #[cfg(feature = "dim3")]
 type PhysicsServerExtensionMotionResult =
     godot::classes::native::PhysicsServer3DExtensionMotionResult;
-use std::f32::EPSILON;
 use std::ops::Deref;
 
 use super::rapier_space::RapierSpace;
@@ -167,7 +167,8 @@ impl RapierSpace {
         let rect_begin = vector_to_rapier(aabb.position);
         let rect_end = vector_to_rapier(aabb.end());
         let mut handle_excluded_info = QueryExcludedInfo::default();
-        let query_exclude: Vec<ColliderHandle> = Vec::with_capacity(max_results);
+        let mut query_exclude = Vec::new();
+        query_exclude.resize_with(max_results, Default::default);
         handle_excluded_info.query_exclude = query_exclude;
         handle_excluded_info.query_collision_layer_mask = collision_mask;
         handle_excluded_info.query_exclude_size = 0;
@@ -287,7 +288,7 @@ impl RapierSpace {
                                     let d = n.dot(b);
                                     // Compute depth on recovered motion.
                                     let depth = n.dot(a + recover_step) - d;
-                                    if depth > min_contact_depth + EPSILON {
+                                    if depth > min_contact_depth + DEFAULT_EPSILON {
                                         // Only recover if there is penetration.
                                         recover_step -= n
                                             * (depth - min_contact_depth)
@@ -421,7 +422,7 @@ impl RapierSpace {
                                 let d = n.dot(b);
                                 // Compute depth on recovered motion.
                                 let depth = n.dot(a + p_motion) - d;
-                                if depth > EPSILON {
+                                if depth > DEFAULT_EPSILON {
                                     // Only recover if there is penetration.
                                     best_safe = best_safe.min(0.0);
                                     best_unsafe = best_unsafe.min(1.0);
@@ -618,7 +619,7 @@ fn should_skip_collision_one_dir(
         let motion_len = motion.length();
         let motion = motion.normalized();
         valid_depth += motion_len * motion.dot(valid_dir).max(0.0);
-        if dist < -valid_depth || p_motion.normalized().dot(valid_dir) < EPSILON {
+        if dist < -valid_depth || p_motion.normalized().dot(valid_dir) < DEFAULT_EPSILON {
             return true;
         }
     }

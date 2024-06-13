@@ -9,13 +9,14 @@ use godot::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::bodies_singleton;
+use crate::Angle;
 use crate::Rect;
 use crate::Vector;
 pub trait IRapierShape: Any {
     fn get_base(&self) -> &RapierShapeBase;
     fn get_mut_base(&mut self) -> &mut RapierShapeBase;
     fn get_type(&self) -> ShapeType;
-    fn get_moment_of_inertia(&self, mass: f32, scale: Vector) -> f32;
+    fn get_moment_of_inertia(&self, mass: f32, scale: Vector) -> Angle;
     fn allows_one_way_collision(&self) -> bool;
     fn create_rapier_shape(&mut self) -> Handle;
     fn set_data(&mut self, data: Variant);
