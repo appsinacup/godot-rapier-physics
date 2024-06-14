@@ -3,7 +3,6 @@ use godot::classes::*;
 use godot::prelude::*;
 
 use super::rapier_direct_space_state_impl::RapierDirectSpaceStateImpl;
-use crate::Vector;
 #[derive(GodotClass)]
 #[class(base=PhysicsDirectSpaceState2DExtension,tool)]
 pub struct RapierDirectSpaceState2D {
@@ -29,8 +28,8 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
 
     unsafe fn intersect_ray(
         &mut self,
-        from: Vector,
-        to: Vector,
+        from: Vector2,
+        to: Vector2,
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
@@ -50,7 +49,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
 
     unsafe fn intersect_point(
         &mut self,
-        position: Vector,
+        position: Vector2,
         canvas_instance_id: u64,
         collision_mask: u32,
         collide_with_bodies: bool,
@@ -73,7 +72,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         &mut self,
         shape_rid: Rid,
         transform: Transform2D,
-        motion: Vector,
+        motion: Vector2,
         margin: f32,
         collision_mask: u32,
         collide_with_bodies: bool,
@@ -98,7 +97,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         &mut self,
         shape_rid: Rid,
         transform: Transform2D,
-        motion: Vector,
+        motion: Vector2,
         margin: f32,
         collision_mask: u32,
         collide_with_bodies: bool,
@@ -123,7 +122,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         &mut self,
         shape_rid: Rid,
         transform: Transform2D,
-        motion: Vector,
+        motion: Vector2,
         margin: f32,
         collision_mask: u32,
         collide_with_bodies: bool,
@@ -150,7 +149,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         &mut self,
         shape_rid: Rid,
         transform: Transform2D,
-        motion: Vector,
+        motion: Vector2,
         margin: f32,
         collision_mask: u32,
         collide_with_bodies: bool,

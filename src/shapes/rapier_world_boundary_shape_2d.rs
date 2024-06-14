@@ -1,6 +1,8 @@
 use godot::engine::physics_server_2d::ShapeType;
 use godot::prelude::*;
+use rapier::math::Point;
 use rapier::math::Real;
+use rapier::math::Vector;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
@@ -33,7 +35,7 @@ impl IRapierShape for RapierWorldBoundaryShape2D {
         ShapeType::WORLD_BOUNDARY
     }
 
-    fn get_moment_of_inertia(&self, _mass: f32, _scale: Vector2) -> f32 {
+    fn get_moment_of_inertia(&self, _mass: f32, _scale: Vector<Real>) -> f32 {
         f32::MAX
     }
 
@@ -64,9 +66,9 @@ impl IRapierShape for RapierWorldBoundaryShape2D {
         }
         self.normal = arr.at(0).to();
         self.d = arr.at(1).to();
-        self.base.configure(Rect2::new(
-            Vector2::new(-1e4, -1e4),
-            Vector2::new(1e4 * 2.0, 1e4 * 2.0),
+        self.base.configure(rapier::geometry::Aabb::new(
+            Point::new(-1e4, -1e4),
+            Point::new(1e4, 1e4),
         ));
     }
 

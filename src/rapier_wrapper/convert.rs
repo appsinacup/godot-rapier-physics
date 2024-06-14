@@ -1,6 +1,5 @@
 use rapier::prelude::*;
 
-use crate::Angle;
 #[cfg(feature = "convert_pixels_to_meters")]
 const PIXELS_PER_METER: Real = 128.0;
 #[cfg(feature = "convert_pixels_to_meters")]
@@ -70,7 +69,8 @@ pub fn vector_to_godot(vec: nalgebra::Vector3<Real>) -> crate::Vector {
     crate::Vector::new(vec.x, vec.y, vec.z)
 }
 #[cfg(feature = "dim2")]
-pub fn vector_to_godot(vec: nalgebra::Vector2<Real>) -> Vector2 {
+pub fn vector_to_godot(vec: nalgebra::Vector2<Real>) -> godot::builtin::Vector2 {
+
     crate::Vector2::new(vec.x, vec.y)
 }
 #[cfg(feature = "dim3")]
@@ -82,10 +82,10 @@ pub fn angle_to_godot(angle: AngVector<Real>) -> Angle {
     return vector_to_godot(angle);
 }
 #[cfg(feature = "dim2")]
-pub fn angle_to_rapier(angle: Angle) -> Real {
+pub fn angle_to_rapier(angle: Real) -> Real {
     angle
 }
 #[cfg(feature = "dim2")]
-pub fn angle_to_godot(angle: Real) -> Angle {
+pub fn angle_to_godot(angle: Real) -> Real {
     angle
 }

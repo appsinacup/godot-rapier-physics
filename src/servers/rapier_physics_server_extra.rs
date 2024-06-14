@@ -6,7 +6,6 @@ use super::rapier_physics_singleton::*;
 use crate::fluids::fluid_effect::FluidEffect;
 use crate::fluids::rapier_fluid::RapierFluid;
 use crate::servers::RapierPhysicsServer;
-use crate::PackedVectorArray;
 pub enum RapierBodyParam {
     ContactSkin = 0,
 }

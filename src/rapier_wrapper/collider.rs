@@ -280,7 +280,6 @@ pub fn collider_set_transform(
     collider_handle: ColliderHandle,
     shape_info: ShapeInfo,
 ) {
-    let position = vector_pixels_to_meters(shape_info.pixel_position);
     let physics_engine = physics_engine();
     if let Some(shape) = physics_engine.get_shape(shape_info.handle) {
         let scaled_shape = scale_shape(shape, shape_info.scale);
@@ -291,7 +290,7 @@ pub fn collider_set_transform(
                 .collider_set
                 .get_mut(collider_handle)
             {
-                collider.set_position_wrt_parent(Isometry::new(position, shape_info.rotation));
+                collider.set_position_wrt_parent(shape_info.transform);
                 collider.set_shape(new_shape);
             }
         }

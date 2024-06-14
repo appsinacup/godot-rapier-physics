@@ -1,5 +1,6 @@
 use godot::classes::physics_server_2d::*;
 use godot::prelude::*;
+use rapier::math::{Real, Vector};
 
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::*;
@@ -28,7 +29,7 @@ impl IRapierShape for RapierCircleShape2D {
         ShapeType::CIRCLE
     }
 
-    fn get_moment_of_inertia(&self, mass: f32, scale: Vector2) -> f32 {
+    fn get_moment_of_inertia(&self, mass: f32, scale: Vector<Real>) -> f32 {
         let a = self.radius * scale.x;
         let b = self.radius * scale.y;
         mass * (a * a + b * b) / 4.0
@@ -57,9 +58,9 @@ impl IRapierShape for RapierCircleShape2D {
                 return;
             }
         }
-        self.base.configure(Rect2::new(
+        self.base.configure(Aabb::new(
             -Vector2::splat(self.radius),
-            Vector2::splat(self.radius) * 2.0,
+            Vector2::splat(self.radius),
         ));
     }
 

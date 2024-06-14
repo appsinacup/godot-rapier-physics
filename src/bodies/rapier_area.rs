@@ -9,6 +9,7 @@ use godot::meta::ToGodot;
 use godot::obj::EngineEnum;
 use godot::prelude::*;
 use rapier::geometry::ColliderHandle;
+use rapier::math::{Real, Vector};
 
 use super::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;
@@ -33,7 +34,7 @@ pub struct RapierArea {
     linear_damping_override_mode: AreaSpaceOverrideMode,
     angular_damping_override_mode: AreaSpaceOverrideMode,
     gravity: real,
-    gravity_vector: Vector,
+    gravity_vector: Vector<Real>,
     gravity_is_point: bool,
     gravity_point_unit_distance: real,
     linear_damp: real,
@@ -552,7 +553,7 @@ impl RapierArea {
         }
     }
 
-    pub fn compute_gravity(&self, position: Vector) -> Vector {
+    pub fn compute_gravity(&self, position: Vector<Real>) -> Vector<Real> {
         if self.gravity_is_point {
             let gr_unit_dist = self.get_gravity_point_unit_distance();
             let v = self.get_base().get_transform() * self.gravity_vector - position;

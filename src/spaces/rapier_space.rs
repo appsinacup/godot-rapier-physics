@@ -7,6 +7,8 @@ use godot::engine::physics_server_2d::*;
 use godot::engine::physics_server_3d::*;
 use godot::prelude::*;
 use rapier::geometry::ColliderHandle;
+use rapier::math::Real;
+use rapier::math::Vector;
 
 use super::PhysicsDirectSpaceState;
 use super::RapierDirectSpaceState;
@@ -49,7 +51,7 @@ pub struct RapierSpace {
     body_area_update_list: HashSet<Rid>,
     solver_iterations: i32,
     pub(crate) contact_max_allowed_penetration: real,
-    default_gravity_dir: Vector,
+    default_gravity_dir: Vector<Real>,
     default_gravity_value: real,
     default_linear_damping: real,
     default_angular_damping: real,
@@ -86,7 +88,7 @@ impl RapierSpace {
             body_area_update_list: HashSet::new(),
             solver_iterations,
             contact_max_allowed_penetration: 0.0,
-            default_gravity_dir: Vector::ZERO,
+            default_gravity_dir: Vector::default(),
             default_gravity_value: 0.0,
             default_linear_damping: 0.0,
             default_angular_damping: 0.0,
@@ -243,7 +245,7 @@ impl RapierSpace {
     pub fn set_default_area_param(&mut self, param: AreaParameter, value: Variant) {
         match param {
             AreaParameter::GRAVITY => self.default_gravity_value = value.to(),
-            AreaParameter::GRAVITY_VECTOR => self.default_gravity_dir = value.to(),
+            AreaParameter::GRAVITY_VECTOR => self.default_gravity_dir = vector_to_rapier(value.to()),
             AreaParameter::LINEAR_DAMP => self.default_linear_damping = value.to(),
             AreaParameter::ANGULAR_DAMP => self.default_angular_damping = value.to(),
             _ => {}
@@ -253,7 +255,7 @@ impl RapierSpace {
     pub fn get_default_area_param(&self, param: AreaParameter) -> Variant {
         match param {
             AreaParameter::GRAVITY => self.default_gravity_value.to_variant(),
-            AreaParameter::GRAVITY_VECTOR => self.default_gravity_dir.to_variant(),
+            AreaParameter::GRAVITY_VECTOR => vector_to_godot(self.default_gravity_dir).to_variant(),
             AreaParameter::LINEAR_DAMP => self.default_linear_damping.to_variant(),
             AreaParameter::ANGULAR_DAMP => self.default_angular_damping.to_variant(),
             _ => (0.0).to_variant(),
@@ -280,9 +282,9 @@ impl RapierSpace {
         !self.contact_debug.is_empty()
     }
 
-    pub fn add_debug_contact(&mut self, contact: Vector) {
+    pub fn add_debug_contact(&mut self, contact: Vector<Real>) {
         if self.contact_debug_count < self.contact_debug.len() {
-            self.contact_debug[self.contact_debug_count] = contact;
+            self.contact_debug[self.contact_debug_count] = vector_to_godot(contact);
             self.contact_debug_count += 1;
         }
     }

@@ -27,7 +27,7 @@ use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::RapierShapeBase;
 use crate::spaces::rapier_space::RapierSpace;
 use crate::PackedVectorArray;
-use crate::ANGLE_ZERO;
+use crate::ANG_ZERO;
 #[derive(GodotClass)]
 #[class(base=PhysicsServer3DExtension, tool)]
 pub struct RapierPhysicsServer3D {
@@ -687,7 +687,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
                 return body.get_constant_torque();
             }
         }
-        ANGLE_ZERO
+        ANG_ZERO
     }
 
     fn body_set_axis_velocity(&mut self, body: Rid, axis_velocity: Vector3) {

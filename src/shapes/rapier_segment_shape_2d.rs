@@ -1,5 +1,6 @@
 use godot::classes::physics_server_2d::ShapeType;
 use godot::prelude::*;
+use rapier::math::Vector;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
@@ -33,7 +34,7 @@ impl IRapierShape for RapierSegmentShape2D {
         ShapeType::SEGMENT
     }
 
-    fn get_moment_of_inertia(&self, mass: f32, scale: Vector2) -> f32 {
+    fn get_moment_of_inertia(&self, mass: f32, scale: Vector) -> f32 {
         mass * (self.a.distance_to(self.b) * scale.length_squared()) / 12.0
     }
 

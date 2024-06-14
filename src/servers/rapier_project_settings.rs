@@ -3,7 +3,6 @@ use godot::global::*;
 use godot::prelude::*;
 use rapier::math::Real;
 
-use crate::Vector;
 const SOLVER_NUM_ITERATIONS: &str = "physics/rapier/solver/num_iterations";
 const SOLVER_NUM_ADDITIONAL_FRICTION_ITERATIONS: &str =
     "physics/rapier/solver/num_additional_friction_iterations";
@@ -145,10 +144,10 @@ impl RapierProjectSettings {
         setting_value.to::<f64>()
     }
 
-    fn get_setting_vector(p_setting: &str) -> Vector {
+    fn get_setting_vector2(p_setting: &str) -> Vector2 {
         let project_settings = ProjectSettings::singleton();
         let setting_value = project_settings.get_setting_with_override(p_setting.into());
-        setting_value.to::<Vector>()
+        setting_value.to::<Vector2>()
     }
 
     fn get_setting_bool(p_setting: &str) -> bool {
@@ -171,14 +170,6 @@ impl RapierProjectSettings {
 
     pub fn get_solver_num_internal_pgs_iterations() -> i64 {
         RapierProjectSettings::get_setting_int(SOLVER_NUM_INTERNAL_PGS_ITERATIONS)
-    }
-
-    pub fn get_fluid_gravity_dir() -> Vector {
-        RapierProjectSettings::get_setting_vector(FLUID_GRAVITY_DIR)
-    }
-
-    pub fn get_fluid_gravity_value() -> Real {
-        RapierProjectSettings::get_setting_double(FLUID_GRAVITY_VALUE) as Real
     }
 
     pub fn get_fluid_particle_radius() -> Real {

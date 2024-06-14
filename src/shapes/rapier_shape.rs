@@ -6,17 +6,15 @@ use godot::engine::physics_server_2d::*;
 #[cfg(feature = "dim3")]
 use godot::engine::physics_server_3d::*;
 use godot::prelude::*;
+use rapier::math::{AngVector, Real, Vector};
 
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::bodies_singleton;
-use crate::Angle;
-use crate::Rect;
-use crate::Vector;
 pub trait IRapierShape: Any {
     fn get_base(&self) -> &RapierShapeBase;
     fn get_mut_base(&mut self) -> &mut RapierShapeBase;
     fn get_type(&self) -> ShapeType;
-    fn get_moment_of_inertia(&self, mass: f32, scale: Vector) -> Angle;
+    fn get_moment_of_inertia(&self, mass: f32, scale: Vector<Real>) -> AngVector<Real>;
     fn allows_one_way_collision(&self) -> bool;
     fn create_rapier_shape(&mut self) -> Handle;
     fn set_data(&mut self, data: Variant);
@@ -26,8 +24,7 @@ pub trait IRapierShape: Any {
 #[derive(Debug)]
 pub struct RapierShapeBase {
     rid: Rid,
-    aabb: Rect,
-    configured: bool,
+    aabb: rapier::geometry::Aabb,
     owners: HashMap<Rid, i32>,
     handle: Handle,
 }
@@ -35,8 +32,7 @@ impl RapierShapeBase {
     pub fn new(rid: Rid) -> Self {
         Self {
             rid,
-            aabb: Rect::default(),
-            configured: false,
+            aabb: rapier::geometry::Aabb::new_invalid(),
             owners: HashMap::new(),
             handle: invalid_handle(),
         }
@@ -50,11 +46,6 @@ impl RapierShapeBase {
         self.handle
     }
 
-    pub fn configure(&mut self, aabb: Rect) {
-        self.aabb = aabb;
-        self.configured = true;
-    }
-
     pub fn call_shape_changed(owners: HashMap<Rid, i32>, shape_rid: Rid) {
         for (owner, _) in owners {
             let owner = bodies_singleton().collision_objects.get_mut(&owner);
@@ -64,24 +55,12 @@ impl RapierShapeBase {
         }
     }
 
-    pub fn get_aabb(&self, origin: Vector) -> Rect {
-        let mut aabb_clone = self.aabb;
-        aabb_clone.position += origin;
-        aabb_clone
+    pub fn get_aabb(&self, origin: Vector<Real>) -> rapier::geometry::Aabb {
+        rapier::geometry::Aabb::new(self.aabb.mins + origin, self.aabb.maxs + origin)
     }
 
-    #[cfg(feature = "dim2")]
-    pub fn get_aabb_area(&self, origin: Vector) -> real {
-        self.get_aabb(origin).area()
-    }
-
-    #[cfg(feature = "dim3")]
-    pub fn get_aabb_area(&self, origin: Vector) -> real {
-        self.get_aabb(origin).volume()
-    }
-
-    pub fn is_configured(&self) -> bool {
-        self.configured
+    pub fn get_aabb_area(&self) -> real {
+        self.aabb.volume()
     }
 
     pub fn is_valid(&self) -> bool {

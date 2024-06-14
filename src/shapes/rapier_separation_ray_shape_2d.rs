@@ -1,5 +1,7 @@
 use godot::engine::physics_server_2d::ShapeType;
 use godot::prelude::*;
+use rapier::math::Real;
+use rapier::math::Vector;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
@@ -31,7 +33,7 @@ impl IRapierShape for RapierSeparationRayShape2D {
         ShapeType::SEPARATION_RAY
     }
 
-    fn get_moment_of_inertia(&self, _mass: f32, _scale: Vector2) -> f32 {
+    fn get_moment_of_inertia(&self, _mass: f32, _scale: Vector<Real>) -> f32 {
         0.0
     }
 

@@ -9,7 +9,7 @@ publish = false
 crate-type = ["cdylib"]
 
 [features]
-default = ["single_dim3"]
+default = ["single_dim2"]
 convert_pixels_to_meters = []
 dim2 = []
 dim3 = []

@@ -3,6 +3,7 @@ use godot::classes::physics_server_2d::BodyMode;
 use godot::prelude::*;
 use rapier::geometry::ColliderHandle;
 use rapier::math::Real;
+use rapier::math::Vector;
 use rapier::math::DEFAULT_EPSILON;
 use rapier::na::RealField;
 
@@ -12,8 +13,6 @@ use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::Rect;
-use crate::Transform;
-use crate::Vector;
 #[cfg(feature = "dim2")]
 type PhysicsServerExtensionMotionResult =
     godot::classes::native::PhysicsServer2DExtensionMotionResult;
@@ -79,18 +78,18 @@ impl RapierSpace {
         &mut self,
         body: &mut RapierBody,
         from: Transform,
-        motion: Vector,
+        motion: Vector<Real>,
         margin: Real,
         collide_separation_ray: bool,
         recovery_as_collision: bool,
         result: &mut PhysicsServerExtensionMotionResult,
     ) -> bool {
-        result.travel = Vector::default();
+        result.travel = vector_to_godot(Vector::default());
         let mut body_transform = from; // Because body_transform needs to be modified during recovery
                                        // Step 1: recover motion.
                                        // Expand the body colliders by the margin (grow) and check if now it collides with a collider,
                                        // if yes, "recover" / "push" out of this collider
-        let mut recover_motion = Vector::ZERO;
+        let mut recover_motion = Vector::default();
         let margin = Real::max(margin, TEST_MOTION_MARGIN);
         let recovered = self.body_motion_recover(
             body,
@@ -190,9 +189,9 @@ impl RapierSpace {
         &mut self,
         p_body: &mut RapierBody,
         p_transform: &mut Transform,
-        p_motion: Vector,
+        p_motion: Vector<Real>,
         p_margin: f32,
-        p_recover_motion: &mut Vector,
+        p_recover_motion: &mut Vector<Real>,
     ) -> bool {
         let shape_count = p_body.get_base().get_shape_count();
         if shape_count < 1 {
@@ -320,7 +319,7 @@ impl RapierSpace {
         &mut self,
         p_body: &mut RapierBody,
         p_transform: &Transform,
-        p_motion: Vector,
+        p_motion: Vector<Real>,
         _p_collide_separation_ray: bool,
         _contact_max_allowed_penetration: f32,
         p_margin: f32,
@@ -447,7 +446,7 @@ impl RapierSpace {
         &mut self,
         p_body: &mut RapierBody,
         p_transform: &Transform,
-        p_motion: Vector,
+        p_motion: Vector<Real>,
         p_best_body_shape: i32,
         p_margin: f32,
         p_result: &mut PhysicsServerExtensionMotionResult,
@@ -588,7 +587,7 @@ fn should_skip_collision_one_dir(
     col_shape_transform: &Transform,
     p_margin: f32,
     last_step: f32,
-    p_motion: Vector,
+    p_motion: Vector<Real>,
 ) -> bool {
     let dist = contact.pixel_distance;
     if !contact.within_margin

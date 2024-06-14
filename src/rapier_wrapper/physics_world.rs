@@ -5,6 +5,7 @@ use rapier::counters::Counters;
 use rapier::crossbeam;
 use rapier::data::Arena;
 use rapier::prelude::*;
+use rapier::utils::SimdBasis;
 use salva::integrations::rapier::FluidsPipeline;
 use serde::Deserialize;
 use serde::Serialize;

@@ -1,6 +1,8 @@
 use std::mem::swap;
 
 use godot::prelude::*;
+use rapier::math::Vector;
+use rapier::utils::SimdBasis;
 
 use super::rapier_space::RapierSpace;
 use crate::bodies::rapier_collision_object::*;
@@ -126,10 +128,10 @@ impl RapierSpace {
                         }
                         let static_angular_velocity1 = body1.get_static_angular_velocity();
                         let static_angular_velocity2 = body2.get_static_angular_velocity();
-                        if static_angular_velocity1 != ANGLE_ZERO {
+                        if static_angular_velocity1 != ANG_ZERO {
                             body2.to_add_static_constant_angular_velocity(static_angular_velocity1);
                         }
-                        if static_angular_velocity2 != ANGLE_ZERO {
+                        if static_angular_velocity2 != ANG_ZERO {
                             body1.to_add_static_constant_angular_velocity(static_angular_velocity2);
                         }
                     }
@@ -406,9 +408,9 @@ impl RapierSpace {
             let depth = real::max(0.0, -contact_info.pixel_distance); // negative distance means penetration
             let normal = vector_to_godot(contact_info.normal);
             // TODO calculate impulse for 2d and 3d
-            let tangent = normal.orthogonal();
+            let tangent = vector_to_godot(contact_info.normal.orthonormal_vector());
             let impulse =
-                contact_info.pixel_impulse * normal + contact_info.pixel_tangent_impulse * tangent;
+                contact_info.pixel_impulse * normal + contact_info.pixel_tangent_impulse.x * tangent;
             let vel_pos1 = vector_to_godot(contact_info.pixel_velocity_pos_1);
             let vel_pos2 = vector_to_godot(contact_info.pixel_velocity_pos_2);
             if let Some(body1) = p_object1.get_mut_body() {

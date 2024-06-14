@@ -217,16 +217,14 @@ pub fn shape_collide(
     let physics_engine = physics_engine();
     let shape_vel1 = vector_pixels_to_meters(pixel_motion1);
     let shape_vel2 = vector_pixels_to_meters(pixel_motion2);
-    let position1 = vector_pixels_to_meters(shape_info1.pixel_position);
-    let position2 = vector_pixels_to_meters(shape_info2.pixel_position);
     if let Some(raw_shared_shape1) = physics_engine.get_shape(shape_info1.handle) {
         let skewed_shape1 = skew_shape(raw_shared_shape1, shape_info1.skew);
         let shared_shape1 = scale_shape(&skewed_shape1, shape_info1.scale);
         if let Some(raw_shared_shape2) = physics_engine.get_shape(shape_info2.handle) {
             let skewed_shape2 = skew_shape(raw_shared_shape2, shape_info2.skew);
             let shared_shape2 = scale_shape(&skewed_shape2, shape_info2.scale);
-            let shape_transform1 = Isometry::new(position1, shape_info1.rotation);
-            let shape_transform2 = Isometry::new(position2, shape_info2.rotation);
+            let shape_transform1 = shape_info1.transform;
+            let shape_transform2 = shape_info2.transform;
             let mut shape_cast_options = ShapeCastOptions::default();
             shape_cast_options.max_time_of_impact = 1.0;
             shape_cast_options.compute_impact_geometry_on_penetration = true;
@@ -269,11 +267,10 @@ pub fn shape_casting(
     let physics_engine = physics_engine();
     if let Some(raw_shared_shape) = physics_engine.get_shape(shape_info.handle) {
         let shape_vel = vector_pixels_to_meters(pixel_motion);
-        let position = vector_pixels_to_meters(shape_info.pixel_position);
         let skewed_shape = skew_shape(raw_shared_shape, shape_info.skew);
         let shared_shape = scale_shape(&skewed_shape, shape_info.scale);
         if let Some(physics_world) = physics_engine.get_world(world_handle) {
-            let shape_transform = Isometry::new(position, shape_info.rotation);
+            let shape_transform = shape_info.transform;
             let mut filter = QueryFilter::new();
             if !collide_with_body {
                 filter = filter.exclude_solids();
@@ -341,8 +338,7 @@ pub fn intersect_shape(
         let skewed_shape = skew_shape(raw_shared_shape, shape_info.skew);
         let shared_shape = scale_shape(&skewed_shape, shape_info.scale);
         if let Some(physics_world) = physics_engine.get_world(world_handle) {
-            let position = vector_pixels_to_meters(shape_info.pixel_position);
-            let shape_transform = Isometry::new(position, shape_info.rotation);
+            let shape_transform = shape_info.transform;
             let mut filter = QueryFilter::new();
             if !collide_with_body {
                 filter = filter.exclude_solids();
@@ -454,8 +450,6 @@ pub fn shapes_contact(
     shape_info2: ShapeInfo,
     pixel_margin: Real,
 ) -> ContactResult {
-    let position1 = vector_pixels_to_meters(shape_info1.pixel_position);
-    let position2 = vector_pixels_to_meters(shape_info2.pixel_position);
     let margin = pixels_to_meters(pixel_margin);
     let mut result = ContactResult::default();
     let physics_engine = physics_engine();
@@ -467,8 +461,8 @@ pub fn shapes_contact(
         if let Some(raw_shared_shape2) = physics_engine.get_shape(shape_info2.handle) {
             let skewed_shape2 = skew_shape(raw_shared_shape2, shape_info2.skew);
             let shared_shape2 = scale_shape(&skewed_shape2, shape_info2.scale);
-            let shape_transform1 = Isometry::new(position1, shape_info1.rotation);
-            let shape_transform2 = Isometry::new(position2, shape_info2.rotation);
+            let shape_transform1 = shape_info1.transform;
+            let shape_transform2 = shape_info2.transform;
             if let Ok(Some(contact)) = parry::query::contact(
                 &shape_transform1,
                 shared_shape1.as_ref(),

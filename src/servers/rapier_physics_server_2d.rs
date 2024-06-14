@@ -42,7 +42,6 @@ use crate::shapes::rapier_separation_ray_shape_2d::RapierSeparationRayShape2D;
 use crate::shapes::rapier_shape::RapierShapeBase;
 use crate::shapes::rapier_world_boundary_shape_2d::RapierWorldBoundaryShape2D;
 use crate::spaces::rapier_space::RapierSpace;
-use crate::PackedVectorArray;
 pub struct RapierCounters {
     counters: Counters,
     step_count: f64,
@@ -320,11 +319,11 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         }
     }
 
-    fn space_get_contacts(&self, space: Rid) -> PackedVectorArray {
+    fn space_get_contacts(&self, space: Rid) -> PackedVector2Array {
         if let Some(space) = spaces_singleton().spaces.get(&space) {
             return space.get_debug_contacts().clone();
         }
-        PackedVectorArray::new()
+        PackedVector2Array::new()
     }
 
     fn space_get_contact_count(&self, space: Rid) -> i32 {
@@ -818,7 +817,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_apply_central_impulse(&mut self, body: Rid, impulse: Vector2) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.apply_central_impulse(impulse);
+                body.apply_central_impulse(vector_to_rapier(impulse));
             }
         }
     }
@@ -834,7 +833,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_apply_impulse(&mut self, body: Rid, impulse: Vector2, position: Vector2) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.apply_impulse(impulse, position);
+                body.apply_impulse(vector_to_rapier(impulse), vector_to_rapier(position));
             }
         }
     }
@@ -842,7 +841,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_apply_central_force(&mut self, body: Rid, force: Vector2) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.apply_central_force(force);
+                body.apply_central_force(vector_to_rapier(force));
             }
         }
     }
@@ -850,7 +849,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_apply_force(&mut self, body: Rid, force: Vector2, position: Vector2) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.apply_force(force, position);
+                body.apply_force(vector_to_rapier(force), vector_to_rapier(position));
             }
         }
     }
@@ -866,7 +865,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_add_constant_central_force(&mut self, body: Rid, force: Vector2) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.add_constant_central_force(force);
+                body.add_constant_central_force(vector_to_rapier(force));
             }
         }
     }
@@ -874,7 +873,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_add_constant_force(&mut self, body: Rid, force: Vector2, position: Vector2) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.add_constant_force(force, position);
+                body.add_constant_force(vector_to_rapier(force), vector_to_rapier(position));
             }
         }
     }
@@ -890,7 +889,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_set_constant_force(&mut self, body: Rid, force: Vector2) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_constant_force(force);
+                body.set_constant_force(vector_to_rapier(force));
             }
         }
     }
@@ -898,7 +897,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_get_constant_force(&self, body: Rid) -> Vector2 {
         if let Some(body) = bodies_singleton().collision_objects.get(&body) {
             if let Some(body) = body.get_body() {
-                return body.get_constant_force();
+                return vector_to_godot(body.get_constant_force());
             }
         }
         Vector2::default()
@@ -924,9 +923,10 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_set_axis_velocity(&mut self, body: Rid, axis_velocity: Vector2) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
+                let axis_velocity = vector_to_rapier(axis_velocity);
                 let mut v = body.get_linear_velocity();
-                let axis = axis_velocity.normalized();
-                v -= axis * axis.dot(v);
+                let axis = axis_velocity.normalize();
+                v -= axis * axis.dot(&v);
                 v += axis_velocity;
                 body.set_linear_velocity(v);
             }
@@ -1429,13 +1429,11 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             let default_gravity_value: real = project_settings
                 .get_setting_with_override("physics/2d/default_gravity".into())
                 .to();
-            let fluid_default_gravity_dir = RapierProjectSettings::get_fluid_gravity_dir();
-            let fluid_default_gravity_value = RapierProjectSettings::get_fluid_gravity_value();
             //let default_linear_damping: real = project_settings.get_setting_with_override("physics/2d/default_linear_damp".into()).to();
             //let default_angular_damping: real = project_settings.get_setting_with_override("physics/2d/default_angular_damp".into()).to();
             let settings = SimulationSettings {
-                pixel_liquid_gravity: vector_to_rapier(fluid_default_gravity_dir)
-                    * fluid_default_gravity_value,
+                pixel_liquid_gravity: vector_to_rapier(default_gravity_dir)
+                    * default_gravity_value,
                 dt: step,
                 length_unit: RapierProjectSettings::get_length_unit(),
                 pixel_gravity: vector_to_rapier(default_gravity_dir) * default_gravity_value,
