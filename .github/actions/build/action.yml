@@ -33,7 +33,7 @@ runs:
     - name: Build
       shell: sh
       run: |
-        cargo build --target=${{ inputs.arch }} --release --features="${{ inputs.features }}" ${{ inputs.extra_flags}}
+        cargo build --target=${{ inputs.arch }} --release --features="${{ inputs.features }}" ${{ inputs.extra_flags}} --no-default-features
       env:
         RUSTFLAGS: ${{ inputs.env_flags }}
     - name: Copy to release
@@ -49,5 +49,5 @@ runs:
       run: |
         mkdir -p target/release
         rustup target add aarch64-apple-darwin
-        cargo build --target=aarch64-apple-darwin --release --features="${{ inputs.features }}"
+        cargo build --target=aarch64-apple-darwin --release --features="${{ inputs.features }}" --no-default-features
         lipo -create -output target/release/libgodot_rapier.dylib target/aarch64-apple-darwin/release/libgodot_rapier.dylib target/x86_64-apple-darwin/release/libgodot_rapier.dylib
