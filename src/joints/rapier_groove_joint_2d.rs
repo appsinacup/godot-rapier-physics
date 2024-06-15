@@ -1,8 +1,6 @@
 use godot::classes::*;
 use godot::prelude::*;
 use rapier::dynamics::ImpulseJointHandle;
-use rapier::math::Real;
-use rapier::math::Vector;
 
 use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 use super::rapier_joint::RapierJointBase;
@@ -10,14 +8,15 @@ use super::rapier_pin_joint_2d::RapierPinJoint2D;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::bodies_singleton;
+use crate::Vector;
 pub struct RapierGrooveJoint2D {
     base: RapierJointBase,
 }
 impl RapierGrooveJoint2D {
     pub fn new(
-        p_a_groove1: Vector<Real>,
-        p_a_groove2: Vector<Real>,
-        p_b_anchor: Vector<Real>,
+        p_a_groove1: Vector,
+        p_a_groove2: Vector,
+        p_b_anchor: Vector,
         body_a: Rid,
         body_b: Rid,
     ) -> Self {

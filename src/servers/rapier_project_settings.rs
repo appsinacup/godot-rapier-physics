@@ -2,7 +2,6 @@ use godot::classes::*;
 use godot::global::*;
 use godot::prelude::*;
 use rapier::math::Real;
-
 const SOLVER_NUM_ITERATIONS: &str = "physics/rapier/solver/num_iterations";
 const SOLVER_NUM_ADDITIONAL_FRICTION_ITERATIONS: &str =
     "physics/rapier/solver/num_additional_friction_iterations";

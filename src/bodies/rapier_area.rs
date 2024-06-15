@@ -9,8 +9,6 @@ use godot::meta::ToGodot;
 use godot::obj::EngineEnum;
 use godot::prelude::*;
 use rapier::geometry::ColliderHandle;
-use rapier::math::{Real, Vector};
-use transform::Transform;
 
 use super::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;
@@ -31,7 +29,7 @@ pub struct RapierArea {
     linear_damping_override_mode: AreaSpaceOverrideMode,
     angular_damping_override_mode: AreaSpaceOverrideMode,
     gravity: real,
-    gravity_vector: Vector<Real>,
+    gravity_vector: Vector,
     gravity_is_point: bool,
     gravity_point_unit_distance: real,
     linear_damp: real,
@@ -129,8 +127,7 @@ impl RapierArea {
                     *detected_body += 1;
                 }
                 else {
-                    self.detected_bodies
-                        .insert(body_rid, 1);
+                    self.detected_bodies.insert(body_rid, 1);
                     body.add_area(self.base.get_rid())
                 }
                 if self.monitor_callback.is_null() {
@@ -366,7 +363,7 @@ impl RapierArea {
                 }
             }
             AreaParameter::GRAVITY_VECTOR => {
-                let new_gravity_vector = vector_to_rapier(p_value.to());
+                let new_gravity_vector = p_value.to();
                 if self.gravity_vector != new_gravity_vector {
                     self.gravity_vector = new_gravity_vector;
                     if self.gravity_override_mode != AreaSpaceOverrideMode::DISABLED {
@@ -481,7 +478,7 @@ impl RapierArea {
         match p_param {
             AreaParameter::GRAVITY_OVERRIDE_MODE => self.gravity_override_mode.to_variant(),
             AreaParameter::GRAVITY => self.gravity.to_variant(),
-            AreaParameter::GRAVITY_VECTOR => vector_to_godot(self.gravity_vector).to_variant(),
+            AreaParameter::GRAVITY_VECTOR => self.gravity_vector.to_variant(),
             AreaParameter::GRAVITY_IS_POINT => self.gravity_is_point.to_variant(),
             AreaParameter::GRAVITY_POINT_UNIT_DISTANCE => {
                 self.gravity_point_unit_distance.to_variant()
@@ -550,22 +547,22 @@ impl RapierArea {
         }
     }
 
-    pub fn compute_gravity(&self, position: Vector<Real>) -> Vector<Real> {
+    pub fn compute_gravity(&self, position: Vector) -> Vector {
         if self.gravity_is_point {
             let gr_unit_dist = self.get_gravity_point_unit_distance();
-            let v = self.get_base().get_transform().isometry * self.gravity_vector - position;
+            let v = self.get_base().get_transform() * self.gravity_vector - position;
             if gr_unit_dist > 0.0 {
-                let v_length_sq = v.norm_squared();
+                let v_length_sq = v.length_squared();
                 if v_length_sq > 0.0 {
                     let gravity_strength = self.gravity * gr_unit_dist * gr_unit_dist / v_length_sq;
-                    v.normalize() * gravity_strength
+                    v.normalized() * gravity_strength
                 }
                 else {
                     Vector::default()
                 }
             }
             else {
-                v.normalize() * self.gravity
+                v.normalized() * self.gravity
             }
         }
         else {

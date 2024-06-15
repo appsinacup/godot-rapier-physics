@@ -187,10 +187,7 @@ pub fn fluid_add_points_and_velocities(
         }
     }
 }
-pub fn fluid_get_points(
-    world_handle: Handle,
-    fluid_handle: HandleDouble,
-) -> PackedVectorArray {
+pub fn fluid_get_points(world_handle: Handle, fluid_handle: HandleDouble) -> PackedVectorArray {
     let mut array = PackedVectorArray::new();
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
@@ -207,10 +204,7 @@ pub fn fluid_get_points(
     }
     array
 }
-pub fn fluid_get_velocities(
-    world_handle: Handle,
-    fluid_handle: HandleDouble
-) -> PackedVectorArray {
+pub fn fluid_get_velocities(world_handle: Handle, fluid_handle: HandleDouble) -> PackedVectorArray {
     let mut array = PackedVectorArray::new();
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
@@ -229,8 +223,8 @@ pub fn fluid_get_velocities(
 }
 pub fn fluid_get_accelerations(
     world_handle: Handle,
-    fluid_handle: HandleDouble
-) ->PackedVectorArray {
+    fluid_handle: HandleDouble,
+) -> PackedVectorArray {
     let mut array = PackedVectorArray::new();
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {

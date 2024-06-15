@@ -4,6 +4,7 @@ use godot::prelude::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
+use crate::Vector;
 pub struct RapierConvexPolygonShape2D {
     points: Vec<Point>,
     pub base: RapierShapeBase,
@@ -34,7 +35,7 @@ impl IRapierShape for RapierConvexPolygonShape2D {
         ShapeType::CONVEX_POLYGON
     }
 
-    fn get_moment_of_inertia(&self, mass: f32, scale: Vector2) -> f32 {
+    fn get_moment_of_inertia(&self, mass: f32, scale: Vector) -> f32 {
         if self.points.len() < 3 {
             return 0.0;
         }
@@ -127,7 +128,8 @@ impl IRapierShape for RapierConvexPolygonShape2D {
         for point in self.points.iter() {
             aabb = aabb.expand(point.pos);
         }
-        self.base.configure(aabb);
+        let handle = self.create_rapier_shape();
+        self.base.set_handle(handle, aabb);
     }
 
     fn get_data(&self) -> Variant {
@@ -138,11 +140,7 @@ impl IRapierShape for RapierConvexPolygonShape2D {
         arr.to_variant()
     }
 
-    fn get_rapier_shape(&mut self) -> Handle {
-        if !self.base.get_handle().is_valid() {
-            let handle = self.create_rapier_shape();
-            self.base.set_handle(handle);
-        }
+    fn get_handle(&mut self) -> Handle {
         self.base.get_handle()
     }
 }

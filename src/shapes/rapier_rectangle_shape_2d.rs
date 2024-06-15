@@ -4,6 +4,7 @@ use godot::prelude::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
+use crate::Vector;
 pub struct RapierRectangleShape2D {
     half_extents: Vector2,
     pub base: RapierShapeBase,
@@ -29,7 +30,7 @@ impl IRapierShape for RapierRectangleShape2D {
         ShapeType::RECTANGLE
     }
 
-    fn get_moment_of_inertia(&self, mass: f32, scale: Vector2) -> f32 {
+    fn get_moment_of_inertia(&self, mass: f32, scale: Vector) -> f32 {
         let he2 = self.half_extents * 2.0 * scale;
         mass * he2.dot(he2) / 12.0
     }
@@ -54,7 +55,8 @@ impl IRapierShape for RapierRectangleShape2D {
             if aabb.size.y == 0.0 {
                 aabb.size.y = 0.001;
             }
-            self.base.configure(aabb);
+            let handle = self.create_rapier_shape();
+            self.base.set_handle(handle, aabb);
         }
         else {
             godot_error!("Invalid data type for RapierRectangleShape2D");
@@ -65,11 +67,7 @@ impl IRapierShape for RapierRectangleShape2D {
         self.half_extents.to_variant()
     }
 
-    fn get_rapier_shape(&mut self) -> Handle {
-        if !self.base.get_handle().is_valid() {
-            let handle = self.create_rapier_shape();
-            self.base.set_handle(handle);
-        }
+    fn get_handle(&mut self) -> Handle {
         self.base.get_handle()
     }
 }

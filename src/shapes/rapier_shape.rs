@@ -6,15 +6,17 @@ use godot::engine::physics_server_2d::*;
 #[cfg(feature = "dim3")]
 use godot::engine::physics_server_3d::*;
 use godot::prelude::*;
-use rapier::math::{AngVector, Real, Vector};
 
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::bodies_singleton;
+use crate::Angle;
+use crate::Rect;
+use crate::Vector;
 pub trait IRapierShape: Any {
     fn get_base(&self) -> &RapierShapeBase;
     fn get_mut_base(&mut self) -> &mut RapierShapeBase;
     fn get_type(&self) -> ShapeType;
-    fn get_moment_of_inertia(&self, mass: f32, scale: Vector<Real>) -> AngVector<Real>;
+    fn get_moment_of_inertia(&self, mass: f32, scale: Vector) -> Angle;
     fn allows_one_way_collision(&self) -> bool;
     fn create_rapier_shape(&mut self) -> Handle;
     fn set_data(&mut self, data: Variant);
@@ -24,7 +26,7 @@ pub trait IRapierShape: Any {
 #[derive(Debug)]
 pub struct RapierShapeBase {
     rid: Rid,
-    aabb: rapier::geometry::Aabb,
+    aabb: Rect,
     owners: HashMap<Rid, i32>,
     handle: Handle,
 }
@@ -32,17 +34,17 @@ impl RapierShapeBase {
     pub(super) fn new(rid: Rid) -> Self {
         Self {
             rid,
-            aabb: rapier::geometry::Aabb::new_invalid(),
+            aabb: Rect::default(),
             owners: HashMap::new(),
             handle: invalid_handle(),
         }
     }
 
-    pub(super) fn set_handle(&mut self, handle: Handle) {
+    pub(super) fn set_handle(&mut self, handle: Handle, aabb: Rect) {
         if self.handle.is_valid() {
             self.destroy_rapier_shape();
-            self.aabb = rapier::geometry::Aabb::new_invalid();
         }
+        self.aabb = aabb;
         self.handle = handle;
     }
 
@@ -59,10 +61,18 @@ impl RapierShapeBase {
         }
     }
 
-    pub fn get_aabb(&self, origin: Vector<Real>) -> rapier::geometry::Aabb {
-        rapier::geometry::Aabb::new(self.aabb.mins + origin, self.aabb.maxs + origin)
+    pub fn get_aabb(&self, origin: Vector) -> Rect {
+        let mut aabb_clone = self.aabb;
+        aabb_clone.position += origin;
+        aabb_clone
     }
 
+    #[cfg(feature = "dim2")]
+    pub fn get_aabb_area(&self) -> real {
+        self.aabb.area()
+    }
+
+    #[cfg(feature = "dim3")]
     pub fn get_aabb_area(&self) -> real {
         self.aabb.volume()
     }

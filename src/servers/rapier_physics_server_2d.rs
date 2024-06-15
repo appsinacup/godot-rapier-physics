@@ -179,7 +179,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let mut owners = None;
         if let Some(shape) = shapes_singleton().shapes.get_mut(&shape) {
             shape.set_data(data);
-            if shape.get_base().get_handle().is_valid() {
+            if shape.get_handle().is_valid() {
                 owners = Some(shape.get_base().get_owners().clone());
             }
         }
@@ -228,13 +228,13 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             return false;
         }
         let [shape_a, shape_b] = result.unwrap();
-        let shape_a_handle = shape_a.get_rapier_shape();
-        let shape_b_handle = shape_b.get_rapier_shape();
+        let shape_a_handle = shape_a.get_base().get_handle();
+        let shape_b_handle = shape_b.get_base().get_handle();
         if !shape_a_handle.is_valid() || !shape_b_handle.is_valid() {
             return false;
         }
-        let shape_a_info = shape_info_from_body_shape(shape_a_handle, &xform_a);
-        let shape_b_info = shape_info_from_body_shape(shape_b_handle, &xform_b);
+        let shape_a_info = shape_info_from_body_shape(shape_a_handle, xform_a);
+        let shape_b_info = shape_info_from_body_shape(shape_b_handle, xform_b);
         let rapier_a_motion = vector_to_rapier(motion_a);
         let rapier_b_motion = vector_to_rapier(motion_b);
         let results_out: *mut Vector2 = results as *mut Vector2;
@@ -702,7 +702,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     ) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_continuous_collision_detection_mode(mode != classes::physics_server_2d::CcdMode::DISABLED);
+                body.set_continuous_collision_detection_mode(
+                    mode != classes::physics_server_2d::CcdMode::DISABLED,
+                );
             }
         }
     }
@@ -819,7 +821,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_apply_central_impulse(&mut self, body: Rid, impulse: Vector2) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.apply_central_impulse(vector_to_rapier(impulse));
+                body.apply_central_impulse(impulse);
             }
         }
     }
@@ -835,7 +837,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_apply_impulse(&mut self, body: Rid, impulse: Vector2, position: Vector2) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.apply_impulse(vector_to_rapier(impulse), vector_to_rapier(position));
+                body.apply_impulse(impulse, position);
             }
         }
     }
@@ -843,7 +845,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_apply_central_force(&mut self, body: Rid, force: Vector2) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.apply_central_force(vector_to_rapier(force));
+                body.apply_central_force(force);
             }
         }
     }
@@ -851,7 +853,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_apply_force(&mut self, body: Rid, force: Vector2, position: Vector2) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.apply_force(vector_to_rapier(force), vector_to_rapier(position));
+                body.apply_force(force, position);
             }
         }
     }
@@ -867,7 +869,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_add_constant_central_force(&mut self, body: Rid, force: Vector2) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.add_constant_central_force(vector_to_rapier(force));
+                body.add_constant_central_force(force);
             }
         }
     }
@@ -875,7 +877,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_add_constant_force(&mut self, body: Rid, force: Vector2, position: Vector2) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.add_constant_force(vector_to_rapier(force), vector_to_rapier(position));
+                body.add_constant_force(force, position);
             }
         }
     }
@@ -891,7 +893,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_set_constant_force(&mut self, body: Rid, force: Vector2) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_constant_force(vector_to_rapier(force));
+                body.set_constant_force(force);
             }
         }
     }
@@ -899,7 +901,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_get_constant_force(&self, body: Rid) -> Vector2 {
         if let Some(body) = bodies_singleton().collision_objects.get(&body) {
             if let Some(body) = body.get_body() {
-                return vector_to_godot(body.get_constant_force());
+                return body.get_constant_force();
             }
         }
         Vector2::default()
@@ -925,10 +927,10 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_set_axis_velocity(&mut self, body: Rid, axis_velocity: Vector2) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                let axis_velocity = vector_to_rapier(axis_velocity);
+                let axis_velocity = axis_velocity;
                 let mut v = body.get_linear_velocity();
-                let axis = axis_velocity.normalize();
-                v -= axis * axis.dot(&v);
+                let axis = axis_velocity.normalized();
+                v -= axis * axis.dot(v);
                 v += axis_velocity;
                 body.set_linear_velocity(v);
             }
@@ -1434,8 +1436,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             //let default_linear_damping: real = project_settings.get_setting_with_override("physics/2d/default_linear_damp".into()).to();
             //let default_angular_damping: real = project_settings.get_setting_with_override("physics/2d/default_angular_damp".into()).to();
             let settings = SimulationSettings {
-                pixel_liquid_gravity: vector_to_rapier(default_gravity_dir)
-                    * default_gravity_value,
+                pixel_liquid_gravity: vector_to_rapier(default_gravity_dir) * default_gravity_value,
                 dt: step,
                 length_unit: RapierProjectSettings::get_length_unit(),
                 pixel_gravity: vector_to_rapier(default_gravity_dir) * default_gravity_value,

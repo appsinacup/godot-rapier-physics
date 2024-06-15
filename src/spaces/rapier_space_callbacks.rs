@@ -1,7 +1,6 @@
 use std::mem::swap;
 
 use godot::prelude::*;
-use rapier::math::Vector;
 use rapier::utils::SimdBasis;
 
 use super::rapier_space::RapierSpace;
@@ -409,8 +408,8 @@ impl RapierSpace {
             let normal = contact_info.normal;
             // TODO calculate impulse for 2d and 3d
             let tangent = contact_info.normal.orthonormal_vector();
-            let impulse =
-                contact_info.pixel_impulse * normal + contact_info.pixel_tangent_impulse.x * tangent;
+            let impulse = contact_info.pixel_impulse * normal
+                + contact_info.pixel_tangent_impulse.x * tangent;
             let vel_pos1 = contact_info.pixel_velocity_pos_1;
             let vel_pos2 = contact_info.pixel_velocity_pos_2;
             if let Some(body1) = p_object1.get_mut_body() {
@@ -419,34 +418,34 @@ impl RapierSpace {
                         keep_sending_contacts = true;
                         let instance_id2 = body2.get_base().get_instance_id();
                         body1.add_contact(
-                            pos1,
-                            -normal,
+                            vector_to_godot(pos1),
+                            vector_to_godot(-normal),
                             depth,
                             shape1 as i32,
-                            vel_pos1,
-                            pos2,
+                            vector_to_godot(vel_pos1),
+                            vector_to_godot(pos2),
                             shape2 as i32,
                             instance_id2,
                             body2.get_base().get_rid(),
-                            vel_pos2,
-                            impulse,
+                            vector_to_godot(vel_pos2),
+                            vector_to_godot(impulse),
                         );
                     }
                     if body2.can_report_contacts() {
                         keep_sending_contacts = true;
                         let instance_id1 = body2.get_base().get_instance_id();
                         body2.add_contact(
-                            pos2,
-                            normal,
+                            vector_to_godot(pos2),
+                            vector_to_godot(normal),
                             depth,
                             shape2 as i32,
-                            vel_pos2,
-                            pos1,
+                            vector_to_godot(vel_pos2),
+                            vector_to_godot(pos1),
                             shape1 as i32,
                             instance_id1,
                             body1.get_base().get_rid(),
-                            vel_pos1,
-                            impulse,
+                            vector_to_godot(vel_pos1),
+                            vector_to_godot(impulse),
                         );
                     }
                 }

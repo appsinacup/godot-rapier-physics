@@ -626,7 +626,7 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.20.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#05c39258840d95ac2cdcda1d94ac0062541b58f4"
+source = "git+https://github.com/dimforge/rapier?branch=master#5c6d34aa09254574dffbd7c95f1ab01a99ec2e53"
 dependencies = [
  "approx",
  "arrayvec",
@@ -652,7 +652,7 @@ dependencies = [
 [[package]]
 name = "rapier2d-f64"
 version = "0.20.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#05c39258840d95ac2cdcda1d94ac0062541b58f4"
+source = "git+https://github.com/dimforge/rapier?branch=master#5c6d34aa09254574dffbd7c95f1ab01a99ec2e53"
 dependencies = [
  "approx",
  "arrayvec",
@@ -678,7 +678,7 @@ dependencies = [
 [[package]]
 name = "rapier3d"
 version = "0.20.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#05c39258840d95ac2cdcda1d94ac0062541b58f4"
+source = "git+https://github.com/dimforge/rapier?branch=master#5c6d34aa09254574dffbd7c95f1ab01a99ec2e53"
 dependencies = [
  "approx",
  "arrayvec",
@@ -704,7 +704,7 @@ dependencies = [
 [[package]]
 name = "rapier3d-f64"
 version = "0.20.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#05c39258840d95ac2cdcda1d94ac0062541b58f4"
+source = "git+https://github.com/dimforge/rapier?branch=master#5c6d34aa09254574dffbd7c95f1ab01a99ec2e53"
 dependencies = [
  "approx",
  "arrayvec",
@@ -904,9 +904,9 @@ checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
 
 [[package]]
 name = "spade"
-version = "2.8.0"
+version = "2.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b20a809169ae442497e41a997fc5f14e2eea04e6ac590816a910d5d8068c8c0"
+checksum = "9f4ec45f91925e2c9ab3b6a857ee9ed36916990df76a1c475d783a328e247cc8"
 dependencies = [
  "hashbrown 0.14.5",
  "num-traits",

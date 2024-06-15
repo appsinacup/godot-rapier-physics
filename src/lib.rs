@@ -19,6 +19,22 @@ extern crate salva3d as salva;
 pub type PackedVectorArray = godot::prelude::PackedVector3Array;
 #[cfg(feature = "dim2")]
 pub type PackedVectorArray = godot::prelude::PackedVector2Array;
+#[cfg(feature = "dim3")]
+pub type Transform = godot::prelude::Transform3D;
+#[cfg(feature = "dim2")]
+pub type Transform = godot::prelude::Transform2D;
+#[cfg(feature = "dim3")]
+pub type Vector = godot::prelude::Vector3;
+#[cfg(feature = "dim2")]
+pub type Vector = godot::prelude::Vector2;
+#[cfg(feature = "dim3")]
+pub type Angle = godot::prelude::Vector3;
+#[cfg(feature = "dim2")]
+pub type Angle = real;
+#[cfg(feature = "dim3")]
+pub type Rect = godot::prelude::Aabb;
+#[cfg(feature = "dim2")]
+pub type Rect = godot::prelude::Rect2;
 mod bodies;
 mod fluids;
 mod joints;

@@ -1,11 +1,10 @@
 use godot::engine::physics_server_2d::ShapeType;
 use godot::prelude::*;
-use rapier::math::Real;
-use rapier::math::Vector;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
+use crate::Vector;
 pub struct RapierSeparationRayShape2D {
     length: f32,
     slide_on_slope: bool,
@@ -33,7 +32,7 @@ impl IRapierShape for RapierSeparationRayShape2D {
         ShapeType::SEPARATION_RAY
     }
 
-    fn get_moment_of_inertia(&self, _mass: f32, _scale: Vector<Real>) -> f32 {
+    fn get_moment_of_inertia(&self, _mass: f32, _scale: Vector) -> f32 {
         0.0
     }
 
@@ -62,11 +61,7 @@ impl IRapierShape for RapierSeparationRayShape2D {
         dictionary.to_variant()
     }
 
-    fn get_rapier_shape(&mut self) -> Handle {
-        if !self.base.get_handle().is_valid() {
-            let handle = self.create_rapier_shape();
-            self.base.set_handle(handle);
-        }
+    fn get_handle(&mut self) -> Handle {
         self.base.get_handle()
     }
 }

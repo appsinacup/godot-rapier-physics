@@ -123,7 +123,7 @@
 					"--path",
 					"/Users/dragosdaian/Documents/Godot-Physics-Tests",
 					"--debug-collisions",
-					"tests/nodes/DirectSpaceState/direct_space_state_2d.tscn",
+					"tests/nodes/RigidBody/tests/2d/continuous_detection.tscn",
 				]
 			},
 			{

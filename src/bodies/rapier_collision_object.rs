@@ -7,7 +7,7 @@ use godot::engine::physics_server_3d::*;
 use godot::prelude::*;
 use rapier::dynamics::RigidBodyHandle;
 use rapier::geometry::ColliderHandle;
-use transform::Transform;
+use rapier::math::Isometry;
 
 use super::rapier_area::RapierArea;
 use super::rapier_body::RapierBody;
@@ -116,7 +116,7 @@ impl RapierCollisionObject {
         }
         let mut handle = ColliderHandle::invalid();
         if let Some(shape_object) = shapes_singleton().shapes.get_mut(&shape.shape) {
-            let shape_handle = shape_object.get_rapier_shape();
+            let shape_handle = shape_object.get_handle();
             if !shape_handle.is_valid() {
                 return handle;
             }
@@ -148,7 +148,6 @@ impl RapierCollisionObject {
     pub(crate) fn _destroy_shapes(&mut self) {
         let mut i = 0;
         for shape in &mut self.shapes {
-            let mut shape_rid = Rid::Invalid;
             if !self.space_handle.is_valid() || shape.collider_handle == ColliderHandle::invalid() {
                 // skip
                 continue;
@@ -165,7 +164,6 @@ impl RapierCollisionObject {
                     );
                 }
                 collider_destroy(self.space_handle, shape.collider_handle);
-                shape_rid = shape.shape;
                 shape.collider_handle = ColliderHandle::invalid();
             }
             i += 1;
@@ -205,7 +203,7 @@ impl RapierCollisionObject {
         let angle = shape.xform.rotation();
         let scale = shape.xform.scale();
         if let Some(rapier_shape) = shapes_singleton().shapes.get_mut(&shape.shape) {
-            let shape_handle = rapier_shape.get_rapier_shape();
+            let shape_handle = rapier_shape.get_handle();
             if !shape_handle.is_valid() {
                 godot_error!("Rapier shape is invalid");
                 return;
@@ -216,8 +214,7 @@ impl RapierCollisionObject {
             }
             let shape_info = ShapeInfo {
                 handle: shape_handle,
-                pixel_position: position,
-                rotation: angle,
+                transform: Isometry::new(position, angle),
                 skew,
                 scale: vector_to_rapier(scale),
             };

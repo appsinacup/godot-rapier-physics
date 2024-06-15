@@ -1,14 +1,13 @@
 use godot::classes::*;
 use godot::prelude::*;
 use rapier::dynamics::ImpulseJointHandle;
-use rapier::math::Real;
-use rapier::math::Vector;
 
 use super::rapier_joint::RapierJointBase;
 use super::rapier_pin_joint_2d::RapierPinJoint2D;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::bodies_singleton;
+use crate::Vector;
 pub struct RapierDampedSpringJoint2D {
     rest_length: real,
     stiffness: real,
@@ -16,7 +15,7 @@ pub struct RapierDampedSpringJoint2D {
     base: RapierJointBase,
 }
 impl RapierDampedSpringJoint2D {
-    pub fn new(p_anchor_a: Vector<Real>, p_anchor_b: Vector<Real>, body_a: Rid, body_b: Rid) -> Self {
+    pub fn new(p_anchor_a: Vector, p_anchor_b: Vector, body_a: Rid, body_b: Rid) -> Self {
         let invalid_joint = Self {
             rest_length: 0.0,
             stiffness: 20.0,
@@ -35,16 +34,16 @@ impl RapierDampedSpringJoint2D {
                 {
                     return invalid_joint;
                 }
-                let rapier_anchor_a = body_a.get_base().get_inv_transform().isometry * p_anchor_a;
-                let rapier_anchor_b = body_b.get_base().get_inv_transform().isometry * p_anchor_b;
-                let rest_length = (p_anchor_a - p_anchor_b).norm();
+                let rapier_anchor_a = body_a.get_base().get_inv_transform() * p_anchor_a;
+                let rapier_anchor_b = body_b.get_base().get_inv_transform() * p_anchor_b;
+                let rest_length = (p_anchor_a - p_anchor_b).length();
                 let space_handle = body_a.get_base().get_space_handle();
                 let handle = joint_create_spring(
                     space_handle,
                     body_a.get_base().get_body_handle(),
                     body_b.get_base().get_body_handle(),
-                    rapier_anchor_a,
-                    rapier_anchor_b,
+                    vector_to_rapier(rapier_anchor_a),
+                    vector_to_rapier(rapier_anchor_b),
                     20.0,
                     1.5,
                     rest_length,
@@ -77,8 +76,8 @@ impl RapierDampedSpringJoint2D {
             }
             _ => {}
         }
-        let handle = self.get_base().get_handle();
-        let space_handle = self.get_base().get_space_handle();
+        let handle = self.base.get_handle();
+        let space_handle = self.base.get_space_handle();
         if handle == ImpulseJointHandle::invalid() || !space_handle.is_valid() {
             return;
         }

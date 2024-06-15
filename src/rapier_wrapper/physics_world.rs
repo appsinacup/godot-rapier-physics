@@ -230,29 +230,20 @@ impl PhysicsWorld {
                         let point_velocity_1 = body1.velocity_at_point(&collider_pos_1);
                         let point_velocity_2 = body2.velocity_at_point(&collider_pos_2);
                         if swap {
-                            contact_info.pixel_local_pos_1 =
-                                collider_pos_2.coords;
-                            contact_info.pixel_local_pos_2 =
-                                collider_pos_1.coords;
-                            contact_info.pixel_velocity_pos_1 =
-                                point_velocity_2;
-                            contact_info.pixel_velocity_pos_2 =
-                                point_velocity_1;
+                            contact_info.pixel_local_pos_1 = collider_pos_2.coords;
+                            contact_info.pixel_local_pos_2 = collider_pos_1.coords;
+                            contact_info.pixel_velocity_pos_1 = point_velocity_2;
+                            contact_info.pixel_velocity_pos_2 = point_velocity_1;
                         }
                         else {
-                            contact_info.pixel_local_pos_1 =
-                                collider_pos_1.coords;
-                            contact_info.pixel_local_pos_2 =
-                                collider_pos_2.coords;
-                            contact_info.pixel_velocity_pos_1 =
-                                point_velocity_1;
-                            contact_info.pixel_velocity_pos_2 =
-                                point_velocity_2;
+                            contact_info.pixel_local_pos_1 = collider_pos_1.coords;
+                            contact_info.pixel_local_pos_2 = collider_pos_2.coords;
+                            contact_info.pixel_velocity_pos_1 = point_velocity_1;
+                            contact_info.pixel_velocity_pos_2 = point_velocity_2;
                         }
                         contact_info.pixel_distance = contact_point.dist;
                         contact_info.pixel_impulse = contact_point.data.impulse;
-                        contact_info.pixel_tangent_impulse =
-                            contact_point.data.tangent_impulse;
+                        contact_info.pixel_tangent_impulse = contact_point.data.tangent_impulse;
                         send_contact_points =
                             (contact_point_callback)(&contact_info, &event_info, space);
                         if !send_contact_points {

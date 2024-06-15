@@ -245,7 +245,9 @@ impl RapierSpace {
     pub fn set_default_area_param(&mut self, param: AreaParameter, value: Variant) {
         match param {
             AreaParameter::GRAVITY => self.default_gravity_value = value.to(),
-            AreaParameter::GRAVITY_VECTOR => self.default_gravity_dir = vector_to_rapier(value.to()),
+            AreaParameter::GRAVITY_VECTOR => {
+                self.default_gravity_dir = vector_to_rapier(value.to())
+            }
             AreaParameter::LINEAR_DAMP => self.default_linear_damping = value.to(),
             AreaParameter::ANGULAR_DAMP => self.default_angular_damping = value.to(),
             _ => {}

@@ -1,11 +1,10 @@
 use godot::engine::physics_server_2d::ShapeType;
 use godot::prelude::*;
-use rapier::math::Real;
-use rapier::math::Vector;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
+use crate::Vector;
 pub struct RapierWorldBoundaryShape2D {
     normal: Vector2,
     d: f32,
@@ -34,7 +33,7 @@ impl IRapierShape for RapierWorldBoundaryShape2D {
         ShapeType::WORLD_BOUNDARY
     }
 
-    fn get_moment_of_inertia(&self, _mass: f32, _scale: Vector<Real>) -> f32 {
+    fn get_moment_of_inertia(&self, _mass: f32, _scale: Vector) -> f32 {
         f32::MAX
     }
 
@@ -43,8 +42,8 @@ impl IRapierShape for RapierWorldBoundaryShape2D {
     }
 
     fn create_rapier_shape(&mut self) -> Handle {
-        let v = rapier::math::Vector::<Real>::new(self.normal.x, -self.normal.y);
-        shape_create_halfspace(v, -self.d)
+        let v = Vector::new(self.normal.x, -self.normal.y);
+        shape_create_halfspace(vector_to_rapier(v), -self.d)
     }
 
     fn set_data(&mut self, data: Variant) {
@@ -66,7 +65,8 @@ impl IRapierShape for RapierWorldBoundaryShape2D {
         self.normal = arr.at(0).to();
         self.d = arr.at(1).to();
         let handle = self.create_rapier_shape();
-        self.base.set_handle(handle);
+        let rect = Rect2::new(Vector2::new(-1e4, -1e4), Vector2::new(1e4 * 2.0, 1e4 * 2.0));
+        self.base.set_handle(handle, rect);
     }
 
     fn get_data(&self) -> Variant {

@@ -1,10 +1,10 @@
 use godot::classes::physics_server_2d::ShapeType;
 use godot::prelude::*;
-use rapier::math::Vector;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
+use crate::Vector;
 pub struct RapierSegmentShape2D {
     a: Vector2,
     b: Vector2,
@@ -76,7 +76,8 @@ impl IRapierShape for RapierSegmentShape2D {
         if aabb.size.y == 0.0 {
             aabb.size.y = 0.001;
         }
-        self.base.configure(aabb);
+        let handle = self.create_rapier_shape();
+        self.base.set_handle(handle, aabb);
     }
 
     fn get_data(&self) -> Variant {
@@ -85,11 +86,7 @@ impl IRapierShape for RapierSegmentShape2D {
         r.to_variant()
     }
 
-    fn get_rapier_shape(&mut self) -> Handle {
-        if !self.base.get_handle().is_valid() {
-            let handle = self.create_rapier_shape();
-            self.base.set_handle(handle);
-        }
+    fn get_handle(&mut self) -> Handle {
         self.base.get_handle()
     }
 }

@@ -374,11 +374,7 @@ pub fn body_set_mass_properties(
         }
     }
 }
-pub fn body_add_force(
-    world_handle: Handle,
-    body_handle: RigidBodyHandle,
-    force: Vector<Real>,
-) {
+pub fn body_add_force(world_handle: Handle, body_handle: RigidBodyHandle, force: Vector<Real>) {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = body_handle;

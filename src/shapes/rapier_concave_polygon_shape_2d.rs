@@ -3,6 +3,7 @@ use godot::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::*;
+use crate::Vector;
 pub struct RapierConcavePolygonShape2D {
     points: Vec<Vector2>,
     segments: Vec<[i32; 2]>,
@@ -41,8 +42,15 @@ impl IRapierShape for RapierConcavePolygonShape2D {
         ShapeType::CONCAVE_POLYGON
     }
 
-    fn get_moment_of_inertia(&self, _mass: f32, _scale: Vector2) -> f32 {
-        0.0
+    fn get_moment_of_inertia(&self, mass: f32, scale: Vector) -> f32 {
+        if self.points.len() < 3 {
+            return 0.0;
+        }
+        let mut aabb_new = Rect2::new(Vector2::ZERO, Vector2::ZERO);
+        for point in self.points.iter() {
+            aabb_new = aabb_new.expand(*point * scale);
+        }
+        mass * aabb_new.size.dot(aabb_new.size) / 12.0
     }
 
     fn allows_one_way_collision(&self) -> bool {
@@ -101,7 +109,8 @@ impl IRapierShape for RapierConcavePolygonShape2D {
                 return;
             }
         }
-        self.base.configure(aabb);
+        let handle = self.create_rapier_shape();
+        self.base.set_handle(handle, aabb);
     }
 
     fn get_data(&self) -> Variant {
@@ -120,11 +129,7 @@ impl IRapierShape for RapierConcavePolygonShape2D {
         rsegments.to_variant()
     }
 
-    fn get_rapier_shape(&mut self) -> Handle {
-        if !self.base.get_handle().is_valid() {
-            let handle = self.create_rapier_shape();
-            self.base.set_handle(handle);
-        }
+    fn get_handle(&mut self) -> Handle {
         self.base.get_handle()
     }
 }

@@ -1,13 +1,13 @@
 use godot::classes::native::*;
 use godot::prelude::*;
-use rapier::math::Vector;
-use rapier::math::Real;
 
 use super::rapier_space_body_helper::is_handle_excluded_callback;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::*;
-use rapier::math::AngVector;
+use crate::Angle;
+use crate::Transform;
+use crate::Vector;
 #[cfg(feature = "dim2")]
 type PhysicsServerExtensionShapeResult = PhysicsServer2DExtensionShapeResult;
 #[cfg(feature = "dim2")]
@@ -24,18 +24,12 @@ pub struct RapierDirectSpaceStateImpl {
     pub space: Rid,
 }
 #[cfg(feature = "dim3")]
-fn cross_product(a: AngVector<Real>, b: Vector<Real>) -> Vector<Real> {
-
-
+fn cross_product(a: Angle, b: Vector) -> Vector {
     a.cross(&b)
 }
 #[cfg(feature = "dim2")]
-fn cross_product(a: AngVector<Real>, b: Vector<Real>) -> Vector<Real> {
-
-    Vector::new(
-        -a * b.y,
-        a * b.x,
-    )
+fn cross_product(a: Angle, b: Vector) -> Vector {
+    Vector::new(-a * b.y, a * b.x)
 }
 impl RapierDirectSpaceStateImpl {
     pub fn default() -> Self {
@@ -46,8 +40,8 @@ impl RapierDirectSpaceStateImpl {
 
     pub unsafe fn intersect_ray(
         &mut self,
-        from: Vector<Real>,
-        to: Vector<Real>,
+        from: Vector,
+        to: Vector,
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
@@ -60,15 +54,15 @@ impl RapierDirectSpaceStateImpl {
             }
             // Raycast Info
             let end = to - from;
-            let dir = end.normalize();
+            let dir = end.normalized();
             let mut query_excluded_info = QueryExcludedInfo::default();
             query_excluded_info.query_collision_layer_mask = collision_mask;
             let mut hit_info = RayHitInfo::default();
-            let collide = crate::rapier_wrapper::query::intersect_ray(
+            let collide = intersect_ray(
                 space.get_handle(),
-                from,
-                dir,
-                end.norm(),
+                vector_to_rapier(from),
+                vector_to_rapier(dir),
+                end.length(),
                 collide_with_bodies,
                 collide_with_areas,
                 hit_from_inside,
@@ -105,7 +99,7 @@ impl RapierDirectSpaceStateImpl {
 
     pub unsafe fn intersect_point(
         &mut self,
-        position: Vector<Real>,
+        position: Vector,
         canvas_instance_id: u64,
         collision_mask: u32,
         collide_with_bodies: bool,
@@ -132,7 +126,7 @@ impl RapierDirectSpaceStateImpl {
             // Perform intersection
             let mut result_count = intersect_point(
                 space.get_handle(),
-                position,
+                vector_to_rapier(position),
                 collide_with_bodies,
                 collide_with_areas,
                 hit_info_ptr,
@@ -173,7 +167,7 @@ impl RapierDirectSpaceStateImpl {
         &mut self,
         shape_rid: Rid,
         transform: Transform,
-        motion: Vector<Real>,
+        motion: Vector,
         _margin: f32,
         collision_mask: u32,
         collide_with_bodies: bool,
@@ -187,7 +181,7 @@ impl RapierDirectSpaceStateImpl {
                 if !space.is_valid() {
                     return 0;
                 }
-                let shape_info = shape_info_from_body_shape(shape.get_rapier_shape(), transform);
+                let shape_info = shape_info_from_body_shape(shape.get_handle(), transform);
                 let mut query_excluded_info = QueryExcludedInfo::default();
                 query_excluded_info.query_collision_layer_mask = collision_mask;
                 let mut query_exclude = Vec::new();
@@ -200,7 +194,7 @@ impl RapierDirectSpaceStateImpl {
                 while cpt < max_results {
                     let result = shape_casting(
                         space.get_handle(),
-                        motion,
+                        vector_to_rapier(motion),
                         shape_info,
                         collide_with_bodies,
                         collide_with_areas,
@@ -244,7 +238,7 @@ impl RapierDirectSpaceStateImpl {
         &mut self,
         shape_rid: Rid,
         transform: Transform,
-        motion: Vector<Real>,
+        motion: Vector,
         _margin: f32,
         collision_mask: u32,
         collide_with_bodies: bool,
@@ -258,7 +252,7 @@ impl RapierDirectSpaceStateImpl {
                     return false;
                 }
                 let rapier_motion = vector_to_rapier(motion);
-                let shape_info = shape_info_from_body_shape(shape.get_rapier_shape(), transform);
+                let shape_info = shape_info_from_body_shape(shape.get_handle(), transform);
                 let mut query_excluded_info = QueryExcludedInfo::default();
                 query_excluded_info.query_collision_layer_mask = collision_mask;
                 let hit = shape_casting(
@@ -286,7 +280,7 @@ impl RapierDirectSpaceStateImpl {
         &mut self,
         shape_rid: Rid,
         transform: Transform,
-        motion: Vector<Real>,
+        motion: Vector,
         _margin: f32,
         collision_mask: u32,
         collide_with_bodies: bool,
@@ -301,8 +295,8 @@ impl RapierDirectSpaceStateImpl {
                 if !space.is_valid() {
                     return false;
                 }
-                let results_out = results as *mut Vector<Real>;
-                let shape_info = shape_info_from_body_shape(shape.get_rapier_shape(), transform);
+                let results_out = results as *mut Vector;
+                let shape_info = shape_info_from_body_shape(shape.get_handle(), transform);
                 let mut query_excluded_info = QueryExcludedInfo::default();
                 query_excluded_info.query_collision_layer_mask = collision_mask;
                 let mut query_exclude = Vec::new();
@@ -314,7 +308,7 @@ impl RapierDirectSpaceStateImpl {
                 while cpt < max_results {
                     let result = shape_casting(
                         space.get_handle(),
-                        motion,
+                        vector_to_rapier(motion),
                         shape_info,
                         collide_with_bodies,
                         collide_with_areas,
@@ -345,7 +339,7 @@ impl RapierDirectSpaceStateImpl {
         &mut self,
         shape_rid: Rid,
         transform: Transform,
-        motion: Vector<Real>,
+        motion: Vector,
         _margin: f32,
         collision_mask: u32,
         collide_with_bodies: bool,
@@ -358,7 +352,7 @@ impl RapierDirectSpaceStateImpl {
                     return false;
                 }
                 let rapier_motion = vector_to_rapier(motion);
-                let shape_info = shape_info_from_body_shape(shape.get_rapier_shape(), transform);
+                let shape_info = shape_info_from_body_shape(shape.get_handle(), transform);
                 let mut query_excluded_info = QueryExcludedInfo::default();
                 query_excluded_info.query_collision_layer_mask = collision_mask;
                 let result = shape_casting(
@@ -383,10 +377,11 @@ impl RapierDirectSpaceStateImpl {
                     if let Some(body) = collision_object_2d.get_body() {
                         let rel_vec = r_info.point
                             - (body.get_base().get_transform().origin + body.get_center_of_mass());
-                        r_info.linear_velocity = vector_to_godot(body.get_linear_velocity() + cross_product(body.get_angular_velocity(), rel_vec));
+                        r_info.linear_velocity = body.get_linear_velocity()
+                            + cross_product(body.get_angular_velocity(), rel_vec);
                     }
                     else {
-                        r_info.linear_velocity = vector_to_godot(Vector::default());
+                        r_info.linear_velocity = Vector::default();
                     }
                     r_info.normal = vector_to_godot(result.normal1);
                     r_info.rid = rid;
