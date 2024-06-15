@@ -123,12 +123,12 @@
 					"--path",
 					"/Users/dragosdaian/Documents/Godot-Physics-Tests",
 					"--debug-collisions",
-					"tests/nodes/RigidBody/tests/2d/continuous_detection.tscn",
+					"tests/nodes/CharacterBody/character_body_2d.tscn",
 				]
 			},
 			{
 				"name": "Physics Test Fast",
-				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.dev.arm64",
+				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.arm64",
 				"type": "cppdbg",
 				"request": "launch",
 				"cwd": "${workspaceFolder:godot-rapier-2d}",
@@ -138,7 +138,7 @@
 				"args": [
 					"--path",
 					"/Users/dragosdaian/Documents/Godot-Physics-Tests",
-					"--debug-collisions",
+					//"--debug-collisions",
 					"tests/performance/collisions/tests/2d/avg_fps_before_low_fps.tscn",
 				]
 			},

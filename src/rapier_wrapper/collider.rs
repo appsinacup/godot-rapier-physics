@@ -245,36 +245,6 @@ pub fn collider_destroy(world_handle: Handle, collider_handle: ColliderHandle) {
         physics_world.remove_collider(collider_handle);
     }
 }
-pub fn collider_get_position(
-    world_handle: Handle,
-    collider_handle: ColliderHandle,
-) -> Vector<Real> {
-    let physics_engine = physics_engine();
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        if let Some(collider) = physics_world
-            .physics_objects
-            .collider_set
-            .get(collider_handle)
-        {
-            let collider_vector = collider.translation();
-            return *collider_vector;
-        }
-    }
-    Vector::default()
-}
-pub fn collider_get_angle(world_handle: Handle, collider_handle: ColliderHandle) -> Real {
-    let physics_engine = physics_engine();
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        if let Some(collider) = physics_world
-            .physics_objects
-            .collider_set
-            .get(collider_handle)
-        {
-            return collider.rotation().angle();
-        }
-    }
-    0.0
-}
 pub fn collider_set_transform(
     world_handle: Handle,
     collider_handle: ColliderHandle,
@@ -293,29 +263,6 @@ pub fn collider_set_transform(
                 collider.set_position_wrt_parent(shape_info.transform);
                 collider.set_shape(new_shape);
             }
-        }
-    }
-}
-pub fn collider_set_collision_events_enabled(
-    world_handle: Handle,
-    collider_handle: ColliderHandle,
-    enable: bool,
-) {
-    let physics_engine = physics_engine();
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        if let Some(collider) = physics_world
-            .physics_objects
-            .collider_set
-            .get_mut(collider_handle)
-        {
-            let mut active_events = collider.active_events();
-            if enable {
-                active_events |= ActiveEvents::COLLISION_EVENTS;
-            }
-            else {
-                active_events &= !ActiveEvents::COLLISION_EVENTS;
-            }
-            collider.set_active_events(active_events);
         }
     }
 }

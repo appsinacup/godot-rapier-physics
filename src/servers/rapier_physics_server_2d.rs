@@ -1,5 +1,4 @@
 use std::ffi::c_void;
-use std::time::Instant;
 
 use godot::classes::IPhysicsServer2DExtension;
 use godot::classes::PhysicsServer2DExtension;
@@ -8,12 +7,8 @@ use godot::classes::{self};
 use godot::engine::native::PhysicsServer2DExtensionMotionResult;
 use godot::engine::utilities::rid_allocate_id;
 use godot::engine::utilities::rid_from_int64;
-use godot::engine::Performance;
-use godot::engine::PhysicsServer2D;
 use godot::prelude::*;
-use rapier::counters::Counters;
 use rapier::dynamics::ImpulseJointHandle;
-use salva::parry::utils::hashmap::HashMap;
 
 use super::rapier_physics_singleton::active_spaces_singleton;
 use super::rapier_physics_singleton::bodies_singleton;
@@ -21,7 +16,6 @@ use super::rapier_physics_singleton::fluids_singleton;
 use super::rapier_physics_singleton::joints_singleton;
 use super::rapier_physics_singleton::shapes_singleton;
 use super::rapier_physics_singleton::spaces_singleton;
-use super::rapier_project_settings;
 use super::rapier_project_settings::RapierProjectSettings;
 use crate::bodies::rapier_area::RapierArea;
 use crate::bodies::rapier_body::RapierBody;
@@ -42,11 +36,6 @@ use crate::shapes::rapier_separation_ray_shape_2d::RapierSeparationRayShape2D;
 use crate::shapes::rapier_shape::RapierShapeBase;
 use crate::shapes::rapier_world_boundary_shape_2d::RapierWorldBoundaryShape2D;
 use crate::spaces::rapier_space::RapierSpace;
-pub struct RapierCounters {
-    counters: Counters,
-    step_count: f64,
-    before_step_count: f64,
-}
 #[derive(GodotClass)]
 #[class(base=PhysicsServer2DExtension, tool)]
 pub struct RapierPhysicsServer2D {
@@ -56,56 +45,11 @@ pub struct RapierPhysicsServer2D {
     island_count: i32,
     active_objects: i32,
     collision_pairs: i32,
-    counters: HashMap<Rid, RapierCounters>,
-    flush_time: f64,
     base: Base<PhysicsServer2DExtension>,
-}
-pub fn register_monitors() {
-    for monitor in rapier_project_settings::MONITORS {
-        let monitor_inner = monitor;
-        if RapierProjectSettings::get_monitor_enabled(monitor) {
-            let callable = Callable::from_fn(
-                (monitor.to_string() + "_function").as_str(),
-                move |_args: &[&Variant]| {
-                    let physics_server = PhysicsServer2D::singleton();
-                    let rapier_physics_server: Gd<RapierPhysicsServer2D> = physics_server.cast();
-                    let rapier_physics_server = rapier_physics_server.bind();
-                    let mut counter_value = 0.0;
-                    if monitor_inner == "inner_step" {
-                        for counter in rapier_physics_server.counters.values() {
-                            counter_value += counter.counters.step_time.time();
-                        }
-                        return Ok(counter_value.to_variant());
-                    }
-                    if monitor_inner == "step" {
-                        for counter in rapier_physics_server.counters.values() {
-                            counter_value += counter.step_count - counter.before_step_count;
-                        }
-                        return Ok(counter_value.to_variant());
-                    }
-                    if monitor_inner == "before_step" {
-                        for counter in rapier_physics_server.counters.values() {
-                            counter_value += counter.before_step_count;
-                        }
-                        return Ok(counter_value.to_variant());
-                    }
-                    if monitor_inner == "flush" {
-                        counter_value += rapier_physics_server.flush_time;
-                        return Ok(counter_value.to_variant());
-                    }
-                    Ok(rapier_physics_server.active_objects.to_variant())
-                },
-            );
-            let mut performance = Performance::singleton();
-            performance
-                .add_custom_monitor(StringName::from("rapier/".to_string() + monitor), callable);
-        }
-    }
 }
 #[godot_api]
 impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn init(base: Base<PhysicsServer2DExtension>) -> Self {
-        register_monitors();
         Self {
             active: true,
             flushing_queries: false,
@@ -113,8 +57,6 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             island_count: 0,
             active_objects: 0,
             collision_pairs: 0,
-            counters: HashMap::default(),
-            flush_time: 0.0,
             base,
         }
     }
@@ -1378,7 +1320,6 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         self.active_objects = 0;
         self.collision_pairs = 0;
         for space_rid in active_spaces_singleton().active_spaces.values() {
-            let step_time = Instant::now();
             let body_area_update_list;
             let gravity_update_list;
             let space_handle;
@@ -1448,10 +1389,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
                 num_solver_iterations: RapierProjectSettings::get_solver_num_solver_iterations()
                     as usize,
             };
-            let before_step_time = step_time.elapsed().as_secs_f64() * 1000.0;
             if let Some(space) = spaces_singleton().spaces.get_mut(space_rid) {
                 // this calls into rapier
-                let counters = world_step(
+                let _counters = world_step(
                     space_handle,
                     &settings,
                     RapierSpace::active_body_callback,
@@ -1467,14 +1407,6 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
                 self.island_count += space.get_island_count();
                 self.active_objects += space.get_active_objects();
                 self.collision_pairs += space.get_collision_pairs();
-                self.counters.insert(
-                    *space_rid,
-                    RapierCounters {
-                        counters,
-                        step_count: step_time.elapsed().as_secs_f64() * 1000.0,
-                        before_step_count: before_step_time,
-                    },
-                );
             }
         }
     }
@@ -1484,7 +1416,6 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     }
 
     fn flush_queries(&mut self) {
-        let flush_time = Instant::now();
         if !self.active {
             return;
         }
@@ -1496,7 +1427,6 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             }
         }
         self.flushing_queries = false;
-        self.flush_time = flush_time.elapsed().as_secs_f64() * 1000.0;
     }
 
     fn end_sync(&mut self) {

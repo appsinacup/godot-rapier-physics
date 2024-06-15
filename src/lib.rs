@@ -35,6 +35,10 @@ pub type Angle = real;
 pub type Rect = godot::prelude::Aabb;
 #[cfg(feature = "dim2")]
 pub type Rect = godot::prelude::Rect2;
+#[cfg(feature = "dim2")]
+pub const ANGLE_ZERO: rapier::math::Real = 0.0;
+#[cfg(feature = "dim3")]
+pub const ANGLE_ZERO: Vector3 = Vector3::new(0.0,0.0,0.0);
 mod bodies;
 mod fluids;
 mod joints;

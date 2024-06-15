@@ -1,4 +1,5 @@
 use rapier::prelude::*;
+use crate::Angle;
 #[cfg(feature = "dim3")]
 pub fn vector_to_rapier(vec: crate::Vector3) -> nalgebra::Vector3<Real> {
     nalgebra::Vector3::<Real>::new(vec.x, vec.y, vec.z)
@@ -17,6 +18,7 @@ pub fn vector_to_godot(vec: nalgebra::Vector2<Real>) -> godot::builtin::Vector2 
 }
 #[cfg(feature = "dim3")]
 pub fn angle_to_rapier(angle: Angle) -> AngVector<Real> {
+
     return vector_to_rapier(angle);
 }
 #[cfg(feature = "dim3")]
@@ -24,10 +26,10 @@ pub fn angle_to_godot(angle: AngVector<Real>) -> Angle {
     return vector_to_godot(angle);
 }
 #[cfg(feature = "dim2")]
-pub fn angle_to_rapier(angle: Real) -> Real {
+pub fn angle_to_rapier(angle: Angle) -> Real {
     angle
 }
 #[cfg(feature = "dim2")]
-pub fn angle_to_godot(angle: Real) -> Real {
+pub fn angle_to_godot(angle: Real) -> Angle {
     angle
 }

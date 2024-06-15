@@ -109,7 +109,7 @@ impl RapierSpace {
             &mut body_transform,
             motion,
             collide_separation_ray,
-            self.contact_max_allowed_penetration,
+            self.get_contact_max_allowed_penetration(),
             margin,
             &mut best_safe,
             &mut best_unsafe,
@@ -356,7 +356,7 @@ impl RapierSpace {
             {
                 let body_shape_transform =
                     *p_transform * p_body.get_base().get_shape_transform(body_shape_idx);
-                let body_shape_info =
+                let mut body_shape_info =
                     shape_info_from_body_shape(body_shape.get_handle(), body_shape_transform);
                 // Colliding separation rays allows to properly snap to the ground,
                 // otherwise it's not needed in regular motion.
@@ -372,6 +372,7 @@ impl RapierSpace {
                 //}
                 let mut best_safe = 1.0;
                 let mut best_unsafe = 1.0;
+                let stuck = false;
                 for result_idx in 0..result_count {
                     let result_idx = result_idx as usize;
                     let result = &mut results[result_idx];
@@ -395,6 +396,74 @@ impl RapierSpace {
                                     col_shape.get_handle(),
                                     col_shape_transform,
                                 );
+                                // stuck logic, check if body collides in place
+                                body_shape_info.transform.translation.vector =
+                                    vector_to_rapier(body_shape_transform.origin);
+                                let step_contact =
+                                    shapes_contact(body_shape_info, col_shape_info, 0.0);
+                                if step_contact.collided && !step_contact.within_margin {
+                                    if body_shape.allows_one_way_collision()
+                                        && collision_body
+                                            .get_base()
+                                            .is_shape_set_as_one_way_collision(shape_index)
+                                        && !col_shape_transform.b.is_zero_approx()
+                                        && !p_motion.is_zero_approx()
+                                    {
+                                        let direction = col_shape_transform.b.normalized();
+                                        if p_motion.normalized().dot(direction) <= 0.0 {
+                                            continue;
+                                        }
+                                    }
+                                    *p_closest_safe = 0.0;
+                                    *p_closest_unsafe = 0.0;
+                                    *p_best_body_shape = body_shape_idx as i32; //sadly it's the best
+                                    break;
+                                }
+                                //just do kinematic solving
+                                let mut low = 0.0;
+                                let mut hi = 1.0;
+                                let mut fraction_coeff = 0.5;
+                                for k in 0..8 {
+                                    let fraction = low + (hi - low) * fraction_coeff;
+                                    body_shape_info.transform.translation.vector = vector_to_rapier(
+                                        body_shape_transform.origin + p_motion * fraction,
+                                    );
+                                    let step_contact =
+                                        shapes_contact(body_shape_info, col_shape_info, 0.0);
+                                    if step_contact.collided && !step_contact.within_margin {
+                                        hi = fraction;
+                                        if (k == 0) || (low > 0.0) {
+                                            // Did it not collide before?
+                                            // When alternating or first iteration, use dichotomy.
+                                            fraction_coeff = 0.5;
+                                        }
+                                        else {
+                                            // When colliding again, converge faster towards low
+                                            // fraction for more accurate results with long motions
+                                            // that collide near the start.
+                                            fraction_coeff = 0.25;
+                                        }
+                                    }
+                                    else {
+                                        low = fraction;
+                                        if (k == 0) || (hi < 1.0) {
+                                            // Did it collide before?
+                                            // When alternating or first iteration, use dichotomy.
+                                            fraction_coeff = 0.5;
+                                        }
+                                        else {
+                                            // When not colliding again, converge faster towards
+                                            // high fraction for more accurate results with long
+                                            // motions that collide near the end.
+                                            fraction_coeff = 0.75;
+                                        }
+                                    }
+                                }
+                                body_shape_info.transform.translation.vector = vector_to_rapier(
+                                    body_shape_transform.origin
+                                        + p_motion
+                                            * (hi + self.get_contact_max_allowed_penetration()),
+                                );
                                 let contact =
                                     shapes_contact(body_shape_info, col_shape_info, p_margin);
                                 if !contact.collided {
@@ -412,18 +481,9 @@ impl RapierSpace {
                                 ) {
                                     continue;
                                 }
-                                let a = vector_to_godot(contact.pixel_point1);
-                                let b = vector_to_godot(contact.pixel_point2);
-                                // Compute plane on b towards a.
-                                let n = vector_to_godot(contact.normal1);
-                                // Move it outside as to fit the margin
-                                let d = n.dot(b);
-                                // Compute depth on recovered motion.
-                                let depth = n.dot(a + p_motion) - d;
-                                if depth > DEFAULT_EPSILON {
-                                    // Only recover if there is penetration.
-                                    best_safe = best_safe.min(0.0);
-                                    best_unsafe = best_unsafe.min(1.0);
+                                if low < best_safe {
+                                    best_safe = low;
+                                    best_unsafe = hi;
                                 }
                             }
                         }
@@ -607,17 +667,22 @@ fn should_skip_collision_one_dir(
                 // given direction
                 let lv = b.get_linear_velocity();
                 // compute displacement from linear velocity
-                let motion = lv * last_step;
+                let mut motion = lv * last_step;
                 let motion_len = motion.length();
-                let motion = motion.normalized();
+                if !motion_len.is_zero_approx() {
+                    motion = motion.normalized();
+                }
                 valid_depth += motion_len * motion.dot(valid_dir).max(0.0);
             }
         }
         let motion = p_motion;
+        let mut motion_normalized = motion;
         let motion_len = motion.length();
-        let motion = motion.normalized();
-        valid_depth += motion_len * motion.dot(valid_dir).max(0.0);
-        if dist < -valid_depth || p_motion.normalized().dot(valid_dir) < DEFAULT_EPSILON {
+        if !motion_len.is_zero_approx() {
+            motion_normalized = motion_normalized.normalized();
+        }
+        valid_depth += motion_len * motion_normalized.dot(valid_dir).max(0.0);
+        if dist < -valid_depth || motion_normalized.dot(valid_dir) < DEFAULT_EPSILON {
             return true;
         }
     }

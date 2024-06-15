@@ -77,10 +77,6 @@ impl RapierShapeBase {
         self.aabb.volume()
     }
 
-    pub fn is_valid(&self) -> bool {
-        self.handle.is_valid()
-    }
-
     pub fn add_owner(&mut self, owner: Rid) {
         *self.owners.entry(owner).or_insert(0) += 1;
     }

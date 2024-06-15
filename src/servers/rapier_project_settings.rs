@@ -9,8 +9,6 @@ const SOLVER_NUM_INTERNAL_PGS_ITERATIONS: &str =
     "physics/rapier/solver/num_internal_pgs_iterations";
 const SOLVER_MAX_CCD_SUBSTEPS: &str = "physics/rapier/solver/max_ccd_substeps";
 const CONTACT_SKIN: &str = "physics/rapier/solver/polygon_contact_skin";
-const FLUID_GRAVITY_DIR: &str = "physics/rapier/fluid/fluid_gravity_dir";
-const FLUID_GRAVITY_VALUE: &str = "physics/rapier/fluid/fluid_gravity_value";
 const FLUID_PARTICLE_RADIUS: &str = "physics/rapier/fluid/fluid_particle_radius";
 const FLUID_SMOOTHING_FACTOR: &str = "physics/rapier/fluid/fluid_smoothing_factor";
 pub const MONITORS: [&str; 4] = ["inner_step", "step", "before_step", "flush"];
@@ -98,12 +96,6 @@ impl RapierProjectSettings {
             "0,10,0.00001,or_greater",
             false,
         );
-        register_setting_plain(
-            FLUID_GRAVITY_DIR,
-            Variant::from(Vector2::new(0.0, 1.0)),
-            false,
-        );
-        register_setting_plain(FLUID_GRAVITY_VALUE, Variant::from(980.0), false);
         register_setting_ranged(
             FLUID_PARTICLE_RADIUS,
             Variant::from(20.0),
@@ -141,12 +133,6 @@ impl RapierProjectSettings {
         let project_settings = ProjectSettings::singleton();
         let setting_value = project_settings.get_setting_with_override(p_setting.into());
         setting_value.to::<f64>()
-    }
-
-    fn get_setting_vector2(p_setting: &str) -> Vector2 {
-        let project_settings = ProjectSettings::singleton();
-        let setting_value = project_settings.get_setting_with_override(p_setting.into());
-        setting_value.to::<Vector2>()
     }
 
     fn get_setting_bool(p_setting: &str) -> bool {

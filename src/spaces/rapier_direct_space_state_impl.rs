@@ -25,7 +25,7 @@ pub struct RapierDirectSpaceStateImpl {
 }
 #[cfg(feature = "dim3")]
 fn cross_product(a: Angle, b: Vector) -> Vector {
-    a.cross(&b)
+    a.cross(b)
 }
 #[cfg(feature = "dim2")]
 fn cross_product(a: Angle, b: Vector) -> Vector {

@@ -50,7 +50,7 @@ pub struct RapierSpace {
     area_update_list: HashSet<Rid>,
     body_area_update_list: HashSet<Rid>,
     solver_iterations: i32,
-    pub(crate) contact_max_allowed_penetration: real,
+    contact_max_allowed_penetration: real,
     default_gravity_dir: Vector<Real>,
     default_gravity_value: real,
     default_linear_damping: real,
@@ -340,6 +340,10 @@ impl RapierSpace {
         &self.gravity_update_list
     }
 
+    pub fn get_contact_max_allowed_penetration(&self) -> real {
+        self.contact_max_allowed_penetration
+    }
+
     pub fn export_json(&self) -> String {
         world_export_json(self.handle)
     }
@@ -352,5 +356,12 @@ impl RapierSpace {
             buf[i] = binary_data[i];
         }
         buf
+    }
+}
+impl Drop for RapierSpace {
+    fn drop(&mut self) {
+        if self.handle.is_valid() {
+            world_destroy(self.handle);
+        }
     }
 }

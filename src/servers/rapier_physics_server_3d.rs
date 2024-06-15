@@ -27,7 +27,7 @@ use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::RapierShapeBase;
 use crate::spaces::rapier_space::RapierSpace;
 use crate::PackedVectorArray;
-use crate::ANG_ZERO;
+use crate::ANGLE_ZERO;
 #[derive(GodotClass)]
 #[class(base=PhysicsServer3DExtension, tool)]
 pub struct RapierPhysicsServer3D {
@@ -58,7 +58,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         let mut owners = None;
         if let Some(shape) = shapes_singleton().shapes.get_mut(&shape) {
             shape.set_data(data);
-            if shape.get_base().is_configured() {
+            if shape.get_handle().is_valid() {
                 owners = Some(shape.get_base().get_owners().clone());
             }
         }
@@ -78,7 +78,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
 
     fn shape_get_data(&self, shape: Rid) -> Variant {
         if let Some(shape) = shapes_singleton().shapes.get(&shape) {
-            if shape.get_base().is_configured() {
+            if shape.get_base().get_handle().is_valid() {
                 return shape.get_data();
             }
         }
@@ -687,7 +687,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
                 return body.get_constant_torque();
             }
         }
-        ANG_ZERO
+        ANGLE_ZERO
     }
 
     fn body_set_axis_velocity(&mut self, body: Rid, axis_velocity: Vector3) {
@@ -954,13 +954,11 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
             let default_gravity_value: real = project_settings
                 .get_setting_with_override("physics/3d/default_gravity".into())
                 .to();
-            let fluid_default_gravity_dir = RapierProjectSettings::get_fluid_gravity_dir();
-            let fluid_default_gravity_value = RapierProjectSettings::get_fluid_gravity_value();
             //let default_linear_damping: real = project_settings.get_setting_with_override("physics/2d/default_linear_damp".into()).to();
             //let default_angular_damping: real = project_settings.get_setting_with_override("physics/2d/default_angular_damp".into()).to();
             let settings = SimulationSettings {
-                pixel_liquid_gravity: vector_to_rapier(fluid_default_gravity_dir)
-                    * fluid_default_gravity_value,
+                pixel_liquid_gravity: vector_to_rapier(default_gravity_dir)
+                    * default_gravity_value,
                 dt: step,
                 length_unit: RapierProjectSettings::get_length_unit(),
                 pixel_gravity: vector_to_rapier(default_gravity_dir) * default_gravity_value,

@@ -127,10 +127,10 @@ impl RapierSpace {
                         }
                         let static_angular_velocity1 = body1.get_static_angular_velocity();
                         let static_angular_velocity2 = body2.get_static_angular_velocity();
-                        if static_angular_velocity1 != ANG_ZERO {
+                        if static_angular_velocity1 != ANGLE_ZERO {
                             body2.to_add_static_constant_angular_velocity(static_angular_velocity1);
                         }
-                        if static_angular_velocity2 != ANG_ZERO {
+                        if static_angular_velocity2 != ANGLE_ZERO {
                             body1.to_add_static_constant_angular_velocity(static_angular_velocity2);
                         }
                     }

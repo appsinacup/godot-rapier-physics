@@ -1,5 +1,6 @@
 use std::any::Any;
 
+use bodies::{transform_rotation, transform_rotation_rapier, transform_scale};
 #[cfg(feature = "dim2")]
 use godot::engine::physics_server_2d::*;
 #[cfg(feature = "dim3")]
@@ -175,7 +176,6 @@ impl RapierCollisionObject {
         shape: CollisionObjectShape,
         p_shape_index: usize,
     ) -> ColliderHandle {
-        let shape_rid = shape.shape;
         if self.space_handle.is_valid() && shape.collider_handle != ColliderHandle::invalid() {
             if let Some(space) = spaces_singleton().spaces.get_mut(&self.space) {
                 if self.area_detection_counter > 0 {
@@ -198,26 +198,13 @@ impl RapierCollisionObject {
         if !self.space_handle.is_valid() || shape.collider_handle == ColliderHandle::invalid() {
             return;
         }
-        let origin = shape.xform.origin;
-        let position = vector_to_rapier(origin);
-        let angle = shape.xform.rotation();
-        let scale = shape.xform.scale();
         if let Some(rapier_shape) = shapes_singleton().shapes.get_mut(&shape.shape) {
             let shape_handle = rapier_shape.get_handle();
             if !shape_handle.is_valid() {
                 godot_error!("Rapier shape is invalid");
                 return;
             }
-            let mut skew = 0.0;
-            if shape.xform.a != Vector::ZERO {
-                skew = shape.xform.skew();
-            }
-            let shape_info = ShapeInfo {
-                handle: shape_handle,
-                transform: Isometry::new(position, angle),
-                skew,
-                scale: vector_to_rapier(scale),
-            };
+            let shape_info = shape_info_from_body_shape(shape_handle, shape.xform);
             collider_set_transform(self.space_handle, shape.collider_handle, shape_info);
         }
     }
@@ -267,7 +254,7 @@ impl RapierCollisionObject {
             let mut user_data = UserData::default();
             user_data.part1 = self.rid.to_u64();
             let position = vector_to_rapier(self.transform.origin);
-            let angle = self.transform.rotation();
+            let angle = transform_rotation_rapier(&self.transform);
             if self.mode == BodyMode::STATIC {
                 self.body_handle = body_create(
                     self.space_handle,
@@ -363,18 +350,14 @@ impl RapierCollisionObject {
 
     pub fn set_transform(&mut self, p_transform: Transform, wake_up: bool) {
         self.transform = p_transform;
-        if self.transform.a != Vector::ZERO
-            && self.transform.b != Vector::ZERO
-            && self.transform.origin != Vector::ZERO
-        {
-            self.inv_transform = self.transform.affine_inverse();
-        }
+        // todo check determinant is not 0
+        self.inv_transform = self.transform.affine_inverse();
         if !self.is_valid() {
             return;
         }
         let origin = self.transform.origin;
         let position = vector_to_rapier(origin);
-        let rotation = self.transform.rotation();
+        let rotation = transform_rotation_rapier(&self.transform);
         body_set_transform(
             self.space_handle,
             self.body_handle,
