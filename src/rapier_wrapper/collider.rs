@@ -7,6 +7,7 @@ use salva::parry::either::Either::Right;
 
 use crate::rapier_wrapper::prelude::*;
 const SUBDIVISIONS: u32 = 20;
+#[cfg(feature = "dim2")]
 fn skew_polyline(vertices: &Vec<Point<Real>>, skew: Real) -> SharedShape {
     // Apply skew transformation to the vertices
     let mut skewed_vertices = Vec::new();
@@ -24,6 +25,7 @@ fn skew_polyline(vertices: &Vec<Point<Real>>, skew: Real) -> SharedShape {
     collider.shape
 }
 // Function to skew a shape
+#[cfg(feature = "dim2")]
 pub fn skew_shape(shape: &SharedShape, skew: Real) -> SharedShape {
     if skew == 0.0 {
         return shape.clone();
@@ -72,7 +74,9 @@ pub fn skew_shape(shape: &SharedShape, skew: Real) -> SharedShape {
     }
     shape.clone()
 }
-pub fn scale_shape(shape: &SharedShape, scale: Vector<Real>) -> SharedShape {
+
+#[cfg(feature = "dim2")]
+pub fn scale_shape(shape: &SharedShape, scale: ShapeInfo) -> SharedShape {
     if scale.x == 1.0 && scale.y == 1.0 {
         return shape.clone();
     }
@@ -138,6 +142,76 @@ pub fn scale_shape(shape: &SharedShape, scale: Vector<Real>) -> SharedShape {
     }
     shape.clone()
 }
+
+#[cfg(feature = "dim3")]
+pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
+    let scale = shape_info.scale;
+    if scale.x == 1.0 && scale.y == 1.0 {
+        return shape.clone();
+    }
+    match shape.shape_type() {
+        ShapeType::Ball => {
+            if let Some(new_shape) = shape.as_ball() {
+                if let Some(new_shape) = new_shape.scaled(&scale, SUBDIVISIONS) {
+                    match new_shape {
+                        Left(shape) => return SharedShape::new(shape),
+                        Right(shape) => return SharedShape::new(shape),
+                    }
+                }
+            }
+        }
+        ShapeType::Cuboid => {
+            if let Some(new_shape) = shape.as_cuboid() {
+                return SharedShape::new(new_shape.scaled(&scale));
+            }
+        }
+        ShapeType::HalfSpace => {
+            if let Some(new_shape) = shape.as_halfspace() {
+                if let Some(new_shape) = new_shape.scaled(&scale) {
+                    return SharedShape::new(new_shape);
+                }
+            }
+        }
+        ShapeType::Polyline => {
+            if let Some(new_shape) = shape.as_polyline() {
+                return SharedShape::new(new_shape.clone().scaled(&scale));
+            }
+        }
+        ShapeType::ConvexPolyhedron => {
+            if let Some(new_shape) = shape.as_convex_polyhedron() {
+                if let Some(new_shape) = new_shape.clone().scaled(&scale) {
+                    return SharedShape::new(new_shape);
+                }
+            }
+        }
+        ShapeType::Capsule => {
+            if let Some(new_shape) = shape.as_capsule() {
+                if let Some(new_shape) = new_shape.scaled(&scale, SUBDIVISIONS) {
+                    match new_shape {
+                        Left(shape) => return SharedShape::new(shape),
+                        Right(shape) => return SharedShape::new(shape),
+                    }
+                }
+            }
+        }
+        ShapeType::Compound => {
+            if let Some(new_shape) = shape.as_compound() {
+                let new_shapes = new_shape.shapes();
+                let mut shapes_vec = Vec::<(Isometry<Real>, SharedShape)>::new();
+                for shape in new_shapes {
+                    let new_shape = scale_shape(&shape.1, shape_info);
+                    shapes_vec.push((shape.0, new_shape));
+                }
+                return SharedShape::compound(shapes_vec);
+            }
+        }
+        _ => {
+            godot_error!("Shape type not supported for scaling");
+        }
+    }
+    shape.clone()
+}
+
 pub struct Material {
     pub friction: Real,
     pub restitution: Real,
@@ -252,8 +326,7 @@ pub fn collider_set_transform(
 ) {
     let physics_engine = physics_engine();
     if let Some(shape) = physics_engine.get_shape(shape_info.handle) {
-        let scaled_shape = scale_shape(shape, shape_info.scale);
-        let new_shape = skew_shape(&scaled_shape, shape_info.skew);
+        let new_shape = scale_shape(shape, shape_info);
         if let Some(physics_world) = physics_engine.get_world(world_handle) {
             if let Some(collider) = physics_world
                 .physics_objects

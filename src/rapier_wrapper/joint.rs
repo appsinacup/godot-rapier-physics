@@ -1,6 +1,7 @@
 use rapier::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
+#[cfg(feature = "dim2")]
 pub fn joint_create_revolute(
     world_handle: Handle,
     body_handle_1: RigidBodyHandle,

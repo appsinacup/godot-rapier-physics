@@ -216,18 +216,11 @@ impl RapierCollisionObject {
         let position = body_get_position(self.space_handle, self.body_handle);
         let angle = body_get_angle(self.space_handle, self.body_handle);
         let origin = Vector2::new(position.x, position.y);
-        let mut skew = 0.0;
-        if self.transform.a != Vector::ZERO {
-            skew = self.transform.skew();
-        }
-        self.transform =
-            Transform::from_angle_scale_skew_origin(angle, self.transform.scale(), skew, origin);
-        if self.transform.a != Vector::ZERO
-            && self.transform.b != Vector::ZERO
-            && self.transform.origin != Vector::ZERO
-        {
-            self.inv_transform = self.transform.affine_inverse();
-        }
+        self.transform.origin = origin;
+        // TODO set rest
+        // Transform::from_angle_scale_skew_origin(angle, self.transform.scale(), skew, origin);
+        // TODO check determinant is not 0
+        self.inv_transform = self.transform.affine_inverse();
     }
 
     pub(crate) fn _set_space(&mut self, p_space: Rid) {

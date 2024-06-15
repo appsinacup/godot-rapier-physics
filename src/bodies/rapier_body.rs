@@ -1356,9 +1356,18 @@ impl RapierBody {
         0.0
     }
 
+    #[cfg(feature = "dim2")]
     pub fn get_inv_inertia(&self) -> Angle {
         if self.inertia != ANGLE_ZERO {
             return 1.0 / self.inertia;
+        }
+        ANGLE_ZERO
+    }
+
+    #[cfg(feature = "dim3")]
+    pub fn get_inv_inertia(&self) -> Angle {
+        if self.inertia != ANGLE_ZERO {
+            return Vector3::new(1.0 / self.inertia.x, 1.0 / self.inertia.y, 1.0 / self.inertia.z);
         }
         ANGLE_ZERO
     }

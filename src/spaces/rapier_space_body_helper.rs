@@ -402,13 +402,9 @@ impl RapierSpace {
                                 let step_contact =
                                     shapes_contact(body_shape_info, col_shape_info, 0.0);
                                 if step_contact.collided && !step_contact.within_margin {
-                                    if body_shape.allows_one_way_collision()
-                                        && collision_body
+                                    if body_shape.allows_one_way_collision() && collision_body
                                             .get_base()
-                                            .is_shape_set_as_one_way_collision(shape_index)
-                                        && !col_shape_transform.b.is_zero_approx()
-                                        && !p_motion.is_zero_approx()
-                                    {
+                                            .is_shape_set_as_one_way_collision(shape_index) && !col_shape_transform.b.is_zero_approx() && !p_motion.is_zero_approx() {
                                         let direction = col_shape_transform.b.normalized();
                                         if p_motion.normalized().dot(direction) <= 0.0 {
                                             continue;
