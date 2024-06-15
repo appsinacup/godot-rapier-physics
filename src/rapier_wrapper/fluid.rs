@@ -3,17 +3,9 @@ use salva::math::Vector as SalvaVector;
 use salva::object::*;
 use salva::solver::*;
 
-use super::shape::pixel_point_array_to_vec;
+use super::shape::point_array_to_vec;
 use crate::rapier_wrapper::prelude::*;
-pub fn pixel_vector_array_to_vec(pixel_data: Vec<Vector<Real>>) -> Vec<SalvaVector<Real>> {
-    let mut vec = Vec::<SalvaVector<Real>>::with_capacity(pixel_data.len());
-    for pixel_point in pixel_data {
-        let point = &vector_pixels_to_meters(pixel_point);
-        let salva_vector = SalvaVector::<Real>::from_data(point.data);
-        vec.push(salva_vector);
-    }
-    vec
-}
+use crate::PackedVectorArray;
 pub fn fluid_create(world_handle: Handle, density: Real) -> HandleDouble {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
@@ -39,13 +31,12 @@ pub fn fluid_change_density(world_handle: Handle, fluid_handle: HandleDouble, de
 pub fn fluid_change_points_and_velocities(
     world_handle: Handle,
     fluid_handle: HandleDouble,
-    pixel_points: Vec<Vector<Real>>,
+    points: Vec<Vector<Real>>,
     velocity_points: Vec<Vector<Real>>,
 ) {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        let points = pixel_point_array_to_vec(pixel_points);
-        let velocities = pixel_vector_array_to_vec(velocity_points);
+        let points = point_array_to_vec(points);
         if let Some(fluid) = physics_world
             .fluids_pipeline
             .liquid_world
@@ -63,7 +54,7 @@ pub fn fluid_change_points_and_velocities(
                     accelerations[i] = fluid.accelerations[i];
                 }
             }
-            fluid.velocities = velocities;
+            fluid.velocities = velocity_points;
             fluid.accelerations = accelerations;
             fluid.volumes = std::iter::repeat(fluid.default_particle_volume())
                 .take(points_len)
@@ -74,11 +65,11 @@ pub fn fluid_change_points_and_velocities(
 pub fn fluid_change_points(
     world_handle: Handle,
     fluid_handle: HandleDouble,
-    pixel_points: Vec<Vector<Real>>,
+    points: Vec<Vector<Real>>,
 ) {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        let points = pixel_point_array_to_vec(pixel_points);
+        let points = point_array_to_vec(points);
         let point_count = points.len();
         if let Some(fluid) = physics_world
             .fluids_pipeline
@@ -166,7 +157,7 @@ pub fn fluid_delete_points(
 pub fn fluid_add_points_and_velocities(
     world_handle: Handle,
     fluid_handle: HandleDouble,
-    pixel_points: Vec<Vector<Real>>,
+    points: Vec<Vector<Real>>,
     velocity_points: Vec<Vector<Real>>,
 ) {
     let physics_engine = physics_engine();
@@ -177,11 +168,10 @@ pub fn fluid_add_points_and_velocities(
             .fluids_mut()
             .get_mut(handle_to_fluid_handle(fluid_handle))
         {
-            let points = pixel_point_array_to_vec(pixel_points);
-            let velocities = pixel_vector_array_to_vec(velocity_points);
+            let points = point_array_to_vec(points);
             // add old positions from fluid
             fluid.positions.extend_from_slice(&points);
-            fluid.velocities.extend_from_slice(&velocities);
+            fluid.velocities.extend_from_slice(&velocity_points);
             let new_point_count = fluid.positions.len();
             let mut accelerations: Vec<_> = std::iter::repeat(SalvaVector::zeros())
                 .take(new_point_count)
@@ -200,9 +190,8 @@ pub fn fluid_add_points_and_velocities(
 pub fn fluid_get_points(
     world_handle: Handle,
     fluid_handle: HandleDouble,
-    pixel_points: &mut Vector<Real>,
-    point_count: usize,
-) {
+) -> PackedVectorArray {
+    let mut array = PackedVectorArray::new();
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         if let Some(fluid) = physics_world
@@ -211,25 +200,18 @@ pub fn fluid_get_points(
             .fluids_mut()
             .get_mut(handle_to_fluid_handle(fluid_handle))
         {
-            unsafe {
-                let points_raw = std::slice::from_raw_parts_mut(pixel_points, point_count);
-                for i in 0..points_raw.len() {
-                    if fluid.positions.len() <= i {
-                        return;
-                    }
-                    points_raw[i].x = meters_to_pixels(fluid.positions[i].x);
-                    points_raw[i].y = meters_to_pixels(fluid.positions[i].y);
-                }
+            for i in 0..fluid.positions.len() {
+                array.push(vector_to_godot(fluid.positions[i].coords));
             }
         }
     }
+    array
 }
 pub fn fluid_get_velocities(
     world_handle: Handle,
-    fluid_handle: HandleDouble,
-    pixel_velocities: &mut Vector<Real>,
-    velocity_count: usize,
-) {
+    fluid_handle: HandleDouble
+) -> PackedVectorArray {
+    let mut array = PackedVectorArray::new();
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         if let Some(fluid) = physics_world
@@ -238,25 +220,18 @@ pub fn fluid_get_velocities(
             .fluids_mut()
             .get_mut(handle_to_fluid_handle(fluid_handle))
         {
-            unsafe {
-                let velocity_raw = std::slice::from_raw_parts_mut(pixel_velocities, velocity_count);
-                for i in 0..velocity_raw.len() {
-                    if fluid.velocities.len() <= i {
-                        return;
-                    }
-                    velocity_raw[i].x = meters_to_pixels(fluid.velocities[i].x);
-                    velocity_raw[i].y = meters_to_pixels(fluid.velocities[i].y);
-                }
+            for i in 0..fluid.positions.len() {
+                array.push(vector_to_godot(fluid.velocities[i]));
             }
         }
     }
+    array
 }
 pub fn fluid_get_accelerations(
     world_handle: Handle,
-    fluid_handle: HandleDouble,
-    pixel_acceleration: &mut Vector<Real>,
-    acceleration_count: usize,
-) {
+    fluid_handle: HandleDouble
+) ->PackedVectorArray {
+    let mut array = PackedVectorArray::new();
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         if let Some(fluid) = physics_world
@@ -265,19 +240,12 @@ pub fn fluid_get_accelerations(
             .fluids_mut()
             .get_mut(handle_to_fluid_handle(fluid_handle))
         {
-            unsafe {
-                let acceleration_raw =
-                    std::slice::from_raw_parts_mut(pixel_acceleration, acceleration_count);
-                for i in 0..acceleration_raw.len() {
-                    if fluid.accelerations.len() <= i {
-                        return;
-                    }
-                    acceleration_raw[i].x = meters_to_pixels(fluid.accelerations[i].x);
-                    acceleration_raw[i].y = meters_to_pixels(fluid.accelerations[i].y);
-                }
+            for i in 0..fluid.positions.len() {
+                array.push(vector_to_godot(fluid.accelerations[i]));
             }
         }
     }
+    array
 }
 pub fn fluid_clear_effects(world_handle: Handle, fluid_handle: HandleDouble) {
     let physics_engine = physics_engine();

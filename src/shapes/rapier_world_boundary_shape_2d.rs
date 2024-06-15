@@ -1,6 +1,5 @@
 use godot::engine::physics_server_2d::ShapeType;
 use godot::prelude::*;
-use rapier::math::Point;
 use rapier::math::Real;
 use rapier::math::Vector;
 
@@ -66,10 +65,8 @@ impl IRapierShape for RapierWorldBoundaryShape2D {
         }
         self.normal = arr.at(0).to();
         self.d = arr.at(1).to();
-        self.base.configure(rapier::geometry::Aabb::new(
-            Point::new(-1e4, -1e4),
-            Point::new(1e4, 1e4),
-        ));
+        let handle = self.create_rapier_shape();
+        self.base.set_handle(handle);
     }
 
     fn get_data(&self) -> Variant {
@@ -79,11 +76,7 @@ impl IRapierShape for RapierWorldBoundaryShape2D {
         arr.to_variant()
     }
 
-    fn get_rapier_shape(&mut self) -> Handle {
-        if !self.base.get_handle().is_valid() {
-            let handle = self.create_rapier_shape();
-            self.base.set_handle(handle);
-        }
+    fn get_handle(&mut self) -> Handle {
         self.base.get_handle()
     }
 }

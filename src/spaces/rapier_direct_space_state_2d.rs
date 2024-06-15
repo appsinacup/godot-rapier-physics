@@ -2,6 +2,8 @@ use godot::classes::native::*;
 use godot::classes::*;
 use godot::prelude::*;
 
+use crate::rapier_wrapper::convert::vector_to_rapier;
+
 use super::rapier_direct_space_state_impl::RapierDirectSpaceStateImpl;
 #[derive(GodotClass)]
 #[class(base=PhysicsDirectSpaceState2DExtension,tool)]
@@ -37,8 +39,8 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         result: *mut PhysicsServer2DExtensionRayResult,
     ) -> bool {
         self.inner.intersect_ray(
-            from,
-            to,
+            vector_to_rapier(from),
+            vector_to_rapier(to),
             collision_mask,
             collide_with_bodies,
             collide_with_areas,
@@ -58,7 +60,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         max_results: i32,
     ) -> i32 {
         self.inner.intersect_point(
-            position,
+            vector_to_rapier(position),
             canvas_instance_id,
             collision_mask,
             collide_with_bodies,

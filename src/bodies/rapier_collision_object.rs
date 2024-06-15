@@ -7,6 +7,7 @@ use godot::engine::physics_server_3d::*;
 use godot::prelude::*;
 use rapier::dynamics::RigidBodyHandle;
 use rapier::geometry::ColliderHandle;
+use transform::Transform;
 
 use super::rapier_area::RapierArea;
 use super::rapier_body::RapierBody;
@@ -167,9 +168,6 @@ impl RapierCollisionObject {
                 shape_rid = shape.shape;
                 shape.collider_handle = ColliderHandle::invalid();
             }
-            if let Some(shape) = shapes_singleton().shapes.get_mut(&shape_rid) {
-                shape.get_mut_base().destroy_rapier_shape();
-            }
             i += 1;
         }
     }
@@ -194,9 +192,6 @@ impl RapierCollisionObject {
                 }
                 collider_destroy(self.space_handle, shape.collider_handle);
             }
-        }
-        if let Some(shape) = shapes_singleton().shapes.get_mut(&shape_rid) {
-            shape.get_mut_base().destroy_rapier_shape();
         }
         ColliderHandle::invalid()
     }

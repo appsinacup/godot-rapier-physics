@@ -80,9 +80,9 @@ type QueryHandleExcludedCallback = fn(
 ) -> bool;
 pub fn intersect_ray(
     world_handle: Handle,
-    pixel_from: Vector<Real>,
+    from: Vector<Real>,
     dir: Vector<Real>,
-    pixel_length: Real,
+    length: Real,
     collide_with_body: bool,
     collide_with_area: bool,
     hit_from_inside: bool,
@@ -92,8 +92,6 @@ pub fn intersect_ray(
 ) -> bool {
     let mut result = false;
     if let Some(physics_world) = physics_engine().get_world(world_handle) {
-        let from = vector_pixels_to_meters(pixel_from);
-        let length = pixels_to_meters(pixel_length);
         let ray = Ray::new(Point { coords: from }, dir);
         let mut filter = QueryFilter::new();
         if !collide_with_body {
@@ -133,7 +131,7 @@ pub fn intersect_ray(
                         result = true;
                         let hit_point = ray.point_at(intersection.time_of_impact);
                         let hit_normal = intersection.normal;
-                        hit_info.pixel_position = vector_meters_to_pixels(hit_point.coords);
+                        hit_info.pixel_position = hit_point.coords;
                         hit_info.normal = hit_normal;
                         hit_info.collider = handle;
                         hit_info.user_data = physics_world.get_collider_user_data(handle);
@@ -147,7 +145,7 @@ pub fn intersect_ray(
 }
 pub fn intersect_point(
     world_handle: Handle,
-    pixel_position: Vector<Real>,
+    position: Vector<Real>,
     collide_with_body: bool,
     collide_with_area: bool,
     hit_info_array: *mut PointHitInfo,
@@ -160,7 +158,6 @@ pub fn intersect_point(
         return cpt_hit;
     }
     if let Some(physics_world) = physics_engine().get_world(world_handle) {
-        let position = vector_pixels_to_meters(pixel_position);
         let point = Point { coords: position };
         let mut filter = QueryFilter::new();
         if !collide_with_body {
@@ -208,15 +205,13 @@ pub fn intersect_point(
     cpt_hit
 }
 pub fn shape_collide(
-    pixel_motion1: Vector<Real>,
+    shape_vel1: Vector<Real>,
     shape_info1: ShapeInfo,
-    pixel_motion2: Vector<Real>,
+    shape_vel2: Vector<Real>,
     shape_info2: ShapeInfo,
 ) -> ShapeCastResult {
     let mut result = ShapeCastResult::new();
     let physics_engine = physics_engine();
-    let shape_vel1 = vector_pixels_to_meters(pixel_motion1);
-    let shape_vel2 = vector_pixels_to_meters(pixel_motion2);
     if let Some(raw_shared_shape1) = physics_engine.get_shape(shape_info1.handle) {
         let skewed_shape1 = skew_shape(raw_shared_shape1, shape_info1.skew);
         let shared_shape1 = scale_shape(&skewed_shape1, shape_info1.scale);
@@ -244,8 +239,8 @@ pub fn shape_collide(
                     result.toi = hit.time_of_impact;
                     result.normal1 = hit.normal1.into_inner();
                     result.normal2 = hit.normal2.into_inner();
-                    result.pixel_witness1 = vector_meters_to_pixels(hit.witness1.coords);
-                    result.pixel_witness2 = vector_meters_to_pixels(hit.witness2.coords);
+                    result.pixel_witness1 = hit.witness1.coords;
+                    result.pixel_witness2 = hit.witness2.coords;
                 }
                 // can we get a hit without a result?
                 godot_error!("hit without a result");
@@ -256,7 +251,7 @@ pub fn shape_collide(
 }
 pub fn shape_casting(
     world_handle: Handle,
-    pixel_motion: Vector<Real>,
+    shape_vel: Vector<Real>,
     shape_info: ShapeInfo,
     collide_with_body: bool,
     collide_with_area: bool,
@@ -266,7 +261,6 @@ pub fn shape_casting(
     let mut result = ShapeCastResult::new();
     let physics_engine = physics_engine();
     if let Some(raw_shared_shape) = physics_engine.get_shape(shape_info.handle) {
-        let shape_vel = vector_pixels_to_meters(pixel_motion);
         let skewed_shape = skew_shape(raw_shared_shape, shape_info.skew);
         let shared_shape = scale_shape(&skewed_shape, shape_info.scale);
         if let Some(physics_world) = physics_engine.get_world(world_handle) {
@@ -312,8 +306,8 @@ pub fn shape_casting(
                 let witness1 = hit.witness1;
                 // second is local space
                 let witness2 = shape_transform.transform_point(&hit.witness2);
-                result.pixel_witness1 = vector_meters_to_pixels(witness1.coords);
-                result.pixel_witness2 = vector_meters_to_pixels(witness2.coords);
+                result.pixel_witness1 = witness1.coords;
+                result.pixel_witness2 = witness2.coords;
             }
         }
     }
@@ -389,8 +383,8 @@ pub fn intersect_shape(
 }
 pub fn intersect_aabb(
     world_handle: Handle,
-    pixel_aabb_min: Vector<Real>,
-    pixel_aabb_max: Vector<Real>,
+    aabb_min: Vector<Real>,
+    aabb_max: Vector<Real>,
     collide_with_body: bool,
     collide_with_area: bool,
     hit_info_slice: &mut [PointHitInfo],
@@ -400,13 +394,8 @@ pub fn intersect_aabb(
 ) -> usize {
     let mut cpt_hit = 0;
     if let Some(physics_world) = physics_engine().get_world(world_handle) {
-        let aabb_min = vector_pixels_to_meters(pixel_aabb_min);
-        let aabb_max = vector_pixels_to_meters(pixel_aabb_max);
-        // let aabb_transform = Isometry::new(vector![position.x, position.y], rotation);
         let aabb_min_point = Point { coords: aabb_min };
         let aabb_max_point = Point { coords: aabb_max };
-        // let transformed_aabb_min = aabb_transform * aabb_min_point;
-        // let transformed_aabb_max = aabb_transform * aabb_max_point;
         let aabb = Aabb {
             mins: aabb_min_point,
             maxs: aabb_max_point,
@@ -448,9 +437,8 @@ pub fn intersect_aabb(
 pub fn shapes_contact(
     shape_info1: ShapeInfo,
     shape_info2: ShapeInfo,
-    pixel_margin: Real,
+    margin: Real,
 ) -> ContactResult {
-    let margin = pixels_to_meters(pixel_margin);
     let mut result = ContactResult::default();
     let physics_engine = physics_engine();
     //let prediction = Real::max(0.002, margin);
@@ -472,15 +460,13 @@ pub fn shapes_contact(
             ) {
                 // the distance is negative if there is intersection
                 // and positive if the objects are separated by distance less than margin
-                result.pixel_distance = meters_to_pixels(contact.dist);
+                result.pixel_distance = contact.dist;
                 result.within_margin = contact.dist > 0.0;
                 result.collided = true;
                 result.normal1 = contact.normal1.into_inner();
                 result.normal2 = contact.normal2.into_inner();
-                result.pixel_point1 = vector_meters_to_pixels(
-                    (contact.point1 + contact.normal1.mul(prediction)).coords,
-                );
-                result.pixel_point2 = vector_meters_to_pixels(contact.point2.coords);
+                result.pixel_point1 = (contact.point1 + contact.normal1.mul(prediction)).coords;
+                result.pixel_point2 = contact.point2.coords;
                 return result;
             }
         }

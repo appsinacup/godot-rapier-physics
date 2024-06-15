@@ -179,7 +179,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let mut owners = None;
         if let Some(shape) = shapes_singleton().shapes.get_mut(&shape) {
             shape.set_data(data);
-            if shape.get_base().is_configured() {
+            if shape.get_base().get_handle().is_valid() {
                 owners = Some(shape.get_base().get_owners().clone());
             }
         }
@@ -199,7 +199,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
 
     fn shape_get_data(&self, shape: Rid) -> Variant {
         if let Some(shape) = shapes_singleton().shapes.get(&shape) {
-            if shape.get_base().is_configured() {
+            if shape.get_base().get_handle().is_valid() {
                 return shape.get_data();
             }
         }
@@ -233,8 +233,8 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         if !shape_a_handle.is_valid() || !shape_b_handle.is_valid() {
             return false;
         }
-        let shape_a_info = shape_info_from_body_shape(shape_a_handle, xform_a);
-        let shape_b_info = shape_info_from_body_shape(shape_b_handle, xform_b);
+        let shape_a_info = shape_info_from_body_shape(shape_a_handle, &xform_a);
+        let shape_b_info = shape_info_from_body_shape(shape_b_handle, &xform_b);
         let rapier_a_motion = vector_to_rapier(motion_a);
         let rapier_b_motion = vector_to_rapier(motion_b);
         let results_out: *mut Vector2 = results as *mut Vector2;
@@ -702,7 +702,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     ) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_continuous_collision_detection_mode(mode);
+                body.set_continuous_collision_detection_mode(mode != classes::physics_server_2d::CcdMode::DISABLED);
             }
         }
     }
@@ -713,7 +713,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     ) -> classes::physics_server_2d::CcdMode {
         if let Some(body) = bodies_singleton().collision_objects.get(&body) {
             if let Some(body) = body.get_body() {
-                return body.get_continuous_collision_detection_mode();
+                if body.get_continuous_collision_detection_mode() {
+                    return classes::physics_server_2d::CcdMode::CAST_RAY;
+                }
             }
         }
         classes::physics_server_2d::CcdMode::DISABLED

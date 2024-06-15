@@ -5,23 +5,20 @@ pub fn joint_create_revolute(
     world_handle: Handle,
     body_handle_1: RigidBodyHandle,
     body_handle_2: RigidBodyHandle,
-    pixel_anchor_1: Vector<Real>,
-    pixel_anchor_2: Vector<Real>,
+    anchor_1: Vector<Real>,
+    anchor_2: Vector<Real>,
     angular_limit_lower: Real,
     angular_limit_upper: Real,
     angular_limit_enabled: bool,
-    pixel_motor_target_velocity: Real,
+    motor_target_velocity: Real,
     motor_enabled: bool,
     disable_collision: bool,
 ) -> ImpulseJointHandle {
-    let anchor_1 = &vector_pixels_to_meters(pixel_anchor_1);
-    let anchor_2 = &vector_pixels_to_meters(pixel_anchor_2);
-    let motor_target_velocity = pixels_to_meters(pixel_motor_target_velocity);
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let mut joint = RevoluteJointBuilder::new()
-            .local_anchor1(Point { coords: *anchor_1 })
-            .local_anchor2(Point { coords: *anchor_2 })
+            .local_anchor1(Point { coords: anchor_1 })
+            .local_anchor2(Point { coords: anchor_2 })
             .motor_model(MotorModel::ForceBased)
             .contacts_enabled(!disable_collision);
         if angular_limit_enabled {
@@ -40,10 +37,9 @@ pub fn joint_change_revolute_params(
     angular_limit_lower: Real,
     angular_limit_upper: Real,
     angular_limit_enabled: bool,
-    pixel_motor_target_velocity: Real,
+    motor_target_velocity: Real,
     motor_enabled: bool,
 ) {
-    let motor_target_velocity = pixels_to_meters(pixel_motor_target_velocity);
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         if let Some(joint) = physics_world
@@ -72,14 +68,11 @@ pub fn joint_create_prismatic(
     body_handle_1: RigidBodyHandle,
     body_handle_2: RigidBodyHandle,
     axis: Vector<Real>,
-    pixel_anchor_1: Vector<Real>,
-    pixel_anchor_2: Vector<Real>,
-    pixel_limits: Vector<Real>,
+    anchor_1: Vector<Real>,
+    anchor_2: Vector<Real>,
+    limits: Vector<Real>,
     disable_collision: bool,
 ) -> ImpulseJointHandle {
-    let anchor_1 = vector_pixels_to_meters(pixel_anchor_1);
-    let anchor_2 = vector_pixels_to_meters(pixel_anchor_2);
-    let limits = &vector_pixels_to_meters(pixel_limits);
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let joint = PrismaticJointBuilder::new(UnitVector::new_unchecked(axis))
@@ -95,16 +88,13 @@ pub fn joint_create_spring(
     world_handle: Handle,
     body_handle_1: RigidBodyHandle,
     body_handle_2: RigidBodyHandle,
-    pixel_anchor_1: Vector<Real>,
-    pixel_anchor_2: Vector<Real>,
+    anchor_1: Vector<Real>,
+    anchor_2: Vector<Real>,
     stiffness: Real,
     damping: Real,
-    pixel_rest_length: Real,
+    rest_length: Real,
     disable_collision: bool,
 ) -> ImpulseJointHandle {
-    let anchor_1 = vector_pixels_to_meters(pixel_anchor_1);
-    let anchor_2 = vector_pixels_to_meters(pixel_anchor_2);
-    let rest_length = pixels_to_meters(pixel_rest_length);
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let joint = SpringJointBuilder::new(rest_length, stiffness, damping)
@@ -120,9 +110,8 @@ pub fn joint_change_spring_params(
     joint_handle: ImpulseJointHandle,
     stiffness: Real,
     damping: Real,
-    pixel_rest_length: Real,
+    rest_length: Real,
 ) {
-    let rest_length = pixels_to_meters(pixel_rest_length);
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         if let Some(joint) = physics_world

@@ -1,6 +1,8 @@
 use godot::classes::*;
 use godot::prelude::*;
 use rapier::dynamics::ImpulseJointHandle;
+use rapier::math::Real;
+use rapier::math::Vector;
 
 use super::rapier_joint::RapierJointBase;
 use super::rapier_pin_joint_2d::RapierPinJoint2D;
@@ -14,7 +16,7 @@ pub struct RapierDampedSpringJoint2D {
     base: RapierJointBase,
 }
 impl RapierDampedSpringJoint2D {
-    pub fn new(p_anchor_a: Vector2, p_anchor_b: Vector2, body_a: Rid, body_b: Rid) -> Self {
+    pub fn new(p_anchor_a: Vector<Real>, p_anchor_b: Vector<Real>, body_a: Rid, body_b: Rid) -> Self {
         let invalid_joint = Self {
             rest_length: 0.0,
             stiffness: 20.0,
@@ -33,20 +35,14 @@ impl RapierDampedSpringJoint2D {
                 {
                     return invalid_joint;
                 }
-                let base_a = body_a.get_base();
-                let body_a_handle = base_a.get_body_handle();
-                let base_b = body_b.get_base();
-                let body_b_handle = base_b.get_body_handle();
-                let anchor_a = base_a.get_inv_transform() * p_anchor_a;
-                let anchor_b = base_b.get_inv_transform() * p_anchor_b;
-                let rest_length = p_anchor_a.distance_to(p_anchor_b);
-                let rapier_anchor_a = vector_to_rapier(anchor_a);
-                let rapier_anchor_b = vector_to_rapier(anchor_b);
+                let rapier_anchor_a = body_a.get_base().get_inv_transform().isometry * p_anchor_a;
+                let rapier_anchor_b = body_b.get_base().get_inv_transform().isometry * p_anchor_b;
+                let rest_length = (p_anchor_a - p_anchor_b).norm();
                 let space_handle = body_a.get_base().get_space_handle();
                 let handle = joint_create_spring(
                     space_handle,
-                    body_a_handle,
-                    body_b_handle,
+                    body_a.get_base().get_body_handle(),
+                    body_b.get_base().get_body_handle(),
                     rapier_anchor_a,
                     rapier_anchor_b,
                     20.0,

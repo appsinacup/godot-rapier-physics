@@ -2,9 +2,11 @@ use godot::classes::*;
 use godot::prelude::*;
 
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
+use crate::rapier_wrapper::convert::vector_to_godot;
+use crate::rapier_wrapper::convert::vector_to_rapier;
+use crate::rapier_wrapper::ANG_ZERO;
 use crate::servers::rapier_physics_singleton::*;
 use crate::spaces::rapier_space::RapierSpace;
-use crate::ANG_ZERO;
 #[derive(GodotClass)]
 #[class(base=PhysicsDirectBodyState2DExtension,tool)]
 pub struct RapierDirectBodyState2D {
@@ -33,7 +35,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
             space_rid = body.get_base().get_space();
             if let Some(body) = body.get_body() {
                 if body.using_area_gravity() {
-                    return body.total_gravity();
+                    return vector_to_godot(body.total_gravity());
                 }
                 else {
                     gravity_scale = body.gravity_scale();
@@ -83,7 +85,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     fn get_center_of_mass_local(&self) -> Vector2 {
         if let Some(body) = bodies_singleton().collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
-                return body.get_center_of_mass();
+                return vector_to_godot(body.get_center_of_mass());
             }
         }
         Vector2::ZERO
@@ -110,7 +112,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     fn set_linear_velocity(&mut self, velocity: Vector2) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_linear_velocity(velocity);
+                body.set_linear_velocity(vector_to_rapier(velocity));
             }
         }
     }
@@ -118,7 +120,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     fn get_linear_velocity(&self) -> Vector2 {
         if let Some(body) = bodies_singleton().collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
-                return body.get_linear_velocity();
+                return vector_to_godot(body.get_linear_velocity());
             }
         }
         Vector2::ZERO
@@ -161,7 +163,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     fn get_velocity_at_local_position(&self, local_position: Vector2) -> Vector2 {
         if let Some(body) = bodies_singleton().collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
-                return body.get_velocity_at_local_point(local_position);
+                return vector_to_godot(body.get_velocity_at_local_point(vector_to_rapier(local_position)));
             }
         }
         Vector2::default()
@@ -170,7 +172,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     fn apply_central_impulse(&mut self, impulse: Vector2) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.apply_central_impulse(impulse)
+                body.apply_central_impulse(vector_to_rapier(impulse))
             }
         }
     }
@@ -178,7 +180,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     fn apply_impulse(&mut self, impulse: Vector2, position: Vector2) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.apply_impulse(impulse, position)
+                body.apply_impulse(vector_to_rapier(impulse), vector_to_rapier(position))
             }
         }
     }
@@ -194,7 +196,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     fn apply_central_force(&mut self, force: Vector2) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.apply_central_force(force)
+                body.apply_central_force(vector_to_rapier(force))
             }
         }
     }
@@ -202,7 +204,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     fn apply_force(&mut self, force: Vector2, position: Vector2) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.apply_force(force, position)
+                body.apply_force(vector_to_rapier(force), vector_to_rapier(position))
             }
         }
     }
@@ -218,7 +220,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     fn add_constant_central_force(&mut self, force: Vector2) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.add_constant_central_force(force)
+                body.add_constant_central_force(vector_to_rapier(force))
             }
         }
     }
@@ -226,7 +228,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     fn add_constant_force(&mut self, force: Vector2, position: Vector2) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.add_constant_force(force, position)
+                body.add_constant_force(vector_to_rapier(force), vector_to_rapier(position))
             }
         }
     }
@@ -242,7 +244,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     fn set_constant_force(&mut self, force: Vector2) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_constant_force(force)
+                body.set_constant_force(vector_to_rapier(force))
             }
         }
     }
@@ -250,7 +252,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     fn get_constant_force(&self) -> Vector2 {
         if let Some(body) = bodies_singleton().collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
-                return body.get_constant_force();
+                return vector_to_godot(body.get_constant_force());
             }
         }
         Vector2::default()
@@ -308,7 +310,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         if let Some(body) = bodies_singleton().collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 if let Some(contact) = body.contacts().get(contact_idx as usize) {
-                    return contact.local_pos;
+                    return vector_to_godot(contact.local_pos);
                 }
             }
         }
@@ -319,7 +321,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         if let Some(body) = bodies_singleton().collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 if let Some(contact) = body.contacts().get(contact_idx as usize) {
-                    return contact.local_normal;
+                    return vector_to_godot(contact.local_normal);
                 }
             }
         }
@@ -341,7 +343,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         if let Some(body) = bodies_singleton().collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 if let Some(contact) = body.contacts().get(contact_idx as usize) {
-                    return contact.local_velocity_at_pos;
+                    return vector_to_godot(contact.local_velocity_at_pos);
                 }
             }
         }
@@ -363,7 +365,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         if let Some(body) = bodies_singleton().collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 if let Some(contact) = body.contacts().get(contact_idx as usize) {
-                    return contact.collider_pos;
+                    return vector_to_godot(contact.collider_pos);
                 }
             }
         }
@@ -409,7 +411,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         if let Some(body) = bodies_singleton().collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 if let Some(contact) = body.contacts().get(contact_idx as usize) {
-                    return contact.collider_velocity_at_pos;
+                    return vector_to_godot(contact.collider_velocity_at_pos);
                 }
             }
         }
@@ -420,7 +422,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         if let Some(body) = bodies_singleton().collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 if let Some(contact) = body.contacts().get(contact_idx as usize) {
-                    return contact.impulse;
+                    return vector_to_godot(contact.impulse);
                 }
             }
         }

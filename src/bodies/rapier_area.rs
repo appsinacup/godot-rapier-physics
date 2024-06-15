@@ -10,6 +10,7 @@ use godot::obj::EngineEnum;
 use godot::prelude::*;
 use rapier::geometry::ColliderHandle;
 use rapier::math::{Real, Vector};
+use transform::Transform;
 
 use super::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;
@@ -24,10 +25,6 @@ struct MonitorInfo {
     pub area_shape_index: u32,
     pub collision_object_type: CollisionObjectType,
     pub state: i32,
-}
-#[derive(Clone, Copy)]
-struct BodyRefCount {
-    count: u32,
 }
 pub struct RapierArea {
     gravity_override_mode: AreaSpaceOverrideMode,
@@ -44,7 +41,7 @@ pub struct RapierArea {
     monitor_callback: Callable,
     area_monitor_callback: Callable,
     monitored_objects: HashMap<(ColliderHandle, ColliderHandle), MonitorInfo>,
-    detected_bodies: HashMap<Rid, BodyRefCount>,
+    detected_bodies: HashMap<Rid, u32>,
     base: RapierCollisionObject,
 }
 impl RapierArea {
@@ -129,11 +126,11 @@ impl RapierArea {
             if let Some(body) = body.get_mut_body() {
                 // Add to keep track of currently detected bodies
                 if let Some(detected_body) = self.detected_bodies.get_mut(&body_rid) {
-                    detected_body.count += 1;
+                    *detected_body += 1;
                 }
                 else {
                     self.detected_bodies
-                        .insert(body_rid, BodyRefCount { count: 1 });
+                        .insert(body_rid, 1);
                     body.add_area(self.base.get_rid())
                 }
                 if self.monitor_callback.is_null() {
@@ -179,8 +176,8 @@ impl RapierArea {
         if update_detection {
             // Remove from currently detected bodies
             if let Some(detected_body) = self.detected_bodies.get_mut(&body_rid) {
-                detected_body.count -= 1;
-                if detected_body.count == 0 {
+                *detected_body -= 1;
+                if *detected_body == 0 {
                     self.detected_bodies.remove(&body_rid);
                     if let Some(body) = body {
                         if let Some(body) = body.get_mut_body() {
@@ -369,7 +366,7 @@ impl RapierArea {
                 }
             }
             AreaParameter::GRAVITY_VECTOR => {
-                let new_gravity_vector = p_value.to();
+                let new_gravity_vector = vector_to_rapier(p_value.to());
                 if self.gravity_vector != new_gravity_vector {
                     self.gravity_vector = new_gravity_vector;
                     if self.gravity_override_mode != AreaSpaceOverrideMode::DISABLED {
@@ -484,7 +481,7 @@ impl RapierArea {
         match p_param {
             AreaParameter::GRAVITY_OVERRIDE_MODE => self.gravity_override_mode.to_variant(),
             AreaParameter::GRAVITY => self.gravity.to_variant(),
-            AreaParameter::GRAVITY_VECTOR => self.gravity_vector.to_variant(),
+            AreaParameter::GRAVITY_VECTOR => vector_to_godot(self.gravity_vector).to_variant(),
             AreaParameter::GRAVITY_IS_POINT => self.gravity_is_point.to_variant(),
             AreaParameter::GRAVITY_POINT_UNIT_DISTANCE => {
                 self.gravity_point_unit_distance.to_variant()
@@ -556,19 +553,19 @@ impl RapierArea {
     pub fn compute_gravity(&self, position: Vector<Real>) -> Vector<Real> {
         if self.gravity_is_point {
             let gr_unit_dist = self.get_gravity_point_unit_distance();
-            let v = self.get_base().get_transform() * self.gravity_vector - position;
+            let v = self.get_base().get_transform().isometry * self.gravity_vector - position;
             if gr_unit_dist > 0.0 {
-                let v_length_sq = v.length_squared();
+                let v_length_sq = v.norm_squared();
                 if v_length_sq > 0.0 {
                     let gravity_strength = self.gravity * gr_unit_dist * gr_unit_dist / v_length_sq;
-                    v.normalized() * gravity_strength
+                    v.normalize() * gravity_strength
                 }
                 else {
                     Vector::default()
                 }
             }
             else {
-                v.normalized() * self.gravity
+                v.normalize() * self.gravity
             }
         }
         else {

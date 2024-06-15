@@ -1,61 +1,6 @@
 use rapier::prelude::*;
+use super::transform::Transform;
 
-#[cfg(feature = "convert_pixels_to_meters")]
-const PIXELS_PER_METER: Real = 128.0;
-#[cfg(feature = "convert_pixels_to_meters")]
-const METERS_PER_PIXEL: Real = 1.0 / 128.0;
-#[cfg(not(feature = "convert_pixels_to_meters"))]
-pub fn pixels_to_meters(x: Real) -> Real {
-    x
-}
-#[cfg(not(feature = "convert_pixels_to_meters"))]
-pub fn vector_pixels_to_meters(v: Vector<Real>) -> Vector<Real> {
-    v
-}
-#[cfg(not(feature = "convert_pixels_to_meters"))]
-pub fn angle_pixels_to_meters(v: AngVector<Real>) -> AngVector<Real> {
-    v
-}
-#[cfg(not(feature = "convert_pixels_to_meters"))]
-pub fn angle_meters_to_pixels(v: AngVector<Real>) -> AngVector<Real> {
-    v
-}
-#[cfg(not(feature = "convert_pixels_to_meters"))]
-pub fn meters_to_pixels(x: Real) -> Real {
-    x
-}
-#[cfg(not(feature = "convert_pixels_to_meters"))]
-pub fn tangent_meters_to_pixels(x: TangentImpulse<Real>) -> TangentImpulse<Real> {
-    x
-}
-#[cfg(not(feature = "convert_pixels_to_meters"))]
-pub fn vector_meters_to_pixels(v: Vector<Real>) -> Vector<Real> {
-    v
-}
-#[cfg(feature = "convert_pixels_to_meters")]
-pub fn pixels_to_meters(x: Real) -> Real {
-    METERS_PER_PIXEL * x
-}
-#[cfg(feature = "convert_pixels_to_meters")]
-pub fn vector_pixels_to_meters(v: Vector<Real>) -> Vector<Real> {
-    v * METERS_PER_PIXEL
-}
-#[cfg(feature = "convert_pixels_to_meters")]
-pub fn angle_pixels_to_meters(v: AngVector<Real>) -> AngVector<Real> {
-    v * METERS_PER_PIXEL
-}
-#[cfg(feature = "convert_pixels_to_meters")]
-pub fn angle_meters_to_pixels(v: AngVector<Real>) -> AngVector<Real> {
-    v * PIXELS_PER_METER
-}
-#[cfg(feature = "convert_pixels_to_meters")]
-pub fn meters_to_pixels(x: Real) -> Real {
-    PIXELS_PER_METER * x
-}
-#[cfg(feature = "convert_pixels_to_meters")]
-pub fn vector_meters_to_pixels(v: Vector<Real>) -> Vector<Real> {
-    v * PIXELS_PER_METER
-}
 #[cfg(feature = "dim3")]
 pub fn vector_to_rapier(vec: crate::Vector3) -> nalgebra::Vector3<Real> {
     nalgebra::Vector3::<Real>::new(vec.x, vec.y, vec.z)
@@ -64,6 +9,38 @@ pub fn vector_to_rapier(vec: crate::Vector3) -> nalgebra::Vector3<Real> {
 pub fn vector_to_rapier(vec: crate::Vector2) -> nalgebra::Vector2<Real> {
     nalgebra::Vector2::<Real>::new(vec.x, vec.y)
 }
+#[cfg(feature = "dim2")]
+pub fn transform_to_rapier(transform: crate::Transform2D) -> Transform {
+    let a = transform.a;
+    let b = transform.b;
+    let origin = vector_to_rapier(transform.origin);
+    let isometry = Isometry::from_parts(translation, rotation);
+    transform.scale()
+    isometry.rotation = Rotation::from_matrix(m)
+    let rotation = isometry.rotation;
+    rotation.
+    return Transform {
+        isometry: Isometry::new(origin, transform.rotation().angle()),
+        scale: vector_to_rapier(transform.scale()),
+    }
+}
+#[cfg(feature = "dim3")]
+pub fn transform_to_rapier(transform: crate::Transform3D) -> Transform {
+    transform.basis.rows
+    transform.basis.col_a()
+    let a = transform.a;
+    let b = transform.b;
+    let origin = vector_to_rapier(transform.origin);
+    let isometry = Isometry::from_parts(translation, rotation);
+    isometry.rotation = Rotation::from_matrix(m)
+    let rotation = isometry.rotation;
+    rotation.
+    return Transform {
+        isometry: Isometry::new(origin, transform.rotation().angle()),
+        scale: vector_to_rapier(transform.scale()),
+    }
+}
+
 #[cfg(feature = "dim3")]
 pub fn vector_to_godot(vec: nalgebra::Vector3<Real>) -> crate::Vector {
     crate::Vector::new(vec.x, vec.y, vec.z)
@@ -88,4 +65,14 @@ pub fn angle_to_rapier(angle: Real) -> Real {
 #[cfg(feature = "dim2")]
 pub fn angle_to_godot(angle: Real) -> Real {
     angle
+}
+
+#[cfg(feature = "dim2")]
+pub fn angle_cross(vec1: Vector<Real>, vec2: Vector<Real>) -> Real {
+    return vec1.perp(&vec2);
+}
+
+#[cfg(feature = "dim3")]
+pub fn angle_cross(vec1: Vector<Real>, vec2: Vector<Real>) -> Vector<Real> {
+    return vec1.cross(&vec2);
 }

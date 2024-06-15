@@ -3,10 +3,9 @@ use nalgebra::Transform;
 use rapier::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
-pub fn pixel_point_array_to_vec(pixel_data: Vec<Vector<Real>>) -> Vec<Point<Real>> {
+pub fn point_array_to_vec(pixel_data: Vec<Vector<Real>>) -> Vec<Point<Real>> {
     let mut vec = Vec::<Point<Real>>::with_capacity(pixel_data.len());
-    for pixel_point in pixel_data {
-        let point = vector_pixels_to_meters(pixel_point);
+    for point in pixel_data {
         vec.push(Point::<Real> { coords: point });
     }
     vec

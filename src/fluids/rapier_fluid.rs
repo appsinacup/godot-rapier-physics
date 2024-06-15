@@ -1,10 +1,10 @@
 use std::collections::VecDeque;
 
 use godot::prelude::*;
+use rapier::math::{Real, Vector};
 
 use super::fluid_effect::FluidEffect;
 use crate::rapier_wrapper::prelude::*;
-use crate::Vector;
 pub struct RapierFluid {
     rid: Rid,
     enabled: bool,
@@ -12,9 +12,9 @@ pub struct RapierFluid {
     space: Rid,
     effects: Array<Gd<FluidEffect>>,
     fluid_handle: HandleDouble,
-    points: Vec<Vector>,
-    velocities: Vec<Vector>,
-    accelerations: Vec<Vector>,
+    points: Vec<Vector<Real>>,
+    velocities: Vec<Vector<Real>>,
+    accelerations: Vec<Vector<Real>>,
 }
 impl RapierFluid {
     pub fn new(rid: Rid) -> Self {
@@ -31,16 +31,16 @@ impl RapierFluid {
         }
     }
 
-    pub fn set_points(&mut self, points: Vec<Vector>) {
+    pub fn set_points(&mut self, points: Vec<Vector<Real>>) {
         self.points = points;
     }
 
-    pub fn set_points_and_velocities(&mut self, points: Vec<Vector>, velocities: Vec<Vector>) {
+    pub fn set_points_and_velocities(&mut self, points: Vec<Vector<Real>>, velocities: Vec<Vector<Real>>) {
         self.points = points;
         self.velocities = velocities;
     }
 
-    pub fn add_points_and_velocities(&mut self, points: Vec<Vector>, velocities: Vec<Vector>) {
+    pub fn add_points_and_velocities(&mut self, points: Vec<Vector<Real>>, velocities: Vec<Vector<Real>>) {
         self.points.extend(points);
         self.velocities.extend(velocities);
     }
@@ -56,15 +56,15 @@ impl RapierFluid {
         }
     }
 
-    pub fn get_points(&self) -> Vec<Vector> {
+    pub fn get_points(&self) -> Vec<Vector<Real>> {
         self.points.clone()
     }
 
-    pub fn get_velocities(&self) -> Vec<Vector> {
+    pub fn get_velocities(&self) -> Vec<Vector<Real>> {
         self.velocities.clone()
     }
 
-    pub fn get_accelerations(&self) -> Vec<Vector> {
+    pub fn get_accelerations(&self) -> Vec<Vector<Real>> {
         self.accelerations.clone()
     }
 

@@ -10,6 +10,7 @@ pub mod physics_world;
 pub mod prelude;
 pub mod query;
 pub mod settings;
+pub mod transform;
 pub mod shape;
 #[cfg(feature = "dim2")]
 pub mod shape_2d;

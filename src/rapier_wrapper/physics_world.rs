@@ -5,7 +5,6 @@ use rapier::counters::Counters;
 use rapier::crossbeam;
 use rapier::data::Arena;
 use rapier::prelude::*;
-use rapier::utils::SimdBasis;
 use salva::integrations::rapier::FluidsPipeline;
 use serde::Deserialize;
 use serde::Serialize;
@@ -92,7 +91,7 @@ impl PhysicsWorld {
             },
             physics_pipeline,
             fluids_pipeline: FluidsPipeline::new(
-                pixels_to_meters(settings.particle_radius),
+                settings.particle_radius,
                 settings.smoothing_factor,
             ),
         }
@@ -121,8 +120,8 @@ impl PhysicsWorld {
         integration_parameters.num_additional_friction_iterations =
             settings.num_additional_friction_iterations;
         integration_parameters.num_internal_pgs_iterations = settings.num_internal_pgs_iterations;
-        let gravity = vector_pixels_to_meters(settings.pixel_gravity);
-        let liquid_gravity = vector_pixels_to_meters(settings.pixel_liquid_gravity);
+        let gravity = settings.pixel_gravity;
+        let liquid_gravity = settings.pixel_liquid_gravity;
         let physics_hooks = PhysicsHooksCollisionFilter {
             collision_filter_body_callback: &collision_filter_body_callback,
             collision_filter_sensor_callback: &collision_filter_sensor_callback,
@@ -232,28 +231,28 @@ impl PhysicsWorld {
                         let point_velocity_2 = body2.velocity_at_point(&collider_pos_2);
                         if swap {
                             contact_info.pixel_local_pos_1 =
-                                vector_meters_to_pixels(collider_pos_2.coords);
+                                collider_pos_2.coords;
                             contact_info.pixel_local_pos_2 =
-                                vector_meters_to_pixels(collider_pos_1.coords);
+                                collider_pos_1.coords;
                             contact_info.pixel_velocity_pos_1 =
-                                vector_meters_to_pixels(point_velocity_2);
+                                point_velocity_2;
                             contact_info.pixel_velocity_pos_2 =
-                                vector_meters_to_pixels(point_velocity_1);
+                                point_velocity_1;
                         }
                         else {
                             contact_info.pixel_local_pos_1 =
-                                vector_meters_to_pixels(collider_pos_1.coords);
+                                collider_pos_1.coords;
                             contact_info.pixel_local_pos_2 =
-                                vector_meters_to_pixels(collider_pos_2.coords);
+                                collider_pos_2.coords;
                             contact_info.pixel_velocity_pos_1 =
-                                vector_meters_to_pixels(point_velocity_1);
+                                point_velocity_1;
                             contact_info.pixel_velocity_pos_2 =
-                                vector_meters_to_pixels(point_velocity_2);
+                                point_velocity_2;
                         }
-                        contact_info.pixel_distance = meters_to_pixels(contact_point.dist);
-                        contact_info.pixel_impulse = meters_to_pixels(contact_point.data.impulse);
+                        contact_info.pixel_distance = contact_point.dist;
+                        contact_info.pixel_impulse = contact_point.data.impulse;
                         contact_info.pixel_tangent_impulse =
-                            tangent_meters_to_pixels(contact_point.data.tangent_impulse);
+                            contact_point.data.tangent_impulse;
                         send_contact_points =
                             (contact_point_callback)(&contact_info, &event_info, space);
                         if !send_contact_points {

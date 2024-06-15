@@ -389,8 +389,8 @@ impl RapierSpace {
         event_info: &ContactForceEventInfo,
         space: &mut RapierSpace,
     ) -> bool {
-        let pos1 = vector_to_godot(contact_info.pixel_local_pos_1);
-        let pos2 = vector_to_godot(contact_info.pixel_local_pos_2);
+        let pos1 = contact_info.pixel_local_pos_1;
+        let pos2 = contact_info.pixel_local_pos_2;
         let mut keep_sending_contacts = false;
         if space.is_debugging_contacts() {
             keep_sending_contacts = true;
@@ -406,13 +406,13 @@ impl RapierSpace {
             .get_many_mut([&p_object1, &p_object2])
         {
             let depth = real::max(0.0, -contact_info.pixel_distance); // negative distance means penetration
-            let normal = vector_to_godot(contact_info.normal);
+            let normal = contact_info.normal;
             // TODO calculate impulse for 2d and 3d
-            let tangent = vector_to_godot(contact_info.normal.orthonormal_vector());
+            let tangent = contact_info.normal.orthonormal_vector();
             let impulse =
                 contact_info.pixel_impulse * normal + contact_info.pixel_tangent_impulse.x * tangent;
-            let vel_pos1 = vector_to_godot(contact_info.pixel_velocity_pos_1);
-            let vel_pos2 = vector_to_godot(contact_info.pixel_velocity_pos_2);
+            let vel_pos1 = contact_info.pixel_velocity_pos_1;
+            let vel_pos2 = contact_info.pixel_velocity_pos_2;
             if let Some(body1) = p_object1.get_mut_body() {
                 if let Some(body2) = p_object2.get_mut_body() {
                     if body1.can_report_contacts() {

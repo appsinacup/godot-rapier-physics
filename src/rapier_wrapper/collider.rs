@@ -185,7 +185,7 @@ pub fn collider_create_solid(
         collider.set_friction_combine_rule(CoefficientCombineRule::Multiply);
         collider.set_restitution_combine_rule(CoefficientCombineRule::Max);
         collider.set_density(0.0);
-        collider.set_contact_skin(pixels_to_meters(mat.contact_skin));
+        collider.set_contact_skin(mat.contact_skin);
         collider.set_contact_force_event_threshold(-Real::MAX);
         collider.user_data = user_data.get_data();
         collider.set_active_hooks(
@@ -257,7 +257,7 @@ pub fn collider_get_position(
             .get(collider_handle)
         {
             let collider_vector = collider.translation();
-            return vector_meters_to_pixels(*collider_vector);
+            return *collider_vector;
         }
     }
     Vector::default()

@@ -19,7 +19,7 @@ pub trait IRapierShape: Any {
     fn create_rapier_shape(&mut self) -> Handle;
     fn set_data(&mut self, data: Variant);
     fn get_data(&self) -> Variant;
-    fn get_rapier_shape(&mut self) -> Handle;
+    fn get_handle(&mut self) -> Handle;
 }
 #[derive(Debug)]
 pub struct RapierShapeBase {
@@ -29,7 +29,7 @@ pub struct RapierShapeBase {
     handle: Handle,
 }
 impl RapierShapeBase {
-    pub fn new(rid: Rid) -> Self {
+    pub(super) fn new(rid: Rid) -> Self {
         Self {
             rid,
             aabb: rapier::geometry::Aabb::new_invalid(),
@@ -38,7 +38,11 @@ impl RapierShapeBase {
         }
     }
 
-    pub fn set_handle(&mut self, handle: Handle) {
+    pub(super) fn set_handle(&mut self, handle: Handle) {
+        if self.handle.is_valid() {
+            self.destroy_rapier_shape();
+            self.aabb = rapier::geometry::Aabb::new_invalid();
+        }
         self.handle = handle;
     }
 
@@ -88,7 +92,7 @@ impl RapierShapeBase {
         self.rid
     }
 
-    pub fn destroy_rapier_shape(&mut self) {
+    fn destroy_rapier_shape(&mut self) {
         if self.handle.is_valid() {
             shape_destroy(self.handle);
             self.handle = invalid_handle();

@@ -78,7 +78,7 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
         }
         if one_way_direction.body1 {
             let motion_len = body2.linvel().magnitude();
-            let body_margin1 = pixels_to_meters(one_way_direction.pixel_body1_margin);
+            let body_margin1 = one_way_direction.pixel_body1_margin;
             let max_allowed = motion_len
                 * Real::max(body2.linvel().normalize().dot(&allowed_local_n1), 0.0)
                 + body_margin1;
@@ -87,7 +87,7 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
         }
         else if one_way_direction.body2 {
             let motion_len = body1.linvel().magnitude();
-            let body_margin2 = pixels_to_meters(one_way_direction.pixel_body2_margin);
+            let body_margin2 = one_way_direction.pixel_body2_margin;
             let max_allowed = motion_len
                 * Real::max(body1.linvel().normalize().dot(&allowed_local_n2), 0.0)
                 + body_margin2;

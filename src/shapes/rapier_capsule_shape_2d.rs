@@ -1,7 +1,6 @@
 use godot::classes::physics_server_2d::*;
 use godot::prelude::*;
 use rapier::math::{Real, Vector};
-use rapier::na::Point2;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::*;
@@ -65,7 +64,11 @@ impl IRapierShape for RapierCapsuleShape2D {
                 return;
             }
         }
-        self.base.configure(rapier::geometry::Aabb::new(-he, he));
+        let base = self.base;
+        if base.get_handle().is_valid() {
+            base.destroy_rapier_shape();
+        }
+        base.configure(self.create_rapier_shape());
     }
 
     fn get_data(&self) -> Variant {
