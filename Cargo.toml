@@ -28,7 +28,7 @@ double_dim3 = ["double", "dim3", "rapier3d-f64", "salva3d"]
 
 [dependencies]
 bincode = "1"
-godot = { git = "https://github.com/godot-rust/gdext", branch = "bugfix/native-structure-objects", features=[] }
+godot = { git = "https://github.com/ughuuu/gdext", branch = "bugfix/native-structure-objects", features=[] }
 
 rapier2d = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"], optional = true}
 rapier2d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"], optional = true}

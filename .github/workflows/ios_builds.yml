@@ -11,8 +11,7 @@ jobs:
       matrix:
         arch: ["aarch64-apple-ios"]
         precision: [single]
-        #dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
-        dimensions: [{"feature": "dim2", "short": "2d"}]
+        dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
         features: [{"feature":"parallel,simd-stable", "name": "simd-parallel"}, {"feature":"enhanced-determinism", "name": "enhanced-determinism"}]
 
     steps:

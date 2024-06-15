@@ -12,4 +12,3 @@ pub use super::shape::*;
 #[cfg(feature = "dim2")]
 pub use super::shape_2d::*;
 pub use super::user_data::*;
-pub use super::*;

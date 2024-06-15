@@ -1,6 +1,7 @@
 use std::any::Any;
 
-use bodies::{transform_rotation, transform_rotation_rapier, transform_scale};
+use bodies::transform_rotation_rapier;
+use bodies::transform_update;
 #[cfg(feature = "dim2")]
 use godot::engine::physics_server_2d::*;
 #[cfg(feature = "dim3")]
@@ -8,7 +9,6 @@ use godot::engine::physics_server_3d::*;
 use godot::prelude::*;
 use rapier::dynamics::RigidBodyHandle;
 use rapier::geometry::ColliderHandle;
-use rapier::math::Isometry;
 
 use super::rapier_area::RapierArea;
 use super::rapier_body::RapierBody;
@@ -215,11 +215,11 @@ impl RapierCollisionObject {
         }
         let position = body_get_position(self.space_handle, self.body_handle);
         let angle = body_get_angle(self.space_handle, self.body_handle);
-        let origin = Vector2::new(position.x, position.y);
-        self.transform.origin = origin;
-        // TODO set rest
-        // Transform::from_angle_scale_skew_origin(angle, self.transform.scale(), skew, origin);
-        // TODO check determinant is not 0
+        self.transform = transform_update(
+            &self.transform,
+            angle_to_godot(angle),
+            vector_to_godot(position),
+        );
         self.inv_transform = self.transform.affine_inverse();
     }
 

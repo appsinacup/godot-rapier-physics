@@ -101,7 +101,8 @@ pub fn body_get_position(world_handle: Handle, body_handle: RigidBodyHandle) -> 
     }
     Vector::default()
 }
-pub fn body_get_angle(world_handle: Handle, body_handle: RigidBodyHandle) -> Real {
+#[cfg(feature = "dim3")]
+pub fn body_get_angle(world_handle: Handle, body_handle: RigidBodyHandle) -> AngVector<Real> {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = body_handle;
@@ -110,10 +111,27 @@ pub fn body_get_angle(world_handle: Handle, body_handle: RigidBodyHandle) -> Rea
             .rigid_body_set
             .get(rigid_body_handle)
         {
-            return body.rotation().angle();
+            let rotation = body.rotation().euler_angles();
+            return AngVector::new(rotation.0, rotation.1, rotation.2);
         }
     }
-    0.0
+    ANG_ZERO
+}
+#[cfg(feature = "dim2")]
+pub fn body_get_angle(world_handle: Handle, body_handle: RigidBodyHandle) -> AngVector<Real> {
+    let physics_engine = physics_engine();
+    if let Some(physics_world) = physics_engine.get_world(world_handle) {
+        let rigid_body_handle = body_handle;
+        if let Some(body) = physics_world
+            .physics_objects
+            .rigid_body_set
+            .get(rigid_body_handle)
+        {
+            let rotation = body.rotation().angle();
+            return rotation;
+        }
+    }
+    ANG_ZERO
 }
 pub fn body_set_transform(
     world_handle: Handle,

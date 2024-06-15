@@ -213,9 +213,9 @@ pub fn shape_collide(
     let mut result = ShapeCastResult::new();
     let physics_engine = physics_engine();
     if let Some(raw_shared_shape1) = physics_engine.get_shape(shape_info1.handle) {
-        let shared_shape1 = scale_shape(&raw_shared_shape1, shape_info1);
+        let shared_shape1 = scale_shape(raw_shared_shape1, shape_info1);
         if let Some(raw_shared_shape2) = physics_engine.get_shape(shape_info2.handle) {
-            let shared_shape2 = scale_shape(&raw_shared_shape2, shape_info2);
+            let shared_shape2 = scale_shape(raw_shared_shape2, shape_info2);
             let shape_transform1 = shape_info1.transform;
             let shape_transform2 = shape_info2.transform;
             let mut shape_cast_options = ShapeCastOptions::default();
@@ -259,7 +259,7 @@ pub fn shape_casting(
     let mut result = ShapeCastResult::new();
     let physics_engine = physics_engine();
     if let Some(raw_shared_shape) = physics_engine.get_shape(shape_info.handle) {
-        let shared_shape = scale_shape(&raw_shared_shape, shape_info);
+        let shared_shape = scale_shape(raw_shared_shape, shape_info);
         if let Some(physics_world) = physics_engine.get_world(world_handle) {
             let shape_transform = shape_info.transform;
             let mut filter = QueryFilter::new();
@@ -373,9 +373,9 @@ pub fn shapes_contact(
     //let prediction = Real::max(0.002, margin);
     let prediction = margin;
     if let Some(raw_shared_shape1) = physics_engine.get_shape(shape_info1.handle) {
-        let shared_shape1 = scale_shape(&raw_shared_shape1, shape_info1);
+        let shared_shape1 = scale_shape(raw_shared_shape1, shape_info1);
         if let Some(raw_shared_shape2) = physics_engine.get_shape(shape_info2.handle) {
-            let shared_shape2 = scale_shape(&raw_shared_shape2, shape_info2);
+            let shared_shape2 = scale_shape(raw_shared_shape2, shape_info2);
             let shape_transform1 = shape_info1.transform;
             let shape_transform2 = shape_info2.transform;
             if let Ok(Some(contact)) = parry::query::contact(

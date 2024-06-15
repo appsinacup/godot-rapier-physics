@@ -1,4 +1,3 @@
-use godot::engine::PhysicsServer2DManager;
 use godot::prelude::*;
 
 use crate::servers::rapier_project_settings::RapierProjectSettings;
@@ -19,6 +18,7 @@ pub type RapierPhysicsServer = rapier_physics_server_2d::RapierPhysicsServer2D;
 pub type RapierPhysicsServer = rapier_physics_server_3d::RapierPhysicsServer3D;
 #[cfg(feature = "dim2")]
 pub fn register_server() {
+    use godot::engine::PhysicsServer2DManager;
     let mut manager = PhysicsServer2DManager::singleton();
     let factory =
         crate::servers::rapier_physics_server_factory_2d::RapierPhysicsServerFactory2D::new_alloc();
@@ -26,7 +26,8 @@ pub fn register_server() {
 }
 #[cfg(feature = "dim3")]
 pub fn register_server() {
-    let mut manager = PhysicsServer2DManager::singleton();
+    use godot::engine::PhysicsServer3DManager;
+    let mut manager = PhysicsServer3DManager::singleton();
     let factory =
         crate::servers::rapier_physics_server_factory_3d::RapierPhysicsServerFactory3D::new_alloc();
     manager.register_server("Rapier3D".into(), factory.callable("create_server"));

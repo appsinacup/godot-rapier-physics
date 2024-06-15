@@ -1,14 +1,10 @@
-use std::ffi::c_void;
-
 use godot::classes::IPhysicsServer3DExtension;
 use godot::classes::PhysicsServer3DExtension;
 use godot::classes::ProjectSettings;
 use godot::classes::{self};
-use godot::engine::native::PhysicsServer3DExtensionMotionResult;
 use godot::engine::utilities::rid_allocate_id;
 use godot::engine::utilities::rid_from_int64;
 use godot::prelude::*;
-use rapier::math::Real;
 
 use super::rapier_physics_singleton::active_spaces_singleton;
 use super::rapier_physics_singleton::bodies_singleton;
@@ -20,7 +16,6 @@ use super::rapier_project_settings::RapierProjectSettings;
 use crate::bodies::rapier_area::RapierArea;
 use crate::bodies::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
-use crate::fluids::rapier_fluid::RapierFluid;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::joints::rapier_joint::RapierEmptyJoint;
 use crate::rapier_wrapper::prelude::*;
@@ -957,8 +952,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
             //let default_linear_damping: real = project_settings.get_setting_with_override("physics/2d/default_linear_damp".into()).to();
             //let default_angular_damping: real = project_settings.get_setting_with_override("physics/2d/default_angular_damp".into()).to();
             let settings = SimulationSettings {
-                pixel_liquid_gravity: vector_to_rapier(default_gravity_dir)
-                    * default_gravity_value,
+                pixel_liquid_gravity: vector_to_rapier(default_gravity_dir) * default_gravity_value,
                 dt: step,
                 length_unit: RapierProjectSettings::get_length_unit(),
                 pixel_gravity: vector_to_rapier(default_gravity_dir) * default_gravity_value,

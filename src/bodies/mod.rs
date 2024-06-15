@@ -13,31 +13,57 @@ pub type PhysicsDirectBodyState = godot::engine::PhysicsDirectBodyState2D;
 pub type RapierDirectBodyState = rapier_direct_body_state_3d::RapierDirectBodyState3D;
 #[cfg(feature = "dim3")]
 pub type PhysicsDirectBodyState = godot::engine::PhysicsDirectBodyState3D;
-
 #[cfg(feature = "dim3")]
-pub fn transform_scale(transform : &godot::builtin::Transform3D) -> godot::builtin::Vector3 {
-    return transform.basis.scale()
+pub fn transform_scale(transform: &crate::Transform) -> crate::Vector {
+    transform.basis.scale()
 }
 #[cfg(feature = "dim2")]
-pub fn transform_scale(transform : &godot::builtin::Transform2D) -> godot::builtin::Vector2 {
-    return transform.scale()
+pub fn transform_scale(transform: &crate::Transform) -> crate::Vector {
+    transform.scale()
 }
 #[cfg(feature = "dim3")]
-pub fn transform_rotation(transform : &godot::builtin::Transform3D) -> godot::builtin::Vector3 {
-    return transform.basis.to_euler(godot::builtin::EulerOrder::XYZ)
+pub fn transform_rotation(transform: &crate::Transform) -> crate::Vector {
+    transform.basis.to_euler(godot::builtin::EulerOrder::XYZ)
 }
 #[cfg(feature = "dim2")]
-pub fn transform_rotation(transform : &godot::builtin::Transform2D) -> real {
-    return transform.rotation()
+pub fn transform_update(
+    transform: &crate::Transform,
+    rotation: crate::Angle,
+    origin: crate::Vector,
+) -> crate::Transform {
+    use crate::Transform;
+    Transform::from_angle_scale_skew_origin(rotation, transform.scale(), transform.skew(), origin)
 }
 #[cfg(feature = "dim3")]
-pub fn transform_rotation_rapier(transform : &godot::builtin::Transform3D) -> rapier::math::AngVector<rapier::math::Real> {
+pub fn transform_update(
+    transform: &crate::Transform,
+    rotation: crate::Angle,
+    origin: crate::Vector,
+) -> crate::Transform {
+    use godot::builtin::Basis;
+    use godot::builtin::EulerOrder;
 
+    use crate::Transform;
+    let new_transform = Transform::new(Basis::from_euler(EulerOrder::XYZ, rotation), origin);
+    let scale = transform.basis.scale();
+    new_transform.scaled_local(scale)
+}
+#[cfg(feature = "dim2")]
+pub fn transform_rotation(
+    transform: &godot::builtin::Transform2D,
+) -> rapier::math::AngVector<rapier::math::Real> {
+    transform.rotation()
+}
+#[cfg(feature = "dim3")]
+pub fn transform_rotation_rapier(
+    transform: &godot::builtin::Transform3D,
+) -> rapier::math::AngVector<rapier::math::Real> {
     use crate::rapier_wrapper::convert::vector_to_rapier;
-
-    return vector_to_rapier(transform.basis.to_euler(godot::builtin::EulerOrder::XYZ))
+    vector_to_rapier(transform.basis.to_euler(godot::builtin::EulerOrder::XYZ))
 }
 #[cfg(feature = "dim2")]
-pub fn transform_rotation_rapier(transform : &godot::builtin::Transform2D) -> real {
-    return transform.rotation()
+pub fn transform_rotation_rapier(
+    transform: &godot::builtin::Transform2D,
+) -> rapier::math::AngVector<rapier::math::Real> {
+    transform.rotation()
 }

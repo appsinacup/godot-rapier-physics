@@ -7,6 +7,7 @@ use godot::classes::physics_server_2d::*;
 use godot::classes::physics_server_3d::*;
 use godot::prelude::*;
 use rapier::geometry::ColliderHandle;
+use rapier::math::Real;
 
 use super::rapier_area::RapierArea;
 use super::PhysicsDirectBodyState;
@@ -1325,14 +1326,60 @@ impl RapierBody {
                         let shape_mass = shape_area * self.mass / total_area;
                         let mtx = self.base.get_shape_transform(i);
                         let scale = transform_scale(&mtx);
-                        let shape_origin = mtx.origin - self.center_of_mass;
-                        self.inertia += shape.get_moment_of_inertia(shape_mass, scale)
-                            + shape_mass * shape_origin.length_squared();
+                        self.inertia += self.get_inertia_for_shape(
+                            shape.get_moment_of_inertia(shape_mass, scale),
+                            shape_mass,
+                            mtx,
+                            i,
+                        );
                     }
                 }
             }
         }
         self._apply_mass_properties(force_update);
+    }
+
+    #[cfg(feature = "dim2")]
+    fn get_inertia_for_shape(
+        &self,
+        moment_of_inertia: Angle,
+        shape_mass: Real,
+        shape_transform: Transform,
+        i: usize,
+    ) -> Real {
+        let mtx = shape_transform;
+        let scale = transform_scale(&mtx);
+        let shape_origin = mtx.origin - self.center_of_mass;
+        moment_of_inertia + shape_mass * shape_origin.length_squared()
+    }
+
+    #[cfg(feature = "dim3")]
+    fn get_inertia_for_shape(
+        &self,
+        moment_of_inertia: Angle,
+        shape_mass: Real,
+        shape_transform: Transform,
+        i: usize,
+    ) -> Vector3 {
+        let mut shape_inertia_tensor = Basis::from_scale(moment_of_inertia);
+        let shape_transform = shape_transform;
+        let shape_basis = shape_transform.basis.orthonormalized();
+        // NOTE: we don't take the scale of collision shapes into account when computing the inertia tensor!
+        shape_inertia_tensor = shape_basis * shape_inertia_tensor * shape_basis.transposed();
+        let shape_origin = shape_transform.origin - self.center_of_mass;
+        let shape_outer = shape_origin.outer(shape_origin);
+        let mut shape_dot = Basis::IDENTITY * (shape_origin.dot(shape_origin));
+        shape_dot.set_col_a(shape_dot.col_a() - shape_outer.col_a());
+        shape_dot.set_col_b(shape_dot.col_b() - shape_outer.col_b());
+        shape_dot.set_col_c(shape_dot.col_c() - shape_outer.col_c());
+        shape_dot *= shape_mass;
+        let mut inertia_tensor = shape_inertia_tensor;
+        inertia_tensor.set_col_a(inertia_tensor.col_a() + shape_dot.col_a());
+        inertia_tensor.set_col_b(inertia_tensor.col_b() + shape_dot.col_b());
+        inertia_tensor.set_col_c(inertia_tensor.col_c() + shape_dot.col_c());
+        //return inertia_tensor.diagonalize().transposed();
+        // TODO
+        moment_of_inertia
     }
 
     pub fn reset_mass_properties(&mut self) {
@@ -1367,11 +1414,16 @@ impl RapierBody {
     #[cfg(feature = "dim3")]
     pub fn get_inv_inertia(&self) -> Angle {
         if self.inertia != ANGLE_ZERO {
-            return Vector3::new(1.0 / self.inertia.x, 1.0 / self.inertia.y, 1.0 / self.inertia.z);
+            return Vector3::new(
+                1.0 / self.inertia.x,
+                1.0 / self.inertia.y,
+                1.0 / self.inertia.z,
+            );
         }
         ANGLE_ZERO
     }
 
+    #[cfg(feature = "dim2")]
     pub fn get_velocity_at_local_point(&self, rel_pos: Vector) -> Vector {
         let linear_velocity = self.get_linear_velocity();
         let angular_velocity = self.get_angular_velocity();
@@ -1380,6 +1432,13 @@ impl RapierBody {
                 -angular_velocity * (rel_pos.y - self.center_of_mass.y),
                 angular_velocity * (rel_pos.x - self.center_of_mass.x),
             )
+    }
+
+    #[cfg(feature = "dim3")]
+    pub fn get_velocity_at_local_point(&self, rel_pos: Vector) -> Vector {
+        let linear_velocity = self.get_linear_velocity();
+        let angular_velocity = self.get_angular_velocity();
+        linear_velocity + angular_velocity.cross(rel_pos - self.center_of_mass)
     }
 
     pub fn get_aabb(&self) -> Rect {

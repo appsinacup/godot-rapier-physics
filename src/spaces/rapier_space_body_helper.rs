@@ -402,13 +402,17 @@ impl RapierSpace {
                                 let step_contact =
                                     shapes_contact(body_shape_info, col_shape_info, 0.0);
                                 if step_contact.collided && !step_contact.within_margin {
-                                    if body_shape.allows_one_way_collision() && collision_body
+                                    if body_shape.allows_one_way_collision()
+                                        && collision_body
                                             .get_base()
-                                            .is_shape_set_as_one_way_collision(shape_index) && !col_shape_transform.b.is_zero_approx() && !p_motion.is_zero_approx() {
-                                        let direction = col_shape_transform.b.normalized();
-                                        if p_motion.normalized().dot(direction) <= 0.0 {
-                                            continue;
-                                        }
+                                            .is_shape_set_as_one_way_collision(shape_index)
+                                        && !p_motion.is_zero_approx()
+                                    {
+                                        // TODO re-enable this
+                                        //let direction = col_shape_transform.b.normalized();
+                                        //if p_motion.normalized().dot(direction) <= 0.0 {
+                                        //    continue;
+                                        //}
                                     }
                                     *p_closest_safe = 0.0;
                                     *p_closest_unsafe = 0.0;
@@ -613,26 +617,57 @@ impl RapierSpace {
                 p_result.travel +=
                     best_collision_body.get_static_linear_velocity() * RapierSpace::get_last_step();
             }
-            p_result.collider = best_collision_body.get_base().get_rid();
-            p_result.collider_id = ObjectId {
-                id: best_collision_body.get_base().get_instance_id(),
-            };
-            p_result.collider_shape = best_collision_shape_index;
-            p_result.collision_local_shape = best_body_shape_index;
-            // World position from the moving body to get the contact point
-            p_result.collision_point = vector_to_godot(best_contact.pixel_point1);
-            // Normal from the collided object to get the contact normal
-            p_result.collision_normal = vector_to_godot(best_contact.normal2);
-            // compute distance without sign
             p_result.collision_depth = p_margin - best_contact.pixel_distance;
+            let collision_point = vector_to_godot(best_contact.pixel_point1);
             let local_position =
-                p_result.collision_point - best_collision_body.get_base().get_transform().origin;
-            p_result.collider_velocity =
-                best_collision_body.get_velocity_at_local_point(local_position);
+                collision_point - best_collision_body.get_base().get_transform().origin;
+            set_collision_info(
+                p_result,
+                best_collision_body.get_base().get_rid(),
+                ObjectId {
+                    id: best_collision_body.get_base().get_instance_id(),
+                },
+                best_collision_shape_index,
+                best_body_shape_index,
+                collision_point,
+                vector_to_godot(best_contact.normal2),
+                best_collision_body.get_velocity_at_local_point(local_position),
+            );
             return true;
         }
         false
     }
+}
+#[cfg(feature = "dim2")]
+fn set_collision_info(
+    p_result: &mut PhysicsServerExtensionMotionResult,
+    collider: Rid,
+    collider_id: ObjectId,
+    collider_shape: i32,
+    collision_local_shape: i32,
+    collision_point: Vector,
+    collision_normal: Vector,
+    collider_velocity: Vector,
+) {
+    p_result.collider = collider;
+    p_result.collider_id = collider_id;
+    p_result.collider_shape = collider_shape;
+    p_result.collision_local_shape = collision_local_shape;
+    p_result.collision_point = collision_point;
+    p_result.collision_normal = collision_normal;
+    p_result.collider_velocity = collider_velocity;
+}
+#[cfg(feature = "dim3")]
+fn set_collision_info(
+    p_result: &mut PhysicsServerExtensionMotionResult,
+    collider: Rid,
+    collider_id: ObjectId,
+    collider_shape: i32,
+    collision_local_shape: i32,
+    collision_point: Vector,
+    collision_normal: Vector,
+    collider_velocity: Vector,
+) {
 }
 fn should_skip_collision_one_dir(
     contact: &ContactResult,

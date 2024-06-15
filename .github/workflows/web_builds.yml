@@ -11,8 +11,7 @@ jobs:
       matrix:
         arch: ["wasm32-unknown-emscripten"]
         precision: [single]
-        #dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
-        dimensions: [{"feature": "dim2", "short": "2d"}]
+        dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
         features: [{"feature":"", "name": "normal"}, {"feature":"enhanced-determinism", "name": "enhanced-determinism"}]
 
     steps:

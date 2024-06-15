@@ -74,9 +74,14 @@ pub fn skew_shape(shape: &SharedShape, skew: Real) -> SharedShape {
     }
     shape.clone()
 }
-
 #[cfg(feature = "dim2")]
-pub fn scale_shape(shape: &SharedShape, scale: ShapeInfo) -> SharedShape {
+pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
+    let mut new_shape = shape.clone();
+    if shape_info.skew != 0.0 {
+        new_shape = skew_shape(shape, shape_info.skew);
+    }
+    let shape = new_shape;
+    let scale = shape_info.scale;
     if scale.x == 1.0 && scale.y == 1.0 {
         return shape.clone();
     }
@@ -130,7 +135,7 @@ pub fn scale_shape(shape: &SharedShape, scale: ShapeInfo) -> SharedShape {
                 let new_shapes = new_shape.shapes();
                 let mut shapes_vec = Vec::<(Isometry<Real>, SharedShape)>::new();
                 for shape in new_shapes {
-                    let new_shape = scale_shape(&shape.1, scale);
+                    let new_shape = scale_shape(&shape.1, shape_info);
                     shapes_vec.push((shape.0, new_shape));
                 }
                 return SharedShape::compound(shapes_vec);
@@ -142,7 +147,6 @@ pub fn scale_shape(shape: &SharedShape, scale: ShapeInfo) -> SharedShape {
     }
     shape.clone()
 }
-
 #[cfg(feature = "dim3")]
 pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
     let scale = shape_info.scale;
@@ -211,7 +215,6 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
     }
     shape.clone()
 }
-
 pub struct Material {
     pub friction: Real,
     pub restitution: Real,

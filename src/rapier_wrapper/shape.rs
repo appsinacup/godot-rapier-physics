@@ -1,5 +1,3 @@
-use nalgebra::Isometry2;
-use nalgebra::Isometry3;
 use rapier::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
@@ -21,6 +19,7 @@ pub struct ShapeInfo {
 }
 #[cfg(feature = "dim2")]
 pub fn shape_info_from_body_shape(shape_handle: Handle, transform: Transform) -> ShapeInfo {
+    use nalgebra::Isometry2;
     ShapeInfo {
         handle: shape_handle,
         transform: Isometry2::new(vector_to_rapier(transform.origin), transform.rotation()),
@@ -30,8 +29,12 @@ pub fn shape_info_from_body_shape(shape_handle: Handle, transform: Transform) ->
 }
 #[cfg(feature = "dim3")]
 pub fn shape_info_from_body_shape(shape_handle: Handle, transform: Transform) -> ShapeInfo {
+    use nalgebra::Isometry3;
     let euler_angles = transform.basis.to_euler(godot::builtin::EulerOrder::XYZ);
-    let isometry = Isometry3::new(vector_to_rapier(transform.origin), vector_to_rapier(euler_angles));
+    let isometry = Isometry3::new(
+        vector_to_rapier(transform.origin),
+        vector_to_rapier(euler_angles),
+    );
     ShapeInfo {
         handle: shape_handle,
         transform: isometry,

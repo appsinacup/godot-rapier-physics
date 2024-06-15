@@ -1,16 +1,8 @@
-use std::ops::Deref;
-
 use godot::classes::native::*;
 use godot::classes::*;
 use godot::prelude::*;
-use rapier::math::Real;
 
 use super::rapier_direct_space_state_impl::RapierDirectSpaceStateImpl;
-use super::rapier_space_body_helper::is_handle_excluded_callback;
-use crate::bodies::rapier_collision_object::*;
-use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::*;
-use crate::spaces::rapier_space::RapierSpace;
 use crate::Vector;
 #[derive(GodotClass)]
 #[class(base=PhysicsDirectSpaceState3DExtension,tool)]
