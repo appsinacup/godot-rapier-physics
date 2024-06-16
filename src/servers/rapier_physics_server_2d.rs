@@ -2,9 +2,9 @@ use std::ffi::c_void;
 
 use godot::classes::IPhysicsServer2DExtension;
 use godot::classes::PhysicsServer2DExtension;
-use godot::classes::ProjectSettings;
 use godot::classes::{self};
 use godot::engine::native::PhysicsServer2DExtensionMotionResult;
+use godot::engine::physics_server_2d::AreaParameter;
 use godot::engine::utilities::rid_allocate_id;
 use godot::engine::utilities::rid_from_int64;
 use godot::prelude::*;
@@ -45,6 +45,11 @@ pub struct RapierPhysicsServer2D {
     island_count: i32,
     active_objects: i32,
     collision_pairs: i32,
+    length_unit: real,
+    max_ccd_substeps: usize,
+    num_additional_friction_iterations: usize,
+    num_internal_pgs_iterations: usize,
+    num_solver_iterations: usize,
     base: Base<PhysicsServer2DExtension>,
 }
 #[godot_api]
@@ -57,6 +62,14 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             island_count: 0,
             active_objects: 0,
             collision_pairs: 0,
+            length_unit: RapierProjectSettings::get_length_unit(),
+            max_ccd_substeps: RapierProjectSettings::get_solver_max_ccd_substeps() as usize,
+            num_additional_friction_iterations:
+                RapierProjectSettings::get_solver_num_additional_friction_iterations() as usize,
+            num_internal_pgs_iterations:
+                RapierProjectSettings::get_solver_num_internal_pgs_iterations() as usize,
+            num_solver_iterations: RapierProjectSettings::get_solver_num_solver_iterations()
+                as usize,
             base,
         }
     }
@@ -1323,9 +1336,15 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             let body_area_update_list;
             let gravity_update_list;
             let space_handle;
+            let default_gravity_dir;
+            let default_gravity_value: real;
             if let Some(space) = spaces_singleton().spaces.get_mut(space_rid) {
                 body_area_update_list = space.get_body_area_update_list().clone();
                 gravity_update_list = space.get_gravity_update_list().clone();
+                default_gravity_value = space.get_default_area_param(AreaParameter::GRAVITY).to();
+                default_gravity_dir = space
+                    .get_default_area_param(AreaParameter::GRAVITY_VECTOR)
+                    .to();
                 space_handle = space.get_handle();
                 space.before_step();
                 for body in space.get_active_list() {
@@ -1342,6 +1361,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
                         }
                     }
                 }
+                space.reset_mass_properties_update_list();
                 for area in space.get_area_update_list().clone() {
                     if let Some(area) = bodies_singleton().collision_objects.get_mut(&area) {
                         if let Some(area) = area.get_mut_area() {
@@ -1367,27 +1387,17 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
                     }
                 }
             }
-            let project_settings = ProjectSettings::singleton();
-            let default_gravity_dir: Vector2 = project_settings
-                .get_setting_with_override("physics/2d/default_gravity_vector".into())
-                .to();
-            let default_gravity_value: real = project_settings
-                .get_setting_with_override("physics/2d/default_gravity".into())
-                .to();
             //let default_linear_damping: real = project_settings.get_setting_with_override("physics/2d/default_linear_damp".into()).to();
             //let default_angular_damping: real = project_settings.get_setting_with_override("physics/2d/default_angular_damp".into()).to();
             let settings = SimulationSettings {
                 pixel_liquid_gravity: vector_to_rapier(default_gravity_dir) * default_gravity_value,
                 dt: step,
-                length_unit: RapierProjectSettings::get_length_unit(),
+                length_unit: self.length_unit,
                 pixel_gravity: vector_to_rapier(default_gravity_dir) * default_gravity_value,
-                max_ccd_substeps: RapierProjectSettings::get_solver_max_ccd_substeps() as usize,
-                num_additional_friction_iterations:
-                    RapierProjectSettings::get_solver_num_additional_friction_iterations() as usize,
-                num_internal_pgs_iterations:
-                    RapierProjectSettings::get_solver_num_internal_pgs_iterations() as usize,
-                num_solver_iterations: RapierProjectSettings::get_solver_num_solver_iterations()
-                    as usize,
+                max_ccd_substeps: self.max_ccd_substeps,
+                num_additional_friction_iterations: self.num_additional_friction_iterations,
+                num_internal_pgs_iterations: self.num_internal_pgs_iterations,
+                num_solver_iterations: self.num_solver_iterations,
             };
             if let Some(space) = spaces_singleton().spaces.get_mut(space_rid) {
                 // this calls into rapier

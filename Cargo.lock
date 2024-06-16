@@ -277,6 +277,7 @@ version = "0.7.0"
 dependencies = [
  "bincode",
  "godot",
+ "hashbrown 0.14.5",
  "rapier2d",
  "rapier2d-f64",
  "rapier3d",

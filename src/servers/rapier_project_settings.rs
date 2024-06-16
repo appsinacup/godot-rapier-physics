@@ -70,31 +70,31 @@ impl RapierProjectSettings {
             SOLVER_NUM_INTERNAL_PGS_ITERATIONS,
             Variant::from(1),
             "1,4,or_greater",
-            false,
+            true,
         );
         register_setting_ranged(
             SOLVER_NUM_ADDITIONAL_FRICTION_ITERATIONS,
             Variant::from(4),
             "1,16,or_greater",
-            false,
+            true,
         );
         register_setting_ranged(
             SOLVER_NUM_ITERATIONS,
             Variant::from(4),
             "1,16,or_greater",
-            false,
+            true,
         );
         register_setting_ranged(
             SOLVER_MAX_CCD_SUBSTEPS,
             Variant::from(1),
             "1,16,or_greater",
-            false,
+            true,
         );
         register_setting_ranged(
             CONTACT_SKIN,
             Variant::from(0.0),
             "0,10,0.00001,or_greater",
-            false,
+            true,
         );
         register_setting_ranged(
             FLUID_PARTICLE_RADIUS,
@@ -112,7 +112,7 @@ impl RapierProjectSettings {
             LENGTH_UNIT,
             Variant::from(LENGTH_UNIT_VALUE),
             "1,100,1,suffix:length_unit",
-            false,
+            true,
         );
         for monitor in MONITORS {
             register_setting_plain(

@@ -1,11 +1,11 @@
 use std::any::Any;
-use std::collections::HashMap;
 
 #[cfg(feature = "dim2")]
 use godot::engine::physics_server_2d::*;
 #[cfg(feature = "dim3")]
 use godot::engine::physics_server_3d::*;
 use godot::prelude::*;
+use hashbrown::HashMap;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::bodies_singleton;
@@ -35,7 +35,7 @@ impl RapierShapeBase {
         Self {
             rid,
             aabb: Rect::default(),
-            owners: HashMap::new(),
+            owners: HashMap::default(),
             handle: invalid_handle(),
         }
     }

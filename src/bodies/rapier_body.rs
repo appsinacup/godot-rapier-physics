@@ -1,11 +1,10 @@
-use std::collections::HashSet;
-
 use bodies::transform_scale;
 #[cfg(feature = "dim2")]
 use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
 use godot::classes::physics_server_3d::*;
 use godot::prelude::*;
+use hashbrown::hash_set::HashSet;
 use rapier::geometry::ColliderHandle;
 use rapier::math::Real;
 
@@ -123,7 +122,7 @@ impl RapierBody {
             using_area_gravity: false,
             using_area_linear_damping: false,
             using_area_angular_damping: false,
-            exceptions: HashSet::new(),
+            exceptions: HashSet::default(),
             ccd_enabled: false,
             omit_force_integration: false,
             active: true,

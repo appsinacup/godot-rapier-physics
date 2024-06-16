@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 #[cfg(feature = "dim2")]
 use godot::engine::physics_server_2d::*;
 #[cfg(feature = "dim3")]
@@ -8,6 +6,7 @@ use godot::log::godot_error;
 use godot::meta::ToGodot;
 use godot::obj::EngineEnum;
 use godot::prelude::*;
+use hashbrown::HashMap;
 use rapier::geometry::ColliderHandle;
 
 use super::rapier_body::RapierBody;
@@ -58,8 +57,8 @@ impl RapierArea {
             monitorable: false,
             monitor_callback: Callable::invalid(),
             area_monitor_callback: Callable::invalid(),
-            monitored_objects: HashMap::new(),
-            detected_bodies: HashMap::new(),
+            monitored_objects: HashMap::default(),
+            detected_bodies: HashMap::default(),
             base: RapierCollisionObject::new(rid, CollisionObjectType::Area),
         }
     }
@@ -191,7 +190,7 @@ impl RapierArea {
             self.base.area_detection_counter -= 1;
         }
         let handle_pair_hash = handle_pair_hash(collider_handle, area_collider_handle);
-        if let std::collections::hash_map::Entry::Vacant(e) =
+        if let hashbrown::hash_map::Entry::Vacant(e) =
             self.monitored_objects.entry(handle_pair_hash)
         {
             e.insert(MonitorInfo {
@@ -284,7 +283,7 @@ impl RapierArea {
             }
         }
         let handle_pair_hash = handle_pair_hash(collider_handle, area_collider_handle);
-        if let std::collections::hash_map::Entry::Occupied(mut e) =
+        if let hashbrown::hash_map::Entry::Occupied(mut e) =
             self.monitored_objects.entry(handle_pair_hash)
         {
             e.insert(MonitorInfo {

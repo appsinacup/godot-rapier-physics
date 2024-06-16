@@ -1,6 +1,5 @@
-use std::collections::HashMap;
-
 use godot::prelude::*;
+use hashbrown::HashMap;
 
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::fluids::rapier_fluid::RapierFluid;
@@ -43,7 +42,7 @@ pub fn shapes_singleton() -> &'static mut RapierShapesSingleton {
     unsafe {
         if SINGLETON.is_none() {
             SINGLETON = Some(RapierShapesSingleton {
-                shapes: HashMap::new(),
+                shapes: HashMap::default(),
             });
         }
         SINGLETON.as_mut().unwrap()
@@ -54,7 +53,7 @@ pub fn active_spaces_singleton() -> &'static mut RapierActiveSpacesSingleton {
     unsafe {
         if SINGLETON.is_none() {
             SINGLETON = Some(RapierActiveSpacesSingleton {
-                active_spaces: HashMap::new(),
+                active_spaces: HashMap::default(),
             });
         }
         SINGLETON.as_mut().unwrap()
@@ -65,7 +64,7 @@ pub fn spaces_singleton() -> &'static mut RapierSpacesSingleton {
     unsafe {
         if SINGLETON.is_none() {
             SINGLETON = Some(RapierSpacesSingleton {
-                spaces: HashMap::new(),
+                spaces: HashMap::default(),
             });
         }
         SINGLETON.as_mut().unwrap()
@@ -76,7 +75,7 @@ pub fn bodies_singleton() -> &'static mut RapierBodiesSingleton {
     unsafe {
         if SINGLETON.is_none() {
             SINGLETON = Some(RapierBodiesSingleton {
-                collision_objects: HashMap::new(),
+                collision_objects: HashMap::default(),
             });
         }
         SINGLETON.as_mut().unwrap()
@@ -87,7 +86,7 @@ pub fn joints_singleton() -> &'static mut RapierJointsSingleton {
     unsafe {
         if SINGLETON.is_none() {
             SINGLETON = Some(RapierJointsSingleton {
-                joints: HashMap::new(),
+                joints: HashMap::default(),
             });
         }
         SINGLETON.as_mut().unwrap()
@@ -98,7 +97,7 @@ pub fn fluids_singleton() -> &'static mut RapierFluidsSingleton {
     unsafe {
         if SINGLETON.is_none() {
             SINGLETON = Some(RapierFluidsSingleton {
-                fluids: HashMap::new(),
+                fluids: HashMap::default(),
             });
         }
         SINGLETON.as_mut().unwrap()

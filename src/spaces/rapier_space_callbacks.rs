@@ -393,8 +393,8 @@ impl RapierSpace {
         let mut keep_sending_contacts = false;
         if space.is_debugging_contacts() {
             keep_sending_contacts = true;
-            space.add_debug_contact(pos1);
-            space.add_debug_contact(pos2);
+            space.add_debug_contact(vector_to_godot(pos1));
+            space.add_debug_contact(vector_to_godot(pos2));
         }
         let (p_object1, shape1) =
             RapierCollisionObject::get_collider_user_data(&event_info.user_data1);

@@ -172,7 +172,7 @@ impl PhysicsWorld {
             };
             (active_body_callback)(&active_body_info);
         }
-        while let Ok((collision_event, _contact_pair)) = collision_recv.try_recv() {
+        while let Ok(collision_event) = collision_recv.try_recv() {
             let handle1 = collision_event.collider1();
             let handle2 = collision_event.collider2();
             // Handle the collision event.
