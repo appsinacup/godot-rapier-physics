@@ -277,7 +277,6 @@ impl RapierSpace {
                         );
                     }
                     else if event_info.is_stopped {
-                        let update_detection = p_collision_object2.is_some();
                         p_area1.on_body_exit(
                             collider_handle2,
                             &mut p_collision_object2,
@@ -286,7 +285,6 @@ impl RapierSpace {
                             instance_id2,
                             collider_handle1,
                             shape1,
-                            update_detection,
                             space,
                         );
                     }
@@ -335,7 +333,6 @@ impl RapierSpace {
                             );
                         }
                         if event_info.is_stopped {
-                            let update_detection = p_collision_object1.is_some();
                             p_area2.on_body_exit(
                                 collider_handle1,
                                 &mut p_collision_object1,
@@ -344,7 +341,6 @@ impl RapierSpace {
                                 instance_id1,
                                 collider_handle2,
                                 shape2,
-                                update_detection,
                                 space,
                             );
                         }

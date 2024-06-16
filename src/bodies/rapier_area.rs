@@ -166,10 +166,9 @@ impl RapierArea {
         body_instance_id: u64,
         area_collider_handle: ColliderHandle,
         area_shape: usize,
-        update_detection: bool,
         space: &mut RapierSpace,
     ) {
-        if update_detection {
+        if body.is_some() {
             // Remove from currently detected bodies
             if let Some(detected_body) = self.detected_bodies.get_mut(&body_rid) {
                 *detected_body -= 1;

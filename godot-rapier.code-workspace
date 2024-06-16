@@ -157,7 +157,23 @@
 					"--debug-collisions",
 					"test/integration/test_body_delete.tscn"
 				]
-			}
+			},
+			{
+				"name": "Test Area",
+				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.arm64",
+				"type": "cppdbg",
+				"request": "launch",
+				"cwd": "${workspaceFolder:godot-rapier-2d}",
+				"osx": {
+					"MIMode": "lldb"
+				},
+				"args": [
+					"--path",
+					"/Users/dragosdaian/Documents/Godot-Physics-Tests",
+					"--debug-collisions",
+					"test.tscn",
+				]
+			},
 		]
 	},
 	"tasks": {

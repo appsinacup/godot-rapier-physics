@@ -1,7 +1,7 @@
 use godot::prelude::*;
 #[derive(GodotClass)]
 #[class(base=Resource)]
-pub struct FluidEffect {
+pub struct FluidEffectElasticity {
     fluid_effect_type: FluidEffectType,
 
     base: Base<Resource>,
@@ -16,18 +16,17 @@ pub enum FluidEffectType {
     FluidEffectViscosityArtificial = 4,
     FluidEffectViscosityDfsph = 5,
     FluidEffectViscosityXsph = 6,
-    None = 7,
 }
 #[godot_api]
-impl IResource for FluidEffect {
+impl IResource for FluidEffectElasticity {
     fn init(base: Base<Resource>) -> Self {
         Self {
-            fluid_effect_type: FluidEffectType::None,
+            fluid_effect_type: FluidEffectType::FluidEffectElasticity,
             base,
         }
     }
 }
-impl FluidEffect {
+impl FluidEffectElasticity {
     fn get_fluid_effect_type(&self) -> FluidEffectType {
         self.fluid_effect_type.clone()
     }
