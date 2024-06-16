@@ -64,6 +64,19 @@ impl IRapierShape for RapierCylinderShape {
                 self.height = vector_data.y;
                 self.radius = vector_data.x;
             }
+            VariantType::DICTIONARY => {
+                let dictionary: Dictionary = data.to();
+                if let Some(height) = dictionary.get("height") {
+                    if let Ok(height) = height.try_to::<real>() {
+                        self.height = height;
+                    }
+                }
+                if let Some(radius) = dictionary.get("radius") {
+                    if let Ok(radius) = radius.try_to::<real>() {
+                        self.radius = radius;
+                    }
+                }
+            }
             _ => {
                 godot_error!("Invalid shape data");
                 return;

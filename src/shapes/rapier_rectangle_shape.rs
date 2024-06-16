@@ -68,8 +68,7 @@ impl IRapierShape for RapierRectangleShape {
     }
 
     fn set_data(&mut self, data: Variant) {
-        if data.get_type() == VariantType::VECTOR2 {
-            let v: Vector = data.to();
+        if let Ok(v) = data.try_to() {
             self.half_extents = v;
             let aabb = Rect::new(-self.half_extents, self.half_extents * 2.0);
             let handle = self.create_rapier_shape();
