@@ -69,10 +69,9 @@ jobs:
           name: godot-rapier-3d-single-enhanced-determinism
           pattern: godot-rapier-3d-single-enhanced-determinism-*
 
-  #release:
-  #  name: Create Release
-  #  permissions:
-  #    contents: write
-  #  needs: [ios-build, linux-build, macos-build, windows-build]
-  #  #needs: [android-build, ios-build, linux-build, macos-build, windows-build, web-build]
-  #  uses: ./.github/workflows/release.yml
+  release:
+    name: Create Release
+    permissions:
+      contents: write
+    needs: [merge]
+    uses: ./.github/workflows/release.yml
