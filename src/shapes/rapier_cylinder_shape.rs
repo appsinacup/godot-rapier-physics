@@ -1,15 +1,15 @@
-use godot::classes::physics_server_2d::*;
+use godot::classes::physics_server_3d::*;
 use godot::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::*;
 use crate::Vector;
-pub struct RapierCapsuleShape2D {
+pub struct RapierCylinderShape {
     height: f32,
     radius: f32,
     pub base: RapierShapeBase,
 }
-impl RapierCapsuleShape2D {
+impl RapierCylinderShape {
     pub fn new(rid: Rid) -> Self {
         Self {
             height: 0.0,
@@ -18,7 +18,7 @@ impl RapierCapsuleShape2D {
         }
     }
 }
-impl IRapierShape for RapierCapsuleShape2D {
+impl IRapierShape for RapierCylinderShape {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base
     }
@@ -28,12 +28,17 @@ impl IRapierShape for RapierCapsuleShape2D {
     }
 
     fn get_type(&self) -> ShapeType {
-        ShapeType::CAPSULE
+        ShapeType::CYLINDER
     }
 
-    fn get_moment_of_inertia(&self, mass: f32, scale: Vector) -> f32 {
-        let he2 = Vector::new(self.radius * 2.0, self.height) * scale;
-        mass * he2.dot(he2) / 12.0
+    fn get_moment_of_inertia(&self, p_mass: f32, _scale: Vector) -> Vector3 {
+        // use bad AABB approximation
+        let extents = self.compute_aabb().size * 0.5;
+        Vector3::new(
+            (p_mass / 3.0) * (extents.y * extents.y + extents.z * extents.z),
+            (p_mass / 3.0) * (extents.x * extents.x + extents.z * extents.z),
+            (p_mass / 3.0) * (extents.x * extents.x + extents.y * extents.y),
+        )
     }
 
     fn allows_one_way_collision(&self) -> bool {
@@ -41,7 +46,7 @@ impl IRapierShape for RapierCapsuleShape2D {
     }
 
     fn create_rapier_shape(&mut self) -> Handle {
-        shape_create_capsule((self.height / 2.0) - self.radius, self.radius)
+        shape_create_cylinder((self.height / 2.0) - self.radius, self.radius)
     }
 
     fn set_data(&mut self, data: Variant) {
@@ -64,10 +69,8 @@ impl IRapierShape for RapierCapsuleShape2D {
                 return;
             }
         }
-        let he = Vector2::new(self.radius, self.height * 0.5);
-        let rect = Rect2::new(-he, he * 2.0);
         let handle = self.create_rapier_shape();
-        self.base.set_handle(handle, rect);
+        self.base.set_handle(handle, self.compute_aabb());
     }
 
     fn get_data(&self) -> Variant {
@@ -76,5 +79,11 @@ impl IRapierShape for RapierCapsuleShape2D {
 
     fn get_handle(&mut self) -> Handle {
         self.base.get_handle()
+    }
+}
+impl RapierCylinderShape {
+    fn compute_aabb(&self) -> Aabb {
+        let he = Vector3::new(self.radius, self.height * 0.5, self.radius);
+        Aabb::new(-he, he * 2.0)
     }
 }

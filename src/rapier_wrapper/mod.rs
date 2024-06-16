@@ -11,10 +11,6 @@ pub mod prelude;
 pub mod query;
 pub mod settings;
 pub mod shape;
-#[cfg(feature = "dim2")]
-pub mod shape_2d;
-#[cfg(feature = "dim3")]
-pub mod shape_3d;
 pub mod user_data;
 #[cfg(feature = "dim2")]
 pub const ANG_ZERO: rapier::math::Real = 0.0;

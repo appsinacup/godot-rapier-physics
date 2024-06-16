@@ -365,7 +365,7 @@ impl RapierSpace {
                 //{
                 // When slide on slope is on, separation ray shape acts like a
                 // regular shape.
-                //if !body_shape.downcast_ref::<RapierSeparationRayShape2D>().unwrap().get_slide_on_slope()
+                //if !body_shape.downcast_ref::<RapierSeparationRayShape>().unwrap().get_slide_on_slope()
                 //{
                 //    continue;
                 //}

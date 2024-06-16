@@ -36,6 +36,14 @@ impl RemovedColliderInfo {
         }
     }
 }
+#[cfg(feature = "dim2")]
+const DEFAULT_GRAVITY_VECTOR: &str = "physics/2d/default_gravity_vector";
+#[cfg(feature = "dim3")]
+const DEFAULT_GRAVITY_VECTOR: &str = "physics/3d/default_gravity_vector";
+#[cfg(feature = "dim2")]
+const DEFAULT_GRAVITY: &str = "physics/2d/default_gravity";
+#[cfg(feature = "dim3")]
+const DEFAULT_GRAVITY: &str = "physics/3d/default_gravity";
 pub struct RapierSpace {
     direct_access: Option<Gd<PhysicsDirectSpaceState>>,
     handle: Handle,
@@ -47,7 +55,6 @@ pub struct RapierSpace {
     monitor_query_list: HashSet<Rid>,
     area_update_list: HashSet<Rid>,
     body_area_update_list: HashSet<Rid>,
-    solver_iterations: i32,
     contact_max_allowed_penetration: real,
     default_gravity_dir: Vector,
     default_gravity_value: real,
@@ -61,10 +68,6 @@ pub struct RapierSpace {
 }
 impl RapierSpace {
     pub fn new(rid: Rid) -> Self {
-        let project_settings = ProjectSettings::singleton();
-        let solver_iterations = project_settings
-            .get_setting_with_override("physics/2d/solver/solver_iterations".into())
-            .to();
         let mut direct_access = RapierDirectSpaceState::new_alloc();
         direct_access.bind_mut().set_space(rid);
         let world_settings = WorldSettings {
@@ -75,10 +78,10 @@ impl RapierSpace {
         let handle = world_create(&world_settings);
         let project_settings = ProjectSettings::singleton();
         let default_gravity_dir: Vector = project_settings
-            .get_setting_with_override("physics/2d/default_gravity_vector".into())
+            .get_setting_with_override(DEFAULT_GRAVITY_VECTOR.into())
             .to();
         let default_gravity_value: real = project_settings
-            .get_setting_with_override("physics/2d/default_gravity".into())
+            .get_setting_with_override(DEFAULT_GRAVITY.into())
             .to();
         Self {
             direct_access: Some(direct_access.upcast()),
@@ -91,7 +94,6 @@ impl RapierSpace {
             monitor_query_list: HashSet::default(),
             area_update_list: HashSet::default(),
             body_area_update_list: HashSet::default(),
-            solver_iterations,
             contact_max_allowed_penetration: 0.0,
             default_gravity_dir,
             default_gravity_value,
@@ -232,19 +234,6 @@ impl RapierSpace {
             last_step = 1.0 / (physics_fps.to::<i32>() as f32);
         }
         last_step
-    }
-
-    pub fn set_param(&mut self, param: SpaceParameter, value: real) {
-        if param == SpaceParameter::SOLVER_ITERATIONS {
-            self.solver_iterations = value as i32;
-        }
-    }
-
-    pub fn get_param(&self, param: SpaceParameter) -> real {
-        match param {
-            SpaceParameter::SOLVER_ITERATIONS => self.solver_iterations as real,
-            _ => 0.0,
-        }
     }
 
     pub fn set_default_area_param(&mut self, param: AreaParameter, value: Variant) {

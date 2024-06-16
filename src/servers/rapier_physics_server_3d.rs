@@ -19,7 +19,10 @@ use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::joints::rapier_joint::RapierEmptyJoint;
 use crate::rapier_wrapper::prelude::*;
+use crate::shapes::rapier_capsule_shape::RapierCapsuleShape;
 use crate::shapes::rapier_circle_shape::RapierCircleShape;
+use crate::shapes::rapier_cylinder_shape::RapierCylinderShape;
+use crate::shapes::rapier_rectangle_shape::RapierRectangleShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
 use crate::shapes::rapier_world_boundary_shape::RapierWorldBoundaryShape;
 use crate::spaces::rapier_space::RapierSpace;
@@ -58,11 +61,55 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         rid
     }
 
+    fn separation_ray_shape_create(&mut self) -> Rid {
+        let rid = rid_from_int64(rid_allocate_id());
+        let shape = RapierWorldBoundaryShape::new(rid);
+        shapes_singleton().shapes.insert(rid, Box::new(shape));
+        rid
+    }
+
     fn sphere_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierCircleShape::new(rid);
         shapes_singleton().shapes.insert(rid, Box::new(shape));
         rid
+    }
+
+    fn box_shape_create(&mut self) -> Rid {
+        let rid = rid_from_int64(rid_allocate_id());
+        let shape = RapierRectangleShape::new(rid);
+        shapes_singleton().shapes.insert(rid, Box::new(shape));
+        rid
+    }
+
+    fn capsule_shape_create(&mut self) -> Rid {
+        let rid = rid_from_int64(rid_allocate_id());
+        let shape = RapierCapsuleShape::new(rid);
+        shapes_singleton().shapes.insert(rid, Box::new(shape));
+        rid
+    }
+
+    fn cylinder_shape_create(&mut self) -> Rid {
+        let rid = rid_from_int64(rid_allocate_id());
+        let shape = RapierCylinderShape::new(rid);
+        shapes_singleton().shapes.insert(rid, Box::new(shape));
+        rid
+    }
+
+    fn convex_polygon_shape_create(&mut self) -> Rid {
+        Rid::Invalid
+    }
+
+    fn concave_polygon_shape_create(&mut self) -> Rid {
+        Rid::Invalid
+    }
+
+    fn heightmap_shape_create(&mut self) -> Rid {
+        Rid::Invalid
+    }
+
+    fn custom_shape_create(&mut self) -> Rid {
+        Rid::Invalid
     }
 
     fn shape_set_data(&mut self, shape: Rid, data: Variant) {
@@ -133,23 +180,17 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
 
     fn space_set_param(
         &mut self,
-        space: Rid,
-        param: classes::physics_server_3d::SpaceParameter,
-        value: f32,
+        _space: Rid,
+        _param: classes::physics_server_3d::SpaceParameter,
+        _value: f32,
     ) {
-        if let Some(space) = spaces_singleton().spaces.get_mut(&space) {
-            space.set_param(param, value);
-        }
     }
 
     fn space_get_param(
         &self,
-        space: Rid,
-        param: classes::physics_server_3d::SpaceParameter,
+        _space: Rid,
+        _param: classes::physics_server_3d::SpaceParameter,
     ) -> f32 {
-        if let Some(space) = spaces_singleton().spaces.get(&space) {
-            return space.get_param(param);
-        }
         0.0
     }
 
@@ -982,7 +1023,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
             };
             if let Some(space) = spaces_singleton().spaces.get_mut(space_rid) {
                 // this calls into rapier
-                let counters = world_step(
+                world_step(
                     space_handle,
                     &settings,
                     RapierSpace::active_body_callback,

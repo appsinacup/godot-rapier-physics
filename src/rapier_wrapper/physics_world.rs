@@ -1,7 +1,6 @@
 use std::num::NonZeroUsize;
 
 use godot::log::godot_error;
-use rapier::counters::Counters;
 use rapier::crossbeam;
 use rapier::data::Arena;
 use rapier::prelude::*;
@@ -108,7 +107,7 @@ impl PhysicsWorld {
         contact_force_event_callback: ContactForceEventCallback,
         contact_point_callback: ContactPointCallback,
         space: &mut RapierSpace,
-    ) -> Counters {
+    ) {
         let mut integration_parameters = IntegrationParameters::default();
         integration_parameters.length_unit = settings.length_unit;
         integration_parameters.dt = settings.dt;
@@ -256,7 +255,6 @@ impl PhysicsWorld {
                 }
             }
         }
-        self.physics_pipeline.counters
     }
 
     pub fn insert_collider(
@@ -423,10 +421,10 @@ pub fn world_step(
     contact_force_event_callback: ContactForceEventCallback,
     contact_point_callback: ContactPointCallback,
     space: &mut RapierSpace,
-) -> Counters {
+) {
     let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        return physics_world.step(
+        physics_world.step(
             settings,
             active_body_callback,
             collision_filter_body_callback,
@@ -438,7 +436,6 @@ pub fn world_step(
             space,
         );
     }
-    Counters::default()
 }
 pub fn world_get_active_objects_count(world_handle: Handle) -> usize {
     let physics_engine = physics_engine();

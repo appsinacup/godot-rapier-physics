@@ -69,6 +69,8 @@ pub struct RapierBody {
     mass: real,
     mass_properties_update_pending: bool,
     inertia: Angle,
+    #[cfg(feature = "dim3")]
+    inv_inertia_tensor: Basis,
     contact_skin: real,
     center_of_mass: Vector,
     calculate_inertia: bool,
@@ -115,6 +117,8 @@ impl RapierBody {
             mass: 1.0,
             mass_properties_update_pending: false,
             inertia: ANGLE_ZERO,
+            #[cfg(feature = "dim3")]
+            inv_inertia_tensor: Basis::IDENTITY,
             contact_skin: RapierProjectSettings::get_contact_skin(),
             center_of_mass: Vector::default(),
             calculate_inertia: true,
@@ -1414,6 +1418,11 @@ impl RapierBody {
             );
         }
         ANGLE_ZERO
+    }
+
+    #[cfg(feature = "dim3")]
+    pub fn get_inv_inertia_tensor(&self) -> Basis {
+        self.inv_inertia_tensor
     }
 
     #[cfg(feature = "dim2")]

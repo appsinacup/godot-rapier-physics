@@ -26,13 +26,13 @@ use crate::joints::rapier_joint::IRapierJoint;
 use crate::joints::rapier_joint::RapierEmptyJoint;
 use crate::joints::rapier_pin_joint_2d::RapierPinJoint2D;
 use crate::rapier_wrapper::prelude::*;
-use crate::shapes::rapier_capsule_shape_2d::RapierCapsuleShape2D;
+use crate::shapes::rapier_capsule_shape::RapierCapsuleShape;
 use crate::shapes::rapier_circle_shape::RapierCircleShape;
 use crate::shapes::rapier_concave_polygon_shape_2d::RapierConcavePolygonShape2D;
 use crate::shapes::rapier_convex_polygon_shape_2d::RapierConvexPolygonShape2D;
-use crate::shapes::rapier_rectangle_shape_2d::RapierRectangleShape2D;
+use crate::shapes::rapier_rectangle_shape::RapierRectangleShape;
 use crate::shapes::rapier_segment_shape_2d::RapierSegmentShape2D;
-use crate::shapes::rapier_separation_ray_shape_2d::RapierSeparationRayShape2D;
+use crate::shapes::rapier_separation_ray_shape::RapierSeparationRayShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
 use crate::shapes::rapier_world_boundary_shape::RapierWorldBoundaryShape;
 use crate::spaces::rapier_space::RapierSpace;
@@ -83,7 +83,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
 
     fn separation_ray_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierSeparationRayShape2D::new(rid);
+        let shape = RapierSeparationRayShape::new(rid);
         shapes_singleton().shapes.insert(rid, Box::new(shape));
         rid
     }
@@ -104,14 +104,14 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
 
     fn rectangle_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierRectangleShape2D::new(rid);
+        let shape = RapierRectangleShape::new(rid);
         shapes_singleton().shapes.insert(rid, Box::new(shape));
         rid
     }
 
     fn capsule_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierCapsuleShape2D::new(rid);
+        let shape = RapierCapsuleShape::new(rid);
         shapes_singleton().shapes.insert(rid, Box::new(shape));
         rid
     }
@@ -238,23 +238,17 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
 
     fn space_set_param(
         &mut self,
-        space: Rid,
-        param: classes::physics_server_2d::SpaceParameter,
-        value: f32,
+        _space: Rid,
+        _param: classes::physics_server_2d::SpaceParameter,
+        _value: f32,
     ) {
-        if let Some(space) = spaces_singleton().spaces.get_mut(&space) {
-            space.set_param(param, value);
-        }
     }
 
     fn space_get_param(
         &self,
-        space: Rid,
-        param: classes::physics_server_2d::SpaceParameter,
+        _space: Rid,
+        _param: classes::physics_server_2d::SpaceParameter,
     ) -> f32 {
-        if let Some(space) = spaces_singleton().spaces.get(&space) {
-            return space.get_param(param);
-        }
         0.0
     }
 
@@ -1401,7 +1395,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             };
             if let Some(space) = spaces_singleton().spaces.get_mut(space_rid) {
                 // this calls into rapier
-                let _counters = world_step(
+                world_step(
                     space_handle,
                     &settings,
                     RapierSpace::active_body_callback,

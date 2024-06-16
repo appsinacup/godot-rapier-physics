@@ -9,6 +9,4 @@ pub use super::physics_world::*;
 pub use super::query::*;
 pub use super::settings::*;
 pub use super::shape::*;
-#[cfg(feature = "dim2")]
-pub use super::shape_2d::*;
 pub use super::user_data::*;
