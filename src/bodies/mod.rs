@@ -27,9 +27,9 @@ pub fn transform_rotation(transform: &crate::Transform) -> crate::Vector {
 }
 #[cfg(feature = "dim3")]
 pub fn transform_inverse(transform: &crate::Transform) -> crate::Transform {
-    let determnant = transform.determinant();
+    let determnant = transform.basis.determinant();
     if determnant == 0.0 {
-        transform
+        *transform
     }
     else {
         transform.affine_inverse()

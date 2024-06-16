@@ -9,7 +9,7 @@ publish = false
 crate-type = ["cdylib"]
 
 [features]
-default = ["single_dim2"]
+default = ["single_dim3"]
 dim2 = []
 dim3 = []
 single = []
