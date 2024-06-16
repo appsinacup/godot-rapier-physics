@@ -69,7 +69,7 @@ impl RapierArea {
             for (key, _) in self.detected_bodies.iter() {
                 if let Some(body) = bodies_singleton().collision_objects.get_mut(key) {
                     if let Some(body) = body.get_mut_body() {
-                        body.add_area(rid);
+                        body.add_area(self);
                     }
                 }
             }
@@ -100,7 +100,7 @@ impl RapierArea {
                 if let Some(body) = bodies_singleton().collision_objects.get_mut(key) {
                     if let Some(body) = body.get_mut_body() {
                         body.remove_area(rid);
-                        body.add_area(rid);
+                        body.add_area(self);
                     }
                 }
             }
@@ -127,7 +127,7 @@ impl RapierArea {
                 }
                 else {
                     self.detected_bodies.insert(body_rid, 1);
-                    body.add_area(self.base.get_rid())
+                    body.add_area(self);
                 }
                 if self.monitor_callback.is_null() {
                     return;
@@ -135,7 +135,7 @@ impl RapierArea {
                 self.base.area_detection_counter += 1;
                 let handle_pair_hash = handle_pair_hash(collider_handle, area_collider_handle);
                 if self.monitored_objects.contains_key(&handle_pair_hash) {
-                    // it's already monitored
+                    godot_error!("Body is already being monitored");
                     return;
                 }
                 self.monitored_objects.insert(
@@ -233,7 +233,7 @@ impl RapierArea {
                 other_area.base.area_detection_counter += 1;
                 let handle_pair_hash = handle_pair_hash(collider_handle, area_collider_handle);
                 if self.monitored_objects.contains_key(&handle_pair_hash) {
-                    // it's already monitored
+                    godot_error!("Area is already being monitored");
                     return;
                 }
                 self.monitored_objects.insert(
@@ -514,7 +514,7 @@ impl RapierArea {
         self.monitorable
     }
 
-    pub fn call_queries(&self) {
+    pub fn call_queries(&mut self) {
         if self.monitored_objects.is_empty() {
             return;
         }
@@ -522,6 +522,7 @@ impl RapierArea {
             let mut arg_array = VariantArray::new();
             arg_array.resize(5, &Variant::nil());
             if monitor_info.state == 0 {
+                godot_error!("Is this an error?");
                 continue;
             }
             if monitor_info.state > 0 {
@@ -543,6 +544,7 @@ impl RapierArea {
                 self.area_monitor_callback.callv(arg_array);
             }
         }
+        self.monitored_objects.clear();
     }
 
     pub fn compute_gravity(&self, position: Vector) -> Vector {

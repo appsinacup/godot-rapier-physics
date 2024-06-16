@@ -215,8 +215,8 @@ impl RapierSpace {
             }
         }
         for area_rid in self.monitor_query_list.clone() {
-            if let Some(area) = bodies_singleton().collision_objects.get(&area_rid) {
-                if let Some(area) = area.get_area() {
+            if let Some(area) = bodies_singleton().collision_objects.get_mut(&area_rid) {
+                if let Some(area) = area.get_mut_area() {
                     area.call_queries();
                 }
             }

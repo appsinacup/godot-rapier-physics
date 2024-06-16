@@ -342,19 +342,13 @@ impl RapierBody {
         self.direct_state.as_ref()
     }
 
-    pub fn add_area(&mut self, p_area: Rid) {
+    pub fn add_area(&mut self, p_area: &RapierArea) {
         self.base.area_detection_counter += 1;
-        if let Some(area) = bodies_singleton()
-            .collision_objects
-            .get(&self.base.get_rid())
-        {
-            if let Some(area) = area.get_area() {
-                if area.has_any_space_override() {
-                    // todo sort
-                    self.areas.push(p_area);
-                    self.on_area_updated(p_area);
-                }
-            }
+        if p_area.has_any_space_override() {
+            // TODO sort
+            let area_rid = p_area.get_base().get_rid();
+            self.areas.push(area_rid);
+            self.on_area_updated(area_rid);
         }
     }
 

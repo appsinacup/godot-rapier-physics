@@ -25,6 +25,26 @@ pub fn transform_scale(transform: &crate::Transform) -> crate::Vector {
 pub fn transform_rotation(transform: &crate::Transform) -> crate::Vector {
     transform.basis.to_euler(godot::builtin::EulerOrder::XYZ)
 }
+#[cfg(feature = "dim3")]
+pub fn transform_inverse(transform: &crate::Transform) -> crate::Transform {
+    let determnant = transform.determinant();
+    if determnant == 0.0 {
+        transform
+    }
+    else {
+        transform.affine_inverse()
+    }
+}
+#[cfg(feature = "dim2")]
+pub fn transform_inverse(transform: &crate::Transform) -> crate::Transform {
+    let determnant = transform.determinant();
+    if determnant == 0.0 {
+        *transform
+    }
+    else {
+        transform.affine_inverse()
+    }
+}
 #[cfg(feature = "dim2")]
 pub fn transform_update(
     transform: &crate::Transform,
@@ -32,7 +52,12 @@ pub fn transform_update(
     origin: crate::Vector,
 ) -> crate::Transform {
     use crate::Transform;
-    Transform::from_angle_scale_skew_origin(rotation, transform.scale(), transform.skew(), origin)
+    use crate::Vector;
+    let mut skew = 0.0;
+    if transform.a != Vector::ZERO {
+        skew = transform.skew();
+    }
+    Transform::from_angle_scale_skew_origin(rotation, transform.scale(), skew, origin)
 }
 #[cfg(feature = "dim3")]
 pub fn transform_update(

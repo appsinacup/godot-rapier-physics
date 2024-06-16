@@ -1,5 +1,6 @@
 use std::any::Any;
 
+use bodies::transform_inverse;
 use bodies::transform_rotation_rapier;
 use bodies::transform_update;
 #[cfg(feature = "dim2")]
@@ -220,7 +221,7 @@ impl RapierCollisionObject {
             angle_to_godot(angle),
             vector_to_godot(position),
         );
-        self.inv_transform = self.transform.affine_inverse();
+        self.inv_transform = transform_inverse(&self.transform);
     }
 
     pub(crate) fn _set_space(&mut self, p_space: Rid) {
@@ -343,8 +344,7 @@ impl RapierCollisionObject {
 
     pub fn set_transform(&mut self, p_transform: Transform, wake_up: bool) {
         self.transform = p_transform;
-        // todo check determinant is not 0
-        self.inv_transform = self.transform.affine_inverse();
+        self.inv_transform = transform_inverse(&self.transform);
         if !self.is_valid() {
             return;
         }
