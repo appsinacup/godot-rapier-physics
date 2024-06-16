@@ -27,14 +27,14 @@ use crate::joints::rapier_joint::RapierEmptyJoint;
 use crate::joints::rapier_pin_joint_2d::RapierPinJoint2D;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_capsule_shape_2d::RapierCapsuleShape2D;
-use crate::shapes::rapier_circle_shape_2d::RapierCircleShape2D;
+use crate::shapes::rapier_circle_shape::RapierCircleShape;
 use crate::shapes::rapier_concave_polygon_shape_2d::RapierConcavePolygonShape2D;
 use crate::shapes::rapier_convex_polygon_shape_2d::RapierConvexPolygonShape2D;
 use crate::shapes::rapier_rectangle_shape_2d::RapierRectangleShape2D;
 use crate::shapes::rapier_segment_shape_2d::RapierSegmentShape2D;
 use crate::shapes::rapier_separation_ray_shape_2d::RapierSeparationRayShape2D;
 use crate::shapes::rapier_shape::RapierShapeBase;
-use crate::shapes::rapier_world_boundary_shape_2d::RapierWorldBoundaryShape2D;
+use crate::shapes::rapier_world_boundary_shape::RapierWorldBoundaryShape;
 use crate::spaces::rapier_space::RapierSpace;
 #[derive(GodotClass)]
 #[class(base=PhysicsServer2DExtension, tool)]
@@ -63,7 +63,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
 
     fn world_boundary_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierWorldBoundaryShape2D::new(rid);
+        let shape = RapierWorldBoundaryShape::new(rid);
         shapes_singleton().shapes.insert(rid, Box::new(shape));
         rid
     }
@@ -84,7 +84,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
 
     fn circle_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierCircleShape2D::new(rid);
+        let shape = RapierCircleShape::new(rid);
         shapes_singleton().shapes.insert(rid, Box::new(shape));
         rid
     }

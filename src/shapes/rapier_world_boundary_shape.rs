@@ -1,26 +1,30 @@
+#[cfg(feature = "dim2")]
 use godot::engine::physics_server_2d::ShapeType;
+#[cfg(feature = "dim3")]
+use godot::engine::physics_server_3d::ShapeType;
 use godot::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
+use crate::Angle;
 use crate::Vector;
-pub struct RapierWorldBoundaryShape2D {
-    normal: Vector2,
+pub struct RapierWorldBoundaryShape {
+    normal: Vector,
     d: f32,
 
     pub base: RapierShapeBase,
 }
-impl RapierWorldBoundaryShape2D {
+impl RapierWorldBoundaryShape {
     pub fn new(rid: Rid) -> Self {
         Self {
-            normal: Vector2::ZERO,
+            normal: Vector::ZERO,
             d: 0.0,
             base: RapierShapeBase::new(rid),
         }
     }
 }
-impl IRapierShape for RapierWorldBoundaryShape2D {
+impl IRapierShape for RapierWorldBoundaryShape {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base
     }
@@ -33,8 +37,14 @@ impl IRapierShape for RapierWorldBoundaryShape2D {
         ShapeType::WORLD_BOUNDARY
     }
 
-    fn get_moment_of_inertia(&self, _mass: f32, _scale: Vector) -> f32 {
+    #[cfg(feature = "dim2")]
+    fn get_moment_of_inertia(&self, _mass: f32, _scale: Vector) -> Angle {
         f32::MAX
+    }
+
+    #[cfg(feature = "dim3")]
+    fn get_moment_of_inertia(&self, _mass: f32, _scale: Vector) -> Angle {
+        Vector3::new(f32::MAX, f32::MAX, f32::MAX)
     }
 
     fn allows_one_way_collision(&self) -> bool {
@@ -42,10 +52,10 @@ impl IRapierShape for RapierWorldBoundaryShape2D {
     }
 
     fn create_rapier_shape(&mut self) -> Handle {
-        let v = Vector::new(self.normal.x, -self.normal.y);
-        shape_create_halfspace(vector_to_rapier(v), -self.d)
+        shape_create_halfspace(vector_to_rapier(self.normal), -self.d)
     }
 
+    #[cfg(feature = "dim2")]
     fn set_data(&mut self, data: Variant) {
         if data.get_type() != VariantType::ARRAY {
             godot_error!("Invalid shape data");
@@ -69,11 +79,35 @@ impl IRapierShape for RapierWorldBoundaryShape2D {
         self.base.set_handle(handle, rect);
     }
 
+    #[cfg(feature = "dim3")]
+    fn set_data(&mut self, data: Variant) {
+        if data.get_type() != VariantType::PLANE {
+            godot_error!("Invalid shape data");
+            return;
+        }
+        let plane: Plane = data.to();
+        self.normal = plane.normal;
+        self.d = plane.d;
+        let handle = self.create_rapier_shape();
+        let rect = Aabb::new(
+            Vector::new(-1e4, -1e4, -1e4),
+            Vector::new(1e4 * 2.0, 1e4 * 2.0, 1e4 * 2.0),
+        );
+        self.base.set_handle(handle, rect);
+    }
+
+    #[cfg(feature = "dim2")]
     fn get_data(&self) -> Variant {
         let mut arr = Array::<Variant>::new();
         arr.push(self.normal.to_variant());
         arr.push(self.d.to_variant());
         arr.to_variant()
+    }
+
+    #[cfg(feature = "dim3")]
+    fn get_data(&self) -> Variant {
+        let plane = Plane::new(self.normal, self.d);
+        plane.to_variant()
     }
 
     fn get_handle(&mut self) -> Handle {

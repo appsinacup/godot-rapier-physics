@@ -6,7 +6,8 @@ pub struct FluidEffect {
 
     base: Base<Resource>,
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(GodotConvert, Var, Export, Clone)]
+#[godot(via = GString)]
 pub enum FluidEffectType {
     FluidEffectElasticity = 0,
     FluidEffectSurfaceTensionAkinci = 1,
@@ -27,6 +28,6 @@ impl IResource for FluidEffect {
 }
 impl FluidEffect {
     fn get_fluid_effect_type(&self) -> FluidEffectType {
-        self.fluid_effect_type
+        self.fluid_effect_type.clone()
     }
 }

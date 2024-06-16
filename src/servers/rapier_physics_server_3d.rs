@@ -19,7 +19,9 @@ use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::joints::rapier_joint::RapierEmptyJoint;
 use crate::rapier_wrapper::prelude::*;
+use crate::shapes::rapier_circle_shape::RapierCircleShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
+use crate::shapes::rapier_world_boundary_shape::RapierWorldBoundaryShape;
 use crate::spaces::rapier_space::RapierSpace;
 use crate::PackedVectorArray;
 use crate::ANGLE_ZERO;
@@ -47,6 +49,20 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
             collision_pairs: 0,
             base,
         }
+    }
+
+    fn world_boundary_shape_create(&mut self) -> Rid {
+        let rid = rid_from_int64(rid_allocate_id());
+        let shape = RapierWorldBoundaryShape::new(rid);
+        shapes_singleton().shapes.insert(rid, Box::new(shape));
+        rid
+    }
+
+    fn sphere_shape_create(&mut self) -> Rid {
+        let rid = rid_from_int64(rid_allocate_id());
+        let shape = RapierCircleShape::new(rid);
+        shapes_singleton().shapes.insert(rid, Box::new(shape));
+        rid
     }
 
     fn shape_set_data(&mut self, shape: Rid, data: Variant) {

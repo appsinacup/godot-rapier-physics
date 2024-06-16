@@ -1,5 +1,6 @@
 use rapier::prelude::*;
 
+use super::ANG_ZERO;
 use crate::rapier_wrapper::prelude::*;
 use crate::Transform;
 pub fn point_array_to_vec(pixel_data: Vec<Vector<Real>>) -> Vec<Point<Real>> {
@@ -40,6 +41,27 @@ pub fn shape_info_from_body_shape(shape_handle: Handle, transform: Transform) ->
         transform: isometry,
         scale: vector_to_rapier(transform.basis.scale()),
     }
+}
+pub fn shape_create_halfspace(normal: Vector<Real>, distance: Real) -> Handle {
+    let shape = SharedShape::halfspace(UnitVector::new_normalize(normal));
+    let shape_position = Isometry::new(normal * distance, ANG_ZERO);
+    let mut shapes_vec = Vec::new();
+    shapes_vec.push((shape_position, shape));
+    let shape_compound = SharedShape::compound(shapes_vec);
+    physics_engine().insert_shape(shape_compound)
+}
+pub fn shape_create_circle(radius: Real) -> Handle {
+    let shape = SharedShape::ball(radius);
+    physics_engine().insert_shape(shape)
+}
+pub fn shape_create_capsule(half_height: Real, radius: Real) -> Handle {
+    let shape = SharedShape::capsule_y(half_height, radius);
+    physics_engine().insert_shape(shape)
+}
+pub fn shape_create_concave_polyline(points: Vec<Vector<Real>>) -> Handle {
+    let points_vec = point_array_to_vec(points);
+    let shape = SharedShape::polyline(points_vec, None);
+    physics_engine().insert_shape(shape)
 }
 pub fn shape_destroy(shape_handle: Handle) {
     physics_engine().remove_shape(shape_handle)
