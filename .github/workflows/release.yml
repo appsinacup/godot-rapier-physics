@@ -14,24 +14,28 @@ jobs:
         with:
           pattern: godot-rapier-2d-single-enhanced-determinism-*
           merge-multiple: true
+          path: godot-rapier-2d-single-enhanced-determinism
           name: godot-rapier-2d-single-enhanced-determinism
       - name: Download artifacts 2d parallel
         uses: actions/download-artifact@v4
         with:
           pattern: godot-rapier-2d-single-simd-parallel-*
           merge-multiple: true
+          path: godot-rapier-2d-single-simd-parallel
           name: godot-rapier-2d-single-simd-parallel
       - name: Download artifacts 3d enchanced
         uses: actions/download-artifact@v4
         with:
           pattern: godot-rapier-3d-single-enhanced-determinism-*
           merge-multiple: true
+          path: godot-rapier-3d-single-enhanced-determinism
           name: godot-rapier-3d-single-enhanced-determinism
       - name: Download artifacts 3d parallel
         uses: actions/download-artifact@v4
         with:
           pattern: godot-rapier-3d-single-simd-parallel-*
           merge-multiple: true
+          path: godot-rapier-3d-single-simd-parallel
           name: godot-rapier-3d-single-simd-parallel
       - name: Delete draft release(s)
         uses: hugo19941994/delete-draft-releases@v1.0.0
