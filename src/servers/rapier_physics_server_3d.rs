@@ -398,6 +398,12 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         }
     }
 
+    fn area_set_ray_pickable(&mut self, area: Rid, enable: bool,) {
+        if let Some(area) = bodies_singleton().collision_objects.get_mut(&area) {
+            area.get_mut_base().set_pickable(enable);
+        }
+    }
+
     fn area_set_monitor_callback(&mut self, area: Rid, callback: Callable) {
         if let Some(area) = bodies_singleton().collision_objects.get_mut(&area) {
             if let Some(area) = area.get_mut_area() {
@@ -844,6 +850,12 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
             if let Some(body) = body.get_mut_body() {
                 body.set_force_integration_callback(callable, userdata);
             }
+        }
+    }
+
+    fn body_set_ray_pickable(&mut self, body: Rid, enable: bool,) {
+        if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
+            body.get_mut_base().set_pickable(enable);
         }
     }
 
