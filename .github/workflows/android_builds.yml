@@ -32,7 +32,7 @@ jobs:
       - name: Build share libraries
         shell: sh
         run: |
-          env ANDROID_NDK_HOME=/opt/android-ndk cargo ndk -t arm64-v8a build --release
+          cargo ndk -t armeabi-v7a -t arm64-v8a -o ./jniLibs build --release
       - name: Build
         uses: ./.github/actions/build
         with:
