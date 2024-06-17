@@ -27,6 +27,7 @@ runs:
         rustup install nightly
         rustup default nightly
         rustup target add ${{ inputs.arch }}
+        cargo update
         #rustup toolchain install nightly
         #rustup override set nightly
         #rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
