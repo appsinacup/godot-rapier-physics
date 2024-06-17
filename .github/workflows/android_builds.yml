@@ -19,7 +19,7 @@ jobs:
       - name: Install NDK
         shell: sh
         run: |
-          cargo install cargo ndk
+          cargo install cargo-ndk
       - name: Build
         uses: ./.github/actions/build
         with:
