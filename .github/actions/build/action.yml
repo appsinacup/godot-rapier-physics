@@ -34,7 +34,7 @@ runs:
     - name: Build
       shell: sh
       run: |
-        cargo build --target=${{ inputs.arch }} --release --features="${{ inputs.features }}" ${{ inputs.extra_flags}} --no-default-features
+        cargo +nightly build --target=${{ inputs.arch }} --release --features="${{ inputs.features }}" ${{ inputs.extra_flags}} --no-default-features
       env:
         RUSTFLAGS: ${{ inputs.env_flags }}
     - name: Copy to release
