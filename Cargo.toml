@@ -30,8 +30,8 @@ double_dim3 = ["double", "dim3", "rapier3d-f64", "salva3d"]
 bincode = "1"
 hashbrown = "0.14"
 
-godot = { git = "https://github.com/Ughuuu/gdext", branch = "expose-determinant-in-2d-transform", features=["lazy-function-tables"] }
-#godot = { git = "https://github.com/godot-rust/gdext", branch = "master", features=[] }
+#godot = { git = "https://github.com/Ughuuu/gdext", branch = "expose-determinant-in-2d-transform", features=["lazy-function-tables"] }
+godot = { git = "https://github.com/godot-rust/gdext", branch = "master", features=[] }
 
 rapier2d = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"], optional = true}
 rapier2d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"], optional = true}

@@ -92,3 +92,9 @@ pub fn transform_rotation_rapier(
 ) -> rapier::math::AngVector<rapier::math::Real> {
     transform.rotation()
 }
+pub fn vector_normalized(vector: crate::Vector) -> crate::Vector {
+    if vector != crate::Vector::ZERO {
+        return vector.normalized();
+    }
+    crate::Vector::ZERO
+}

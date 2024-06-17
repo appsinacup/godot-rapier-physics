@@ -1,6 +1,7 @@
 use godot::classes::physics_server_2d::ShapeType;
 use godot::prelude::*;
 
+use crate::bodies::vector_normalized;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
@@ -44,7 +45,7 @@ impl IRapierShape for RapierSegmentShape2D {
 
     fn create_rapier_shape(&mut self) -> Handle {
         let direction = self.b - self.a;
-        let direction_normalized = direction.normalized();
+        let direction_normalized = vector_normalized(direction);
         let perpendicular = Vector2::new(-direction_normalized.y, direction_normalized.x);
         let height = 0.1;
         let p1 = self.a + perpendicular * height / 2.0;

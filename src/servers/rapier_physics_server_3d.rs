@@ -16,6 +16,7 @@ use super::rapier_project_settings::RapierProjectSettings;
 use crate::bodies::rapier_area::RapierArea;
 use crate::bodies::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
+use crate::bodies::vector_normalized;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::joints::rapier_joint::RapierEmptyJoint;
 use crate::rapier_wrapper::prelude::*;
@@ -752,7 +753,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 let mut v = body.get_linear_velocity();
-                let axis = axis_velocity.normalized();
+                let axis = vector_normalized(axis_velocity);
                 v -= axis * axis.dot(v);
                 v += axis_velocity;
                 body.set_linear_velocity(v);

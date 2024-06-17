@@ -1,3 +1,4 @@
+use bodies::vector_normalized;
 #[cfg(feature = "dim2")]
 use godot::engine::physics_server_2d::*;
 #[cfg(feature = "dim3")]
@@ -555,14 +556,14 @@ impl RapierArea {
                 let v_length_sq = v.length_squared();
                 if v_length_sq > 0.0 {
                     let gravity_strength = self.gravity * gr_unit_dist * gr_unit_dist / v_length_sq;
-                    v.normalized() * gravity_strength
+                    vector_normalized(v) * gravity_strength
                 }
                 else {
                     Vector::default()
                 }
             }
             else {
-                v.normalized() * self.gravity
+                vector_normalized(v) * self.gravity
             }
         }
         else {

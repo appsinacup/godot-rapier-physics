@@ -3,6 +3,7 @@ use godot::prelude::*;
 
 use super::rapier_space_body_helper::is_handle_excluded_callback;
 use crate::bodies::rapier_collision_object::*;
+use crate::bodies::vector_normalized;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::*;
 use crate::Angle;
@@ -54,7 +55,7 @@ impl RapierDirectSpaceStateImpl {
             }
             // Raycast Info
             let end = to - from;
-            let dir = end.normalized();
+            let dir = vector_normalized(end);
             let mut query_excluded_info = QueryExcludedInfo::default();
             query_excluded_info.query_collision_layer_mask = collision_mask;
             let mut hit_info = RayHitInfo::default();

@@ -5,6 +5,7 @@ use rapier::dynamics::ImpulseJointHandle;
 use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 use super::rapier_joint::RapierJointBase;
 use super::rapier_pin_joint_2d::RapierPinJoint2D;
+use crate::bodies::vector_normalized;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::bodies_singleton;
@@ -38,7 +39,7 @@ impl RapierGrooveJoint2D {
                 let base_a = body_a.get_base();
                 let point_a_1 = base_a.get_inv_transform() * p_a_groove1;
                 let point_a_2 = base_a.get_inv_transform() * p_a_groove2;
-                let axis = (point_a_2 - point_a_1).normalized();
+                let axis = vector_normalized(point_a_2 - point_a_1);
                 let length = (point_a_2 - point_a_1).length();
                 let rapier_axis = vector_to_rapier(axis);
                 let rapier_limits = vector_to_rapier(Vector2::new(0.0, length));

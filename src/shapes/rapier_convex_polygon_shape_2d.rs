@@ -1,6 +1,7 @@
 use godot::classes::physics_server_2d::ShapeType;
 use godot::prelude::*;
 
+use crate::bodies::vector_normalized;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
@@ -82,7 +83,7 @@ impl IRapierShape for RapierConvexPolygonShape2D {
                 for i in 0..size {
                     let p = self.points[i].pos;
                     let pn = self.points[(i + 1) % size].pos;
-                    self.points[i].normal = (pn - p).orthogonal().normalized();
+                    self.points[i].normal = vector_normalized((pn - p).orthogonal());
                 }
             }
             VariantType::PACKED_FLOAT32_ARRAY => {

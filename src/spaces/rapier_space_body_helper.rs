@@ -8,6 +8,7 @@ use rapier::na::RealField;
 
 use crate::bodies::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;
+use crate::bodies::vector_normalized;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::*;
 use crate::shapes::rapier_shape::IRapierShape;
@@ -686,7 +687,7 @@ fn should_skip_collision_one_dir(
             .get_base()
             .is_shape_set_as_one_way_collision(shape_index)
     {
-        let valid_dir = col_shape_transform.origin.normalized();
+        let valid_dir = vector_normalized(col_shape_transform.origin);
         let owc_margin = collision_body
             .get_base()
             .get_shape_one_way_collision_margin(shape_index);
@@ -701,7 +702,7 @@ fn should_skip_collision_one_dir(
                 let mut motion = lv * last_step;
                 let motion_len = motion.length();
                 if !motion_len.is_zero_approx() {
-                    motion = motion.normalized();
+                    motion = vector_normalized(motion);
                 }
                 valid_depth += motion_len * motion.dot(valid_dir).max(0.0);
             }
@@ -710,7 +711,7 @@ fn should_skip_collision_one_dir(
         let mut motion_normalized = motion;
         let motion_len = motion.length();
         if !motion_len.is_zero_approx() {
-            motion_normalized = motion_normalized.normalized();
+            motion_normalized = vector_normalized(motion_normalized);
         }
         valid_depth += motion_len * motion_normalized.dot(valid_dir).max(0.0);
         if dist < -valid_depth || motion_normalized.dot(valid_dir) < DEFAULT_EPSILON {

@@ -20,6 +20,7 @@ use super::rapier_project_settings::RapierProjectSettings;
 use crate::bodies::rapier_area::RapierArea;
 use crate::bodies::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
+use crate::bodies::vector_normalized;
 use crate::joints::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 use crate::joints::rapier_groove_joint_2d::RapierGrooveJoint2D;
 use crate::joints::rapier_joint::IRapierJoint;
@@ -878,7 +879,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             if let Some(body) = body.get_mut_body() {
                 let axis_velocity = axis_velocity;
                 let mut v = body.get_linear_velocity();
-                let axis = axis_velocity.normalized();
+                let axis = vector_normalized(axis_velocity);
                 v -= axis * axis.dot(v);
                 v += axis_velocity;
                 body.set_linear_velocity(v);
