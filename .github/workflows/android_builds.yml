@@ -16,6 +16,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - name: Install NDK
+        shell: sh
+        run: |
+          cargo install cargo ndk
       - name: Build
         uses: ./.github/actions/build
         with:
