@@ -35,7 +35,7 @@ jobs:
           APPLE_DEV_PASSWORD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
           APPLE_DEV_APP_ID: ${{ secrets.PROD_MACOS_APPLE_DEV_APP_ID }}
         run: |
-          ./scripts/ci-sign-macos.ps1 bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.ios.dylib
+          ./scripts/ci-sign-macos.ps1 bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.ios.framework/libgodot_rapier.ios.dylib
         if: ${{ env.APPLE_DEV_ID }}
 
       - name: Upload
