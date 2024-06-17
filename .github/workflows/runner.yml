@@ -41,10 +41,10 @@ jobs:
     name:  Godot
     uses: ./.github/workflows/godot_builds.yml
 
-  #web-build:
-  #  name: 🌐 Web Builds
-  #  needs: static-checks
-  #  uses: ./.github/workflows/web_builds.yml
+  web-build:
+    name: 🌐 Web Builds
+    needs: static-checks
+    uses: ./.github/workflows/web_builds.yml
 
   merge:
     runs-on: ubuntu-latest
