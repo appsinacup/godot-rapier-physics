@@ -16,7 +16,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Install NDK
+      - name: Set up Java 11
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 11
+      
+      - uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r23c
+      - name: Install Cargo NDK
         shell: sh
         run: |
           cargo install cargo-ndk
