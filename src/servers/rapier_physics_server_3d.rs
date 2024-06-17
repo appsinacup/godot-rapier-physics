@@ -398,7 +398,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         }
     }
 
-    fn area_set_ray_pickable(&mut self, area: Rid, enable: bool,) {
+    fn area_set_ray_pickable(&mut self, area: Rid, enable: bool) {
         if let Some(area) = bodies_singleton().collision_objects.get_mut(&area) {
             area.get_mut_base().set_pickable(enable);
         }
@@ -853,7 +853,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         }
     }
 
-    fn body_set_ray_pickable(&mut self, body: Rid, enable: bool,) {
+    fn body_set_ray_pickable(&mut self, body: Rid, enable: bool) {
         if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
             body.get_mut_base().set_pickable(enable);
         }
