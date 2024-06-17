@@ -9,8 +9,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        #arch: ["x86_64-linux-android", "aarch64-linux-android", "i686-linux-android", "armv7-linux-androideabi"]
-        arch: ["aarch64-linux-android", "armv7-linux-androideabi"]
+        arch: ["x86_64-linux-android", "aarch64-linux-android", "i686-linux-android", "armv7-linux-androideabi"]
+        #arch: ["aarch64-linux-android", "armv7-linux-androideabi"]
         precision: [single]
         dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
         features: [{"feature":"parallel,simd-stable", "name": "simd-parallel"}, {"feature":"enhanced-determinism", "name": "enhanced-determinism"}]
@@ -32,13 +32,13 @@ jobs:
           rustup toolchain install nightly
           rustup override set nightly
           rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
-          cargo install cargo-ndk
+          #cargo install cargo-ndk
       - name: Build share libraries
         shell: sh
         run: |
           rustup target add armv7-linux-androideabi
           rustup target add aarch64-linux-android
-          cargo +nightly ndk -t armeabi-v7a -t arm64-v8a -o ./jniLibs build --release
+          #cargo +nightly ndk -t armeabi-v7a -t arm64-v8a -o ./jniLibs build --release
       - name: Build
         uses: ./.github/actions/build
         with:

@@ -5,3 +5,16 @@ rustflags = [
     "-C", "target-feature=+atomics,+bulk-memory,+mutable-globals",
     "-Zlink-native-libraries=no"
 ]
+[target.armv7-linux-androideabi]
+linker = "armv7a-linux-androideabi31-clang"
+rustflags = [
+  "-C", "link-arg=-undefined",
+  "-C", "link-arg=dynamic_lookup",
+]
+
+[target.aarch64-linux-android]
+linker = "aarch64-linux-android31-clang"
+rustflags = [
+  "-C", "link-arg=-undefined",
+  "-C", "link-arg=dynamic_lookup",
+]
