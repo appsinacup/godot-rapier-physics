@@ -11,10 +11,10 @@ jobs:
     name: 📊 Static checks
     uses: ./.github/workflows/static_checks.yml
 
-  #android-build:
-  #  name: 🤖 Android
-  #  needs: static-checks
-  #  uses: ./.github/workflows/android_builds.yml
+  android-build:
+    name: 🤖 Android
+    needs: static-checks
+    uses: ./.github/workflows/android_builds.yml
 
   ios-build:
     name: 🍏 iOS
@@ -49,7 +49,7 @@ jobs:
   merge:
     runs-on: ubuntu-latest
     name: Merge
-    needs: [ios-build, linux-build, macos-build, windows-build, godot-build, web-build]
+    needs: [android-build, ios-build, linux-build, macos-build, windows-build, godot-build, web-build]
     steps:
       - uses: actions/upload-artifact/merge@v4
         with:
