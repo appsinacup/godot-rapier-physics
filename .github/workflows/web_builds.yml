@@ -36,7 +36,7 @@ jobs:
       - name: Build ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/build
         with:
-          arch: ${{ matrix.arch.arch }}
+          arch: ${{ matrix.arch }}
           extra_flags: "-Z build-std=panic_abort,std"
           precision: ${{ matrix.precision }}
           features: ${{ matrix.features.feature }},${{ matrix.precision }}_${{ matrix.dimensions.feature }},experimental-wasm
