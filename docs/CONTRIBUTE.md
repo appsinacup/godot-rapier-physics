@@ -8,13 +8,17 @@ If you want to contribute to this project:
 
 # How it's build
 
+## Interfaces to implement
+
 Godot let's any GDExtension create a new `Physics Server` if they call create a node of type [PhysicsServer2DManager](https://docs.godotengine.org/en/latest/classes/class_physicsserver2dmanager.html) or [PhysicsServer3DManager](https://docs.godotengine.org/en/latest/classes/class_physicsserver3dmanager.html) and on the callback return a new instance of their custom `Physics Server` that extends either [PhysicsServer2DExtension](https://docs.godotengine.org/en/latest/classes/class_physicsserver2dextension.html) or [PhysicsServer3DExtension](https://docs.godotengine.org/en/latest/classes/class_physicsserver3dextension.html).
 
 While these classes aren't that well documented, the original implementation of these classes (eg. `Godot Physics Servers`) are.
 
 A physics server has to implement the `PhysicsServerExtension`, but also other classes that are used by it, such as:
-- [PhysicsDirectBodyState2DExtension](https://docs.godotengine.org/en/latest/classes/class_physicsdirectbodystate2dextension.html) or [PhysicsDirectBodyState3DExtension](https://docs.godotengine.org/en/latest/classes/class_physicsdirectbodystate3dextension.html)
-- [PhysicsDirectSpaceState2DExtension](https://docs.godotengine.org/en/latest/classes/class_physicsdirectspacestate2dextension.html) or [PhysicsDirectSpaceState3DExtension](https://docs.godotengine.org/en/latest/classes/class_physicsdirectspacestate3dextension.html)
+- [PhysicsDirectBodyState2DExtension](https://docs.godotengine.org/en/latest/classes/class_physicsdirectbodystate2dextension.html) and [PhysicsDirectBodyState3DExtension](https://docs.godotengine.org/en/latest/classes/class_physicsdirectbodystate3dextension.html)
+- [PhysicsDirectSpaceState2DExtension](https://docs.godotengine.org/en/latest/classes/class_physicsdirectspacestate2dextension.html) and [PhysicsDirectSpaceState3DExtension](https://docs.godotengine.org/en/latest/classes/class_physicsdirectspacestate3dextension.html)
+
+## Implementation details
 
 Godot Rapier Physics implements these under the name like this:
 - [RapierPhysicsServer2D](../src/servers/rapier_physics_server_2d.rs) and [RapierPhysicsServer3D](../src/servers/rapier_physics_server_3d.rs)
@@ -22,6 +26,11 @@ Godot Rapier Physics implements these under the name like this:
 - [RapierDirectSpaceState2D](../src/spaces/rapier_direct_space_state_2d.rs) and [RapierDirectSpaceState3D](../src/spaces/rapier_direct_space_state_3d.rs)
 
 Note that Godot Rapier Physics also exposes new nodes, [Fluid2D](../src/fluids/fluid_2d.rs) and [Fluid3D](../src/fluids/fluid_3d.rs).
+
+Code is reused as much as possible, by having each of these classes call into a generic class that does the implementation, and a few configuration flags to select dimensions, precision, etc.
+
+The code written here is based on the Physics Server from Godot.
+
 # Build the Rapier 2D wrapper
 
 1. Prerequisites:
