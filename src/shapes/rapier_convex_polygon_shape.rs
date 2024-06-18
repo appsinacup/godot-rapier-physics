@@ -7,6 +7,7 @@ use godot::prelude::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
+use crate::PackedFloatArray;
 use crate::PackedVectorArray;
 use crate::Rect;
 use crate::Vector;
@@ -98,7 +99,6 @@ impl IRapierShape for RapierConvexPolygonShape {
             #[cfg(feature = "dim2")]
             VariantType::PACKED_FLOAT64_ARRAY | VariantType::PACKED_FLOAT32_ARRAY => {
                 if let Ok(arr) = data.try_to::<PackedFloatArray>() {
-                    let arr: PackedFloatArray = data.to();
                     let size = arr.len() / 4;
                     if size <= 0 {
                         return;

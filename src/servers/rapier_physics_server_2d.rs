@@ -30,7 +30,7 @@ use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_capsule_shape::RapierCapsuleShape;
 use crate::shapes::rapier_circle_shape::RapierCircleShape;
 use crate::shapes::rapier_concave_polygon_shape_2d::RapierConcavePolygonShape2D;
-use crate::shapes::rapier_convex_polygon_shape_2d::RapierConvexPolygonShape;
+use crate::shapes::rapier_convex_polygon_shape::RapierConvexPolygonShape;
 use crate::shapes::rapier_rectangle_shape::RapierRectangleShape;
 use crate::shapes::rapier_segment_shape_2d::RapierSegmentShape2D;
 use crate::shapes::rapier_separation_ray_shape::RapierSeparationRayShape;
