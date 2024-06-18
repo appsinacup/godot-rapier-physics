@@ -15,6 +15,10 @@ extern crate salva2d as salva;
 extern crate salva3d as salva;
 #[cfg(all(feature = "double", feature = "dim3"))]
 extern crate salva3d as salva;
+#[cfg(feature = "single")]
+pub type PackedFloatArray = PackedFloat32Array;
+#[cfg(feature = "double")]
+pub type PackedFloatArray = PackedFloat64Array;
 #[cfg(feature = "dim3")]
 pub type PackedVectorArray = godot::prelude::PackedVector3Array;
 #[cfg(feature = "dim2")]

@@ -7,7 +7,7 @@ use crate::Vector;
 pub struct RapierConcavePolygonShape2D {
     points: Vec<Vector2>,
     segments: Vec<[i32; 2]>,
-    pub base: RapierShapeBase,
+    base: RapierShapeBase,
 }
 impl RapierConcavePolygonShape2D {
     pub fn new(rid: Rid) -> Self {

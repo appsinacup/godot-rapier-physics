@@ -9,7 +9,7 @@ use crate::shapes::rapier_shape::*;
 use crate::*;
 pub struct RapierCircleShape {
     radius: f32,
-    pub base: RapierShapeBase,
+    base: RapierShapeBase,
 }
 impl RapierCircleShape {
     pub fn new(rid: Rid) -> Self {

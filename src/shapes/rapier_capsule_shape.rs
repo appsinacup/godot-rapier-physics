@@ -10,7 +10,7 @@ use crate::Vector;
 pub struct RapierCapsuleShape {
     height: f32,
     radius: f32,
-    pub base: RapierShapeBase,
+    base: RapierShapeBase,
 }
 impl RapierCapsuleShape {
     pub fn new(rid: Rid) -> Self {

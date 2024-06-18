@@ -22,6 +22,7 @@ use crate::joints::rapier_joint::RapierEmptyJoint;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_capsule_shape::RapierCapsuleShape;
 use crate::shapes::rapier_circle_shape::RapierCircleShape;
+use crate::shapes::rapier_convex_polygon_shape::RapierConvexPolygonShape;
 use crate::shapes::rapier_cylinder_shape::RapierCylinderShape;
 use crate::shapes::rapier_rectangle_shape::RapierRectangleShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
@@ -98,7 +99,10 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
     }
 
     fn convex_polygon_shape_create(&mut self) -> Rid {
-        Rid::Invalid
+        let rid = rid_from_int64(rid_allocate_id());
+        let shape = RapierConvexPolygonShape::new(rid);
+        shapes_singleton().shapes.insert(rid, Box::new(shape));
+        rid
     }
 
     fn concave_polygon_shape_create(&mut self) -> Rid {
