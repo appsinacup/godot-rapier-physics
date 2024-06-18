@@ -23,6 +23,14 @@ A 2D and 3D physics drop-in replacement for [godot](https://github.com/godotengi
 - 2D and 3D.
 - Fluids with surface tension, viscosity and elasticity.
 
+# Limitations
+
+- SeparationRayShape2D, ConcavePolygonShape3D, HeightMapShape3D, 3D joints.
+- Web exports.
+- Android exports.
+- Cross platform determinism.
+- Double builds.
+
 # Supported Platforms
 
 - Windows (x86_64, x86_32)

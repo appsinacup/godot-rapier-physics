@@ -4,12 +4,12 @@ use godot::prelude::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::*;
 use crate::Vector;
-pub struct RapierCylinderShape {
+pub struct RapierCylinderShape3D {
     height: f32,
     radius: f32,
     pub base: RapierShapeBase,
 }
-impl RapierCylinderShape {
+impl RapierCylinderShape3D {
     pub fn new(rid: Rid) -> Self {
         Self {
             height: 0.0,
@@ -18,7 +18,7 @@ impl RapierCylinderShape {
         }
     }
 }
-impl IRapierShape for RapierCylinderShape {
+impl IRapierShape for RapierCylinderShape3D {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base
     }
@@ -94,7 +94,7 @@ impl IRapierShape for RapierCylinderShape {
         self.base.get_handle()
     }
 }
-impl RapierCylinderShape {
+impl RapierCylinderShape3D {
     fn compute_aabb(&self) -> Aabb {
         let he = Vector3::new(self.radius, self.height * 0.5, self.radius);
         Aabb::new(-he, he * 2.0)

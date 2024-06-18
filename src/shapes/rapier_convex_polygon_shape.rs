@@ -21,6 +21,7 @@ impl RapierConvexPolygonShape {
             base: RapierShapeBase::new(rid),
         }
     }
+
     fn compute_aabb(&self, scale: Vector) -> Rect {
         let mut aabb_new = Rect::new(Vector::ZERO, Vector::ZERO);
         for point in self.points.as_slice() {
@@ -54,15 +55,15 @@ impl IRapierShape for RapierConvexPolygonShape {
     #[cfg(feature = "dim3")]
     fn get_moment_of_inertia(&self, mass: f32, scale: Vector) -> Vector3 {
         if self.points.len() < 3 {
-            return Vector3::ZERO
+            return Vector3::ZERO;
         }
         // use bad AABB approximation
         let extents = self.compute_aabb(scale).size * 0.5;
-        return Vector3::new(
+        Vector3::new(
             (mass / 3.0) * (extents.y * extents.y + extents.z * extents.z),
             (mass / 3.0) * (extents.x * extents.x + extents.z * extents.z),
             (mass / 3.0) * (extents.x * extents.x + extents.y * extents.y),
-        );
+        )
     }
 
     fn allows_one_way_collision(&self) -> bool {
@@ -106,7 +107,8 @@ impl IRapierShape for RapierConvexPolygonShape {
                     for i in 0..size {
                         let idx = i << 2;
                         // skip normals
-                        self.points.push(Vector2::new(arr[idx] as real, arr[idx + 1] as real));
+                        self.points
+                            .push(Vector2::new(arr[idx] as real, arr[idx + 1] as real));
                     }
                 }
             }
