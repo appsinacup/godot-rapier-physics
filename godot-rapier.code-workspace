@@ -11,7 +11,7 @@
 	],
 	"settings": {
 		"rust-analyzer.linkedProjects": [
-			"../godot-rapier-2d/src/rapier2d-wrapper/Cargo.toml"
+			"../godot-rapier-2d/Cargo.toml"
 		],
 		"rust-analyzer.showUnlinkedFileNotification": false,
 		"lldb.launch.sourceMap": {
@@ -41,15 +41,17 @@
 			"initializer_list": "cpp",
 			"queue": "cpp",
 			"span": "cpp",
-			"stack": "cpp"
-		}
+			"stack": "cpp",
+			"__node_handle": "cpp"
+		},
+		"godotTools.editorPath.godot4": "/Applications/Godot.app"
 	},
 	"launch": {
 		"version": "0.2.0",
 		"configurations": [
 			{
 				"name": "Launch",
-				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.arm64",
+				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.dev.arm64",
 				"type": "cppdbg",
 				"request": "launch",
 				"cwd": "${workspaceFolder:godot-rapier-2d}",
@@ -64,7 +66,68 @@
 				]
 			},
 			{
-				"name": "Launch Fluid",
+				"name": "Launch scene",
+				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.dev.arm64",
+				"type": "cppdbg",
+				"request": "launch",
+				"cwd": "${workspaceFolder:godot-rapier-2d}",
+				"osx": {
+					"MIMode": "lldb"
+				},
+				"args": [
+					"--path",
+					"${workspaceFolder:godot-rapier-2d}/bin2d",
+					"--debug-collisions",
+					"test.tscn"
+				]
+			},
+			{
+				"name": "Launch Editor",
+				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.dev.arm64",
+				"type": "cppdbg",
+				"request": "launch",
+				"cwd": "${workspaceFolder:godot-rapier-2d}",
+				"osx": {
+					"MIMode": "lldb"
+				},
+				"args": [
+					"/Users/dragosdaian/Documents/GitHub/godot-rapier-2d/bin/project.godot"
+				]
+			},
+			{
+				"name": "Unit Test",
+				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.dev.arm64",
+				"type": "cppdbg",
+				"request": "launch",
+				"cwd": "${workspaceFolder:godot-rapier-2d}",
+				"osx": {
+					"MIMode": "lldb"
+				},
+				"args": [
+					"--path",
+					"${workspaceFolder:godot-rapier-2d}/bin2d",
+					"--debug-collisions",
+					"test/unit/tests.tscn"
+				]
+			},
+			{
+				"name": "Physics Test",
+				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.dev.arm64",
+				"type": "cppdbg",
+				"request": "launch",
+				"cwd": "${workspaceFolder:godot-rapier-2d}",
+				"osx": {
+					"MIMode": "lldb"
+				},
+				"args": [
+					"--path",
+					"/Users/dragosdaian/Documents/Godot-Physics-Tests",
+					"--debug-collisions",
+					"tests/nodes/CharacterBody/character_body_2d.tscn",
+				]
+			},
+			{
+				"name": "Physics Test Fast",
 				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.arm64",
 				"type": "cppdbg",
 				"request": "launch",
@@ -74,11 +137,44 @@
 				},
 				"args": [
 					"--path",
-					"${workspaceFolder:godot-rapier-2d}/bin",
+					"/Users/dragosdaian/Documents/Godot-Physics-Tests",
 					"--debug-collisions",
-					"samples/godot-rapier2d/test_fluid.tscn"
+					//"tests/performance/collisions/tests/2d/avg_fps_before_low_fps.tscn",
+					"tests/performance/collisions/tests/3d/convex_fps_performance.tscn",
 				]
-			}
+			},
+			{
+				"name": "Integration Body Delete Test",
+				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.dev.arm64",
+				"type": "cppdbg",
+				"request": "launch",
+				"cwd": "${workspaceFolder:godot-rapier-2d}",
+				"osx": {
+					"MIMode": "lldb"
+				},
+				"args": [
+					"--path",
+					"${workspaceFolder:godot-rapier-2d}/bin2d",
+					"--debug-collisions",
+					"test/integration/test_body_delete.tscn"
+				]
+			},
+			{
+				"name": "Test Area",
+				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.arm64",
+				"type": "cppdbg",
+				"request": "launch",
+				"cwd": "${workspaceFolder:godot-rapier-2d}",
+				"osx": {
+					"MIMode": "lldb"
+				},
+				"args": [
+					"--path",
+					"/Users/dragosdaian/Documents/Godot-Physics-Tests",
+					"--debug-collisions",
+					"test.tscn",
+				]
+			},
 		]
 	},
 	"tasks": {

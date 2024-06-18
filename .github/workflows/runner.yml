@@ -6,19 +6,15 @@ on:
     branches:
       - "main"
 
-#concurrency:
-#  group: ${{ github.workflow }}
-#  cancel-in-progress: true
-
 jobs:
   static-checks:
     name: 📊 Static checks
     uses: ./.github/workflows/static_checks.yml
 
-  android-build:
-    name: 🤖 Android
-    needs: static-checks
-    uses: ./.github/workflows/android_builds.yml
+  #android-build:
+  #  name: 🤖 Android
+  #  needs: static-checks
+  #  uses: ./.github/workflows/android_builds.yml
 
   ios-build:
     name: 🍏 iOS
@@ -41,14 +37,41 @@ jobs:
     needs: static-checks
     uses: ./.github/workflows/windows_builds.yml
 
-  web-build:
-    name: 🌐 Web Builds
-    needs: static-checks
-    uses: ./.github/workflows/web_builds.yml
+  godot-build:
+    name:  Godot
+    uses: ./.github/workflows/godot_builds.yml
+
+  #web-build:
+  #  name: 🌐 Web Builds
+  #  needs: static-checks
+  #  uses: ./.github/workflows/web_builds.yml
+
+  merge:
+    runs-on: ubuntu-latest
+    name: Merge
+    #needs: [android-build, ios-build, linux-build, macos-build, windows-build, godot-build, web-build]
+    needs: [ios-build, linux-build, macos-build, windows-build, godot-build]
+    steps:
+      - uses: actions/upload-artifact/merge@v4
+        with:
+          name: godot-rapier-2d-single-simd-parallel
+          pattern: godot-rapier-2d-single-simd-parallel-*
+      - uses: actions/upload-artifact/merge@v4
+        with:
+          name: godot-rapier-2d-single-enhanced-determinism
+          pattern: godot-rapier-2d-single-enhanced-determinism-*
+      - uses: actions/upload-artifact/merge@v4
+        with:
+          name: godot-rapier-3d-single-simd-parallel
+          pattern: godot-rapier-3d-single-simd-parallel-*
+      - uses: actions/upload-artifact/merge@v4
+        with:
+          name: godot-rapier-3d-single-enhanced-determinism
+          pattern: godot-rapier-3d-single-enhanced-determinism-*
 
   release:
     name: Create Release
     permissions:
       contents: write
-    needs: [android-build, ios-build, linux-build, macos-build, windows-build, web-build]
+    needs: [merge]
     uses: ./.github/workflows/release.yml

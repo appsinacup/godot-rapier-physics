@@ -1,0 +1,28 @@
+[configuration]
+
+entry_symbol = "gdext_rust_init"
+compatibility_minimum = 4.3
+
+
+[libraries]
+
+macos.debug = "bin/libgodot_rapier.macos.framework"
+macos.release = "bin/libgodot_rapier.macos.framework"
+windows.debug.x86_64 = "bin/libgodot_rapier.windows.x86_64-pc-windows-msvc.dll"
+windows.release.x86_64 = "bin/libgodot_rapier.windows.x86_64-pc-windows-msvc.dll"
+windows.debug.x86_32 = "bin/libgodot_rapier.windows.i686-pc-windows-msvc.dll"
+windows.release.x86_32 = "bin/libgodot_rapier.windows.i686-pc-windows-msvc.dll"
+linux.debug.x86_64 = "bin/libgodot_rapier.linux.x86_64-unknown-linux-gnu.so"
+linux.release.x86_64 = "bin/libgodot_rapier.linux.x86_64-unknown-linux-gnu.so"
+#android.debug.x86_64 = "bin/libgodot_rapier.android.x86_64.so"
+#android.release.x86_64 = "bin/libgodot_rapier.android.x86_64.so"
+#android.debug.arm64 = "bin/libgodot_rapier.android.arm64.so"
+#android.release.arm64 = "bin/libgodot_rapier.android.arm64.so"
+ios.debug = "bin/libgodot_rapier.ios.framework"
+ios.release = "bin/libgodot_rapier.ios.framework"
+web.debug.wasm32 = "bin/libgodot_rapier.web.wasm32.wasm"
+web.release.wasm32 = "bin/libgodot_rapier.web.wasm32.wasm"
+
+[icons]
+
+Fluid2D = "Fluid3D.svg"

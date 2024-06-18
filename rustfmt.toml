@@ -1,0 +1,12 @@
+imports_granularity="Item"
+group_imports = "StdExternalCrate"
+indent_style = "Block"
+reorder_imports = true
+blank_lines_lower_bound = 0
+blank_lines_upper_bound = 0
+brace_style = "SameLineWhere"
+condense_wildcard_suffixes = true
+fn_params_layout = "Tall"
+imports_layout = "Horizontal"
+merge_derives = true
+reorder_impl_items = true

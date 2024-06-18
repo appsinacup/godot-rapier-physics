@@ -7,9 +7,7 @@ jobs:
     name: Code style
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - name: Clang Format
+      - uses: actions/checkout@v4
+      - name: Format
         shell: sh
-        run: ./scripts/clang-format.sh
+        run: cargo fmt --all -- --config-path ./rustfmt.toml

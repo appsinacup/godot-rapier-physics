@@ -1,0 +1,68 @@
+[package]
+name = "godot-rapier"
+version = "0.7.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[features]
+default = ["single-dim2"]
+dim2 = []
+dim3 = []
+single = []
+double = []
+enhanced-determinism = ["rapier2d/enhanced-determinism", "rapier2d-f64/enhanced-determinism", "rapier3d/enhanced-determinism", "rapier3d-f64/enhanced-determinism"]
+simd-stable = ["rapier2d/simd-stable", "rapier2d-f64/simd-stable", "rapier3d/simd-stable", "rapier3d-f64/simd-stable"]
+simd-nightly = ["rapier2d/simd-nightly", "rapier2d-f64/simd-nightly", "rapier3d/simd-nightly", "rapier3d-f64/simd-nightly"]
+wasm-bindgen = ["rapier2d/wasm-bindgen", "rapier2d-f64/wasm-bindgen", "rapier3d/wasm-bindgen", "rapier3d-f64/wasm-bindgen"]
+parallel = ["rapier2d/parallel", "rapier2d-f64/parallel", "rapier3d/parallel", "rapier3d-f64/parallel"]
+experimental-wasm = ["godot/experimental-wasm", "godot/lazy-function-tables"]
+single-dim2 = ["single", "dim2", "rapier2d", "salva2d"]
+double-dim2 = ["double", "dim2", "rapier2d-f64", "salva2d"]
+single-dim3 = ["single", "dim3", "rapier3d", "salva3d"]
+double-dim3 = ["double", "dim3", "rapier3d-f64", "salva3d"]
+
+
+[dependencies]
+bincode = "1"
+hashbrown = "0.14"
+
+godot = { git = "https://github.com/Ughuuu/gdext", branch = "expose-determinant-in-2d-transform", features=["lazy-function-tables"] }
+#godot = { git = "https://github.com/godot-rust/gdext", branch = "master", features=[] }
+
+rapier2d = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"], optional = true}
+rapier2d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"], optional = true}
+rapier3d = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"], optional = true}
+rapier3d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"], optional = true}
+salva2d = { git = "https://github.com/ughuuu/salva", branch = "update-to-rapier-0.19", features = ["rapier"], optional = true }
+salva3d = { git = "https://github.com/ughuuu/salva", branch = "update-to-rapier-0.19", features = ["rapier"], optional = true }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[patch.crates-io]
+rapier2d = {git = "https://github.com/dimforge/rapier", branch = "master"}
+rapier2d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master"}
+parry2d = {git = "https://github.com/dimforge/parry", branch = "master"}
+parry2d-f64 = {git = "https://github.com/dimforge/parry", branch = "master"}
+
+rapier3d = {git = "https://github.com/dimforge/rapier", branch = "master"}
+rapier3d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master"}
+parry3d = {git = "https://github.com/dimforge/parry", branch = "master"}
+parry3d-f64 = {git = "https://github.com/dimforge/parry", branch = "master"}
+
+[profile.release]
+codegen-units = 1
+lto = "fat"
+debug = 1
+panic = "abort"
+strip = "debuginfo"
+opt-level = 3
+
+[profile.dev]
+split-debuginfo = "unpacked"
+
+[package.metadata.docs.rs]
+license-file = "../LICENSE"

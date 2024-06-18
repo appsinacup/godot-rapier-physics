@@ -5,33 +5,30 @@ on:
 jobs:
   build-windows:
     runs-on: "windows-latest"
-    name: ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+    name: ${{ matrix.dimensions.short }} ${{ matrix.precision }} ${{ matrix.features.name }} ${{ matrix.arch }}
     strategy:
       fail-fast: false
       matrix:
-        arch: [{arch: "x86_64", rust: "x86_64-pc-windows-msvc"}, {arch: "x86_32", rust: "i686-pc-windows-msvc"}]
+        arch: ["x86_64-pc-windows-msvc", "i686-pc-windows-msvc"]
         precision: [single]
-        features: [simd-stable, enhanced-determinism]
+        dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
+        features: [{"feature":"parallel,simd-stable", "name": "simd-parallel"}, {"feature":"enhanced-determinism", "name": "enhanced-determinism"}]
 
     steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-          fetch-depth: 0
-      - name: Setup MSVC problem matcher
-        uses: ammaraskar/msvc-problem-matcher@master
-
-      - name: Build ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+      - uses: actions/checkout@v4
+      - name: Build ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/build
         with:
-          arch: ${{ matrix.arch.arch }}
-          rust_target: ${{ matrix.arch.rust }}
-          platform: windows
-          precision: ${{ matrix.precision }}
-          features: ${{ matrix.features }}
-
-      - name: Upload ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
-        uses: ./.github/actions/upload
+          arch: ${{ matrix.arch }}
+          features: ${{ matrix.features.feature }},${{ matrix.precision }}-${{ matrix.dimensions.feature }}
+      - name: Copy to bin
+        shell: sh
+        run: |
+          mv target/release/godot_rapier.dll bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.windows.${{ matrix.arch }}.dll
+      - name: Upload
+        uses: actions/upload-artifact@v4
         with:
-          precision: ${{ matrix.precision }}
-          features: ${{ matrix.features }}
+          name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch }}
+          path: |
+            bin${{ matrix.dimensions.short }}/**/*.dll
+          if-no-files-found: error

@@ -1,70 +1,71 @@
 <p align="center">
-<img src="https://github.com/appsinacup/godot-rapier2d/blob/main/logo.jpg?raw=true" width="256px"/>
+<img src="https://github.com/appsinacup/godot-rapier-physics/blob/main/logo.jpg?raw=true" width="256px"/>
 </p>
 <p align="center">
-	<a href="https://github.com/appsinacup/godot-rapier-2d/actions/workflows/runner.yml">
-        <img src="https://github.com/appsinacup/godot-rapier-2d/actions/workflows/runner.yml/badge.svg?branch=main"
-            alt="Godot Rapier2D Build"></a>
-    <a href="https://github.com/dimforge/rapier/releases/tag/v0.18.0" alt="Rapier2D Version">
-        <img src="https://img.shields.io/badge/Rapier2D-v0.18.0-%23478cbf?logoColor=white" /></a>
-    <a href="https://github.com/dimforge/salva/releases/tag/v0.7.0" alt="Salva Version">
-        <img src="https://img.shields.io/badge/Salva2D-v0.7.0-%23478cbf?logoColor=white" /></a>
-    <a href="https://github.com/godotengine/godot-cpp" alt="Godot Version">
-        <img src="https://img.shields.io/badge/Godot-v4.2-%23478cbf?logo=godot-engine&logoColor=white" /></a>
-    <a href="https://github.com/appsinacup/godot-rapier-2d/graphs/contributors" alt="Contributors">
+        <img src="https://github.com/appsinacup/godot-rapier-physics/actions/workflows/runner.yml/badge.svg?branch=main"
+            alt="Godot Rapier Build"></a>
+        <img src="https://img.shields.io/badge/Godot-4.3-%23478cbf?logo=godot-engine&logoColor=white" />
     <a href="https://discord.gg/56dMud8HYn">
         <img src="https://img.shields.io/discord/1138836561102897172?logo=discord"
             alt="Chat on Discord"></a>
 </p>
 
-A 2d [rapier](https://github.com/dimforge/rapier) physics server for [Godot Engine v4.2](https://github.com/godotengine/godot), implemented as a GDExtension. Also integrates with salva for 2d fluids.
+A 2D and 3D physics drop-in replacement for [godot](https://github.com/godotengine/godot) that adds stability and fluids. Uses [rapier](https://github.com/dimforge/rapier) for physics and [salva](https://github.com/dimforge/salva) for fluids.
 
 <p align="center">
-<img src="rapier-vid.gif"/>
-<img src="fluid_shader.gif"/>
+<img src="docs/rapier-vid.gif"/>
 </p>
+
+# Note
+
+This plugin was recently rewritten from c++ to rust. There are still some things missing from what it had originally and may have some new bugs that it didn't have before.
+
+The reason it was rewritten is to do easier cross platform determinism part and exports to web.
 
 # Features
 
-- Parallel support and SIMD build for better performance.
-- Better physics stability.
+- Better performance (parallel simulation and SIMD).
+- Better stability.
+- 2D and 3D.
 - Fluids with surface tension, viscosity and elasticity.
-- *DISABLED* 32 bits and 64 bits support.
-- *DISABLED* Cross platform determinism.
+- Liquids Missing
 
 # Limitations
 
-- SeparationRay2D missing [issues/5](https://github.com/appsinacup/godot-rapier-2d/issues/5)
-- Web exports not working [issues/23](https://github.com/appsinacup/godot-rapier-2d/issues/23)
-- Cross platform determinism isn't working [issues/47](https://github.com/appsinacup/godot-rapier-2d/issues/47)
-- Double build isn't working [issues/61](https://github.com/appsinacup/godot-rapier-2d/issues/61)
+- SeparationRayShape2D, ConcavePolygonShape3D, HeightMapShape3D, 3D joints.
+- Web exports.
+- Android exports.
+- Cross platform determinism.
+- Double builds.
 
 # Supported Platforms
 
 - Windows (x86_64, x86_32)
 - macOS (x86-64 + arm64 Universal)
 - Linux (x86_64)
-- Android (x86_64, arm64)
+- *DISABLED* Android (x86_64, arm64)
 - iOS (arm64)
 - *DISABLED* Web (wasm32)
 
-# Installation
+# Installation Rapier 2D
 
 - Automatic (Recommended): Download the plugin from the official [Godot Asset Store](https://godotengine.org/asset-library/asset/2267) using the `AssetLib` tab in Godot.
 
 - Manual: Download the github release and move only the `addons` folder into your project `addons` folder.
 
-- Build it yourself. Read more about it in the [contribute file](CONTRIBUTE.md).
-
 After installing, go to `Advanced Settings` -> `Physics` -> `2D`. Change `Physics Engine` to `Rapier2D`.
 
-# Samples
+# Installation Rapier 3D
 
-After installing the addon, the samples are in the `samples/godot-rapier2d` folder. In order to run them, you have to enable the physics engine for some extra features to work (eg. fluids) as described above.
+- Automatic (Recommended): Download the plugin from the official [Godot Asset Store](https://godotengine.org/asset-library/asset/2267) using the `AssetLib` tab in Godot.
+
+- Manual: Download the github release and move only the `addons` folder into your project `addons` folder.
+
+After installing, go to `Advanced Settings` -> `Physics` -> `3D`. Change `Physics Engine` to `Rapier3D`.
 
 # Contribute
 
-If you want to contribute, view [CONTRIBUTE.md](CONTRIBUTE.md) for more info.
+If you want to contribute, view [docs/CONTRIBUTE.md](docs/CONTRIBUTE.md) for more info.
 
 # [Discord](https://discord.gg/56dMud8HYn)
 

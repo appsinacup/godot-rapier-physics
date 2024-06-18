@@ -8,31 +8,35 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout 
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+      - name: Download artifacts 2d enchanced
+        uses: actions/download-artifact@v4
         with:
-          submodules: true
-          fetch-depth: 0
-      #- name: Download artifacts
-      #  uses: actions/download-artifact@v3
-      #  with:
-      #    name: godot-rapier-2d-double-enhanced-determinism
-      #    path: godot-rapier-2d-double-enhanced-determinism
-      #- name: Download artifacts
-      #  uses: actions/download-artifact@v3
-      #  with:
-      #    name: godot-rapier-2d-double-simd-stable
-      #    path: godot-rapier-2d-double-simd-stable
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: godot-rapier-2d-single-enhanced-determinism
+          pattern: godot-rapier-2d-single-enhanced-determinism-*
+          merge-multiple: true
           path: godot-rapier-2d-single-enhanced-determinism
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
+          name: godot-rapier-2d-single-enhanced-determinism
+      - name: Download artifacts 2d parallel
+        uses: actions/download-artifact@v4
         with:
-          name: godot-rapier-2d-single-simd-stable
-          path: godot-rapier-2d-single-simd-stable
+          pattern: godot-rapier-2d-single-simd-parallel-*
+          merge-multiple: true
+          path: godot-rapier-2d-single-simd-parallel
+          name: godot-rapier-2d-single-simd-parallel
+      - name: Download artifacts 3d enchanced
+        uses: actions/download-artifact@v4
+        with:
+          pattern: godot-rapier-3d-single-enhanced-determinism-*
+          merge-multiple: true
+          path: godot-rapier-3d-single-enhanced-determinism
+          name: godot-rapier-3d-single-enhanced-determinism
+      - name: Download artifacts 3d parallel
+        uses: actions/download-artifact@v4
+        with:
+          pattern: godot-rapier-3d-single-simd-parallel-*
+          merge-multiple: true
+          path: godot-rapier-3d-single-simd-parallel
+          name: godot-rapier-3d-single-simd-parallel
       - name: Delete draft release(s)
         uses: hugo19941994/delete-draft-releases@v1.0.0
         env:
@@ -40,19 +44,22 @@ jobs:
       - name: Archive
         shell: sh
         run: |
-          #zip -r "godot-rapier-2d-double-enhanced-determinism.zip" godot-rapier-2d-double-enhanced-determinism
-          #zip -r "godot-rapier-2d-double-simd-stable.zip" godot-rapier-2d-double-simd-stable
+          ls
           zip -r "godot-rapier-2d-single-enhanced-determinism.zip" godot-rapier-2d-single-enhanced-determinism
-          zip -r "godot-rapier-2d-single-simd-stable.zip" godot-rapier-2d-single-simd-stable
+          zip -r "godot-rapier-2d-single-simd-parallel.zip" godot-rapier-2d-single-simd-parallel
+          zip -r "godot-rapier-3d-single-enhanced-determinism.zip" godot-rapier-3d-single-enhanced-determinism
+          zip -r "godot-rapier-3d-single-simd-parallel.zip" godot-rapier-3d-single-simd-parallel
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          name: Godot Rapier 2D
+          name: Godot Rapier
           #godot-rapier-2d-double-enhanced-determinism.zip
-          #godot-rapier-2d-double-simd-stable.zip
+          #godot-rapier-2d-double-simd-parallel.zip
           files: |
             godot-rapier-2d-single-enhanced-determinism.zip
-            godot-rapier-2d-single-simd-stable.zip
+            godot-rapier-2d-single-simd-parallel.zip
+            godot-rapier-3d-single-enhanced-determinism.zip
+            godot-rapier-3d-single-simd-parallel.zip
           generate_release_notes: true
           draft: true
           prerelease: true

@@ -5,42 +5,41 @@ on:
 jobs:
   linux:
     runs-on: ubuntu-20.04
-    name: ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+    name: ${{ matrix.dimensions.short }} ${{ matrix.precision }} ${{ matrix.features.name }} ${{ matrix.arch }}
     strategy:
       fail-fast: false
       matrix:
-        # TODO , {arch: "x86_32", rust: "i686-unknown-linux-gnu"}, {arch: "arm64", rust: "aarch64-unknown-linux-gnu"}]
-        # Right now it's giving this error (arm64):
-        # cc1plus: error: bad value ('armv8-a') for '-march=' switch
-        # Right now it's giving this error (x64_32):
-        # /usr/include/c++/9/cstddef:49:10: fatal error: bits/c++config.h: No such file or directory 49 | #include <bits/c++config.h>
-        arch: [{arch: "x86_64", rust: "x86_64-unknown-linux-gnu"}]
+        #arch: ["x86_64-unknown-linux-gnu", "i686-unknown-linux-gnu", "aarch64-unknown-linux-gnu"]
+        arch: ["x86_64-unknown-linux-gnu"]
         precision: [single]
-        features: [simd-stable, enhanced-determinism]
-        rust_features: ["simd-stable,parallel", enhanced-determinism]
+        dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
+        features: [{"feature":"parallel,simd-stable", "name": "simd-parallel"}, {"feature":"enhanced-determinism", "name": "enhanced-determinism"}]
 
     steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-          fetch-depth: 0
-
-      - name: Fix 32bit and arm64 libs
+      - uses: actions/checkout@v4
+      - name: "Install dependencies"
+        shell: sh
         run: |
-          sudo apt-get update && sudo apt-get install gcc-multilib g++-multilib --fix-missing
-
-      - name: Build ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+          sudo apt-get update
+          sudo apt-get install libunwind-dev
+          sudo apt-get install build-essential
+          sudo apt-get install pkg-config
+          sudo apt-get install libssl-dev
+          sudo apt-get install zlib1g-dev
+      - name: Build ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
         uses: ./.github/actions/build
         with:
-          arch: ${{ matrix.arch.arch }}
-          rust_target: ${{ matrix.arch.rust }}
-          platform: linux
-          precision: ${{ matrix.precision }}
-          features: ${{ matrix.rust_features }}
-
-      - name: Upload ${{ matrix.arch.arch }} ${{ matrix.precision }} ${{ matrix.features }}
-        uses: ./.github/actions/upload
+          arch: ${{ matrix.arch }}
+          features: ${{ matrix.features.feature }},${{ matrix.precision }}-${{ matrix.dimensions.feature }}
+      - name: Copy to bin
+        shell: sh
+        run: |
+          mv target/release/libgodot_rapier.so bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.linux.so
+      - name: Upload
+        uses: actions/upload-artifact@v4
         with:
-          precision: ${{ matrix.precision }}
-          features: ${{ matrix.features }}
+          name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch}}
+          path: |
+            bin${{ matrix.dimensions.short }}/**/*.so
+          if-no-files-found: error
     
