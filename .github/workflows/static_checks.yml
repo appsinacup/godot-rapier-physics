@@ -10,4 +10,4 @@ jobs:
       - uses: actions/checkout@v4
       - name: Format
         shell: sh
-        run: cargo fmt -- --config-path ./rustfmt.toml
+        run: cargo fmt --all -- --config-path ./rustfmt.toml
