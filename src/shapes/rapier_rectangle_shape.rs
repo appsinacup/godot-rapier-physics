@@ -73,8 +73,7 @@ impl IRapierShape for RapierRectangleShape {
             let aabb = Rect::new(-self.half_extents, self.half_extents * 2.0);
             let handle = self.create_rapier_shape();
             self.base.set_handle(handle, aabb);
-        }
-        else {
+        } else {
             godot_error!("Invalid data type for RapierRectangleShape");
         }
     }

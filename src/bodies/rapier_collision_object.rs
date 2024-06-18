@@ -239,8 +239,7 @@ impl RapierCollisionObject {
         self.space = p_space;
         if let Some(space) = spaces_singleton().spaces.get(&self.space) {
             self.space_handle = space.get_handle();
-        }
-        else {
+        } else {
             self.space_handle = invalid_handle();
             self.space = Rid::Invalid;
         }
@@ -257,8 +256,7 @@ impl RapierCollisionObject {
                     &user_data,
                     BodyType::Static,
                 );
-            }
-            else if self.mode == BodyMode::KINEMATIC {
+            } else if self.mode == BodyMode::KINEMATIC {
                 self.body_handle = body_create(
                     self.space_handle,
                     position,
@@ -266,8 +264,7 @@ impl RapierCollisionObject {
                     &user_data,
                     BodyType::Kinematic,
                 );
-            }
-            else {
+            } else {
                 self.body_handle = body_create(
                     self.space_handle,
                     position,

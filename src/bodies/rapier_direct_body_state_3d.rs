@@ -38,8 +38,7 @@ impl IPhysicsDirectBodyState3DExtension for RapierDirectBodyState3D {
             if let Some(body) = body.get_body() {
                 if body.using_area_gravity() {
                     return body.total_gravity();
-                }
-                else {
+                } else {
                     gravity_scale = body.gravity_scale();
                 }
             }

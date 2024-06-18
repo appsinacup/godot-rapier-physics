@@ -26,8 +26,7 @@ pub fn transform_inverse(transform: &crate::Transform) -> crate::Transform {
     let determnant = transform.basis.determinant();
     if determnant == 0.0 {
         *transform
-    }
-    else {
+    } else {
         transform.affine_inverse()
     }
 }
@@ -36,8 +35,7 @@ pub fn transform_inverse(transform: &crate::Transform) -> crate::Transform {
     let determnant = transform.determinant();
     if determnant == 0.0 {
         *transform
-    }
-    else {
+    } else {
         transform.affine_inverse()
     }
 }

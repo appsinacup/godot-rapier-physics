@@ -84,8 +84,7 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
                 + body_margin1;
             contact_is_pass_through =
                 body2.linvel().dot(&allowed_local_n1) <= DEFAULT_EPSILON || dist < -max_allowed;
-        }
-        else if one_way_direction.body2 {
+        } else if one_way_direction.body2 {
             let motion_len = body1.linvel().magnitude();
             let body_margin2 = one_way_direction.pixel_body2_margin;
             let max_allowed = motion_len

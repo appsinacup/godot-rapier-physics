@@ -160,8 +160,7 @@ impl RapierBody {
                 space.body_add_to_mass_properties_update_list(self.base.get_rid());
                 self.mass_properties_update_pending = true;
             }
-        }
-        else {
+        } else {
             self._apply_mass_properties(false);
         }
     }
@@ -327,8 +326,7 @@ impl RapierBody {
     pub fn set_force_integration_callback(&mut self, callable: Callable, udata: Variant) {
         if callable.is_valid() {
             self.fi_callback_data = Some(ForceIntegrationCallbackData { callable, udata });
-        }
-        else {
+        } else {
             self.fi_callback_data = None;
         }
     }
@@ -499,8 +497,7 @@ impl RapierBody {
                 // Disable simulation gravity and apply it manually instead.
                 self._apply_gravity_scale(0.0);
                 space.body_add_to_gravity_update_list(self.base.get_rid());
-            }
-            else {
+            } else {
                 // Enable simulation gravity.
                 self._apply_gravity_scale(self.gravity_scale);
                 space.body_remove_from_gravity_update_list(self.base.get_rid());
@@ -565,8 +562,7 @@ impl RapierBody {
         if self.contact_count < c_max as i32 {
             idx = self.contact_count;
             self.contact_count += 1;
-        }
-        else {
+        } else {
             let mut least_depth = f32::INFINITY;
             let mut least_deep: i32 = -1;
             for (i, contact) in self.contacts.iter().enumerate() {
@@ -879,12 +875,10 @@ impl RapierBody {
             if self.base.mode == BodyMode::STATIC {
                 // Static bodies can't be active.
                 self.active = false;
-            }
-            else {
+            } else {
                 space.body_add_to_active_list(self.base.get_rid());
             }
-        }
-        else {
+        } else {
             space.body_remove_from_active_list(self.base.get_rid());
         }
     }
@@ -970,8 +964,7 @@ impl RapierBody {
                 }
                 if p_param == BodyParameter::BOUNCE {
                     self.bounce = p_value.to();
-                }
-                else {
+                } else {
                     self.friction = p_value.to();
                 }
                 if !self.base.is_valid() {
@@ -1004,8 +997,7 @@ impl RapierBody {
                 let inertia_value = p_value.to();
                 if inertia_value == ANGLE_ZERO {
                     self.calculate_inertia = true;
-                }
-                else {
+                } else {
                     self.calculate_inertia = false;
                     self.inertia = inertia_value;
                 }
@@ -1046,8 +1038,7 @@ impl RapierBody {
                     }
                     if self.using_area_linear_damping {
                         // Update linear damping from areas
-                    }
-                    else {
+                    } else {
                         self._apply_linear_damping(self.linear_damping, true);
                     }
                 }
@@ -1064,8 +1055,7 @@ impl RapierBody {
                     }
                     if self.using_area_angular_damping {
                         // Update angular damping from areas
-                    }
-                    else {
+                    } else {
                         self._apply_angular_damping(self.angular_damping, true);
                     }
                 }
@@ -1221,8 +1211,7 @@ impl RapierBody {
                             self.force_sleep();
                             self.set_active(false, space);
                         }
-                    }
-                    else if self.base.mode != BodyMode::STATIC {
+                    } else if self.base.mode != BodyMode::STATIC {
                         self.wakeup();
                         self.set_active(true, space);
                     }
@@ -1458,8 +1447,7 @@ impl RapierBody {
                         .get_base()
                         .get_aabb(self.base.get_shape_transform(i).origin);
                     shapes_found = true;
-                }
-                else {
+                } else {
                     // TODO not 100% correct, we don't take into consideration rotation here.
                     body_aabb = body_aabb.merge(
                         shape
@@ -1545,8 +1533,7 @@ impl IRapierCollisionObject for RapierBody {
                 if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
                     space.body_add_to_active_list(self.base.get_rid());
                 }
-            }
-            else if self.can_sleep && self.sleep {
+            } else if self.can_sleep && self.sleep {
                 self.force_sleep();
             }
             if self.base.mode.ord() >= BodyMode::RIGID.ord() {
@@ -1693,8 +1680,7 @@ impl IRapierCollisionObject for RapierBody {
         while i < self.base.shapes.len() {
             if self.base.shapes[i].shape == shape {
                 self.remove_shape_idx(i);
-            }
-            else {
+            } else {
                 i += 1;
             }
         }

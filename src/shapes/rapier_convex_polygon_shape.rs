@@ -78,8 +78,7 @@ impl IRapierShape for RapierConvexPolygonShape {
                 rapier_points.push(vector_to_rapier(*point));
             }
             shape_create_convex_polyline(rapier_points)
-        }
-        else {
+        } else {
             godot_error!("ConvexPolygon must have at least three point");
             invalid_handle()
         }

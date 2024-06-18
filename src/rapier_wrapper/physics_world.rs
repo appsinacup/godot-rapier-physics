@@ -214,8 +214,7 @@ impl PhysicsWorld {
                     assert!(contact_force_event.collider1 == contact_pair.collider2);
                     assert!(contact_force_event.collider2 == contact_pair.collider1);
                     swap = true;
-                }
-                else {
+                } else {
                     assert!(contact_force_event.collider2 == contact_pair.collider2);
                 }
                 // We may also read the contact manifolds to access the contact geometry.
@@ -233,8 +232,7 @@ impl PhysicsWorld {
                             contact_info.pixel_local_pos_2 = collider_pos_1.coords;
                             contact_info.pixel_velocity_pos_1 = point_velocity_2;
                             contact_info.pixel_velocity_pos_2 = point_velocity_1;
-                        }
-                        else {
+                        } else {
                             contact_info.pixel_local_pos_1 = collider_pos_1.coords;
                             contact_info.pixel_local_pos_2 = collider_pos_2.coords;
                             contact_info.pixel_velocity_pos_1 = point_velocity_1;
@@ -269,8 +267,7 @@ impl PhysicsWorld {
                 rigid_body_handle,
                 &mut self.physics_objects.rigid_body_set,
             )
-        }
-        else {
+        } else {
             self.physics_objects.collider_set.insert(collider)
         }
     }

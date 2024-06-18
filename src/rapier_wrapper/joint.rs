@@ -53,8 +53,7 @@ pub fn joint_change_revolute_params(
                     joint
                         .set_motor_velocity(motor_target_velocity, 0.0)
                         .set_motor_max_force(Real::MAX);
-                }
-                else {
+                } else {
                     joint.set_motor_velocity(0.0, 0.0).set_motor_max_force(0.0);
                 }
                 if angular_limit_enabled {

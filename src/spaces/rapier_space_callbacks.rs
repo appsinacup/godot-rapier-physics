@@ -156,8 +156,7 @@ impl RapierSpace {
                 rid1 = body.get_base().get_rid();
                 instance_id1 = body.get_base().get_instance_id();
                 type1 = body.get_base().get_type();
-            }
-            else if let Some(removed_collider_info_1) =
+            } else if let Some(removed_collider_info_1) =
                 space.get_removed_collider_info(&collider_handle1)
             {
                 rid1 = removed_collider_info_1.rid;
@@ -169,8 +168,7 @@ impl RapierSpace {
                 rid2 = body.get_base().get_rid();
                 instance_id2 = body.get_base().get_instance_id();
                 type2 = body.get_base().get_type();
-            }
-            else if let Some(removed_collider_info_2) =
+            } else if let Some(removed_collider_info_2) =
                 space.get_removed_collider_info(&collider_handle2)
             {
                 rid2 = removed_collider_info_2.rid;
@@ -178,8 +176,7 @@ impl RapierSpace {
                 type2 = removed_collider_info_2.collision_object_type;
                 shape2 = removed_collider_info_2.shape_index;
             }
-        }
-        else {
+        } else {
             let bodies_singleton = bodies_singleton();
             if let Some(body) = bodies_singleton.collision_objects.get(&p_object1) {
                 rid1 = body.get_base().get_rid();
@@ -226,13 +223,11 @@ impl RapierSpace {
                     p_collision_object1 = Some(p_object1);
                     p_collision_object2 = Some(p_object2);
                 }
-            }
-            else if bodies_singleton.collision_objects.contains_key(&p_object1) {
+            } else if bodies_singleton.collision_objects.contains_key(&p_object1) {
                 if let Some(p_object1) = bodies_singleton.collision_objects.get_mut(&p_object1) {
                     p_collision_object1 = Some(p_object1);
                 }
-            }
-            else if let Some(p_object2) = bodies_singleton.collision_objects.get_mut(&p_object2) {
+            } else if let Some(p_object2) = bodies_singleton.collision_objects.get_mut(&p_object2) {
                 p_collision_object2 = Some(p_object2);
             }
             // collision object 1 area
@@ -250,8 +245,7 @@ impl RapierSpace {
                                 shape1,
                                 space,
                             );
-                        }
-                        else if event_info.is_stopped {
+                        } else if event_info.is_stopped {
                             p_area1.on_area_exit(
                                 collider_handle2,
                                 &mut p_collision_object2,
@@ -263,8 +257,7 @@ impl RapierSpace {
                                 space,
                             );
                         }
-                    }
-                    else if event_info.is_started {
+                    } else if event_info.is_started {
                         p_area1.on_body_enter(
                             collider_handle2,
                             &mut p_collision_object2,
@@ -275,8 +268,7 @@ impl RapierSpace {
                             shape1,
                             space,
                         );
-                    }
-                    else if event_info.is_stopped {
+                    } else if event_info.is_stopped {
                         p_area1.on_body_exit(
                             collider_handle2,
                             &mut p_collision_object2,
@@ -318,8 +310,7 @@ impl RapierSpace {
                                 space,
                             );
                         }
-                    }
-                    else {
+                    } else {
                         if event_info.is_started {
                             p_area2.on_body_enter(
                                 collider_handle1,
@@ -347,8 +338,7 @@ impl RapierSpace {
                     }
                 }
             }
-        }
-        else {
+        } else {
             // Body contacts use contact_force_event_callback instead
             godot_error!("Shouldn't receive rigidbody collision events.");
         }

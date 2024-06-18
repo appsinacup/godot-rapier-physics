@@ -16,8 +16,7 @@ fn set_rigid_body_properties_internal(
 ) {
     if !rigid_body.is_kinematic() {
         rigid_body.set_position(Isometry::new(pos, rot), wake_up);
-    }
-    else {
+    } else {
         rigid_body.set_next_kinematic_position(Isometry::new(pos, rot));
     }
 }
@@ -335,8 +334,7 @@ pub fn body_set_can_sleep(world_handle: Handle, body_handle: RigidBodyHandle, ca
                 let activation = body.activation_mut();
                 activation.angular_threshold = -1.0;
                 activation.normalized_linear_threshold = -1.0;
-            }
-            else {
+            } else {
                 let activation = body.activation_mut();
                 let default_activation = RigidBodyActivation::default();
                 activation.angular_threshold = default_activation.angular_threshold;

@@ -219,8 +219,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
                 active_spaces_singleton()
                     .active_spaces
                     .insert(space.get_handle(), space_rid);
-            }
-            else {
+            } else {
                 active_spaces_singleton()
                     .active_spaces
                     .remove(&space.get_handle());
@@ -1364,8 +1363,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
                         }
                     }
                 }
-            }
-            else {
+            } else {
                 continue;
             }
             for body in body_area_update_list {

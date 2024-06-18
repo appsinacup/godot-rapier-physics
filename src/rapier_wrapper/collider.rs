@@ -357,8 +357,7 @@ pub fn collider_set_contact_force_events_enabled(
             let mut active_events = collider.active_events();
             if enable {
                 active_events |= ActiveEvents::CONTACT_FORCE_EVENTS;
-            }
-            else {
+            } else {
                 active_events &= !ActiveEvents::CONTACT_FORCE_EVENTS;
             }
             collider.set_active_events(active_events);

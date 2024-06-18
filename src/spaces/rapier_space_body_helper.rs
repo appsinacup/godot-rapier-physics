@@ -40,39 +40,36 @@ pub fn is_handle_excluded_callback(
         }
     }
     let (collision_object_2d, _) = RapierCollisionObject::get_collider_user_data(user_data);
-    if let Some(collision_object_2d) = bodies_singleton()
+    let Some(collision_object_2d) = bodies_singleton()
         .collision_objects
-        .get(&collision_object_2d)
+        .get(&collision_object_2d) else
     {
-        let collision_object_base = collision_object_2d.get_base();
-        if handle_excluded_info.query_canvas_instance_id
-            != collision_object_base.get_canvas_instance_id()
-        {
-            return true;
-        }
-        if collision_object_base.get_collision_layer()
-            & handle_excluded_info.query_collision_layer_mask
-            == 0
-        {
-            return true;
-        }
-        if handle_excluded_info.query_exclude_body
-            == collision_object_base.get_rid().to_u64() as i64
-        {
-            return true;
-        }
-        if let Some(active_space) = active_spaces_singleton().active_spaces.get(&world_handle) {
-            if let Some(space) = spaces_singleton().spaces.get(active_space) {
-                if let Some(direct_space) = space.get_direct_state() {
-                    let direct_state = direct_space.clone().cast() as Gd<RapierDirectSpaceState>;
-                    let direct_space = direct_state.deref();
-                    return direct_space
-                        .is_body_excluded_from_query(collision_object_base.get_rid());
-                }
-            }
-        }
+        return false;
+    };
+    let collision_object_base = collision_object_2d.get_base();
+    let canvas_excluded = collision_object_base.get_canvas_instance_id() != handle_excluded_info.query_canvas_instance_id;
+    let layer_excluded = collision_object_base.get_collision_layer()
+    & handle_excluded_info.query_collision_layer_mask
+    == 0;
+    let rid_excluded = handle_excluded_info.query_exclude_body
+    == collision_object_base.get_rid().to_u64() as i64;
+    if canvas_excluded || layer_excluded || rid_excluded
+    {
+        return true;
     }
-    false
+    let Some(active_space) = active_spaces_singleton().active_spaces.get(&world_handle) else{
+        return false;
+    };
+    let Some(space) = spaces_singleton().spaces.get(active_space) else {
+        return false;
+    };
+    let Some(direct_space) = space.get_direct_state() else {
+        return false;
+    };
+    let direct_state = direct_space.clone().cast() as Gd<RapierDirectSpaceState>;
+    let direct_space = direct_state.deref();
+    return direct_space
+        .is_body_excluded_from_query(collision_object_base.get_rid());
 }
 impl RapierSpace {
     pub fn test_body_motion(
@@ -139,8 +136,7 @@ impl RapierSpace {
             result.remainder = motion - motion * best_safe;
             result.collision_safe_fraction = best_safe;
             result.collision_unsafe_fraction = best_unsafe;
-        }
-        else {
+        } else {
             result.travel += recover_motion + motion;
             result.remainder = Vector::default();
             result.collision_depth = 0.0;
@@ -436,22 +432,19 @@ impl RapierSpace {
                                             // Did it not collide before?
                                             // When alternating or first iteration, use dichotomy.
                                             fraction_coeff = 0.5;
-                                        }
-                                        else {
+                                        } else {
                                             // When colliding again, converge faster towards low
                                             // fraction for more accurate results with long motions
                                             // that collide near the start.
                                             fraction_coeff = 0.25;
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         low = fraction;
                                         if (k == 0) || (hi < 1.0) {
                                             // Did it collide before?
                                             // When alternating or first iteration, use dichotomy.
                                             fraction_coeff = 0.5;
-                                        }
-                                        else {
+                                        } else {
                                             // When not colliding again, converge faster towards
                                             // high fraction for more accurate results with long
                                             // motions that collide near the end.
@@ -542,14 +535,12 @@ impl RapierSpace {
         let mut best_contact = ContactResult::default();
         let from_shape = if p_best_body_shape != -1 {
             p_best_body_shape
-        }
-        else {
+        } else {
             0
         };
         let to_shape = if p_best_body_shape != -1 {
             p_best_body_shape + 1
-        }
-        else {
+        } else {
             p_body.get_base().get_shape_count()
         };
         for body_shape_idx in from_shape..to_shape {

@@ -91,56 +91,57 @@ pub fn intersect_ray(
     handle_excluded_info: &QueryExcludedInfo,
 ) -> bool {
     let mut result = false;
-    if let Some(physics_world) = physics_engine().get_world(world_handle) {
-        let ray = Ray::new(Point { coords: from }, dir);
-        let mut filter = QueryFilter::new();
-        if !collide_with_body {
-            filter = filter.exclude_solids();
-        }
-        if !collide_with_area {
-            filter = filter.exclude_sensors();
-        }
-        let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
-            !handle_excluded_callback(
-                world_handle,
-                handle,
-                &physics_world.get_collider_user_data(handle),
-                handle_excluded_info,
-            )
-        };
-        filter.predicate = Some(&predicate);
-        let mut length_current = Real::MAX;
-        physics_world
-            .physics_objects
-            .query_pipeline
-            .intersections_with_ray(
-                &physics_world.physics_objects.rigid_body_set,
-                &physics_world.physics_objects.collider_set,
-                &ray,
-                length,
-                true,
-                filter,
-                |handle, intersection| {
-                    // Find closest intersection
-                    if intersection.time_of_impact > length_current {
-                        return true;
-                    }
-                    // Callback called on each collider hit by the ray.
-                    if hit_from_inside || intersection.time_of_impact != 0.0 {
-                        length_current = intersection.time_of_impact;
-                        result = true;
-                        let hit_point = ray.point_at(intersection.time_of_impact);
-                        let hit_normal = intersection.normal;
-                        hit_info.pixel_position = hit_point.coords;
-                        hit_info.normal = hit_normal;
-                        hit_info.collider = handle;
-                        hit_info.user_data = physics_world.get_collider_user_data(handle);
-                        return false; // We found a collision hit.
-                    }
-                    true // Continue to search.
-                },
-            );
+    let Some(physics_world) = physics_engine().get_world(world_handle) else {
+        return false;
+    };
+    let ray = Ray::new(Point { coords: from }, dir);
+    let mut filter = QueryFilter::new();
+    if !collide_with_body {
+        filter = filter.exclude_solids();
     }
+    if !collide_with_area {
+        filter = filter.exclude_sensors();
+    }
+    let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
+        !handle_excluded_callback(
+            world_handle,
+            handle,
+            &physics_world.get_collider_user_data(handle),
+            handle_excluded_info,
+        )
+    };
+    filter.predicate = Some(&predicate);
+    let mut length_current = Real::MAX;
+    physics_world
+        .physics_objects
+        .query_pipeline
+        .intersections_with_ray(
+            &physics_world.physics_objects.rigid_body_set,
+            &physics_world.physics_objects.collider_set,
+            &ray,
+            length,
+            true,
+            filter,
+            |handle, intersection| {
+                // Find closest intersection
+                if intersection.time_of_impact > length_current {
+                    return true;
+                }
+                // Callback called on each collider hit by the ray.
+                if hit_from_inside || intersection.time_of_impact != 0.0 {
+                    length_current = intersection.time_of_impact;
+                    result = true;
+                    let hit_point = ray.point_at(intersection.time_of_impact);
+                    let hit_normal = intersection.normal;
+                    hit_info.pixel_position = hit_point.coords;
+                    hit_info.normal = hit_normal;
+                    hit_info.collider = handle;
+                    hit_info.user_data = physics_world.get_collider_user_data(handle);
+                    return false; // We found a collision hit.
+                }
+                true // Continue to search.
+            },
+        );
     result
 }
 pub fn intersect_point(
@@ -338,8 +339,7 @@ pub fn intersect_aabb(
                     // type filder
                     if collider.is_sensor() && collide_with_area {
                         valid_hit = true;
-                    }
-                    else if !collider.is_sensor() && collide_with_body {
+                    } else if !collider.is_sensor() && collide_with_body {
                         valid_hit = true;
                     }
                     if valid_hit {
