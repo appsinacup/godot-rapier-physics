@@ -22,10 +22,6 @@ pub fn transform_scale(transform: &crate::Transform) -> crate::Vector {
     transform.scale()
 }
 #[cfg(feature = "dim3")]
-pub fn transform_rotation(transform: &crate::Transform) -> crate::Vector {
-    transform.basis.to_euler(godot::builtin::EulerOrder::XYZ)
-}
-#[cfg(feature = "dim3")]
 pub fn transform_inverse(transform: &crate::Transform) -> crate::Transform {
     let determnant = transform.basis.determinant();
     if determnant == 0.0 {
@@ -72,12 +68,6 @@ pub fn transform_update(
     let new_transform = Transform::new(Basis::from_euler(EulerOrder::XYZ, rotation), origin);
     let scale = transform.basis.scale();
     new_transform.scaled_local(scale)
-}
-#[cfg(feature = "dim2")]
-pub fn transform_rotation(
-    transform: &godot::builtin::Transform2D,
-) -> rapier::math::AngVector<rapier::math::Real> {
-    transform.rotation()
 }
 #[cfg(feature = "dim3")]
 pub fn transform_rotation_rapier(

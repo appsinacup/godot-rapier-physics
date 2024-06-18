@@ -16,12 +16,19 @@ A 2D and 3D physics drop-in replacement for [godot](https://github.com/godotengi
 <img src="docs/rapier-vid.gif"/>
 </p>
 
+# Note
+
+This plugin was recently rewritten from c++ to rust. There are still some things missing from what it had originally and may have some new bugs that it didn't have before.
+
+The reason it was rewritten is to do easier cross platform determinism part and exports to web.
+
 # Features
 
 - Better performance (parallel simulation and SIMD).
 - Better stability.
 - 2D and 3D.
 - Fluids with surface tension, viscosity and elasticity.
+- Liquids Missing
 
 # Limitations
 

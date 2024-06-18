@@ -43,7 +43,7 @@ jobs:
         uses: ./.github/actions/build
         with:
           arch: ${{ matrix.arch }}
-          features: ${{ matrix.features.feature }},${{ matrix.precision }}_${{ matrix.dimensions.feature }}
+          features: ${{ matrix.features.feature }},${{ matrix.precision }}-${{ matrix.dimensions.feature }}
       - name: Copy to bin
         shell: sh
         run: |

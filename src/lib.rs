@@ -83,8 +83,4 @@ unsafe impl ExtensionLibrary for RapierPhysics2DExtensionLibrary {
             _ => (),
         }
     }
-
-    fn override_hot_reload() -> Option<bool> {
-        Some(true)
-    }
 }

@@ -4,7 +4,6 @@ use godot::prelude::*;
 use rapier::geometry::ColliderHandle;
 use rapier::math::Real;
 use rapier::math::DEFAULT_EPSILON;
-use rapier::na::RealField;
 
 use crate::bodies::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;
@@ -373,7 +372,7 @@ impl RapierSpace {
                 //}
                 let mut best_safe = 1.0;
                 let mut best_unsafe = 1.0;
-                let stuck = false;
+                let _stuck = false;
                 for result_idx in 0..result_count {
                     let result_idx = result_idx as usize;
                     let result = &mut results[result_idx];

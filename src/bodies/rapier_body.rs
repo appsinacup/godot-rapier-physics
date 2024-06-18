@@ -1342,10 +1342,10 @@ impl RapierBody {
         moment_of_inertia: Angle,
         shape_mass: Real,
         shape_transform: Transform,
-        i: usize,
+        _i: usize,
     ) -> Real {
         let mtx = shape_transform;
-        let scale = transform_scale(&mtx);
+        let _scale = transform_scale(&mtx);
         let shape_origin = mtx.origin - self.center_of_mass;
         moment_of_inertia + shape_mass * shape_origin.length_squared()
     }

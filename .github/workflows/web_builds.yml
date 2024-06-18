@@ -39,7 +39,7 @@ jobs:
           arch: ${{ matrix.arch }}
           extra_flags: "-Z build-std=panic_abort,std"
           precision: ${{ matrix.precision }}
-          features: ${{ matrix.features.feature }},${{ matrix.precision }}_${{ matrix.dimensions.feature }},experimental-wasm
+          features: ${{ matrix.features.feature }},${{ matrix.precision }}-${{ matrix.dimensions.feature }},experimental-wasm
           env_flags: "-C target-feature=+atomics,+bulk-memory"
       - name: Copy to bin
         shell: sh
