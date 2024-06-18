@@ -1,5 +1,6 @@
+# Rapier Physics for Godot
 <p align="center">
-<img src="https://github.com/appsinacup/godot-rapier-physics/blob/main/logo.jpg?raw=true" width="256px"/>
+<img src="https://github.com/appsinacup/godot-rapier-physics/blob/main/logo_square.jpg?raw=true" width="100px"/>
 </p>
 <p align="center">
         <img src="https://github.com/appsinacup/godot-rapier-physics/actions/workflows/runner.yml/badge.svg?branch=main"
@@ -10,7 +11,7 @@
             alt="Chat on Discord"></a>
 </p>
 
-A 2D and 3D physics drop-in replacement for [godot](https://github.com/godotengine/godot) that adds stability and fluids. Uses [rapier](https://github.com/dimforge/rapier) for physics and [salva](https://github.com/dimforge/salva) for fluids.
+A 2D and 3D physics drop-in replacement for the [godot game engine](https://github.com/godotengine/godot) that adds stability through [rapier](https://github.com/dimforge/rapier) and fluids through [salva](https://github.com/dimforge/salva).
 
 <p align="center">
 <img src="docs/rapier-vid.gif"/>
