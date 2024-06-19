@@ -1,12 +1,14 @@
 use godot::classes::physics_server_2d::ShapeType;
 use godot::prelude::*;
+use serde::*;
 
 use crate::bodies::vector_normalized;
 use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_server_extra::PhysicsData;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
 use crate::Vector;
-#[derive(Serialize, Deserialize, Debug)]
+//#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierSegmentShape2D {
     a: Vector2,
     b: Vector2,
@@ -44,7 +46,7 @@ impl IRapierShape for RapierSegmentShape2D {
         true
     }
 
-    fn create_rapier_shape(&mut self) -> Handle {
+    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> Handle {
         let direction = self.b - self.a;
         let direction_normalized = vector_normalized(direction);
         let perpendicular = Vector2::new(-direction_normalized.y, direction_normalized.x);
@@ -59,10 +61,10 @@ impl IRapierShape for RapierSegmentShape2D {
             vector_to_rapier(p3),
             vector_to_rapier(p4),
         ];
-        shape_create_convex_polyline(rapier_points.to_vec())
+        shape_create_convex_polyline(rapier_points.to_vec(), physics_engine)
     }
 
-    fn set_data(&mut self, data: Variant) {
+    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         if data.get_type() != VariantType::RECT2 {
             godot_error!("Invalid shape data");
             return;
@@ -78,8 +80,8 @@ impl IRapierShape for RapierSegmentShape2D {
         if aabb.size.y == 0.0 {
             aabb.size.y = 0.001;
         }
-        let handle = self.create_rapier_shape();
-        self.base.set_handle(handle, aabb);
+        let handle = self.create_rapier_shape(physics_engine);
+        self.base.set_handle(handle, aabb, physics_engine);
     }
 
     fn get_data(&self) -> Variant {
@@ -88,7 +90,7 @@ impl IRapierShape for RapierSegmentShape2D {
         r.to_variant()
     }
 
-    fn get_handle(&mut self) -> Handle {
+    fn get_handle(&self) -> Handle {
         self.base.get_handle()
     }
 }

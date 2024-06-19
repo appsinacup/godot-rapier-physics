@@ -3,11 +3,13 @@ use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
 use godot::classes::physics_server_3d::*;
 use godot::prelude::*;
+use serde::*;
+use servers::rapier_physics_server_extra::PhysicsData;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::*;
 use crate::*;
-#[derive(Serialize, Deserialize, Debug)]
+//#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierCircleShape {
     radius: f32,
     base: RapierShapeBase,
@@ -59,11 +61,11 @@ impl IRapierShape for RapierCircleShape {
         true
     }
 
-    fn create_rapier_shape(&mut self) -> Handle {
-        shape_create_circle(self.radius)
+    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> Handle {
+        shape_create_circle(self.radius, physics_engine)
     }
 
-    fn set_data(&mut self, data: Variant) {
+    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         match data.get_type() {
             VariantType::FLOAT => {
                 let float_data = data.to();
@@ -78,19 +80,19 @@ impl IRapierShape for RapierCircleShape {
                 return;
             }
         }
-        let handle = self.create_rapier_shape();
+        let handle = self.create_rapier_shape(physics_engine);
         let rect = Rect::new(
             -Vector::splat(self.radius),
             Vector::splat(self.radius) * 2.0,
         );
-        self.base.set_handle(handle, rect);
+        self.base.set_handle(handle, rect, physics_engine);
     }
 
     fn get_data(&self) -> Variant {
         self.radius.to_variant()
     }
 
-    fn get_handle(&mut self) -> Handle {
+    fn get_handle(&self) -> Handle {
         self.base.get_handle()
     }
 }

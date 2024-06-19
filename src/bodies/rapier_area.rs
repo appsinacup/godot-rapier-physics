@@ -9,13 +9,15 @@ use godot::obj::EngineEnum;
 use godot::prelude::*;
 use hashbrown::HashMap;
 use rapier::geometry::ColliderHandle;
+use serde::*;
+use servers::rapier_physics_server_extra::PhysicsData;
 
 use super::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::*;
 use crate::spaces::rapier_space::*;
 use crate::*;
+// #[derive(Serialize, Deserialize, Debug)]
 struct MonitorInfo {
     pub rid: Rid,
     pub instance_id: u64,
@@ -24,6 +26,7 @@ struct MonitorInfo {
     pub collision_object_type: CollisionObjectType,
     pub state: i32,
 }
+//#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierArea {
     gravity_override_mode: AreaSpaceOverrideMode,
     linear_damping_override_mode: AreaSpaceOverrideMode,
@@ -64,11 +67,11 @@ impl RapierArea {
         }
     }
 
-    pub fn _enable_space_override(&self) {
-        if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+    pub fn _enable_space_override(&self, physics_data: &mut PhysicsData) {
+        if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
             let rid = self.base.get_rid();
             for (key, _) in self.detected_bodies.iter() {
-                if let Some(body) = bodies_singleton().collision_objects.get_mut(key) {
+                if let Some(body) = physics_data.collision_objects.get_mut(key) {
                     if let Some(body) = body.get_mut_body() {
                         body.add_area(self);
                     }
@@ -79,11 +82,11 @@ impl RapierArea {
         }
     }
 
-    pub fn _disable_space_override(&self) {
-        if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+    pub fn _disable_space_override(&self, physics_data: &mut PhysicsData) {
+        if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
             let rid = self.base.get_rid();
             for (key, _) in self.detected_bodies.iter() {
-                if let Some(body) = bodies_singleton().collision_objects.get_mut(key) {
+                if let Some(body) = physics_data.collision_objects.get_mut(key) {
                     if let Some(body) = body.get_mut_body() {
                         body.remove_area(rid);
                     }

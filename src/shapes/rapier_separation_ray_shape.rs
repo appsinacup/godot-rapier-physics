@@ -3,12 +3,14 @@ use godot::engine::physics_server_2d::ShapeType;
 #[cfg(feature = "dim3")]
 use godot::engine::physics_server_3d::ShapeType;
 use godot::prelude::*;
+use serde::*;
 
 use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_server_extra::PhysicsData;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
 use crate::Vector;
-#[derive(Serialize, Deserialize, Debug)]
+//#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierSeparationRayShape {
     length: f32,
     slide_on_slope: bool,
@@ -50,11 +52,11 @@ impl IRapierShape for RapierSeparationRayShape {
         false
     }
 
-    fn create_rapier_shape(&mut self) -> Handle {
+    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> Handle {
         invalid_handle()
     }
 
-    fn set_data(&mut self, data: Variant) {
+    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         if data.get_type() != VariantType::DICTIONARY {
             godot_error!("Invalid shape data.");
             return;
@@ -71,7 +73,7 @@ impl IRapierShape for RapierSeparationRayShape {
         dictionary.to_variant()
     }
 
-    fn get_handle(&mut self) -> Handle {
+    fn get_handle(&self) -> Handle {
         self.base.get_handle()
     }
 }

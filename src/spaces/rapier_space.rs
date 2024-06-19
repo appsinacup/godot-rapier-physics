@@ -7,12 +7,12 @@ use godot::prelude::*;
 use hashbrown::HashMap;
 use hashbrown::HashSet;
 use rapier::geometry::ColliderHandle;
+use servers::rapier_physics_server_extra::PhysicsData;
 
 use super::PhysicsDirectSpaceState;
 use super::RapierDirectSpaceState;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::*;
 use crate::servers::rapier_project_settings::*;
 use crate::*;
 pub struct RemovedColliderInfo {
@@ -67,7 +67,7 @@ pub struct RapierSpace {
     contact_debug_count: usize,
 }
 impl RapierSpace {
-    pub fn new(rid: Rid) -> Self {
+    pub fn new(rid: Rid, physics_data: &mut PhysicsData) -> Self {
         let mut direct_access = RapierDirectSpaceState::new_alloc();
         direct_access.bind_mut().set_space(rid);
         let world_settings = WorldSettings {
@@ -75,7 +75,7 @@ impl RapierSpace {
             smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
             counters_enabled: RapierProjectSettings::counters_enabled(),
         };
-        let handle = world_create(&world_settings);
+        let handle = world_create(&world_settings, &mut physics_data.physics_engine);
         let project_settings = ProjectSettings::singleton();
         let default_gravity_dir: Vector = project_settings
             .get_setting_with_override(DEFAULT_GRAVITY_VECTOR.into())
@@ -188,9 +188,9 @@ impl RapierSpace {
         self.removed_colliders.get(handle)
     }
 
-    pub fn call_queries(&mut self) {
+    pub fn call_queries(&mut self, physics_data_collision_objects: &mut HashMap<Rid, Box<dyn IRapierCollisionObject>>) {
         for body_rid in self.state_query_list.clone() {
-            if let Some(body) = bodies_singleton().collision_objects.get_mut(&body_rid) {
+            if let Some(body) = physics_data_collision_objects.get_mut(&body_rid) {
                 if let Some(body) = body.get_mut_body() {
                     if !body.is_active() {
                         self.body_remove_from_state_query_list(body.get_base().get_rid());
@@ -217,7 +217,7 @@ impl RapierSpace {
             }
         }
         for area_rid in self.monitor_query_list.clone() {
-            if let Some(area) = bodies_singleton().collision_objects.get_mut(&area_rid) {
+            if let Some(area) = physics_data_collision_objects.get_mut(&area_rid) {
                 if let Some(area) = area.get_mut_area() {
                     area.call_queries();
                 }
@@ -295,12 +295,12 @@ impl RapierSpace {
         self.contact_debug_count = 0
     }
 
-    pub fn after_step(&mut self) {
+    pub fn after_step(&mut self, physics_data: &mut PhysicsData) {
         // Needed only for one physics step to retrieve lost info
         self.removed_colliders.clear();
-        self.active_objects = world_get_active_objects_count(self.handle) as i32;
+        self.active_objects = world_get_active_objects_count(self.handle, &mut physics_data.physics_engine) as i32;
         for body in self.active_list.clone() {
-            if let Some(body) = bodies_singleton().collision_objects.get_mut(&body) {
+            if let Some(body) = physics_data.collision_objects.get_mut(&body) {
                 if let Some(body) = body.get_mut_body() {
                     body.on_update_active(self);
                 }
@@ -340,24 +340,22 @@ impl RapierSpace {
         self.contact_max_allowed_penetration
     }
 
-    pub fn export_json(&self) -> String {
-        world_export_json(self.handle)
+    pub fn export_json(&self, physics_engine: &mut PhysicsEngine) -> String {
+        world_export_json(self.handle, physics_engine)
     }
 
-    pub fn export_binary(&self) -> PackedByteArray {
+    pub fn export_binary(&self, physics_engine: &mut PhysicsEngine) -> PackedByteArray {
         let mut buf = PackedByteArray::new();
-        let binary_data = world_export_binary(self.handle);
+        let binary_data = world_export_binary(self.handle, physics_engine);
         buf.resize(binary_data.len());
         for i in 0..binary_data.len() {
             buf[i] = binary_data[i];
         }
         buf
     }
-}
-impl Drop for RapierSpace {
-    fn drop(&mut self) {
+    pub fn destroy_space(&mut self, physics_engine: &mut PhysicsEngine) {
         if self.handle.is_valid() {
-            world_destroy(self.handle);
+            world_destroy(self.handle, physics_engine);
         }
     }
 }

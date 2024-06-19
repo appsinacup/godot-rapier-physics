@@ -17,7 +17,7 @@ impl Default for Handle {
         }
     }
 }
-#[derive(Copy, Clone, Eq, Hash, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Copy, Clone, Eq, Hash, PartialEq)]
 pub struct HandleDouble {
     id: usize,
     generation: u64,

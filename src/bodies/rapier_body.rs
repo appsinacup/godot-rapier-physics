@@ -7,6 +7,8 @@ use godot::prelude::*;
 use hashbrown::hash_set::HashSet;
 use rapier::geometry::ColliderHandle;
 use rapier::math::Real;
+use serde::*;
+use servers::rapier_physics_server_extra::PhysicsData;
 
 use super::rapier_area::RapierArea;
 use super::PhysicsDirectBodyState;
@@ -14,11 +16,10 @@ use super::RapierDirectBodyState;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_server_extra::RapierBodyParam;
-use crate::servers::rapier_physics_singleton::*;
 use crate::servers::rapier_project_settings::*;
 use crate::spaces::rapier_space::RapierSpace;
 use crate::*;
-#[derive(Clone)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Contact {
     pub local_pos: Vector,
     pub local_normal: Vector,
@@ -49,12 +50,13 @@ impl Default for Contact {
         }
     }
 }
-#[derive(Clone)]
+//#[derive(Serialize, Deserialize, Debug, Clone, Copy, Debug, PartialEq)]
 pub struct ForceIntegrationCallbackData {
     pub callable: Callable,
     pub udata: Variant,
 }
-// Define the RapierBody struct
+
+//#[derive(Serialize, Deserialize, Debug, Clone, Copy, Debug, PartialEq)]
 pub struct RapierBody {
     linear_damping_mode: BodyDampMode,
     angular_damping_mode: BodyDampMode,
@@ -151,21 +153,21 @@ impl RapierBody {
         }
     }
 
-    fn _mass_properties_changed(&mut self) {
+    fn _mass_properties_changed(&mut self, physics_data: &mut PhysicsData) {
         if self.base.mode.ord() < BodyMode::RIGID.ord() {
             return;
         }
         if self.calculate_inertia || self.calculate_center_of_mass {
-            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+            if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
                 space.body_add_to_mass_properties_update_list(self.base.get_rid());
                 self.mass_properties_update_pending = true;
             }
         } else {
-            self._apply_mass_properties(false);
+            self._apply_mass_properties(false, &mut physics_data.physics_engine);
         }
     }
 
-    fn _apply_mass_properties(&mut self, force_update: bool) {
+    fn _apply_mass_properties(&mut self, force_update: bool, physics_engine: &mut PhysicsEngine) {
         if self.base.mode.ord() < BodyMode::RIGID.ord() || !self.base.is_valid() {
             return;
         }
@@ -183,16 +185,17 @@ impl RapierBody {
             vector_to_rapier(self.center_of_mass),
             false,
             force_update,
+            physics_engine,
         );
     }
 
-    fn _shapes_changed(&mut self) {
-        self._mass_properties_changed();
+    fn _shapes_changed(&mut self, physics_data: &mut PhysicsData) {
+        self._mass_properties_changed(physics_data);
         self.wakeup();
     }
 
-    fn _apply_linear_damping(&mut self, new_value: real, apply_default: bool) {
-        if let Some(space) = spaces_singleton().spaces.get(&self.base.get_space()) {
+    fn _apply_linear_damping(&mut self, new_value: real, apply_default: bool, physics_data: &mut PhysicsData) {
+        if let Some(space) = physics_data.spaces.get(&self.base.get_space()) {
             self.total_linear_damping = new_value;
             if apply_default {
                 let linear_damp: real = space
@@ -204,12 +207,13 @@ impl RapierBody {
                 self.base.get_space_handle(),
                 self.base.get_body_handle(),
                 self.total_linear_damping,
+                &mut physics_data.physics_engine
             );
         }
     }
 
-    fn _apply_angular_damping(&mut self, new_value: real, apply_default: bool) {
-        if let Some(space) = spaces_singleton().spaces.get(&self.base.get_space()) {
+    fn _apply_angular_damping(&mut self, new_value: real, apply_default: bool, physics_data: &mut PhysicsData) {
+        if let Some(space) = physics_data.spaces.get(&self.base.get_space()) {
             self.total_angular_damping = new_value;
             if apply_default {
                 let angular_damp: real = space
@@ -221,11 +225,12 @@ impl RapierBody {
                 self.base.get_space_handle(),
                 self.base.get_body_handle(),
                 self.total_angular_damping,
+                &mut physics_data.physics_engine
             );
         }
     }
 
-    fn _apply_gravity_scale(&self, new_value: real) {
+    fn _apply_gravity_scale(&self, new_value: real, physics_engine: &mut PhysicsEngine) {
         if !self.base.is_valid() {
             return;
         }
@@ -234,17 +239,18 @@ impl RapierBody {
             self.base.get_body_handle(),
             new_value,
             true,
+            physics_engine
         );
     }
 
-    fn _init_collider(&self, collider_handle: ColliderHandle, space_handle: Handle) {
+    fn _init_collider(&self, collider_handle: ColliderHandle, space_handle: Handle, physics_engine: &mut PhysicsEngine) {
         // Send contact infos for dynamic bodies
         if self.base.mode.ord() >= BodyMode::KINEMATIC.ord() {
             let mut send_contacts = self.can_report_contacts();
             if godot::engine::Os::singleton().is_debug_build() {
                 send_contacts = true;
             }
-            collider_set_contact_force_events_enabled(space_handle, collider_handle, send_contacts);
+            collider_set_contact_force_events_enabled(space_handle, collider_handle, send_contacts, physics_engine);
         }
     }
 
@@ -256,7 +262,7 @@ impl RapierBody {
         self.to_add_angular_velocity = angular_velocity;
     }
 
-    pub fn set_linear_velocity(&mut self, p_linear_velocity: Vector) {
+    pub fn set_linear_velocity(&mut self, p_linear_velocity: Vector, physics_engine: &mut PhysicsEngine) {
         self.linear_velocity = p_linear_velocity;
         if self.base.mode == BodyMode::STATIC {
             return;
@@ -268,16 +274,17 @@ impl RapierBody {
             self.base.get_space_handle(),
             self.base.get_body_handle(),
             vector_to_rapier(self.linear_velocity),
+            physics_engine
         );
         self.linear_velocity = Vector::default();
     }
 
-    pub fn get_linear_velocity(&self) -> Vector {
+    pub fn get_linear_velocity(&self, physics_engine: &mut PhysicsEngine) -> Vector {
         if !self.base.is_valid() {
             return self.linear_velocity;
         }
         let vel =
-            body_get_linear_velocity(self.base.get_space_handle(), self.base.get_body_handle());
+            body_get_linear_velocity(self.base.get_space_handle(), self.base.get_body_handle(), physics_engine);
         vector_to_godot(vel)
     }
 
@@ -285,7 +292,7 @@ impl RapierBody {
         self.linear_velocity
     }
 
-    pub fn set_angular_velocity(&mut self, p_angular_velocity: Angle) {
+    pub fn set_angular_velocity(&mut self, p_angular_velocity: Angle, physics_engine: &mut PhysicsEngine) {
         self.angular_velocity = p_angular_velocity;
         if self.base.mode == BodyMode::STATIC {
             return;
@@ -297,17 +304,19 @@ impl RapierBody {
             self.base.get_space_handle(),
             self.base.get_body_handle(),
             angle_to_rapier(self.angular_velocity),
+            physics_engine
         );
         self.angular_velocity = ANGLE_ZERO;
     }
 
-    pub fn get_angular_velocity(&self) -> Angle {
+    pub fn get_angular_velocity(&self, physics_engine: &mut PhysicsEngine) -> Angle {
         if !self.base.is_valid() {
             return self.angular_velocity;
         }
         angle_to_godot(body_get_angular_velocity(
             self.base.get_space_handle(),
             self.base.get_body_handle(),
+            physics_engine,
         ))
     }
 
@@ -344,34 +353,34 @@ impl RapierBody {
         self.direct_state.as_ref()
     }
 
-    pub fn add_area(&mut self, p_area: &RapierArea) {
+    pub fn add_area(&mut self, p_area: &RapierArea, physics_data: &mut PhysicsData) {
         self.base.area_detection_counter += 1;
         if p_area.has_any_space_override() {
             // TODO sort
             let area_rid = p_area.get_base().get_rid();
             self.areas.push(area_rid);
-            self.on_area_updated(area_rid);
+            self.on_area_updated(area_rid, physics_data);
         }
     }
 
-    pub fn remove_area(&mut self, area: Rid) {
+    pub fn remove_area(&mut self, area: Rid, physics_data: &mut PhysicsData) {
         if self.base.area_detection_counter == 0 {
             godot_error!("Area detection counter is zero.");
             return;
         }
         self.base.area_detection_counter -= 1;
         self.areas.retain(|&x| x != area);
-        self.on_area_updated(area);
+        self.on_area_updated(area, physics_data);
     }
 
-    pub fn on_area_updated(&mut self, _area: Rid) {
-        if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+    pub fn on_area_updated(&mut self, _area: Rid, physics_data: &mut PhysicsData) {
+        if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
             space.body_add_to_area_update_list(self.base.get_rid());
         }
     }
 
-    pub fn update_area_override(&mut self) {
-        if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+    pub fn update_area_override(&mut self, physics_data: &mut PhysicsData) {
+        if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
             space.body_remove_from_area_update_list(self.base.get_rid());
         }
         if self.base.mode == BodyMode::STATIC {
@@ -398,7 +407,7 @@ impl RapierBody {
             let mut areas = self.areas.clone();
             areas.reverse();
             for area_rid in areas {
-                if let Some(area) = bodies_singleton().collision_objects.get(&area_rid) {
+                if let Some(area) = physics_data.collision_objects.get(&area_rid) {
                     if let Some(aa) = area.get_area() {
                         if !gravity_done {
                             let area_gravity_mode =
@@ -484,9 +493,9 @@ impl RapierBody {
         total_linear_damping += self.linear_damping;
         total_angular_damping += self.angular_damping;
         // Apply to the simulation.
-        self._apply_linear_damping(total_linear_damping, !linear_damping_done);
-        self._apply_angular_damping(total_angular_damping, !angular_damping_done);
-        if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+        self._apply_linear_damping(total_linear_damping, !linear_damping_done, physics_data);
+        self._apply_angular_damping(total_angular_damping, !angular_damping_done, physics_data);
+        if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
             if self.using_area_gravity {
                 // Add default gravity from space.
                 if !gravity_done {
@@ -495,22 +504,22 @@ impl RapierBody {
                 // Apply gravity scale to computed value.
                 self.total_gravity *= self.gravity_scale;
                 // Disable simulation gravity and apply it manually instead.
-                self._apply_gravity_scale(0.0);
+                self._apply_gravity_scale(0.0, &mut physics_data.physics_engine);
                 space.body_add_to_gravity_update_list(self.base.get_rid());
             } else {
                 // Enable simulation gravity.
-                self._apply_gravity_scale(self.gravity_scale);
+                self._apply_gravity_scale(self.gravity_scale, &mut physics_data.physics_engine);
                 space.body_remove_from_gravity_update_list(self.base.get_rid());
             }
         }
     }
 
-    pub fn update_gravity(&mut self, p_step: real) {
+    pub fn update_gravity(&mut self, p_step: real, physics_data: &mut PhysicsData) {
         if !self.using_area_gravity {
             return;
         }
         if !self.areas.is_empty() {
-            self.update_area_override();
+            self.update_area_override(physics_data);
         }
         if !self.base.is_valid() {
             return;
@@ -520,6 +529,7 @@ impl RapierBody {
             self.base.get_space_handle(),
             self.base.get_body_handle(),
             vector_to_rapier(gravity_impulse),
+            &mut physics_data.physics_engine
         );
     }
 
@@ -616,14 +626,14 @@ impl RapierBody {
         self.omit_force_integration
     }
 
-    pub fn apply_central_impulse(&mut self, p_impulse: Vector) {
+    pub fn apply_central_impulse(&mut self, p_impulse: Vector, physics_data: &mut PhysicsData) {
         if !self.base.is_valid() {
             self.impulse += p_impulse;
             return;
         }
         if self.mass_properties_update_pending {
             // Force update internal mass properties to calculate proper impulse
-            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+            if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
                 space.body_remove_from_mass_properties_update_list(self.base.get_rid());
             }
             self.update_mass_properties(true);
@@ -632,11 +642,12 @@ impl RapierBody {
             self.base.get_space_handle(),
             self.base.get_body_handle(),
             vector_to_rapier(p_impulse),
+            &mut physics_data.physics_engine
         );
         self.impulse = Vector::default();
     }
 
-    pub fn apply_impulse(&mut self, p_impulse: Vector, p_position: Vector) {
+    pub fn apply_impulse(&mut self, p_impulse: Vector, p_position: Vector, physics_data: &mut PhysicsData) {
         if !self.base.is_valid() {
             self.impulse += p_impulse;
             self.torque += (p_position - self.get_center_of_mass()).cross(p_impulse);
@@ -644,7 +655,7 @@ impl RapierBody {
         }
         if self.mass_properties_update_pending {
             // Force update internal mass properties to calculate proper impulse
-            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+            if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
                 space.body_remove_from_mass_properties_update_list(self.base.get_rid());
             }
             self.update_mass_properties(true);
@@ -654,19 +665,20 @@ impl RapierBody {
             self.base.get_body_handle(),
             vector_to_rapier(p_impulse),
             vector_to_rapier(p_position),
+            &mut physics_data.physics_engine
         );
         self.impulse = Vector::default();
         self.torque = ANGLE_ZERO;
     }
 
-    pub fn apply_torque_impulse(&mut self, p_torque: Angle) {
+    pub fn apply_torque_impulse(&mut self, p_torque: Angle, physics_data: &mut PhysicsData) {
         if !self.base.is_valid() {
             self.torque += p_torque;
             return;
         }
         if self.mass_properties_update_pending {
             // Force update internal mass properties to calculate proper impulse
-            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+            if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
                 space.body_remove_from_mass_properties_update_list(self.base.get_rid());
             }
             self.update_mass_properties(true);
@@ -675,11 +687,12 @@ impl RapierBody {
             self.base.get_space_handle(),
             self.base.get_body_handle(),
             angle_to_rapier(p_torque),
+            &mut physics_data.physics_engine
         );
         self.torque = ANGLE_ZERO;
     }
 
-    pub fn apply_central_force(&mut self, p_force: Vector) {
+    pub fn apply_central_force(&mut self, p_force: Vector, physics_data: &mut PhysicsData) {
         // Note: using last delta assuming constant physics time
         let last_delta = RapierSpace::get_last_step();
         if !self.base.is_valid() {
@@ -688,7 +701,7 @@ impl RapierBody {
         }
         if self.mass_properties_update_pending {
             // Force update internal mass properties to calculate proper impulse
-            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+            if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
                 space.body_remove_from_mass_properties_update_list(self.base.get_rid());
             }
             self.update_mass_properties(true);
@@ -697,11 +710,12 @@ impl RapierBody {
             self.base.get_space_handle(),
             self.base.get_body_handle(),
             vector_to_rapier(p_force * last_delta),
+            &mut physics_data.physics_engine
         );
         self.impulse = Vector::default();
     }
 
-    pub fn apply_force(&mut self, p_force: Vector, p_position: Vector) {
+    pub fn apply_force(&mut self, p_force: Vector, p_position: Vector, physics_data: &mut PhysicsData) {
         // Note: using last delta assuming constant physics time
         let last_delta = RapierSpace::get_last_step();
         if !self.base.is_valid() {
@@ -711,7 +725,7 @@ impl RapierBody {
         }
         if self.mass_properties_update_pending {
             // Force update internal mass properties to calculate proper impulse
-            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+            if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
                 space.body_remove_from_mass_properties_update_list(self.base.get_rid());
             }
             self.update_mass_properties(true);
@@ -721,12 +735,13 @@ impl RapierBody {
             self.base.get_body_handle(),
             vector_to_rapier(p_force * last_delta),
             vector_to_rapier(p_position),
+            &mut physics_data.physics_engine
         );
         self.impulse = Vector::default();
         self.torque = ANGLE_ZERO;
     }
 
-    pub fn apply_torque(&mut self, p_torque: Angle) {
+    pub fn apply_torque(&mut self, p_torque: Angle, physics_data: &mut PhysicsData) {
         // Note: using last delta assuming constant physics time
         let last_delta = RapierSpace::get_last_step();
         if !self.base.is_valid() {
@@ -735,7 +750,7 @@ impl RapierBody {
         }
         if self.mass_properties_update_pending {
             // Force update internal mass properties to calculate proper impulse
-            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+            if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
                 space.body_remove_from_mass_properties_update_list(self.base.get_rid());
             }
             self.update_mass_properties(true);
@@ -744,18 +759,19 @@ impl RapierBody {
             self.base.get_space_handle(),
             self.base.get_body_handle(),
             angle_to_rapier(p_torque * last_delta),
+            &mut physics_data.physics_engine
         );
         self.torque = ANGLE_ZERO;
     }
 
-    pub fn add_constant_central_force(&mut self, p_force: Vector) {
+    pub fn add_constant_central_force(&mut self, p_force: Vector, physics_data: &mut PhysicsData) {
         self.constant_force += p_force;
         if !self.base.is_valid() {
             return;
         }
         if self.mass_properties_update_pending {
             // Force update internal mass properties to calculate proper impulse
-            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+            if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
                 space.body_remove_from_mass_properties_update_list(self.base.get_rid());
             }
             self.update_mass_properties(true);
@@ -764,10 +780,11 @@ impl RapierBody {
             self.base.get_space_handle(),
             self.base.get_body_handle(),
             vector_to_rapier(p_force),
+            &mut physics_data.physics_engine
         );
     }
 
-    pub fn add_constant_force(&mut self, p_force: Vector, p_position: Vector) {
+    pub fn add_constant_force(&mut self, p_force: Vector, p_position: Vector, physics_data: &mut PhysicsData) {
         self.constant_torque += (p_position - self.get_center_of_mass()).cross(p_force);
         self.constant_force += p_force;
         if !self.base.is_valid() {
@@ -775,7 +792,7 @@ impl RapierBody {
         }
         if self.mass_properties_update_pending {
             // Force update internal mass properties to calculate proper impulse
-            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+            if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
                 space.body_remove_from_mass_properties_update_list(self.base.get_rid());
             }
             self.update_mass_properties(true);
@@ -785,17 +802,18 @@ impl RapierBody {
             self.base.get_body_handle(),
             vector_to_rapier(p_force),
             vector_to_rapier(p_position),
+            &mut physics_data.physics_engine
         );
     }
 
-    pub fn add_constant_torque(&mut self, p_torque: Angle) {
+    pub fn add_constant_torque(&mut self, p_torque: Angle, physics_data: &mut PhysicsData) {
         self.constant_torque += p_torque;
         if !self.base.is_valid() {
             return;
         }
         if self.mass_properties_update_pending {
             // Force update internal mass properties to calculate proper impulse
-            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+            if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
                 space.body_remove_from_mass_properties_update_list(self.base.get_rid());
             }
             self.update_mass_properties(true);
@@ -804,65 +822,69 @@ impl RapierBody {
             self.base.get_space_handle(),
             self.base.get_body_handle(),
             angle_to_rapier(p_torque),
+            &mut physics_data.physics_engine
         );
     }
 
-    pub fn set_constant_force(&mut self, p_force: Vector) {
+    pub fn set_constant_force(&mut self, p_force: Vector, physics_data: &mut PhysicsData) {
         self.constant_force = p_force;
         if !self.base.is_valid() {
             return;
         }
         if self.mass_properties_update_pending {
             // Force update internal mass properties to calculate proper impulse
-            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+            if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
                 space.body_remove_from_mass_properties_update_list(self.base.get_rid());
             }
             self.update_mass_properties(true);
         }
-        body_reset_forces(self.base.get_space_handle(), self.base.get_body_handle());
+        body_reset_forces(self.base.get_space_handle(), self.base.get_body_handle(), &mut physics_data.physics_engine);
         body_add_force(
             self.base.get_space_handle(),
             self.base.get_body_handle(),
             vector_to_rapier(p_force),
+            &mut physics_data.physics_engine
         );
     }
 
-    pub fn get_constant_force(&self) -> Vector {
+    pub fn get_constant_force(&self, body_data: &BodyData, physics_data: &mut PhysicsData) -> Vector {
         if !self.base.is_valid() {
             return self.constant_force;
         }
         let force =
-            body_get_constant_force(self.base.get_space_handle(), self.base.get_body_handle());
+            body_get_constant_force(self.base.get_space_handle(), self.base.get_body_handle(), &mut physics_data.physics_engine);
         vector_to_godot(force)
     }
 
-    pub fn set_constant_torque(&mut self, p_torque: Angle) {
+    pub fn set_constant_torque(&mut self, p_torque: Angle, physics_data: &mut PhysicsData) {
         self.constant_torque = p_torque;
         if !self.base.is_valid() {
             return;
         }
         if self.mass_properties_update_pending {
             // Force update internal mass properties to calculate proper impulse
-            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+            if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
                 space.body_remove_from_mass_properties_update_list(self.base.get_rid());
             }
             self.update_mass_properties(true);
         }
-        body_reset_torques(self.base.get_space_handle(), self.base.get_body_handle());
+        body_reset_torques(self.base.get_space_handle(), self.base.get_body_handle(), &mut physics_data.physics_engine);
         body_add_torque(
             self.base.get_space_handle(),
             self.base.get_body_handle(),
             angle_to_rapier(p_torque),
+            &mut physics_data.physics_engine
         );
     }
 
-    pub fn get_constant_torque(&self) -> Angle {
+    pub fn get_constant_torque(&self, physics_engine: &mut PhysicsEngine) -> Angle {
         if !self.base.is_valid() {
             return self.constant_torque;
         }
         angle_to_godot(body_get_constant_torque(
             self.base.get_space_handle(),
             self.base.get_body_handle(),
+            physics_engine
         ))
     }
 
@@ -905,7 +927,7 @@ impl RapierBody {
         self.marked_active = true;
         if !self.active {
             self.active = true;
-            if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+            if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
                 space.body_add_to_active_list(self.base.get_rid());
             }
         }
@@ -1136,7 +1158,7 @@ impl RapierBody {
         let prev_mode = self.base.mode;
         self.base.mode = p_mode;
         let rid = self.base.get_rid();
-        if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+        if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
             match p_mode {
                 BodyMode::KINEMATIC => {
                     body_change_mode(
@@ -1205,7 +1227,7 @@ impl RapierBody {
                     return;
                 }
                 self.sleep = p_variant.to();
-                if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+                if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
                     if self.sleep {
                         if self.can_sleep {
                             self.force_sleep();
@@ -1224,7 +1246,7 @@ impl RapierBody {
                     if !self.active && !self.can_sleep {
                         self.wakeup();
                         if let Some(space) =
-                            spaces_singleton().spaces.get_mut(&self.base.get_space())
+                            physics_data.spaces.get_mut(&self.base.get_space())
                         {
                             self.set_active(true, space);
                         }
@@ -1513,7 +1535,7 @@ impl IRapierCollisionObject for RapierBody {
 
     fn set_space(&mut self, space: Rid) {
         // delete previous space
-        if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+        if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
             space.body_remove_from_mass_properties_update_list(self.base.get_rid());
             space.body_remove_from_gravity_update_list(self.base.get_rid());
             space.body_remove_from_active_list(self.base.get_rid());
@@ -1530,7 +1552,7 @@ impl IRapierCollisionObject for RapierBody {
             }
             if self.active || !self.sleep {
                 self.wakeup();
-                if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+                if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
                     space.body_add_to_active_list(self.base.get_rid());
                 }
             } else if self.can_sleep && self.sleep {

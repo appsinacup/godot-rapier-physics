@@ -85,9 +85,9 @@ checksum = "79296716171880943b8470b5f8d03aa55eb2e645a4874bdbb28adb49162e012c"
 
 [[package]]
 name = "bytemuck"
-version = "1.16.0"
+version = "1.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "78834c15cb5d5efe3452d58b1e8ba890dd62d21907f867f383358198e56ebca5"
+checksum = "b236fc92302c97ed75b38da1f4917b5cdda4984745740f153a5d3059e48d725e"
 
 [[package]]
 name = "cfg-if"
@@ -215,7 +215,7 @@ checksum = "9e05e7e6723e3455f4818c7b26e855439f7546cf617ef669d1adedb8669e5cb9"
 [[package]]
 name = "godot"
 version = "0.1.0"
-source = "git+https://github.com/Ughuuu/gdext?branch=expose-determinant-in-2d-transform#532e9a7966966e744068709e76417c3b5b179714"
+source = "git+https://github.com/godot-rust/gdext?branch=master#cd31a83d80edc7529ab2ef450d4c59d983913c19"
 dependencies = [
  "godot-core",
  "godot-macros",
@@ -224,7 +224,7 @@ dependencies = [
 [[package]]
 name = "godot-bindings"
 version = "0.1.0"
-source = "git+https://github.com/Ughuuu/gdext?branch=expose-determinant-in-2d-transform#532e9a7966966e744068709e76417c3b5b179714"
+source = "git+https://github.com/godot-rust/gdext?branch=master#cd31a83d80edc7529ab2ef450d4c59d983913c19"
 dependencies = [
  "gdextension-api",
 ]
@@ -232,12 +232,12 @@ dependencies = [
 [[package]]
 name = "godot-cell"
 version = "0.1.0"
-source = "git+https://github.com/Ughuuu/gdext?branch=expose-determinant-in-2d-transform#532e9a7966966e744068709e76417c3b5b179714"
+source = "git+https://github.com/godot-rust/gdext?branch=master#cd31a83d80edc7529ab2ef450d4c59d983913c19"
 
 [[package]]
 name = "godot-codegen"
 version = "0.1.0"
-source = "git+https://github.com/Ughuuu/gdext?branch=expose-determinant-in-2d-transform#532e9a7966966e744068709e76417c3b5b179714"
+source = "git+https://github.com/godot-rust/gdext?branch=master#cd31a83d80edc7529ab2ef450d4c59d983913c19"
 dependencies = [
  "godot-bindings",
  "heck",
@@ -250,19 +250,20 @@ dependencies = [
 [[package]]
 name = "godot-core"
 version = "0.1.0"
-source = "git+https://github.com/Ughuuu/gdext?branch=expose-determinant-in-2d-transform#532e9a7966966e744068709e76417c3b5b179714"
+source = "git+https://github.com/godot-rust/gdext?branch=master#cd31a83d80edc7529ab2ef450d4c59d983913c19"
 dependencies = [
  "glam",
  "godot-bindings",
  "godot-cell",
  "godot-codegen",
  "godot-ffi",
+ "serde",
 ]
 
 [[package]]
 name = "godot-ffi"
 version = "0.1.0"
-source = "git+https://github.com/Ughuuu/gdext?branch=expose-determinant-in-2d-transform#532e9a7966966e744068709e76417c3b5b179714"
+source = "git+https://github.com/godot-rust/gdext?branch=master#cd31a83d80edc7529ab2ef450d4c59d983913c19"
 dependencies = [
  "gensym",
  "godot-bindings",
@@ -274,7 +275,7 @@ dependencies = [
 [[package]]
 name = "godot-macros"
 version = "0.1.0"
-source = "git+https://github.com/Ughuuu/gdext?branch=expose-determinant-in-2d-transform#532e9a7966966e744068709e76417c3b5b179714"
+source = "git+https://github.com/godot-rust/gdext?branch=master#cd31a83d80edc7529ab2ef450d4c59d983913c19"
 dependencies = [
  "godot-bindings",
  "proc-macro2",

@@ -1,4 +1,5 @@
 use rapier::prelude::*;
+use crate::servers::rapier_physics_server_extra::PhysicsData;
 
 use crate::rapier_wrapper::prelude::*;
 #[cfg(feature = "dim2")]
@@ -14,8 +15,8 @@ pub fn joint_create_revolute(
     motor_target_velocity: Real,
     motor_enabled: bool,
     disable_collision: bool,
+    physics_engine: &mut PhysicsEngine,
 ) -> ImpulseJointHandle {
-    let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let mut joint = RevoluteJointBuilder::new()
             .local_anchor1(Point { coords: anchor_1 })
@@ -40,8 +41,8 @@ pub fn joint_change_revolute_params(
     angular_limit_enabled: bool,
     motor_target_velocity: Real,
     motor_enabled: bool,
+    physics_engine: &mut PhysicsEngine,
 ) {
-    let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         if let Some(joint) = physics_world
             .physics_objects
@@ -72,8 +73,8 @@ pub fn joint_create_prismatic(
     anchor_2: Vector<Real>,
     limits: Vector<Real>,
     disable_collision: bool,
+    physics_engine: &mut PhysicsEngine,
 ) -> ImpulseJointHandle {
-    let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let joint = PrismaticJointBuilder::new(UnitVector::new_unchecked(axis))
             .local_anchor1(Point { coords: anchor_1 })
@@ -94,8 +95,8 @@ pub fn joint_create_spring(
     damping: Real,
     rest_length: Real,
     disable_collision: bool,
+    physics_engine: &mut PhysicsEngine,
 ) -> ImpulseJointHandle {
-    let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let joint = SpringJointBuilder::new(rest_length, stiffness, damping)
             .local_anchor1(Point { coords: anchor_1 })
@@ -111,8 +112,8 @@ pub fn joint_change_spring_params(
     stiffness: Real,
     damping: Real,
     rest_length: Real,
+    physics_engine: &mut PhysicsEngine,
 ) {
-    let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         if let Some(joint) = physics_world
             .physics_objects
@@ -125,8 +126,8 @@ pub fn joint_change_spring_params(
         }
     }
 }
-pub fn joint_destroy(world_handle: Handle, joint_handle: ImpulseJointHandle) {
-    let physics_engine = physics_engine();
+pub fn joint_destroy(world_handle: Handle, joint_handle: ImpulseJointHandle,
+    physics_engine: &mut PhysicsEngine) {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         physics_world.remove_joint(joint_handle);
     }
@@ -135,8 +136,8 @@ pub fn joint_change_disable_collision(
     world_handle: Handle,
     joint_handle: ImpulseJointHandle,
     disable_collision: bool,
+    physics_engine: &mut PhysicsEngine,
 ) {
-    let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         if let Some(joint) = physics_world
             .physics_objects

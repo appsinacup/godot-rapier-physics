@@ -7,7 +7,7 @@ use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::joints::rapier_joint::RapierJointBase;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::bodies_singleton;
+use crate::servers::rapier_physics_server_extra::PhysicsData;
 pub struct RapierPinJoint2D {
     angular_limit_lower: f32,
     angular_limit_upper: f32,
@@ -17,7 +17,7 @@ pub struct RapierPinJoint2D {
     base: RapierJointBase,
 }
 impl RapierPinJoint2D {
-    pub fn new(pos: Vector2, body_a: Rid, body_b: Rid) -> Self {
+    pub fn new(pos: Vector2, body_a: Rid, body_b: Rid, physics_data: &mut PhysicsData) -> Self {
         let invalid_joint = Self {
             angular_limit_lower: 0.0,
             angular_limit_upper: 0.0,
@@ -29,9 +29,8 @@ impl RapierPinJoint2D {
         if body_a == body_b {
             return invalid_joint;
         }
-        let bodies_singleton = bodies_singleton();
-        if let Some(body_a) = bodies_singleton.collision_objects.get(&body_a) {
-            if let Some(body_b) = bodies_singleton.collision_objects.get(&body_b) {
+        if let Some(body_a) = physics_data.collision_objects.get(&body_a) {
+            if let Some(body_b) = physics_data.collision_objects.get(&body_b) {
                 if !body_a.get_base().is_valid()
                     || !body_b.get_base().is_valid()
                     || body_a.get_base().get_space_handle() != body_b.get_base().get_space_handle()
@@ -55,6 +54,7 @@ impl RapierPinJoint2D {
                     0.0,
                     false,
                     true,
+                    &mut physics_data.physics_engine
                 );
                 return Self {
                     angular_limit_lower: 0.0,
@@ -69,7 +69,7 @@ impl RapierPinJoint2D {
         invalid_joint
     }
 
-    pub fn set_param(&mut self, p_param: physics_server_2d::PinJointParam, p_value: f32) {
+    pub fn set_param(&mut self, p_param: physics_server_2d::PinJointParam, p_value: f32, physics_engine: &mut PhysicsEngine) {
         match p_param {
             physics_server_2d::PinJointParam::LIMIT_UPPER => {
                 self.angular_limit_upper = p_value;
@@ -93,6 +93,7 @@ impl RapierPinJoint2D {
             self.angular_limit_enabled,
             self.motor_target_velocity,
             self.motor_enabled,
+            physics_engine
         );
     }
 
@@ -105,7 +106,7 @@ impl RapierPinJoint2D {
         }
     }
 
-    pub fn set_flag(&mut self, p_flag: physics_server_2d::PinJointFlag, p_enabled: bool) {
+    pub fn set_flag(&mut self, p_flag: physics_server_2d::PinJointFlag, p_enabled: bool, physics_engine: &mut PhysicsEngine) {
         match p_flag {
             physics_server_2d::PinJointFlag::ANGULAR_LIMIT_ENABLED => {
                 self.angular_limit_enabled = p_enabled;
@@ -126,6 +127,7 @@ impl RapierPinJoint2D {
             self.angular_limit_enabled,
             self.motor_target_velocity,
             self.motor_enabled,
+            physics_engine
         );
     }
 

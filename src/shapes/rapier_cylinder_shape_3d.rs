@@ -1,10 +1,11 @@
 use godot::classes::physics_server_3d::*;
 use godot::prelude::*;
+use serde::*;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::*;
 use crate::Vector;
-#[derive(Serialize, Deserialize, Debug)]
+//#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierCylinderShape3D {
     height: f32,
     radius: f32,
@@ -91,7 +92,7 @@ impl IRapierShape for RapierCylinderShape3D {
         Vector2::new(self.radius, self.height).to_variant()
     }
 
-    fn get_handle(&mut self) -> Handle {
+    fn get_handle(&self) -> Handle {
         self.base.get_handle()
     }
 }

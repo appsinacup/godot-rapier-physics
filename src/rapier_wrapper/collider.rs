@@ -6,6 +6,7 @@ use salva::parry::either::Either::Left;
 use salva::parry::either::Either::Right;
 
 use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_server_extra::PhysicsData;
 const SUBDIVISIONS: u32 = 20;
 #[cfg(feature = "dim2")]
 fn skew_polyline(vertices: &Vec<Point<Real>>, skew: Real) -> SharedShape {
@@ -245,8 +246,8 @@ pub fn collider_create_solid(
     mat: &Material,
     body_handle: RigidBodyHandle,
     user_data: &UserData,
+    physics_engine: &mut PhysicsEngine,
 ) -> ColliderHandle {
-    let physics_engine = physics_engine();
     if let Some(shape) = physics_engine.get_shape(shape_handle) {
         let is_shape_halfspace = shape_is_halfspace(shape);
         let mut collider = ColliderBuilder::new(shape.clone())
@@ -292,8 +293,8 @@ pub fn collider_create_sensor(
     shape_handle: Handle,
     body_handle: RigidBodyHandle,
     user_data: &UserData,
+    physics_engine: &mut PhysicsEngine,
 ) -> ColliderHandle {
-    let physics_engine = physics_engine();
     if let Some(shape) = physics_engine.get_shape(shape_handle) {
         let mut collider = ColliderBuilder::new(shape.clone()).build();
         collider.set_sensor(true);
@@ -312,8 +313,7 @@ pub fn collider_create_sensor(
     }
     ColliderHandle::invalid()
 }
-pub fn collider_destroy(world_handle: Handle, collider_handle: ColliderHandle) {
-    let physics_engine = physics_engine();
+pub fn collider_destroy(world_handle: Handle, collider_handle: ColliderHandle, physics_engine: &mut PhysicsEngine) {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         physics_world
             .fluids_pipeline
@@ -326,8 +326,8 @@ pub fn collider_set_transform(
     world_handle: Handle,
     collider_handle: ColliderHandle,
     shape_info: ShapeInfo,
+    physics_engine: &mut PhysicsEngine,
 ) {
-    let physics_engine = physics_engine();
     if let Some(shape) = physics_engine.get_shape(shape_info.handle) {
         let new_shape = scale_shape(shape, shape_info);
         if let Some(physics_world) = physics_engine.get_world(world_handle) {
@@ -346,8 +346,8 @@ pub fn collider_set_contact_force_events_enabled(
     world_handle: Handle,
     collider_handle: ColliderHandle,
     enable: bool,
+    physics_engine: &mut PhysicsEngine,
 ) {
-    let physics_engine = physics_engine();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         if let Some(collider) = physics_world
             .physics_objects

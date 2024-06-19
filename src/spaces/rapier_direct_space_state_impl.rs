@@ -5,7 +5,7 @@ use super::rapier_space_body_helper::is_handle_excluded_callback;
 use crate::bodies::rapier_collision_object::*;
 use crate::bodies::vector_normalized;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::*;
+use crate::servers::rapier_physics_server_extra::PhysicsData;
 use crate::Angle;
 use crate::Transform;
 use crate::Vector;
@@ -48,8 +48,9 @@ impl RapierDirectSpaceStateImpl {
         collide_with_areas: bool,
         hit_from_inside: bool,
         result: *mut PhysicsServerExtensionRayResult,
+        physics_data: &PhysicsData
     ) -> bool {
-        let Some(space) = spaces_singleton().spaces.get(&self.space) else {
+        let Some(space) = physics_data.spaces.get(&self.space) else {
             return false;
         };
         if !space.is_valid() {
@@ -72,6 +73,7 @@ impl RapierDirectSpaceStateImpl {
             &mut hit_info,
             is_handle_excluded_callback,
             &query_excluded_info,
+            physics_data
         );
         if collide {
             let result = &mut *result;
@@ -81,7 +83,7 @@ impl RapierDirectSpaceStateImpl {
                 RapierCollisionObject::get_collider_user_data(&hit_info.user_data);
             result.rid = rid;
             result.shape = shape_index as i32;
-            if let Some(collision_object_2d) = bodies_singleton().collision_objects.get(&result.rid)
+            if let Some(collision_object_2d) = physics_data.collision_objects.get(&result.rid)
             {
                 let instance_id = collision_object_2d.get_base().get_instance_id();
                 result.collider_id = ObjectId { id: instance_id };
@@ -107,12 +109,13 @@ impl RapierDirectSpaceStateImpl {
         collide_with_areas: bool,
         results: *mut PhysicsServerExtensionShapeResult,
         max_results: i32,
+        physics_data: &PhysicsData
     ) -> i32 {
         let max_results = max_results as usize;
         if max_results <= 0 {
             return 0;
         }
-        let Some(space) = spaces_singleton().spaces.get(&self.space) else {
+        let Some(space) = physics_data.spaces.get(&self.space) else {
             return 0;
         };
         if !space.is_valid() {
@@ -136,6 +139,7 @@ impl RapierDirectSpaceStateImpl {
             max_results,
             is_handle_excluded_callback,
             &mut query_excluded_info,
+            physics_data
         );
         if result_count > max_results {
             result_count = max_results;
@@ -148,7 +152,7 @@ impl RapierDirectSpaceStateImpl {
                 RapierCollisionObject::get_collider_user_data(&hit_info.user_data);
             results_slice[i].rid = rid;
             results_slice[i].shape = shape_index as i32;
-            let collision_object_2d = bodies_singleton().collision_objects.get(&rid);
+            let collision_object_2d = physics_data.collision_objects.get(&rid);
             if let Some(collision_object_2d) = collision_object_2d {
                 let instance_id = collision_object_2d.get_base().get_instance_id();
                 results_slice[i].collider_id = ObjectId { id: instance_id };
@@ -175,12 +179,13 @@ impl RapierDirectSpaceStateImpl {
         collide_with_areas: bool,
         results: *mut PhysicsServerExtensionShapeResult,
         max_results: i32,
+        physics_data: &PhysicsData
     ) -> i32 {
         let max_results = max_results as usize;
-        let Some(shape) = shapes_singleton().shapes.get_mut(&shape_rid) else {
+        let Some(shape) = physics_data.shapes.get(&shape_rid) else {
             return 0;
         };
-        let Some(space) = spaces_singleton().spaces.get_mut(&self.space) else {
+        let Some(space) = physics_data.spaces.get(&self.space) else {
             return 0;
         };
         if !space.is_valid() {
@@ -205,6 +210,7 @@ impl RapierDirectSpaceStateImpl {
                 collide_with_areas,
                 is_handle_excluded_callback,
                 &query_excluded_info,
+                physics_data
             );
             if !result.collided {
                 break;
@@ -217,7 +223,7 @@ impl RapierDirectSpaceStateImpl {
             }
             let (rid, shape_index) =
                 RapierCollisionObject::get_collider_user_data(&result.user_data);
-            let collision_object_2d = bodies_singleton().collision_objects.get(&rid);
+            let collision_object_2d = physics_data.collision_objects.get(&rid);
             if let Some(collision_object_2d) = collision_object_2d {
                 results_slice[cpt].shape = shape_index as i32;
                 results_slice[cpt].rid = rid;
@@ -247,11 +253,12 @@ impl RapierDirectSpaceStateImpl {
         collide_with_areas: bool,
         closest_safe: *mut f64,
         closest_unsafe: *mut f64,
+        physics_data: &PhysicsData
     ) -> bool {
-        let Some(shape) = shapes_singleton().shapes.get_mut(&shape_rid) else {
+        let Some(shape) = physics_data.shapes.get(&shape_rid) else {
             return false;
         };
-        let Some(space) = spaces_singleton().spaces.get(&self.space) else {
+        let Some(space) = physics_data.spaces.get(&self.space) else {
             return false;
         };
         if !space.is_valid() {
@@ -269,6 +276,7 @@ impl RapierDirectSpaceStateImpl {
             collide_with_areas,
             is_handle_excluded_callback,
             &query_excluded_info,
+            physics_data
         )
         .toi;
         // TODO compute actual safe and unsafe
@@ -291,12 +299,13 @@ impl RapierDirectSpaceStateImpl {
         results: *mut std::ffi::c_void,
         max_results: i32,
         result_count: *mut i32,
+        physics_data: &PhysicsData
     ) -> bool {
         let max_results = max_results as usize;
-        let Some(shape) = shapes_singleton().shapes.get_mut(&shape_rid) else {
+        let Some(shape) = physics_data.shapes.get(&shape_rid) else {
             return false;
         };
-        let Some(space) = spaces_singleton().spaces.get(&self.space) else {
+        let Some(space) = physics_data.spaces.get(&self.space) else {
             return false;
         };
         if !space.is_valid() {
@@ -321,6 +330,7 @@ impl RapierDirectSpaceStateImpl {
                 collide_with_areas,
                 is_handle_excluded_callback,
                 &mut query_excluded_info,
+                physics_data
             );
             if !result.collided {
                 break;
@@ -349,11 +359,12 @@ impl RapierDirectSpaceStateImpl {
         collide_with_bodies: bool,
         collide_with_areas: bool,
         rest_info: *mut PhysicsServerExtensionShapeRestInfo,
+        physics_data: &PhysicsData
     ) -> bool {
-        let Some(shape) = shapes_singleton().shapes.get_mut(&shape_rid) else {
+        let Some(shape) = physics_data.shapes.get(&shape_rid) else {
             return false;
         };
-        let Some(space) = spaces_singleton().spaces.get(&self.space) else {
+        let Some(space) = physics_data.spaces.get(&self.space) else {
             return false;
         };
         if !space.is_valid() {
@@ -371,12 +382,13 @@ impl RapierDirectSpaceStateImpl {
             collide_with_areas,
             is_handle_excluded_callback,
             &mut query_excluded_info,
+            physics_data
         );
         if !result.collided {
             return false;
         }
         let (rid, shape_index) = RapierCollisionObject::get_collider_user_data(&result.user_data);
-        let collision_object_2d = bodies_singleton().collision_objects.get(&rid);
+        let collision_object_2d = physics_data.collision_objects.get(&rid);
         let r_info = &mut *rest_info;
         if let Some(collision_object_2d) = collision_object_2d {
             let instance_id = collision_object_2d.get_base().get_instance_id();

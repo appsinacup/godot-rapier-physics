@@ -9,7 +9,7 @@ use crate::bodies::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;
 use crate::bodies::vector_normalized;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::*;
+use crate::servers::rapier_physics_server_extra::PhysicsData;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::Rect;
 use crate::Transform;
@@ -33,6 +33,7 @@ pub fn is_handle_excluded_callback(
     collider_handle: ColliderHandle,
     user_data: &UserData,
     handle_excluded_info: &QueryExcludedInfo,
+    physics_data: &PhysicsData,
 ) -> bool {
     for exclude_index in 0..handle_excluded_info.query_exclude_size {
         if handle_excluded_info.query_exclude[exclude_index] == collider_handle {
@@ -40,27 +41,27 @@ pub fn is_handle_excluded_callback(
         }
     }
     let (collision_object_2d, _) = RapierCollisionObject::get_collider_user_data(user_data);
-    let Some(collision_object_2d) = bodies_singleton()
+    let Some(collision_object_2d) = physics_data
         .collision_objects
-        .get(&collision_object_2d) else
-    {
+        .get(&collision_object_2d)
+    else {
         return false;
     };
     let collision_object_base = collision_object_2d.get_base();
-    let canvas_excluded = collision_object_base.get_canvas_instance_id() != handle_excluded_info.query_canvas_instance_id;
+    let canvas_excluded = collision_object_base.get_canvas_instance_id()
+        != handle_excluded_info.query_canvas_instance_id;
     let layer_excluded = collision_object_base.get_collision_layer()
-    & handle_excluded_info.query_collision_layer_mask
-    == 0;
-    let rid_excluded = handle_excluded_info.query_exclude_body
-    == collision_object_base.get_rid().to_u64() as i64;
-    if canvas_excluded || layer_excluded || rid_excluded
-    {
+        & handle_excluded_info.query_collision_layer_mask
+        == 0;
+    let rid_excluded =
+        handle_excluded_info.query_exclude_body == collision_object_base.get_rid().to_u64() as i64;
+    if canvas_excluded || layer_excluded || rid_excluded {
         return true;
     }
-    let Some(active_space) = active_spaces_singleton().active_spaces.get(&world_handle) else{
+    let Some(active_space) = physics_data.active_spaces.get(&world_handle) else {
         return false;
     };
-    let Some(space) = spaces_singleton().spaces.get(active_space) else {
+    let Some(space) = physics_data.spaces.get(active_space) else {
         return false;
     };
     let Some(direct_space) = space.get_direct_state() else {
@@ -68,8 +69,7 @@ pub fn is_handle_excluded_callback(
     };
     let direct_state = direct_space.clone().cast() as Gd<RapierDirectSpaceState>;
     let direct_space = direct_state.deref();
-    return direct_space
-        .is_body_excluded_from_query(collision_object_base.get_rid());
+    return direct_space.is_body_excluded_from_query(collision_object_base.get_rid());
 }
 impl RapierSpace {
     pub fn test_body_motion(
@@ -81,6 +81,7 @@ impl RapierSpace {
         collide_separation_ray: bool,
         recovery_as_collision: bool,
         result: &mut PhysicsServerExtensionMotionResult,
+        physics_data: &mut PhysicsData,
     ) -> bool {
         result.travel = Vector::default();
         let mut body_transform = from; // Because body_transform needs to be modified during recovery
@@ -95,6 +96,7 @@ impl RapierSpace {
             motion,
             margin,
             &mut recover_motion,
+            physics_data,
         );
         // Step 2: Cast motion.
         // Try to to find what is the possible motion (how far it can move, it's a shapecast, when you try to find the safe point (max you can move without collision ))
@@ -111,6 +113,7 @@ impl RapierSpace {
             &mut best_safe,
             &mut best_unsafe,
             &mut best_body_shape,
+            physics_data
         );
         // Step 3: Rest Info
         // Apply the motion and fill the collision information
@@ -155,6 +158,7 @@ impl RapierSpace {
         results: &mut [PointHitInfo],
         max_results: usize,
         exclude_body: Rid,
+        physics_data: &PhysicsData,
     ) -> i32 {
         let max_results = max_results;
         if max_results < 1 {
@@ -179,6 +183,7 @@ impl RapierSpace {
             max_results,
             is_handle_excluded_callback,
             &handle_excluded_info,
+            physics_data,
         ) as i32
     }
 
@@ -189,6 +194,7 @@ impl RapierSpace {
         p_motion: Vector,
         p_margin: f32,
         p_recover_motion: &mut Vector,
+        physics_data: &mut PhysicsData,
     ) -> bool {
         let shape_count = p_body.get_base().get_shape_count();
         if shape_count < 1 {
@@ -211,6 +217,7 @@ impl RapierSpace {
                 &mut results,
                 32,
                 p_body.get_base().get_rid(),
+                physics_data,
             );
             // Optimization
             if result_count == 0 {
@@ -222,7 +229,7 @@ impl RapierSpace {
                 if p_body.get_base().is_shape_disabled(body_shape_idx) {
                     continue;
                 }
-                if let Some(body_shape) = shapes_singleton()
+                if let Some(body_shape) = physics_data
                     .shapes
                     .get_mut(&p_body.get_base().get_shape(body_shape_idx))
                 {
@@ -238,12 +245,12 @@ impl RapierSpace {
                         }
                         let (shape_col_object, shape_index) =
                             RapierCollisionObject::get_collider_user_data(&result.user_data);
-                        if let Some(shape_col_object) = bodies_singleton()
+                        if let Some(shape_col_object) = physics_data
                             .collision_objects
                             .get_mut(&shape_col_object)
                         {
                             if let Some(collision_body) = shape_col_object.get_mut_body() {
-                                if let Some(col_shape) = shapes_singleton()
+                                if let Some(col_shape) = physics_data
                                     .shapes
                                     .get_mut(&collision_body.get_base().get_shape(shape_index))
                                 {
@@ -321,6 +328,7 @@ impl RapierSpace {
         p_closest_safe: &mut f32,
         p_closest_unsafe: &mut f32,
         p_best_body_shape: &mut i32,
+        physics_data: &mut PhysicsData,
     ) {
         let body_aabb = p_body.get_aabb();
         let margin_aabb = *p_transform * body_aabb;
@@ -337,6 +345,7 @@ impl RapierSpace {
             &mut results,
             32,
             p_body.get_base().get_rid(),
+            physics_data
         );
         if result_count == 0 {
             return;
@@ -346,7 +355,7 @@ impl RapierSpace {
             if p_body.get_base().is_shape_disabled(body_shape_idx) {
                 continue;
             }
-            if let Some(body_shape) = shapes_singleton()
+            if let Some(body_shape) = physics_data
                 .shapes
                 .get_mut(&p_body.get_base().get_shape(body_shape_idx))
             {
@@ -377,12 +386,12 @@ impl RapierSpace {
                     }
                     let (shape_col_object, shape_index) =
                         RapierCollisionObject::get_collider_user_data(&result.user_data);
-                    if let Some(shape_col_object) = bodies_singleton()
+                    if let Some(shape_col_object) = physics_data
                         .collision_objects
                         .get_mut(&shape_col_object)
                     {
                         if let Some(collision_body) = shape_col_object.get_mut_body() {
-                            if let Some(col_shape) = shapes_singleton()
+                            if let Some(col_shape) = physics_data
                                 .shapes
                                 .get_mut(&collision_body.get_base().get_shape(shape_index))
                             {
@@ -502,6 +511,7 @@ impl RapierSpace {
         p_best_body_shape: i32,
         p_margin: f32,
         p_result: &mut PhysicsServerExtensionMotionResult,
+        physics_data: &mut PhysicsData,
     ) -> bool {
         let shape_count = p_body.get_base().get_shape_count();
         if shape_count < 1 {
@@ -523,6 +533,7 @@ impl RapierSpace {
             &mut results,
             32,
             p_body.get_base().get_rid(),
+            physics_data
         );
         // Optimization
         if result_count == 0 {
@@ -552,7 +563,7 @@ impl RapierSpace {
                 * p_body
                     .get_base()
                     .get_shape_transform(body_shape_idx as usize);
-            let body_shape_obj = shapes_singleton().shapes.get_mut(&body_shape).unwrap();
+            let body_shape_obj = physics_data.shapes.get_mut(&body_shape).unwrap();
             let body_shape_info =
                 shape_info_from_body_shape(body_shape_obj.get_handle(), body_shape_transform);
             for result_idx in 0..result_count {
@@ -563,11 +574,11 @@ impl RapierSpace {
                 let (shape_col_object, shape_index) =
                     RapierCollisionObject::get_collider_user_data(&result.user_data);
                 if let Some(shape_col_object) =
-                    bodies_singleton().collision_objects.get(&shape_col_object)
+                physics_data.collision_objects.get(&shape_col_object)
                 {
                     if let Some(collision_body) = shape_col_object.get_body() {
                         let col_shape_rid = collision_body.get_base().get_shape(shape_index);
-                        if let Some(col_shape) = shapes_singleton().shapes.get_mut(&col_shape_rid) {
+                        if let Some(col_shape) = physics_data.shapes.get_mut(&col_shape_rid) {
                             let col_shape_transform = collision_body.get_base().get_transform()
                                 * collision_body.get_base().get_shape_transform(shape_index);
                             let col_shape_info = shape_info_from_body_shape(

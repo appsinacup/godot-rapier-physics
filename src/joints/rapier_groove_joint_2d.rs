@@ -8,7 +8,7 @@ use super::rapier_pin_joint_2d::RapierPinJoint2D;
 use crate::bodies::vector_normalized;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::bodies_singleton;
+use crate::servers::rapier_physics_server_extra::PhysicsData;
 use crate::Vector;
 pub struct RapierGrooveJoint2D {
     base: RapierJointBase,
@@ -20,6 +20,7 @@ impl RapierGrooveJoint2D {
         p_b_anchor: Vector,
         body_a: Rid,
         body_b: Rid,
+        physics_data: &mut PhysicsData,
     ) -> Self {
         let invalid_joint = Self {
             base: RapierJointBase::new(invalid_handle(), ImpulseJointHandle::invalid()),
@@ -27,9 +28,8 @@ impl RapierGrooveJoint2D {
         if body_a == body_b {
             return invalid_joint;
         }
-        let bodies_singleton = bodies_singleton();
-        if let Some(body_a) = bodies_singleton.collision_objects.get(&body_a) {
-            if let Some(body_b) = bodies_singleton.collision_objects.get(&body_b) {
+        if let Some(body_a) = physics_data.collision_objects.get(&body_a) {
+            if let Some(body_b) = physics_data.collision_objects.get(&body_b) {
                 if !body_a.get_base().is_valid()
                     || !body_b.get_base().is_valid()
                     || body_a.get_base().get_space_handle() != body_b.get_base().get_space_handle()
@@ -57,6 +57,7 @@ impl RapierGrooveJoint2D {
                     rapier_anchor_b,
                     rapier_limits,
                     true,
+                    &mut physics_data.physics_engine
                 );
                 return Self {
                     base: RapierJointBase::new(space_handle, handle),

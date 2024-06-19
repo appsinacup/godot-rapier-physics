@@ -1,10 +1,12 @@
 use godot::engine::physics_server_2d::ShapeType;
 use godot::prelude::*;
+use serde::*;
 
 use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_server_extra::PhysicsData;
 use crate::shapes::rapier_shape::*;
 use crate::Vector;
-#[derive(Serialize, Deserialize, Debug)]
+//#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierConcavePolygonShape2D {
     points: Vec<Vector2>,
     segments: Vec<[i32; 2]>,
@@ -58,7 +60,7 @@ impl IRapierShape for RapierConcavePolygonShape2D {
         true
     }
 
-    fn create_rapier_shape(&mut self) -> Handle {
+    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> Handle {
         if self.points.len() >= 3 {
             let point_count = self.points.len();
             let mut rapier_points = Vec::with_capacity(point_count + 1);
@@ -67,14 +69,14 @@ impl IRapierShape for RapierConcavePolygonShape2D {
             }
             // Close the polyline shape
             rapier_points.push(rapier_points[0]);
-            shape_create_concave_polyline(rapier_points)
+            shape_create_concave_polyline(rapier_points, physics_engine)
         } else {
             godot_error!("ConcavePolygon2D must have at least three point");
             invalid_handle()
         }
     }
 
-    fn set_data(&mut self, data: Variant) {
+    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         let mut aabb = Rect2::default();
         match data.get_type() {
             VariantType::PACKED_VECTOR2_ARRAY => {
@@ -109,8 +111,8 @@ impl IRapierShape for RapierConcavePolygonShape2D {
                 return;
             }
         }
-        let handle = self.create_rapier_shape();
-        self.base.set_handle(handle, aabb);
+        let handle = self.create_rapier_shape(physics_engine);
+        self.base.set_handle(handle, aabb, physics_engine);
     }
 
     fn get_data(&self) -> Variant {
@@ -129,7 +131,7 @@ impl IRapierShape for RapierConcavePolygonShape2D {
         rsegments.to_variant()
     }
 
-    fn get_handle(&mut self) -> Handle {
+    fn get_handle(&self) -> Handle {
         self.base.get_handle()
     }
 }

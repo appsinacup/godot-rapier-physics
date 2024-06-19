@@ -1,10 +1,12 @@
 use std::collections::VecDeque;
 
 use godot::prelude::*;
+use serde::*;
 
 use super::fluid_effect::FluidEffect;
 use crate::rapier_wrapper::prelude::*;
 use crate::Vector;
+//#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierFluid {
     rid: Rid,
     enabled: bool,

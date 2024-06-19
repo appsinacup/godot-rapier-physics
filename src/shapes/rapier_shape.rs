@@ -6,9 +6,10 @@ use godot::engine::physics_server_2d::*;
 use godot::engine::physics_server_3d::*;
 use godot::prelude::*;
 use hashbrown::HashMap;
+use serde::*;
 
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::bodies_singleton;
+use crate::servers::rapier_physics_server_extra::PhysicsData;
 use crate::Angle;
 use crate::Rect;
 use crate::Vector;
@@ -18,12 +19,12 @@ pub trait IRapierShape: Any {
     fn get_type(&self) -> ShapeType;
     fn get_moment_of_inertia(&self, mass: f32, scale: Vector) -> Angle;
     fn allows_one_way_collision(&self) -> bool;
-    fn create_rapier_shape(&mut self) -> Handle;
-    fn set_data(&mut self, data: Variant);
+    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> Handle;
+    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine);
     fn get_data(&self) -> Variant;
-    fn get_handle(&mut self) -> Handle;
+    fn get_handle(&self) -> Handle;
 }
-#[derive(Serialize, Deserialize, Debug)]
+//#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierShapeBase {
     rid: Rid,
     aabb: Rect,
@@ -40,9 +41,9 @@ impl RapierShapeBase {
         }
     }
 
-    pub(super) fn set_handle(&mut self, handle: Handle, aabb: Rect) {
+    pub(super) fn set_handle(&mut self, handle: Handle, aabb: Rect, physics_engine: &mut PhysicsEngine) {
         if self.handle.is_valid() {
-            self.destroy_rapier_shape();
+            self.destroy_rapier_shape(physics_engine);
         }
         self.aabb = aabb;
         self.handle = handle;
@@ -52,9 +53,9 @@ impl RapierShapeBase {
         self.handle
     }
 
-    pub fn call_shape_changed(owners: HashMap<Rid, i32>, shape_rid: Rid) {
+    pub fn call_shape_changed(owners: HashMap<Rid, i32>, shape_rid: Rid, physics_data: &mut PhysicsData) {
         for (owner, _) in owners {
-            let owner = bodies_singleton().collision_objects.get_mut(&owner);
+            let owner = physics_data.collision_objects.get_mut(&owner);
             if let Some(owner) = owner {
                 owner._shape_changed(shape_rid);
             }
@@ -98,9 +99,9 @@ impl RapierShapeBase {
         self.rid
     }
 
-    fn destroy_rapier_shape(&mut self) {
+    fn destroy_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) {
         if self.handle.is_valid() {
-            shape_destroy(self.handle);
+            shape_destroy(self.handle, physics_engine);
             self.handle = invalid_handle();
         }
     }
@@ -109,9 +110,6 @@ impl Drop for RapierShapeBase {
     fn drop(&mut self) {
         if !self.owners.is_empty() {
             godot_error!("RapierShapeBase leaked {} owners", self.owners.len());
-        }
-        if self.handle.is_valid() {
-            self.destroy_rapier_shape();
         }
     }
 }
