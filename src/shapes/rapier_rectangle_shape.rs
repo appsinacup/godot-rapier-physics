@@ -9,9 +9,10 @@ use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
 use crate::Rect;
 use crate::Vector;
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierRectangleShape {
     half_extents: Vector,
-    pub base: RapierShapeBase,
+    base: RapierShapeBase,
 }
 impl RapierRectangleShape {
     pub fn new(rid: Rid) -> Self {

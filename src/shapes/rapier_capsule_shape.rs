@@ -7,6 +7,7 @@ use godot::prelude::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::*;
 use crate::Vector;
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierCapsuleShape {
     height: f32,
     radius: f32,

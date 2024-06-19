@@ -23,7 +23,7 @@ pub trait IRapierShape: Any {
     fn get_data(&self) -> Variant;
     fn get_handle(&mut self) -> Handle;
 }
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierShapeBase {
     rid: Rid,
     aabb: Rect,

@@ -11,6 +11,7 @@ use crate::PackedFloatArray;
 use crate::PackedVectorArray;
 use crate::Rect;
 use crate::Vector;
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierConvexPolygonShape {
     points: PackedVectorArray,
     base: RapierShapeBase,

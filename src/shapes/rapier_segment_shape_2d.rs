@@ -6,11 +6,12 @@ use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
 use crate::Vector;
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierSegmentShape2D {
     a: Vector2,
     b: Vector2,
     n: Vector2,
-    pub base: RapierShapeBase,
+    base: RapierShapeBase,
 }
 impl RapierSegmentShape2D {
     pub fn new(rid: Rid) -> Self {

@@ -8,10 +8,11 @@ use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
 use crate::Vector;
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierSeparationRayShape {
     length: f32,
     slide_on_slope: bool,
-    pub base: RapierShapeBase,
+    base: RapierShapeBase,
 }
 impl RapierSeparationRayShape {
     pub fn new(rid: Rid) -> Self {

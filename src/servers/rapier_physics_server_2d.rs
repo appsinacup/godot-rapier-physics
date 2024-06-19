@@ -8,7 +8,10 @@ use godot::engine::physics_server_2d::AreaParameter;
 use godot::engine::utilities::rid_allocate_id;
 use godot::engine::utilities::rid_from_int64;
 use godot::prelude::*;
+use hashbrown::HashMap;
 use rapier::dynamics::ImpulseJointHandle;
+use serde::Deserialize;
+use serde::Serialize;
 
 use super::rapier_physics_singleton::active_spaces_singleton;
 use super::rapier_physics_singleton::bodies_singleton;
@@ -34,9 +37,14 @@ use crate::shapes::rapier_convex_polygon_shape::RapierConvexPolygonShape;
 use crate::shapes::rapier_rectangle_shape::RapierRectangleShape;
 use crate::shapes::rapier_segment_shape_2d::RapierSegmentShape2D;
 use crate::shapes::rapier_separation_ray_shape::RapierSeparationRayShape;
+use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
 use crate::shapes::rapier_world_boundary_shape::RapierWorldBoundaryShape;
 use crate::spaces::rapier_space::RapierSpace;
+#[derive(Default, Serialize, Deserialize, Debug)]
+pub struct RapierData {
+    pub shapes: HashMap<Rid, Box<dyn IRapierShape>>,
+}
 #[derive(GodotClass)]
 #[class(base=PhysicsServer2DExtension, tool)]
 pub struct RapierPhysicsServer2D {
@@ -51,6 +59,7 @@ pub struct RapierPhysicsServer2D {
     num_additional_friction_iterations: usize,
     num_internal_pgs_iterations: usize,
     num_solver_iterations: usize,
+    rapier_data: RapierData,
     base: Base<PhysicsServer2DExtension>,
 }
 #[godot_api]
@@ -71,6 +80,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
                 RapierProjectSettings::get_solver_num_internal_pgs_iterations() as usize,
             num_solver_iterations: RapierProjectSettings::get_solver_num_solver_iterations()
                 as usize,
+            rapier_data: RapierData::default(),
             base,
         }
     }
