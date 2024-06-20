@@ -1,17 +1,41 @@
-# Rapier Physics for Godot
 <p align="center">
-<img src="https://github.com/appsinacup/godot-rapier-physics/blob/main/logo_square.jpg?raw=true" width="100px"/>
+<img src="https://github.com/appsinacup/godot-rapier-physics/blob/main/logo.jpg?raw=true"/>
 </p>
 <p align="center">
         <img src="https://github.com/appsinacup/godot-rapier-physics/actions/workflows/runner.yml/badge.svg?branch=main"
             alt="Godot Rapier Build"></a>
         <img src="https://img.shields.io/badge/Godot-4.3-%23478cbf?logo=godot-engine&logoColor=white" />
-    <a href="https://discord.gg/56dMud8HYn">
-        <img src="https://img.shields.io/discord/1138836561102897172?logo=discord"
-            alt="Chat on Discord"></a>
 </p>
 
-A 2D and 3D physics drop-in replacement for the [godot game engine](https://github.com/godotengine/godot) that adds stability through [rapier](https://github.com/dimforge/rapier) and fluids through [salva](https://github.com/dimforge/salva).
+<p align = "center">
+    <strong>
+        <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/docs/CONTRIBUTE.md">Documentation</a> | <a href="https://discord.gg/56dMud8HYn">Discord</a>
+    </strong>
+</p>
+
+
+-----
+
+<p align = "center">
+<b>2D and 3D physics engine</b>
+<i>for the Godot game engine.</i>
+</p>
+
+-----
+
+Godot Rapier Physics is a 2D and 3D physics drop-in replacement for the [Godot game engine](https://github.com/godotengine/godot) that adds stability through [rapier](https://github.com/dimforge/rapier) and fluids through [salva](https://github.com/dimforge/salva).
+
+# Installation
+
+- Automatic (Recommended): Download the plugin from the official [Godot Asset Store](https://godotengine.org/asset-library/asset/2267) using the `AssetLib` tab in Godot:
+    - [Rapier Physics 2D - Parallel SIMD](https://godotengine.org/asset-library/asset/2267)
+    - [Rapier Physics 2D - Cross Platform Determinism](https://godotengine.org/asset-library/asset/2815)
+    - [Rapier Physics 3D - Parallel SIMD](https://godotengine.org/asset-library/asset/3084)
+    - [Rapier Physics 3D - Cross Platform Determinism](https://godotengine.org/asset-library/asset/3085)
+
+- Manual: Download the [latest github release](https://github.com/appsinacup/godot-rapier-physics/releases/latest) and move only the `addons` folder into your project `addons` folder.
+
+After installing, go to `Advanced Settings` -> `Physics` -> `2D` or `3D`. Change `Physics Engine` to `Rapier2D` or `Rapier3D`.
 
 <p align="center">
 <img src="docs/rapier-vid.gif"/>
@@ -23,14 +47,6 @@ This plugin was recently rewritten from c++ to rust. There are still some things
 
 The reason it was rewritten is to do easier cross platform determinism part and exports to web.
 
-# Features
-
-- Better performance (parallel simulation and SIMD).
-- Better stability.
-- 2D and 3D.
-- Fluids with surface tension, viscosity and elasticity.
-- Liquids Missing
-
 # Limitations
 
 - SeparationRayShape2D, ConcavePolygonShape3D, HeightMapShape3D, 3D joints.
@@ -38,8 +54,9 @@ The reason it was rewritten is to do easier cross platform determinism part and 
 - Android exports.
 - Cross platform determinism.
 - Double builds.
+- Liquids Missing.
 
-# Supported Platforms
+# Platforms
 
 - Windows (x86_64, x86_32)
 - macOS (x86-64 + arm64 Universal)
@@ -47,27 +64,3 @@ The reason it was rewritten is to do easier cross platform determinism part and 
 - *DISABLED* Android (x86_64, arm64)
 - iOS (arm64)
 - *DISABLED* Web (wasm32)
-
-# Installation Rapier 2D
-
-- Automatic (Recommended): Download the plugin from the official [Godot Asset Store](https://godotengine.org/asset-library/asset/2267) using the `AssetLib` tab in Godot.
-
-- Manual: Download the github release and move only the `addons` folder into your project `addons` folder.
-
-After installing, go to `Advanced Settings` -> `Physics` -> `2D`. Change `Physics Engine` to `Rapier2D`.
-
-# Installation Rapier 3D
-
-- Automatic (Recommended): Download the plugin from the official [Godot Asset Store](https://godotengine.org/asset-library/asset/2267) using the `AssetLib` tab in Godot.
-
-- Manual: Download the github release and move only the `addons` folder into your project `addons` folder.
-
-After installing, go to `Advanced Settings` -> `Physics` -> `3D`. Change `Physics Engine` to `Rapier3D`.
-
-# Contribute
-
-If you want to contribute, view [docs/CONTRIBUTE.md](docs/CONTRIBUTE.md) for more info.
-
-# [Discord](https://discord.gg/56dMud8HYn)
-
-A vibrant community for discussion, user support and showcases.

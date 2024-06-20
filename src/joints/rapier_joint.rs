@@ -12,7 +12,6 @@ use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 #[cfg(feature = "dim2")]
 use super::rapier_pin_joint_2d::RapierPinJoint2D;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_server_extra::PhysicsData;
 pub trait IRapierJoint: Any {
     fn get_base(&self) -> &RapierJointBase;
     fn get_mut_base(&mut self) -> &mut RapierJointBase;

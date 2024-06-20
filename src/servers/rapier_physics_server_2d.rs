@@ -299,7 +299,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
 
     fn area_set_space(&mut self, area: Rid, space: Rid) {
         if let Some(area) = self.physics_data.collision_objects.get_mut(&area) {
-            area.set_space(space);
+            area.set_space(space, self.physics_data);
         }
     }
 
@@ -750,7 +750,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_reset_mass_properties(&mut self, body: Rid) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.reset_mass_properties();
+                body.reset_mass_properties(self.physics_data);
             }
         }
     }
@@ -909,7 +909,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.remove_exception(excepted_body);
-                body.wakeup();
+                body.wakeup(&mut self.physics_data.physics_engine);
             }
         }
     }
@@ -1131,20 +1131,20 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     }
 
     fn joint_make_pin(&mut self, rid: Rid, anchor: Vector2, body_a: Rid, body_b: Rid) {
-        let mut joint = RapierPinJoint2D::new(anchor, body_a, body_b, &mut self.physics_data);
-        if let Some(prev_joint) = self.physics_data.joints.remove(&rid) {
-            joint
-                .get_mut_base()
-                .copy_settings_from(prev_joint.get_base(), &mut self.physics_data.physics_engine);
-            // insert old one back
-            if joint.get_base().get_handle() == ImpulseJointHandle::invalid() {
-                self.physics_data.joints.insert(rid, prev_joint);
-                return;
+        let mut joint: Box<dyn IRapierJoint>;
+        if let Some(body_a) = self.physics_data.collision_objects.get(&body_a)
+        && let Some(body_b) = self.physics_data.collision_objects.get(&body_b) {
+            joint = Box::new(RapierPinJoint2D::new(anchor, body_a, body_b, &mut self.physics_data.physics_engine));
+            
+            if let Some(prev_joint) = self.physics_data.joints.remove(&rid) {
+                joint
+                    .get_mut_base()
+                    .copy_settings_from(prev_joint.get_base(), &mut self.physics_data.physics_engine);
             }
+        } else {
+            joint = Box::new(RapierEmptyJoint::new());
         }
-        if joint.get_base().get_handle() != ImpulseJointHandle::invalid() {
-            self.physics_data.joints.insert(rid, Box::new(joint));
-        }
+        self.physics_data.joints.insert(rid, joint);
     }
 
     fn joint_make_groove(
@@ -1418,7 +1418,6 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
                 world_step(
                     space_handle,
                     &settings,
-                    RapierSpace::active_body_callback,
                     RapierSpace::collision_filter_body_callback,
                     RapierSpace::collision_filter_sensor_callback,
                     RapierSpace::collision_modify_contacts_callback,

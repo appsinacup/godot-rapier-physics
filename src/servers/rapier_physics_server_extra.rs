@@ -7,7 +7,7 @@ use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::fluids::fluid_effect::FluidEffect;
 use crate::fluids::rapier_fluid::RapierFluid;
 use crate::joints::rapier_joint::IRapierJoint;
-use crate::rapier_wrapper::handle::Handle;
+use crate::rapier_wrapper::handle::WorldHandle;
 use crate::rapier_wrapper::prelude::PhysicsEngine;
 use crate::servers::RapierPhysicsServer;
 use crate::shapes::rapier_shape::IRapierShape;
@@ -18,7 +18,7 @@ pub enum RapierBodyParam {
 }
 pub type PhysicsShapes = HashMap<Rid, Box<dyn IRapierShape>>;
 pub type PhysicsSpaces = HashMap<Rid, RapierSpace>;
-pub type PhysicsActiveSpaces = HashMap<Handle, Rid>;
+pub type PhysicsActiveSpaces = HashMap<WorldHandle, Rid>;
 pub type PhysicsCollisionObjects = HashMap<Rid, Box<dyn IRapierCollisionObject>>;
 pub type PhysicsJoints = HashMap<Rid, Box<dyn IRapierJoint>>;
 pub type PhysicsFluids = HashMap<Rid, RapierFluid>;
@@ -46,7 +46,7 @@ impl RapierPhysicsServer {
     fn body_set_extra_param(&mut self, body: Rid, param: i32, value: Variant) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_extra_param(RapierBodyParam::from(param), value);
+                body.set_extra_param(RapierBodyParam::from(param), value, &mut self.physics_data.physics_engine);
             }
         }
     }

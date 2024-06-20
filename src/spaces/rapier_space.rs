@@ -46,7 +46,7 @@ const DEFAULT_GRAVITY: &str = "physics/2d/default_gravity";
 const DEFAULT_GRAVITY: &str = "physics/3d/default_gravity";
 pub struct RapierSpace {
     direct_access: Option<Gd<PhysicsDirectSpaceState>>,
-    handle: Handle,
+    handle: WorldHandle,
     removed_colliders: HashMap<ColliderHandle, RemovedColliderInfo>,
     active_list: HashSet<Rid>,
     mass_properties_update_list: HashSet<Rid>,
@@ -67,7 +67,7 @@ pub struct RapierSpace {
     contact_debug_count: usize,
 }
 impl RapierSpace {
-    pub fn new(rid: Rid, physics_data: &mut PhysicsData) -> Self {
+    pub fn new(rid: Rid, physics_engine: &mut PhysicsEngine) -> Self {
         let mut direct_access = RapierDirectSpaceState::new_alloc();
         direct_access.bind_mut().set_space(rid);
         let world_settings = WorldSettings {
@@ -75,7 +75,7 @@ impl RapierSpace {
             smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
             counters_enabled: RapierProjectSettings::counters_enabled(),
         };
-        let handle = world_create(&world_settings, &mut physics_data.physics_engine);
+        let handle = physics_engine.world_create(&world_settings);
         let project_settings = ProjectSettings::singleton();
         let default_gravity_dir: Vector = project_settings
             .get_setting_with_override(DEFAULT_GRAVITY_VECTOR.into())
@@ -107,12 +107,12 @@ impl RapierSpace {
         }
     }
 
-    pub fn get_handle(&self) -> Handle {
+    pub fn get_handle(&self) -> WorldHandle {
         self.handle
     }
 
     pub fn is_valid(&self) -> bool {
-        self.handle.is_valid()
+        self.handle != WorldHandle::default()
     }
 
     pub fn body_add_to_mass_properties_update_list(&mut self, body: Rid) {
@@ -301,12 +301,11 @@ impl RapierSpace {
     pub fn after_step(&mut self, physics_data: &mut PhysicsData) {
         // Needed only for one physics step to retrieve lost info
         self.removed_colliders.clear();
-        self.active_objects =
-            world_get_active_objects_count(self.handle, &mut physics_data.physics_engine) as i32;
+        self.active_objects = physics_data.physics_engine.world_get_active_objects_count(self.handle) as i32;
         for body in self.active_list.clone() {
             if let Some(body) = physics_data.collision_objects.get_mut(&body) {
                 if let Some(body) = body.get_mut_body() {
-                    body.on_update_active(self);
+                    body.on_update_active(self, &mut physics_data.physics_engine);
                 }
             }
         }
@@ -345,12 +344,12 @@ impl RapierSpace {
     }
 
     pub fn export_json(&self, physics_engine: &mut PhysicsEngine) -> String {
-        world_export_json(self.handle, physics_engine)
+        physics_engine.world_export_json(self.handle)
     }
 
     pub fn export_binary(&self, physics_engine: &mut PhysicsEngine) -> PackedByteArray {
         let mut buf = PackedByteArray::new();
-        let binary_data = world_export_binary(self.handle, physics_engine);
+        let binary_data = physics_engine.world_export_binary(self.handle);
         buf.resize(binary_data.len());
         for i in 0..binary_data.len() {
             buf[i] = binary_data[i];
@@ -359,8 +358,8 @@ impl RapierSpace {
     }
 
     pub fn destroy_space(&mut self, physics_engine: &mut PhysicsEngine) {
-        if self.handle.is_valid() {
-            world_destroy(self.handle, physics_engine);
+        if self.is_valid() {
+            physics_engine.world_destroy(self.handle);
         }
     }
 }

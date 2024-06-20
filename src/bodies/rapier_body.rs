@@ -9,6 +9,7 @@ use rapier::geometry::ColliderHandle;
 use rapier::math::Real;
 use serde::*;
 use servers::rapier_physics_server_extra::PhysicsData;
+use servers::rapier_physics_server_extra::PhysicsSpaces;
 
 use super::rapier_area::RapierArea;
 use super::PhysicsDirectBodyState;
@@ -383,30 +384,28 @@ impl RapierBody {
         self.direct_state.as_ref()
     }
 
-    pub fn add_area(&mut self, p_area: &RapierArea, physics_data: &mut PhysicsData) {
+    pub fn add_area(&mut self, p_area: &RapierArea, space: &mut RapierSpace) {
         self.base.area_detection_counter += 1;
         if p_area.has_any_space_override() {
             // TODO sort
             let area_rid = p_area.get_base().get_rid();
             self.areas.push(area_rid);
-            self.on_area_updated(area_rid, physics_data);
+            self.on_area_updated(area_rid, space);
         }
     }
 
-    pub fn remove_area(&mut self, area: Rid, physics_data: &mut PhysicsData) {
+    pub fn remove_area(&mut self, area: Rid, space: &mut RapierSpace) {
         if self.base.area_detection_counter == 0 {
             godot_error!("Area detection counter is zero.");
             return;
         }
         self.base.area_detection_counter -= 1;
         self.areas.retain(|&x| x != area);
-        self.on_area_updated(area, physics_data);
+        self.on_area_updated(area, space);
     }
 
-    pub fn on_area_updated(&mut self, _area: Rid, physics_data: &mut PhysicsData) {
-        if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
-            space.body_add_to_area_update_list(self.base.get_rid());
-        }
+    pub fn on_area_updated(&mut self, _area: Rid, space: &mut RapierSpace) {
+        space.body_add_to_area_update_list(self.base.get_rid());
     }
 
     pub fn update_area_override(&mut self, physics_data: &mut PhysicsData) {
@@ -980,37 +979,35 @@ impl RapierBody {
         );
     }
 
-    pub fn on_marked_active(&mut self, physics_data: &mut PhysicsData) {
+    pub fn on_marked_active(&mut self, space: &mut RapierSpace) {
         if self.base.mode == BodyMode::STATIC {
             return;
         }
         self.marked_active = true;
         if !self.active {
             self.active = true;
-            if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
-                space.body_add_to_active_list(self.base.get_rid());
-            }
+            space.body_add_to_active_list(self.base.get_rid());
         }
     }
 
-    pub fn on_update_active(&mut self, space: &mut RapierSpace, physics_data: &mut PhysicsData) {
+    pub fn on_update_active(&mut self, space: &mut RapierSpace, physics_engine: &mut PhysicsEngine) {
         if !self.marked_active {
             self.set_active(false, space);
             return;
         }
         self.marked_active = false;
-        self.base.update_transform(&mut physics_data.physics_engine);
+        self.base.update_transform(&mut physics_engine);
         space.body_add_to_state_query_list(self.base.get_rid());
         if self.base.mode.ord() >= BodyMode::RIGID.ord() {
             if self.to_add_angular_velocity != ANGLE_ZERO {
                 self.set_angular_velocity(
-                    self.get_angular_velocity(&mut physics_data.physics_engine) + self.to_add_angular_velocity,
-                    &mut physics_data.physics_engine
+                    self.get_angular_velocity(&mut physics_engine) + self.to_add_angular_velocity,
+                    &mut physics_engine
                 );
                 self.to_add_angular_velocity = ANGLE_ZERO;
             }
             if self.to_add_linear_velocity != Vector::default() {
-                self.set_linear_velocity(self.get_linear_velocity(&mut physics_data.physics_engine) + self.to_add_linear_velocity, &mut physics_data.physics_engine);
+                self.set_linear_velocity(self.get_linear_velocity(&mut physics_engine) + self.to_add_linear_velocity, &mut physics_data.physics_engine);
                 self.to_add_linear_velocity = Vector::default();
             }
         }

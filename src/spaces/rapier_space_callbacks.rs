@@ -25,12 +25,12 @@ impl Default for CollidersInfo {
     }
 }
 impl RapierSpace {
-    pub fn active_body_callback(active_body_info: &ActiveBodyInfo, physics_data: &mut PhysicsData) {
+    pub fn active_body_callback(&mut self, active_body_info: &ActiveBodyInfo, physics_data: &mut PhysicsData) {
         let (rid, _) =
             RapierCollisionObject::get_collider_user_data(&active_body_info.body_user_data);
         if let Some(body) = physics_data.collision_objects.get_mut(&rid) {
             if let Some(body) = body.get_mut_body() {
-                body.on_marked_active();
+                body.on_marked_active(self);
             }
         }
     }

@@ -58,7 +58,7 @@ impl IRapierShape for RapierCapsuleShape {
         true
     }
 
-    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> Handle {
+    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
         shape_create_capsule(
             (self.height / 2.0) - self.radius,
             self.radius,
@@ -108,7 +108,7 @@ impl IRapierShape for RapierCapsuleShape {
         Vector2::new(self.radius, self.height).to_variant()
     }
 
-    fn get_handle(&self) -> Handle {
+    fn get_handle(&self) -> ShapeHandle {
         self.base.get_handle()
     }
 }

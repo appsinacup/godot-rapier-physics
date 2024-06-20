@@ -74,14 +74,14 @@ pub struct QueryExcludedInfo {
     pub query_exclude_body: i64,
 }
 type QueryHandleExcludedCallback = fn(
-    world_handle: Handle,
+    world_handle: WorldHandle,
     collider_handle: ColliderHandle,
     user_data: &UserData,
     handle_excluded_info: &QueryExcludedInfo,
     physics_data: &PhysicsData,
 ) -> bool;
 pub fn intersect_ray(
-    world_handle: Handle,
+    world_handle: WorldHandle,
     from: Vector<Real>,
     dir: Vector<Real>,
     length: Real,
@@ -91,7 +91,7 @@ pub fn intersect_ray(
     hit_info: &mut RayHitInfo,
     handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
-    physics_data: &mut PhysicsData,
+    physics_data: &PhysicsData,
 ) -> bool {
     let mut result = false;
     let Some(physics_world) = physics_data.physics_engine.get_world(world_handle) else {
@@ -149,7 +149,7 @@ pub fn intersect_ray(
     result
 }
 pub fn intersect_point(
-    world_handle: Handle,
+    world_handle: WorldHandle,
     position: Vector<Real>,
     collide_with_body: bool,
     collide_with_area: bool,
@@ -157,7 +157,7 @@ pub fn intersect_point(
     hit_info_length: usize,
     handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
-    physics_data: &mut PhysicsData,
+    physics_data: &PhysicsData,
 ) -> usize {
     let mut cpt_hit = 0;
     if hit_info_length <= 0 {
@@ -216,7 +216,7 @@ pub fn shape_collide(
     shape_info1: ShapeInfo,
     shape_vel2: Vector<Real>,
     shape_info2: ShapeInfo,
-    physics_data: &mut PhysicsData,
+    physics_engine: &PhysicsEngine,
 ) -> ShapeCastResult {
     let mut result = ShapeCastResult::new();
     if let Some(raw_shared_shape1) = physics_engine.get_shape(shape_info1.handle) {
@@ -255,19 +255,19 @@ pub fn shape_collide(
     result
 }
 pub fn shape_casting(
-    world_handle: Handle,
+    world_handle: WorldHandle,
     shape_vel: Vector<Real>,
     shape_info: ShapeInfo,
     collide_with_body: bool,
     collide_with_area: bool,
     handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
-    physics_data: &PhysicsData,
+    physics_data: &PhysicsData
 ) -> ShapeCastResult {
     let mut result = ShapeCastResult::new();
-    if let Some(raw_shared_shape) = physics_engine.get_shape(shape_info.handle) {
+    if let Some(raw_shared_shape) = physics_data.physics_engine.get_shape(shape_info.handle) {
         let shared_shape = scale_shape(raw_shared_shape, shape_info);
-        if let Some(physics_world) = physics_engine.get_world(world_handle) {
+        if let Some(physics_world) = physics_data.physics_engine.get_world(world_handle) {
             let shape_transform = shape_info.transform;
             let mut filter = QueryFilter::new();
             if !collide_with_body {
@@ -319,7 +319,7 @@ pub fn shape_casting(
     result
 }
 pub fn intersect_aabb(
-    world_handle: Handle,
+    world_handle: WorldHandle,
     aabb_min: Vector<Real>,
     aabb_max: Vector<Real>,
     collide_with_body: bool,
@@ -328,10 +328,10 @@ pub fn intersect_aabb(
     max_results: usize,
     handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
-    physics_engine: &mut PhysicsEngine,
+    physics_data: &PhysicsData
 ) -> usize {
     let mut cpt_hit = 0;
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
+    if let Some(physics_world) = physics_data.physics_engine.get_world(world_handle) {
         let aabb_min_point = Point { coords: aabb_min };
         let aabb_max_point = Point { coords: aabb_max };
         let aabb = Aabb {
@@ -356,7 +356,7 @@ pub fn intersect_aabb(
                             *handle,
                             &physics_world.get_collider_user_data(*handle),
                             handle_excluded_info,
-                            physics_engine,
+                            physics_data,
                         );
                     }
                 }

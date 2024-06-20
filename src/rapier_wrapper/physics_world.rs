@@ -25,7 +25,6 @@ pub struct ContactPointInfo {
     pub pixel_impulse: Real,
     pub pixel_tangent_impulse: TangentImpulse<Real>,
 }
-type ActiveBodyCallback = fn(active_body_info: &ActiveBodyInfo, physic_data: &mut PhysicsData);
 type CollisionEventCallback = fn(event_info: &CollisionEventInfo, space: &mut RapierSpace);
 type ContactForceEventCallback =
     fn(event_info: &ContactForceEventInfo, space: &mut RapierSpace) -> bool;
@@ -61,7 +60,7 @@ pub struct PhysicsObjects {
     pub collider_set: ColliderSet,
     pub rigid_body_set: RigidBodySet,
 
-    pub handle: Handle,
+    pub handle: WorldHandle,
 }
 pub struct PhysicsWorld {
     pub physics_objects: PhysicsObjects,
@@ -87,7 +86,7 @@ impl PhysicsWorld {
                 rigid_body_set: RigidBodySet::new(),
                 collider_set: ColliderSet::new(),
 
-                handle: invalid_handle(),
+                handle: WorldHandle::default(),
             },
             physics_pipeline,
             fluids_pipeline: FluidsPipeline::new(
@@ -100,7 +99,6 @@ impl PhysicsWorld {
     pub fn step(
         &mut self,
         settings: &SimulationSettings,
-        active_body_callback: ActiveBodyCallback,
         collision_filter_body_callback: CollisionFilterCallback,
         collision_filter_sensor_callback: CollisionFilterCallback,
         collision_modify_contacts_callback: CollisionModifyContactsCallback,
@@ -108,7 +106,7 @@ impl PhysicsWorld {
         contact_force_event_callback: ContactForceEventCallback,
         contact_point_callback: ContactPointCallback,
         space: &mut RapierSpace,
-        physics_engine: &mut PhysicsEngine,
+        physics_data: &mut PhysicsData,
     ) {
         let mut integration_parameters = IntegrationParameters::default();
         integration_parameters.length_unit = settings.length_unit;
@@ -160,7 +158,7 @@ impl PhysicsWorld {
             let active_body_info = ActiveBodyInfo {
                 body_user_data: self.get_rigid_body_user_data(*handle),
             };
-            (active_body_callback)(&active_body_info, physics_data);
+            space.active_body_callback(&active_body_info, physics_data);
         }
         for handle in self
             .physics_objects
@@ -171,7 +169,7 @@ impl PhysicsWorld {
             let active_body_info = ActiveBodyInfo {
                 body_user_data: self.get_rigid_body_user_data(*handle),
             };
-            (active_body_callback)(&active_body_info, physics_data);
+            space.active_body_callback(&active_body_info, physics_data);
         }
         while let Ok(collision_event) = collision_recv.try_recv() {
             let handle1 = collision_event.collider1();
@@ -348,54 +346,87 @@ pub struct PhysicsEngine {
     pub shapes: Arena<SharedShape>,
 }
 impl PhysicsEngine {
-    pub fn insert_world(&mut self, world: PhysicsWorld) -> Handle {
-        let world_handle = self.physics_worlds.insert(world);
-        world_handle_to_handle(world_handle)
-    }
-
-    pub fn remove_world(&mut self, handle: Handle) {
-        let world_handle = handle_to_world_handle(handle);
-        self.physics_worlds.remove(world_handle);
-    }
-
-    pub fn get_world(&mut self, handle: Handle) -> Option<&mut PhysicsWorld> {
-        let world_handle = handle_to_world_handle(handle);
+    pub fn get_mut_world(&mut self, world_handle: WorldHandle) -> Option<&mut PhysicsWorld> {
         self.physics_worlds.get_mut(world_handle)
     }
 
-    pub fn insert_shape(&mut self, shape: SharedShape) -> Handle {
-        let shape_handle = self.shapes.insert(shape);
-        shape_handle_to_handle(shape_handle)
+    pub fn get_world(&self, world_handle: WorldHandle) -> Option<&PhysicsWorld> {
+        self.physics_worlds.get(world_handle)
     }
 
-    pub fn remove_shape(&mut self, handle: Handle) {
-        let shape_handle = handle_to_shape_handle(handle);
+    pub fn insert_shape(&mut self, shape: SharedShape) -> ShapeHandle {
+        let shape_handle = self.shapes.insert(shape);
+        shape_handle
+    }
+
+    pub fn remove_shape(&mut self, shape_handle: ShapeHandle) {
         self.shapes.remove(shape_handle);
     }
 
-    pub fn get_shape(&mut self, handle: Handle) -> Option<&SharedShape> {
-        let shape_handle = handle_to_shape_handle(handle);
+    pub fn get_shape(&self, shape_handle: ShapeHandle) -> Option<&SharedShape> {
         self.shapes.get(shape_handle)
     }
-}
-pub fn world_create(settings: &WorldSettings, physics_engine: &mut PhysicsEngine) -> Handle {
-    let physics_world = PhysicsWorld::new(settings);
-    let world_handle = physics_engine.insert_world(physics_world);
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        physics_world.physics_objects.handle = world_handle;
+
+    pub fn world_create(&mut self, settings: &WorldSettings) -> WorldHandle {
+        let physics_world = PhysicsWorld::new(settings);
+        let world_handle = self.physics_worlds.insert(physics_world);
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
+            physics_world.physics_objects.handle = world_handle;
+        }
+        world_handle
     }
-    world_handle
-}
-pub fn world_destroy(world_handle: Handle, physics_engine: &mut PhysicsEngine) {
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        physics_world.physics_objects.handle = invalid_handle();
-        physics_engine.remove_world(world_handle);
+
+    pub fn world_destroy(&mut self, world_handle: WorldHandle) {
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
+            physics_world.physics_objects.handle = WorldHandle::default();
+            self.physics_worlds.remove(world_handle);
+        }
+    }
+
+    pub fn world_get_active_objects_count(&mut self, world_handle: WorldHandle) -> usize {
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
+            return physics_world
+                .physics_objects
+                .island_manager
+                .active_dynamic_bodies()
+                .len();
+        }
+        0
+    }
+
+    pub fn world_export_json(&mut self, world_handle: WorldHandle) -> String {
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
+            let serialized = serde_json::to_string(&physics_world.physics_objects.collider_set);
+            match serialized {
+                Ok(serialized) => {
+                    return serialized;
+                }
+                Err(err) => {
+                    godot_error!("{}", err);
+                }
+            }
+        }
+        String::from("{}")
+    }
+
+    pub fn world_export_binary(&mut self, world_handle: WorldHandle) -> Vec<u8> {
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
+            let serialized = bincode::serialize(&physics_world.physics_objects);
+            match serialized {
+                Ok(serialized) => {
+                    return serialized;
+                }
+                Err(err) => {
+                    godot_error!("{}", err);
+                }
+            }
+        }
+        Vec::new()
     }
 }
 pub fn world_step(
-    world_handle: Handle,
+    world_handle: WorldHandle,
     settings: &SimulationSettings,
-    active_body_callback: ActiveBodyCallback,
     collision_filter_body_callback: CollisionFilterCallback,
     collision_filter_sensor_callback: CollisionFilterCallback,
     collision_modify_contacts_callback: CollisionModifyContactsCallback,
@@ -403,12 +434,11 @@ pub fn world_step(
     contact_force_event_callback: ContactForceEventCallback,
     contact_point_callback: ContactPointCallback,
     space: &mut RapierSpace,
-    physics_engine: &mut PhysicsEngine,
+    physics_data: &mut PhysicsData,
 ) {
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
+    if let Some(physics_world) = physics_data.physics_engine.get_mut_world(world_handle) {
         physics_world.step(
             settings,
-            active_body_callback,
             collision_filter_body_callback,
             collision_filter_sensor_callback,
             collision_modify_contacts_callback,
@@ -419,45 +449,4 @@ pub fn world_step(
             physics_data,
         );
     }
-}
-pub fn world_get_active_objects_count(
-    world_handle: Handle,
-    physics_engine: &mut PhysicsEngine,
-) -> usize {
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        return physics_world
-            .physics_objects
-            .island_manager
-            .active_dynamic_bodies()
-            .len();
-    }
-    0
-}
-pub fn world_export_json(world_handle: Handle, physics_engine: &mut PhysicsEngine) -> String {
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        let serialized = serde_json::to_string(&physics_world.physics_objects.collider_set);
-        match serialized {
-            Ok(serialized) => {
-                return serialized;
-            }
-            Err(err) => {
-                godot_error!("{}", err);
-            }
-        }
-    }
-    String::from("{}")
-}
-pub fn world_export_binary(world_handle: Handle, physics_engine: &mut PhysicsEngine) -> Vec<u8> {
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        let serialized = bincode::serialize(&physics_world.physics_objects);
-        match serialized {
-            Ok(serialized) => {
-                return serialized;
-            }
-            Err(err) => {
-                godot_error!("{}", err);
-            }
-        }
-    }
-    Vec::new()
 }

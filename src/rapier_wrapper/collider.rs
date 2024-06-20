@@ -240,15 +240,16 @@ fn shape_is_halfspace(shape: &SharedShape) -> bool {
     }
     shape.shape_type() == ShapeType::HalfSpace
 }
+impl PhysicsEngine {
 pub fn collider_create_solid(
-    world_handle: Handle,
-    shape_handle: Handle,
+    &mut self,
+    world_handle: WorldHandle,
+    shape_handle: ShapeHandle,
     mat: &Material,
     body_handle: RigidBodyHandle,
     user_data: &UserData,
-    physics_engine: &mut PhysicsEngine,
 ) -> ColliderHandle {
-    if let Some(shape) = physics_engine.get_shape(shape_handle) {
+    if let Some(shape) = self.get_shape(shape_handle) {
         let is_shape_halfspace = shape_is_halfspace(shape);
         let mut collider = ColliderBuilder::new(shape.clone())
             .contact_force_event_threshold(-Real::MAX)
@@ -269,7 +270,7 @@ pub fn collider_create_solid(
         collider.set_active_hooks(
             ActiveHooks::FILTER_CONTACT_PAIRS | ActiveHooks::MODIFY_SOLVER_CONTACTS,
         );
-        if let Some(physics_world) = physics_engine.get_world(world_handle) {
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
             let collider_handle = physics_world.insert_collider(collider, body_handle);
             // register fluid coupling. Dynamic coupling doens't work for halfspace
             if !is_shape_halfspace {
@@ -289,13 +290,13 @@ pub fn collider_create_solid(
     ColliderHandle::invalid()
 }
 pub fn collider_create_sensor(
-    world_handle: Handle,
-    shape_handle: Handle,
+    &mut self,
+    world_handle: WorldHandle,
+    shape_handle: ShapeHandle,
     body_handle: RigidBodyHandle,
     user_data: &UserData,
-    physics_engine: &mut PhysicsEngine,
 ) -> ColliderHandle {
-    if let Some(shape) = physics_engine.get_shape(shape_handle) {
+    if let Some(shape) = self.get_shape(shape_handle) {
         let mut collider = ColliderBuilder::new(shape.clone()).build();
         collider.set_sensor(true);
         collider.set_active_events(ActiveEvents::COLLISION_EVENTS);
@@ -307,18 +308,18 @@ pub fn collider_create_sensor(
         collider.set_active_collision_types(collision_types);
         collider.user_data = user_data.get_data();
         collider.set_active_hooks(ActiveHooks::FILTER_INTERSECTION_PAIR);
-        if let Some(physics_world) = physics_engine.get_world(world_handle) {
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
             return physics_world.insert_collider(collider, body_handle);
         }
     }
     ColliderHandle::invalid()
 }
 pub fn collider_destroy(
-    world_handle: Handle,
+    &mut self,
+    world_handle: WorldHandle,
     collider_handle: ColliderHandle,
-    physics_engine: &mut PhysicsEngine,
 ) {
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
+    if let Some(physics_world) = self.get_mut_world(world_handle) {
         physics_world
             .fluids_pipeline
             .coupling
@@ -327,14 +328,14 @@ pub fn collider_destroy(
     }
 }
 pub fn collider_set_transform(
-    world_handle: Handle,
+    &mut self,
+    world_handle: WorldHandle,
     collider_handle: ColliderHandle,
     shape_info: ShapeInfo,
-    physics_engine: &mut PhysicsEngine,
 ) {
-    if let Some(shape) = physics_engine.get_shape(shape_info.handle) {
+    if let Some(shape) = self.get_shape(shape_info.handle) {
         let new_shape = scale_shape(shape, shape_info);
-        if let Some(physics_world) = physics_engine.get_world(world_handle) {
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
             if let Some(collider) = physics_world
                 .physics_objects
                 .collider_set
@@ -347,12 +348,12 @@ pub fn collider_set_transform(
     }
 }
 pub fn collider_set_contact_force_events_enabled(
-    world_handle: Handle,
+    &mut self,
+    world_handle: WorldHandle,
     collider_handle: ColliderHandle,
     enable: bool,
-    physics_engine: &mut PhysicsEngine,
 ) {
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
+    if let Some(physics_world) = self.get_mut_world(world_handle) {
         if let Some(collider) = physics_world
             .physics_objects
             .collider_set
@@ -367,4 +368,5 @@ pub fn collider_set_contact_force_events_enabled(
             collider.set_active_events(active_events);
         }
     }
+}
 }

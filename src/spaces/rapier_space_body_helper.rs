@@ -29,7 +29,7 @@ const TEST_MOTION_MIN_CONTACT_DEPTH_FACTOR: Real = 0.05;
 const BODY_MOTION_RECOVER_ATTEMPTS: i32 = 4;
 const BODY_MOTION_RECOVER_RATIO: Real = 0.4;
 pub fn is_handle_excluded_callback(
-    world_handle: Handle,
+    world_handle: WorldHandle,
     collider_handle: ColliderHandle,
     user_data: &UserData,
     handle_excluded_info: &QueryExcludedInfo,

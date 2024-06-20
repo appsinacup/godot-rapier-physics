@@ -46,7 +46,7 @@ impl IRapierShape for RapierSegmentShape2D {
         true
     }
 
-    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> Handle {
+    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
         let direction = self.b - self.a;
         let direction_normalized = vector_normalized(direction);
         let perpendicular = Vector2::new(-direction_normalized.y, direction_normalized.x);
@@ -61,7 +61,7 @@ impl IRapierShape for RapierSegmentShape2D {
             vector_to_rapier(p3),
             vector_to_rapier(p4),
         ];
-        shape_create_convex_polyline(rapier_points.to_vec(), physics_engine)
+        shape_create_convex_polyline(&rapier_points.to_vec(), physics_engine)
     }
 
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
@@ -90,7 +90,7 @@ impl IRapierShape for RapierSegmentShape2D {
         r.to_variant()
     }
 
-    fn get_handle(&self) -> Handle {
+    fn get_handle(&self) -> ShapeHandle {
         self.base.get_handle()
     }
 }

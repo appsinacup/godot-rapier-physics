@@ -74,16 +74,16 @@ impl IRapierShape for RapierConvexPolygonShape {
         true
     }
 
-    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> Handle {
+    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
         if self.points.len() >= 3 {
             let mut rapier_points = Vec::with_capacity(self.points.len());
             for point in self.points.as_slice() {
                 rapier_points.push(vector_to_rapier(*point));
             }
-            shape_create_convex_polyline(rapier_points, physics_engine)
+            shape_create_convex_polyline(&rapier_points, physics_engine)
         } else {
             godot_error!("ConvexPolygon must have at least three point");
-            invalid_handle()
+            ShapeHandle::default()
         }
     }
 
@@ -132,7 +132,7 @@ impl IRapierShape for RapierConvexPolygonShape {
         self.points.to_variant()
     }
 
-    fn get_handle(&self) -> Handle {
+    fn get_handle(&self) -> ShapeHandle {
         self.base.get_handle()
     }
 }

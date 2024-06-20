@@ -9,8 +9,7 @@ use godot::obj::EngineEnum;
 use godot::prelude::*;
 use hashbrown::HashMap;
 use rapier::geometry::ColliderHandle;
-use serde::*;
-use servers::rapier_physics_server_extra::PhysicsData;
+use servers::rapier_physics_server_extra::{PhysicsData, PhysicsSpaces};
 
 use super::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;
@@ -73,7 +72,7 @@ impl RapierArea {
             for (key, _) in self.detected_bodies.iter() {
                 if let Some(body) = physics_data.collision_objects.get_mut(key) {
                     if let Some(body) = body.get_mut_body() {
-                        body.add_area(self);
+                        body.add_area(self, &mut physics_data.spaces);
                     }
                 }
             }
@@ -88,7 +87,7 @@ impl RapierArea {
             for (key, _) in self.detected_bodies.iter() {
                 if let Some(body) = physics_data.collision_objects.get_mut(key) {
                     if let Some(body) = body.get_mut_body() {
-                        body.remove_area(rid);
+                        body.remove_area(rid, space);
                     }
                 }
             }
@@ -97,14 +96,14 @@ impl RapierArea {
         }
     }
 
-    pub fn _reset_space_override(&self) {
-        if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+    pub fn _reset_space_override(&self, physics_data: &mut PhysicsData) {
+        if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
             let rid = self.base.get_rid();
             for (key, _) in self.detected_bodies.iter() {
-                if let Some(body) = bodies_singleton().collision_objects.get_mut(key) {
+                if let Some(body) = physics_data.collision_objects.get_mut(key) {
                     if let Some(body) = body.get_mut_body() {
-                        body.remove_area(rid);
-                        body.add_area(self);
+                        body.remove_area(rid, space);
+                        body.add_area(self, space);
                     }
                 }
             }
@@ -122,6 +121,7 @@ impl RapierArea {
         area_collider_handle: ColliderHandle,
         area_shape: usize,
         space: &mut RapierSpace,
+        physics_data: &mut PhysicsData,
     ) {
         if let Some(body) = body {
             if let Some(body) = body.get_mut_body() {
@@ -130,13 +130,13 @@ impl RapierArea {
                     *detected_body += 1;
                 } else {
                     self.detected_bodies.insert(body_rid, 1);
-                    body.add_area(self);
+                    body.add_area(self, &mut physics_data.spaces);
                 }
                 if self.monitor_callback.is_null() {
                     return;
                 }
                 self.base.area_detection_counter += 1;
-                let handle_pair_hash = handle_pair_hash(collider_handle, area_collider_handle);
+                let handle_pair_hash = (collider_handle, area_collider_handle);
                 if self.monitored_objects.contains_key(&handle_pair_hash) {
                     godot_error!("Body is already being monitored");
                     return;
@@ -169,6 +169,7 @@ impl RapierArea {
         area_collider_handle: ColliderHandle,
         area_shape: usize,
         space: &mut RapierSpace,
+        physics_spaces: &mut PhysicsSpaces,
     ) {
         if body.is_some() {
             // Remove from currently detected bodies
@@ -178,7 +179,7 @@ impl RapierArea {
                     self.detected_bodies.remove(&body_rid);
                     if let Some(body) = body {
                         if let Some(body) = body.get_mut_body() {
-                            body.remove_area(self.base.get_rid());
+                            body.remove_area(self.base.get_rid(), physics_spaces);
                         }
                     }
                 }
@@ -190,7 +191,7 @@ impl RapierArea {
         if body.is_some() {
             self.base.area_detection_counter -= 1;
         }
-        let handle_pair_hash = handle_pair_hash(collider_handle, area_collider_handle);
+        let handle_pair_hash = (collider_handle, area_collider_handle);
         if let hashbrown::hash_map::Entry::Vacant(e) =
             self.monitored_objects.entry(handle_pair_hash)
         {
@@ -232,7 +233,7 @@ impl RapierArea {
                     return;
                 }
                 other_area.base.area_detection_counter += 1;
-                let handle_pair_hash = handle_pair_hash(collider_handle, area_collider_handle);
+                let handle_pair_hash = (collider_handle, area_collider_handle);
                 if self.monitored_objects.contains_key(&handle_pair_hash) {
                     godot_error!("Area is already being monitored");
                     return;
@@ -281,7 +282,7 @@ impl RapierArea {
                 other_area.base.area_detection_counter -= 1;
             }
         }
-        let handle_pair_hash = handle_pair_hash(collider_handle, area_collider_handle);
+        let handle_pair_hash = (collider_handle, area_collider_handle);
         if let hashbrown::hash_map::Entry::Occupied(mut e) =
             self.monitored_objects.entry(handle_pair_hash)
         {
@@ -570,19 +571,19 @@ impl IRapierCollisionObject for RapierArea {
         &mut self.base
     }
 
-    fn set_space(&mut self, p_space: Rid) {
+    fn set_space(&mut self, p_space: Rid, physics_data: &mut PhysicsData) {
         if p_space == self.base.get_space() {
             return;
         }
         // Need to keep in list to handle remove events for bodies
-        if let Some(space) = spaces_singleton().spaces.get_mut(&self.base.get_space()) {
+        if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
             if !self.detected_bodies.is_empty() {
                 space.area_add_to_monitor_query_list(self.base.get_rid());
             }
             for (detected_body, _) in self.detected_bodies.clone() {
-                if let Some(body) = bodies_singleton().collision_objects.get_mut(&detected_body) {
+                if let Some(body) = physics_data.collision_objects.get_mut(&detected_body) {
                     if let Some(body) = body.get_mut_body() {
-                        body.remove_area(self.base.get_rid());
+                        body.remove_area(self.base.get_rid(), space);
                     }
                 }
             }
@@ -590,8 +591,8 @@ impl IRapierCollisionObject for RapierArea {
             space.area_remove_from_area_update_list(self.base.get_rid());
         }
         self.monitored_objects.clear();
-        self.base._set_space(p_space);
-        self.recreate_shapes();
+        self.base._set_space(p_space, physics_data);
+        self.recreate_shapes(physics_data);
     }
 
     fn get_body(&self) -> Option<&RapierBody> {

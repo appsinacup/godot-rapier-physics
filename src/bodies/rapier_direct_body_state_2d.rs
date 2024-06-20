@@ -144,8 +144,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn set_angular_velocity(&mut self, velocity: f32) {
-        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
-        let physics_data = &physics_singleton.bind_mut().physics_data;
+        let mut physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &mut physics_singleton.bind_mut().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
                 body.set_angular_velocity(velocity, &mut physics_data.physics_engine);
@@ -154,8 +154,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_angular_velocity(&self) -> f32 {
-        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
-        let physics_data = &physics_singleton.bind().physics_data;
+        let mut physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &mut physics_singleton.bind_mut().physics_data;
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.get_angular_velocity(&mut physics_data.physics_engine);
@@ -165,8 +165,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn set_transform(&mut self, transform: Transform2D) {
-        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
-        let physics_data = &physics_singleton.bind().physics_data;
+        let mut physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &mut physics_singleton.bind_mut().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
                 body.get_mut_base().set_transform(
@@ -190,8 +190,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_velocity_at_local_position(&self, local_position: Vector2) -> Vector2 {
-        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
-        let physics_data = &physics_singleton.bind().physics_data;
+        let mut physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &mut physics_singleton.bind_mut().physics_data;
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.get_velocity_at_local_point(local_position);
@@ -201,8 +201,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn apply_central_impulse(&mut self, impulse: Vector2) {
-        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
-        let physics_data = &physics_singleton.bind().physics_data;
+        let mut physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &mut physics_singleton.bind_mut().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
                 body.apply_central_impulse(impulse, &mut physics_data)

@@ -47,7 +47,7 @@ impl IRapierShape for RapierCylinderShape3D {
         true
     }
 
-    fn create_rapier_shape(&mut self) -> Handle {
+    fn create_rapier_shape(&mut self) -> ShapeHandle {
         shape_create_cylinder((self.height / 2.0) - self.radius, self.radius)
     }
 
@@ -92,7 +92,7 @@ impl IRapierShape for RapierCylinderShape3D {
         Vector2::new(self.radius, self.height).to_variant()
     }
 
-    fn get_handle(&self) -> Handle {
+    fn get_handle(&self) -> ShapeHandle {
         self.base.get_handle()
     }
 }

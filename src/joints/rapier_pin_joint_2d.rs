@@ -4,10 +4,10 @@ use rapier::dynamics::ImpulseJointHandle;
 use rapier::math::Vector;
 
 use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
+use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::joints::rapier_joint::RapierJointBase;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_server_extra::PhysicsData;
 pub struct RapierPinJoint2D {
     angular_limit_lower: f32,
     angular_limit_upper: f32,
@@ -17,7 +17,7 @@ pub struct RapierPinJoint2D {
     base: RapierJointBase,
 }
 impl RapierPinJoint2D {
-    pub fn new(pos: Vector2, body_a: Rid, body_b: Rid, physics_data: &mut PhysicsData) -> Self {
+    pub fn new(pos: Vector2, body_a: &Box<dyn IRapierCollisionObject>, body_b: &Box<dyn IRapierCollisionObject>, physics_engine: &mut PhysicsEngine) -> Self {
         let invalid_joint = Self {
             angular_limit_lower: 0.0,
             angular_limit_upper: 0.0,
@@ -26,47 +26,44 @@ impl RapierPinJoint2D {
             angular_limit_enabled: false,
             base: RapierJointBase::new(invalid_handle(), ImpulseJointHandle::invalid()),
         };
-        if body_a == body_b {
+        let body_a_rid = body_a.get_base().get_rid();
+        let body_b_rid = body_a.get_base().get_rid();
+        if body_a_rid == body_b_rid {
             return invalid_joint;
         }
-        if let Some(body_a) = physics_data.collision_objects.get(&body_a) {
-            if let Some(body_b) = physics_data.collision_objects.get(&body_b) {
-                if !body_a.get_base().is_valid()
-                    || !body_b.get_base().is_valid()
-                    || body_a.get_base().get_space_handle() != body_b.get_base().get_space_handle()
-                {
-                    return invalid_joint;
-                }
-                let anchor_a = body_a.get_base().get_inv_transform() * pos;
-                let anchor_b = body_b.get_base().get_inv_transform() * pos;
-                let rapier_anchor_a = Vector::new(anchor_a.x, anchor_a.y);
-                let rapier_anchor_b = Vector::new(anchor_b.x, anchor_b.y);
-                let space_handle = body_a.get_base().get_space_handle();
-                let handle = joint_create_revolute(
-                    space_handle,
-                    body_a.get_base().get_body_handle(),
-                    body_b.get_base().get_body_handle(),
-                    rapier_anchor_a,
-                    rapier_anchor_b,
-                    0.0,
-                    0.0,
-                    false,
-                    0.0,
-                    false,
-                    true,
-                    &mut physics_data.physics_engine,
-                );
-                return Self {
-                    angular_limit_lower: 0.0,
-                    angular_limit_upper: 0.0,
-                    motor_target_velocity: 0.0,
-                    motor_enabled: false,
-                    angular_limit_enabled: false,
-                    base: RapierJointBase::new(space_handle, handle),
-                };
-            }
+        if !body_a.get_base().is_valid()
+            || !body_b.get_base().is_valid()
+            || body_a.get_base().get_space_handle() != body_b.get_base().get_space_handle()
+        {
+            return invalid_joint;
         }
-        invalid_joint
+        let anchor_a = body_a.get_base().get_inv_transform() * pos;
+        let anchor_b = body_b.get_base().get_inv_transform() * pos;
+        let rapier_anchor_a = Vector::new(anchor_a.x, anchor_a.y);
+        let rapier_anchor_b = Vector::new(anchor_b.x, anchor_b.y);
+        let space_handle = body_a.get_base().get_space_handle();
+        let handle = joint_create_revolute(
+            space_handle,
+            body_a.get_base().get_body_handle(),
+            body_b.get_base().get_body_handle(),
+            rapier_anchor_a,
+            rapier_anchor_b,
+            0.0,
+            0.0,
+            false,
+            0.0,
+            false,
+            true,
+            physics_engine,
+        );
+        return Self {
+            angular_limit_lower: 0.0,
+            angular_limit_upper: 0.0,
+            motor_target_velocity: 0.0,
+            motor_enabled: false,
+            angular_limit_enabled: false,
+            base: RapierJointBase::new(space_handle, handle),
+        };
     }
 
     pub fn set_param(

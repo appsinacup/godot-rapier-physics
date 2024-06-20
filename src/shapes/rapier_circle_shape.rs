@@ -61,7 +61,7 @@ impl IRapierShape for RapierCircleShape {
         true
     }
 
-    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> Handle {
+    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
         shape_create_circle(self.radius, physics_engine)
     }
 
@@ -92,7 +92,7 @@ impl IRapierShape for RapierCircleShape {
         self.radius.to_variant()
     }
 
-    fn get_handle(&self) -> Handle {
+    fn get_handle(&self) -> ShapeHandle {
         self.base.get_handle()
     }
 }

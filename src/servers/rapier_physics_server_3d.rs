@@ -1041,7 +1041,6 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
                 world_step(
                     space_handle,
                     &settings,
-                    RapierSpace::active_body_callback,
                     RapierSpace::collision_filter_body_callback,
                     RapierSpace::collision_filter_sensor_callback,
                     RapierSpace::collision_modify_contacts_callback,

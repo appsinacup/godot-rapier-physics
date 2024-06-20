@@ -277,31 +277,28 @@ impl RapierCollisionObject {
             let position = vector_to_rapier(self.transform.origin);
             let angle = transform_rotation_rapier(&self.transform);
             if self.mode == BodyMode::STATIC {
-                self.body_handle = body_create(
+                self.body_handle = physics_data.physics_engine.body_create(
                     self.space_handle,
                     position,
                     angle,
                     &user_data,
                     BodyType::Static,
-                    &mut physics_data.physics_engine,
                 );
             } else if self.mode == BodyMode::KINEMATIC {
-                self.body_handle = body_create(
+                self.body_handle = physics_data.physics_engine.body_create(
                     self.space_handle,
                     position,
                     angle,
                     &user_data,
                     BodyType::Kinematic,
-                    &mut physics_data.physics_engine,
                 );
             } else {
-                self.body_handle = body_create(
+                self.body_handle = physics_data.physics_engine.body_create(
                     self.space_handle,
                     position,
                     angle,
                     &user_data,
                     BodyType::Dynamic,
-                    &mut physics_data.physics_engine,
                 );
             }
         }

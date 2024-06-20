@@ -7,12 +7,13 @@ use super::shape::point_array_to_vec;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_server_extra::PhysicsData;
 use crate::PackedVectorArray;
+impl PhysicsEngine {
 pub fn fluid_create(
-    world_handle: Handle,
+    &mut self,
+    world_handle: WorldHandle,
     density: Real,
-    physics_engine: &mut PhysicsEngine,
 ) -> HandleDouble {
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
+    if let Some(physics_world) = self.get_mut_world(world_handle) {
         let particle_radius = physics_world.fluids_pipeline.liquid_world.particle_radius();
         let fluid = Fluid::new(Vec::new(), particle_radius, density);
         return fluid_handle_to_handle(physics_world.fluids_pipeline.liquid_world.add_fluid(fluid));
@@ -20,13 +21,13 @@ pub fn fluid_create(
     invalid_handle_double()
 }
 pub fn fluid_change_density(
-    world_handle: Handle,
+    &mut self,
+    world_handle: WorldHandle,
     fluid_handle: HandleDouble,
     density: Real,
-    physics_engine: &mut PhysicsEngine,
 ) {
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        if let Some(fluid) = physics_world
+    if let Some(physics_world) = self.get_mut_world(world_handle)
+    && let Some(fluid) = physics_world
             .fluids_pipeline
             .liquid_world
             .fluids_mut()
@@ -34,23 +35,22 @@ pub fn fluid_change_density(
         {
             fluid.density0 = density;
         }
-    }
 }
 pub fn fluid_change_points_and_velocities(
-    world_handle: Handle,
+    &mut self,
+    world_handle: WorldHandle,
     fluid_handle: HandleDouble,
-    points: Vec<Vector<Real>>,
-    velocity_points: Vec<Vector<Real>>,
-    physics_engine: &mut PhysicsEngine,
+    points: &Vec<Vector<Real>>,
+    velocity_points: &Vec<Vector<Real>>,
 ) {
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        let points = point_array_to_vec(points);
-        if let Some(fluid) = physics_world
+    if let Some(physics_world) = self.get_mut_world(world_handle)
+    && let Some(fluid) = physics_world
             .fluids_pipeline
             .liquid_world
             .fluids_mut()
             .get_mut(handle_to_fluid_handle(fluid_handle))
         {
+            let points = point_array_to_vec(points);
             let points_len = points.len();
             let mut accelerations: Vec<_> = std::iter::repeat(SalvaVector::zeros())
                 .take(points_len)
@@ -62,29 +62,28 @@ pub fn fluid_change_points_and_velocities(
                     accelerations[i] = fluid.accelerations[i];
                 }
             }
-            fluid.velocities = velocity_points;
+            fluid.velocities = velocity_points.clone();
             fluid.accelerations = accelerations;
             fluid.volumes = std::iter::repeat(fluid.default_particle_volume())
                 .take(points_len)
                 .collect();
-        }
     }
 }
 pub fn fluid_change_points(
-    world_handle: Handle,
+    &mut self,
+    world_handle: WorldHandle,
     fluid_handle: HandleDouble,
-    points: Vec<Vector<Real>>,
-    physics_engine: &mut PhysicsEngine,
+    points: &Vec<Vector<Real>>,
 ) {
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        let points = point_array_to_vec(points);
-        let point_count = points.len();
-        if let Some(fluid) = physics_world
+    if let Some(physics_world) = self.get_mut_world(world_handle)
+    && let Some(fluid) = physics_world
             .fluids_pipeline
             .liquid_world
             .fluids_mut()
             .get_mut(handle_to_fluid_handle(fluid_handle))
         {
+            let points = point_array_to_vec(points);
+            let point_count = points.len();
             let mut velocities: Vec<_> = std::iter::repeat(SalvaVector::zeros())
                 .take(point_count)
                 .collect();
@@ -106,18 +105,17 @@ pub fn fluid_change_points(
             fluid.volumes = std::iter::repeat(fluid.default_particle_volume())
                 .take(point_count)
                 .collect();
-        }
     }
 }
 pub fn fluid_delete_points(
-    world_handle: Handle,
+    &mut self,
+    world_handle: WorldHandle,
     fluid_handle: HandleDouble,
     indexes: &usize,
     indexes_count: usize,
-    physics_engine: &mut PhysicsEngine,
 ) {
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        if let Some(fluid) = physics_world
+    if let Some(physics_world) = self.get_mut_world(world_handle)
+    && let Some(fluid) = physics_world
             .fluids_pipeline
             .liquid_world
             .fluids_mut()
@@ -159,18 +157,17 @@ pub fn fluid_delete_points(
                     !delete
                 });
             }
-        }
     }
 }
 pub fn fluid_add_points_and_velocities(
-    world_handle: Handle,
+    &mut self,
+    world_handle: WorldHandle,
     fluid_handle: HandleDouble,
-    points: Vec<Vector<Real>>,
-    velocity_points: Vec<Vector<Real>>,
-    physics_engine: &mut PhysicsEngine,
+    points: &Vec<Vector<Real>>,
+    velocity_points: &Vec<Vector<Real>>,
 ) {
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        if let Some(fluid) = physics_world
+    if let Some(physics_world) = self.get_mut_world(world_handle)
+    && let Some(fluid) = physics_world
             .fluids_pipeline
             .liquid_world
             .fluids_mut()
@@ -192,76 +189,72 @@ pub fn fluid_add_points_and_velocities(
             fluid.volumes = std::iter::repeat(fluid.default_particle_volume())
                 .take(new_point_count)
                 .collect();
-        }
     }
 }
 pub fn fluid_get_points(
-    world_handle: Handle,
+    &self,
+    world_handle: WorldHandle,
     fluid_handle: HandleDouble,
-    physics_engine: &mut PhysicsEngine,
 ) -> PackedVectorArray {
     let mut array = PackedVectorArray::new();
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        if let Some(fluid) = physics_world
+    if let Some(physics_world) = self.get_world(world_handle)
+    && let Some(fluid) = physics_world
             .fluids_pipeline
             .liquid_world
-            .fluids_mut()
-            .get_mut(handle_to_fluid_handle(fluid_handle))
+            .fluids()
+            .get(handle_to_fluid_handle(fluid_handle))
         {
             for i in 0..fluid.positions.len() {
                 array.push(vector_to_godot(fluid.positions[i].coords));
             }
         }
-    }
     array
 }
 pub fn fluid_get_velocities(
-    world_handle: Handle,
+    &self,
+    world_handle: WorldHandle,
     fluid_handle: HandleDouble,
-    physics_engine: &mut PhysicsEngine,
 ) -> PackedVectorArray {
     let mut array = PackedVectorArray::new();
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        if let Some(fluid) = physics_world
+    if let Some(physics_world) = self.get_world(world_handle)
+    && let Some(fluid) = physics_world
             .fluids_pipeline
             .liquid_world
-            .fluids_mut()
-            .get_mut(handle_to_fluid_handle(fluid_handle))
+            .fluids()
+            .get(handle_to_fluid_handle(fluid_handle))
         {
             for i in 0..fluid.positions.len() {
                 array.push(vector_to_godot(fluid.velocities[i]));
             }
-        }
     }
     array
 }
 pub fn fluid_get_accelerations(
-    world_handle: Handle,
+    &self,
+    world_handle: WorldHandle,
     fluid_handle: HandleDouble,
-    physics_engine: &mut PhysicsEngine,
 ) -> PackedVectorArray {
     let mut array = PackedVectorArray::new();
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        if let Some(fluid) = physics_world
+    if let Some(physics_world) = self.get_world(world_handle)
+    && let Some(fluid) = physics_world
             .fluids_pipeline
             .liquid_world
-            .fluids_mut()
-            .get_mut(handle_to_fluid_handle(fluid_handle))
+            .fluids()
+            .get(handle_to_fluid_handle(fluid_handle))
         {
             for i in 0..fluid.positions.len() {
                 array.push(vector_to_godot(fluid.accelerations[i]));
             }
-        }
     }
     array
 }
 pub fn fluid_clear_effects(
-    world_handle: Handle,
+    &mut self,
+    world_handle: WorldHandle,
     fluid_handle: HandleDouble,
-    physics_engine: &mut PhysicsEngine,
 ) {
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        if let Some(fluid) = physics_world
+    if let Some(physics_world) = self.get_mut_world(world_handle)
+    && let Some(fluid) = physics_world
             .fluids_pipeline
             .liquid_world
             .fluids_mut()
@@ -269,18 +262,17 @@ pub fn fluid_clear_effects(
         {
             fluid.nonpressure_forces.clear();
         }
-    }
 }
 pub fn fluid_add_effect_elasticity(
-    world_handle: Handle,
+    &mut self,
+    world_handle: WorldHandle,
     fluid_handle: HandleDouble,
     young_modulus: Real,
     poisson_ratio: Real,
     nonlinear_strain: bool,
-    physics_engine: &mut PhysicsEngine,
 ) {
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        if let Some(fluid) = physics_world
+    if let Some(physics_world) = self.get_mut_world(world_handle)
+    && let Some(fluid) = physics_world
             .fluids_pipeline
             .liquid_world
             .fluids_mut()
@@ -290,17 +282,16 @@ pub fn fluid_add_effect_elasticity(
                 Becker2009Elasticity::new(young_modulus, poisson_ratio, nonlinear_strain);
             fluid.nonpressure_forces.push(Box::new(effect));
         }
-    }
 }
 pub fn fluid_add_effect_surface_tension_akinci(
-    world_handle: Handle,
+    &mut self,
+    world_handle: WorldHandle,
     fluid_handle: HandleDouble,
     fluid_tension_coefficient: Real,
     boundary_adhesion_coefficient: Real,
-    physics_engine: &mut PhysicsEngine,
 ) {
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        if let Some(fluid) = physics_world
+    if let Some(physics_world) = self.get_mut_world(world_handle)
+    && let Some(fluid) = physics_world
             .fluids_pipeline
             .liquid_world
             .fluids_mut()
@@ -312,17 +303,16 @@ pub fn fluid_add_effect_surface_tension_akinci(
             );
             fluid.nonpressure_forces.push(Box::new(effect));
         }
-    }
 }
 pub fn fluid_add_effect_surface_tension_he(
-    world_handle: Handle,
+    &mut self,
+    world_handle: WorldHandle,
     fluid_handle: HandleDouble,
     fluid_tension_coefficient: Real,
     boundary_adhesion_coefficient: Real,
-    physics_engine: &mut PhysicsEngine,
 ) {
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        if let Some(fluid) = physics_world
+    if let Some(physics_world) = self.get_mut_world(world_handle)
+    && let Some(fluid) = physics_world
             .fluids_pipeline
             .liquid_world
             .fluids_mut()
@@ -332,17 +322,16 @@ pub fn fluid_add_effect_surface_tension_he(
                 He2014SurfaceTension::new(fluid_tension_coefficient, boundary_adhesion_coefficient);
             fluid.nonpressure_forces.push(Box::new(effect));
         }
-    }
 }
 pub fn fluid_add_effect_surface_tension_wcsph(
-    world_handle: Handle,
+    &mut self,
+    world_handle: WorldHandle,
     fluid_handle: HandleDouble,
     fluid_tension_coefficient: Real,
     boundary_adhesion_coefficient: Real,
-    physics_engine: &mut PhysicsEngine,
 ) {
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        if let Some(fluid) = physics_world
+    if let Some(physics_world) = self.get_mut_world(world_handle)
+    && let Some(fluid) = physics_world
             .fluids_pipeline
             .liquid_world
             .fluids_mut()
@@ -352,17 +341,16 @@ pub fn fluid_add_effect_surface_tension_wcsph(
                 WCSPHSurfaceTension::new(fluid_tension_coefficient, boundary_adhesion_coefficient);
             fluid.nonpressure_forces.push(Box::new(effect));
         }
-    }
 }
 pub fn fluid_add_effect_viscosity_artificial(
-    world_handle: Handle,
+    &mut self,
+    world_handle: WorldHandle,
     fluid_handle: HandleDouble,
     fluid_viscosity_coefficient: Real,
     boundary_viscosity_coefficient: Real,
-    physics_engine: &mut PhysicsEngine,
 ) {
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        if let Some(fluid) = physics_world
+    if let Some(physics_world) = self.get_mut_world(world_handle)
+    && let Some(fluid) = physics_world
             .fluids_pipeline
             .liquid_world
             .fluids_mut()
@@ -374,16 +362,15 @@ pub fn fluid_add_effect_viscosity_artificial(
             );
             fluid.nonpressure_forces.push(Box::new(effect));
         }
-    }
 }
 pub fn fluid_add_effect_viscosity_dfsph(
-    world_handle: Handle,
+    &mut self,
+    world_handle: WorldHandle,
     fluid_handle: HandleDouble,
     fluid_viscosity_coefficient: Real,
-    physics_engine: &mut PhysicsEngine,
 ) {
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        if let Some(fluid) = physics_world
+    if let Some(physics_world) = self.get_mut_world(world_handle)
+    && let Some(fluid) = physics_world
             .fluids_pipeline
             .liquid_world
             .fluids_mut()
@@ -392,17 +379,16 @@ pub fn fluid_add_effect_viscosity_dfsph(
             let effect: DFSPHViscosity = DFSPHViscosity::new(fluid_viscosity_coefficient);
             fluid.nonpressure_forces.push(Box::new(effect));
         }
-    }
 }
 pub fn fluid_add_effect_viscosity_xsph(
-    world_handle: Handle,
+    &mut self,
+    world_handle: WorldHandle,
     fluid_handle: HandleDouble,
     fluid_viscosity_coefficient: Real,
     boundary_viscosity_coefficient: Real,
-    physics_engine: &mut PhysicsEngine,
 ) {
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        if let Some(fluid) = physics_world
+    if let Some(physics_world) = self.get_mut_world(world_handle)
+    && let Some(fluid) = physics_world
             .fluids_pipeline
             .liquid_world
             .fluids_mut()
@@ -412,15 +398,14 @@ pub fn fluid_add_effect_viscosity_xsph(
                 XSPHViscosity::new(fluid_viscosity_coefficient, boundary_viscosity_coefficient);
             fluid.nonpressure_forces.push(Box::new(effect));
         }
-    }
 }
 pub fn fluid_destroy(
-    world_handle: Handle,
+    &mut self,
+    world_handle: WorldHandle,
     fluid_handle: HandleDouble,
-    physics_engine: &mut PhysicsEngine,
 ) {
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        if let Some(_fluid) = physics_world
+    if let Some(physics_world) = self.get_mut_world(world_handle)
+    && let Some(_fluid) = physics_world
             .fluids_pipeline
             .liquid_world
             .fluids_mut()
@@ -429,5 +414,5 @@ pub fn fluid_destroy(
             // TODO reenable after the function is fixed https://github.com/dimforge/salva/pull/37/files
             //physics_world.fluids_pipeline.liquid_world.remove_fluid(handle_to_fluid_handle(fluid_handle));
         }
-    }
+}
 }

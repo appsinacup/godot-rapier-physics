@@ -60,7 +60,7 @@ impl IRapierShape for RapierConcavePolygonShape2D {
         true
     }
 
-    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> Handle {
+    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
         if self.points.len() >= 3 {
             let point_count = self.points.len();
             let mut rapier_points = Vec::with_capacity(point_count + 1);
@@ -69,10 +69,10 @@ impl IRapierShape for RapierConcavePolygonShape2D {
             }
             // Close the polyline shape
             rapier_points.push(rapier_points[0]);
-            shape_create_concave_polyline(rapier_points, physics_engine)
+            shape_create_concave_polyline(&rapier_points, physics_engine)
         } else {
             godot_error!("ConcavePolygon2D must have at least three point");
-            invalid_handle()
+            ShapeHandle::default()
         }
     }
 
@@ -131,7 +131,7 @@ impl IRapierShape for RapierConcavePolygonShape2D {
         rsegments.to_variant()
     }
 
-    fn get_handle(&self) -> Handle {
+    fn get_handle(&self) -> ShapeHandle {
         self.base.get_handle()
     }
 }

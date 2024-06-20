@@ -54,7 +54,7 @@ impl IRapierShape for RapierWorldBoundaryShape {
         true
     }
 
-    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> Handle {
+    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
         shape_create_halfspace(vector_to_rapier(self.normal), -self.d, physics_engine)
     }
 
@@ -113,7 +113,7 @@ impl IRapierShape for RapierWorldBoundaryShape {
         plane.to_variant()
     }
 
-    fn get_handle(&self) -> Handle {
+    fn get_handle(&self) -> ShapeHandle {
         self.base.get_handle()
     }
 }

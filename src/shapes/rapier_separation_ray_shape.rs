@@ -52,8 +52,8 @@ impl IRapierShape for RapierSeparationRayShape {
         false
     }
 
-    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> Handle {
-        invalid_handle()
+    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
+        ShapeHandle::default()
     }
 
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
@@ -73,7 +73,7 @@ impl IRapierShape for RapierSeparationRayShape {
         dictionary.to_variant()
     }
 
-    fn get_handle(&self) -> Handle {
+    fn get_handle(&self) -> ShapeHandle {
         self.base.get_handle()
     }
 }

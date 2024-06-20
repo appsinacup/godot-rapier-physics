@@ -19,17 +19,17 @@ pub trait IRapierShape: Any {
     fn get_type(&self) -> ShapeType;
     fn get_moment_of_inertia(&self, mass: f32, scale: Vector) -> Angle;
     fn allows_one_way_collision(&self) -> bool;
-    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> Handle;
+    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle;
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine);
     fn get_data(&self) -> Variant;
-    fn get_handle(&self) -> Handle;
+    fn get_handle(&self) -> ShapeHandle;
 }
 //#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierShapeBase {
     rid: Rid,
     aabb: Rect,
     owners: HashMap<Rid, i32>,
-    handle: Handle,
+    handle: ShapeHandle,
 }
 impl RapierShapeBase {
     pub(super) fn new(rid: Rid) -> Self {
@@ -37,24 +37,24 @@ impl RapierShapeBase {
             rid,
             aabb: Rect::default(),
             owners: HashMap::default(),
-            handle: invalid_handle(),
+            handle: ShapeHandle::default(),
         }
     }
 
     pub(super) fn set_handle(
         &mut self,
-        handle: Handle,
+        handle: ShapeHandle,
         aabb: Rect,
         physics_engine: &mut PhysicsEngine,
     ) {
-        if self.handle.is_valid() {
+        if self.handle != ShapeHandle::default() {
             self.destroy_rapier_shape(physics_engine);
         }
         self.aabb = aabb;
         self.handle = handle;
     }
 
-    pub fn get_handle(&self) -> Handle {
+    pub fn get_handle(&self) -> ShapeHandle {
         self.handle
     }
 
@@ -66,7 +66,7 @@ impl RapierShapeBase {
         for (owner, _) in owners {
             let owner = physics_data.collision_objects.get_mut(&owner);
             if let Some(owner) = owner {
-                owner._shape_changed(shape_rid);
+                owner._shape_changed(shape_rid, physics_data);
             }
         }
     }
@@ -109,9 +109,9 @@ impl RapierShapeBase {
     }
 
     fn destroy_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) {
-        if self.handle.is_valid() {
+        if self.handle != ShapeHandle::default() {
             shape_destroy(self.handle, physics_engine);
-            self.handle = invalid_handle();
+            self.handle = ShapeHandle::default();
         }
     }
 }

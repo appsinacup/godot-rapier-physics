@@ -65,7 +65,7 @@ impl IRapierShape for RapierRectangleShape {
         true
     }
 
-    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> Handle {
+    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
         let v = vector_to_rapier(self.half_extents) * 2.0;
         shape_create_box(v, physics_engine)
     }
@@ -85,7 +85,7 @@ impl IRapierShape for RapierRectangleShape {
         self.half_extents.to_variant()
     }
 
-    fn get_handle(&self) -> Handle {
+    fn get_handle(&self) -> ShapeHandle {
         self.base.get_handle()
     }
 }
