@@ -62,7 +62,11 @@ impl RapierJointBase {
         self.space_handle.is_valid() && self.handle != ImpulseJointHandle::invalid()
     }
 
-    pub fn disable_collisions_between_bodies(&mut self, disabled: bool, physics_engine: &mut PhysicsEngine) {
+    pub fn disable_collisions_between_bodies(
+        &mut self,
+        disabled: bool,
+        physics_engine: &mut PhysicsEngine,
+    ) {
         self.disabled_collisions_between_bodies = disabled;
         if self.is_valid() {
             joint_change_disable_collision(
@@ -78,10 +82,18 @@ impl RapierJointBase {
         self.disabled_collisions_between_bodies
     }
 
-    pub fn copy_settings_from(&mut self, joint: &RapierJointBase, physics_engine: &mut PhysicsEngine) {
+    pub fn copy_settings_from(
+        &mut self,
+        joint: &RapierJointBase,
+        physics_engine: &mut PhysicsEngine,
+    ) {
         self.set_max_force(joint.get_max_force());
-        self.disable_collisions_between_bodies(joint.is_disabled_collisions_between_bodies(), physics_engine);
+        self.disable_collisions_between_bodies(
+            joint.is_disabled_collisions_between_bodies(),
+            physics_engine,
+        );
     }
+
     pub fn joint_destroy(&self, physics_engine: &mut PhysicsEngine) {
         joint_destroy(self.space_handle, self.handle, physics_engine);
     }

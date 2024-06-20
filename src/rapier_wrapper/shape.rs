@@ -44,7 +44,10 @@ pub fn shape_info_from_body_shape(shape_handle: Handle, transform: Transform) ->
     }
 }
 #[cfg(feature = "dim2")]
-pub fn shape_create_convex_polyline(points: Vec<Vector<Real>>, physics_engine: &mut PhysicsEngine) -> Handle {
+pub fn shape_create_convex_polyline(
+    points: Vec<Vector<Real>>,
+    physics_engine: &mut PhysicsEngine,
+) -> Handle {
     let points_vec = point_array_to_vec(points);
     if let Some(shape_data) = SharedShape::convex_polyline(points_vec) {
         return physics_engine.insert_shape(shape_data);
@@ -52,7 +55,10 @@ pub fn shape_create_convex_polyline(points: Vec<Vector<Real>>, physics_engine: &
     Handle::default()
 }
 #[cfg(feature = "dim3")]
-pub fn shape_create_convex_polyline(points: Vec<Vector<Real>>, physics_engine: &mut PhysicsEngine) -> Handle {
+pub fn shape_create_convex_polyline(
+    points: Vec<Vector<Real>>,
+    physics_engine: &mut PhysicsEngine,
+) -> Handle {
     let points_vec = point_array_to_vec(points);
     if let Some(shape_data) = SharedShape::convex_hull(&points_vec) {
         return physics_engine.insert_shape(shape_data);
@@ -69,7 +75,11 @@ pub fn shape_create_box(size: Vector<Real>, physics_engine: &mut PhysicsEngine) 
     let shape = SharedShape::cuboid(0.5 * size.x, 0.5 * size.y, 0.5 * size.z);
     physics_engine.insert_shape(shape)
 }
-pub fn shape_create_halfspace(normal: Vector<Real>, distance: Real, physics_engine: &mut PhysicsEngine) -> Handle {
+pub fn shape_create_halfspace(
+    normal: Vector<Real>,
+    distance: Real,
+    physics_engine: &mut PhysicsEngine,
+) -> Handle {
     let shape = SharedShape::halfspace(UnitVector::new_normalize(normal));
     let shape_position = Isometry::new(normal * distance, ANG_ZERO);
     let mut shapes_vec = Vec::new();
@@ -81,16 +91,27 @@ pub fn shape_create_circle(radius: Real, physics_engine: &mut PhysicsEngine) -> 
     let shape = SharedShape::ball(radius);
     physics_engine.insert_shape(shape)
 }
-pub fn shape_create_capsule(half_height: Real, radius: Real, physics_engine: &mut PhysicsEngine) -> Handle {
+pub fn shape_create_capsule(
+    half_height: Real,
+    radius: Real,
+    physics_engine: &mut PhysicsEngine,
+) -> Handle {
     let shape = SharedShape::capsule_y(half_height, radius);
     physics_engine.insert_shape(shape)
 }
 #[cfg(feature = "dim3")]
-pub fn shape_create_cylinder(half_height: Real, radius: Real, physics_engine: &mut PhysicsEngine) -> Handle {
+pub fn shape_create_cylinder(
+    half_height: Real,
+    radius: Real,
+    physics_engine: &mut PhysicsEngine,
+) -> Handle {
     let shape = SharedShape::cylinder(half_height, radius);
     physics_engine.insert_shape(shape)
 }
-pub fn shape_create_concave_polyline(points: Vec<Vector<Real>>, physics_engine: &mut PhysicsEngine) -> Handle {
+pub fn shape_create_concave_polyline(
+    points: Vec<Vector<Real>>,
+    physics_engine: &mut PhysicsEngine,
+) -> Handle {
     let points_vec = point_array_to_vec(points);
     let shape = SharedShape::polyline(points_vec, None);
     physics_engine.insert_shape(shape)

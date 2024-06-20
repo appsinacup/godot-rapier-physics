@@ -15,7 +15,13 @@ pub struct RapierDampedSpringJoint2D {
     base: RapierJointBase,
 }
 impl RapierDampedSpringJoint2D {
-    pub fn new(p_anchor_a: Vector, p_anchor_b: Vector, body_a: Rid, body_b: Rid, physics_data: &mut PhysicsData) -> Self {
+    pub fn new(
+        p_anchor_a: Vector,
+        p_anchor_b: Vector,
+        body_a: Rid,
+        body_b: Rid,
+        physics_data: &mut PhysicsData,
+    ) -> Self {
         let invalid_joint = Self {
             rest_length: 0.0,
             stiffness: 20.0,
@@ -47,7 +53,7 @@ impl RapierDampedSpringJoint2D {
                     1.5,
                     rest_length,
                     true,
-                    &mut physics_data.physics_engine
+                    &mut physics_data.physics_engine,
                 );
                 if handle == ImpulseJointHandle::invalid() {
                     return invalid_joint;
@@ -63,7 +69,12 @@ impl RapierDampedSpringJoint2D {
         invalid_joint
     }
 
-    pub fn set_param(&mut self, p_param: physics_server_2d::DampedSpringParam, p_value: f32, physics_engine: &mut PhysicsEngine) {
+    pub fn set_param(
+        &mut self,
+        p_param: physics_server_2d::DampedSpringParam,
+        p_value: f32,
+        physics_engine: &mut PhysicsEngine,
+    ) {
         match p_param {
             physics_server_2d::DampedSpringParam::DAMPING => {
                 self.damping = p_value;

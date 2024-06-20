@@ -59,7 +59,11 @@ impl IRapierShape for RapierCapsuleShape {
     }
 
     fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> Handle {
-        shape_create_capsule((self.height / 2.0) - self.radius, self.radius, physics_engine)
+        shape_create_capsule(
+            (self.height / 2.0) - self.radius,
+            self.radius,
+            physics_engine,
+        )
     }
 
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
@@ -96,7 +100,8 @@ impl IRapierShape for RapierCapsuleShape {
             }
         }
         let handle = self.create_rapier_shape(physics_engine);
-        self.base.set_handle(handle, self.compute_aabb(), physics_engine);
+        self.base
+            .set_handle(handle, self.compute_aabb(), physics_engine);
     }
 
     fn get_data(&self) -> Variant {

@@ -48,7 +48,7 @@ impl RapierDirectSpaceStateImpl {
         collide_with_areas: bool,
         hit_from_inside: bool,
         result: *mut PhysicsServerExtensionRayResult,
-        physics_data: &PhysicsData
+        physics_data: &PhysicsData,
     ) -> bool {
         let Some(space) = physics_data.spaces.get(&self.space) else {
             return false;
@@ -73,7 +73,7 @@ impl RapierDirectSpaceStateImpl {
             &mut hit_info,
             is_handle_excluded_callback,
             &query_excluded_info,
-            physics_data
+            physics_data,
         );
         if collide {
             let result = &mut *result;
@@ -83,8 +83,7 @@ impl RapierDirectSpaceStateImpl {
                 RapierCollisionObject::get_collider_user_data(&hit_info.user_data);
             result.rid = rid;
             result.shape = shape_index as i32;
-            if let Some(collision_object_2d) = physics_data.collision_objects.get(&result.rid)
-            {
+            if let Some(collision_object_2d) = physics_data.collision_objects.get(&result.rid) {
                 let instance_id = collision_object_2d.get_base().get_instance_id();
                 result.collider_id = ObjectId { id: instance_id };
                 if instance_id != 0 {
@@ -109,7 +108,7 @@ impl RapierDirectSpaceStateImpl {
         collide_with_areas: bool,
         results: *mut PhysicsServerExtensionShapeResult,
         max_results: i32,
-        physics_data: &PhysicsData
+        physics_data: &PhysicsData,
     ) -> i32 {
         let max_results = max_results as usize;
         if max_results <= 0 {
@@ -139,7 +138,7 @@ impl RapierDirectSpaceStateImpl {
             max_results,
             is_handle_excluded_callback,
             &mut query_excluded_info,
-            physics_data
+            physics_data,
         );
         if result_count > max_results {
             result_count = max_results;
@@ -179,7 +178,7 @@ impl RapierDirectSpaceStateImpl {
         collide_with_areas: bool,
         results: *mut PhysicsServerExtensionShapeResult,
         max_results: i32,
-        physics_data: &PhysicsData
+        physics_data: &PhysicsData,
     ) -> i32 {
         let max_results = max_results as usize;
         let Some(shape) = physics_data.shapes.get(&shape_rid) else {
@@ -210,7 +209,7 @@ impl RapierDirectSpaceStateImpl {
                 collide_with_areas,
                 is_handle_excluded_callback,
                 &query_excluded_info,
-                physics_data
+                physics_data,
             );
             if !result.collided {
                 break;
@@ -253,7 +252,7 @@ impl RapierDirectSpaceStateImpl {
         collide_with_areas: bool,
         closest_safe: *mut f64,
         closest_unsafe: *mut f64,
-        physics_data: &PhysicsData
+        physics_data: &PhysicsData,
     ) -> bool {
         let Some(shape) = physics_data.shapes.get(&shape_rid) else {
             return false;
@@ -276,7 +275,7 @@ impl RapierDirectSpaceStateImpl {
             collide_with_areas,
             is_handle_excluded_callback,
             &query_excluded_info,
-            physics_data
+            physics_data,
         )
         .toi;
         // TODO compute actual safe and unsafe
@@ -299,7 +298,7 @@ impl RapierDirectSpaceStateImpl {
         results: *mut std::ffi::c_void,
         max_results: i32,
         result_count: *mut i32,
-        physics_data: &PhysicsData
+        physics_data: &PhysicsData,
     ) -> bool {
         let max_results = max_results as usize;
         let Some(shape) = physics_data.shapes.get(&shape_rid) else {
@@ -330,7 +329,7 @@ impl RapierDirectSpaceStateImpl {
                 collide_with_areas,
                 is_handle_excluded_callback,
                 &mut query_excluded_info,
-                physics_data
+                physics_data,
             );
             if !result.collided {
                 break;
@@ -359,7 +358,7 @@ impl RapierDirectSpaceStateImpl {
         collide_with_bodies: bool,
         collide_with_areas: bool,
         rest_info: *mut PhysicsServerExtensionShapeRestInfo,
-        physics_data: &PhysicsData
+        physics_data: &PhysicsData,
     ) -> bool {
         let Some(shape) = physics_data.shapes.get(&shape_rid) else {
             return false;
@@ -382,7 +381,7 @@ impl RapierDirectSpaceStateImpl {
             collide_with_areas,
             is_handle_excluded_callback,
             &mut query_excluded_info,
-            physics_data
+            physics_data,
         );
         if !result.collided {
             return false;

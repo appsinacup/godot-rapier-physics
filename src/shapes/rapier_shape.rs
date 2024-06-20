@@ -41,7 +41,12 @@ impl RapierShapeBase {
         }
     }
 
-    pub(super) fn set_handle(&mut self, handle: Handle, aabb: Rect, physics_engine: &mut PhysicsEngine) {
+    pub(super) fn set_handle(
+        &mut self,
+        handle: Handle,
+        aabb: Rect,
+        physics_engine: &mut PhysicsEngine,
+    ) {
         if self.handle.is_valid() {
             self.destroy_rapier_shape(physics_engine);
         }
@@ -53,7 +58,11 @@ impl RapierShapeBase {
         self.handle
     }
 
-    pub fn call_shape_changed(owners: HashMap<Rid, i32>, shape_rid: Rid, physics_data: &mut PhysicsData) {
+    pub fn call_shape_changed(
+        owners: HashMap<Rid, i32>,
+        shape_rid: Rid,
+        physics_data: &mut PhysicsData,
+    ) {
         for (owner, _) in owners {
             let owner = physics_data.collision_objects.get_mut(&owner);
             if let Some(owner) = owner {

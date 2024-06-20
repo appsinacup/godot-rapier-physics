@@ -24,19 +24,19 @@ pub trait IRapierCollisionObject: Any {
     fn get_area(&self) -> Option<&RapierArea>;
     fn get_mut_body(&mut self) -> Option<&mut RapierBody>;
     fn get_mut_area(&mut self) -> Option<&mut RapierArea>;
-    fn set_space(&mut self, space: Rid);
-    fn recreate_shapes(&mut self);
-    fn add_shape(&mut self, p_shape: Rid, p_transform: Transform, p_disabled: bool);
-    fn set_shape(&mut self, shape_idx: usize, p_shape: Rid);
-    fn set_shape_transform(&mut self, shape_idx: usize, transform: Transform);
-    fn set_shape_disabled(&mut self, shape_idx: usize, disabled: bool);
-    fn remove_shape_idx(&mut self, shape_idx: usize);
-    fn remove_shape_rid(&mut self, shape_rid: Rid);
-    fn create_shape(&mut self, shape: CollisionObjectShape, p_shape_index: usize)
+    fn set_space(&mut self, space: Rid, physics_data: &mut PhysicsData);
+    fn recreate_shapes(&mut self, physics_data: &mut PhysicsData);
+    fn add_shape(&mut self, p_shape: Rid, p_transform: Transform, p_disabled: bool, physics_data: &mut PhysicsData);
+    fn set_shape(&mut self, shape_idx: usize, p_shape: Rid, physics_data: &mut PhysicsData);
+    fn set_shape_transform(&mut self, shape_idx: usize, transform: Transform, physics_data: &mut PhysicsData);
+    fn set_shape_disabled(&mut self, shape_idx: usize, disabled: bool, physics_data: &mut PhysicsData);
+    fn remove_shape_idx(&mut self, shape_idx: usize, physics_data: &mut PhysicsData);
+    fn remove_shape_rid(&mut self, shape_rid: Rid, physics_data: &mut PhysicsData);
+    fn create_shape(&mut self, shape: CollisionObjectShape, p_shape_index: usize, physics_data: &mut PhysicsData)
         -> ColliderHandle;
     fn _init_material(&self) -> Material;
-    fn _shapes_changed(&mut self);
-    fn _shape_changed(&mut self, p_shape: Rid);
+    fn _shapes_changed(&mut self, physics_data: &mut PhysicsData);
+    fn _shape_changed(&mut self, p_shape: Rid, physics_data: &mut PhysicsData);
 }
 //#[derive(Serialize, Deserialize, Debug, Clone, Copy, Debug, PartialEq)]
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -44,7 +44,7 @@ pub enum CollisionObjectType {
     Area,
     Body,
 }
-//#[derive(Serialize, Deserialize, Debug, Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct CollisionObjectShape {
     pub xform: Transform,
     pub shape: Rid,
@@ -136,7 +136,7 @@ impl RapierCollisionObject {
                         &mat,
                         self.body_handle,
                         &user_data,
-                        &mut physics_data.physics_engine
+                        &mut physics_data.physics_engine,
                     );
                 }
                 CollisionObjectType::Area => {
@@ -145,7 +145,7 @@ impl RapierCollisionObject {
                         shape_handle,
                         self.body_handle,
                         &user_data,
-                        &mut physics_data.physics_engine
+                        &mut physics_data.physics_engine,
                     );
                 }
             }
@@ -171,7 +171,11 @@ impl RapierCollisionObject {
                         self.collision_object_type,
                     );
                 }
-                collider_destroy(self.space_handle, shape.collider_handle, &mut physics_data.physics_engine);
+                collider_destroy(
+                    self.space_handle,
+                    shape.collider_handle,
+                    &mut physics_data.physics_engine,
+                );
                 shape.collider_handle = ColliderHandle::invalid();
             }
             i += 1;
@@ -196,13 +200,21 @@ impl RapierCollisionObject {
                         self.get_type(),
                     );
                 }
-                collider_destroy(self.space_handle, shape.collider_handle, &mut physics_data.physics_engine);
+                collider_destroy(
+                    self.space_handle,
+                    shape.collider_handle,
+                    &mut physics_data.physics_engine,
+                );
             }
         }
         ColliderHandle::invalid()
     }
 
-    pub(crate) fn update_shape_transform(&self, shape: &CollisionObjectShape, physics_data: &mut PhysicsData) {
+    pub(crate) fn update_shape_transform(
+        &self,
+        shape: &CollisionObjectShape,
+        physics_data: &mut PhysicsData,
+    ) {
         if !self.space_handle.is_valid() || shape.collider_handle == ColliderHandle::invalid() {
             return;
         }
@@ -213,7 +225,12 @@ impl RapierCollisionObject {
                 return;
             }
             let shape_info = shape_info_from_body_shape(shape_handle, shape.xform);
-            collider_set_transform(self.space_handle, shape.collider_handle, shape_info, &mut physics_data.physics_engine);
+            collider_set_transform(
+                self.space_handle,
+                shape.collider_handle,
+                shape_info,
+                &mut physics_data.physics_engine,
+            );
         }
     }
 
@@ -236,7 +253,11 @@ impl RapierCollisionObject {
         if self.space_handle.is_valid() {
             if self.body_handle != RigidBodyHandle::invalid() {
                 // This call also destroys the colliders
-                body_destroy(self.space_handle, self.body_handle, &mut physics_data.physics_engine);
+                body_destroy(
+                    self.space_handle,
+                    self.body_handle,
+                    &mut physics_data.physics_engine,
+                );
                 self.body_handle = RigidBodyHandle::invalid();
             }
             self._destroy_shapes(physics_data);
@@ -262,7 +283,7 @@ impl RapierCollisionObject {
                     angle,
                     &user_data,
                     BodyType::Static,
-                    &mut physics_data.physics_engine
+                    &mut physics_data.physics_engine,
                 );
             } else if self.mode == BodyMode::KINEMATIC {
                 self.body_handle = body_create(
@@ -271,7 +292,7 @@ impl RapierCollisionObject {
                     angle,
                     &user_data,
                     BodyType::Kinematic,
-                    &mut physics_data.physics_engine
+                    &mut physics_data.physics_engine,
                 );
             } else {
                 self.body_handle = body_create(
@@ -280,7 +301,7 @@ impl RapierCollisionObject {
                     angle,
                     &user_data,
                     BodyType::Dynamic,
-                    &mut physics_data.physics_engine
+                    &mut physics_data.physics_engine,
                 );
             }
         }
@@ -349,7 +370,12 @@ impl RapierCollisionObject {
         Transform::default()
     }
 
-    pub fn set_transform(&mut self, p_transform: Transform, wake_up: bool, physics_engine: &mut PhysicsEngine) {
+    pub fn set_transform(
+        &mut self,
+        p_transform: Transform,
+        wake_up: bool,
+        physics_engine: &mut PhysicsEngine,
+    ) {
         self.transform = p_transform;
         self.inv_transform = transform_inverse(&self.transform);
         if !self.is_valid() {
@@ -364,7 +390,7 @@ impl RapierCollisionObject {
             position,
             rotation,
             wake_up,
-            physics_engine
+            physics_engine,
         );
     }
 

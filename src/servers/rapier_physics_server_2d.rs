@@ -197,7 +197,13 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let results_out: *mut Vector2 = results as *mut Vector2;
         let vector2_slice: &mut [Vector2] =
             unsafe { std::slice::from_raw_parts_mut(results_out, result_max as usize) };
-        let result = shape_collide(rapier_a_motion, shape_a_info, rapier_b_motion, shape_b_info, &mut self.physics_data.physics_engine);
+        let result = shape_collide(
+            rapier_a_motion,
+            shape_a_info,
+            rapier_b_motion,
+            shape_b_info,
+            &mut self.physics_data.physics_engine,
+        );
         if !result.collided {
             return false;
         }
@@ -221,16 +227,15 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
                     .active_spaces
                     .insert(space.get_handle(), space_rid);
             } else {
-                self.physics_data
-                    .active_spaces
-                    .remove(&space.get_handle());
+                self.physics_data.active_spaces.remove(&space.get_handle());
             }
         }
     }
 
     fn space_is_active(&self, space: Rid) -> bool {
         if let Some(space) = self.physics_data.spaces.get(&space) {
-            return self.physics_data
+            return self
+                .physics_data
                 .active_spaces
                 .contains_key(&space.get_handle());
         }
@@ -409,7 +414,11 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
 
     fn area_set_transform(&mut self, area: Rid, transform: Transform2D) {
         if let Some(area) = self.physics_data.collision_objects.get_mut(&area) {
-            area.get_mut_base().set_transform(transform, false, &mut self.physics_data.physics_engine);
+            area.get_mut_base().set_transform(
+                transform,
+                false,
+                &mut self.physics_data.physics_engine,
+            );
         }
     }
 
@@ -1046,10 +1055,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     ) -> bool {
         if let Some(body) = self.physics_data.collision_objects.get(&body) {
             if let Some(body) = body.get_body() {
-                if let Some(space) = self.physics_data
-                    .spaces
-                    .get(&body.get_base().get_space())
-                {
+                if let Some(space) = self.physics_data.spaces.get(&body.get_base().get_space()) {
                     let result: &mut PhysicsServer2DExtensionMotionResult = &mut *result;
                     return false;
                     // TODO enable this
@@ -1150,7 +1156,14 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         body_a: Rid,
         body_b: Rid,
     ) {
-        let mut joint = RapierGrooveJoint2D::new(a_groove1, a_groove2, b_anchor, body_a, body_b, &mut self.physics_data);
+        let mut joint = RapierGrooveJoint2D::new(
+            a_groove1,
+            a_groove2,
+            b_anchor,
+            body_a,
+            body_b,
+            &mut self.physics_data,
+        );
         if let Some(prev_joint) = self.physics_data.joints.remove(&rid) {
             joint
                 .get_mut_base()
@@ -1174,7 +1187,13 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         body_a: Rid,
         body_b: Rid,
     ) {
-        let mut joint = RapierDampedSpringJoint2D::new(anchor_a, anchor_b, body_a, body_b, &mut self.physics_data);
+        let mut joint = RapierDampedSpringJoint2D::new(
+            anchor_a,
+            anchor_b,
+            body_a,
+            body_b,
+            &mut self.physics_data,
+        );
         if let Some(prev_joint) = self.physics_data.joints.remove(&rid) {
             joint
                 .get_mut_base()
@@ -1293,7 +1312,8 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         }
         if let Some(space) = self.physics_data.spaces.remove(&rid) {
             let space_handle = space.get_handle();
-            if self.physics_data
+            if self
+                .physics_data
                 .active_spaces
                 .remove(&space_handle)
                 .is_some()

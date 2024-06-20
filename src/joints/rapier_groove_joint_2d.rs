@@ -57,7 +57,7 @@ impl RapierGrooveJoint2D {
                     rapier_anchor_b,
                     rapier_limits,
                     true,
-                    &mut physics_data.physics_engine
+                    &mut physics_data.physics_engine,
                 );
                 return Self {
                     base: RapierJointBase::new(space_handle, handle),

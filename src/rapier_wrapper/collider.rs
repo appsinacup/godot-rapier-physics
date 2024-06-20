@@ -313,7 +313,11 @@ pub fn collider_create_sensor(
     }
     ColliderHandle::invalid()
 }
-pub fn collider_destroy(world_handle: Handle, collider_handle: ColliderHandle, physics_engine: &mut PhysicsEngine) {
+pub fn collider_destroy(
+    world_handle: Handle,
+    collider_handle: ColliderHandle,
+    physics_engine: &mut PhysicsEngine,
+) {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         physics_world
             .fluids_pipeline

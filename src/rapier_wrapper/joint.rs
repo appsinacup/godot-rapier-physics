@@ -1,7 +1,7 @@
 use rapier::prelude::*;
-use crate::servers::rapier_physics_server_extra::PhysicsData;
 
 use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_server_extra::PhysicsData;
 #[cfg(feature = "dim2")]
 pub fn joint_create_revolute(
     world_handle: Handle,
@@ -126,8 +126,11 @@ pub fn joint_change_spring_params(
         }
     }
 }
-pub fn joint_destroy(world_handle: Handle, joint_handle: ImpulseJointHandle,
-    physics_engine: &mut PhysicsEngine) {
+pub fn joint_destroy(
+    world_handle: Handle,
+    joint_handle: ImpulseJointHandle,
+    physics_engine: &mut PhysicsEngine,
+) {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         physics_world.remove_joint(joint_handle);
     }

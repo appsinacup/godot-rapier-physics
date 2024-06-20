@@ -7,7 +7,11 @@ use super::shape::point_array_to_vec;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_server_extra::PhysicsData;
 use crate::PackedVectorArray;
-pub fn fluid_create(world_handle: Handle, density: Real, physics_engine: &mut PhysicsEngine) -> HandleDouble {
+pub fn fluid_create(
+    world_handle: Handle,
+    density: Real,
+    physics_engine: &mut PhysicsEngine,
+) -> HandleDouble {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let particle_radius = physics_world.fluids_pipeline.liquid_world.particle_radius();
         let fluid = Fluid::new(Vec::new(), particle_radius, density);
@@ -15,7 +19,12 @@ pub fn fluid_create(world_handle: Handle, density: Real, physics_engine: &mut Ph
     }
     invalid_handle_double()
 }
-pub fn fluid_change_density(world_handle: Handle, fluid_handle: HandleDouble, density: Real, physics_engine: &mut PhysicsEngine) {
+pub fn fluid_change_density(
+    world_handle: Handle,
+    fluid_handle: HandleDouble,
+    density: Real,
+    physics_engine: &mut PhysicsEngine,
+) {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         if let Some(fluid) = physics_world
             .fluids_pipeline
@@ -186,7 +195,11 @@ pub fn fluid_add_points_and_velocities(
         }
     }
 }
-pub fn fluid_get_points(world_handle: Handle, fluid_handle: HandleDouble, physics_engine: &mut PhysicsEngine) -> PackedVectorArray {
+pub fn fluid_get_points(
+    world_handle: Handle,
+    fluid_handle: HandleDouble,
+    physics_engine: &mut PhysicsEngine,
+) -> PackedVectorArray {
     let mut array = PackedVectorArray::new();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         if let Some(fluid) = physics_world
@@ -202,7 +215,11 @@ pub fn fluid_get_points(world_handle: Handle, fluid_handle: HandleDouble, physic
     }
     array
 }
-pub fn fluid_get_velocities(world_handle: Handle, fluid_handle: HandleDouble, physics_engine: &mut PhysicsEngine) -> PackedVectorArray {
+pub fn fluid_get_velocities(
+    world_handle: Handle,
+    fluid_handle: HandleDouble,
+    physics_engine: &mut PhysicsEngine,
+) -> PackedVectorArray {
     let mut array = PackedVectorArray::new();
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         if let Some(fluid) = physics_world
@@ -238,7 +255,11 @@ pub fn fluid_get_accelerations(
     }
     array
 }
-pub fn fluid_clear_effects(world_handle: Handle, fluid_handle: HandleDouble, physics_engine: &mut PhysicsEngine) {
+pub fn fluid_clear_effects(
+    world_handle: Handle,
+    fluid_handle: HandleDouble,
+    physics_engine: &mut PhysicsEngine,
+) {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         if let Some(fluid) = physics_world
             .fluids_pipeline
@@ -393,7 +414,11 @@ pub fn fluid_add_effect_viscosity_xsph(
         }
     }
 }
-pub fn fluid_destroy(world_handle: Handle, fluid_handle: HandleDouble, physics_engine: &mut PhysicsEngine) {
+pub fn fluid_destroy(
+    world_handle: Handle,
+    fluid_handle: HandleDouble,
+    physics_engine: &mut PhysicsEngine,
+) {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         if let Some(_fluid) = physics_world
             .fluids_pipeline

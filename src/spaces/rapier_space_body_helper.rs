@@ -41,10 +41,7 @@ pub fn is_handle_excluded_callback(
         }
     }
     let (collision_object_2d, _) = RapierCollisionObject::get_collider_user_data(user_data);
-    let Some(collision_object_2d) = physics_data
-        .collision_objects
-        .get(&collision_object_2d)
-    else {
+    let Some(collision_object_2d) = physics_data.collision_objects.get(&collision_object_2d) else {
         return false;
     };
     let collision_object_base = collision_object_2d.get_base();
@@ -113,7 +110,7 @@ impl RapierSpace {
             &mut best_safe,
             &mut best_unsafe,
             &mut best_body_shape,
-            physics_data
+            physics_data,
         );
         // Step 3: Rest Info
         // Apply the motion and fill the collision information
@@ -245,9 +242,8 @@ impl RapierSpace {
                         }
                         let (shape_col_object, shape_index) =
                             RapierCollisionObject::get_collider_user_data(&result.user_data);
-                        if let Some(shape_col_object) = physics_data
-                            .collision_objects
-                            .get_mut(&shape_col_object)
+                        if let Some(shape_col_object) =
+                            physics_data.collision_objects.get_mut(&shape_col_object)
                         {
                             if let Some(collision_body) = shape_col_object.get_mut_body() {
                                 if let Some(col_shape) = physics_data
@@ -345,7 +341,7 @@ impl RapierSpace {
             &mut results,
             32,
             p_body.get_base().get_rid(),
-            physics_data
+            physics_data,
         );
         if result_count == 0 {
             return;
@@ -386,9 +382,8 @@ impl RapierSpace {
                     }
                     let (shape_col_object, shape_index) =
                         RapierCollisionObject::get_collider_user_data(&result.user_data);
-                    if let Some(shape_col_object) = physics_data
-                        .collision_objects
-                        .get_mut(&shape_col_object)
+                    if let Some(shape_col_object) =
+                        physics_data.collision_objects.get_mut(&shape_col_object)
                     {
                         if let Some(collision_body) = shape_col_object.get_mut_body() {
                             if let Some(col_shape) = physics_data
@@ -533,7 +528,7 @@ impl RapierSpace {
             &mut results,
             32,
             p_body.get_base().get_rid(),
-            physics_data
+            physics_data,
         );
         // Optimization
         if result_count == 0 {
@@ -574,7 +569,7 @@ impl RapierSpace {
                 let (shape_col_object, shape_index) =
                     RapierCollisionObject::get_collider_user_data(&result.user_data);
                 if let Some(shape_col_object) =
-                physics_data.collision_objects.get(&shape_col_object)
+                    physics_data.collision_objects.get(&shape_col_object)
                 {
                     if let Some(collision_body) = shape_col_object.get_body() {
                         let col_shape_rid = collision_body.get_base().get_shape(shape_index);

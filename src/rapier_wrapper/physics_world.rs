@@ -34,7 +34,6 @@ type ContactPointCallback = fn(
     event_info: &ContactForceEventInfo,
     space: &mut RapierSpace,
 ) -> bool;
-
 pub struct CollisionEventInfo {
     pub collider1: ColliderHandle,
     pub collider2: ColliderHandle,
@@ -348,7 +347,6 @@ pub struct PhysicsEngine {
     pub physics_worlds: Arena<PhysicsWorld>,
     pub shapes: Arena<SharedShape>,
 }
-
 impl PhysicsEngine {
     pub fn insert_world(&mut self, world: PhysicsWorld) -> Handle {
         let world_handle = self.physics_worlds.insert(world);
@@ -380,7 +378,6 @@ impl PhysicsEngine {
         self.shapes.get(shape_handle)
     }
 }
-
 pub fn world_create(settings: &WorldSettings, physics_engine: &mut PhysicsEngine) -> Handle {
     let physics_world = PhysicsWorld::new(settings);
     let world_handle = physics_engine.insert_world(physics_world);
@@ -419,11 +416,14 @@ pub fn world_step(
             contact_force_event_callback,
             contact_point_callback,
             space,
-            physics_data
+            physics_data,
         );
     }
 }
-pub fn world_get_active_objects_count(world_handle: Handle, physics_engine: &mut PhysicsEngine) -> usize {
+pub fn world_get_active_objects_count(
+    world_handle: Handle,
+    physics_engine: &mut PhysicsEngine,
+) -> usize {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         return physics_world
             .physics_objects

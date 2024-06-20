@@ -54,7 +54,7 @@ impl RapierPinJoint2D {
                     0.0,
                     false,
                     true,
-                    &mut physics_data.physics_engine
+                    &mut physics_data.physics_engine,
                 );
                 return Self {
                     angular_limit_lower: 0.0,
@@ -69,7 +69,12 @@ impl RapierPinJoint2D {
         invalid_joint
     }
 
-    pub fn set_param(&mut self, p_param: physics_server_2d::PinJointParam, p_value: f32, physics_engine: &mut PhysicsEngine) {
+    pub fn set_param(
+        &mut self,
+        p_param: physics_server_2d::PinJointParam,
+        p_value: f32,
+        physics_engine: &mut PhysicsEngine,
+    ) {
         match p_param {
             physics_server_2d::PinJointParam::LIMIT_UPPER => {
                 self.angular_limit_upper = p_value;
@@ -93,7 +98,7 @@ impl RapierPinJoint2D {
             self.angular_limit_enabled,
             self.motor_target_velocity,
             self.motor_enabled,
-            physics_engine
+            physics_engine,
         );
     }
 
@@ -106,7 +111,12 @@ impl RapierPinJoint2D {
         }
     }
 
-    pub fn set_flag(&mut self, p_flag: physics_server_2d::PinJointFlag, p_enabled: bool, physics_engine: &mut PhysicsEngine) {
+    pub fn set_flag(
+        &mut self,
+        p_flag: physics_server_2d::PinJointFlag,
+        p_enabled: bool,
+        physics_engine: &mut PhysicsEngine,
+    ) {
         match p_flag {
             physics_server_2d::PinJointFlag::ANGULAR_LIMIT_ENABLED => {
                 self.angular_limit_enabled = p_enabled;
@@ -127,7 +137,7 @@ impl RapierPinJoint2D {
             self.angular_limit_enabled,
             self.motor_target_velocity,
             self.motor_enabled,
-            physics_engine
+            physics_engine,
         );
     }
 

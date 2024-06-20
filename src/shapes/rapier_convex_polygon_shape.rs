@@ -124,7 +124,8 @@ impl IRapierShape for RapierConvexPolygonShape {
             return;
         }
         let handle = self.create_rapier_shape(physics_engine);
-        self.base.set_handle(handle, self.compute_aabb(Vector::ONE), physics_engine);
+        self.base
+            .set_handle(handle, self.compute_aabb(Vector::ONE), physics_engine);
     }
 
     fn get_data(&self) -> Variant {

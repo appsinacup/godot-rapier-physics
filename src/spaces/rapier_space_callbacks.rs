@@ -38,7 +38,7 @@ impl RapierSpace {
     pub fn collision_filter_common_callback(
         filter_info: &CollisionFilterInfo,
         r_colliders_info: &mut CollidersInfo,
-        physics_data: &PhysicsData
+        physics_data: &PhysicsData,
     ) -> bool {
         (r_colliders_info.object1, r_colliders_info.shape1) =
             RapierCollisionObject::get_collider_user_data(&filter_info.user_data1);
@@ -58,21 +58,17 @@ impl RapierSpace {
         false
     }
 
-    pub fn collision_filter_body_callback(filter_info: &CollisionFilterInfo,
-        physics_data: &PhysicsData) -> bool {
+    pub fn collision_filter_body_callback(
+        filter_info: &CollisionFilterInfo,
+        physics_data: &PhysicsData,
+    ) -> bool {
         let mut colliders_info = CollidersInfo::default();
         if !Self::collision_filter_common_callback(filter_info, &mut colliders_info, physics_data) {
             return false;
         }
-        if let Some(body1) = physics_data
-            .collision_objects
-            .get(&colliders_info.object1)
-        {
+        if let Some(body1) = physics_data.collision_objects.get(&colliders_info.object1) {
             if let Some(body1) = body1.get_body() {
-                if let Some(body2) = physics_data
-                    .collision_objects
-                    .get(&colliders_info.object2)
-                {
+                if let Some(body2) = physics_data.collision_objects.get(&colliders_info.object2) {
                     if let Some(body2) = body2.get_body() {
                         if body1.has_exception(body2.get_base().get_rid())
                             || body2.has_exception(body1.get_base().get_rid())
@@ -86,7 +82,10 @@ impl RapierSpace {
         true
     }
 
-    pub fn collision_filter_sensor_callback(filter_info: &CollisionFilterInfo, physics_data: &PhysicsData) -> bool {
+    pub fn collision_filter_sensor_callback(
+        filter_info: &CollisionFilterInfo,
+        physics_data: &PhysicsData,
+    ) -> bool {
         let mut colliders_info = CollidersInfo::default();
         Self::collision_filter_common_callback(filter_info, &mut colliders_info, &physics_data)
     }
@@ -141,7 +140,11 @@ impl RapierSpace {
         result
     }
 
-    pub fn collision_event_callback(event_info: &CollisionEventInfo, space: &mut RapierSpace, physics_data: &mut PhysicsData) {
+    pub fn collision_event_callback(
+        event_info: &CollisionEventInfo,
+        space: &mut RapierSpace,
+        physics_data: &mut PhysicsData,
+    ) {
         let (mut p_object1, mut shape1) =
             RapierCollisionObject::get_collider_user_data(&event_info.user_data1);
         let (mut p_object2, mut shape2) =

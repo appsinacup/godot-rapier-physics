@@ -2,7 +2,8 @@ use nalgebra::Point;
 use rapier::prelude::*;
 
 use super::ANG_ZERO;
-use crate::{rapier_wrapper::prelude::*, servers::rapier_physics_server_extra::PhysicsData};
+use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_server_extra::PhysicsData;
 pub enum BodyType {
     Dynamic,
     Kinematic,
@@ -80,12 +81,20 @@ pub fn body_change_mode(
         }
     }
 }
-pub fn body_destroy(world_handle: Handle, body_handle: RigidBodyHandle, physics_engine: &mut PhysicsEngine) {
+pub fn body_destroy(
+    world_handle: Handle,
+    body_handle: RigidBodyHandle,
+    physics_engine: &mut PhysicsEngine,
+) {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         physics_world.remove_rigid_body(body_handle);
     }
 }
-pub fn body_get_position(world_handle: Handle, body_handle: RigidBodyHandle, physics_engine: &mut PhysicsEngine) -> Vector<Real> {
+pub fn body_get_position(
+    world_handle: Handle,
+    body_handle: RigidBodyHandle,
+    physics_engine: &mut PhysicsEngine,
+) -> Vector<Real> {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = body_handle;
         if let Some(body) = physics_world
@@ -100,7 +109,11 @@ pub fn body_get_position(world_handle: Handle, body_handle: RigidBodyHandle, phy
     Vector::default()
 }
 #[cfg(feature = "dim3")]
-pub fn body_get_angle(world_handle: Handle, body_handle: RigidBodyHandle, physics_engine: &mut PhysicsEngine) -> AngVector<Real> {
+pub fn body_get_angle(
+    world_handle: Handle,
+    body_handle: RigidBodyHandle,
+    physics_engine: &mut PhysicsEngine,
+) -> AngVector<Real> {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = body_handle;
         if let Some(body) = physics_world
@@ -115,7 +128,11 @@ pub fn body_get_angle(world_handle: Handle, body_handle: RigidBodyHandle, physic
     ANG_ZERO
 }
 #[cfg(feature = "dim2")]
-pub fn body_get_angle(world_handle: Handle, body_handle: RigidBodyHandle, physics_engine: &mut PhysicsEngine) -> AngVector<Real> {
+pub fn body_get_angle(
+    world_handle: Handle,
+    body_handle: RigidBodyHandle,
+    physics_engine: &mut PhysicsEngine,
+) -> AngVector<Real> {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = body_handle;
         if let Some(body) = physics_world
@@ -183,7 +200,12 @@ pub fn body_set_linear_velocity(
         }
     }
 }
-pub fn body_update_material(world_handle: Handle, body_handle: RigidBodyHandle, mat: &Material, physics_engine: &mut PhysicsEngine) {
+pub fn body_update_material(
+    world_handle: Handle,
+    body_handle: RigidBodyHandle,
+    mat: &Material,
+    physics_engine: &mut PhysicsEngine,
+) {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = body_handle;
         if let Some(body) = physics_world
@@ -216,7 +238,7 @@ pub fn body_update_material(world_handle: Handle, body_handle: RigidBodyHandle, 
 pub fn body_get_angular_velocity(
     world_handle: Handle,
     body_handle: RigidBodyHandle,
-    physics_engine: &mut PhysicsEngine
+    physics_engine: &mut PhysicsEngine,
 ) -> AngVector<Real> {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = body_handle;
@@ -234,7 +256,7 @@ pub fn body_get_angular_velocity(
 pub fn body_get_angular_velocity(
     world_handle: Handle,
     body_handle: RigidBodyHandle,
-    physics_engine: &mut PhysicsEngine
+    physics_engine: &mut PhysicsEngine,
 ) -> AngVector<Real> {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = body_handle;
@@ -286,7 +308,7 @@ pub fn body_set_angular_damping(
     world_handle: Handle,
     body_handle: RigidBodyHandle,
     angular_damping: Real,
-    physics_engine: &mut PhysicsEngine
+    physics_engine: &mut PhysicsEngine,
 ) {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = body_handle;
@@ -304,7 +326,7 @@ pub fn body_set_gravity_scale(
     body_handle: RigidBodyHandle,
     gravity_scale: Real,
     wake_up: bool,
-    physics_engine: &mut PhysicsEngine
+    physics_engine: &mut PhysicsEngine,
 ) {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = body_handle;
@@ -317,7 +339,12 @@ pub fn body_set_gravity_scale(
         }
     }
 }
-pub fn body_set_can_sleep(world_handle: Handle, body_handle: RigidBodyHandle, can_sleep: bool, physics_engine: &mut PhysicsEngine) {
+pub fn body_set_can_sleep(
+    world_handle: Handle,
+    body_handle: RigidBodyHandle,
+    can_sleep: bool,
+    physics_engine: &mut PhysicsEngine,
+) {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = body_handle;
         if let Some(body) = physics_world
@@ -343,7 +370,12 @@ pub fn body_set_can_sleep(world_handle: Handle, body_handle: RigidBodyHandle, ca
         }
     }
 }
-pub fn body_set_ccd_enabled(world_handle: Handle, body_handle: RigidBodyHandle, enable: bool, physics_engine: &mut PhysicsEngine) {
+pub fn body_set_ccd_enabled(
+    world_handle: Handle,
+    body_handle: RigidBodyHandle,
+    enable: bool,
+    physics_engine: &mut PhysicsEngine,
+) {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = body_handle;
         if let Some(body) = physics_world
@@ -363,7 +395,7 @@ pub fn body_set_mass_properties(
     local_com: Vector<Real>,
     wake_up: bool,
     force_update: bool,
-    physics_engine: &mut PhysicsEngine
+    physics_engine: &mut PhysicsEngine,
 ) {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = body_handle;
@@ -384,7 +416,12 @@ pub fn body_set_mass_properties(
         }
     }
 }
-pub fn body_add_force(world_handle: Handle, body_handle: RigidBodyHandle, force: Vector<Real>, physics_engine: &mut PhysicsEngine) {
+pub fn body_add_force(
+    world_handle: Handle,
+    body_handle: RigidBodyHandle,
+    force: Vector<Real>,
+    physics_engine: &mut PhysicsEngine,
+) {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = body_handle;
         if let Some(body) = physics_world
@@ -401,7 +438,7 @@ pub fn body_add_force_at_point(
     body_handle: RigidBodyHandle,
     force: Vector<Real>,
     point: Vector<Real>,
-    physics_engine: &mut PhysicsEngine
+    physics_engine: &mut PhysicsEngine,
 ) {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = body_handle;
@@ -419,7 +456,7 @@ pub fn body_add_torque(
     world_handle: Handle,
     body_handle: RigidBodyHandle,
     torque: AngVector<Real>,
-    physics_engine: &mut PhysicsEngine
+    physics_engine: &mut PhysicsEngine,
 ) {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = body_handle;
@@ -436,7 +473,7 @@ pub fn body_apply_impulse(
     world_handle: Handle,
     body_handle: RigidBodyHandle,
     impulse: Vector<Real>,
-    physics_engine: &mut PhysicsEngine
+    physics_engine: &mut PhysicsEngine,
 ) {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = body_handle;
@@ -454,7 +491,7 @@ pub fn body_apply_impulse_at_point(
     body_handle: RigidBodyHandle,
     impulse: Vector<Real>,
     point: Vector<Real>,
-    physics_engine: &mut PhysicsEngine
+    physics_engine: &mut PhysicsEngine,
 ) {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = body_handle;
@@ -469,8 +506,11 @@ pub fn body_apply_impulse_at_point(
         }
     }
 }
-pub fn body_get_constant_force(world_handle: Handle, body_handle: RigidBodyHandle,
-physics_engine: &mut PhysicsEngine) -> Vector<Real> {
+pub fn body_get_constant_force(
+    world_handle: Handle,
+    body_handle: RigidBodyHandle,
+    physics_engine: &mut PhysicsEngine,
+) -> Vector<Real> {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = body_handle;
         if let Some(body) = physics_world
@@ -486,7 +526,7 @@ physics_engine: &mut PhysicsEngine) -> Vector<Real> {
 pub fn body_get_constant_torque(
     world_handle: Handle,
     body_handle: RigidBodyHandle,
-    physics_engine: &mut PhysicsEngine
+    physics_engine: &mut PhysicsEngine,
 ) -> AngVector<Real> {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = body_handle;
@@ -504,7 +544,7 @@ pub fn body_apply_torque_impulse(
     world_handle: Handle,
     body_handle: RigidBodyHandle,
     torque_impulse: AngVector<Real>,
-    physics_engine: &mut PhysicsEngine
+    physics_engine: &mut PhysicsEngine,
 ) {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = body_handle;
@@ -517,7 +557,11 @@ pub fn body_apply_torque_impulse(
         }
     }
 }
-pub fn body_reset_torques(world_handle: Handle, body_handle: RigidBodyHandle, physics_engine: &mut PhysicsEngine) {
+pub fn body_reset_torques(
+    world_handle: Handle,
+    body_handle: RigidBodyHandle,
+    physics_engine: &mut PhysicsEngine,
+) {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle: RigidBodyHandle = body_handle;
         if let Some(body) = physics_world
@@ -529,7 +573,11 @@ pub fn body_reset_torques(world_handle: Handle, body_handle: RigidBodyHandle, ph
         }
     }
 }
-pub fn body_reset_forces(world_handle: Handle, body_handle: RigidBodyHandle, physics_engine: &mut PhysicsEngine) {
+pub fn body_reset_forces(
+    world_handle: Handle,
+    body_handle: RigidBodyHandle,
+    physics_engine: &mut PhysicsEngine,
+) {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = body_handle;
         if let Some(body) = physics_world
@@ -541,7 +589,12 @@ pub fn body_reset_forces(world_handle: Handle, body_handle: RigidBodyHandle, phy
         }
     }
 }
-pub fn body_wake_up(world_handle: Handle, body_handle: RigidBodyHandle, strong: bool, physics_engine: &mut PhysicsEngine) {
+pub fn body_wake_up(
+    world_handle: Handle,
+    body_handle: RigidBodyHandle,
+    strong: bool,
+    physics_engine: &mut PhysicsEngine,
+) {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = body_handle;
         if let Some(body) = physics_world
@@ -555,7 +608,11 @@ pub fn body_wake_up(world_handle: Handle, body_handle: RigidBodyHandle, strong: 
         }
     }
 }
-pub fn body_force_sleep(world_handle: Handle, body_handle: RigidBodyHandle, physics_engine: &mut PhysicsEngine) {
+pub fn body_force_sleep(
+    world_handle: Handle,
+    body_handle: RigidBodyHandle,
+    physics_engine: &mut PhysicsEngine,
+) {
     if let Some(physics_world) = physics_engine.get_world(world_handle) {
         let rigid_body_handle = body_handle;
         if let Some(body) = physics_world

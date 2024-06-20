@@ -1,6 +1,3 @@
-use std::borrow::Borrow;
-use std::ops::Deref;
-
 use godot::classes::*;
 use godot::prelude::*;
 
@@ -20,7 +17,6 @@ impl RapierDirectBodyState2D {
         self.body = body;
     }
 }
-
 #[godot_api]
 impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     fn init(base: Base<PhysicsDirectBodyState2DExtension>) -> Self {
@@ -125,7 +121,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn set_linear_velocity(&mut self, velocity: Vector2) {
-        let mut physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let mut physics_singleton =
+            (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
         let physics_data = &mut physics_singleton.bind_mut().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
@@ -135,7 +132,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_linear_velocity(&self) -> Vector2 {
-        let mut physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let mut physics_singleton =
+            (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
         let physics_data = &mut physics_singleton.bind_mut().physics_data;
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
@@ -147,10 +145,10 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
 
     fn set_angular_velocity(&mut self, velocity: f32) {
         let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
-        let physics_data = &physics_singleton.bind().physics_data;
+        let physics_data = &physics_singleton.bind_mut().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_angular_velocity(velocity);
+                body.set_angular_velocity(velocity, &mut physics_data.physics_engine);
             }
         }
     }
@@ -160,21 +158,29 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
-                return body.get_angular_velocity();
+                return body.get_angular_velocity(&mut physics_data.physics_engine);
             }
         }
         ANG_ZERO
     }
 
     fn set_transform(&mut self, transform: Transform2D) {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.get_mut_base().set_transform(transform, true);
+                body.get_mut_base().set_transform(
+                    transform,
+                    true,
+                    &mut physics_data.physics_engine,
+                );
             }
         }
     }
 
     fn get_transform(&self) -> Transform2D {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.get_base().get_transform();
@@ -184,6 +190,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_velocity_at_local_position(&self, local_position: Vector2) -> Vector2 {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.get_velocity_at_local_point(local_position);
@@ -193,112 +201,140 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn apply_central_impulse(&mut self, impulse: Vector2) {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.apply_central_impulse(impulse)
+                body.apply_central_impulse(impulse, &mut physics_data)
             }
         }
     }
 
     fn apply_impulse(&mut self, impulse: Vector2, position: Vector2) {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.apply_impulse(impulse, position)
+                body.apply_impulse(impulse, position, &mut physics_data)
             }
         }
     }
 
     fn apply_torque_impulse(&mut self, impulse: f32) {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.apply_torque_impulse(impulse)
+                body.apply_torque_impulse(impulse, &mut physics_data)
             }
         }
     }
 
     fn apply_central_force(&mut self, force: Vector2) {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.apply_central_force(force)
+                body.apply_central_force(force, &mut physics_data)
             }
         }
     }
 
     fn apply_force(&mut self, force: Vector2, position: Vector2) {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.apply_force(force, position)
+                body.apply_force(force, position, &mut physics_data)
             }
         }
     }
 
     fn apply_torque(&mut self, torque: f32) {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.apply_torque(torque)
+                body.apply_torque(torque, &mut physics_data)
             }
         }
     }
 
     fn add_constant_central_force(&mut self, force: Vector2) {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.add_constant_central_force(force)
+                body.add_constant_central_force(force, &mut physics_data)
             }
         }
     }
 
     fn add_constant_force(&mut self, force: Vector2, position: Vector2) {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.add_constant_force(force, position)
+                body.add_constant_force(force, position, &mut physics_data)
             }
         }
     }
 
     fn add_constant_torque(&mut self, torque: f32) {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.add_constant_torque(torque)
+                body.add_constant_torque(torque, &mut physics_data)
             }
         }
     }
 
     fn set_constant_force(&mut self, force: Vector2) {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_constant_force(force)
+                body.set_constant_force(force, &mut physics_data)
             }
         }
     }
 
     fn get_constant_force(&self) -> Vector2 {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
-                return body.get_constant_force();
+                return body.get_constant_force(physics_data);
             }
         }
         Vector2::default()
     }
 
     fn set_constant_torque(&mut self, torque: f32) {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_constant_torque(torque)
+                body.set_constant_torque(torque, &mut physics_data)
             }
         }
     }
 
     fn get_constant_torque(&self) -> f32 {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
-                return body.get_constant_torque();
+                return body.get_constant_torque(&mut physics_data.physics_engine);
             }
         }
         ANG_ZERO
     }
 
     fn set_sleep_state(&mut self, enabled: bool) {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
                 if let Some(space) = spaces_singleton()
@@ -312,6 +348,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn is_sleeping(&self) -> bool {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return !body.is_active();
@@ -321,6 +359,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_count(&self) -> i32 {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.contact_count();
@@ -330,6 +370,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_local_position(&self, contact_idx: i32) -> Vector2 {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 if let Some(contact) = body.contacts().get(contact_idx as usize) {
@@ -341,6 +383,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_local_normal(&self, contact_idx: i32) -> Vector2 {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 if let Some(contact) = body.contacts().get(contact_idx as usize) {
@@ -352,6 +396,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_local_shape(&self, contact_idx: i32) -> i32 {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 if let Some(contact) = body.contacts().get(contact_idx as usize) {
@@ -363,6 +409,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_local_velocity_at_position(&self, contact_idx: i32) -> Vector2 {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 if let Some(contact) = body.contacts().get(contact_idx as usize) {
@@ -374,6 +422,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_collider(&self, contact_idx: i32) -> Rid {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 if let Some(contact) = body.contacts().get(contact_idx as usize) {
@@ -385,6 +435,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_collider_position(&self, contact_idx: i32) -> Vector2 {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 if let Some(contact) = body.contacts().get(contact_idx as usize) {
@@ -396,6 +448,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_collider_id(&self, contact_idx: i32) -> u64 {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 if let Some(contact) = body.contacts().get(contact_idx as usize) {
@@ -407,6 +461,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_collider_object(&self, contact_idx: i32) -> Option<Gd<Object>> {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 if let Some(contact) = body.contacts().get(contact_idx as usize) {
@@ -420,6 +476,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_collider_shape(&self, contact_idx: i32) -> i32 {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 if let Some(contact) = body.contacts().get(contact_idx as usize) {
@@ -431,6 +489,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_collider_velocity_at_position(&self, contact_idx: i32) -> Vector2 {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 if let Some(contact) = body.contacts().get(contact_idx as usize) {
@@ -442,6 +502,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_impulse(&self, contact_idx: i32) -> Vector2 {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 if let Some(contact) = body.contacts().get(contact_idx as usize) {
@@ -459,6 +521,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     fn integrate_forces(&mut self) {}
 
     fn get_space_state(&mut self) -> Option<Gd<PhysicsDirectSpaceState2D>> {
+        let physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let physics_data = &physics_singleton.bind().physics_data;
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(space) = spaces_singleton().spaces.get(&body.get_base().get_space()) {
                 return space.get_direct_state().clone();

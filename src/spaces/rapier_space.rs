@@ -188,7 +188,10 @@ impl RapierSpace {
         self.removed_colliders.get(handle)
     }
 
-    pub fn call_queries(&mut self, physics_data_collision_objects: &mut HashMap<Rid, Box<dyn IRapierCollisionObject>>) {
+    pub fn call_queries(
+        &mut self,
+        physics_data_collision_objects: &mut HashMap<Rid, Box<dyn IRapierCollisionObject>>,
+    ) {
         for body_rid in self.state_query_list.clone() {
             if let Some(body) = physics_data_collision_objects.get_mut(&body_rid) {
                 if let Some(body) = body.get_mut_body() {
@@ -298,7 +301,8 @@ impl RapierSpace {
     pub fn after_step(&mut self, physics_data: &mut PhysicsData) {
         // Needed only for one physics step to retrieve lost info
         self.removed_colliders.clear();
-        self.active_objects = world_get_active_objects_count(self.handle, &mut physics_data.physics_engine) as i32;
+        self.active_objects =
+            world_get_active_objects_count(self.handle, &mut physics_data.physics_engine) as i32;
         for body in self.active_list.clone() {
             if let Some(body) = physics_data.collision_objects.get_mut(&body) {
                 if let Some(body) = body.get_mut_body() {
@@ -353,6 +357,7 @@ impl RapierSpace {
         }
         buf
     }
+
     pub fn destroy_space(&mut self, physics_engine: &mut PhysicsEngine) {
         if self.handle.is_valid() {
             world_destroy(self.handle, physics_engine);

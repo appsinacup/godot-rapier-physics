@@ -91,10 +91,10 @@ pub fn intersect_ray(
     hit_info: &mut RayHitInfo,
     handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
-    physics_engine: &mut PhysicsEngine,
+    physics_data: &mut PhysicsData,
 ) -> bool {
     let mut result = false;
-    let Some(physics_world) = physics_engine.get_world(world_handle) else {
+    let Some(physics_world) = physics_data.physics_engine.get_world(world_handle) else {
         return false;
     };
     let ray = Ray::new(Point { coords: from }, dir);
@@ -157,13 +157,13 @@ pub fn intersect_point(
     hit_info_length: usize,
     handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
-    physics_engine: &mut PhysicsEngine,
+    physics_data: &mut PhysicsData,
 ) -> usize {
     let mut cpt_hit = 0;
     if hit_info_length <= 0 {
         return cpt_hit;
     }
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
+    if let Some(physics_world) = physics_data.physics_engine.get_world(world_handle) {
         let point = Point { coords: position };
         let mut filter = QueryFilter::new();
         if !collide_with_body {
@@ -216,7 +216,7 @@ pub fn shape_collide(
     shape_info1: ShapeInfo,
     shape_vel2: Vector<Real>,
     shape_info2: ShapeInfo,
-    physics_engine: &mut PhysicsEngine
+    physics_data: &mut PhysicsData,
 ) -> ShapeCastResult {
     let mut result = ShapeCastResult::new();
     if let Some(raw_shared_shape1) = physics_engine.get_shape(shape_info1.handle) {
