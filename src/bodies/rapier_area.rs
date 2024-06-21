@@ -633,7 +633,7 @@ impl IRapierCollisionObject for RapierArea {
         if let Some(shape) = shapes_singleton().shapes.get_mut(&p_shape) {
             shape.get_mut_base().add_owner(self.base.get_rid());
         }
-        if self.base.get_space_handle().is_valid() {
+        if self.base.is_space_valid() {
             self._shapes_changed();
         }
     }
@@ -657,7 +657,7 @@ impl IRapierCollisionObject for RapierArea {
                 ._create_shape(shape, p_index, self._init_material());
             self.base.update_shape_transform(&shape);
         }
-        if self.base.get_space_handle().is_valid() {
+        if self.base.is_space_valid() {
             self._shapes_changed();
         }
     }
@@ -669,7 +669,7 @@ impl IRapierCollisionObject for RapierArea {
         self.base.shapes[p_index].xform = p_transform;
         let shape = &self.base.shapes[p_index];
         self.base.update_shape_transform(shape);
-        if self.base.get_space_handle().is_valid() {
+        if self.base.is_space_valid() {
             self._shapes_changed();
         }
     }
@@ -691,7 +691,7 @@ impl IRapierCollisionObject for RapierArea {
                 ._create_shape(shape, p_index, self._init_material());
             self.base.update_shape_transform(&shape);
         }
-        if self.base.get_space_handle().is_valid() {
+        if self.base.is_space_valid() {
             self._shapes_changed();
         }
     }
@@ -723,7 +723,7 @@ impl IRapierCollisionObject for RapierArea {
             shape.get_mut_base().remove_owner(self.base.get_rid());
         }
         self.base.shapes.remove(p_index);
-        if self.base.get_space_handle().is_valid() {
+        if self.base.is_space_valid() {
             self._shapes_changed();
         }
     }
@@ -733,7 +733,7 @@ impl IRapierCollisionObject for RapierArea {
         shape: CollisionObjectShape,
         p_shape_index: usize,
     ) -> ColliderHandle {
-        if !self.base.get_space_handle().is_valid() {
+        if !self.base.is_space_valid() {
             return ColliderHandle::invalid();
         }
         let mat = self._init_material();
@@ -745,7 +745,7 @@ impl IRapierCollisionObject for RapierArea {
     }
 
     fn _shape_changed(&mut self, p_shape: Rid) {
-        if !self.base.get_space_handle().is_valid() {
+        if !self.base.is_space_valid() {
             return;
         }
         for i in 0..self.base.shapes.len() {

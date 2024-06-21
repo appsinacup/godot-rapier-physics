@@ -28,11 +28,11 @@ pub trait IRapierJoint: Any {
 pub struct RapierJointBase {
     max_force: f32,
     handle: ImpulseJointHandle,
-    space_handle: Handle,
+    space_handle: WorldHandle,
     disabled_collisions_between_bodies: bool,
 }
 impl RapierJointBase {
-    pub fn new(space_handle: Handle, handle: ImpulseJointHandle) -> Self {
+    pub fn new(space_handle: WorldHandle, handle: ImpulseJointHandle) -> Self {
         Self {
             max_force: f32::MAX,
             handle,

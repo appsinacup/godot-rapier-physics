@@ -194,7 +194,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         let physics_data = &mut physics_singleton.bind_mut().physics_data;
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
-                return body.get_velocity_at_local_point(local_position);
+                return body.get_velocity_at_local_point(local_position, &mut physics_data.physics_engine);
             }
         }
         Vector2::default()
