@@ -70,31 +70,29 @@ impl RapierArea {
         if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
             let rid = self.base.get_rid();
             for (key, _) in self.detected_bodies.iter() {
-                if let Some(body) = physics_data.collision_objects.get_mut(key) {
-                    if let Some(body) = body.get_mut_body() {
-                        body.add_area(self, &mut physics_data.spaces);
+                if let Some(body) = physics_data.collision_objects.get_mut(key)
+                && let Some(body) = body.get_mut_body() {
+                        body.add_area(self, space);
                     }
-                }
-            }
             // No need to update anymore if it was scheduled before
             space.area_remove_from_area_update_list(rid);
         }
     }
+}
 
     pub fn _disable_space_override(&self, physics_data: &mut PhysicsData) {
         if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
             let rid = self.base.get_rid();
             for (key, _) in self.detected_bodies.iter() {
-                if let Some(body) = physics_data.collision_objects.get_mut(key) {
-                    if let Some(body) = body.get_mut_body() {
+                if let Some(body) = physics_data.collision_objects.get_mut(key)
+                && let Some(body) = body.get_mut_body() {
                         body.remove_area(rid, space);
                     }
                 }
+                // No need to update anymore if it was scheduled before
+                space.area_remove_from_area_update_list(rid);
             }
-            // No need to update anymore if it was scheduled before
-            space.area_remove_from_area_update_list(rid);
         }
-    }
 
     pub fn _reset_space_override(&self, physics_data: &mut PhysicsData) {
         if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
@@ -121,7 +119,6 @@ impl RapierArea {
         area_collider_handle: ColliderHandle,
         area_shape: usize,
         space: &mut RapierSpace,
-        physics_data: &mut PhysicsData,
     ) {
         if let Some(body) = body {
             if let Some(body) = body.get_mut_body() {
@@ -130,7 +127,7 @@ impl RapierArea {
                     *detected_body += 1;
                 } else {
                     self.detected_bodies.insert(body_rid, 1);
-                    body.add_area(self, &mut physics_data.spaces);
+                    body.add_area(self, space);
                 }
                 if self.monitor_callback.is_null() {
                     return;
@@ -169,7 +166,6 @@ impl RapierArea {
         area_collider_handle: ColliderHandle,
         area_shape: usize,
         space: &mut RapierSpace,
-        physics_spaces: &mut PhysicsSpaces,
     ) {
         if body.is_some() {
             // Remove from currently detected bodies
@@ -179,7 +175,7 @@ impl RapierArea {
                     self.detected_bodies.remove(&body_rid);
                     if let Some(body) = body {
                         if let Some(body) = body.get_mut_body() {
-                            body.remove_area(self.base.get_rid(), physics_spaces);
+                            body.remove_area(self.base.get_rid(), space);
                         }
                     }
                 }

@@ -10,6 +10,7 @@ use serde::*;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_server_extra::PhysicsData;
+use crate::spaces::rapier_space::RapierSpace;
 use crate::Angle;
 use crate::Rect;
 use crate::Vector;
@@ -58,15 +59,19 @@ impl RapierShapeBase {
         self.handle
     }
 
+    pub fn is_valid(&self) -> bool {
+        self.handle != ShapeHandle::default()
+    }
+
     pub fn call_shape_changed(
         owners: HashMap<Rid, i32>,
         shape_rid: Rid,
-        physics_data: &mut PhysicsData,
+        physics_data: &mut PhysicsData
     ) {
         for (owner, _) in owners {
             let owner = physics_data.collision_objects.get_mut(&owner);
             if let Some(owner) = owner {
-                owner._shape_changed(shape_rid, physics_data);
+                owner._shape_changed(shape_rid, &mut physics_data.physics_engine, &mut physics_data.shapes, &mut physics_data.spaces);
             }
         }
     }

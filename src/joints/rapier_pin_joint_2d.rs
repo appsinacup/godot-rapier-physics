@@ -24,7 +24,7 @@ impl RapierPinJoint2D {
             motor_target_velocity: 0.0,
             motor_enabled: false,
             angular_limit_enabled: false,
-            base: RapierJointBase::new(invalid_handle(), ImpulseJointHandle::invalid()),
+            base: RapierJointBase::new(WorldHandle::default(), ImpulseJointHandle::invalid()),
         };
         let body_a_rid = body_a.get_base().get_rid();
         let body_b_rid = body_a.get_base().get_rid();
@@ -42,7 +42,7 @@ impl RapierPinJoint2D {
         let rapier_anchor_a = Vector::new(anchor_a.x, anchor_a.y);
         let rapier_anchor_b = Vector::new(anchor_b.x, anchor_b.y);
         let space_handle = body_a.get_base().get_space_handle();
-        let handle = joint_create_revolute(
+        let handle = physics_engine.joint_create_revolute(
             space_handle,
             body_a.get_base().get_body_handle(),
             body_b.get_base().get_body_handle(),
@@ -54,7 +54,6 @@ impl RapierPinJoint2D {
             0.0,
             false,
             true,
-            physics_engine,
         );
         return Self {
             angular_limit_lower: 0.0,
@@ -87,7 +86,7 @@ impl RapierPinJoint2D {
         if !self.base.is_valid() {
             return;
         }
-        joint_change_revolute_params(
+        physics_engine.joint_change_revolute_params(
             self.base.get_space_handle(),
             self.base.get_handle(),
             self.angular_limit_lower,
@@ -95,7 +94,6 @@ impl RapierPinJoint2D {
             self.angular_limit_enabled,
             self.motor_target_velocity,
             self.motor_enabled,
-            physics_engine,
         );
     }
 
@@ -126,7 +124,7 @@ impl RapierPinJoint2D {
         if !self.base.is_valid() {
             return;
         }
-        joint_change_revolute_params(
+        physics_engine.joint_change_revolute_params(
             self.base.get_space_handle(),
             self.base.get_handle(),
             self.angular_limit_lower,
@@ -134,7 +132,6 @@ impl RapierPinJoint2D {
             self.angular_limit_enabled,
             self.motor_target_velocity,
             self.motor_enabled,
-            physics_engine,
         );
     }
 

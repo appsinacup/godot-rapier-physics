@@ -98,8 +98,3 @@ impl RapierFluid {
         self.space
     }
 }
-impl Drop for RapierFluid {
-    fn drop(&mut self) {
-        // Cleanup code here
-    }
-}

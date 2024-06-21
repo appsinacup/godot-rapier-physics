@@ -5,6 +5,7 @@ use rapier::dynamics::ImpulseJointHandle;
 use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 use super::rapier_joint::RapierJointBase;
 use super::rapier_pin_joint_2d::RapierPinJoint2D;
+use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::bodies::vector_normalized;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
@@ -18,24 +19,23 @@ impl RapierGrooveJoint2D {
         p_a_groove1: Vector,
         p_a_groove2: Vector,
         p_b_anchor: Vector,
-        body_a: Rid,
-        body_b: Rid,
-        physics_data: &mut PhysicsData,
+        body_a: &Box<dyn IRapierCollisionObject>, body_b: &Box<dyn IRapierCollisionObject>,
+        physics_engine: &mut PhysicsEngine,
     ) -> Self {
         let invalid_joint = Self {
-            base: RapierJointBase::new(invalid_handle(), ImpulseJointHandle::invalid()),
+            base: RapierJointBase::new(WorldHandle::default(), ImpulseJointHandle::invalid()),
         };
-        if body_a == body_b {
+        let body_a_rid = body_a.get_base().get_rid();
+        let body_b_rid = body_a.get_base().get_rid();
+        if body_a_rid == body_b_rid {
             return invalid_joint;
         }
-        if let Some(body_a) = physics_data.collision_objects.get(&body_a) {
-            if let Some(body_b) = physics_data.collision_objects.get(&body_b) {
-                if !body_a.get_base().is_valid()
-                    || !body_b.get_base().is_valid()
-                    || body_a.get_base().get_space_handle() != body_b.get_base().get_space_handle()
-                {
-                    return invalid_joint;
-                }
+        if !body_a.get_base().is_valid()
+            || !body_b.get_base().is_valid()
+            || body_a.get_base().get_space_handle() != body_b.get_base().get_space_handle()
+        {
+            return invalid_joint;
+        }
                 let base_a = body_a.get_base();
                 let point_a_1 = base_a.get_inv_transform() * p_a_groove1;
                 let point_a_2 = base_a.get_inv_transform() * p_a_groove2;
@@ -48,7 +48,7 @@ impl RapierGrooveJoint2D {
                 let anchor_b = base_b.get_inv_transform() * p_b_anchor;
                 let rapier_anchor_b = vector_to_rapier(anchor_b);
                 let space_handle = body_a.get_base().get_space_handle();
-                let handle = joint_create_prismatic(
+                let handle = physics_engine.joint_create_prismatic(
                     space_handle,
                     body_a.get_base().get_body_handle(),
                     body_b.get_base().get_body_handle(),
@@ -57,14 +57,10 @@ impl RapierGrooveJoint2D {
                     rapier_anchor_b,
                     rapier_limits,
                     true,
-                    &mut physics_data.physics_engine,
                 );
                 return Self {
                     base: RapierJointBase::new(space_handle, handle),
                 };
-            }
-        }
-        invalid_joint
     }
 }
 impl IRapierJoint for RapierGrooveJoint2D {

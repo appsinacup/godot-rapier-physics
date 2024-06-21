@@ -7,6 +7,7 @@ use godot::engine::native::PhysicsServer2DExtensionMotionResult;
 use godot::engine::physics_server_2d::AreaParameter;
 use godot::engine::utilities::rid_allocate_id;
 use godot::engine::utilities::rid_from_int64;
+use godot::engine::DampedSpringJoint2D;
 use godot::prelude::*;
 use hashbrown::HashMap;
 use rapier::dynamics::ImpulseJointHandle;
@@ -137,7 +138,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let mut owners = None;
         if let Some(shape) = self.physics_data.shapes.get_mut(&shape) {
             shape.set_data(data, &mut self.physics_data.physics_engine);
-            if shape.get_handle().is_valid() {
+            if shape.get_base().is_valid() {
                 owners = Some(shape.get_base().get_owners().clone());
             }
         }
@@ -157,7 +158,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
 
     fn shape_get_data(&self, shape: Rid) -> Variant {
         if let Some(shape) = self.physics_data.shapes.get(&shape) {
-            if shape.get_base().get_handle().is_valid() {
+            if shape.get_base().is_valid() {
                 return shape.get_data();
             }
         }
@@ -187,7 +188,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let [shape_a, shape_b] = result.unwrap();
         let shape_a_handle = shape_a.get_base().get_handle();
         let shape_b_handle = shape_b.get_base().get_handle();
-        if !shape_a_handle.is_valid() || !shape_b_handle.is_valid() {
+        if !shape_a.get_base().is_valid() || !shape_b.get_base().is_valid() {
             return false;
         }
         let shape_a_info = shape_info_from_body_shape(shape_a_handle, xform_a);
@@ -215,7 +216,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
 
     fn space_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
-        let space = RapierSpace::new(rid, &mut self.physics_data);
+        let space = RapierSpace::new(rid, &mut self.physics_data.physics_engine);
         self.physics_data.spaces.insert(rid, space);
         rid
     }
@@ -299,7 +300,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
 
     fn area_set_space(&mut self, area: Rid, space: Rid) {
         if let Some(area) = self.physics_data.collision_objects.get_mut(&area) {
-            area.set_space(space, self.physics_data);
+            area.set_space(space, &mut self.physics_data);
         }
     }
 
@@ -312,25 +313,25 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
 
     fn area_add_shape(&mut self, area: Rid, shape: Rid, transform: Transform2D, disabled: bool) {
         if let Some(area) = self.physics_data.collision_objects.get_mut(&area) {
-            area.add_shape(shape, transform, disabled);
+            area.add_shape(shape, transform, disabled, &mut self.physics_data);
         }
     }
 
     fn area_set_shape(&mut self, area: Rid, shape_idx: i32, shape: Rid) {
         if let Some(area) = self.physics_data.collision_objects.get_mut(&area) {
-            area.set_shape(shape_idx as usize, shape);
+            area.set_shape(shape_idx as usize, shape, &mut self.physics_data);
         }
     }
 
     fn area_set_shape_transform(&mut self, area: Rid, shape_idx: i32, transform: Transform2D) {
         if let Some(area) = self.physics_data.collision_objects.get_mut(&area) {
-            area.set_shape_transform(shape_idx as usize, transform);
+            area.set_shape_transform(shape_idx as usize, transform, &mut self.physics_data);
         }
     }
 
     fn area_set_shape_disabled(&mut self, area: Rid, shape_idx: i32, disabled: bool) {
         if let Some(area) = self.physics_data.collision_objects.get_mut(&area) {
-            area.set_shape_disabled(shape_idx as usize, disabled);
+            area.set_shape_disabled(shape_idx as usize, disabled, &mut self.physics_data);
         }
     }
 
@@ -615,7 +616,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_remove_shape(&mut self, body: Rid, shape_idx: i32) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.remove_shape_idx(shape_idx as usize);
+                body.remove_shape_idx(shape_idx as usize, &mut self.physics_data.physics_engine, &mut self.physics_data.spaces, &mut self.physics_data.shapes);
             }
         }
     }
@@ -623,7 +624,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_clear_shapes(&mut self, body: Rid) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             while body.get_base().get_shape_count() > 0 {
-                body.remove_shape_idx(0);
+                body.remove_shape_idx(0, &mut self.physics_data.physics_engine, &mut self.physics_data.spaces, &mut self.physics_data.shapes);
             }
         }
     }
@@ -663,6 +664,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             if let Some(body) = body.get_mut_body() {
                 body.set_continuous_collision_detection_mode(
                     mode != classes::physics_server_2d::CcdMode::DISABLED,
+                    &mut self.physics_data.physics_engine
                 );
             }
         }
@@ -729,7 +731,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     ) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_param(param, value);
+                body.set_param(param, value, self.physics_data);
             }
         }
     }
@@ -763,7 +765,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     ) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_state(state, value);
+                body.set_state(state, value, self.physics_data.physics_engine);
             }
         }
     }
@@ -771,7 +773,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_get_state(&self, body: Rid, state: classes::physics_server_2d::BodyState) -> Variant {
         if let Some(body) = self.physics_data.collision_objects.get(&body) {
             if let Some(body) = body.get_body() {
-                return body.get_state(state);
+                return body.get_state(state, &mut self.physics_data.physics_engine);
             }
         }
         Variant::nil()
@@ -780,7 +782,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_apply_central_impulse(&mut self, body: Rid, impulse: Vector2) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.apply_central_impulse(impulse);
+                body.apply_central_impulse(impulse, &mut self.physics_data.physics_engine);
             }
         }
     }
@@ -788,7 +790,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_apply_torque_impulse(&mut self, body: Rid, impulse: f32) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.apply_torque_impulse(impulse);
+                body.apply_torque_impulse(impulse, &mut self.physics_data.physics_engine);
             }
         }
     }
@@ -796,7 +798,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_apply_impulse(&mut self, body: Rid, impulse: Vector2, position: Vector2) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.apply_impulse(impulse, position);
+                body.apply_impulse(impulse, position, &mut self.physics_data.physics_engine);
             }
         }
     }
@@ -804,7 +806,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_apply_central_force(&mut self, body: Rid, force: Vector2) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.apply_central_force(force);
+                body.apply_central_force(force, &mut self.physics_data.physics_engine);
             }
         }
     }
@@ -812,7 +814,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_apply_force(&mut self, body: Rid, force: Vector2, position: Vector2) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.apply_force(force, position);
+                body.apply_force(force, position, &mut self.physics_data.physics_engine);
             }
         }
     }
@@ -820,7 +822,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_apply_torque(&mut self, body: Rid, torque: f32) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.apply_torque(torque);
+                body.apply_torque(torque, &mut self.physics_data.physics_engine);
             }
         }
     }
@@ -828,7 +830,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_add_constant_central_force(&mut self, body: Rid, force: Vector2) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.add_constant_central_force(force);
+                body.add_constant_central_force(force, &mut self.physics_data.physics_engine);
             }
         }
     }
@@ -836,7 +838,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_add_constant_force(&mut self, body: Rid, force: Vector2, position: Vector2) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.add_constant_force(force, position);
+                body.add_constant_force(force, position, &mut self.physics_data.physics_engine);
             }
         }
     }
@@ -844,7 +846,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_add_constant_torque(&mut self, body: Rid, torque: f32) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.add_constant_torque(torque);
+                body.add_constant_torque(torque, &mut self.physics_data.physics_engine);
             }
         }
     }
@@ -852,7 +854,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_set_constant_force(&mut self, body: Rid, force: Vector2) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_constant_force(force);
+                body.set_constant_force(force, &mut self.physics_data.physics_engine);
             }
         }
     }
@@ -860,7 +862,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_get_constant_force(&self, body: Rid) -> Vector2 {
         if let Some(body) = self.physics_data.collision_objects.get(&body) {
             if let Some(body) = body.get_body() {
-                return body.get_constant_force();
+                return body.get_constant_force(&self.physics_data.physics_engine);
             }
         }
         Vector2::default()
@@ -869,7 +871,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_set_constant_torque(&mut self, body: Rid, torque: f32) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_constant_torque(torque);
+                body.set_constant_torque(torque, &mut self.physics_data.physics_engine);
             }
         }
     }
@@ -877,7 +879,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_get_constant_torque(&self, body: Rid) -> f32 {
         if let Some(body) = self.physics_data.collision_objects.get(&body) {
             if let Some(body) = body.get_body() {
-                return body.get_constant_torque();
+                return body.get_constant_torque(&self.physics_data.physics_engine);
             }
         }
         0.0
@@ -900,7 +902,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.add_exception(excepted_body);
-                body.wakeup();
+                body.wakeup(&mut self.physics_data.physics_engine);
             }
         }
     }
@@ -1156,27 +1158,20 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         body_a: Rid,
         body_b: Rid,
     ) {
-        let mut joint = RapierGrooveJoint2D::new(
-            a_groove1,
-            a_groove2,
-            b_anchor,
-            body_a,
-            body_b,
-            &mut self.physics_data,
-        );
-        if let Some(prev_joint) = self.physics_data.joints.remove(&rid) {
-            joint
-                .get_mut_base()
-                .copy_settings_from(prev_joint.get_base(), &mut self.physics_data.physics_engine);
-            // insert old one back
-            if joint.get_base().get_handle() == ImpulseJointHandle::invalid() {
-                self.physics_data.joints.insert(rid, prev_joint);
-                return;
+        let mut joint: Box<dyn IRapierJoint>;
+        if let Some(body_a) = self.physics_data.collision_objects.get(&body_a)
+        && let Some(body_b) = self.physics_data.collision_objects.get(&body_b) {
+            joint = Box::new(RapierGrooveJoint2D::new(a_groove1, a_groove2, b_anchor, body_a, body_b, &mut self.physics_data.physics_engine));
+            
+            if let Some(prev_joint) = self.physics_data.joints.remove(&rid) {
+                joint
+                    .get_mut_base()
+                    .copy_settings_from(prev_joint.get_base(), &mut self.physics_data.physics_engine);
             }
+        } else {
+            joint = Box::new(RapierEmptyJoint::new());
         }
-        if joint.get_base().get_handle() != ImpulseJointHandle::invalid() {
-            self.physics_data.joints.insert(rid, Box::new(joint));
-        }
+        self.physics_data.joints.insert(rid, joint);
     }
 
     fn joint_make_damped_spring(
@@ -1187,26 +1182,20 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         body_a: Rid,
         body_b: Rid,
     ) {
-        let mut joint = RapierDampedSpringJoint2D::new(
-            anchor_a,
-            anchor_b,
-            body_a,
-            body_b,
-            &mut self.physics_data,
-        );
-        if let Some(prev_joint) = self.physics_data.joints.remove(&rid) {
-            joint
-                .get_mut_base()
-                .copy_settings_from(prev_joint.get_base(), &mut self.physics_data.physics_engine);
-            // insert old one back
-            if joint.get_base().get_handle() == ImpulseJointHandle::invalid() {
-                self.physics_data.joints.insert(rid, prev_joint);
-                return;
+        let mut joint: Box<dyn IRapierJoint>;
+        if let Some(body_a) = self.physics_data.collision_objects.get(&body_a)
+        && let Some(body_b) = self.physics_data.collision_objects.get(&body_b) {
+            joint = Box::new(RapierDampedSpringJoint2D::new(anchor_a, anchor_b, body_a, body_b, &mut self.physics_data.physics_engine));
+            
+            if let Some(prev_joint) = self.physics_data.joints.remove(&rid) {
+                joint
+                    .get_mut_base()
+                    .copy_settings_from(prev_joint.get_base(), &mut self.physics_data.physics_engine);
             }
+        } else {
+            joint = Box::new(RapierEmptyJoint::new());
         }
-        if joint.get_base().get_handle() != ImpulseJointHandle::invalid() {
-            self.physics_data.joints.insert(rid, Box::new(joint));
-        }
+        self.physics_data.joints.insert(rid, joint);
     }
 
     fn pin_joint_set_flag(
@@ -1298,15 +1287,15 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         if let Some(shape) = self.physics_data.shapes.remove(&rid) {
             for (owner, _) in shape.get_base().get_owners() {
                 if let Some(body) = self.physics_data.collision_objects.get_mut(owner) {
-                    body.remove_shape_rid(shape.get_base().get_rid());
+                    body.remove_shape_rid(shape.get_base().get_rid(), &mut self.physics_data.physics_engine, &mut self.physics_data.spaces, &mut self.physics_data.shapes);
                 }
             }
             return;
         }
         if let Some(mut body) = self.physics_data.collision_objects.remove(&rid) {
-            body.set_space(Rid::Invalid);
+            body.set_space(Rid::Invalid, &mut self.physics_data);
             while body.get_base().get_shape_count() > 0 {
-                body.remove_shape_idx(0);
+                body.remove_shape_idx(0, &mut self.physics_data.physics_engine, &mut self.physics_data.spaces, &mut self.physics_data.shapes);
             }
             return;
         }

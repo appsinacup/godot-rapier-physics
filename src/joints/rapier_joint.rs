@@ -45,7 +45,7 @@ impl RapierJointBase {
         self.handle
     }
 
-    pub fn get_space_handle(&self) -> Handle {
+    pub fn get_space_handle(&self) -> WorldHandle {
         self.space_handle
     }
 
@@ -58,7 +58,7 @@ impl RapierJointBase {
     }
 
     pub fn is_valid(&self) -> bool {
-        self.space_handle.is_valid() && self.handle != ImpulseJointHandle::invalid()
+        self.space_handle != WorldHandle::default() && self.handle != ImpulseJointHandle::invalid()
     }
 
     pub fn disable_collisions_between_bodies(
@@ -68,11 +68,10 @@ impl RapierJointBase {
     ) {
         self.disabled_collisions_between_bodies = disabled;
         if self.is_valid() {
-            joint_change_disable_collision(
+            physics_engine.joint_change_disable_collision(
                 self.space_handle,
                 self.handle,
                 self.disabled_collisions_between_bodies,
-                physics_engine,
             );
         }
     }
@@ -94,7 +93,7 @@ impl RapierJointBase {
     }
 
     pub fn joint_destroy(&self, physics_engine: &mut PhysicsEngine) {
-        joint_destroy(self.space_handle, self.handle, physics_engine);
+        physics_engine.joint_destroy(self.space_handle, self.handle);
     }
 }
 pub struct RapierEmptyJoint {
@@ -103,7 +102,7 @@ pub struct RapierEmptyJoint {
 impl RapierEmptyJoint {
     pub fn new() -> Self {
         Self {
-            base: RapierJointBase::new(invalid_handle(), ImpulseJointHandle::invalid()),
+            base: RapierJointBase::new(WorldHandle::default(), ImpulseJointHandle::invalid()),
         }
     }
 }

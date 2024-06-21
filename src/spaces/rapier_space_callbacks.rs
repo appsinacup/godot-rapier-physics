@@ -2,7 +2,7 @@ use std::mem::swap;
 
 use godot::prelude::*;
 use rapier::utils::SimdBasis;
-use servers::rapier_physics_server_extra::PhysicsData;
+use servers::rapier_physics_server_extra::{PhysicsCollisionObjects, PhysicsData};
 
 use super::rapier_space::RapierSpace;
 use crate::bodies::rapier_collision_object::*;
@@ -25,82 +25,73 @@ impl Default for CollidersInfo {
     }
 }
 impl RapierSpace {
-    pub fn active_body_callback(&mut self, active_body_info: &ActiveBodyInfo, physics_data: &mut PhysicsData) {
+    pub fn active_body_callback(&mut self, active_body_info: &ActiveBodyInfo, physics_collision_objects: &mut PhysicsCollisionObjects) {
         let (rid, _) =
             RapierCollisionObject::get_collider_user_data(&active_body_info.body_user_data);
-        if let Some(body) = physics_data.collision_objects.get_mut(&rid) {
-            if let Some(body) = body.get_mut_body() {
+        if let Some(body) = physics_collision_objects.get_mut(&rid)
+        && let Some(body) = body.get_mut_body() {
                 body.on_marked_active(self);
-            }
         }
     }
 
     pub fn collision_filter_common_callback(
         filter_info: &CollisionFilterInfo,
         r_colliders_info: &mut CollidersInfo,
-        physics_data: &PhysicsData,
+        physics_collision_objects: &PhysicsCollisionObjects,
     ) -> bool {
         (r_colliders_info.object1, r_colliders_info.shape1) =
             RapierCollisionObject::get_collider_user_data(&filter_info.user_data1);
         (r_colliders_info.object2, r_colliders_info.shape2) =
             RapierCollisionObject::get_collider_user_data(&filter_info.user_data2);
-        if let Some(body1) = physics_data
-            .collision_objects
+        if let Some(body1) = physics_collision_objects
             .get(&r_colliders_info.object1)
-        {
-            if let Some(body2) = physics_data
-                .collision_objects
+            && let Some(body2) = physics_collision_objects
                 .get(&r_colliders_info.object2)
             {
                 return body1.get_base().interacts_with(body2.get_base());
             }
-        }
         false
     }
 
     pub fn collision_filter_body_callback(
         filter_info: &CollisionFilterInfo,
-        physics_data: &PhysicsData,
+        physics_collision_objects: &PhysicsCollisionObjects,
     ) -> bool {
         let mut colliders_info = CollidersInfo::default();
-        if !Self::collision_filter_common_callback(filter_info, &mut colliders_info, physics_data) {
+        if !Self::collision_filter_common_callback(filter_info, &mut colliders_info, physics_collision_objects) {
             return false;
         }
-        if let Some(body1) = physics_data.collision_objects.get(&colliders_info.object1) {
-            if let Some(body1) = body1.get_body() {
-                if let Some(body2) = physics_data.collision_objects.get(&colliders_info.object2) {
-                    if let Some(body2) = body2.get_body() {
+        if let Some(body1) = physics_collision_objects.get(&colliders_info.object1)
+        && let Some(body1) = body1.get_body()
+        && let Some(body2) = physics_collision_objects.get(&colliders_info.object2)
+        && let Some(body2) = body2.get_body() {
                         if body1.has_exception(body2.get_base().get_rid())
                             || body2.has_exception(body1.get_base().get_rid())
                         {
                             return false;
                         }
-                    }
-                }
-            }
         }
         true
     }
 
     pub fn collision_filter_sensor_callback(
         filter_info: &CollisionFilterInfo,
-        physics_data: &PhysicsData,
+        physics_collision_objects: &PhysicsCollisionObjects,
     ) -> bool {
         let mut colliders_info = CollidersInfo::default();
-        Self::collision_filter_common_callback(filter_info, &mut colliders_info, &physics_data)
+        Self::collision_filter_common_callback(filter_info, &mut colliders_info, &physics_collision_objects)
     }
 
     pub fn collision_modify_contacts_callback(
         filter_info: &CollisionFilterInfo,
-        physics_data: &mut PhysicsData,
+        physics_collision_objects: &mut PhysicsCollisionObjects,
     ) -> OneWayDirection {
         let mut result = OneWayDirection::default();
         let (object1, shape1) =
             RapierCollisionObject::get_collider_user_data(&filter_info.user_data1);
         let (object2, shape2) =
             RapierCollisionObject::get_collider_user_data(&filter_info.user_data2);
-        if let Some([collision_object_1, collision_object_2]) = physics_data
-            .collision_objects
+        if let Some([collision_object_1, collision_object_2]) = physics_collision_objects
             .get_many_mut([&object1, &object2])
         {
             let collision_base_1 = collision_object_1.get_base();
@@ -143,7 +134,7 @@ impl RapierSpace {
     pub fn collision_event_callback(
         event_info: &CollisionEventInfo,
         space: &mut RapierSpace,
-        physics_data: &mut PhysicsData,
+        physics_collision_objects: &mut PhysicsCollisionObjects,
     ) {
         let (mut p_object1, mut shape1) =
             RapierCollisionObject::get_collider_user_data(&event_info.user_data1);
@@ -155,7 +146,7 @@ impl RapierSpace {
         let (mut instance_id1, mut instance_id2) = (0, 0);
         let (mut type1, mut type2) = (CollisionObjectType::Area, CollisionObjectType::Area);
         if event_info.is_removed {
-            if let Some(body) = physics_data.collision_objects.get(&p_object1) {
+            if let Some(body) = physics_collision_objects.get(&p_object1) {
                 rid1 = body.get_base().get_rid();
                 instance_id1 = body.get_base().get_instance_id();
                 type1 = body.get_base().get_type();
@@ -167,7 +158,7 @@ impl RapierSpace {
                 type1 = removed_collider_info_1.collision_object_type;
                 shape1 = removed_collider_info_1.shape_index;
             }
-            if let Some(body) = physics_data.collision_objects.get(&p_object2) {
+            if let Some(body) = physics_collision_objects.get(&p_object2) {
                 rid2 = body.get_base().get_rid();
                 instance_id2 = body.get_base().get_instance_id();
                 type2 = body.get_base().get_type();
@@ -180,12 +171,12 @@ impl RapierSpace {
                 shape2 = removed_collider_info_2.shape_index;
             }
         } else {
-            if let Some(body) = physics_data.collision_objects.get(&p_object1) {
+            if let Some(body) = physics_collision_objects.get(&p_object1) {
                 rid1 = body.get_base().get_rid();
                 instance_id1 = body.get_base().get_instance_id();
                 type1 = body.get_base().get_type();
             }
-            if let Some(body) = physics_data.collision_objects.get(&p_object2) {
+            if let Some(body) = physics_collision_objects.get(&p_object2) {
                 rid2 = body.get_base().get_rid();
                 instance_id2 = body.get_base().get_instance_id();
                 type2 = body.get_base().get_type();
@@ -214,21 +205,20 @@ impl RapierSpace {
             }
             let mut p_collision_object1 = None;
             let mut p_collision_object2 = None;
-            if physics_data.collision_objects.contains_key(&p_object1)
-                && physics_data.collision_objects.contains_key(&p_object2)
+            if physics_collision_objects.contains_key(&p_object1)
+                && physics_collision_objects.contains_key(&p_object2)
             {
-                if let Some([p_object1, p_object2]) = physics_data
-                    .collision_objects
+                if let Some([p_object1, p_object2]) = physics_collision_objects
                     .get_many_mut([&p_object1, &p_object2])
                 {
                     p_collision_object1 = Some(p_object1);
                     p_collision_object2 = Some(p_object2);
                 }
-            } else if physics_data.collision_objects.contains_key(&p_object1) {
-                if let Some(p_object1) = physics_data.collision_objects.get_mut(&p_object1) {
+            } else if physics_collision_objects.contains_key(&p_object1) {
+                if let Some(p_object1) = physics_collision_objects.get_mut(&p_object1) {
                     p_collision_object1 = Some(p_object1);
                 }
-            } else if let Some(p_object2) = physics_data.collision_objects.get_mut(&p_object2) {
+            } else if let Some(p_object2) = physics_collision_objects.get_mut(&p_object2) {
                 p_collision_object2 = Some(p_object2);
             }
             // collision object 1 area
@@ -348,19 +338,19 @@ impl RapierSpace {
     pub fn contact_force_event_callback(
         event_info: &ContactForceEventInfo,
         space: &mut RapierSpace,
-        physics_data: &PhysicsData,
+        physics_collision_objects: &mut PhysicsCollisionObjects,
     ) -> bool {
         let mut send_contacts = space.is_debugging_contacts();
         let (p_object1, _) = RapierCollisionObject::get_collider_user_data(&event_info.user_data1);
         let (p_object2, _) = RapierCollisionObject::get_collider_user_data(&event_info.user_data2);
-        if let Some(body1) = physics_data.collision_objects.get(&p_object1) {
+        if let Some(body1) = physics_collision_objects.get(&p_object1) {
             if let Some(body1) = body1.get_body() {
                 if body1.can_report_contacts() {
                     send_contacts = true;
                 }
             }
         }
-        if let Some(body2) = physics_data.collision_objects.get(&p_object2) {
+        if let Some(body2) = physics_collision_objects.get(&p_object2) {
             if let Some(body2) = body2.get_body() {
                 if body2.can_report_contacts() {
                     send_contacts = true;
@@ -374,7 +364,7 @@ impl RapierSpace {
         contact_info: &ContactPointInfo,
         event_info: &ContactForceEventInfo,
         space: &mut RapierSpace,
-        physics_data: &mut PhysicsData,
+        physics_collision_objects: &mut PhysicsCollisionObjects,
     ) -> bool {
         let pos1 = contact_info.pixel_local_pos_1;
         let pos2 = contact_info.pixel_local_pos_2;
@@ -388,8 +378,7 @@ impl RapierSpace {
             RapierCollisionObject::get_collider_user_data(&event_info.user_data1);
         let (p_object2, shape2) =
             RapierCollisionObject::get_collider_user_data(&event_info.user_data2);
-        if let Some([p_object1, p_object2]) = physics_data
-            .collision_objects
+        if let Some([p_object1, p_object2]) = physics_collision_objects
             .get_many_mut([&p_object1, &p_object2])
         {
             let depth = real::max(0.0, -contact_info.pixel_distance); // negative distance means penetration

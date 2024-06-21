@@ -9,6 +9,7 @@ use rapier::geometry::ColliderHandle;
 use rapier::math::Real;
 use serde::*;
 use servers::rapier_physics_server_extra::PhysicsData;
+use servers::rapier_physics_server_extra::PhysicsShapes;
 use servers::rapier_physics_server_extra::PhysicsSpaces;
 
 use super::rapier_area::RapierArea;
@@ -153,17 +154,17 @@ impl RapierBody {
         }
     }
 
-    fn _mass_properties_changed(&mut self, physics_data: &mut PhysicsData) {
+    fn _mass_properties_changed(&mut self, physics_spaces: &mut PhysicsSpaces, physics_engine: &mut PhysicsEngine) {
         if self.base.mode.ord() < BodyMode::RIGID.ord() {
             return;
         }
         if self.calculate_inertia || self.calculate_center_of_mass {
-            if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
+            if let Some(space) = physics_spaces.get_mut(&self.base.get_space()) {
                 space.body_add_to_mass_properties_update_list(self.base.get_rid());
                 self.mass_properties_update_pending = true;
             }
         } else {
-            self._apply_mass_properties(false, &mut physics_data.physics_engine);
+            self._apply_mass_properties(false, physics_engine);
         }
     }
 
@@ -188,18 +189,19 @@ impl RapierBody {
         );
     }
 
-    fn _shapes_changed(&mut self, physics_data: &mut PhysicsData) {
-        self._mass_properties_changed(physics_data);
-        self.wakeup(&mut physics_data.physics_engine);
+    fn _shapes_changed(&mut self, physics_engine: &mut PhysicsEngine, physics_spaces: &mut PhysicsSpaces) {
+        self._mass_properties_changed(physics_spaces, physics_engine);
+        self.wakeup(physics_engine);
     }
 
     fn _apply_linear_damping(
         &mut self,
         new_value: real,
         apply_default: bool,
-        physics_data: &mut PhysicsData,
+        physics_engine: &PhysicsEngine,
+        physics_spaces: &PhysicsSpaces,
     ) {
-        if let Some(space) = physics_data.spaces.get(&self.base.get_space()) {
+        if let Some(space) = physics_spaces.get(&self.base.get_space()) {
             self.total_linear_damping = new_value;
             if apply_default {
                 let linear_damp: real = space
@@ -207,7 +209,7 @@ impl RapierBody {
                     .to();
                 self.total_linear_damping += linear_damp;
             }
-            physics_data.physics_engine.body_set_linear_damping(
+            physics_engine.body_set_linear_damping(
                 self.base.get_space_handle(),
                 self.base.get_body_handle(),
                 self.total_linear_damping,
@@ -219,9 +221,10 @@ impl RapierBody {
         &mut self,
         new_value: real,
         apply_default: bool,
-        physics_data: &mut PhysicsData,
+        physics_engine: &PhysicsEngine,
+        physics_spaces: &PhysicsSpaces,
     ) {
-        if let Some(space) = physics_data.spaces.get(&self.base.get_space()) {
+        if let Some(space) = physics_spaces.get(&self.base.get_space()) {
             self.total_angular_damping = new_value;
             if apply_default {
                 let angular_damp: real = space
@@ -229,7 +232,7 @@ impl RapierBody {
                     .to();
                 self.total_angular_damping += angular_damp;
             }
-            physics_data.physics_engine.body_set_angular_damping(
+            physics_engine.body_set_angular_damping(
                 self.base.get_space_handle(),
                 self.base.get_body_handle(),
                 self.total_angular_damping,
@@ -642,19 +645,22 @@ impl RapierBody {
         self.omit_force_integration
     }
 
-    pub fn apply_central_impulse(&mut self, p_impulse: Vector, physics_data: &mut PhysicsData) {
+    pub fn force_mass_update(&mut self, physics_spaces: &mut PhysicsSpaces, physics_shapes: &mut PhysicsShapes, physics_engine: &mut PhysicsEngine) {
+        if self.mass_properties_update_pending {
+            // Force update internal mass properties to calculate proper impulse
+            if let Some(space) = physics_spaces.get_mut(&self.base.get_space()) {
+                space.body_remove_from_mass_properties_update_list(self.base.get_rid());
+            }
+            self.update_mass_properties(true, physics_shapes, physics_engine);
+        }
+    }
+
+    pub fn apply_central_impulse(&mut self, p_impulse: Vector, physics_engine: &mut PhysicsEngine) {
         if !self.base.is_valid() {
             self.impulse += p_impulse;
             return;
         }
-        if self.mass_properties_update_pending {
-            // Force update internal mass properties to calculate proper impulse
-            if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
-                space.body_remove_from_mass_properties_update_list(self.base.get_rid());
-            }
-            self.update_mass_properties(true, physics_data);
-        }
-        physics_data.physics_engine.body_apply_impulse(
+        physics_engine.body_apply_impulse(
             self.base.get_space_handle(),
             self.base.get_body_handle(),
             vector_to_rapier(p_impulse),
@@ -666,21 +672,14 @@ impl RapierBody {
         &mut self,
         p_impulse: Vector,
         p_position: Vector,
-        physics_data: &mut PhysicsData,
+        physics_engine: &mut PhysicsEngine,
     ) {
         if !self.base.is_valid() {
             self.impulse += p_impulse;
             self.torque += (p_position - self.get_center_of_mass()).cross(p_impulse);
             return;
         }
-        if self.mass_properties_update_pending {
-            // Force update internal mass properties to calculate proper impulse
-            if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
-                space.body_remove_from_mass_properties_update_list(self.base.get_rid());
-            }
-            self.update_mass_properties(true, physics_data);
-        }
-        physics_data.physics_engine.body_apply_impulse_at_point(
+        physics_engine.body_apply_impulse_at_point(
             self.base.get_space_handle(),
             self.base.get_body_handle(),
             vector_to_rapier(p_impulse),
@@ -690,19 +689,12 @@ impl RapierBody {
         self.torque = ANGLE_ZERO;
     }
 
-    pub fn apply_torque_impulse(&mut self, p_torque: Angle, physics_data: &mut PhysicsData) {
+    pub fn apply_torque_impulse(&mut self, p_torque: Angle, physics_engine: &mut PhysicsEngine) {
         if !self.base.is_valid() {
             self.torque += p_torque;
             return;
         }
-        if self.mass_properties_update_pending {
-            // Force update internal mass properties to calculate proper impulse
-            if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
-                space.body_remove_from_mass_properties_update_list(self.base.get_rid());
-            }
-            self.update_mass_properties(true, physics_data);
-        }
-        physics_data.physics_engine.body_apply_torque_impulse(
+        physics_engine.body_apply_torque_impulse(
             self.base.get_space_handle(),
             self.base.get_body_handle(),
             angle_to_rapier(p_torque),
@@ -710,21 +702,14 @@ impl RapierBody {
         self.torque = ANGLE_ZERO;
     }
 
-    pub fn apply_central_force(&mut self, p_force: Vector, physics_data: &mut PhysicsData) {
+    pub fn apply_central_force(&mut self, p_force: Vector, physics_engine: &mut PhysicsEngine) {
         // Note: using last delta assuming constant physics time
         let last_delta = RapierSpace::get_last_step();
         if !self.base.is_valid() {
             self.impulse += p_force * last_delta;
             return;
         }
-        if self.mass_properties_update_pending {
-            // Force update internal mass properties to calculate proper impulse
-            if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
-                space.body_remove_from_mass_properties_update_list(self.base.get_rid());
-            }
-            self.update_mass_properties(true, physics_data);
-        }
-        physics_data.physics_engine.body_apply_impulse(
+        physics_engine.body_apply_impulse(
             self.base.get_space_handle(),
             self.base.get_body_handle(),
             vector_to_rapier(p_force * last_delta),
@@ -736,7 +721,7 @@ impl RapierBody {
         &mut self,
         p_force: Vector,
         p_position: Vector,
-        physics_data: &mut PhysicsData,
+        physics_engine: &mut PhysicsEngine,
     ) {
         // Note: using last delta assuming constant physics time
         let last_delta = RapierSpace::get_last_step();
@@ -745,14 +730,7 @@ impl RapierBody {
             self.torque += (p_position - self.get_center_of_mass()).cross(p_force) * last_delta;
             return;
         }
-        if self.mass_properties_update_pending {
-            // Force update internal mass properties to calculate proper impulse
-            if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
-                space.body_remove_from_mass_properties_update_list(self.base.get_rid());
-            }
-            self.update_mass_properties(true, physics_data);
-        }
-        physics_data.physics_engine.body_apply_impulse_at_point(
+        physics_engine.body_apply_impulse_at_point(
             self.base.get_space_handle(),
             self.base.get_body_handle(),
             vector_to_rapier(p_force * last_delta),
@@ -762,21 +740,14 @@ impl RapierBody {
         self.torque = ANGLE_ZERO;
     }
 
-    pub fn apply_torque(&mut self, p_torque: Angle, physics_data: &mut PhysicsData) {
+    pub fn apply_torque(&mut self, p_torque: Angle, physics_engine: &mut PhysicsEngine) {
         // Note: using last delta assuming constant physics time
         let last_delta = RapierSpace::get_last_step();
         if !self.base.is_valid() {
             self.torque += p_torque * last_delta;
             return;
         }
-        if self.mass_properties_update_pending {
-            // Force update internal mass properties to calculate proper impulse
-            if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
-                space.body_remove_from_mass_properties_update_list(self.base.get_rid());
-            }
-            self.update_mass_properties(true, physics_data);
-        }
-        physics_data.physics_engine.body_apply_torque_impulse(
+        physics_engine.body_apply_torque_impulse(
             self.base.get_space_handle(),
             self.base.get_body_handle(),
             angle_to_rapier(p_torque * last_delta),
@@ -784,19 +755,12 @@ impl RapierBody {
         self.torque = ANGLE_ZERO;
     }
 
-    pub fn add_constant_central_force(&mut self, p_force: Vector, physics_data: &mut PhysicsData) {
+    pub fn add_constant_central_force(&mut self, p_force: Vector, physics_engine: &mut PhysicsEngine) {
         self.constant_force += p_force;
         if !self.base.is_valid() {
             return;
         }
-        if self.mass_properties_update_pending {
-            // Force update internal mass properties to calculate proper impulse
-            if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
-                space.body_remove_from_mass_properties_update_list(self.base.get_rid());
-            }
-            self.update_mass_properties(true, physics_data);
-        }
-        physics_data.physics_engine.body_add_force(
+        physics_engine.body_add_force(
             self.base.get_space_handle(),
             self.base.get_body_handle(),
             vector_to_rapier(p_force),
@@ -807,21 +771,14 @@ impl RapierBody {
         &mut self,
         p_force: Vector,
         p_position: Vector,
-        physics_data: &mut PhysicsData,
+        physics_engine: &mut PhysicsEngine,
     ) {
         self.constant_torque += (p_position - self.get_center_of_mass()).cross(p_force);
         self.constant_force += p_force;
         if !self.base.is_valid() {
             return;
         }
-        if self.mass_properties_update_pending {
-            // Force update internal mass properties to calculate proper impulse
-            if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
-                space.body_remove_from_mass_properties_update_list(self.base.get_rid());
-            }
-            self.update_mass_properties(true, physics_data);
-        }
-        physics_data.physics_engine.body_add_force_at_point(
+        physics_engine.body_add_force_at_point(
             self.base.get_space_handle(),
             self.base.get_body_handle(),
             vector_to_rapier(p_force),
@@ -829,42 +786,28 @@ impl RapierBody {
         );
     }
 
-    pub fn add_constant_torque(&mut self, p_torque: Angle, physics_data: &mut PhysicsData) {
+    pub fn add_constant_torque(&mut self, p_torque: Angle, physics_engine: &mut PhysicsEngine) {
         self.constant_torque += p_torque;
         if !self.base.is_valid() {
             return;
         }
-        if self.mass_properties_update_pending {
-            // Force update internal mass properties to calculate proper impulse
-            if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
-                space.body_remove_from_mass_properties_update_list(self.base.get_rid());
-            }
-            self.update_mass_properties(true, physics_data);
-        }
-        physics_data.physics_engine.body_add_torque(
+        physics_engine.body_add_torque(
             self.base.get_space_handle(),
             self.base.get_body_handle(),
             angle_to_rapier(p_torque),
         );
     }
 
-    pub fn set_constant_force(&mut self, p_force: Vector, physics_data: &mut PhysicsData) {
+    pub fn set_constant_force(&mut self, p_force: Vector, physics_engine: &mut PhysicsEngine) {
         self.constant_force = p_force;
         if !self.base.is_valid() {
             return;
         }
-        if self.mass_properties_update_pending {
-            // Force update internal mass properties to calculate proper impulse
-            if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
-                space.body_remove_from_mass_properties_update_list(self.base.get_rid());
-            }
-            self.update_mass_properties(true, physics_data);
-        }
-        physics_data.physics_engine.body_reset_forces(
+        physics_engine.body_reset_forces(
             self.base.get_space_handle(),
             self.base.get_body_handle(),
         );
-        physics_data.physics_engine.body_add_force(
+        physics_engine.body_add_force(
             self.base.get_space_handle(),
             self.base.get_body_handle(),
             vector_to_rapier(p_force),
@@ -873,42 +816,35 @@ impl RapierBody {
 
     pub fn get_constant_force(
         &self,
-        physics_data: &mut PhysicsData,
+        physics_engine: &PhysicsEngine,
     ) -> Vector {
         if !self.base.is_valid() {
             return self.constant_force;
         }
-        let force = physics_data.physics_engine.body_get_constant_force(
+        let force = physics_engine.body_get_constant_force(
             self.base.get_space_handle(),
             self.base.get_body_handle(),
         );
         vector_to_godot(force)
     }
 
-    pub fn set_constant_torque(&mut self, p_torque: Angle, physics_data: &mut PhysicsData) {
+    pub fn set_constant_torque(&mut self, p_torque: Angle, physics_engine: &mut PhysicsEngine) {
         self.constant_torque = p_torque;
         if !self.base.is_valid() {
             return;
         }
-        if self.mass_properties_update_pending {
-            // Force update internal mass properties to calculate proper impulse
-            if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
-                space.body_remove_from_mass_properties_update_list(self.base.get_rid());
-            }
-            self.update_mass_properties(true, physics_data);
-        }
-        physics_data.physics_engine.body_reset_torques(
+        physics_engine.body_reset_torques(
             self.base.get_space_handle(),
             self.base.get_body_handle(),
         );
-        physics_data.physics_engine.body_add_torque(
+        physics_engine.body_add_torque(
             self.base.get_space_handle(),
             self.base.get_body_handle(),
             angle_to_rapier(p_torque),
         );
     }
 
-    pub fn get_constant_torque(&self, physics_engine: &mut PhysicsEngine) -> Angle {
+    pub fn get_constant_torque(&self, physics_engine: &PhysicsEngine) -> Angle {
         if !self.base.is_valid() {
             return self.constant_torque;
         }
@@ -1311,7 +1247,7 @@ impl RapierBody {
         self.ccd_enabled
     }
 
-    pub fn update_mass_properties(&mut self, force_update: bool, physics_data: &mut PhysicsData) {
+    pub fn update_mass_properties(&mut self, force_update: bool, physics_shapes: &mut PhysicsShapes, physics_engine: &mut PhysicsEngine) {
         self.mass_properties_update_pending = false;
         if self.base.mode.ord() < BodyMode::RIGID.ord() {
             return;
@@ -1322,7 +1258,7 @@ impl RapierBody {
             if self.base.is_shape_disabled(i) {
                 continue;
             }
-            if let Some(shape) = physics_data.shapes.get(&self.base.get_shape(i)) {
+            if let Some(shape) = physics_shapes.get(&self.base.get_shape(i)) {
                 total_area += shape.get_base().get_aabb_area();
             }
         }
@@ -1333,7 +1269,7 @@ impl RapierBody {
                     if self.base.is_shape_disabled(i) {
                         continue;
                     }
-                    if let Some(shape) = physics_data.shapes.get(&self.base.get_shape(i)) {
+                    if let Some(shape) = physics_shapes.get(&self.base.get_shape(i)) {
                         let shape_area = shape.get_base().get_aabb_area();
                         if shape_area == 0.0 || self.mass == 0.0 {
                             continue;
@@ -1353,7 +1289,7 @@ impl RapierBody {
                     if self.base.is_shape_disabled(i) {
                         continue;
                     }
-                    if let Some(shape) = physics_data.shapes.get(&self.base.get_shape(i)) {
+                    if let Some(shape) = physics_shapes.get(&self.base.get_shape(i)) {
                         let shape_area = shape.get_base().get_aabb_area();
                         if shape_area == 0.0 || self.mass == 0.0 {
                             continue;
@@ -1371,7 +1307,7 @@ impl RapierBody {
                 }
             }
         }
-        self._apply_mass_properties(force_update, &mut physics_data.physics_engine);
+        self._apply_mass_properties(force_update, physics_engine);
     }
 
     #[cfg(feature = "dim2")]
@@ -1481,7 +1417,7 @@ impl RapierBody {
         linear_velocity + angular_velocity.cross(rel_pos - self.center_of_mass)
     }
 
-    pub fn get_aabb(&self, physics_data: &PhysicsData) -> Rect {
+    pub fn get_aabb(&self, physics_shapes: &PhysicsShapes) -> Rect {
         let mut shapes_found = false;
         let mut body_aabb = Rect::default();
         let shape_count = self.base.get_shape_count() as usize;
@@ -1489,7 +1425,7 @@ impl RapierBody {
             if self.base.is_shape_disabled(i) {
                 continue;
             }
-            if let Some(shape) = physics_data.shapes.get(&self.base.get_shape(i)) {
+            if let Some(shape) = physics_shapes.get(&self.base.get_shape(i)) {
                 if !shapes_found {
                     // TODO not 100% correct, we don't take into consideration rotation here.
                     body_aabb = shape
@@ -1560,9 +1496,9 @@ impl IRapierCollisionObject for RapierBody {
         }
     }
 
-    fn set_space(&mut self, space: Rid, physics_data: &mut PhysicsData) {
+    fn set_space(&mut self, space: Rid, physics_spaces: &mut PhysicsSpaces, physics_engine: &mut PhysicsEngine) {
         // delete previous space
-        if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
+        if let Some(space) = physics_spaces.get_mut(&self.base.get_space()) {
             space.body_remove_from_mass_properties_update_list(self.base.get_rid());
             space.body_remove_from_gravity_update_list(self.base.get_rid());
             space.body_remove_from_active_list(self.base.get_rid());
@@ -1575,45 +1511,45 @@ impl IRapierCollisionObject for RapierBody {
             && self.base.mode.ord() >= BodyMode::KINEMATIC.ord()
         {
             if !self.can_sleep {
-                self.set_can_sleep(false, &mut physics_data.physics_engine);
+                self.set_can_sleep(false, &mut physics_engine);
             }
             if self.active || !self.sleep {
-                self.wakeup(&mut physics_data.physics_engine);
-                if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
+                self.wakeup(&mut physics_engine);
+                if let Some(space) = physics_spaces.get_mut(&self.base.get_space()) {
                     space.body_add_to_active_list(self.base.get_rid());
                 }
             } else if self.can_sleep && self.sleep {
-                self.force_sleep(&mut physics_data.physics_engine);
+                self.force_sleep(&mut physics_engine);
             }
             if self.base.mode.ord() >= BodyMode::RIGID.ord() {
-                self._apply_gravity_scale(self.gravity_scale, &mut physics_data.physics_engine);
+                self._apply_gravity_scale(self.gravity_scale, &mut physics_engine);
                 if self.linear_damping_mode == BodyDampMode::COMBINE {
                     self._apply_linear_damping(self.linear_damping, true, physics_data);
                 }
                 if self.angular_damping_mode == BodyDampMode::COMBINE {
                     self._apply_angular_damping(self.angular_damping, true, physics_data);
                 }
-                self._mass_properties_changed(physics_data);
+                self._mass_properties_changed(physics_spaces, physics_engine);
                 if self.linear_velocity != Vector::default() {
-                    self.set_linear_velocity(self.linear_velocity, &mut physics_data.physics_engine);
+                    self.set_linear_velocity(self.linear_velocity, &mut physics_engine);
                 }
                 if self.angular_velocity != ANGLE_ZERO {
-                    self.set_angular_velocity(self.angular_velocity, &mut physics_data.physics_engine);
+                    self.set_angular_velocity(self.angular_velocity, &mut physics_engine);
                 }
                 if self.constant_force != Vector::default() {
-                    self.set_constant_force(self.constant_force, physics_data);
+                    self.set_constant_force(self.constant_force, &mut physics_engine);
                 }
                 if self.constant_torque != ANGLE_ZERO {
-                    self.set_constant_torque(self.constant_torque, physics_data);
+                    self.set_constant_torque(self.constant_torque, &mut physics_engine);
                 }
                 if self.impulse != Vector::default() {
-                    self.apply_impulse(self.impulse, Vector::default(), physics_data);
+                    self.apply_impulse(self.impulse, Vector::default(), &mut physics_engine);
                 }
                 if self.torque != ANGLE_ZERO {
-                    self.apply_torque_impulse(self.torque, physics_data);
+                    self.apply_torque_impulse(self.torque, &mut physics_engine);
                 }
-                self.set_continuous_collision_detection_mode(self.ccd_enabled, &mut physics_data.physics_engine);
-                physics_data.physics_engine.body_update_material(
+                self.set_continuous_collision_detection_mode(self.ccd_enabled, &mut physics_engine);
+                physics_engine.body_update_material(
                     self.base.get_space_handle(),
                     self.base.get_body_handle(),
                     &self._init_material(),
@@ -1643,7 +1579,7 @@ impl IRapierCollisionObject for RapierBody {
         p_shape: godot::prelude::Rid,
         p_transform: Transform,
         p_disabled: bool,
-        physics_data: &mut PhysicsData,
+        physics_engine: &mut PhysicsEngine, physics_spaces: &mut PhysicsSpaces, physics_shapes: &mut PhysicsShapes,
     ) {
         let mut shape = CollisionObjectShape {
             xform: p_transform,
@@ -1654,55 +1590,55 @@ impl IRapierCollisionObject for RapierBody {
             collider_handle: ColliderHandle::invalid(),
         };
         if !shape.disabled {
-            shape.collider_handle = self.create_shape(shape, self.base.shapes.len(), physics_data);
-            self.base.update_shape_transform(&shape, physics_data);
+            shape.collider_handle = self.create_shape(shape, self.base.shapes.len(), physics_engine, physics_shapes);
+            self.base.update_shape_transform(&shape, physics_engine, physics_shapes);
         }
         self.base.shapes.push(shape);
-        if let Some(shape) = physics_data.shapes.get_mut(&p_shape) {
+        if let Some(shape) = physics_shapes.get_mut(&p_shape) {
             shape.get_mut_base().add_owner(self.base.get_rid());
         }
         if self.base.is_space_valid() {
-            self._shapes_changed(physics_data);
+            self._shapes_changed(physics_engine, physics_spaces);
         }
     }
 
-    fn set_shape(&mut self, p_index: usize, p_shape: Rid, physics_data: &mut PhysicsData) {
+    fn set_shape(&mut self, p_index: usize, p_shape: Rid, physics_engine: &mut PhysicsEngine, physics_spaces: &mut PhysicsSpaces, physics_shapes: &mut PhysicsShapes) {
         if p_index >= self.base.shapes.len() {
             return;
         }
         self.base.shapes[p_index].collider_handle =
-            self.base._destroy_shape(self.base.shapes[p_index], p_index, physics_data);
+            self.base._destroy_shape(self.base.shapes[p_index], p_index, physics_spaces, physics_engine);
         let shape = self.base.shapes[p_index];
-        if let Some(shape) = physics_data.shapes.get_mut(&shape.shape) {
+        if let Some(shape) = physics_shapes.get_mut(&shape.shape) {
             shape.get_mut_base().remove_owner(self.base.get_rid());
         }
         self.base.shapes[p_index].shape = p_shape;
-        if let Some(shape) = physics_data.shapes.get_mut(&p_shape) {
+        if let Some(shape) = physics_shapes.get_mut(&p_shape) {
             shape.get_mut_base().add_owner(self.base.get_rid());
         }
         if !shape.disabled {
             self.base
-                ._create_shape(shape, p_index, self._init_material(), physics_data);
-            self.base.update_shape_transform(&shape, physics_data);
+                ._create_shape(shape, p_index, self._init_material(), physics_engine, physics_shapes);
+            self.base.update_shape_transform(&shape, physics_engine, physics_shapes);
         }
         if self.base.is_space_valid() {
-            self._shapes_changed(physics_data);
+            self._shapes_changed(physics_engine, physics_spaces);
         }
     }
 
-    fn set_shape_transform(&mut self, p_index: usize, p_transform: Transform, physics_data: &mut PhysicsData) {
+    fn set_shape_transform(&mut self, p_index: usize, p_transform: Transform, physics_engine: &mut PhysicsEngine, physics_spaces: &mut PhysicsSpaces, physics_shapes: &mut PhysicsShapes) {
         if p_index >= self.base.shapes.len() {
             return;
         }
         self.base.shapes[p_index].xform = p_transform;
         let shape = &self.base.shapes[p_index];
-        self.base.update_shape_transform(shape, physics_data);
+        self.base.update_shape_transform(shape, physics_engine, physics_shapes);
         if self.base.is_space_valid() {
-            self._shapes_changed(physics_data);
+            self._shapes_changed(physics_engine, physics_spaces);
         }
     }
 
-    fn set_shape_disabled(&mut self, p_index: usize, p_disabled: bool, physics_data: &mut PhysicsData) {
+    fn set_shape_disabled(&mut self, p_index: usize, p_disabled: bool, physics_engine: &mut PhysicsEngine, physics_spaces: &mut PhysicsSpaces, physics_shapes: &mut PhysicsShapes) {
         if p_index >= self.base.shapes.len() {
             return;
         }
@@ -1712,47 +1648,47 @@ impl IRapierCollisionObject for RapierBody {
             return;
         }
         if shape.disabled {
-            self.base.shapes[p_index].collider_handle = self.base._destroy_shape(shape, p_index, physics_data);
+            self.base.shapes[p_index].collider_handle = self.base._destroy_shape(shape, p_index, physics_spaces, physics_engine);
         }
         if !shape.disabled {
             self.base
-                ._create_shape(shape, p_index, self._init_material(), physics_data);
-            self.base.update_shape_transform(&shape, physics_data);
+                ._create_shape(shape, p_index, self._init_material(), physics_engine, physics_shapes);
+            self.base.update_shape_transform(&shape, physics_engine, physics_shapes);
         }
         if self.base.is_space_valid() {
-            self._shapes_changed(physics_data);
+            self._shapes_changed(physics_engine, physics_spaces);
         }
     }
 
-    fn remove_shape_rid(&mut self, shape: Rid, physics_data: &mut PhysicsData) {
+    fn remove_shape_rid(&mut self, shape: Rid, physics_engine: &mut PhysicsEngine, physics_spaces: &mut PhysicsSpaces, physics_shapes: &mut PhysicsShapes) {
         // remove a shape, all the times it appears
         let mut i = 0;
         while i < self.base.shapes.len() {
             if self.base.shapes[i].shape == shape {
-                self.remove_shape_idx(i, physics_data);
+                self.remove_shape_idx(i, physics_engine, physics_spaces, physics_shapes);
             } else {
                 i += 1;
             }
         }
     }
 
-    fn remove_shape_idx(&mut self, p_index: usize, physics_data: &mut PhysicsData) {
+    fn remove_shape_idx(&mut self, p_index: usize, physics_engine: &mut PhysicsEngine, physics_spaces: &mut PhysicsSpaces, physics_shapes: &mut PhysicsShapes) {
         // remove anything from shape to be erased to end, so subindices don't change
         if p_index >= self.base.shapes.len() {
             return;
         }
         let shape = &self.base.shapes[p_index];
         if !shape.disabled {
-            self.base._destroy_shape(*shape, p_index, physics_data);
+            self.base._destroy_shape(*shape, p_index, physics_spaces, physics_engine);
         }
         let shape = &mut self.base.shapes[p_index];
         shape.collider_handle = ColliderHandle::invalid();
-        if let Some(shape) = physics_data.shapes.get_mut(&shape.shape) {
+        if let Some(shape) = physics_shapes.get_mut(&shape.shape) {
             shape.get_mut_base().remove_owner(self.base.get_rid());
         }
         self.base.shapes.remove(p_index);
         if self.base.is_space_valid() {
-            self._shapes_changed(physics_data);
+            self._shapes_changed(physics_engine, physics_spaces);
         }
     }
 
@@ -1760,14 +1696,15 @@ impl IRapierCollisionObject for RapierBody {
         &mut self,
         shape: CollisionObjectShape,
         p_shape_index: usize,
-        physics_data: &mut PhysicsData,
+        physics_engine: &mut PhysicsEngine,
+        physics_shapes: &mut PhysicsShapes
     ) -> ColliderHandle {
         if !self.base.is_space_valid() {
             return ColliderHandle::invalid();
         }
         let mat = self._init_material();
-        let handle = self.base._create_shape(shape, p_shape_index, mat, physics_data);
-        self._init_collider(handle, self.base.get_space_handle(), &mut physics_data.physics_engine);
+        let handle = self.base._create_shape(shape, p_shape_index, mat, physics_engine, physics_shapes);
+        self._init_collider(handle, self.base.get_space_handle(), physics_engine);
         handle
     }
 
@@ -1779,28 +1716,25 @@ impl IRapierCollisionObject for RapierBody {
         }
     }
 
-    fn _shapes_changed(&mut self, physics_data: &mut PhysicsData) {
-        self._mass_properties_changed(physics_data);
-        self.wakeup(&mut physics_data.physics_engine);
+    fn _shapes_changed(&mut self, physics_spaces: &mut PhysicsSpaces, physics_engine: &mut PhysicsEngine) {
+        self._mass_properties_changed(physics_spaces, physics_engine);
+        self.wakeup(physics_engine);
     }
 
-    fn _shape_changed(&mut self, p_shape: Rid, physics_data: &mut PhysicsData) {
-        if !self.base.is_space_valid() {
-            return;
-        }
+    fn _shape_changed(&mut self, p_shape: Rid, physics_engine: &mut PhysicsEngine, physics_shapes: &mut PhysicsShapes, physics_spaces: &mut PhysicsSpaces) {
         for i in 0..self.base.shapes.len() {
             let shape = self.base.shapes[i];
             if shape.shape != p_shape || shape.disabled {
                 continue;
             }
             if self.base.shapes[i].collider_handle != ColliderHandle::invalid() {
-                self.base.shapes[i].collider_handle = self.base._destroy_shape(shape, i, physics_data);
+                self.base.shapes[i].collider_handle = self.base._destroy_shape(shape, i, physics_spaces, physics_engine);
             }
             self.base
-                ._create_shape(self.base.shapes[i], i, self._init_material(), physics_data);
-            self.base.update_shape_transform(&self.base.shapes[i], physics_data);
+                ._create_shape(self.base.shapes[i], i, self._init_material(), physics_engine, physics_shapes);
+            self.base.update_shape_transform(&self.base.shapes[i], physics_engine, physics_shapes);
         }
-        self._shapes_changed(physics_data);
+        self._shapes_changed(physics_engine, physics_spaces);
     }
 }
 impl Drop for RapierBody {

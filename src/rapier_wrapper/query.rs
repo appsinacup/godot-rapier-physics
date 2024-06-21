@@ -372,40 +372,43 @@ pub fn intersect_aabb(
     }
     cpt_hit
 }
-pub fn shapes_contact(
-    shape_info1: ShapeInfo,
-    shape_info2: ShapeInfo,
-    margin: Real,
-    physics_engine: &mut PhysicsEngine,
-) -> ContactResult {
-    let mut result = ContactResult::default();
-    //let prediction = Real::max(0.002, margin);
-    let prediction = margin;
-    if let Some(raw_shared_shape1) = physics_engine.get_shape(shape_info1.handle) {
-        let shared_shape1 = scale_shape(raw_shared_shape1, shape_info1);
-        if let Some(raw_shared_shape2) = physics_engine.get_shape(shape_info2.handle) {
-            let shared_shape2 = scale_shape(raw_shared_shape2, shape_info2);
-            let shape_transform1 = shape_info1.transform;
-            let shape_transform2 = shape_info2.transform;
-            if let Ok(Some(contact)) = parry::query::contact(
-                &shape_transform1,
-                shared_shape1.as_ref(),
-                &shape_transform2,
-                shared_shape2.as_ref(),
-                prediction,
-            ) {
-                // the distance is negative if there is intersection
-                // and positive if the objects are separated by distance less than margin
-                result.pixel_distance = contact.dist;
-                result.within_margin = contact.dist > 0.0;
-                result.collided = true;
-                result.normal1 = contact.normal1.into_inner();
-                result.normal2 = contact.normal2.into_inner();
-                result.pixel_point1 = (contact.point1 + contact.normal1.mul(prediction)).coords;
-                result.pixel_point2 = contact.point2.coords;
-                return result;
+impl PhysicsEngine {
+    pub fn shapes_contact(
+        &self,
+        shape_info1: ShapeInfo,
+        shape_info2: ShapeInfo,
+        margin: Real,
+    ) -> ContactResult {
+        let mut result = ContactResult::default();
+        //let prediction = Real::max(0.002, margin);
+        let prediction = margin;
+        if let Some(raw_shared_shape1) = self.get_shape(shape_info1.handle) {
+            let shared_shape1 = scale_shape(raw_shared_shape1, shape_info1);
+            if let Some(raw_shared_shape2) = self.get_shape(shape_info2.handle) {
+                let shared_shape2 = scale_shape(raw_shared_shape2, shape_info2);
+                let shape_transform1 = shape_info1.transform;
+                let shape_transform2 = shape_info2.transform;
+                if let Ok(Some(contact)) = parry::query::contact(
+                    &shape_transform1,
+                    shared_shape1.as_ref(),
+                    &shape_transform2,
+                    shared_shape2.as_ref(),
+                    prediction,
+                ) {
+                    // the distance is negative if there is intersection
+                    // and positive if the objects are separated by distance less than margin
+                    result.pixel_distance = contact.dist;
+                    result.within_margin = contact.dist > 0.0;
+                    result.collided = true;
+                    result.normal1 = contact.normal1.into_inner();
+                    result.normal2 = contact.normal2.into_inner();
+                    result.pixel_point1 = (contact.point1 + contact.normal1.mul(prediction)).coords;
+                    result.pixel_point2 = contact.point2.coords;
+                    return result;
+                }
             }
         }
+        result
     }
-    result
+    
 }

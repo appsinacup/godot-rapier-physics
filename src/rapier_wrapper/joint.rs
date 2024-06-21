@@ -116,7 +116,6 @@ impl PhysicsEngine {
         stiffness: Real,
         damping: Real,
         rest_length: Real,
-        physics_engine: &mut PhysicsEngine,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(joint) = physics_world
@@ -141,7 +140,6 @@ impl PhysicsEngine {
         world_handle: WorldHandle,
         joint_handle: ImpulseJointHandle,
         disable_collision: bool,
-        physics_engine: &mut PhysicsEngine,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(joint) = physics_world
