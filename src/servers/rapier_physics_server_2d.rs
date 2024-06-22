@@ -513,7 +513,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
 
     fn body_set_space(&mut self, body: Rid, space: Rid) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
-            body.set_space(space);
+            body.set_space(space, &mut self.physics_data);
         }
     }
 
@@ -527,7 +527,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_set_mode(&mut self, body: Rid, mode: classes::physics_server_2d::BodyMode) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_mode(mode);
+                body.set_mode(mode, &mut self.physics_data.physics_engine, &mut self.physics_data.spaces);
             }
         }
     }
@@ -544,7 +544,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_add_shape(&mut self, body: Rid, shape: Rid, transform: Transform2D, disabled: bool) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.add_shape(shape, transform, disabled);
+                body.add_shape(shape, transform, disabled, &mut self.physics_data.physics_engine, &mut self.physics_data.spaces, &mut self.physics_data.shapes);
             }
         }
     }
@@ -552,7 +552,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_set_shape(&mut self, body: Rid, shape_idx: i32, shape: Rid) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_shape(shape_idx as usize, shape);
+                body.set_shape(shape_idx as usize, shape, &mut self.physics_data.physics_engine, &mut self.physics_data.spaces, &mut self.physics_data.shapes);
             }
         }
     }
@@ -560,7 +560,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_set_shape_transform(&mut self, body: Rid, shape_idx: i32, transform: Transform2D) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_shape_transform(shape_idx as usize, transform);
+                body.set_shape_transform(shape_idx as usize, transform, &mut self.physics_data.physics_engine, &mut self.physics_data.spaces, &mut self.physics_data.shapes);
             }
         }
     }
@@ -595,7 +595,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_set_shape_disabled(&mut self, body: Rid, shape_idx: i32, disabled: bool) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_shape_disabled(shape_idx as usize, disabled);
+                body.set_shape_disabled(shape_idx as usize, disabled, &mut self.physics_data.physics_engine, &mut self.physics_data.spaces, &mut self.physics_data.shapes);
             }
         }
     }
@@ -741,7 +741,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     ) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_param(param, value, self.physics_data);
+                body.set_param(param, value, &mut self.physics_data.physics_engine, &mut self.physics_data.spaces);
             }
         }
     }
@@ -762,7 +762,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_reset_mass_properties(&mut self, body: Rid) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.reset_mass_properties(self.physics_data);
+                body.reset_mass_properties(&mut self.physics_data.physics_engine, &mut self.physics_data.spaces);
             }
         }
     }
@@ -775,7 +775,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     ) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_state(state, value, self.physics_data.physics_engine);
+                body.set_state(state, value, &mut self.physics_data.physics_engine, &mut self.physics_data.spaces);
             }
         }
     }
@@ -783,7 +783,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_get_state(&self, body: Rid, state: classes::physics_server_2d::BodyState) -> Variant {
         if let Some(body) = self.physics_data.collision_objects.get(&body) {
             if let Some(body) = body.get_body() {
-                return body.get_state(state, &mut self.physics_data.physics_engine);
+                return body.get_state(state, &self.physics_data.physics_engine);
             }
         }
         Variant::nil()
@@ -1378,90 +1378,12 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         self.active_objects = 0;
         self.collision_pairs = 0;
         for space_rid in self.physics_data.active_spaces.values() {
-            let body_area_update_list;
-            let gravity_update_list;
-            let space_handle;
-            let default_gravity_dir;
-            let default_gravity_value: real;
-            if let Some(space) = self.physics_data.spaces.get_mut(space_rid) {
-                body_area_update_list = space.get_body_area_update_list().clone();
-                gravity_update_list = space.get_gravity_update_list().clone();
-                default_gravity_value = space.get_default_area_param(AreaParameter::GRAVITY).to();
-                default_gravity_dir = space
-                    .get_default_area_param(AreaParameter::GRAVITY_VECTOR)
-                    .to();
-                space_handle = space.get_handle();
-                space.before_step();
-                for body in space.get_active_list() {
-                    if let Some(body) = self.physics_data.collision_objects.get_mut(body) {
-                        if let Some(body) = body.get_mut_body() {
-                            body.reset_contact_count();
-                        }
-                    }
-                }
-                for body in space.get_mass_properties_update_list() {
-                    if let Some(body) = self.physics_data.collision_objects.get_mut(body) {
-                        if let Some(body) = body.get_mut_body() {
-                            body.update_mass_properties(false);
-                        }
-                    }
-                }
-                space.reset_mass_properties_update_list();
-                for area in space.get_area_update_list().clone() {
-                    if let Some(area) = self.physics_data.collision_objects.get_mut(&area) {
-                        if let Some(area) = area.get_mut_area() {
-                            area.update_area_override(space);
-                        }
-                    }
-                }
-            } else {
-                continue;
+            if let Some(space_rid) = space_rid {
             }
-            for body in body_area_update_list {
-                if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
-                    if let Some(body) = body.get_mut_body() {
-                        body.update_area_override();
-                    }
-                }
-            }
-            for body in gravity_update_list {
-                if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
-                    if let Some(body) = body.get_mut_body() {
-                        body.update_gravity(step);
-                    }
-                }
-            }
-            //let default_linear_damping: real = project_settings.get_setting_with_override("physics/2d/default_linear_damp".into()).to();
-            //let default_angular_damping: real = project_settings.get_setting_with_override("physics/2d/default_angular_damp".into()).to();
-            let settings = SimulationSettings {
-                pixel_liquid_gravity: vector_to_rapier(default_gravity_dir) * default_gravity_value,
-                dt: step,
-                length_unit: self.length_unit,
-                pixel_gravity: vector_to_rapier(default_gravity_dir) * default_gravity_value,
-                max_ccd_substeps: self.max_ccd_substeps,
-                num_additional_friction_iterations: self.num_additional_friction_iterations,
-                num_internal_pgs_iterations: self.num_internal_pgs_iterations,
-                num_solver_iterations: self.num_solver_iterations,
-            };
-            if let Some(space) = self.physics_data.spaces.get_mut(space_rid) {
-                // this calls into rapier
-                world_step(
-                    space_handle,
-                    &settings,
-                    RapierSpace::collision_filter_body_callback,
-                    RapierSpace::collision_filter_sensor_callback,
-                    RapierSpace::collision_modify_contacts_callback,
-                    RapierSpace::collision_event_callback,
-                    RapierSpace::contact_force_event_callback,
-                    RapierSpace::contact_point_callback,
-                    space,
-                    &mut self.physics_data,
-                );
-                space.after_step(&mut self.physics_data);
-                self.island_count += space.get_island_count();
-                self.active_objects += space.get_active_objects();
-                self.collision_pairs += space.get_collision_pairs();
-            }
+            self.island_count += space.get_island_count();
+            self.active_objects += space.get_active_objects();
+            self.collision_pairs += space.get_collision_pairs();
+            RapierSpace::step(step, space_rid, &mut self.physics_data, self.length_unit);
         }
     }
 

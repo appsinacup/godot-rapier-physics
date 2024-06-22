@@ -97,15 +97,17 @@ impl RapierSpace {
 
     pub fn collision_modify_contacts_callback(
         filter_info: &CollisionFilterInfo,
-        physics_collision_objects: &mut PhysicsCollisionObjects,
+        physics_collision_objects: &PhysicsCollisionObjects,
     ) -> OneWayDirection {
         let mut result = OneWayDirection::default();
         let (object1, shape1) =
             RapierCollisionObject::get_collider_user_data(&filter_info.user_data1);
         let (object2, shape2) =
             RapierCollisionObject::get_collider_user_data(&filter_info.user_data2);
-        if let Some([collision_object_1, collision_object_2]) =
-            physics_collision_objects.get_many_mut([&object1, &object2])
+        if let Some(collision_object_1) =
+            physics_collision_objects.get(&object1)
+            && let Some(collision_object_2) =
+            physics_collision_objects.get(&object2)
         {
             let collision_base_1 = collision_object_1.get_base();
             let collision_base_2 = collision_object_2.get_base();
@@ -119,34 +121,14 @@ impl RapierSpace {
                 result.body2 = collision_base_2.is_shape_set_as_one_way_collision(shape2);
                 result.pixel_body2_margin =
                     collision_base_2.get_shape_one_way_collision_margin(shape2);
-                if let Some(body1) = collision_object_1.get_mut_body() {
-                    if let Some(body2) = collision_object_2.get_mut_body() {
-                        let static_linear_velocity1 = body1.get_static_linear_velocity();
-                        let static_linear_velocity2 = body2.get_static_linear_velocity();
-                        if static_linear_velocity1 != Vector::default() {
-                            body2.to_add_static_constant_linear_velocity(static_linear_velocity1);
-                        }
-                        if static_linear_velocity2 != Vector::default() {
-                            body1.to_add_static_constant_linear_velocity(static_linear_velocity2);
-                        }
-                        let static_angular_velocity1 = body1.get_static_angular_velocity();
-                        let static_angular_velocity2 = body2.get_static_angular_velocity();
-                        if static_angular_velocity1 != ANGLE_ZERO {
-                            body2.to_add_static_constant_angular_velocity(static_angular_velocity1);
-                        }
-                        if static_angular_velocity2 != ANGLE_ZERO {
-                            body1.to_add_static_constant_angular_velocity(static_angular_velocity2);
-                        }
-                    }
-                }
             }
         }
         result
     }
 
     pub fn collision_event_callback(
+        &mut self,
         event_info: &CollisionEventInfo,
-        space: &mut RapierSpace,
         physics_collision_objects: &mut PhysicsCollisionObjects,
     ) {
         let (mut p_object1, mut shape1) =
@@ -164,7 +146,7 @@ impl RapierSpace {
                 instance_id1 = body.get_base().get_instance_id();
                 type1 = body.get_base().get_type();
             } else if let Some(removed_collider_info_1) =
-                space.get_removed_collider_info(&collider_handle1)
+                self.get_removed_collider_info(&collider_handle1)
             {
                 rid1 = removed_collider_info_1.rid;
                 instance_id1 = removed_collider_info_1.instance_id;
@@ -176,7 +158,7 @@ impl RapierSpace {
                 instance_id2 = body.get_base().get_instance_id();
                 type2 = body.get_base().get_type();
             } else if let Some(removed_collider_info_2) =
-                space.get_removed_collider_info(&collider_handle2)
+                self.get_removed_collider_info(&collider_handle2)
             {
                 rid2 = removed_collider_info_2.rid;
                 instance_id2 = removed_collider_info_2.instance_id;
@@ -247,7 +229,7 @@ impl RapierSpace {
                                 instance_id2,
                                 collider_handle1,
                                 shape1,
-                                space,
+                                self,
                             );
                         } else if event_info.is_stopped {
                             p_area1.on_area_exit(
@@ -258,7 +240,7 @@ impl RapierSpace {
                                 instance_id2,
                                 collider_handle1,
                                 shape1,
-                                space,
+                                self,
                             );
                         }
                     } else if event_info.is_started {
@@ -270,7 +252,7 @@ impl RapierSpace {
                             instance_id2,
                             collider_handle1,
                             shape1,
-                            space,
+                            self,
                         );
                     } else if event_info.is_stopped {
                         p_area1.on_body_exit(
@@ -281,7 +263,7 @@ impl RapierSpace {
                             instance_id2,
                             collider_handle1,
                             shape1,
-                            space,
+                            self,
                         );
                     }
                 }
@@ -299,7 +281,7 @@ impl RapierSpace {
                                 instance_id1,
                                 collider_handle2,
                                 shape2,
-                                space,
+                                self,
                             );
                         }
                         if event_info.is_stopped {
@@ -311,7 +293,7 @@ impl RapierSpace {
                                 instance_id1,
                                 collider_handle2,
                                 shape2,
-                                space,
+                                self,
                             );
                         }
                     } else {
@@ -324,7 +306,7 @@ impl RapierSpace {
                                 instance_id1,
                                 collider_handle2,
                                 shape2,
-                                space,
+                                self,
                             );
                         }
                         if event_info.is_stopped {
@@ -336,7 +318,7 @@ impl RapierSpace {
                                 instance_id1,
                                 collider_handle2,
                                 shape2,
-                                space,
+                                self,
                             );
                         }
                     }
@@ -349,11 +331,11 @@ impl RapierSpace {
     }
 
     pub fn contact_force_event_callback(
+        &mut self,
         event_info: &ContactForceEventInfo,
-        space: &mut RapierSpace,
         physics_collision_objects: &mut PhysicsCollisionObjects,
     ) -> bool {
-        let mut send_contacts = space.is_debugging_contacts();
+        let mut send_contacts = self.is_debugging_contacts();
         let (p_object1, _) = RapierCollisionObject::get_collider_user_data(&event_info.user_data1);
         let (p_object2, _) = RapierCollisionObject::get_collider_user_data(&event_info.user_data2);
         if let Some(body1) = physics_collision_objects.get(&p_object1) {
@@ -374,18 +356,18 @@ impl RapierSpace {
     }
 
     pub fn contact_point_callback(
+        &mut self,
         contact_info: &ContactPointInfo,
         event_info: &ContactForceEventInfo,
-        space: &mut RapierSpace,
         physics_collision_objects: &mut PhysicsCollisionObjects,
     ) -> bool {
         let pos1 = contact_info.pixel_local_pos_1;
         let pos2 = contact_info.pixel_local_pos_2;
         let mut keep_sending_contacts = false;
-        if space.is_debugging_contacts() {
+        if self.is_debugging_contacts() {
             keep_sending_contacts = true;
-            space.add_debug_contact(vector_to_godot(pos1));
-            space.add_debug_contact(vector_to_godot(pos2));
+            self.add_debug_contact(vector_to_godot(pos1));
+            self.add_debug_contact(vector_to_godot(pos2));
         }
         let (p_object1, shape1) =
             RapierCollisionObject::get_collider_user_data(&event_info.user_data1);
@@ -404,6 +386,23 @@ impl RapierSpace {
             let vel_pos2 = contact_info.pixel_velocity_pos_2;
             if let Some(body1) = p_object1.get_mut_body() {
                 if let Some(body2) = p_object2.get_mut_body() {
+                    let static_linvelocity_1 = body1.get_static_linear_velocity();
+                    let static_linvelocity_2= body2.get_static_linear_velocity();
+                    let static_angvelocity_1 = body1.get_static_angular_velocity();
+                    let static_angvelocity_2= body2.get_static_angular_velocity();
+                    if static_linvelocity_1 != Vector::ZERO {
+                        body2.to_add_static_constant_linear_velocity(static_linvelocity_1);
+                    }
+                    if static_linvelocity_2 != Vector::ZERO {
+                        body1.to_add_static_constant_linear_velocity(static_linvelocity_2);
+                    }
+                    if static_angvelocity_1 != ANGLE_ZERO {
+                        body2.to_add_static_constant_angular_velocity(static_angvelocity_1);
+                    }
+                    if static_angvelocity_2 != ANGLE_ZERO {
+                        body1.to_add_static_constant_angular_velocity(static_angvelocity_2);
+                    }
+
                     if body1.can_report_contacts() {
                         keep_sending_contacts = true;
                         let instance_id2 = body2.get_base().get_instance_id();

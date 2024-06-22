@@ -9,6 +9,7 @@ use serde::Deserialize;
 use serde::Serialize;
 
 use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_server_extra::PhysicsCollisionObjects;
 use crate::servers::rapier_physics_server_extra::PhysicsData;
 use crate::spaces::rapier_space::RapierSpace;
 pub struct ActiveBodyInfo {
@@ -102,11 +103,8 @@ impl PhysicsWorld {
         collision_filter_body_callback: CollisionFilterCallback,
         collision_filter_sensor_callback: CollisionFilterCallback,
         collision_modify_contacts_callback: CollisionModifyContactsCallback,
-        collision_event_callback: CollisionEventCallback,
-        contact_force_event_callback: ContactForceEventCallback,
-        contact_point_callback: ContactPointCallback,
         space: &mut RapierSpace,
-        physics_data: &mut PhysicsData,
+        physics_collision_objects: &mut PhysicsCollisionObjects,
     ) {
         let mut integration_parameters = IntegrationParameters::default();
         integration_parameters.length_unit = settings.length_unit;
@@ -125,6 +123,7 @@ impl PhysicsWorld {
             collision_filter_body_callback: &collision_filter_body_callback,
             collision_filter_sensor_callback: &collision_filter_sensor_callback,
             collision_modify_contacts_callback: &collision_modify_contacts_callback,
+            physics_collision_objects: &physics_collision_objects,
         };
         // Initialize the event collector.
         let (collision_send, collision_recv) = crossbeam::channel::unbounded();
@@ -158,7 +157,7 @@ impl PhysicsWorld {
             let active_body_info = ActiveBodyInfo {
                 body_user_data: self.get_rigid_body_user_data(*handle),
             };
-            space.active_body_callback(&active_body_info, physics_data);
+            space.active_body_callback(&active_body_info, physics_collision_objects);
         }
         for handle in self
             .physics_objects
@@ -169,7 +168,7 @@ impl PhysicsWorld {
             let active_body_info = ActiveBodyInfo {
                 body_user_data: self.get_rigid_body_user_data(*handle),
             };
-            space.active_body_callback(&active_body_info, physics_data);
+            space.active_body_callback(&active_body_info, physics_collision_objects);
         }
         while let Ok(collision_event) = collision_recv.try_recv() {
             let handle1 = collision_event.collider1();
@@ -185,7 +184,7 @@ impl PhysicsWorld {
                 user_data1: self.get_collider_user_data(handle1),
                 user_data2: self.get_collider_user_data(handle2),
             };
-            (collision_event_callback)(&event_info, space);
+            space.collision_event_callback(&event_info, physics_collision_objects);
         }
         while let Ok((contact_force_event, contact_pair)) = contact_force_recv.try_recv() {
             let collider1 = self
@@ -203,7 +202,7 @@ impl PhysicsWorld {
                 user_data1: UserData::new(collider1.user_data),
                 user_data2: UserData::new(collider2.user_data),
             };
-            let mut send_contact_points = (contact_force_event_callback)(&event_info, space);
+            let mut send_contact_points = space.contact_force_event_callback(&event_info, physics_collision_objects);
             if send_contact_points {
                 let body1: &RigidBody = self.get_collider_rigid_body(collider1).unwrap();
                 let body2: &RigidBody = self.get_collider_rigid_body(collider2).unwrap();
@@ -242,7 +241,7 @@ impl PhysicsWorld {
                         contact_info.pixel_impulse = contact_point.data.impulse;
                         contact_info.pixel_tangent_impulse = contact_point.data.tangent_impulse;
                         send_contact_points =
-                            (contact_point_callback)(&contact_info, &event_info, space);
+                            space.contact_point_callback(&contact_info, &event_info, physics_collision_objects);
                         if !send_contact_points {
                             break;
                         }
@@ -423,30 +422,26 @@ impl PhysicsEngine {
         }
         Vec::new()
     }
-}
-pub fn world_step(
-    world_handle: WorldHandle,
-    settings: &SimulationSettings,
-    collision_filter_body_callback: CollisionFilterCallback,
-    collision_filter_sensor_callback: CollisionFilterCallback,
-    collision_modify_contacts_callback: CollisionModifyContactsCallback,
-    collision_event_callback: CollisionEventCallback,
-    contact_force_event_callback: ContactForceEventCallback,
-    contact_point_callback: ContactPointCallback,
-    space: &mut RapierSpace,
-    physics_data: &mut PhysicsData,
-) {
-    if let Some(physics_world) = physics_data.physics_engine.get_mut_world(world_handle) {
-        physics_world.step(
-            settings,
-            collision_filter_body_callback,
-            collision_filter_sensor_callback,
-            collision_modify_contacts_callback,
-            collision_event_callback,
-            contact_force_event_callback,
-            contact_point_callback,
-            space,
-            physics_data,
-        );
+    pub fn world_step(
+        &mut self,
+        world_handle: WorldHandle,
+        settings: &SimulationSettings,
+        collision_filter_body_callback: CollisionFilterCallback,
+        collision_filter_sensor_callback: CollisionFilterCallback,
+        collision_modify_contacts_callback: CollisionModifyContactsCallback,
+        space: &mut RapierSpace,
+        physics_collision_objects: &mut PhysicsCollisionObjects,
+    ) {
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
+            physics_world.step(
+                settings,
+                collision_filter_body_callback,
+                collision_filter_sensor_callback,
+                collision_modify_contacts_callback,
+                space,
+                physics_collision_objects,
+            );
+        }
     }
+    
 }

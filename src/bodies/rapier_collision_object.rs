@@ -20,15 +20,18 @@ use super::rapier_area::RapierArea;
 use super::rapier_body::RapierBody;
 use crate::rapier_wrapper::prelude::*;
 use crate::*;
-pub trait IRapierCollisionObject: Any {
+pub trait IRapierCollisionObject: Sync {
     fn get_base(&self) -> &RapierCollisionObject;
     fn get_mut_base(&mut self) -> &mut RapierCollisionObject;
     fn get_body(&self) -> Option<&RapierBody>;
     fn get_area(&self) -> Option<&RapierArea>;
     fn get_mut_body(&mut self) -> Option<&mut RapierBody>;
     fn get_mut_area(&mut self) -> Option<&mut RapierArea>;
-    fn set_space(&mut self, space: Rid, physics_data: &mut PhysicsData);
-    fn recreate_shapes(&mut self, physics_data: &mut PhysicsData);
+    fn set_space(&mut self, space: Rid, 
+        physics_engine: &mut PhysicsEngine,
+        physics_spaces: &mut PhysicsSpaces,
+        physics_shapes: &mut PhysicsShapes,);
+    fn recreate_shapes(&mut self, physics_engine: &mut PhysicsEngine, physics_shapes: &mut PhysicsShapes);
     fn add_shape(
         &mut self,
         p_shape: Rid,
@@ -83,13 +86,13 @@ pub trait IRapierCollisionObject: Any {
         physics_engine: &mut PhysicsEngine,
         physics_shapes: &mut PhysicsShapes,
     ) -> ColliderHandle;
-    fn _init_material(&self) -> Material;
-    fn _shapes_changed(
+    fn init_material(&self) -> Material;
+    fn shapes_changed(
         &mut self,
-        physics_spaces: &mut PhysicsSpaces,
         physics_engine: &mut PhysicsEngine,
+        physics_spaces: &mut PhysicsSpaces,
     );
-    fn _shape_changed(
+    fn shape_changed(
         &mut self,
         p_shape: Rid,
         physics_engine: &mut PhysicsEngine,
@@ -169,7 +172,7 @@ impl RapierCollisionObject {
         }
     }
 
-    pub(crate) fn _create_shape(
+    pub(super) fn create_shape(
         &self,
         shape: CollisionObjectShape,
         p_shape_index: usize,
@@ -211,9 +214,9 @@ impl RapierCollisionObject {
         handle
     }
 
-    pub(crate) fn _destroy_shapes(&mut self, physics_data: &mut PhysicsData) {
+    pub(super) fn destroy_shapes(&mut self, physics_engine: &mut PhysicsEngine, physics_spaces: &mut PhysicsSpaces) {
         let mut i = 0;
-        if let Some(space) = physics_data.spaces.get_mut(&self.space) {
+        if let Some(space) = physics_spaces.get_mut(&self.space) {
             for shape in &mut self.shapes {
                 if shape.collider_handle == ColliderHandle::invalid() {
                     // skip
@@ -229,8 +232,7 @@ impl RapierCollisionObject {
                         self.collision_object_type,
                     );
                 }
-                physics_data
-                    .physics_engine
+                physics_engine
                     .collider_destroy(self.space_handle, shape.collider_handle);
                 shape.collider_handle = ColliderHandle::invalid();
             }
@@ -238,7 +240,7 @@ impl RapierCollisionObject {
         }
     }
 
-    pub(crate) fn _destroy_shape(
+    pub(super) fn destroy_shape(
         &self,
         shape: CollisionObjectShape,
         p_shape_index: usize,
@@ -263,7 +265,7 @@ impl RapierCollisionObject {
         ColliderHandle::invalid()
     }
 
-    pub(crate) fn update_shape_transform(
+    pub(super) fn update_shape_transform(
         &self,
         shape: &CollisionObjectShape,
         physics_engine: &mut PhysicsEngine,
@@ -287,7 +289,7 @@ impl RapierCollisionObject {
         }
     }
 
-    pub(crate) fn update_transform(&mut self, physics_engine: &mut PhysicsEngine) {
+    pub(super) fn update_transform(&mut self, physics_engine: &mut PhysicsEngine) {
         if !self.is_valid() {
             return;
         }
@@ -301,57 +303,55 @@ impl RapierCollisionObject {
         self.inv_transform = transform_inverse(&self.transform);
     }
 
-    pub(crate) fn _set_space(&mut self, p_space: Rid, physics_data: &mut PhysicsData) {
+    pub(super) fn set_space(&mut self, p_space: Rid, physics_engine: &mut PhysicsEngine, physics_spaces: &mut PhysicsSpaces) {
         // previous space
         if self.is_space_valid() {
             if self.is_body_valid() {
                 // This call also destroys the colliders
-                physics_data
-                    .physics_engine
+                physics_engine
                     .body_destroy(self.space_handle, self.body_handle);
                 self.body_handle = RigidBodyHandle::invalid();
             }
-            self._destroy_shapes(physics_data);
+            self.destroy_shapes(physics_engine, physics_spaces);
             // Reset area detection counter to keep it consistent for new detections
             self.area_detection_counter = 0;
         }
         self.space = p_space;
-        if let Some(space) = physics_data.spaces.get(&self.space) {
+        if let Some(space) = physics_spaces.get(&self.space) {
             self.space_handle = space.get_handle();
         } else {
             self.space_handle = WorldHandle::default();
             self.space = Rid::Invalid;
+            return;
         }
-        if self.is_space_valid() {
-            let mut user_data = UserData::default();
-            user_data.part1 = self.rid.to_u64();
-            let position = vector_to_rapier(self.transform.origin);
-            let angle = transform_rotation_rapier(&self.transform);
-            if self.mode == BodyMode::STATIC {
-                self.body_handle = physics_data.physics_engine.body_create(
-                    self.space_handle,
-                    position,
-                    angle,
-                    &user_data,
-                    BodyType::Static,
-                );
-            } else if self.mode == BodyMode::KINEMATIC {
-                self.body_handle = physics_data.physics_engine.body_create(
-                    self.space_handle,
-                    position,
-                    angle,
-                    &user_data,
-                    BodyType::Kinematic,
-                );
-            } else {
-                self.body_handle = physics_data.physics_engine.body_create(
-                    self.space_handle,
-                    position,
-                    angle,
-                    &user_data,
-                    BodyType::Dynamic,
-                );
-            }
+        let mut user_data = UserData::default();
+        user_data.part1 = self.rid.to_u64();
+        let position = vector_to_rapier(self.transform.origin);
+        let angle = transform_rotation_rapier(&self.transform);
+        if self.mode == BodyMode::STATIC {
+            self.body_handle = physics_engine.body_create(
+                self.space_handle,
+                position,
+                angle,
+                &user_data,
+                BodyType::Static,
+            );
+        } else if self.mode == BodyMode::KINEMATIC {
+            self.body_handle = physics_engine.body_create(
+                self.space_handle,
+                position,
+                angle,
+                &user_data,
+                BodyType::Kinematic,
+            );
+        } else {
+            self.body_handle = physics_engine.body_create(
+                self.space_handle,
+                position,
+                angle,
+                &user_data,
+                BodyType::Dynamic,
+            );
         }
     }
 
