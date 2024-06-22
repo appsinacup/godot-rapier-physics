@@ -396,7 +396,10 @@ impl RapierDirectSpaceStateImpl {
                 let rel_vec = r_info.point
                     - (body.get_base().get_transform().origin + body.get_center_of_mass());
                 r_info.linear_velocity = body.get_linear_velocity(&physics_data.physics_engine)
-                    + cross_product(body.get_angular_velocity(&physics_data.physics_engine), rel_vec);
+                    + cross_product(
+                        body.get_angular_velocity(&physics_data.physics_engine),
+                        rel_vec,
+                    );
             } else {
                 r_info.linear_velocity = Vector::default();
             }

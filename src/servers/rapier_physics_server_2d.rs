@@ -616,7 +616,12 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_remove_shape(&mut self, body: Rid, shape_idx: i32) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.remove_shape_idx(shape_idx as usize, &mut self.physics_data.physics_engine, &mut self.physics_data.spaces, &mut self.physics_data.shapes);
+                body.remove_shape_idx(
+                    shape_idx as usize,
+                    &mut self.physics_data.physics_engine,
+                    &mut self.physics_data.spaces,
+                    &mut self.physics_data.shapes,
+                );
             }
         }
     }
@@ -624,7 +629,12 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_clear_shapes(&mut self, body: Rid) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             while body.get_base().get_shape_count() > 0 {
-                body.remove_shape_idx(0, &mut self.physics_data.physics_engine, &mut self.physics_data.spaces, &mut self.physics_data.shapes);
+                body.remove_shape_idx(
+                    0,
+                    &mut self.physics_data.physics_engine,
+                    &mut self.physics_data.spaces,
+                    &mut self.physics_data.shapes,
+                );
             }
         }
     }
@@ -664,7 +674,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             if let Some(body) = body.get_mut_body() {
                 body.set_continuous_collision_detection_mode(
                     mode != classes::physics_server_2d::CcdMode::DISABLED,
-                    &mut self.physics_data.physics_engine
+                    &mut self.physics_data.physics_engine,
                 );
             }
         }
@@ -1135,13 +1145,19 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn joint_make_pin(&mut self, rid: Rid, anchor: Vector2, body_a: Rid, body_b: Rid) {
         let mut joint: Box<dyn IRapierJoint>;
         if let Some(body_a) = self.physics_data.collision_objects.get(&body_a)
-        && let Some(body_b) = self.physics_data.collision_objects.get(&body_b) {
-            joint = Box::new(RapierPinJoint2D::new(anchor, body_a, body_b, &mut self.physics_data.physics_engine));
-            
+            && let Some(body_b) = self.physics_data.collision_objects.get(&body_b)
+        {
+            joint = Box::new(RapierPinJoint2D::new(
+                anchor,
+                body_a,
+                body_b,
+                &mut self.physics_data.physics_engine,
+            ));
             if let Some(prev_joint) = self.physics_data.joints.remove(&rid) {
-                joint
-                    .get_mut_base()
-                    .copy_settings_from(prev_joint.get_base(), &mut self.physics_data.physics_engine);
+                joint.get_mut_base().copy_settings_from(
+                    prev_joint.get_base(),
+                    &mut self.physics_data.physics_engine,
+                );
             }
         } else {
             joint = Box::new(RapierEmptyJoint::new());
@@ -1160,13 +1176,21 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     ) {
         let mut joint: Box<dyn IRapierJoint>;
         if let Some(body_a) = self.physics_data.collision_objects.get(&body_a)
-        && let Some(body_b) = self.physics_data.collision_objects.get(&body_b) {
-            joint = Box::new(RapierGrooveJoint2D::new(a_groove1, a_groove2, b_anchor, body_a, body_b, &mut self.physics_data.physics_engine));
-            
+            && let Some(body_b) = self.physics_data.collision_objects.get(&body_b)
+        {
+            joint = Box::new(RapierGrooveJoint2D::new(
+                a_groove1,
+                a_groove2,
+                b_anchor,
+                body_a,
+                body_b,
+                &mut self.physics_data.physics_engine,
+            ));
             if let Some(prev_joint) = self.physics_data.joints.remove(&rid) {
-                joint
-                    .get_mut_base()
-                    .copy_settings_from(prev_joint.get_base(), &mut self.physics_data.physics_engine);
+                joint.get_mut_base().copy_settings_from(
+                    prev_joint.get_base(),
+                    &mut self.physics_data.physics_engine,
+                );
             }
         } else {
             joint = Box::new(RapierEmptyJoint::new());
@@ -1184,13 +1208,20 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     ) {
         let mut joint: Box<dyn IRapierJoint>;
         if let Some(body_a) = self.physics_data.collision_objects.get(&body_a)
-        && let Some(body_b) = self.physics_data.collision_objects.get(&body_b) {
-            joint = Box::new(RapierDampedSpringJoint2D::new(anchor_a, anchor_b, body_a, body_b, &mut self.physics_data.physics_engine));
-            
+            && let Some(body_b) = self.physics_data.collision_objects.get(&body_b)
+        {
+            joint = Box::new(RapierDampedSpringJoint2D::new(
+                anchor_a,
+                anchor_b,
+                body_a,
+                body_b,
+                &mut self.physics_data.physics_engine,
+            ));
             if let Some(prev_joint) = self.physics_data.joints.remove(&rid) {
-                joint
-                    .get_mut_base()
-                    .copy_settings_from(prev_joint.get_base(), &mut self.physics_data.physics_engine);
+                joint.get_mut_base().copy_settings_from(
+                    prev_joint.get_base(),
+                    &mut self.physics_data.physics_engine,
+                );
             }
         } else {
             joint = Box::new(RapierEmptyJoint::new());
@@ -1287,7 +1318,12 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         if let Some(shape) = self.physics_data.shapes.remove(&rid) {
             for (owner, _) in shape.get_base().get_owners() {
                 if let Some(body) = self.physics_data.collision_objects.get_mut(owner) {
-                    body.remove_shape_rid(shape.get_base().get_rid(), &mut self.physics_data.physics_engine, &mut self.physics_data.spaces, &mut self.physics_data.shapes);
+                    body.remove_shape_rid(
+                        shape.get_base().get_rid(),
+                        &mut self.physics_data.physics_engine,
+                        &mut self.physics_data.spaces,
+                        &mut self.physics_data.shapes,
+                    );
                 }
             }
             return;
@@ -1295,7 +1331,12 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         if let Some(mut body) = self.physics_data.collision_objects.remove(&rid) {
             body.set_space(Rid::Invalid, &mut self.physics_data);
             while body.get_base().get_shape_count() > 0 {
-                body.remove_shape_idx(0, &mut self.physics_data.physics_engine, &mut self.physics_data.spaces, &mut self.physics_data.shapes);
+                body.remove_shape_idx(
+                    0,
+                    &mut self.physics_data.physics_engine,
+                    &mut self.physics_data.spaces,
+                    &mut self.physics_data.shapes,
+                );
             }
             return;
         }

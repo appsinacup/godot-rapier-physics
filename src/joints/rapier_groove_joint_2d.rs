@@ -19,7 +19,8 @@ impl RapierGrooveJoint2D {
         p_a_groove1: Vector,
         p_a_groove2: Vector,
         p_b_anchor: Vector,
-        body_a: &Box<dyn IRapierCollisionObject>, body_b: &Box<dyn IRapierCollisionObject>,
+        body_a: &Box<dyn IRapierCollisionObject>,
+        body_b: &Box<dyn IRapierCollisionObject>,
         physics_engine: &mut PhysicsEngine,
     ) -> Self {
         let invalid_joint = Self {
@@ -36,31 +37,31 @@ impl RapierGrooveJoint2D {
         {
             return invalid_joint;
         }
-                let base_a = body_a.get_base();
-                let point_a_1 = base_a.get_inv_transform() * p_a_groove1;
-                let point_a_2 = base_a.get_inv_transform() * p_a_groove2;
-                let axis = vector_normalized(point_a_2 - point_a_1);
-                let length = (point_a_2 - point_a_1).length();
-                let rapier_axis = vector_to_rapier(axis);
-                let rapier_limits = vector_to_rapier(Vector2::new(0.0, length));
-                let rapier_anchor_a = vector_to_rapier(point_a_1);
-                let base_b = body_b.get_base();
-                let anchor_b = base_b.get_inv_transform() * p_b_anchor;
-                let rapier_anchor_b = vector_to_rapier(anchor_b);
-                let space_handle = body_a.get_base().get_space_handle();
-                let handle = physics_engine.joint_create_prismatic(
-                    space_handle,
-                    body_a.get_base().get_body_handle(),
-                    body_b.get_base().get_body_handle(),
-                    rapier_axis,
-                    rapier_anchor_a,
-                    rapier_anchor_b,
-                    rapier_limits,
-                    true,
-                );
-                return Self {
-                    base: RapierJointBase::new(space_handle, handle),
-                };
+        let base_a = body_a.get_base();
+        let point_a_1 = base_a.get_inv_transform() * p_a_groove1;
+        let point_a_2 = base_a.get_inv_transform() * p_a_groove2;
+        let axis = vector_normalized(point_a_2 - point_a_1);
+        let length = (point_a_2 - point_a_1).length();
+        let rapier_axis = vector_to_rapier(axis);
+        let rapier_limits = vector_to_rapier(Vector2::new(0.0, length));
+        let rapier_anchor_a = vector_to_rapier(point_a_1);
+        let base_b = body_b.get_base();
+        let anchor_b = base_b.get_inv_transform() * p_b_anchor;
+        let rapier_anchor_b = vector_to_rapier(anchor_b);
+        let space_handle = body_a.get_base().get_space_handle();
+        let handle = physics_engine.joint_create_prismatic(
+            space_handle,
+            body_a.get_base().get_body_handle(),
+            body_b.get_base().get_body_handle(),
+            rapier_axis,
+            rapier_anchor_a,
+            rapier_anchor_b,
+            rapier_limits,
+            true,
+        );
+        return Self {
+            base: RapierJointBase::new(space_handle, handle),
+        };
     }
 }
 impl IRapierJoint for RapierGrooveJoint2D {

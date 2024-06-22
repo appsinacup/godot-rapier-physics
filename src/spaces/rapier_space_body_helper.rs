@@ -260,8 +260,11 @@ impl RapierSpace {
                                         col_shape.get_handle(),
                                         col_shape_transform,
                                     );
-                                    let contact =
-                                        physics_data.physics_engine.shapes_contact(body_shape_info, col_shape_info, p_margin);
+                                    let contact = physics_data.physics_engine.shapes_contact(
+                                        body_shape_info,
+                                        col_shape_info,
+                                        p_margin,
+                                    );
                                     if !contact.collided {
                                         continue;
                                     }
@@ -400,8 +403,11 @@ impl RapierSpace {
                                 // stuck logic, check if body collides in place
                                 body_shape_info.transform.translation.vector =
                                     vector_to_rapier(body_shape_transform.origin);
-                                let step_contact =
-                                    physics_data.physics_engine.shapes_contact(body_shape_info, col_shape_info, 0.0);
+                                let step_contact = physics_data.physics_engine.shapes_contact(
+                                    body_shape_info,
+                                    col_shape_info,
+                                    0.0,
+                                );
                                 if step_contact.collided && !step_contact.within_margin {
                                     if body_shape.allows_one_way_collision()
                                         && collision_body
@@ -429,8 +435,11 @@ impl RapierSpace {
                                     body_shape_info.transform.translation.vector = vector_to_rapier(
                                         body_shape_transform.origin + p_motion * fraction,
                                     );
-                                    let step_contact =
-                                        physics_data.physics_engine.shapes_contact(body_shape_info, col_shape_info, 0.0);
+                                    let step_contact = physics_data.physics_engine.shapes_contact(
+                                        body_shape_info,
+                                        col_shape_info,
+                                        0.0,
+                                    );
                                     if step_contact.collided && !step_contact.within_margin {
                                         hi = fraction;
                                         if (k == 0) || (low > 0.0) {
@@ -462,8 +471,11 @@ impl RapierSpace {
                                         + p_motion
                                             * (hi + self.get_contact_max_allowed_penetration()),
                                 );
-                                let contact =
-                                    physics_data.physics_engine.shapes_contact(body_shape_info, col_shape_info, p_margin);
+                                let contact = physics_data.physics_engine.shapes_contact(
+                                    body_shape_info,
+                                    col_shape_info,
+                                    p_margin,
+                                );
                                 if !contact.collided {
                                     continue;
                                 }
@@ -581,7 +593,11 @@ impl RapierSpace {
                                 col_shape.get_handle(),
                                 col_shape_transform,
                             );
-                            let contact = physics_data.physics_engine.shapes_contact(body_shape_info, col_shape_info, p_margin);
+                            let contact = physics_data.physics_engine.shapes_contact(
+                                body_shape_info,
+                                col_shape_info,
+                                p_margin,
+                            );
                             if !contact.collided {
                                 continue;
                             }
@@ -629,7 +645,8 @@ impl RapierSpace {
                 best_body_shape_index,
                 collision_point,
                 vector_to_godot(best_contact.normal2),
-                best_collision_body.get_velocity_at_local_point(local_position, &mut physics_data.physics_engine),
+                best_collision_body
+                    .get_velocity_at_local_point(local_position, &mut physics_data.physics_engine),
             );
             return true;
         }

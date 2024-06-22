@@ -34,33 +34,68 @@ pub trait IRapierCollisionObject: Any {
         p_shape: Rid,
         p_transform: Transform,
         p_disabled: bool,
-        physics_engine: &mut PhysicsEngine, physics_spaces: &mut PhysicsSpaces, physics_shapes: &mut PhysicsShapes,
+        physics_engine: &mut PhysicsEngine,
+        physics_spaces: &mut PhysicsSpaces,
+        physics_shapes: &mut PhysicsShapes,
     );
-    fn set_shape(&mut self, shape_idx: usize, p_shape: Rid, physics_engine: &mut PhysicsEngine, physics_spaces: &mut PhysicsSpaces, physics_shapes: &mut PhysicsShapes);
+    fn set_shape(
+        &mut self,
+        shape_idx: usize,
+        p_shape: Rid,
+        physics_engine: &mut PhysicsEngine,
+        physics_spaces: &mut PhysicsSpaces,
+        physics_shapes: &mut PhysicsShapes,
+    );
     fn set_shape_transform(
         &mut self,
         shape_idx: usize,
         transform: Transform,
-        physics_engine: &mut PhysicsEngine, physics_spaces: &mut PhysicsSpaces, physics_shapes: &mut PhysicsShapes,
+        physics_engine: &mut PhysicsEngine,
+        physics_spaces: &mut PhysicsSpaces,
+        physics_shapes: &mut PhysicsShapes,
     );
     fn set_shape_disabled(
         &mut self,
         shape_idx: usize,
         disabled: bool,
-        physics_engine: &mut PhysicsEngine, physics_spaces: &mut PhysicsSpaces, physics_shapes: &mut PhysicsShapes,
+        physics_engine: &mut PhysicsEngine,
+        physics_spaces: &mut PhysicsSpaces,
+        physics_shapes: &mut PhysicsShapes,
     );
-    fn remove_shape_idx(&mut self, p_index: usize, physics_engine: &mut PhysicsEngine, physics_spaces: &mut PhysicsSpaces, physics_shapes: &mut PhysicsShapes);
-    fn remove_shape_rid(&mut self, shape_rid: Rid, physics_engine: &mut PhysicsEngine, physics_spaces: &mut PhysicsSpaces, physics_shapes: &mut PhysicsShapes);
+    fn remove_shape_idx(
+        &mut self,
+        p_index: usize,
+        physics_engine: &mut PhysicsEngine,
+        physics_spaces: &mut PhysicsSpaces,
+        physics_shapes: &mut PhysicsShapes,
+    );
+    fn remove_shape_rid(
+        &mut self,
+        shape_rid: Rid,
+        physics_engine: &mut PhysicsEngine,
+        physics_spaces: &mut PhysicsSpaces,
+        physics_shapes: &mut PhysicsShapes,
+    );
     fn create_shape(
         &mut self,
         shape: CollisionObjectShape,
         p_shape_index: usize,
         physics_engine: &mut PhysicsEngine,
-        physics_shapes: &mut PhysicsShapes
+        physics_shapes: &mut PhysicsShapes,
     ) -> ColliderHandle;
     fn _init_material(&self) -> Material;
-    fn _shapes_changed(&mut self, physics_spaces: &mut PhysicsSpaces, physics_engine: &mut PhysicsEngine);
-    fn _shape_changed(&mut self, p_shape: Rid, physics_engine: &mut PhysicsEngine, physics_shapes: &mut PhysicsShapes, physics_spaces: &mut PhysicsSpaces);
+    fn _shapes_changed(
+        &mut self,
+        physics_spaces: &mut PhysicsSpaces,
+        physics_engine: &mut PhysicsEngine,
+    );
+    fn _shape_changed(
+        &mut self,
+        p_shape: Rid,
+        physics_engine: &mut PhysicsEngine,
+        physics_shapes: &mut PhysicsShapes,
+        physics_spaces: &mut PhysicsSpaces,
+    );
 }
 //#[derive(Serialize, Deserialize, Debug, Clone, Copy, Debug, PartialEq)]
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -232,7 +267,7 @@ impl RapierCollisionObject {
         &self,
         shape: &CollisionObjectShape,
         physics_engine: &mut PhysicsEngine,
-        physics_shapes: &mut PhysicsShapes
+        physics_shapes: &mut PhysicsShapes,
     ) {
         if !self.is_space_valid() || shape.collider_handle == ColliderHandle::invalid() {
             return;

@@ -66,12 +66,17 @@ impl RapierShapeBase {
     pub fn call_shape_changed(
         owners: HashMap<Rid, i32>,
         shape_rid: Rid,
-        physics_data: &mut PhysicsData
+        physics_data: &mut PhysicsData,
     ) {
         for (owner, _) in owners {
             let owner = physics_data.collision_objects.get_mut(&owner);
             if let Some(owner) = owner {
-                owner._shape_changed(shape_rid, &mut physics_data.physics_engine, &mut physics_data.shapes, &mut physics_data.spaces);
+                owner._shape_changed(
+                    shape_rid,
+                    &mut physics_data.physics_engine,
+                    &mut physics_data.shapes,
+                    &mut physics_data.spaces,
+                );
             }
         }
     }

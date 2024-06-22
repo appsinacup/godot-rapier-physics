@@ -46,7 +46,11 @@ impl RapierPhysicsServer {
     fn body_set_extra_param(&mut self, body: Rid, param: i32, value: Variant) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_extra_param(RapierBodyParam::from(param), value, &mut self.physics_data.physics_engine);
+                body.set_extra_param(
+                    RapierBodyParam::from(param),
+                    value,
+                    &mut self.physics_data.physics_engine,
+                );
             }
         }
     }

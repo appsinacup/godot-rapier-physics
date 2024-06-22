@@ -17,7 +17,12 @@ pub struct RapierPinJoint2D {
     base: RapierJointBase,
 }
 impl RapierPinJoint2D {
-    pub fn new(pos: Vector2, body_a: &Box<dyn IRapierCollisionObject>, body_b: &Box<dyn IRapierCollisionObject>, physics_engine: &mut PhysicsEngine) -> Self {
+    pub fn new(
+        pos: Vector2,
+        body_a: &Box<dyn IRapierCollisionObject>,
+        body_b: &Box<dyn IRapierCollisionObject>,
+        physics_engine: &mut PhysicsEngine,
+    ) -> Self {
         let invalid_joint = Self {
             angular_limit_lower: 0.0,
             angular_limit_upper: 0.0,

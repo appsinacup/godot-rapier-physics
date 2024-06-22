@@ -31,7 +31,7 @@ bincode = "1"
 hashbrown = "0.14"
 
 #godot = { git = "https://github.com/Ughuuu/gdext", branch = "expose-determinant-in-2d-transform,", features=["lazy-function-tables", "serde"] }
-godot = { git = "https://github.com/godot-rust/gdext", branch = "master", features=["lazy-function-tables", "serde"] }
+godot = { git = "https://github.com/godot-rust/gdext", branch = "master", features=["lazy-function-tables", "serde", "api-4-2"] }
 
 rapier2d = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"], optional = true}
 rapier2d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"], optional = true}

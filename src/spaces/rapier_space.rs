@@ -301,7 +301,9 @@ impl RapierSpace {
     pub fn after_step(&mut self, physics_data: &mut PhysicsData) {
         // Needed only for one physics step to retrieve lost info
         self.removed_colliders.clear();
-        self.active_objects = physics_data.physics_engine.world_get_active_objects_count(self.handle) as i32;
+        self.active_objects = physics_data
+            .physics_engine
+            .world_get_active_objects_count(self.handle) as i32;
         for body in self.active_list.clone() {
             if let Some(body) = physics_data.collision_objects.get_mut(&body) {
                 if let Some(body) = body.get_mut_body() {

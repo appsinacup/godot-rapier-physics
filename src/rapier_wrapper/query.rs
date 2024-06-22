@@ -262,7 +262,7 @@ pub fn shape_casting(
     collide_with_area: bool,
     handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
-    physics_data: &PhysicsData
+    physics_data: &PhysicsData,
 ) -> ShapeCastResult {
     let mut result = ShapeCastResult::new();
     if let Some(raw_shared_shape) = physics_data.physics_engine.get_shape(shape_info.handle) {
@@ -328,7 +328,7 @@ pub fn intersect_aabb(
     max_results: usize,
     handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
-    physics_data: &PhysicsData
+    physics_data: &PhysicsData,
 ) -> usize {
     let mut cpt_hit = 0;
     if let Some(physics_world) = physics_data.physics_engine.get_world(world_handle) {
@@ -410,5 +410,4 @@ impl PhysicsEngine {
         }
         result
     }
-    
 }

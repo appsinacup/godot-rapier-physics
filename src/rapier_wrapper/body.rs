@@ -531,11 +531,7 @@ impl PhysicsEngine {
         }
     }
 
-    pub fn body_reset_torques(
-        &mut self,
-        world_handle: WorldHandle,
-        body_handle: RigidBodyHandle,
-    ) {
+    pub fn body_reset_torques(&mut self, world_handle: WorldHandle, body_handle: RigidBodyHandle) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(body) = physics_world
                 .physics_objects
@@ -546,11 +542,7 @@ impl PhysicsEngine {
         }
     }
 
-    pub fn body_reset_forces(
-        &mut self,
-        world_handle: WorldHandle,
-        body_handle: RigidBodyHandle,
-    ) {
+    pub fn body_reset_forces(&mut self, world_handle: WorldHandle, body_handle: RigidBodyHandle) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(body) = physics_world
                 .physics_objects
@@ -579,11 +571,7 @@ impl PhysicsEngine {
         }
     }
 
-    pub fn body_force_sleep(
-        &mut self,
-        world_handle: WorldHandle,
-        body_handle: RigidBodyHandle,
-    ) {
+    pub fn body_force_sleep(&mut self, world_handle: WorldHandle, body_handle: RigidBodyHandle) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(body) = physics_world
                 .physics_objects

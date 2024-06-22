@@ -9,7 +9,8 @@ use godot::obj::EngineEnum;
 use godot::prelude::*;
 use hashbrown::HashMap;
 use rapier::geometry::ColliderHandle;
-use servers::rapier_physics_server_extra::{PhysicsData, PhysicsSpaces};
+use servers::rapier_physics_server_extra::PhysicsData;
+use servers::rapier_physics_server_extra::PhysicsSpaces;
 
 use super::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;
@@ -71,28 +72,30 @@ impl RapierArea {
             let rid = self.base.get_rid();
             for (key, _) in self.detected_bodies.iter() {
                 if let Some(body) = physics_data.collision_objects.get_mut(key)
-                && let Some(body) = body.get_mut_body() {
-                        body.add_area(self, space);
-                    }
-            // No need to update anymore if it was scheduled before
-            space.area_remove_from_area_update_list(rid);
+                    && let Some(body) = body.get_mut_body()
+                {
+                    body.add_area(self, space);
+                }
+                // No need to update anymore if it was scheduled before
+                space.area_remove_from_area_update_list(rid);
+            }
         }
     }
-}
 
     pub fn _disable_space_override(&self, physics_data: &mut PhysicsData) {
         if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {
             let rid = self.base.get_rid();
             for (key, _) in self.detected_bodies.iter() {
                 if let Some(body) = physics_data.collision_objects.get_mut(key)
-                && let Some(body) = body.get_mut_body() {
-                        body.remove_area(rid, space);
-                    }
+                    && let Some(body) = body.get_mut_body()
+                {
+                    body.remove_area(rid, space);
                 }
-                // No need to update anymore if it was scheduled before
-                space.area_remove_from_area_update_list(rid);
             }
+            // No need to update anymore if it was scheduled before
+            space.area_remove_from_area_update_list(rid);
         }
+    }
 
     pub fn _reset_space_override(&self, physics_data: &mut PhysicsData) {
         if let Some(space) = physics_data.spaces.get_mut(&self.base.get_space()) {

@@ -144,7 +144,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn set_angular_velocity(&mut self, velocity: f32) {
-        let mut physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let mut physics_singleton =
+            (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
         let physics_data = &mut physics_singleton.bind_mut().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
@@ -154,7 +155,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_angular_velocity(&self) -> f32 {
-        let mut physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let mut physics_singleton =
+            (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
         let physics_data = &mut physics_singleton.bind_mut().physics_data;
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
@@ -165,7 +167,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn set_transform(&mut self, transform: Transform2D) {
-        let mut physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let mut physics_singleton =
+            (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
         let physics_data = &mut physics_singleton.bind_mut().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
@@ -190,121 +193,173 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_velocity_at_local_position(&self, local_position: Vector2) -> Vector2 {
-        let mut physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let mut physics_singleton =
+            (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
         let physics_data = &mut physics_singleton.bind_mut().physics_data;
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
-                return body.get_velocity_at_local_point(local_position, &mut physics_data.physics_engine);
+                return body
+                    .get_velocity_at_local_point(local_position, &mut physics_data.physics_engine);
             }
         }
         Vector2::default()
     }
 
     fn apply_central_impulse(&mut self, impulse: Vector2) {
-        let mut physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let mut physics_singleton =
+            (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
         let physics_data = &mut physics_singleton.bind_mut().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.shapes, &mut physics_data.physics_engine);
+                body.force_mass_update(
+                    &mut physics_data.spaces,
+                    &mut physics_data.shapes,
+                    &mut physics_data.physics_engine,
+                );
                 body.apply_central_impulse(impulse, &mut physics_data.physics_engine)
             }
         }
     }
 
     fn apply_impulse(&mut self, impulse: Vector2, position: Vector2) {
-        let mut physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let mut physics_singleton =
+            (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
         let physics_data = &mut physics_singleton.bind_mut().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.shapes, &mut physics_data.physics_engine);
+                body.force_mass_update(
+                    &mut physics_data.spaces,
+                    &mut physics_data.shapes,
+                    &mut physics_data.physics_engine,
+                );
                 body.apply_impulse(impulse, position, &mut physics_data.physics_engine)
             }
         }
     }
 
     fn apply_torque_impulse(&mut self, impulse: f32) {
-        let mut physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let mut physics_singleton =
+            (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
         let physics_data = &mut physics_singleton.bind_mut().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.shapes, &mut physics_data.physics_engine);
+                body.force_mass_update(
+                    &mut physics_data.spaces,
+                    &mut physics_data.shapes,
+                    &mut physics_data.physics_engine,
+                );
                 body.apply_torque_impulse(impulse, &mut physics_data.physics_engine)
             }
         }
     }
 
     fn apply_central_force(&mut self, force: Vector2) {
-        let mut physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let mut physics_singleton =
+            (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
         let physics_data = &mut physics_singleton.bind_mut().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.shapes, &mut physics_data.physics_engine);
+                body.force_mass_update(
+                    &mut physics_data.spaces,
+                    &mut physics_data.shapes,
+                    &mut physics_data.physics_engine,
+                );
                 body.apply_central_force(force, &mut physics_data.physics_engine)
             }
         }
     }
 
     fn apply_force(&mut self, force: Vector2, position: Vector2) {
-        let mut physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let mut physics_singleton =
+            (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
         let physics_data = &mut physics_singleton.bind_mut().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.shapes, &mut physics_data.physics_engine);
+                body.force_mass_update(
+                    &mut physics_data.spaces,
+                    &mut physics_data.shapes,
+                    &mut physics_data.physics_engine,
+                );
                 body.apply_force(force, position, &mut physics_data.physics_engine)
             }
         }
     }
 
     fn apply_torque(&mut self, torque: f32) {
-        let mut physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let mut physics_singleton =
+            (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
         let physics_data = &mut physics_singleton.bind_mut().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.shapes, &mut physics_data.physics_engine);
+                body.force_mass_update(
+                    &mut physics_data.spaces,
+                    &mut physics_data.shapes,
+                    &mut physics_data.physics_engine,
+                );
                 body.apply_torque(torque, &mut physics_data.physics_engine)
             }
         }
     }
 
     fn add_constant_central_force(&mut self, force: Vector2) {
-        let mut physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let mut physics_singleton =
+            (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
         let physics_data = &mut physics_singleton.bind_mut().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.shapes, &mut physics_data.physics_engine);
+                body.force_mass_update(
+                    &mut physics_data.spaces,
+                    &mut physics_data.shapes,
+                    &mut physics_data.physics_engine,
+                );
                 body.add_constant_central_force(force, &mut physics_data.physics_engine)
             }
         }
     }
 
     fn add_constant_force(&mut self, force: Vector2, position: Vector2) {
-        let mut physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let mut physics_singleton =
+            (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
         let physics_data = &mut physics_singleton.bind_mut().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.shapes, &mut physics_data.physics_engine);
+                body.force_mass_update(
+                    &mut physics_data.spaces,
+                    &mut physics_data.shapes,
+                    &mut physics_data.physics_engine,
+                );
                 body.add_constant_force(force, position, &mut physics_data.physics_engine)
             }
         }
     }
 
     fn add_constant_torque(&mut self, torque: f32) {
-        let mut physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let mut physics_singleton =
+            (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
         let physics_data = &mut physics_singleton.bind_mut().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.shapes, &mut physics_data.physics_engine);
+                body.force_mass_update(
+                    &mut physics_data.spaces,
+                    &mut physics_data.shapes,
+                    &mut physics_data.physics_engine,
+                );
                 body.add_constant_torque(torque, &mut physics_data.physics_engine)
             }
         }
     }
 
     fn set_constant_force(&mut self, force: Vector2) {
-        let mut physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let mut physics_singleton =
+            (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
         let physics_data = &mut physics_singleton.bind_mut().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.shapes, &mut physics_data.physics_engine);
+                body.force_mass_update(
+                    &mut physics_data.spaces,
+                    &mut physics_data.shapes,
+                    &mut physics_data.physics_engine,
+                );
                 body.set_constant_force(force, &mut physics_data.physics_engine)
             }
         }
@@ -322,11 +377,16 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn set_constant_torque(&mut self, torque: f32) {
-        let mut physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let mut physics_singleton =
+            (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
         let physics_data = &mut physics_singleton.bind_mut().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.shapes, &mut physics_data.physics_engine);
+                body.force_mass_update(
+                    &mut physics_data.spaces,
+                    &mut physics_data.shapes,
+                    &mut physics_data.physics_engine,
+                );
                 body.set_constant_torque(torque, &mut physics_data.physics_engine)
             }
         }
@@ -344,14 +404,12 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn set_sleep_state(&mut self, enabled: bool) {
-        let mut physics_singleton = (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
+        let mut physics_singleton =
+            (PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>);
         let physics_data = &mut physics_singleton.bind_mut().physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
             if let Some(body) = body.get_mut_body() {
-                if let Some(space) = physics_data
-                    .spaces
-                    .get_mut(&body.get_base().get_space())
-                {
+                if let Some(space) = physics_data.spaces.get_mut(&body.get_base().get_space()) {
                     body.set_active(!enabled, space);
                 }
             }

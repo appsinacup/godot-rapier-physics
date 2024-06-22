@@ -19,7 +19,8 @@ impl RapierDampedSpringJoint2D {
     pub fn new(
         p_anchor_a: Vector,
         p_anchor_b: Vector,
-        body_a: &Box<dyn IRapierCollisionObject>, body_b: &Box<dyn IRapierCollisionObject>,
+        body_a: &Box<dyn IRapierCollisionObject>,
+        body_b: &Box<dyn IRapierCollisionObject>,
         physics_engine: &mut PhysicsEngine,
     ) -> Self {
         let invalid_joint = Self {
@@ -39,27 +40,27 @@ impl RapierDampedSpringJoint2D {
         {
             return invalid_joint;
         }
-                let rapier_anchor_a = body_a.get_base().get_inv_transform() * p_anchor_a;
-                let rapier_anchor_b = body_b.get_base().get_inv_transform() * p_anchor_b;
-                let rest_length = (p_anchor_a - p_anchor_b).length();
-                let space_handle = body_a.get_base().get_space_handle();
-                let handle = physics_engine.joint_create_spring(
-                    space_handle,
-                    body_a.get_base().get_body_handle(),
-                    body_b.get_base().get_body_handle(),
-                    vector_to_rapier(rapier_anchor_a),
-                    vector_to_rapier(rapier_anchor_b),
-                    20.0,
-                    1.5,
-                    rest_length,
-                    true,
-                );
-                return Self {
-                    rest_length,
-                    stiffness: 20.0,
-                    damping: 1.5,
-                    base: RapierJointBase::new(space_handle, handle),
-        }
+        let rapier_anchor_a = body_a.get_base().get_inv_transform() * p_anchor_a;
+        let rapier_anchor_b = body_b.get_base().get_inv_transform() * p_anchor_b;
+        let rest_length = (p_anchor_a - p_anchor_b).length();
+        let space_handle = body_a.get_base().get_space_handle();
+        let handle = physics_engine.joint_create_spring(
+            space_handle,
+            body_a.get_base().get_body_handle(),
+            body_b.get_base().get_body_handle(),
+            vector_to_rapier(rapier_anchor_a),
+            vector_to_rapier(rapier_anchor_b),
+            20.0,
+            1.5,
+            rest_length,
+            true,
+        );
+        return Self {
+            rest_length,
+            stiffness: 20.0,
+            damping: 1.5,
+            base: RapierJointBase::new(space_handle, handle),
+        };
     }
 
     pub fn set_param(
