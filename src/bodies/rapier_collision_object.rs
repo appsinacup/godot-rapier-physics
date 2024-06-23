@@ -221,9 +221,8 @@ impl RapierCollisionObject {
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
     ) {
-        let mut i = 0;
         if let Some(space) = physics_spaces.get_mut(&self.space) {
-            for shape in &mut self.shapes {
+            for (i, shape) in self.shapes.iter_mut().enumerate() {
                 if shape.collider_handle == ColliderHandle::invalid() {
                     // skip
                     continue;
@@ -241,7 +240,6 @@ impl RapierCollisionObject {
                 physics_engine.collider_destroy(self.space_handle, shape.collider_handle);
                 shape.collider_handle = ColliderHandle::invalid();
             }
-            i += 1;
         }
     }
 

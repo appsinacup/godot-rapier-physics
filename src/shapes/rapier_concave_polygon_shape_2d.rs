@@ -67,7 +67,7 @@ impl IRapierShape for RapierConcavePolygonShape2D {
             }
             // Close the polyline shape
             rapier_points.push(rapier_points[0]);
-            shape_create_concave_polyline(&rapier_points, physics_engine)
+            physics_engine.shape_create_concave_polyline(&rapier_points)
         } else {
             godot_error!("ConcavePolygon2D must have at least three point");
             ShapeHandle::default()

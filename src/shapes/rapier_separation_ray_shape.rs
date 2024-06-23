@@ -50,16 +50,20 @@ impl IRapierShape for RapierSeparationRayShape {
         false
     }
 
-    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
+    fn create_rapier_shape(&mut self, _physics_engine: &mut PhysicsEngine) -> ShapeHandle {
         ShapeHandle::default()
     }
 
-    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
+    fn set_data(&mut self, data: Variant, _physics_engine: &mut PhysicsEngine) {
         if data.get_type() != VariantType::DICTIONARY {
             godot_error!("Invalid shape data.");
             return;
         }
         let dictionary: Dictionary = data.to();
+        if !dictionary.contains_key("length") && !dictionary.contains_key("slide_on_slope") {
+            godot_error!("Invalid shape data.");
+            return;
+        }
         self.length = dictionary.get_or_nil("length").to();
         self.slide_on_slope = dictionary.get_or_nil("slide_on_slope").to();
     }

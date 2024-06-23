@@ -1525,9 +1525,11 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
                 queries.append(&mut space.get_queries(&mut self.physics_data.collision_objects));
             }
         }
+        let guard = self.base_mut();
         for query in queries {
             query.callv(VariantArray::new());
         }
+        drop(guard);
         self.flushing_queries = false;
     }
 

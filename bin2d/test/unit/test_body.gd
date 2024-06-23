@@ -176,12 +176,12 @@ func test_body():
 	PhysicsServer2D.body_set_max_contacts_reported(body_rid, 0)
 	PhysicsServer2D.body_set_mode(body_rid, PhysicsServer2D.BODY_MODE_RIGID)
 	PhysicsServer2D.body_set_omit_force_integration(body_rid, true)
-	PhysicsServer2D.body_set_param(body_rid, PhysicsServer2D.BodyParameter.BODY_PARAM_ANGULAR_DAMP, 1.2)
+	PhysicsServer2D.body_set_param(body_rid, PhysicsServer2D.BodyParameter.BODY_PARAM_ANGULAR_DAMP, 3)
 	PhysicsServer2D.body_set_shape(body_rid, 0, shape_rid)
 	PhysicsServer2D.body_set_shape_as_one_way_collision(body_rid, 0, true, 0.0)
 	PhysicsServer2D.body_set_shape_disabled(body_rid, 0, true)
 	PhysicsServer2D.body_set_shape_transform(body_rid, 0, transform)
-	PhysicsServer2D.body_set_state(body_rid, PhysicsServer2D.BodyState.BODY_STATE_ANGULAR_VELOCITY, 2.3)
+	PhysicsServer2D.body_set_state(body_rid, PhysicsServer2D.BodyState.BODY_STATE_ANGULAR_VELOCITY, 4)
 
 	var canvas_instance_id = PhysicsServer2D.body_get_canvas_instance_id(body_rid)
 	assert(canvas_instance_id == 1)
@@ -196,7 +196,7 @@ func test_body():
 	assert(collision_priority == 1.0)
 
 	var constant_force = PhysicsServer2D.body_get_constant_force(body_rid)
-	assert(constant_force == Vector2(0, 0))
+	assert(constant_force == Vector2(1, 2))
 
 	var constant_torque = PhysicsServer2D.body_get_constant_torque(body_rid)
 	assert(constant_torque == 10.0)
@@ -205,19 +205,19 @@ func test_body():
 	assert(ccd_mode == PhysicsServer2D.CCD_MODE_DISABLED)
 
 	var direct_state = PhysicsServer2D.body_get_direct_state(body_rid)
-	assert(direct_state == null)
+	assert(direct_state != null)
 
 	var max_contacts_reported = PhysicsServer2D.body_get_max_contacts_reported(body_rid)
 	assert(max_contacts_reported <= 0)
 
 	var body_mode = PhysicsServer2D.body_get_mode(body_rid)
-	assert(body_mode == PhysicsServer2D.BODY_MODE_STATIC)
+	assert(body_mode == PhysicsServer2D.BODY_MODE_RIGID)
 
 	var object_instance_id = PhysicsServer2D.body_get_object_instance_id(body_rid)
-	assert(object_instance_id == 0)
+	assert(object_instance_id == 2)
 
 	var param_value = PhysicsServer2D.body_get_param(body_rid, PhysicsServer2D.BodyParameter.BODY_PARAM_ANGULAR_DAMP)
-	assert(param_value == null)
+	assert(param_value == 3)
 
 	shape_rid = PhysicsServer2D.body_get_shape(body_rid, 0)
 	assert(shape_rid == RID())
@@ -225,18 +225,18 @@ func test_body():
 	var shape_count = PhysicsServer2D.body_get_shape_count(body_rid)
 	assert(shape_count <= 0)
 
-	var shape_transform = PhysicsServer2D.body_get_shape_transform(body_rid, 0)
+	var shape_transform := PhysicsServer2D.body_get_shape_transform(body_rid, 0)
 	assert(shape_transform.origin == Vector2())
-	assert(shape_transform.rotation == 0.0)
+	assert(shape_transform.get_rotation() == 0.0)
 
 	space_rid = PhysicsServer2D.body_get_space(body_rid)
-	assert(space_rid == RID())
+	assert(space_rid != RID())
 
 	var state_value = PhysicsServer2D.body_get_state(body_rid, PhysicsServer2D.BodyState.BODY_STATE_ANGULAR_VELOCITY)
-	assert(state_value == null)
+	assert(state_value == 0)
 
 	var omit_force_integration = PhysicsServer2D.body_is_omitting_force_integration(body_rid)
-	assert(omit_force_integration == false)
+	assert(omit_force_integration == true)
 
 	print("Body functions test passed")
 

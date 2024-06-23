@@ -6,6 +6,7 @@ use godot::engine::utilities::rid_allocate_id;
 use godot::engine::utilities::rid_from_int64;
 use godot::prelude::*;
 
+use super::rapier_physics_server_extra::PhysicsData;
 use super::rapier_physics_singleton::active_spaces_singleton;
 use super::rapier_physics_singleton::bodies_singleton;
 use super::rapier_physics_singleton::fluids_singleton;
@@ -39,7 +40,12 @@ pub struct RapierPhysicsServer3D {
     island_count: i32,
     active_objects: i32,
     collision_pairs: i32,
-
+    length_unit: real,
+    max_ccd_substeps: usize,
+    num_additional_friction_iterations: usize,
+    num_internal_pgs_iterations: usize,
+    num_solver_iterations: usize,
+    pub physics_data: PhysicsData,
     base: Base<PhysicsServer3DExtension>,
 }
 #[godot_api]
@@ -52,6 +58,15 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
             island_count: 0,
             active_objects: 0,
             collision_pairs: 0,
+            length_unit: RapierProjectSettings::get_length_unit(),
+            max_ccd_substeps: RapierProjectSettings::get_solver_max_ccd_substeps() as usize,
+            num_additional_friction_iterations:
+                RapierProjectSettings::get_solver_num_additional_friction_iterations() as usize,
+            num_internal_pgs_iterations:
+                RapierProjectSettings::get_solver_num_internal_pgs_iterations() as usize,
+            num_solver_iterations: RapierProjectSettings::get_solver_num_solver_iterations()
+                as usize,
+            physics_data: PhysicsData::default(),
             base,
         }
     }
@@ -59,49 +74,49 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
     fn world_boundary_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierWorldBoundaryShape::new(rid);
-        shapes_singleton().shapes.insert(rid, Box::new(shape));
+        self.physics_data.shapes.insert(rid, Box::new(shape));
         rid
     }
 
     fn separation_ray_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierWorldBoundaryShape::new(rid);
-        shapes_singleton().shapes.insert(rid, Box::new(shape));
+        self.physics_data.shapes.insert(rid, Box::new(shape));
         rid
     }
 
     fn sphere_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierCircleShape::new(rid);
-        shapes_singleton().shapes.insert(rid, Box::new(shape));
+        self.physics_data.shapes.insert(rid, Box::new(shape));
         rid
     }
 
     fn box_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierRectangleShape::new(rid);
-        shapes_singleton().shapes.insert(rid, Box::new(shape));
+        self.physics_data.shapes.insert(rid, Box::new(shape));
         rid
     }
 
     fn capsule_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierCapsuleShape::new(rid);
-        shapes_singleton().shapes.insert(rid, Box::new(shape));
+        self.physics_data.shapes.insert(rid, Box::new(shape));
         rid
     }
 
     fn cylinder_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierCylinderShape3D::new(rid);
-        shapes_singleton().shapes.insert(rid, Box::new(shape));
+        self.physics_data.shapes.insert(rid, Box::new(shape));
         rid
     }
 
     fn convex_polygon_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierConvexPolygonShape::new(rid);
-        shapes_singleton().shapes.insert(rid, Box::new(shape));
+        self.physics_data.shapes.insert(rid, Box::new(shape));
         rid
     }
 
@@ -119,7 +134,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
 
     fn shape_set_data(&mut self, shape: Rid, data: Variant) {
         let mut owners = None;
-        if let Some(shape) = shapes_singleton().shapes.get_mut(&shape) {
+        if let Some(shape) = self.physics_data.shapes.get_mut(&shape) {
             shape.set_data(data);
             if shape.get_handle().is_valid() {
                 owners = Some(shape.get_base().get_owners().clone());
@@ -133,14 +148,14 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
     fn shape_set_custom_solver_bias(&mut self, _shape: Rid, _bias: f32) {}
 
     fn shape_get_type(&self, shape: Rid) -> classes::physics_server_3d::ShapeType {
-        if let Some(shape) = shapes_singleton().shapes.get(&shape) {
+        if let Some(shape) = self.physics_data.shapes.get(&shape) {
             return shape.get_type();
         }
         classes::physics_server_3d::ShapeType::CUSTOM
     }
 
     fn shape_get_data(&self, shape: Rid) -> Variant {
-        if let Some(shape) = shapes_singleton().shapes.get(&shape) {
+        if let Some(shape) = self.physics_data.shapes.get(&shape) {
             if shape.get_base().get_handle().is_valid() {
                 return shape.get_data();
             }
@@ -916,7 +931,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
     }
 
     fn free_rid(&mut self, rid: Rid) {
-        if let Some(shape) = shapes_singleton().shapes.remove(&rid) {
+        if let Some(shape) = self.physics_data.shapes.remove(&rid) {
             for (owner, _) in shape.get_base().get_owners() {
                 if let Some(body) = bodies_singleton().collision_objects.get_mut(owner) {
                     body.remove_shape_rid(shape.get_base().get_rid());

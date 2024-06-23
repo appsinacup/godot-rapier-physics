@@ -1,3 +1,4 @@
+use bodies::variant_to_float;
 #[cfg(feature = "dim2")]
 use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
@@ -9,7 +10,7 @@ use crate::shapes::rapier_shape::*;
 use crate::*;
 //#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierCircleShape {
-    radius: f32,
+    radius: real,
     base: RapierShapeBase,
 }
 impl RapierCircleShape {
@@ -60,18 +61,13 @@ impl IRapierShape for RapierCircleShape {
     }
 
     fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
-        shape_create_circle(self.radius, physics_engine)
+        physics_engine.shape_create_circle(self.radius)
     }
 
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         match data.get_type() {
-            VariantType::FLOAT => {
-                let float_data = data.to();
-                self.radius = float_data;
-            }
-            VariantType::INT => {
-                let int_data: i32 = data.to();
-                self.radius = int_data as f32;
+            VariantType::FLOAT | VariantType::INT => {
+                self.radius = variant_to_float(&data);
             }
             _ => {
                 godot_error!("Invalid shape data");

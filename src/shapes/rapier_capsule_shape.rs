@@ -57,10 +57,9 @@ impl IRapierShape for RapierCapsuleShape {
     }
 
     fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
-        shape_create_capsule(
+        physics_engine.shape_create_capsule(
             (self.height / 2.0) - self.radius,
             self.radius,
-            physics_engine,
         )
     }
 
@@ -81,6 +80,11 @@ impl IRapierShape for RapierCapsuleShape {
             }
             VariantType::DICTIONARY => {
                 let dictionary: Dictionary = data.to();
+                if !dictionary.contains_key("length") && !dictionary.contains_key("slide_on_slope")
+                {
+                    godot_error!("Invalid shape data.");
+                    return;
+                }
                 if let Some(height) = dictionary.get("height") {
                     if let Ok(height) = height.try_to::<real>() {
                         self.height = height;

@@ -573,10 +573,10 @@ impl RapierArea {
         self.monitorable
     }
 
-    pub fn get_queries(&mut self) -> Vec<Callable>{
+    pub fn get_queries(&mut self) -> Vec<Callable> {
         let mut queries = Vec::default();
         if self.monitored_objects.is_empty() {
-            return queries
+            return queries;
         }
         for (_, monitor_info) in &self.monitored_objects {
             let mut arg_array = VariantArray::new();
@@ -603,7 +603,7 @@ impl RapierArea {
             }
         }
         self.monitored_objects.clear();
-        return queries
+        queries
     }
 
     pub fn compute_gravity(&self, position: Vector) -> Vector {

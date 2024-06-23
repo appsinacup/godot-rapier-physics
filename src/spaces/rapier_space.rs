@@ -229,7 +229,7 @@ impl RapierSpace {
                 }
             }
         }
-        return queries;
+        queries
     }
 
     pub fn step(

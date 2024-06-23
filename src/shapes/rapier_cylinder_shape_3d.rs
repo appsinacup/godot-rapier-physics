@@ -47,11 +47,11 @@ impl IRapierShape for RapierCylinderShape3D {
         true
     }
 
-    fn create_rapier_shape(&mut self) -> ShapeHandle {
-        shape_create_cylinder((self.height / 2.0) - self.radius, self.radius)
+    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
+        physics_engine.shape_create_cylinder((self.height / 2.0) - self.radius, self.radius)
     }
 
-    fn set_data(&mut self, data: Variant) {
+    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         match data.get_type() {
             VariantType::ARRAY => {
                 let arr: Array<f32> = data.to();
@@ -84,8 +84,8 @@ impl IRapierShape for RapierCylinderShape3D {
                 return;
             }
         }
-        let handle = self.create_rapier_shape();
-        self.base.set_handle(handle, self.compute_aabb());
+        let handle = self.create_rapier_shape(physics_engine);
+        self.base.set_handle(handle, self.compute_aabb(), physics_engine);
     }
 
     fn get_data(&self) -> Variant {

@@ -59,7 +59,7 @@ impl IRapierShape for RapierSegmentShape2D {
             vector_to_rapier(p3),
             vector_to_rapier(p4),
         ];
-        shape_create_convex_polyline(&rapier_points.to_vec(), physics_engine)
+        physics_engine.shape_create_convex_polyline(&rapier_points.to_vec())
     }
 
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {

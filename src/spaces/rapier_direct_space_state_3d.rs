@@ -3,6 +3,7 @@ use godot::classes::*;
 use godot::prelude::*;
 
 use super::rapier_direct_space_state_impl::RapierDirectSpaceStateImpl;
+use crate::servers::RapierPhysicsServer;
 use crate::Vector;
 #[derive(GodotClass)]
 #[class(base=PhysicsDirectSpaceState3DExtension,tool)]
@@ -39,6 +40,8 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         _pick_ray: bool,
         result: *mut godot::engine::native::PhysicsServer3DExtensionRayResult,
     ) -> bool {
+        let mut physics_singleton = PhysicsServer3D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let physics_data = &mut physics_singleton.bind_mut().physics_data;
         self.inner.intersect_ray(
             from,
             to,
@@ -47,6 +50,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
             collide_with_areas,
             hit_from_inside,
             result,
+            physics_data
         )
     }
 
@@ -59,6 +63,8 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         results: *mut godot::engine::native::PhysicsServer3DExtensionShapeResult,
         max_results: i32,
     ) -> i32 {
+        let mut physics_singleton = PhysicsServer3D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let physics_data = &mut physics_singleton.bind_mut().physics_data;
         self.inner.intersect_point(
             position,
             0,
@@ -67,6 +73,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
             collide_with_areas,
             results,
             max_results,
+            physics_data
         )
     }
 
@@ -82,6 +89,8 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         results: *mut godot::engine::native::PhysicsServer3DExtensionShapeResult,
         max_results: i32,
     ) -> i32 {
+        let mut physics_singleton = PhysicsServer3D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let physics_data = &mut physics_singleton.bind_mut().physics_data;
         self.inner.intersect_shape(
             shape_rid,
             transform,
@@ -92,6 +101,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
             collide_with_areas,
             results,
             max_results,
+            physics_data
         )
     }
 
@@ -108,6 +118,8 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         closest_unsafe: *mut f64,
         _info: *mut PhysicsServer3DExtensionShapeRestInfo,
     ) -> bool {
+        let mut physics_singleton = PhysicsServer3D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let physics_data = &mut physics_singleton.bind_mut().physics_data;
         self.inner.cast_motion(
             shape_rid,
             transform,
@@ -118,6 +130,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
             collide_with_areas,
             closest_safe,
             closest_unsafe,
+            physics_data
         )
     }
 
@@ -134,6 +147,8 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         max_results: i32,
         result_count: *mut i32,
     ) -> bool {
+        let mut physics_singleton = PhysicsServer3D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let physics_data = &mut physics_singleton.bind_mut().physics_data;
         self.inner.collide_shape(
             shape_rid,
             transform,
@@ -145,6 +160,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
             results,
             max_results,
             result_count,
+            physics_data
         )
     }
 
@@ -159,6 +175,8 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         collide_with_areas: bool,
         rest_info: *mut godot::engine::native::PhysicsServer3DExtensionShapeRestInfo,
     ) -> bool {
+        let mut physics_singleton = PhysicsServer3D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let physics_data = &mut physics_singleton.bind_mut().physics_data;
         self.inner.rest_info(
             shape_rid,
             transform,
@@ -168,6 +186,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
             collide_with_bodies,
             collide_with_areas,
             rest_info,
+            physics_data
         )
     }
 }

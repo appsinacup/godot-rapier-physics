@@ -1,4 +1,5 @@
 use bodies::transform_scale;
+use bodies::variant_to_float;
 #[cfg(feature = "dim2")]
 use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
@@ -1013,13 +1014,15 @@ impl RapierBody {
     ) {
         match p_param {
             BodyParameter::BOUNCE | BodyParameter::FRICTION => {
-                if p_value.get_type() != VariantType::FLOAT {
+                if p_value.get_type() != VariantType::FLOAT
+                    && p_value.get_type() != VariantType::INT
+                {
                     return;
                 }
                 if p_param == BodyParameter::BOUNCE {
-                    self.bounce = p_value.to();
+                    self.bounce = variant_to_float(&p_value);
                 } else {
-                    self.friction = p_value.to();
+                    self.friction = variant_to_float(&p_value);
                 }
                 if !self.base.is_valid() {
                     return;
@@ -1032,10 +1035,12 @@ impl RapierBody {
                 );
             }
             BodyParameter::MASS => {
-                if p_value.get_type() != VariantType::FLOAT {
+                if p_value.get_type() != VariantType::FLOAT
+                    && p_value.get_type() != VariantType::INT
+                {
                     return;
                 }
-                let mass_value = p_value.to();
+                let mass_value = variant_to_float(&p_value);
                 if mass_value <= 0.0 {
                     return;
                 }
@@ -1044,11 +1049,31 @@ impl RapierBody {
                     self.mass_properties_changed(physics_engine, physics_spaces);
                 }
             }
+            #[cfg(feature = "dim2")]
             BodyParameter::INERTIA => {
-                if p_value.get_type() != VariantType::FLOAT {
+                if p_value.get_type() != VariantType::FLOAT
+                    && p_value.get_type() != VariantType::INT
+                {
                     return;
                 }
-                let inertia_value = p_value.to();
+                let inertia_value = variant_to_float(&p_value);
+                if inertia_value == ANGLE_ZERO {
+                    self.calculate_inertia = true;
+                } else {
+                    self.calculate_inertia = false;
+                    self.inertia = inertia_value;
+                }
+                if self.base.mode.ord() >= BodyMode::RIGID.ord() {
+                    self.mass_properties_changed(physics_engine, physics_spaces);
+                }
+            }
+            #[cfg(feature = "dim3")]
+            BodyParameter::INERTIA => {
+                if p_value.get_type() != VariantType::VECTOR3
+                {
+                    return;
+                }
+                let inertia_value = p_value.to::<Vector3>();
                 if inertia_value == ANGLE_ZERO {
                     self.calculate_inertia = true;
                 } else {
@@ -1069,10 +1094,12 @@ impl RapierBody {
                 }
             }
             BodyParameter::GRAVITY_SCALE => {
-                if p_value.get_type() != VariantType::FLOAT {
+                if p_value.get_type() != VariantType::FLOAT
+                    && p_value.get_type() != VariantType::INT
+                {
                     return;
                 }
-                let new_gravity_scale = p_value.to();
+                let new_gravity_scale = variant_to_float(&p_value);
                 if self.gravity_scale != new_gravity_scale {
                     self.gravity_scale = new_gravity_scale;
                     if !self.using_area_gravity {
@@ -1125,10 +1152,12 @@ impl RapierBody {
                 }
             }
             BodyParameter::LINEAR_DAMP => {
-                if p_value.get_type() != VariantType::FLOAT {
+                if p_value.get_type() != VariantType::FLOAT
+                    && p_value.get_type() != VariantType::INT
+                {
                     return;
                 }
-                let new_value = p_value.to();
+                let new_value = variant_to_float(&p_value);
                 if new_value != self.linear_damping {
                     self.linear_damping = new_value;
                     if !self.using_area_linear_damping {
@@ -1142,10 +1171,12 @@ impl RapierBody {
                 }
             }
             BodyParameter::ANGULAR_DAMP => {
-                if p_value.get_type() != VariantType::FLOAT {
+                if p_value.get_type() != VariantType::FLOAT
+                    && p_value.get_type() != VariantType::INT
+                {
                     return;
                 }
-                let new_value = p_value.to();
+                let new_value = variant_to_float(&p_value);
                 if new_value != self.angular_damping {
                     self.angular_damping = new_value;
                     if !self.using_area_angular_damping {
@@ -1191,7 +1222,7 @@ impl RapierBody {
                 {
                     return;
                 }
-                self.contact_skin = p_value.to();
+                self.contact_skin = variant_to_float(&p_value);
                 let mat = self.init_material();
                 let body_handle = self.base.get_body_handle();
                 let space_handle = self.base.get_space_handle();
@@ -1277,16 +1308,48 @@ impl RapierBody {
     ) {
         match p_state {
             BodyState::TRANSFORM => {
+                #[cfg(feature = "dim2")]
+                if p_variant.get_type() != VariantType::TRANSFORM2D {
+                    godot_error!("Invalid body data.");
+                    return;
+                }
+                #[cfg(feature = "dim3")]
+                if p_variant.get_type() != VariantType::TRANSFORM3D {
+                    godot_error!("Invalid body data.");
+                    return;
+                }
                 let transform = p_variant.to();
                 self.base.set_transform(transform, true, physics_engine);
             }
             BodyState::LINEAR_VELOCITY => {
+                if p_variant.get_type() != VariantType::VECTOR3 {
+                    godot_error!("Invalid body data.");
+                    return;
+                }
                 self.set_linear_velocity(p_variant.to(), physics_engine);
             }
             BodyState::ANGULAR_VELOCITY => {
-                self.set_angular_velocity(p_variant.to(), physics_engine);
+                #[cfg(feature = "dim2")]
+                if p_variant.get_type() != VariantType::FLOAT
+                    || p_variant.get_type() != VariantType::INT
+                {
+                    godot_error!("Invalid body data.");
+                } else {
+                    self.set_angular_velocity(variant_to_float(&p_variant), physics_engine);
+                }
+                #[cfg(feature = "dim3")]
+                if p_variant.get_type() != VariantType::VECTOR3 {
+                    godot_error!("Invalid body data.");
+                    return;
+                } else {
+                    self.set_angular_velocity(p_variant.to(), physics_engine);
+                }
             }
             BodyState::SLEEPING => {
+                if p_variant.get_type() != VariantType::BOOL {
+                    godot_error!("Invalid body data.");
+                    return;
+                }
                 if self.base.mode == BodyMode::STATIC {
                     return;
                 }
@@ -1304,6 +1367,10 @@ impl RapierBody {
                 }
             }
             BodyState::CAN_SLEEP => {
+                if p_variant.get_type() != VariantType::BOOL {
+                    godot_error!("Invalid body data.");
+                    return;
+                }
                 self.can_sleep = p_variant.to();
                 if self.base.mode.ord() >= BodyMode::RIGID.ord() {
                     self.set_can_sleep(self.can_sleep, physics_engine);
@@ -1438,7 +1505,7 @@ impl RapierBody {
         moment_of_inertia: Angle,
         shape_mass: Real,
         shape_transform: Transform,
-        i: usize,
+        _i: usize,
     ) -> Vector3 {
         let mut shape_inertia_tensor = Basis::from_scale(moment_of_inertia);
         let shape_transform = shape_transform;
@@ -1527,9 +1594,10 @@ impl RapierBody {
     }
 
     #[cfg(feature = "dim3")]
-    pub fn get_velocity_at_local_point(&self, rel_pos: Vector) -> Vector {
-        let linear_velocity = self.get_linear_velocity();
-        let angular_velocity = self.get_angular_velocity();
+    pub fn get_velocity_at_local_point(&self, rel_pos: Vector,
+        physics_engine: &PhysicsEngine,) -> Vector {
+        let linear_velocity = self.get_linear_velocity(physics_engine);
+        let angular_velocity = self.get_angular_velocity(physics_engine);
         linear_velocity + angular_velocity.cross(rel_pos - self.center_of_mass)
     }
 

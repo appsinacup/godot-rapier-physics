@@ -117,7 +117,7 @@ impl RapierShapeBase {
 
     fn destroy_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) {
         if self.handle != ShapeHandle::default() {
-            shape_destroy(self.handle, physics_engine);
+            physics_engine.shape_destroy(self.handle);
             self.handle = ShapeHandle::default();
         }
     }

@@ -1,3 +1,6 @@
+use godot::builtin::real;
+use godot::builtin::Variant;
+use godot::builtin::VariantType;
 pub mod rapier_area;
 pub mod rapier_body;
 pub mod rapier_collision_object;
@@ -6,6 +9,7 @@ pub mod rapier_collision_object_impl;
 pub mod rapier_direct_body_state_2d;
 #[cfg(feature = "dim3")]
 pub mod rapier_direct_body_state_3d;
+pub mod rapier_direct_body_state_impl;
 #[cfg(feature = "dim2")]
 pub type RapierDirectBodyState = rapier_direct_body_state_2d::RapierDirectBodyState2D;
 #[cfg(feature = "dim2")]
@@ -87,4 +91,11 @@ pub fn vector_normalized(vector: crate::Vector) -> crate::Vector {
         return vector.normalized();
     }
     crate::Vector::ZERO
+}
+pub fn variant_to_float(variant: &Variant) -> real {
+    match variant.get_type() {
+        VariantType::FLOAT => variant.to::<real>(),
+        VariantType::INT => variant.to::<i32>() as real,
+        _ => 0.0,
+    }
 }
