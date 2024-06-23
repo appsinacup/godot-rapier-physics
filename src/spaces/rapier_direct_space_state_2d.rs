@@ -38,7 +38,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         result: *mut PhysicsServer2DExtensionRayResult,
     ) -> bool {
         let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
-        let physics_data = &mut physics_singleton.bind_mut().physics_data;
+        let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         self.inner.intersect_ray(
             from,
             to,
@@ -62,7 +62,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         max_results: i32,
     ) -> i32 {
         let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
-        let physics_data = &mut physics_singleton.bind_mut().physics_data;
+        let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         self.inner.intersect_point(
             position,
             canvas_instance_id,
@@ -88,7 +88,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         max_results: i32,
     ) -> i32 {
         let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
-        let physics_data = &mut physics_singleton.bind_mut().physics_data;
+        let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         self.inner.intersect_shape(
             shape_rid,
             transform,
@@ -116,7 +116,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         closest_unsafe: *mut f64,
     ) -> bool {
         let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
-        let physics_data = &mut physics_singleton.bind_mut().physics_data;
+        let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         self.inner.cast_motion(
             shape_rid,
             transform,
@@ -145,7 +145,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         result_count: *mut i32,
     ) -> bool {
         let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
-        let physics_data = &mut physics_singleton.bind_mut().physics_data;
+        let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         self.inner.collide_shape(
             shape_rid,
             transform,
@@ -173,7 +173,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         rest_info: *mut godot::engine::native::PhysicsServer2DExtensionShapeRestInfo,
     ) -> bool {
         let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
-        let physics_data = &mut physics_singleton.bind_mut().physics_data;
+        let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         self.inner.rest_info(
             shape_rid,
             transform,

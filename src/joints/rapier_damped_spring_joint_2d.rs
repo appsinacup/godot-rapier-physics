@@ -7,7 +7,8 @@ use super::rapier_pin_joint_2d::RapierPinJoint2D;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
-use crate::Vector;
+use crate::types::*;
+use crate::*;
 pub struct RapierDampedSpringJoint2D {
     rest_length: real,
     stiffness: real,

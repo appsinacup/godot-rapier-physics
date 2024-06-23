@@ -9,9 +9,7 @@ use hashbrown::HashMap;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_server_extra::PhysicsData;
-use crate::Angle;
-use crate::Rect;
-use crate::Vector;
+use crate::types::*;
 pub trait IRapierShape: Any {
     fn get_base(&self) -> &RapierShapeBase;
     fn get_mut_base(&mut self) -> &mut RapierShapeBase;

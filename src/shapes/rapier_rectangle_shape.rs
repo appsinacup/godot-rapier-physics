@@ -7,8 +7,7 @@ use godot::prelude::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
-use crate::Rect;
-use crate::Vector;
+use crate::types::*;
 //#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierRectangleShape {
     half_extents: Vector,

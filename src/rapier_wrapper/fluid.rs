@@ -5,7 +5,7 @@ use salva::solver::*;
 
 use super::shape::point_array_to_vec;
 use crate::rapier_wrapper::prelude::*;
-use crate::PackedVectorArray;
+use crate::types::PackedVectorArray;
 impl PhysicsEngine {
     pub fn fluid_create(&mut self, world_handle: WorldHandle, density: Real) -> HandleDouble {
         if let Some(physics_world) = self.get_mut_world(world_handle) {

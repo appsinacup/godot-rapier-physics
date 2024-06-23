@@ -6,10 +6,10 @@ use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 use super::rapier_joint::RapierJointBase;
 use super::rapier_pin_joint_2d::RapierPinJoint2D;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
-use crate::bodies::vector_normalized;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
-use crate::Vector;
+use crate::types::*;
+use crate::*;
 pub struct RapierGrooveJoint2D {
     base: RapierJointBase,
 }

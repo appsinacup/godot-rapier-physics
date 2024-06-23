@@ -7,7 +7,7 @@ use super::rapier_collision_object::RapierCollisionObject;
 use crate::rapier_wrapper::prelude::PhysicsEngine;
 use crate::servers::rapier_physics_server_extra::PhysicsShapes;
 use crate::servers::rapier_physics_server_extra::PhysicsSpaces;
-use crate::Transform;
+use crate::types::Transform;
 impl RapierCollisionObject {
     pub(super) fn recreate_shapes(
         collision_object: &mut dyn IRapierCollisionObject,

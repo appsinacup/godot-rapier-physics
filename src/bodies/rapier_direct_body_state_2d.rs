@@ -1,13 +1,10 @@
 use godot::classes::*;
 use godot::prelude::*;
 
+use super::rapier_direct_body_state_impl::RapierDirectBodyStateImpl;
 use crate::servers::RapierPhysicsServer;
 use crate::spaces::rapier_space::RapierSpace;
-use crate::Transform;
-use crate::Vector;
-use crate::Angle;
-
-use super::rapier_direct_body_state_impl::RapierDirectBodyStateImpl;
+use crate::types::*;
 #[derive(GodotClass)]
 #[class(base=PhysicsDirectBodyState2DExtension,tool)]
 pub struct RapierDirectBodyState2D {
@@ -81,7 +78,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_velocity_at_local_position(&self, local_position: Vector) -> Vector {
-        self.implementation.get_velocity_at_local_position(local_position)
+        self.implementation
+            .get_velocity_at_local_position(local_position)
     }
 
     fn apply_central_impulse(&mut self, impulse: Vector) {
@@ -161,7 +159,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_local_velocity_at_position(&self, contact_idx: i32) -> Vector {
-        self.implementation.get_contact_local_velocity_at_position(contact_idx)
+        self.implementation
+            .get_contact_local_velocity_at_position(contact_idx)
     }
 
     fn get_contact_collider(&self, contact_idx: i32) -> Rid {
@@ -169,7 +168,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_collider_position(&self, contact_idx: i32) -> Vector {
-        self.implementation.get_contact_collider_position(contact_idx)
+        self.implementation
+            .get_contact_collider_position(contact_idx)
     }
 
     fn get_contact_collider_id(&self, contact_idx: i32) -> u64 {
@@ -185,7 +185,8 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     }
 
     fn get_contact_collider_velocity_at_position(&self, contact_idx: i32) -> Vector {
-        self.implementation.get_contact_collider_velocity_at_position(contact_idx)
+        self.implementation
+            .get_contact_collider_velocity_at_position(contact_idx)
     }
 
     fn get_contact_impulse(&self, contact_idx: i32) -> Vector {
@@ -200,8 +201,11 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
 
     fn get_space_state(&mut self) -> Option<Gd<PhysicsDirectSpaceState2D>> {
         let physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
-        let physics_data = &physics_singleton.bind().physics_data;
-        if let Some(body) = physics_data.collision_objects.get(self.implementation.get_body()) {
+        let physics_data = &physics_singleton.bind().implementation.physics_data;
+        if let Some(body) = physics_data
+            .collision_objects
+            .get(self.implementation.get_body())
+        {
             if let Some(space) = physics_data.spaces.get(&body.get_base().get_space()) {
                 return space.get_direct_state().clone();
             }

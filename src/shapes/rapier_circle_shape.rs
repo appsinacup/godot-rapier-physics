@@ -1,4 +1,3 @@
-use bodies::variant_to_float;
 #[cfg(feature = "dim2")]
 use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
@@ -7,7 +6,7 @@ use godot::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::*;
-use crate::*;
+use crate::types::*;
 //#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierCircleShape {
     radius: real,

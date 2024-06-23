@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use godot::classes::native::ObjectId;
 use godot::classes::physics_server_2d::BodyMode;
 use godot::prelude::*;
@@ -5,25 +7,15 @@ use rapier::geometry::ColliderHandle;
 use rapier::math::Real;
 use rapier::math::DEFAULT_EPSILON;
 
+use super::rapier_space::RapierSpace;
+use super::RapierDirectSpaceState;
 use crate::bodies::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;
-use crate::bodies::vector_normalized;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_server_extra::PhysicsData;
 use crate::shapes::rapier_shape::IRapierShape;
-use crate::Rect;
-use crate::Transform;
-use crate::Vector;
-#[cfg(feature = "dim2")]
-type PhysicsServerExtensionMotionResult =
-    godot::classes::native::PhysicsServer2DExtensionMotionResult;
-#[cfg(feature = "dim3")]
-type PhysicsServerExtensionMotionResult =
-    godot::classes::native::PhysicsServer3DExtensionMotionResult;
-use std::ops::Deref;
-
-use super::rapier_space::RapierSpace;
-use super::RapierDirectSpaceState;
+use crate::types::*;
+use crate::*;
 const TEST_MOTION_MARGIN: Real = 1e-4;
 const TEST_MOTION_MIN_CONTACT_DEPTH_FACTOR: Real = 0.05;
 const BODY_MOTION_RECOVER_ATTEMPTS: i32 = 4;

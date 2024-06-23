@@ -7,6 +7,7 @@ use servers::rapier_physics_server_extra::PhysicsCollisionObjects;
 use super::rapier_space::RapierSpace;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
+use crate::types::*;
 use crate::*;
 pub struct CollidersInfo {
     pub shape1: usize,

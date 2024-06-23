@@ -1,4 +1,3 @@
-use bodies::vector_normalized;
 #[cfg(feature = "dim2")]
 use godot::engine::physics_server_2d::*;
 #[cfg(feature = "dim3")]
@@ -17,6 +16,7 @@ use super::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::spaces::rapier_space::*;
+use crate::types::*;
 use crate::*;
 // #[derive(Serialize, Deserialize, Debug)]
 struct MonitorInfo {

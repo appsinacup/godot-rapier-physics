@@ -3,24 +3,9 @@ use godot::prelude::*;
 
 use super::rapier_space_body_helper::is_handle_excluded_callback;
 use crate::bodies::rapier_collision_object::*;
-use crate::bodies::vector_normalized;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_server_extra::PhysicsData;
-use crate::Angle;
-use crate::Transform;
-use crate::Vector;
-#[cfg(feature = "dim2")]
-type PhysicsServerExtensionShapeResult = PhysicsServer2DExtensionShapeResult;
-#[cfg(feature = "dim2")]
-type PhysicsServerExtensionRayResult = PhysicsServer2DExtensionRayResult;
-#[cfg(feature = "dim2")]
-type PhysicsServerExtensionShapeRestInfo = PhysicsServer2DExtensionShapeRestInfo;
-#[cfg(feature = "dim3")]
-type PhysicsServerExtensionShapeResult = PhysicsServer3DExtensionShapeResult;
-#[cfg(feature = "dim3")]
-type PhysicsServerExtensionRayResult = PhysicsServer3DExtensionRayResult;
-#[cfg(feature = "dim3")]
-type PhysicsServerExtensionShapeRestInfo = PhysicsServer3DExtensionShapeRestInfo;
+use crate::types::*;
 pub struct RapierDirectSpaceStateImpl {
     pub space: Rid,
 }

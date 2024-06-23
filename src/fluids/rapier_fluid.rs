@@ -4,7 +4,7 @@ use godot::prelude::*;
 
 use super::fluid_effect::FluidEffect;
 use crate::rapier_wrapper::prelude::*;
-use crate::Vector;
+use crate::types::Vector;
 //#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierFluid {
     rid: Rid,

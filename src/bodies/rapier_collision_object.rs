@@ -1,6 +1,3 @@
-use bodies::transform_inverse;
-use bodies::transform_rotation_rapier;
-use bodies::transform_update;
 #[cfg(feature = "dim2")]
 use godot::engine::physics_server_2d::*;
 #[cfg(feature = "dim3")]
@@ -14,6 +11,7 @@ use servers::rapier_physics_server_extra::PhysicsSpaces;
 use super::rapier_area::RapierArea;
 use super::rapier_body::RapierBody;
 use crate::rapier_wrapper::prelude::*;
+use crate::types::*;
 use crate::*;
 pub trait IRapierCollisionObject: Sync {
     fn get_base(&self) -> &RapierCollisionObject;

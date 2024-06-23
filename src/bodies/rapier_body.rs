@@ -1,5 +1,3 @@
-use bodies::transform_scale;
-use bodies::variant_to_float;
 #[cfg(feature = "dim2")]
 use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
@@ -13,13 +11,12 @@ use servers::rapier_physics_server_extra::PhysicsShapes;
 use servers::rapier_physics_server_extra::PhysicsSpaces;
 
 use super::rapier_area::RapierArea;
-use super::PhysicsDirectBodyState;
-use super::RapierDirectBodyState;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_server_extra::RapierBodyParam;
 use crate::servers::rapier_project_settings::*;
 use crate::spaces::rapier_space::RapierSpace;
+use crate::types::*;
 use crate::*;
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Contact {
@@ -1069,8 +1066,7 @@ impl RapierBody {
             }
             #[cfg(feature = "dim3")]
             BodyParameter::INERTIA => {
-                if p_value.get_type() != VariantType::VECTOR3
-                {
+                if p_value.get_type() != VariantType::VECTOR3 {
                     return;
                 }
                 let inertia_value = p_value.to::<Vector3>();
@@ -1340,7 +1336,6 @@ impl RapierBody {
                 #[cfg(feature = "dim3")]
                 if p_variant.get_type() != VariantType::VECTOR3 {
                     godot_error!("Invalid body data.");
-                    return;
                 } else {
                     self.set_angular_velocity(p_variant.to(), physics_engine);
                 }
@@ -1594,8 +1589,11 @@ impl RapierBody {
     }
 
     #[cfg(feature = "dim3")]
-    pub fn get_velocity_at_local_point(&self, rel_pos: Vector,
-        physics_engine: &PhysicsEngine,) -> Vector {
+    pub fn get_velocity_at_local_point(
+        &self,
+        rel_pos: Vector,
+        physics_engine: &PhysicsEngine,
+    ) -> Vector {
         let linear_velocity = self.get_linear_velocity(physics_engine);
         let angular_velocity = self.get_angular_velocity(physics_engine);
         linear_velocity + angular_velocity.cross(rel_pos - self.center_of_mass)

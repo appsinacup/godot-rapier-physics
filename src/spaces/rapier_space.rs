@@ -16,6 +16,7 @@ use super::RapierDirectSpaceState;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_project_settings::*;
+use crate::types::*;
 use crate::*;
 pub struct RemovedColliderInfo {
     pub rid: Rid,

@@ -7,10 +7,7 @@ use godot::prelude::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
-use crate::PackedFloatArray;
-use crate::PackedVectorArray;
-use crate::Rect;
-use crate::Vector;
+use crate::types::*;
 //#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierConvexPolygonShape {
     points: PackedVectorArray,

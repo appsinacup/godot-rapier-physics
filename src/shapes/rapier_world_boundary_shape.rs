@@ -7,8 +7,7 @@ use godot::prelude::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
-use crate::Angle;
-use crate::Vector;
+use crate::types::*;
 //#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierWorldBoundaryShape {
     normal: Vector,
@@ -58,7 +57,6 @@ impl IRapierShape for RapierWorldBoundaryShape {
 
     #[cfg(feature = "dim2")]
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
-        use crate::bodies::variant_to_float;
         if data.get_type() != VariantType::ARRAY {
             godot_error!("Invalid shape data");
             return;

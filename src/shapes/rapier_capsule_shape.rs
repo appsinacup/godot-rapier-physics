@@ -6,7 +6,7 @@ use godot::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::*;
-use crate::Vector;
+use crate::types::*;
 //#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierCapsuleShape {
     height: f32,
@@ -57,10 +57,7 @@ impl IRapierShape for RapierCapsuleShape {
     }
 
     fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
-        physics_engine.shape_create_capsule(
-            (self.height / 2.0) - self.radius,
-            self.radius,
-        )
+        physics_engine.shape_create_capsule((self.height / 2.0) - self.radius, self.radius)
     }
 
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
