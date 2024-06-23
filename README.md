@@ -9,7 +9,7 @@
 
 <p align = "center">
     <strong>
-        <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/docs/CONTRIBUTE.md">Documentation</a> | <a href="https://discord.gg/56dMud8HYn">Discord</a>
+        <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/docs/DOCUMENTATION.md">Documentation</a> | <a href="https://discord.gg/56dMud8HYn">Discord</a>
     </strong>
 </p>
 
