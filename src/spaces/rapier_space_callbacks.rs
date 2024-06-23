@@ -3,7 +3,6 @@ use std::mem::swap;
 use godot::prelude::*;
 use rapier::utils::SimdBasis;
 use servers::rapier_physics_server_extra::PhysicsCollisionObjects;
-use servers::rapier_physics_server_extra::PhysicsData;
 
 use super::rapier_space::RapierSpace;
 use crate::bodies::rapier_collision_object::*;
@@ -73,12 +72,10 @@ impl RapierSpace {
             && let Some(body1) = body1.get_body()
             && let Some(body2) = physics_collision_objects.get(&colliders_info.object2)
             && let Some(body2) = body2.get_body()
+            && (body1.has_exception(body2.get_base().get_rid())
+                || body2.has_exception(body1.get_base().get_rid()))
         {
-            if body1.has_exception(body2.get_base().get_rid())
-                || body2.has_exception(body1.get_base().get_rid())
-            {
-                return false;
-            }
+            return false;
         }
         true
     }
@@ -91,7 +88,7 @@ impl RapierSpace {
         Self::collision_filter_common_callback(
             filter_info,
             &mut colliders_info,
-            &physics_collision_objects,
+            physics_collision_objects,
         )
     }
 
@@ -104,10 +101,8 @@ impl RapierSpace {
             RapierCollisionObject::get_collider_user_data(&filter_info.user_data1);
         let (object2, shape2) =
             RapierCollisionObject::get_collider_user_data(&filter_info.user_data2);
-        if let Some(collision_object_1) =
-            physics_collision_objects.get(&object1)
-            && let Some(collision_object_2) =
-            physics_collision_objects.get(&object2)
+        if let Some(collision_object_1) = physics_collision_objects.get(&object1)
+            && let Some(collision_object_2) = physics_collision_objects.get(&object2)
         {
             let collision_base_1 = collision_object_1.get_base();
             let collision_base_2 = collision_object_2.get_base();
@@ -387,9 +382,9 @@ impl RapierSpace {
             if let Some(body1) = p_object1.get_mut_body() {
                 if let Some(body2) = p_object2.get_mut_body() {
                     let static_linvelocity_1 = body1.get_static_linear_velocity();
-                    let static_linvelocity_2= body2.get_static_linear_velocity();
+                    let static_linvelocity_2 = body2.get_static_linear_velocity();
                     let static_angvelocity_1 = body1.get_static_angular_velocity();
-                    let static_angvelocity_2= body2.get_static_angular_velocity();
+                    let static_angvelocity_2 = body2.get_static_angular_velocity();
                     if static_linvelocity_1 != Vector::ZERO {
                         body2.to_add_static_constant_linear_velocity(static_linvelocity_1);
                     }
@@ -402,7 +397,6 @@ impl RapierSpace {
                     if static_angvelocity_2 != ANGLE_ZERO {
                         body1.to_add_static_constant_angular_velocity(static_angvelocity_2);
                     }
-
                     if body1.can_report_contacts() {
                         keep_sending_contacts = true;
                         let instance_id2 = body2.get_base().get_instance_id();

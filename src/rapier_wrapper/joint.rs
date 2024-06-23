@@ -1,7 +1,6 @@
 use rapier::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_server_extra::PhysicsData;
 impl PhysicsEngine {
     #[cfg(feature = "dim2")]
     pub fn joint_create_revolute(

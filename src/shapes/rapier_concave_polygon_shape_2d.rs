@@ -1,9 +1,7 @@
 use godot::engine::physics_server_2d::ShapeType;
 use godot::prelude::*;
-use serde::*;
 
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_server_extra::PhysicsData;
 use crate::shapes::rapier_shape::*;
 use crate::Vector;
 //#[derive(Serialize, Deserialize, Debug)]

@@ -9,7 +9,6 @@ use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::bodies::vector_normalized;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_server_extra::PhysicsData;
 use crate::Vector;
 pub struct RapierGrooveJoint2D {
     base: RapierJointBase,
@@ -59,9 +58,9 @@ impl RapierGrooveJoint2D {
             rapier_limits,
             true,
         );
-        return Self {
+        Self {
             base: RapierJointBase::new(space_handle, handle),
-        };
+        }
     }
 }
 impl IRapierJoint for RapierGrooveJoint2D {

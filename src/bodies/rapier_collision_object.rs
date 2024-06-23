@@ -1,5 +1,3 @@
-use std::any::Any;
-
 use bodies::transform_inverse;
 use bodies::transform_rotation_rapier;
 use bodies::transform_update;
@@ -10,11 +8,8 @@ use godot::engine::physics_server_3d::*;
 use godot::prelude::*;
 use rapier::dynamics::RigidBodyHandle;
 use rapier::geometry::ColliderHandle;
-use serde::*;
-use servers::rapier_physics_server_extra::PhysicsData;
 use servers::rapier_physics_server_extra::PhysicsShapes;
 use servers::rapier_physics_server_extra::PhysicsSpaces;
-use spaces::rapier_space::RapierSpace;
 
 use super::rapier_area::RapierArea;
 use super::rapier_body::RapierBody;
@@ -27,11 +22,18 @@ pub trait IRapierCollisionObject: Sync {
     fn get_area(&self) -> Option<&RapierArea>;
     fn get_mut_body(&mut self) -> Option<&mut RapierBody>;
     fn get_mut_area(&mut self) -> Option<&mut RapierArea>;
-    fn set_space(&mut self, space: Rid, 
+    fn set_space(
+        &mut self,
+        space: Rid,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
-        physics_shapes: &mut PhysicsShapes,);
-    fn recreate_shapes(&mut self, physics_engine: &mut PhysicsEngine, physics_shapes: &mut PhysicsShapes);
+        physics_shapes: &mut PhysicsShapes,
+    );
+    fn recreate_shapes(
+        &mut self,
+        physics_engine: &mut PhysicsEngine,
+        physics_shapes: &mut PhysicsShapes,
+    );
     fn add_shape(
         &mut self,
         p_shape: Rid,
@@ -214,7 +216,11 @@ impl RapierCollisionObject {
         handle
     }
 
-    pub(super) fn destroy_shapes(&mut self, physics_engine: &mut PhysicsEngine, physics_spaces: &mut PhysicsSpaces) {
+    pub(super) fn destroy_shapes(
+        &mut self,
+        physics_engine: &mut PhysicsEngine,
+        physics_spaces: &mut PhysicsSpaces,
+    ) {
         let mut i = 0;
         if let Some(space) = physics_spaces.get_mut(&self.space) {
             for shape in &mut self.shapes {
@@ -232,8 +238,7 @@ impl RapierCollisionObject {
                         self.collision_object_type,
                     );
                 }
-                physics_engine
-                    .collider_destroy(self.space_handle, shape.collider_handle);
+                physics_engine.collider_destroy(self.space_handle, shape.collider_handle);
                 shape.collider_handle = ColliderHandle::invalid();
             }
             i += 1;
@@ -303,13 +308,17 @@ impl RapierCollisionObject {
         self.inv_transform = transform_inverse(&self.transform);
     }
 
-    pub(super) fn set_space(&mut self, p_space: Rid, physics_engine: &mut PhysicsEngine, physics_spaces: &mut PhysicsSpaces) {
+    pub(super) fn set_space(
+        &mut self,
+        p_space: Rid,
+        physics_engine: &mut PhysicsEngine,
+        physics_spaces: &mut PhysicsSpaces,
+    ) {
         // previous space
         if self.is_space_valid() {
             if self.is_body_valid() {
                 // This call also destroys the colliders
-                physics_engine
-                    .body_destroy(self.space_handle, self.body_handle);
+                physics_engine.body_destroy(self.space_handle, self.body_handle);
                 self.body_handle = RigidBodyHandle::invalid();
             }
             self.destroy_shapes(physics_engine, physics_spaces);

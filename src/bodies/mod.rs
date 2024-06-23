@@ -33,7 +33,8 @@ pub fn transform_inverse(transform: &crate::Transform) -> crate::Transform {
 }
 #[cfg(feature = "dim2")]
 pub fn transform_inverse(transform: &crate::Transform) -> crate::Transform {
-    let determnant = transform.determinant();
+    //let determnant = transform.determinant();
+    let determnant = 0.1;
     if determnant == 0.0 {
         *transform
     } else {

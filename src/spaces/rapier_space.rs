@@ -1,3 +1,4 @@
+use bodies::rapier_area::RapierArea;
 use godot::classes::ProjectSettings;
 #[cfg(feature = "dim2")]
 use godot::engine::physics_server_2d::*;
@@ -189,10 +190,11 @@ impl RapierSpace {
         self.removed_colliders.get(handle)
     }
 
-    pub fn call_queries(
+    pub fn get_queries(
         &mut self,
         physics_data_collision_objects: &mut HashMap<Rid, Box<dyn IRapierCollisionObject>>,
-    ) {
+    ) -> Vec<Callable> {
+        let mut queries = Vec::default();
         for body_rid in self.state_query_list.clone() {
             if let Some(body) = physics_data_collision_objects.get_mut(&body_rid) {
                 if let Some(body) = body.get_mut_body() {
@@ -206,7 +208,7 @@ impl RapierSpace {
                                 let mut arg_array = Array::new();
                                 arg_array.push(direct_state.to_variant());
                                 arg_array.push(fi_callback_data.udata.to_variant());
-                                fi_callback_data.callable.callv(arg_array);
+                                queries.push(fi_callback_data.callable.bindv(arg_array));
                             }
                         }
                         let state_sync_callback = body.get_state_sync_callback();
@@ -214,7 +216,7 @@ impl RapierSpace {
                         if state_sync_callback.is_valid() {
                             let mut arg_array = Array::new();
                             arg_array.push(direct_state.to_variant());
-                            state_sync_callback.callv(arg_array);
+                            queries.push(state_sync_callback.bindv(arg_array));
                         }
                     }
                 }
@@ -223,67 +225,95 @@ impl RapierSpace {
         for area_rid in self.monitor_query_list.clone() {
             if let Some(area) = physics_data_collision_objects.get_mut(&area_rid) {
                 if let Some(area) = area.get_mut_area() {
-                    area.call_queries();
+                    queries.append(&mut area.get_queries());
                 }
             }
         }
+        return queries;
     }
 
-    pub fn step(step: real, space_rid: &Rid, physics_data: &mut PhysicsData, settings: SimulationSettings) {
+    pub fn step(
+        step: real,
+        space_rid: &Rid,
+        physics_data: &mut PhysicsData,
+        settings: SimulationSettings,
+    ) {
+        let mut area_update_list = HashSet::default();
+        if let Some(space) = physics_data.spaces.get_mut(space_rid) {
+            area_update_list = space.get_area_update_list().clone();
+        }
+        for area in area_update_list {
+            RapierArea::update_area_override(
+                &mut physics_data.collision_objects,
+                &mut physics_data.spaces,
+                &mut physics_data.physics_engine,
+                &area,
+            );
+        }
         let Some(space) = physics_data.spaces.get_mut(space_rid) else {
             return;
         };
-        
-            let body_area_update_list = space.get_body_area_update_list().clone();
-            let gravity_update_list = space.get_gravity_update_list().clone();
-            let default_gravity_value: real = space.get_default_area_param(AreaParameter::GRAVITY).to();
-            let default_gravity_dir = space
-                .get_default_area_param(AreaParameter::GRAVITY_VECTOR)
-                .to();
-            let space_handle = space.get_handle();
-            space.before_step();
-            for body in space.get_active_list() {
-                if let Some(body) = physics_data.collision_objects.get_mut(body)
-                && let Some(body) = body.get_mut_body() {
-                        body.reset_contact_count();
-                }
+        let body_area_update_list = space.get_body_area_update_list().clone();
+        let gravity_update_list = space.get_gravity_update_list().clone();
+        let default_gravity_value: real = space.get_default_area_param(AreaParameter::GRAVITY).to();
+        let default_gravity_dir = space
+            .get_default_area_param(AreaParameter::GRAVITY_VECTOR)
+            .to();
+        let space_handle = space.get_handle();
+        space.before_step();
+        for body in space.get_active_list() {
+            if let Some(body) = physics_data.collision_objects.get_mut(body)
+                && let Some(body) = body.get_mut_body()
+            {
+                body.reset_contact_count();
             }
-            for body in space.get_mass_properties_update_list() {
-                if let Some(body) = physics_data.collision_objects.get_mut(body)
-                && let Some(body) = body.get_mut_body() {
-                        body.update_mass_properties(false, &mut physics_data.shapes, &mut physics_data.physics_engine);
-                }
+        }
+        for body in space.get_mass_properties_update_list() {
+            if let Some(body) = physics_data.collision_objects.get_mut(body)
+                && let Some(body) = body.get_mut_body()
+            {
+                body.update_mass_properties(
+                    false,
+                    &mut physics_data.shapes,
+                    &mut physics_data.physics_engine,
+                );
             }
-            space.reset_mass_properties_update_list();
-            for area in space.get_area_update_list().clone() {
-                if let Some(area) = physics_data.collision_objects.get_mut(&area)
-                && let Some(area) = area.get_mut_area() {
-                        area.update_area_override(space);
-                }
-            }
+        }
+        space.reset_mass_properties_update_list();
         for body in body_area_update_list {
             let area_override_settings;
             if let Some(body) = physics_data.collision_objects.get(&body)
-            && let Some(body) = body.get_body() {
-                    area_override_settings = Some(body.get_area_override_settings(&mut physics_data.spaces, &physics_data.collision_objects));
+                && let Some(body) = body.get_body()
+            {
+                area_override_settings = Some(body.get_area_override_settings(
+                    &mut physics_data.spaces,
+                    &physics_data.collision_objects,
+                ));
             } else {
                 area_override_settings = None;
             }
             if let Some(area_override_settings) = area_override_settings
-            && let Some(body) = physics_data.collision_objects.get_mut(&body) {
-                    if let Some(body) = body.get_mut_body() {
-                        body.apply_area_override(area_override_settings, &mut physics_data.physics_engine, &mut physics_data.spaces);
+                && let Some(body) = physics_data.collision_objects.get_mut(&body)
+            {
+                if let Some(body) = body.get_mut_body() {
+                    body.apply_area_override(
+                        area_override_settings,
+                        &mut physics_data.physics_engine,
+                        &mut physics_data.spaces,
+                    );
                 }
             }
         }
         for body in gravity_update_list {
             if let Some(body) = physics_data.collision_objects.get_mut(&body)
-            && let Some(body) = body.get_mut_body() {
-                    body.update_gravity(step, &mut physics_data.physics_engine);
+                && let Some(body) = body.get_mut_body()
+            {
+                body.update_gravity(step, &mut physics_data.physics_engine);
             }
         }
         let mut settings = settings;
-        settings.pixel_liquid_gravity = vector_to_rapier(default_gravity_dir) * default_gravity_value;
+        settings.pixel_liquid_gravity =
+            vector_to_rapier(default_gravity_dir) * default_gravity_value;
         settings.pixel_gravity = vector_to_rapier(default_gravity_dir) * default_gravity_value;
         if let Some(space) = physics_data.spaces.get_mut(space_rid) {
             // this calls into rapier
@@ -296,7 +326,10 @@ impl RapierSpace {
                 space,
                 &mut physics_data.collision_objects,
             );
-            space.after_step(&mut physics_data.physics_engine, &mut physics_data.collision_objects);
+            space.after_step(
+                &mut physics_data.physics_engine,
+                &mut physics_data.collision_objects,
+            );
         }
     }
 
@@ -370,11 +403,14 @@ impl RapierSpace {
         self.contact_debug_count = 0
     }
 
-    pub fn after_step(&mut self, physics_engine: &mut PhysicsEngine, physics_collision_objects: &mut PhysicsCollisionObjects) {
+    pub fn after_step(
+        &mut self,
+        physics_engine: &mut PhysicsEngine,
+        physics_collision_objects: &mut PhysicsCollisionObjects,
+    ) {
         // Needed only for one physics step to retrieve lost info
         self.removed_colliders.clear();
-        self.active_objects = physics_engine
-            .world_get_active_objects_count(self.handle) as i32;
+        self.active_objects = physics_engine.world_get_active_objects_count(self.handle) as i32;
         for body in self.active_list.clone() {
             if let Some(body) = physics_collision_objects.get_mut(&body) {
                 if let Some(body) = body.get_mut_body() {

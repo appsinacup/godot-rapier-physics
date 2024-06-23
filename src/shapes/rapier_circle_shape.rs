@@ -3,8 +3,6 @@ use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
 use godot::classes::physics_server_3d::*;
 use godot::prelude::*;
-use serde::*;
-use servers::rapier_physics_server_extra::PhysicsData;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::*;

@@ -1,7 +1,6 @@
 use std::collections::VecDeque;
 
 use godot::prelude::*;
-use serde::*;
 
 use super::fluid_effect::FluidEffect;
 use crate::rapier_wrapper::prelude::*;

@@ -1,6 +1,7 @@
 use rapier::prelude::*;
 
-use crate::{rapier_wrapper::prelude::*, servers::rapier_physics_server_extra::PhysicsCollisionObjects};
+use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_server_extra::PhysicsCollisionObjects;
 #[derive(Default)]
 pub struct OneWayDirection {
     pub body1: bool,
@@ -8,8 +9,14 @@ pub struct OneWayDirection {
     pub pixel_body1_margin: Real,
     pub pixel_body2_margin: Real,
 }
-pub type CollisionFilterCallback = fn(filter_info: &CollisionFilterInfo, physics_collision_objects: &PhysicsCollisionObjects) -> bool;
-pub type CollisionModifyContactsCallback = fn(filter_info: &CollisionFilterInfo, physics_collision_objects: &PhysicsCollisionObjects) -> OneWayDirection;
+pub type CollisionFilterCallback = fn(
+    filter_info: &CollisionFilterInfo,
+    physics_collision_objects: &PhysicsCollisionObjects,
+) -> bool;
+pub type CollisionModifyContactsCallback = fn(
+    filter_info: &CollisionFilterInfo,
+    physics_collision_objects: &PhysicsCollisionObjects,
+) -> OneWayDirection;
 pub struct CollisionFilterInfo {
     pub user_data1: UserData,
     pub user_data2: UserData,
@@ -37,7 +44,7 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
         if !(self.collision_filter_body_callback)(&filter_info, self.physics_collision_objects) {
             return None;
         }
-        return result;
+        result
     }
 
     fn filter_intersection_pair(&self, context: &PairFilterContext) -> bool {
@@ -80,7 +87,8 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
         };
         let allowed_local_n1 = collider1.position().rotation * Vector::y();
         let allowed_local_n2 = collider2.position().rotation * Vector::y();
-        let one_way_direction = (self.collision_modify_contacts_callback)(&filter_info, self.physics_collision_objects);
+        let one_way_direction =
+            (self.collision_modify_contacts_callback)(&filter_info, self.physics_collision_objects);
         let mut contact_is_pass_through = false;
         let mut dist: Real = 0.0;
         if let Some(contact) = context.manifold.find_deepest_contact() {

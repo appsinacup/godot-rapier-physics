@@ -6,7 +6,6 @@ use salva::parry::either::Either::Left;
 use salva::parry::either::Either::Right;
 
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_server_extra::PhysicsData;
 const SUBDIVISIONS: u32 = 20;
 #[cfg(feature = "dim2")]
 fn skew_polyline(vertices: &Vec<Point<Real>>, skew: Real) -> SharedShape {

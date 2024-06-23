@@ -1,5 +1,4 @@
 use rapier::data::Index;
-use rapier::prelude::*;
 use salva::object::ContiguousArenaIndex;
 use salva::object::FluidHandle;
 use serde::Deserialize;

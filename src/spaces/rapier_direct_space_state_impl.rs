@@ -222,8 +222,7 @@ impl RapierDirectSpaceStateImpl {
             }
             let (rid, shape_index) =
                 RapierCollisionObject::get_collider_user_data(&result.user_data);
-            let collision_object_2d = physics_data.collision_objects.get(&rid);
-            if let Some(collision_object_2d) = collision_object_2d {
+            if let Some(collision_object_2d) = physics_data.collision_objects.get(&rid) {
                 results_slice[cpt].shape = shape_index as i32;
                 results_slice[cpt].rid = rid;
                 let instance_id = collision_object_2d.get_base().get_instance_id();
@@ -387,9 +386,8 @@ impl RapierDirectSpaceStateImpl {
             return false;
         }
         let (rid, shape_index) = RapierCollisionObject::get_collider_user_data(&result.user_data);
-        let collision_object_2d = physics_data.collision_objects.get(&rid);
         let r_info = &mut *rest_info;
-        if let Some(collision_object_2d) = collision_object_2d {
+        if let Some(collision_object_2d) = physics_data.collision_objects.get(&rid) {
             let instance_id = collision_object_2d.get_base().get_instance_id();
             r_info.collider_id = ObjectId { id: instance_id };
             if let Some(body) = collision_object_2d.get_body() {

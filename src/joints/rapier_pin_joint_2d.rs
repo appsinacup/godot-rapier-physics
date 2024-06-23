@@ -60,14 +60,14 @@ impl RapierPinJoint2D {
             false,
             true,
         );
-        return Self {
+        Self {
             angular_limit_lower: 0.0,
             angular_limit_upper: 0.0,
             motor_target_velocity: 0.0,
             motor_enabled: false,
             angular_limit_enabled: false,
             base: RapierJointBase::new(space_handle, handle),
-        };
+        }
     }
 
     pub fn set_param(

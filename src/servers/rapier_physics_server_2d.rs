@@ -4,15 +4,9 @@ use godot::classes::IPhysicsServer2DExtension;
 use godot::classes::PhysicsServer2DExtension;
 use godot::classes::{self};
 use godot::engine::native::PhysicsServer2DExtensionMotionResult;
-use godot::engine::physics_server_2d::AreaParameter;
 use godot::engine::utilities::rid_allocate_id;
 use godot::engine::utilities::rid_from_int64;
-use godot::engine::DampedSpringJoint2D;
 use godot::prelude::*;
-use hashbrown::HashMap;
-use rapier::dynamics::ImpulseJointHandle;
-use serde::Deserialize;
-use serde::Serialize;
 
 use super::rapier_physics_server_extra::PhysicsData;
 use super::rapier_project_settings::RapierProjectSettings;
@@ -20,7 +14,6 @@ use crate::bodies::rapier_area::RapierArea;
 use crate::bodies::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::bodies::vector_normalized;
-use crate::fluids::rapier_fluid::RapierFluid;
 use crate::joints::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 use crate::joints::rapier_groove_joint_2d::RapierGrooveJoint2D;
 use crate::joints::rapier_joint::IRapierJoint;
@@ -38,6 +31,7 @@ use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
 use crate::shapes::rapier_world_boundary_shape::RapierWorldBoundaryShape;
 use crate::spaces::rapier_space::RapierSpace;
+use crate::Vector;
 #[derive(GodotClass)]
 #[class(base=PhysicsServer2DExtension, tool)]
 pub struct RapierPhysicsServer2D {
@@ -299,8 +293,18 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     }
 
     fn area_set_space(&mut self, area: Rid, space: Rid) {
+        RapierArea::clear_detected_bodies(
+            &area,
+            &mut self.physics_data.spaces,
+            &mut self.physics_data.collision_objects,
+        );
         if let Some(area) = self.physics_data.collision_objects.get_mut(&area) {
-            area.set_space(space, &mut self.physics_data);
+            area.set_space(
+                space,
+                &mut self.physics_data.physics_engine,
+                &mut self.physics_data.spaces,
+                &mut self.physics_data.shapes,
+            );
         }
     }
 
@@ -313,25 +317,50 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
 
     fn area_add_shape(&mut self, area: Rid, shape: Rid, transform: Transform2D, disabled: bool) {
         if let Some(area) = self.physics_data.collision_objects.get_mut(&area) {
-            area.add_shape(shape, transform, disabled, &mut self.physics_data);
+            area.add_shape(
+                shape,
+                transform,
+                disabled,
+                &mut self.physics_data.physics_engine,
+                &mut self.physics_data.spaces,
+                &mut self.physics_data.shapes,
+            );
         }
     }
 
     fn area_set_shape(&mut self, area: Rid, shape_idx: i32, shape: Rid) {
         if let Some(area) = self.physics_data.collision_objects.get_mut(&area) {
-            area.set_shape(shape_idx as usize, shape, &mut self.physics_data);
+            area.set_shape(
+                shape_idx as usize,
+                shape,
+                &mut self.physics_data.physics_engine,
+                &mut self.physics_data.spaces,
+                &mut self.physics_data.shapes,
+            );
         }
     }
 
     fn area_set_shape_transform(&mut self, area: Rid, shape_idx: i32, transform: Transform2D) {
         if let Some(area) = self.physics_data.collision_objects.get_mut(&area) {
-            area.set_shape_transform(shape_idx as usize, transform, &mut self.physics_data);
+            area.set_shape_transform(
+                shape_idx as usize,
+                transform,
+                &mut self.physics_data.physics_engine,
+                &mut self.physics_data.spaces,
+                &mut self.physics_data.shapes,
+            );
         }
     }
 
     fn area_set_shape_disabled(&mut self, area: Rid, shape_idx: i32, disabled: bool) {
         if let Some(area) = self.physics_data.collision_objects.get_mut(&area) {
-            area.set_shape_disabled(shape_idx as usize, disabled, &mut self.physics_data);
+            area.set_shape_disabled(
+                shape_idx as usize,
+                disabled,
+                &mut self.physics_data.physics_engine,
+                &mut self.physics_data.spaces,
+                &mut self.physics_data.shapes,
+            );
         }
     }
 
@@ -358,14 +387,24 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
 
     fn area_remove_shape(&mut self, area: Rid, shape_idx: i32) {
         if let Some(area) = self.physics_data.collision_objects.get_mut(&area) {
-            area.remove_shape_idx(shape_idx as usize);
+            area.remove_shape_idx(
+                shape_idx as usize,
+                &mut self.physics_data.physics_engine,
+                &mut self.physics_data.spaces,
+                &mut self.physics_data.shapes,
+            );
         }
     }
 
     fn area_clear_shapes(&mut self, area: Rid) {
         if let Some(area) = self.physics_data.collision_objects.get_mut(&area) {
             while area.get_base().get_shape_count() > 0 {
-                area.remove_shape_idx(0);
+                area.remove_shape_idx(
+                    0,
+                    &mut self.physics_data.physics_engine,
+                    &mut self.physics_data.spaces,
+                    &mut self.physics_data.shapes,
+                );
             }
         }
     }
@@ -408,7 +447,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         }
         if let Some(area) = self.physics_data.collision_objects.get_mut(&area) {
             if let Some(area) = area.get_mut_area() {
-                area.set_param(param, value);
+                area.set_param(param, value, &mut self.physics_data.spaces);
             }
         }
     }
@@ -513,7 +552,12 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
 
     fn body_set_space(&mut self, body: Rid, space: Rid) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
-            body.set_space(space, &mut self.physics_data);
+            body.set_space(
+                space,
+                &mut self.physics_data.physics_engine,
+                &mut self.physics_data.spaces,
+                &mut self.physics_data.shapes,
+            );
         }
     }
 
@@ -525,9 +569,33 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     }
 
     fn body_set_mode(&mut self, body: Rid, mode: classes::physics_server_2d::BodyMode) {
-        if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.set_mode(mode, &mut self.physics_data.physics_engine, &mut self.physics_data.spaces);
+        if let Some(body) = self.physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.set_mode(
+                mode,
+                &mut self.physics_data.physics_engine,
+                &mut self.physics_data.spaces,
+            );
+        }
+        let mut area_override_settings = None;
+        if let Some(body) = self.physics_data.collision_objects.get(&body)
+            && let Some(body) = body.get_body()
+        {
+            area_override_settings = Some(body.get_area_override_settings(
+                &mut self.physics_data.spaces,
+                &self.physics_data.collision_objects,
+            ));
+        }
+        if let Some(body) = self.physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            if let Some(area_override_settings) = area_override_settings {
+                body.apply_area_override(
+                    area_override_settings,
+                    &mut self.physics_data.physics_engine,
+                    &mut self.physics_data.spaces,
+                );
             }
         }
     }
@@ -544,7 +612,14 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_add_shape(&mut self, body: Rid, shape: Rid, transform: Transform2D, disabled: bool) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.add_shape(shape, transform, disabled, &mut self.physics_data.physics_engine, &mut self.physics_data.spaces, &mut self.physics_data.shapes);
+                body.add_shape(
+                    shape,
+                    transform,
+                    disabled,
+                    &mut self.physics_data.physics_engine,
+                    &mut self.physics_data.spaces,
+                    &mut self.physics_data.shapes,
+                );
             }
         }
     }
@@ -552,7 +627,13 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_set_shape(&mut self, body: Rid, shape_idx: i32, shape: Rid) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_shape(shape_idx as usize, shape, &mut self.physics_data.physics_engine, &mut self.physics_data.spaces, &mut self.physics_data.shapes);
+                body.set_shape(
+                    shape_idx as usize,
+                    shape,
+                    &mut self.physics_data.physics_engine,
+                    &mut self.physics_data.spaces,
+                    &mut self.physics_data.shapes,
+                );
             }
         }
     }
@@ -560,7 +641,13 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_set_shape_transform(&mut self, body: Rid, shape_idx: i32, transform: Transform2D) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_shape_transform(shape_idx as usize, transform, &mut self.physics_data.physics_engine, &mut self.physics_data.spaces, &mut self.physics_data.shapes);
+                body.set_shape_transform(
+                    shape_idx as usize,
+                    transform,
+                    &mut self.physics_data.physics_engine,
+                    &mut self.physics_data.spaces,
+                    &mut self.physics_data.shapes,
+                );
             }
         }
     }
@@ -595,7 +682,13 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_set_shape_disabled(&mut self, body: Rid, shape_idx: i32, disabled: bool) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_shape_disabled(shape_idx as usize, disabled, &mut self.physics_data.physics_engine, &mut self.physics_data.spaces, &mut self.physics_data.shapes);
+                body.set_shape_disabled(
+                    shape_idx as usize,
+                    disabled,
+                    &mut self.physics_data.physics_engine,
+                    &mut self.physics_data.spaces,
+                    &mut self.physics_data.shapes,
+                );
             }
         }
     }
@@ -741,7 +834,12 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     ) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_param(param, value, &mut self.physics_data.physics_engine, &mut self.physics_data.spaces);
+                body.set_param(
+                    param,
+                    value,
+                    &mut self.physics_data.physics_engine,
+                    &mut self.physics_data.spaces,
+                );
             }
         }
     }
@@ -762,7 +860,10 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     fn body_reset_mass_properties(&mut self, body: Rid) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.reset_mass_properties(&mut self.physics_data.physics_engine, &mut self.physics_data.spaces);
+                body.reset_mass_properties(
+                    &mut self.physics_data.physics_engine,
+                    &mut self.physics_data.spaces,
+                );
             }
         }
     }
@@ -775,7 +876,12 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     ) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_state(state, value, &mut self.physics_data.physics_engine, &mut self.physics_data.spaces);
+                body.set_state(
+                    state,
+                    value,
+                    &mut self.physics_data.physics_engine,
+                    &mut self.physics_data.spaces,
+                );
             }
         }
     }
@@ -1329,7 +1435,12 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             return;
         }
         if let Some(mut body) = self.physics_data.collision_objects.remove(&rid) {
-            body.set_space(Rid::Invalid, &mut self.physics_data);
+            body.set_space(
+                Rid::Invalid,
+                &mut self.physics_data.physics_engine,
+                &mut self.physics_data.spaces,
+                &mut self.physics_data.shapes,
+            );
             while body.get_base().get_shape_count() > 0 {
                 body.remove_shape_idx(
                     0,
@@ -1377,13 +1488,24 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         self.island_count = 0;
         self.active_objects = 0;
         self.collision_pairs = 0;
-        for space_rid in self.physics_data.active_spaces.values() {
-            if let Some(space_rid) = space_rid {
+        let active_spaces = self.physics_data.active_spaces.clone();
+        for space_rid in active_spaces.values() {
+            let settings = SimulationSettings {
+                dt: step,
+                length_unit: self.length_unit,
+                max_ccd_substeps: self.max_ccd_substeps,
+                num_additional_friction_iterations: self.num_additional_friction_iterations,
+                num_internal_pgs_iterations: self.num_internal_pgs_iterations,
+                num_solver_iterations: self.num_solver_iterations,
+                pixel_gravity: vector_to_rapier(Vector::ZERO),
+                pixel_liquid_gravity: vector_to_rapier(Vector::ZERO),
+            };
+            RapierSpace::step(step, space_rid, &mut self.physics_data, settings);
+            if let Some(space) = self.physics_data.spaces.get(space_rid) {
+                self.island_count += space.get_island_count();
+                self.active_objects += space.get_active_objects();
+                self.collision_pairs += space.get_collision_pairs();
             }
-            self.island_count += space.get_island_count();
-            self.active_objects += space.get_active_objects();
-            self.collision_pairs += space.get_collision_pairs();
-            RapierSpace::step(step, space_rid, &mut self.physics_data, self.length_unit);
         }
     }
 
@@ -1397,10 +1519,14 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         }
         self.flushing_queries = true;
         let active_spaces = self.physics_data.active_spaces.clone();
+        let mut queries = Vec::default();
         for space in active_spaces.values() {
             if let Some(space) = self.physics_data.spaces.get_mut(space) {
-                space.call_queries(&mut self.physics_data.collision_objects);
+                queries.append(&mut space.get_queries(&mut self.physics_data.collision_objects));
             }
+        }
+        for query in queries {
+            query.callv(VariantArray::new());
         }
         self.flushing_queries = false;
     }

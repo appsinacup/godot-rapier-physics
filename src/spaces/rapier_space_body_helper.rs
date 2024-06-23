@@ -66,7 +66,7 @@ pub fn is_handle_excluded_callback(
     };
     let direct_state = direct_space.clone().cast() as Gd<RapierDirectSpaceState>;
     let direct_space = direct_state.deref();
-    return direct_space.is_body_excluded_from_query(collision_object_base.get_rid());
+    direct_space.is_body_excluded_from_query(collision_object_base.get_rid())
 }
 impl RapierSpace {
     pub fn test_body_motion(

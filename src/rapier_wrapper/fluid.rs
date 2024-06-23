@@ -5,7 +5,6 @@ use salva::solver::*;
 
 use super::shape::point_array_to_vec;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_server_extra::PhysicsData;
 use crate::PackedVectorArray;
 impl PhysicsEngine {
     pub fn fluid_create(&mut self, world_handle: WorldHandle, density: Real) -> HandleDouble {
@@ -179,7 +178,7 @@ impl PhysicsEngine {
             let points = point_array_to_vec(points);
             // add old positions from fluid
             fluid.positions.extend_from_slice(&points);
-            fluid.velocities.extend_from_slice(&velocity_points);
+            fluid.velocities.extend_from_slice(velocity_points);
             let new_point_count = fluid.positions.len();
             let mut accelerations: Vec<_> = std::iter::repeat(SalvaVector::zeros())
                 .take(new_point_count)

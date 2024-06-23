@@ -47,11 +47,10 @@ impl PhysicsEngine {
         // let default values better
         set_rigid_body_properties_internal(&mut rigid_body, pos, rot, true);
         rigid_body.user_data = user_data.get_data();
-        let body_handle = physics_world
+        physics_world
             .physics_objects
             .rigid_body_set
-            .insert(rigid_body);
-        return body_handle;
+            .insert(rigid_body)
     }
 
     pub fn body_change_mode(
@@ -564,10 +563,9 @@ impl PhysicsEngine {
                 .physics_objects
                 .rigid_body_set
                 .get_mut(body_handle)
+            && body.is_sleeping()
         {
-            if body.is_sleeping() {
-                body.wake_up(strong);
-            }
+            body.wake_up(strong);
         }
     }
 

@@ -10,7 +10,6 @@ use serde::Serialize;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_server_extra::PhysicsCollisionObjects;
-use crate::servers::rapier_physics_server_extra::PhysicsData;
 use crate::spaces::rapier_space::RapierSpace;
 pub struct ActiveBodyInfo {
     pub body_user_data: UserData,
@@ -123,7 +122,7 @@ impl PhysicsWorld {
             collision_filter_body_callback: &collision_filter_body_callback,
             collision_filter_sensor_callback: &collision_filter_sensor_callback,
             collision_modify_contacts_callback: &collision_modify_contacts_callback,
-            physics_collision_objects: &physics_collision_objects,
+            physics_collision_objects,
         };
         // Initialize the event collector.
         let (collision_send, collision_recv) = crossbeam::channel::unbounded();
@@ -202,7 +201,8 @@ impl PhysicsWorld {
                 user_data1: UserData::new(collider1.user_data),
                 user_data2: UserData::new(collider2.user_data),
             };
-            let mut send_contact_points = space.contact_force_event_callback(&event_info, physics_collision_objects);
+            let mut send_contact_points =
+                space.contact_force_event_callback(&event_info, physics_collision_objects);
             if send_contact_points {
                 let body1: &RigidBody = self.get_collider_rigid_body(collider1).unwrap();
                 let body2: &RigidBody = self.get_collider_rigid_body(collider2).unwrap();
@@ -240,8 +240,11 @@ impl PhysicsWorld {
                         contact_info.pixel_distance = contact_point.dist;
                         contact_info.pixel_impulse = contact_point.data.impulse;
                         contact_info.pixel_tangent_impulse = contact_point.data.tangent_impulse;
-                        send_contact_points =
-                            space.contact_point_callback(&contact_info, &event_info, physics_collision_objects);
+                        send_contact_points = space.contact_point_callback(
+                            &contact_info,
+                            &event_info,
+                            physics_collision_objects,
+                        );
                         if !send_contact_points {
                             break;
                         }
@@ -354,8 +357,7 @@ impl PhysicsEngine {
     }
 
     pub fn insert_shape(&mut self, shape: SharedShape) -> ShapeHandle {
-        let shape_handle = self.shapes.insert(shape);
-        shape_handle
+        self.shapes.insert(shape)
     }
 
     pub fn remove_shape(&mut self, shape_handle: ShapeHandle) {
@@ -422,6 +424,7 @@ impl PhysicsEngine {
         }
         Vec::new()
     }
+
     pub fn world_step(
         &mut self,
         world_handle: WorldHandle,
@@ -443,5 +446,4 @@ impl PhysicsEngine {
             );
         }
     }
-    
 }

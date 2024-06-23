@@ -6,11 +6,9 @@ use godot::engine::physics_server_2d::*;
 use godot::engine::physics_server_3d::*;
 use godot::prelude::*;
 use hashbrown::HashMap;
-use serde::*;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_server_extra::PhysicsData;
-use crate::spaces::rapier_space::RapierSpace;
 use crate::Angle;
 use crate::Rect;
 use crate::Vector;
@@ -69,9 +67,8 @@ impl RapierShapeBase {
         physics_data: &mut PhysicsData,
     ) {
         for (owner, _) in owners {
-            let owner = physics_data.collision_objects.get_mut(&owner);
-            if let Some(owner) = owner {
-                owner._shape_changed(
+            if let Some(owner) = physics_data.collision_objects.get_mut(&owner) {
+                owner.shape_changed(
                     shape_rid,
                     &mut physics_data.physics_engine,
                     &mut physics_data.shapes,
