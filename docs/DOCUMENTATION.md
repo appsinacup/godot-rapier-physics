@@ -77,11 +77,9 @@ As described in the chapter above, the `Physics Server` creates some resources a
 
 As such, when saving and loading, first one must recreate the Godot scene and make sure all the dependencies are created, and only later load the `Physics Server` state. Even if some of the things the Physics Server loads won't be the exact same, eg. `RID`'s, `Callables`, etc. The simulation will work deterministic as internally it uses Rapier which is itself deterministic. Also the update order isn't based on these resources that Godot hands over.
 
-
-
 # Fluids
 
-Godot Rapier Physics also exposes new nodes, [Fluid2D](../src/fluids/fluid_2d.rs) and [Fluid3D](../src/fluids/fluid_3d.rs). These nodes can set and get position, velocity and acceleration of particles used for fluid simulation. Internally 
+Godot Rapier Physics also exposes new nodes, [Fluid2D](../src/fluids/fluid_2d.rs) and [Fluid3D](../src/fluids/fluid_3d.rs). These nodes can set and get position, velocity and acceleration of particles used for fluid simulation. Internally it uses [salva](https://github.com/dimforge/salva) to create them.
 
 # How to build
 
