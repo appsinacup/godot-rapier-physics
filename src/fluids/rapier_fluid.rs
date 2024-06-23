@@ -4,7 +4,8 @@ use godot::prelude::*;
 
 use super::fluid_effect::FluidEffect;
 use crate::rapier_wrapper::prelude::*;
-use crate::Vector;
+use crate::types::Vector;
+//#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierFluid {
     rid: Rid,
     enabled: bool,
@@ -94,10 +95,5 @@ impl RapierFluid {
 
     pub fn get_space(&self) -> Rid {
         self.space
-    }
-}
-impl Drop for RapierFluid {
-    fn drop(&mut self) {
-        // Cleanup code here
     }
 }

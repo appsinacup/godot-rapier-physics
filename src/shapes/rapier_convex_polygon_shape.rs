@@ -7,10 +7,8 @@ use godot::prelude::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
-use crate::PackedFloatArray;
-use crate::PackedVectorArray;
-use crate::Rect;
-use crate::Vector;
+use crate::types::*;
+//#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierConvexPolygonShape {
     points: PackedVectorArray,
     base: RapierShapeBase,
@@ -71,20 +69,20 @@ impl IRapierShape for RapierConvexPolygonShape {
         true
     }
 
-    fn create_rapier_shape(&mut self) -> Handle {
+    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
         if self.points.len() >= 3 {
             let mut rapier_points = Vec::with_capacity(self.points.len());
             for point in self.points.as_slice() {
                 rapier_points.push(vector_to_rapier(*point));
             }
-            shape_create_convex_polyline(rapier_points)
+            physics_engine.shape_create_convex_polyline(&rapier_points)
         } else {
             godot_error!("ConvexPolygon must have at least three point");
-            invalid_handle()
+            ShapeHandle::default()
         }
     }
 
-    fn set_data(&mut self, data: Variant) {
+    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         match data.get_type() {
             VariantType::PACKED_VECTOR2_ARRAY | VariantType::PACKED_VECTOR3_ARRAY => {
                 if let Ok(arr) = data.try_to::<PackedVectorArray>() {
@@ -120,15 +118,16 @@ impl IRapierShape for RapierConvexPolygonShape {
             godot_error!("ConvexPolygon must have at least three point");
             return;
         }
-        let handle = self.create_rapier_shape();
-        self.base.set_handle(handle, self.compute_aabb(Vector::ONE));
+        let handle = self.create_rapier_shape(physics_engine);
+        self.base
+            .set_handle(handle, self.compute_aabb(Vector::ONE), physics_engine);
     }
 
     fn get_data(&self) -> Variant {
         self.points.to_variant()
     }
 
-    fn get_handle(&mut self) -> Handle {
+    fn get_handle(&self) -> ShapeHandle {
         self.base.get_handle()
     }
 }

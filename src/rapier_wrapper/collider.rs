@@ -239,128 +239,133 @@ fn shape_is_halfspace(shape: &SharedShape) -> bool {
     }
     shape.shape_type() == ShapeType::HalfSpace
 }
-pub fn collider_create_solid(
-    world_handle: Handle,
-    shape_handle: Handle,
-    mat: &Material,
-    body_handle: RigidBodyHandle,
-    user_data: &UserData,
-) -> ColliderHandle {
-    let physics_engine = physics_engine();
-    if let Some(shape) = physics_engine.get_shape(shape_handle) {
-        let is_shape_halfspace = shape_is_halfspace(shape);
-        let mut collider = ColliderBuilder::new(shape.clone())
-            .contact_force_event_threshold(-Real::MAX)
-            .build();
-        // TODO update when https://github.com/dimforge/rapier/issues/622 is fixed
-        if mat.friction >= 0.0 {
-            collider.set_friction(mat.friction);
-        }
-        if mat.restitution >= 0.0 {
-            collider.set_restitution(mat.restitution);
-        }
-        collider.set_friction_combine_rule(CoefficientCombineRule::Multiply);
-        collider.set_restitution_combine_rule(CoefficientCombineRule::Max);
-        collider.set_density(0.0);
-        collider.set_contact_skin(mat.contact_skin);
-        collider.set_contact_force_event_threshold(-Real::MAX);
-        collider.user_data = user_data.get_data();
-        collider.set_active_hooks(
-            ActiveHooks::FILTER_CONTACT_PAIRS | ActiveHooks::MODIFY_SOLVER_CONTACTS,
-        );
-        if let Some(physics_world) = physics_engine.get_world(world_handle) {
-            let collider_handle = physics_world.insert_collider(collider, body_handle);
-            // register fluid coupling. Dynamic coupling doens't work for halfspace
-            if !is_shape_halfspace {
-                let boundary_handle = physics_world
-                    .fluids_pipeline
-                    .liquid_world
-                    .add_boundary(Boundary::new(Vec::new()));
-                physics_world.fluids_pipeline.coupling.register_coupling(
-                    boundary_handle,
-                    collider_handle,
-                    ColliderSampling::DynamicContactSampling,
-                );
+impl PhysicsEngine {
+    pub fn collider_create_solid(
+        &mut self,
+        world_handle: WorldHandle,
+        shape_handle: ShapeHandle,
+        mat: &Material,
+        body_handle: RigidBodyHandle,
+        user_data: &UserData,
+    ) -> ColliderHandle {
+        if let Some(shape) = self.get_shape(shape_handle) {
+            let is_shape_halfspace = shape_is_halfspace(shape);
+            let mut collider = ColliderBuilder::new(shape.clone())
+                .contact_force_event_threshold(-Real::MAX)
+                .build();
+            // TODO update when https://github.com/dimforge/rapier/issues/622 is fixed
+            if mat.friction >= 0.0 {
+                collider.set_friction(mat.friction);
             }
-            return collider_handle;
+            if mat.restitution >= 0.0 {
+                collider.set_restitution(mat.restitution);
+            }
+            collider.set_friction_combine_rule(CoefficientCombineRule::Multiply);
+            collider.set_restitution_combine_rule(CoefficientCombineRule::Max);
+            collider.set_density(0.0);
+            collider.set_contact_skin(mat.contact_skin);
+            collider.set_contact_force_event_threshold(-Real::MAX);
+            collider.user_data = user_data.get_data();
+            collider.set_active_hooks(
+                ActiveHooks::FILTER_CONTACT_PAIRS | ActiveHooks::MODIFY_SOLVER_CONTACTS,
+            );
+            if let Some(physics_world) = self.get_mut_world(world_handle) {
+                let collider_handle = physics_world.insert_collider(collider, body_handle);
+                // register fluid coupling. Dynamic coupling doens't work for halfspace
+                if !is_shape_halfspace {
+                    let boundary_handle = physics_world
+                        .fluids_pipeline
+                        .liquid_world
+                        .add_boundary(Boundary::new(Vec::new()));
+                    physics_world.fluids_pipeline.coupling.register_coupling(
+                        boundary_handle,
+                        collider_handle,
+                        ColliderSampling::DynamicContactSampling,
+                    );
+                }
+                return collider_handle;
+            }
+        }
+        ColliderHandle::invalid()
+    }
+
+    pub fn collider_create_sensor(
+        &mut self,
+        world_handle: WorldHandle,
+        shape_handle: ShapeHandle,
+        body_handle: RigidBodyHandle,
+        user_data: &UserData,
+    ) -> ColliderHandle {
+        if let Some(shape) = self.get_shape(shape_handle) {
+            let mut collider = ColliderBuilder::new(shape.clone()).build();
+            collider.set_sensor(true);
+            collider.set_active_events(ActiveEvents::COLLISION_EVENTS);
+            let mut collision_types = collider.active_collision_types();
+            // Area vs Area
+            collision_types |= ActiveCollisionTypes::FIXED_FIXED;
+            // Area vs CharacterBody
+            collision_types |= ActiveCollisionTypes::KINEMATIC_FIXED;
+            collider.set_active_collision_types(collision_types);
+            collider.user_data = user_data.get_data();
+            collider.set_active_hooks(ActiveHooks::FILTER_INTERSECTION_PAIR);
+            if let Some(physics_world) = self.get_mut_world(world_handle) {
+                return physics_world.insert_collider(collider, body_handle);
+            }
+        }
+        ColliderHandle::invalid()
+    }
+
+    pub fn collider_destroy(&mut self, world_handle: WorldHandle, collider_handle: ColliderHandle) {
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
+            physics_world
+                .fluids_pipeline
+                .coupling
+                .unregister_coupling(collider_handle);
+            physics_world.remove_collider(collider_handle);
         }
     }
-    ColliderHandle::invalid()
-}
-pub fn collider_create_sensor(
-    world_handle: Handle,
-    shape_handle: Handle,
-    body_handle: RigidBodyHandle,
-    user_data: &UserData,
-) -> ColliderHandle {
-    let physics_engine = physics_engine();
-    if let Some(shape) = physics_engine.get_shape(shape_handle) {
-        let mut collider = ColliderBuilder::new(shape.clone()).build();
-        collider.set_sensor(true);
-        collider.set_active_events(ActiveEvents::COLLISION_EVENTS);
-        let mut collision_types = collider.active_collision_types();
-        // Area vs Area
-        collision_types |= ActiveCollisionTypes::FIXED_FIXED;
-        // Area vs CharacterBody
-        collision_types |= ActiveCollisionTypes::KINEMATIC_FIXED;
-        collider.set_active_collision_types(collision_types);
-        collider.user_data = user_data.get_data();
-        collider.set_active_hooks(ActiveHooks::FILTER_INTERSECTION_PAIR);
-        if let Some(physics_world) = physics_engine.get_world(world_handle) {
-            return physics_world.insert_collider(collider, body_handle);
+
+    pub fn collider_set_transform(
+        &mut self,
+        world_handle: WorldHandle,
+        collider_handle: ColliderHandle,
+        shape_info: ShapeInfo,
+    ) {
+        if let Some(shape) = self.get_shape(shape_info.handle) {
+            let new_shape = scale_shape(shape, shape_info);
+            if let Some(physics_world) = self.get_mut_world(world_handle) {
+                if let Some(collider) = physics_world
+                    .physics_objects
+                    .collider_set
+                    .get_mut(collider_handle)
+                {
+                    collider.set_position_wrt_parent(shape_info.transform);
+                    collider.set_shape(new_shape);
+                }
+            }
         }
     }
-    ColliderHandle::invalid()
-}
-pub fn collider_destroy(world_handle: Handle, collider_handle: ColliderHandle) {
-    let physics_engine = physics_engine();
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        physics_world
-            .fluids_pipeline
-            .coupling
-            .unregister_coupling(collider_handle);
-        physics_world.remove_collider(collider_handle);
-    }
-}
-pub fn collider_set_transform(
-    world_handle: Handle,
-    collider_handle: ColliderHandle,
-    shape_info: ShapeInfo,
-) {
-    let physics_engine = physics_engine();
-    if let Some(shape) = physics_engine.get_shape(shape_info.handle) {
-        let new_shape = scale_shape(shape, shape_info);
-        if let Some(physics_world) = physics_engine.get_world(world_handle) {
+
+    pub fn collider_set_contact_force_events_enabled(
+        &mut self,
+        world_handle: WorldHandle,
+        collider_handle: ColliderHandle,
+        enable: bool,
+    ) {
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
             if let Some(collider) = physics_world
                 .physics_objects
                 .collider_set
                 .get_mut(collider_handle)
             {
-                collider.set_position_wrt_parent(shape_info.transform);
-                collider.set_shape(new_shape);
+                let mut active_events = collider.active_events();
+                if enable {
+                    active_events |= ActiveEvents::CONTACT_FORCE_EVENTS;
+                } else {
+                    active_events &= !ActiveEvents::CONTACT_FORCE_EVENTS;
+                }
+                collider.set_active_events(active_events);
             }
-        }
-    }
-}
-pub fn collider_set_contact_force_events_enabled(
-    world_handle: Handle,
-    collider_handle: ColliderHandle,
-    enable: bool,
-) {
-    let physics_engine = physics_engine();
-    if let Some(physics_world) = physics_engine.get_world(world_handle) {
-        if let Some(collider) = physics_world
-            .physics_objects
-            .collider_set
-            .get_mut(collider_handle)
-        {
-            let mut active_events = collider.active_events();
-            if enable {
-                active_events |= ActiveEvents::CONTACT_FORCE_EVENTS;
-            } else {
-                active_events &= !ActiveEvents::CONTACT_FORCE_EVENTS;
-            }
-            collider.set_active_events(active_events);
         }
     }
 }

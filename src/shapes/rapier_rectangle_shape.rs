@@ -7,11 +7,11 @@ use godot::prelude::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
-use crate::Rect;
-use crate::Vector;
+use crate::types::*;
+//#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierRectangleShape {
     half_extents: Vector,
-    pub base: RapierShapeBase,
+    base: RapierShapeBase,
 }
 impl RapierRectangleShape {
     pub fn new(rid: Rid) -> Self {
@@ -62,17 +62,17 @@ impl IRapierShape for RapierRectangleShape {
         true
     }
 
-    fn create_rapier_shape(&mut self) -> Handle {
+    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
         let v = vector_to_rapier(self.half_extents) * 2.0;
-        shape_create_box(v)
+        physics_engine.shape_create_box(v)
     }
 
-    fn set_data(&mut self, data: Variant) {
+    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         if let Ok(v) = data.try_to() {
             self.half_extents = v;
             let aabb = Rect::new(-self.half_extents, self.half_extents * 2.0);
-            let handle = self.create_rapier_shape();
-            self.base.set_handle(handle, aabb);
+            let handle = self.create_rapier_shape(physics_engine);
+            self.base.set_handle(handle, aabb, physics_engine);
         } else {
             godot_error!("Invalid data type for RapierRectangleShape");
         }
@@ -82,7 +82,7 @@ impl IRapierShape for RapierRectangleShape {
         self.half_extents.to_variant()
     }
 
-    fn get_handle(&mut self) -> Handle {
+    fn get_handle(&self) -> ShapeHandle {
         self.base.get_handle()
     }
 }

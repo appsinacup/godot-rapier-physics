@@ -6,9 +6,10 @@ use godot::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::*;
-use crate::*;
+use crate::types::*;
+//#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierCircleShape {
-    radius: f32,
+    radius: real,
     base: RapierShapeBase,
 }
 impl RapierCircleShape {
@@ -58,38 +59,33 @@ impl IRapierShape for RapierCircleShape {
         true
     }
 
-    fn create_rapier_shape(&mut self) -> Handle {
-        shape_create_circle(self.radius)
+    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
+        physics_engine.shape_create_circle(self.radius)
     }
 
-    fn set_data(&mut self, data: Variant) {
+    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         match data.get_type() {
-            VariantType::FLOAT => {
-                let float_data = data.to();
-                self.radius = float_data;
-            }
-            VariantType::INT => {
-                let int_data: i32 = data.to();
-                self.radius = int_data as f32;
+            VariantType::FLOAT | VariantType::INT => {
+                self.radius = variant_to_float(&data);
             }
             _ => {
                 godot_error!("Invalid shape data");
                 return;
             }
         }
-        let handle = self.create_rapier_shape();
+        let handle = self.create_rapier_shape(physics_engine);
         let rect = Rect::new(
             -Vector::splat(self.radius),
             Vector::splat(self.radius) * 2.0,
         );
-        self.base.set_handle(handle, rect);
+        self.base.set_handle(handle, rect, physics_engine);
     }
 
     fn get_data(&self) -> Variant {
         self.radius.to_variant()
     }
 
-    fn get_handle(&mut self) -> Handle {
+    fn get_handle(&self) -> ShapeHandle {
         self.base.get_handle()
     }
 }

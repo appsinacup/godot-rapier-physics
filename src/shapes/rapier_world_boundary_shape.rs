@@ -7,13 +7,13 @@ use godot::prelude::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
-use crate::Angle;
-use crate::Vector;
+use crate::types::*;
+//#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierWorldBoundaryShape {
     normal: Vector,
     d: f32,
 
-    pub base: RapierShapeBase,
+    base: RapierShapeBase,
 }
 impl RapierWorldBoundaryShape {
     pub fn new(rid: Rid) -> Self {
@@ -51,12 +51,12 @@ impl IRapierShape for RapierWorldBoundaryShape {
         true
     }
 
-    fn create_rapier_shape(&mut self) -> Handle {
-        shape_create_halfspace(vector_to_rapier(self.normal), -self.d)
+    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
+        physics_engine.shape_create_halfspace(vector_to_rapier(self.normal), -self.d)
     }
 
     #[cfg(feature = "dim2")]
-    fn set_data(&mut self, data: Variant) {
+    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         if data.get_type() != VariantType::ARRAY {
             godot_error!("Invalid shape data");
             return;
@@ -67,20 +67,21 @@ impl IRapierShape for RapierWorldBoundaryShape {
             return;
         }
         if arr.at(0).get_type() != VariantType::VECTOR2
-            || arr.at(1).get_type() != VariantType::FLOAT
+            || (arr.at(1).get_type() != VariantType::FLOAT
+                && arr.at(1).get_type() != VariantType::INT)
         {
             godot_error!("Invalid data type for WorldBoundaryShape2D.");
             return;
         }
         self.normal = arr.at(0).to();
-        self.d = arr.at(1).to();
-        let handle = self.create_rapier_shape();
+        self.d = variant_to_float(&arr.at(1));
+        let handle = self.create_rapier_shape(physics_engine);
         let rect = Rect2::new(Vector2::new(-1e4, -1e4), Vector2::new(1e4 * 2.0, 1e4 * 2.0));
-        self.base.set_handle(handle, rect);
+        self.base.set_handle(handle, rect, physics_engine);
     }
 
     #[cfg(feature = "dim3")]
-    fn set_data(&mut self, data: Variant) {
+    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         if data.get_type() != VariantType::PLANE {
             godot_error!("Invalid shape data");
             return;
@@ -88,12 +89,12 @@ impl IRapierShape for RapierWorldBoundaryShape {
         let plane: Plane = data.to();
         self.normal = plane.normal;
         self.d = plane.d;
-        let handle = self.create_rapier_shape();
+        let handle = self.create_rapier_shape(physics_engine);
         let rect = Aabb::new(
             Vector::new(-1e4, -1e4, -1e4),
             Vector::new(1e4 * 2.0, 1e4 * 2.0, 1e4 * 2.0),
         );
-        self.base.set_handle(handle, rect);
+        self.base.set_handle(handle, rect, physics_engine);
     }
 
     #[cfg(feature = "dim2")]
@@ -110,7 +111,7 @@ impl IRapierShape for RapierWorldBoundaryShape {
         plane.to_variant()
     }
 
-    fn get_handle(&mut self) -> Handle {
+    fn get_handle(&self) -> ShapeHandle {
         self.base.get_handle()
     }
 }

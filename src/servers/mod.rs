@@ -10,7 +10,7 @@ pub mod rapier_physics_server_extra;
 pub mod rapier_physics_server_factory_2d;
 #[cfg(feature = "dim3")]
 pub mod rapier_physics_server_factory_3d;
-pub mod rapier_physics_singleton;
+pub mod rapier_physics_server_impl;
 pub mod rapier_project_settings;
 #[cfg(feature = "dim2")]
 pub type RapierPhysicsServer = rapier_physics_server_2d::RapierPhysicsServer2D;

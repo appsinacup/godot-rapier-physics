@@ -7,11 +7,12 @@ use godot::prelude::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
-use crate::Vector;
+use crate::types::*;
+//#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierSeparationRayShape {
     length: f32,
     slide_on_slope: bool,
-    pub base: RapierShapeBase,
+    base: RapierShapeBase,
 }
 impl RapierSeparationRayShape {
     pub fn new(rid: Rid) -> Self {
@@ -49,16 +50,20 @@ impl IRapierShape for RapierSeparationRayShape {
         false
     }
 
-    fn create_rapier_shape(&mut self) -> Handle {
-        invalid_handle()
+    fn create_rapier_shape(&mut self, _physics_engine: &mut PhysicsEngine) -> ShapeHandle {
+        ShapeHandle::default()
     }
 
-    fn set_data(&mut self, data: Variant) {
+    fn set_data(&mut self, data: Variant, _physics_engine: &mut PhysicsEngine) {
         if data.get_type() != VariantType::DICTIONARY {
             godot_error!("Invalid shape data.");
             return;
         }
         let dictionary: Dictionary = data.to();
+        if !dictionary.contains_key("length") && !dictionary.contains_key("slide_on_slope") {
+            godot_error!("Invalid shape data.");
+            return;
+        }
         self.length = dictionary.get_or_nil("length").to();
         self.slide_on_slope = dictionary.get_or_nil("slide_on_slope").to();
     }
@@ -70,7 +75,7 @@ impl IRapierShape for RapierSeparationRayShape {
         dictionary.to_variant()
     }
 
-    fn get_handle(&mut self) -> Handle {
+    fn get_handle(&self) -> ShapeHandle {
         self.base.get_handle()
     }
 }

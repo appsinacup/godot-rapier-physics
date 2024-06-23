@@ -27,3 +27,4 @@ enabled=PackedStringArray()
 [physics]
 
 2d/physics_engine="Rapier2D"
+3d/default_gravity=10.0

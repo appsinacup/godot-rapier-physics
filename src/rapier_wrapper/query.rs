@@ -7,6 +7,7 @@ use rapier::parry::query::ShapeCastOptions;
 use rapier::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_server_extra::PhysicsData;
 pub struct RayHitInfo {
     pub pixel_position: Vector<Real>,
     pub normal: Vector<Real>,
@@ -73,13 +74,14 @@ pub struct QueryExcludedInfo {
     pub query_exclude_body: i64,
 }
 type QueryHandleExcludedCallback = fn(
-    world_handle: Handle,
+    world_handle: WorldHandle,
     collider_handle: ColliderHandle,
     user_data: &UserData,
     handle_excluded_info: &QueryExcludedInfo,
+    physics_data: &PhysicsData,
 ) -> bool;
 pub fn intersect_ray(
-    world_handle: Handle,
+    world_handle: WorldHandle,
     from: Vector<Real>,
     dir: Vector<Real>,
     length: Real,
@@ -89,9 +91,10 @@ pub fn intersect_ray(
     hit_info: &mut RayHitInfo,
     handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
+    physics_data: &PhysicsData,
 ) -> bool {
     let mut result = false;
-    let Some(physics_world) = physics_engine().get_world(world_handle) else {
+    let Some(physics_world) = physics_data.physics_engine.get_world(world_handle) else {
         return false;
     };
     let ray = Ray::new(Point { coords: from }, dir);
@@ -108,6 +111,7 @@ pub fn intersect_ray(
             handle,
             &physics_world.get_collider_user_data(handle),
             handle_excluded_info,
+            physics_data,
         )
     };
     filter.predicate = Some(&predicate);
@@ -145,7 +149,7 @@ pub fn intersect_ray(
     result
 }
 pub fn intersect_point(
-    world_handle: Handle,
+    world_handle: WorldHandle,
     position: Vector<Real>,
     collide_with_body: bool,
     collide_with_area: bool,
@@ -153,12 +157,13 @@ pub fn intersect_point(
     hit_info_length: usize,
     handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
+    physics_data: &PhysicsData,
 ) -> usize {
     let mut cpt_hit = 0;
     if hit_info_length <= 0 {
         return cpt_hit;
     }
-    if let Some(physics_world) = physics_engine().get_world(world_handle) {
+    if let Some(physics_world) = physics_data.physics_engine.get_world(world_handle) {
         let point = Point { coords: position };
         let mut filter = QueryFilter::new();
         if !collide_with_body {
@@ -173,6 +178,7 @@ pub fn intersect_point(
                 handle,
                 &physics_world.get_collider_user_data(handle),
                 handle_excluded_info,
+                physics_data,
             )
         };
         filter.predicate = Some(&predicate);
@@ -210,9 +216,9 @@ pub fn shape_collide(
     shape_info1: ShapeInfo,
     shape_vel2: Vector<Real>,
     shape_info2: ShapeInfo,
+    physics_engine: &PhysicsEngine,
 ) -> ShapeCastResult {
     let mut result = ShapeCastResult::new();
-    let physics_engine = physics_engine();
     if let Some(raw_shared_shape1) = physics_engine.get_shape(shape_info1.handle) {
         let shared_shape1 = scale_shape(raw_shared_shape1, shape_info1);
         if let Some(raw_shared_shape2) = physics_engine.get_shape(shape_info2.handle) {
@@ -249,19 +255,19 @@ pub fn shape_collide(
     result
 }
 pub fn shape_casting(
-    world_handle: Handle,
+    world_handle: WorldHandle,
     shape_vel: Vector<Real>,
     shape_info: ShapeInfo,
     collide_with_body: bool,
     collide_with_area: bool,
     handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
+    physics_data: &PhysicsData,
 ) -> ShapeCastResult {
     let mut result = ShapeCastResult::new();
-    let physics_engine = physics_engine();
-    if let Some(raw_shared_shape) = physics_engine.get_shape(shape_info.handle) {
+    if let Some(raw_shared_shape) = physics_data.physics_engine.get_shape(shape_info.handle) {
         let shared_shape = scale_shape(raw_shared_shape, shape_info);
-        if let Some(physics_world) = physics_engine.get_world(world_handle) {
+        if let Some(physics_world) = physics_data.physics_engine.get_world(world_handle) {
             let shape_transform = shape_info.transform;
             let mut filter = QueryFilter::new();
             if !collide_with_body {
@@ -276,6 +282,7 @@ pub fn shape_casting(
                     handle,
                     &physics_world.get_collider_user_data(handle),
                     handle_excluded_info,
+                    physics_data,
                 )
             };
             filter.predicate = Some(&predicate);
@@ -312,7 +319,7 @@ pub fn shape_casting(
     result
 }
 pub fn intersect_aabb(
-    world_handle: Handle,
+    world_handle: WorldHandle,
     aabb_min: Vector<Real>,
     aabb_max: Vector<Real>,
     collide_with_body: bool,
@@ -321,9 +328,10 @@ pub fn intersect_aabb(
     max_results: usize,
     handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
+    physics_data: &PhysicsData,
 ) -> usize {
     let mut cpt_hit = 0;
-    if let Some(physics_world) = physics_engine().get_world(world_handle) {
+    if let Some(physics_world) = physics_data.physics_engine.get_world(world_handle) {
         let aabb_min_point = Point { coords: aabb_min };
         let aabb_max_point = Point { coords: aabb_max };
         let aabb = Aabb {
@@ -348,6 +356,7 @@ pub fn intersect_aabb(
                             *handle,
                             &physics_world.get_collider_user_data(*handle),
                             handle_excluded_info,
+                            physics_data,
                         );
                     }
                 }
@@ -363,40 +372,42 @@ pub fn intersect_aabb(
     }
     cpt_hit
 }
-pub fn shapes_contact(
-    shape_info1: ShapeInfo,
-    shape_info2: ShapeInfo,
-    margin: Real,
-) -> ContactResult {
-    let mut result = ContactResult::default();
-    let physics_engine = physics_engine();
-    //let prediction = Real::max(0.002, margin);
-    let prediction = margin;
-    if let Some(raw_shared_shape1) = physics_engine.get_shape(shape_info1.handle) {
-        let shared_shape1 = scale_shape(raw_shared_shape1, shape_info1);
-        if let Some(raw_shared_shape2) = physics_engine.get_shape(shape_info2.handle) {
-            let shared_shape2 = scale_shape(raw_shared_shape2, shape_info2);
-            let shape_transform1 = shape_info1.transform;
-            let shape_transform2 = shape_info2.transform;
-            if let Ok(Some(contact)) = parry::query::contact(
-                &shape_transform1,
-                shared_shape1.as_ref(),
-                &shape_transform2,
-                shared_shape2.as_ref(),
-                prediction,
-            ) {
-                // the distance is negative if there is intersection
-                // and positive if the objects are separated by distance less than margin
-                result.pixel_distance = contact.dist;
-                result.within_margin = contact.dist > 0.0;
-                result.collided = true;
-                result.normal1 = contact.normal1.into_inner();
-                result.normal2 = contact.normal2.into_inner();
-                result.pixel_point1 = (contact.point1 + contact.normal1.mul(prediction)).coords;
-                result.pixel_point2 = contact.point2.coords;
-                return result;
+impl PhysicsEngine {
+    pub fn shapes_contact(
+        &self,
+        shape_info1: ShapeInfo,
+        shape_info2: ShapeInfo,
+        margin: Real,
+    ) -> ContactResult {
+        let mut result = ContactResult::default();
+        //let prediction = Real::max(0.002, margin);
+        let prediction = margin;
+        if let Some(raw_shared_shape1) = self.get_shape(shape_info1.handle) {
+            let shared_shape1 = scale_shape(raw_shared_shape1, shape_info1);
+            if let Some(raw_shared_shape2) = self.get_shape(shape_info2.handle) {
+                let shared_shape2 = scale_shape(raw_shared_shape2, shape_info2);
+                let shape_transform1 = shape_info1.transform;
+                let shape_transform2 = shape_info2.transform;
+                if let Ok(Some(contact)) = parry::query::contact(
+                    &shape_transform1,
+                    shared_shape1.as_ref(),
+                    &shape_transform2,
+                    shared_shape2.as_ref(),
+                    prediction,
+                ) {
+                    // the distance is negative if there is intersection
+                    // and positive if the objects are separated by distance less than margin
+                    result.pixel_distance = contact.dist;
+                    result.within_margin = contact.dist > 0.0;
+                    result.collided = true;
+                    result.normal1 = contact.normal1.into_inner();
+                    result.normal2 = contact.normal2.into_inner();
+                    result.pixel_point1 = (contact.point1 + contact.normal1.mul(prediction)).coords;
+                    result.pixel_point2 = contact.point2.coords;
+                    return result;
+                }
             }
         }
+        result
     }
-    result
 }

@@ -3,6 +3,7 @@ use godot::classes::*;
 use godot::prelude::*;
 
 use super::rapier_direct_space_state_impl::RapierDirectSpaceStateImpl;
+use crate::servers::RapierPhysicsServer;
 #[derive(GodotClass)]
 #[class(base=PhysicsDirectSpaceState2DExtension,tool)]
 pub struct RapierDirectSpaceState2D {
@@ -36,6 +37,8 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         hit_from_inside: bool,
         result: *mut PhysicsServer2DExtensionRayResult,
     ) -> bool {
+        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         self.inner.intersect_ray(
             from,
             to,
@@ -44,6 +47,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             collide_with_areas,
             hit_from_inside,
             result,
+            physics_data,
         )
     }
 
@@ -57,6 +61,8 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         results: *mut godot::engine::native::PhysicsServer2DExtensionShapeResult,
         max_results: i32,
     ) -> i32 {
+        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         self.inner.intersect_point(
             position,
             canvas_instance_id,
@@ -65,6 +71,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             collide_with_areas,
             results,
             max_results,
+            physics_data,
         )
     }
 
@@ -80,6 +87,8 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         results: *mut godot::engine::native::PhysicsServer2DExtensionShapeResult,
         max_results: i32,
     ) -> i32 {
+        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         self.inner.intersect_shape(
             shape_rid,
             transform,
@@ -90,6 +99,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             collide_with_areas,
             results,
             max_results,
+            physics_data,
         )
     }
 
@@ -105,6 +115,8 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         closest_safe: *mut f64,
         closest_unsafe: *mut f64,
     ) -> bool {
+        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         self.inner.cast_motion(
             shape_rid,
             transform,
@@ -115,6 +127,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             collide_with_areas,
             closest_safe,
             closest_unsafe,
+            physics_data,
         )
     }
 
@@ -131,6 +144,8 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         max_results: i32,
         result_count: *mut i32,
     ) -> bool {
+        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         self.inner.collide_shape(
             shape_rid,
             transform,
@@ -142,6 +157,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             results,
             max_results,
             result_count,
+            physics_data,
         )
     }
 
@@ -156,6 +172,8 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         collide_with_areas: bool,
         rest_info: *mut godot::engine::native::PhysicsServer2DExtensionShapeRestInfo,
     ) -> bool {
+        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         self.inner.rest_info(
             shape_rid,
             transform,
@@ -165,6 +183,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
             collide_with_bodies,
             collide_with_areas,
             rest_info,
+            physics_data,
         )
     }
 }

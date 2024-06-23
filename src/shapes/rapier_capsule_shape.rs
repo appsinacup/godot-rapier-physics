@@ -6,7 +6,8 @@ use godot::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::*;
-use crate::Vector;
+use crate::types::*;
+//#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierCapsuleShape {
     height: f32,
     radius: f32,
@@ -55,11 +56,11 @@ impl IRapierShape for RapierCapsuleShape {
         true
     }
 
-    fn create_rapier_shape(&mut self) -> Handle {
-        shape_create_capsule((self.height / 2.0) - self.radius, self.radius)
+    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
+        physics_engine.shape_create_capsule((self.height / 2.0) - self.radius, self.radius)
     }
 
-    fn set_data(&mut self, data: Variant) {
+    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         match data.get_type() {
             VariantType::ARRAY => {
                 let arr: Array<f32> = data.to();
@@ -76,6 +77,11 @@ impl IRapierShape for RapierCapsuleShape {
             }
             VariantType::DICTIONARY => {
                 let dictionary: Dictionary = data.to();
+                if !dictionary.contains_key("length") && !dictionary.contains_key("slide_on_slope")
+                {
+                    godot_error!("Invalid shape data.");
+                    return;
+                }
                 if let Some(height) = dictionary.get("height") {
                     if let Ok(height) = height.try_to::<real>() {
                         self.height = height;
@@ -92,15 +98,16 @@ impl IRapierShape for RapierCapsuleShape {
                 return;
             }
         }
-        let handle = self.create_rapier_shape();
-        self.base.set_handle(handle, self.compute_aabb());
+        let handle = self.create_rapier_shape(physics_engine);
+        self.base
+            .set_handle(handle, self.compute_aabb(), physics_engine);
     }
 
     fn get_data(&self) -> Variant {
         Vector2::new(self.radius, self.height).to_variant()
     }
 
-    fn get_handle(&mut self) -> Handle {
+    fn get_handle(&self) -> ShapeHandle {
         self.base.get_handle()
     }
 }
