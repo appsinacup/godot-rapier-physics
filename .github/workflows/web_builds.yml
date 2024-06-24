@@ -20,7 +20,8 @@ jobs:
       - name: Set up Emscripten latest
         uses: mymindstorm/setup-emsdk@v12
         with:
-          version: 3.1.61
+          #version: 3.1.61
+          version: 3.1.39
           no-cache: false
 
       - name: Verify Emscripten setup
@@ -46,7 +47,7 @@ jobs:
       - name: Copy to bin
         shell: sh
         run: |
-          mv target/release/libgodot_rapier.wasm bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.wasm
+          mv target/release/godot_rapier.wasm bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.wasm
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
