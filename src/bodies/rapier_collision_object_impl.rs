@@ -95,13 +95,14 @@ impl RapierCollisionObject {
                     .get_base()
                     .destroy_shape(shape, i, physics_spaces, physics_engine);
             }
-            collision_object.get_base().create_shape(
-                collision_object.get_base().shapes[i],
-                i,
-                collision_object.init_material(),
-                physics_engine,
-                physics_shapes,
-            );
+            collision_object.get_mut_base().shapes[i].collider_handle =
+                collision_object.get_base().create_shape(
+                    collision_object.get_base().shapes[i],
+                    i,
+                    collision_object.init_material(),
+                    physics_engine,
+                    physics_shapes,
+                );
             collision_object.get_base().update_shape_transform(
                 &collision_object.get_base().shapes[i],
                 physics_engine,

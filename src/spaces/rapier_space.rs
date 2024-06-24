@@ -454,7 +454,9 @@ impl RapierSpace {
     }
 
     pub fn export_json(&self, physics_engine: &mut PhysicsEngine) -> String {
-        physics_engine.world_export_json(self.handle)
+        physics_engine
+            .world_export_json(self.handle)
+            .unwrap_or("{}".to_string())
     }
 
     pub fn export_binary(&self, physics_engine: &mut PhysicsEngine) -> PackedByteArray {

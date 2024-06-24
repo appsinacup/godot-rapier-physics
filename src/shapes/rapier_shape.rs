@@ -94,6 +94,7 @@ impl RapierShapeBase {
 
     pub fn add_owner(&mut self, owner: Rid) {
         *self.owners.entry(owner).or_insert(0) += 1;
+        godot_print!("RapierShapeBase: {} owners", self.owners.len());
     }
 
     pub fn remove_owner(&mut self, owner: Rid) {

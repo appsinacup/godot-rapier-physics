@@ -1453,7 +1453,9 @@ impl RapierPhysicsServerImpl {
     }
 
     pub(super) fn free_rid(&mut self, rid: Rid) {
+        godot_print!("shapes: {}", self.physics_data.shapes.len());
         if let Some(mut shape) = self.physics_data.shapes.remove(&rid) {
+            godot_print!("owners: {}", shape.get_base().get_owners().len());
             for (owner, _) in shape.get_base().get_owners() {
                 if let Some(body) = self.physics_data.collision_objects.get_mut(owner) {
                     body.remove_shape_rid(

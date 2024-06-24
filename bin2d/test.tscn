@@ -1,12 +1,16 @@
-[gd_scene load_steps=5 format=3 uid="uid://d4exls53gi0df"]
+[gd_scene load_steps=7 format=3 uid="uid://d4exls53gi0df"]
 
 [ext_resource type="Script" path="res://test.gd" id="1_25l3y"]
 [ext_resource type="Script" path="res://collision_shape_2d.gd" id="2_phxx1"]
 
 [sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_j5l1g"]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_sg3i2"]
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_l7hpj"]
-size = Vector2(2.08165e-12, 2.08165e-12)
+size = Vector2(10, 10)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_54ruq"]
 
 [node name="Test" type="Node2D"]
 script = ExtResource("1_25l3y")
@@ -24,6 +28,17 @@ wait_time = 10.0
 shape = SubResource("WorldBoundaryShape2D_j5l1g")
 disabled = true
 
+[node name="StaticBody2D2" type="StaticBody2D" parent="."]
+position = Vector2(-52, -141)
+
+[node name="PinJoint2D" type="PinJoint2D" parent="StaticBody2D2"]
+position = Vector2(2, 1)
+node_a = NodePath("..")
+node_b = NodePath("../../RigidBody2D2")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D2"]
+shape = SubResource("RectangleShape2D_sg3i2")
+
 [node name="RigidBody2D" type="RigidBody2D" parent="."]
 freeze = true
 
@@ -31,6 +46,12 @@ freeze = true
 position = Vector2(0, -6)
 shape = SubResource("RectangleShape2D_l7hpj")
 script = ExtResource("2_phxx1")
+
+[node name="RigidBody2D2" type="RigidBody2D" parent="."]
+position = Vector2(-142, -100)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D2"]
+shape = SubResource("CircleShape2D_54ruq")
 
 [node name="RayCast2D" type="RayCast2D" parent="."]
 position = Vector2(0, -25)

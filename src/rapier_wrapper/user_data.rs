@@ -1,4 +1,6 @@
-#[derive(Copy, Clone, Eq, Hash, PartialEq, Default)]
+use serde::Deserialize;
+use serde::Serialize;
+#[derive(Copy, Clone, Eq, Hash, PartialEq, Default, Serialize, Deserialize)]
 pub struct UserData {
     pub part1: u64,
     pub part2: u64,

@@ -263,6 +263,15 @@ impl PhysicsEngine {
             collider.set_friction_combine_rule(CoefficientCombineRule::Multiply);
             collider.set_restitution_combine_rule(CoefficientCombineRule::Max);
             collider.set_density(0.0);
+            // less data to serialize
+            collider.set_collision_groups(InteractionGroups {
+                memberships: Group::GROUP_1,
+                filter: Group::GROUP_1,
+            });
+            collider.set_solver_groups(InteractionGroups {
+                memberships: Group::GROUP_1,
+                filter: Group::GROUP_1,
+            });
             collider.set_contact_skin(mat.contact_skin);
             collider.set_contact_force_event_threshold(-Real::MAX);
             collider.user_data = user_data.get_data();
@@ -300,6 +309,15 @@ impl PhysicsEngine {
             let mut collider = ColliderBuilder::new(shape.clone()).build();
             collider.set_sensor(true);
             collider.set_active_events(ActiveEvents::COLLISION_EVENTS);
+            // less data to serialize
+            collider.set_collision_groups(InteractionGroups {
+                memberships: Group::GROUP_1,
+                filter: Group::GROUP_1,
+            });
+            collider.set_solver_groups(InteractionGroups {
+                memberships: Group::GROUP_1,
+                filter: Group::GROUP_1,
+            });
             let mut collision_types = collider.active_collision_types();
             // Area vs Area
             collision_types |= ActiveCollisionTypes::FIXED_FIXED;

@@ -26,7 +26,7 @@ impl RapierGrooveJoint2D {
             base: RapierJointBase::new(WorldHandle::default(), ImpulseJointHandle::invalid()),
         };
         let body_a_rid = body_a.get_base().get_rid();
-        let body_b_rid = body_a.get_base().get_rid();
+        let body_b_rid = body_b.get_base().get_rid();
         if body_a_rid == body_b_rid {
             return invalid_joint;
         }
