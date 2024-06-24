@@ -470,6 +470,14 @@ impl RapierSpace {
     pub fn destroy_space(&mut self, physics_engine: &mut PhysicsEngine) {
         if self.is_valid() {
             physics_engine.world_destroy(self.handle);
+            self.handle = WorldHandle::default();
+        }
+    }
+}
+impl Drop for RapierSpace {
+    fn drop(&mut self) {
+        if self.is_valid() {
+            godot_error!("RapierSpace leaked");
         }
     }
 }

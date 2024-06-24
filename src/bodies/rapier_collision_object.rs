@@ -538,4 +538,18 @@ impl RapierCollisionObject {
         self.collision_layer & p_other.collision_mask != 0
             || p_other.collision_layer & self.collision_mask != 0
     }
+
+    pub fn destroy_body(&mut self, physics_engine: &mut PhysicsEngine) {
+        if self.body_handle != RigidBodyHandle::invalid() {
+            physics_engine.body_destroy(self.space_handle, self.body_handle);
+            self.body_handle = RigidBodyHandle::invalid();
+        }
+    }
+}
+impl Drop for RapierCollisionObject {
+    fn drop(&mut self) {
+        if self.body_handle != RigidBodyHandle::invalid() {
+            godot_error!("Body leaked");
+        }
+    }
 }

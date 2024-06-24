@@ -93,8 +93,9 @@ impl RapierJointBase {
         );
     }
 
-    pub fn joint_destroy(&self, physics_engine: &mut PhysicsEngine) {
-        physics_engine.joint_destroy(self.space_handle, self.handle);
+    pub fn destroy_joint(&mut self, physics_engine: &mut PhysicsEngine) {
+        physics_engine.destroy_joint(self.space_handle, self.handle);
+        self.handle = ImpulseJointHandle::invalid();
     }
 }
 pub struct RapierEmptyJoint {
@@ -138,5 +139,12 @@ impl IRapierJoint for RapierEmptyJoint {
     #[cfg(feature = "dim2")]
     fn get_mut_pin(&mut self) -> Option<&mut RapierPinJoint2D> {
         None
+    }
+}
+impl Drop for RapierJointBase {
+    fn drop(&mut self) {
+        if self.handle != ImpulseJointHandle::invalid() {
+            godot_error!("RapierJointBase leaked");
+        }
     }
 }

@@ -1453,7 +1453,7 @@ impl RapierPhysicsServerImpl {
     }
 
     pub(super) fn free_rid(&mut self, rid: Rid) {
-        if let Some(shape) = self.physics_data.shapes.remove(&rid) {
+        if let Some(mut shape) = self.physics_data.shapes.remove(&rid) {
             for (owner, _) in shape.get_base().get_owners() {
                 if let Some(body) = self.physics_data.collision_objects.get_mut(owner) {
                     body.remove_shape_rid(
@@ -1464,6 +1464,9 @@ impl RapierPhysicsServerImpl {
                     );
                 }
             }
+            shape
+                .get_mut_base()
+                .destroy_shape(&mut self.physics_data.physics_engine);
             return;
         }
         if let Some(mut body) = self.physics_data.collision_objects.remove(&rid) {
@@ -1481,10 +1484,13 @@ impl RapierPhysicsServerImpl {
                     &mut self.physics_data.shapes,
                 );
             }
+            body.get_mut_base()
+                .destroy_body(&mut self.physics_data.physics_engine);
             return;
         }
-        if let Some(space) = self.physics_data.spaces.remove(&rid) {
+        if let Some(mut space) = self.physics_data.spaces.remove(&rid) {
             let space_handle = space.get_handle();
+            space.destroy_space(&mut self.physics_data.physics_engine);
             if self
                 .physics_data
                 .active_spaces
@@ -1494,10 +1500,15 @@ impl RapierPhysicsServerImpl {
                 return;
             }
         }
-        if let Some(_joint) = self.physics_data.joints.remove(&rid) {
+        if let Some(mut joint) = self.physics_data.joints.remove(&rid) {
+            joint
+                .get_mut_base()
+                .destroy_joint(&mut self.physics_data.physics_engine);
             return;
         }
-        if let Some(_fluid) = self.physics_data.fluids.remove(&rid) {}
+        if let Some(mut fluid) = self.physics_data.fluids.remove(&rid) {
+            fluid.destroy_fluid(&mut self.physics_data.physics_engine);
+        }
     }
 
     pub(super) fn set_active(&mut self, active: bool) {

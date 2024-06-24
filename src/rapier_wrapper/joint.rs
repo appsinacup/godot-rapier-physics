@@ -128,7 +128,7 @@ impl PhysicsEngine {
         }
     }
 
-    pub fn joint_destroy(&mut self, world_handle: WorldHandle, joint_handle: ImpulseJointHandle) {
+    pub fn destroy_joint(&mut self, world_handle: WorldHandle, joint_handle: ImpulseJointHandle) {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             physics_world.remove_joint(joint_handle);
         }

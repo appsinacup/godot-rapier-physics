@@ -160,7 +160,7 @@
 				]
 			},
 			{
-				"name": "Test Area",
+				"name": "Test",
 				"program": "${workspaceFolder:godot}/bin/godot.macos.editor.arm64",
 				"type": "cppdbg",
 				"request": "launch",
@@ -170,7 +170,7 @@
 				},
 				"args": [
 					"--path",
-					"/Users/dragosdaian/Documents/Godot-Physics-Tests",
+					"${workspaceFolder:godot-rapier-2d}/bin2d",
 					"--debug-collisions",
 					"test.tscn",
 				]

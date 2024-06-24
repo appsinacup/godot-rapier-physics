@@ -45,7 +45,7 @@ impl RapierShapeBase {
         physics_engine: &mut PhysicsEngine,
     ) {
         if self.handle != ShapeHandle::default() {
-            self.destroy_rapier_shape(physics_engine);
+            self.destroy_shape(physics_engine);
         }
         self.aabb = aabb;
         self.handle = handle;
@@ -113,7 +113,7 @@ impl RapierShapeBase {
         self.rid
     }
 
-    fn destroy_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) {
+    pub fn destroy_shape(&mut self, physics_engine: &mut PhysicsEngine) {
         if self.handle != ShapeHandle::default() {
             physics_engine.shape_destroy(self.handle);
             self.handle = ShapeHandle::default();
@@ -124,6 +124,9 @@ impl Drop for RapierShapeBase {
     fn drop(&mut self) {
         if !self.owners.is_empty() {
             godot_error!("RapierShapeBase leaked {} owners", self.owners.len());
+        }
+        if self.is_valid() {
+            godot_error!("RapierShapeBase leaked");
         }
     }
 }
