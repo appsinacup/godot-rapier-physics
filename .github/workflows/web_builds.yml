@@ -4,7 +4,7 @@ on:
 
 jobs:
   web:
-    runs-on: ubuntu-20.04
+    runs-on: macos-latest
     name: ${{ matrix.dimensions.short }} ${{ matrix.precision }} ${{ matrix.features.name }} ${{ matrix.arch }}
     strategy:
       fail-fast: false
