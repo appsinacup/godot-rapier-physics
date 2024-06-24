@@ -73,9 +73,12 @@ dependencies = [
 
 [[package]]
 name = "bitflags"
-version = "1.3.2"
+version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
+checksum = "cf4b9d6a944f767f8e5e0db018570623c85f3d925ac718db4e06d0187adb21c1"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "bumpalo"
@@ -164,6 +167,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3dca9240753cf90908d7e4aac30f630662b02aebaa1b58a3cadabdb23385b58b"
 
 [[package]]
+name = "equivalent"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
+
+[[package]]
 name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -171,8 +180,8 @@ checksum = "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
 
 [[package]]
 name = "gdextension-api"
-version = "4.2.0-rev.0"
-source = "git+https://github.com/godot-rust/godot4-prebuilt?branch=4.2#b3bdb57bddd60ed40ef4672e9c3754a5afe0a21f"
+version = "0.1.0"
+source = "git+https://github.com/godot-rust/godot4-prebuilt?branch=4.2#2831ebde06033c7942e832155c48bd821540177b"
 
 [[package]]
 name = "generational-arena"
@@ -191,7 +200,7 @@ checksum = "913dce4c5f06c2ea40fc178c06f777ac89fc6b1383e90c254fafb1abe4ba3c82"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.66",
+ "syn",
  "uuid",
 ]
 
@@ -215,7 +224,7 @@ checksum = "9e05e7e6723e3455f4818c7b26e855439f7546cf617ef669d1adedb8669e5cb9"
 [[package]]
 name = "godot"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#cd31a83d80edc7529ab2ef450d4c59d983913c19"
+source = "git+https://github.com/godot-rust/gdext?branch=master#4c8ea83fc3452485f7b33f2411c136a248457334"
 dependencies = [
  "godot-core",
  "godot-macros",
@@ -224,7 +233,7 @@ dependencies = [
 [[package]]
 name = "godot-bindings"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#cd31a83d80edc7529ab2ef450d4c59d983913c19"
+source = "git+https://github.com/godot-rust/gdext?branch=master#4c8ea83fc3452485f7b33f2411c136a248457334"
 dependencies = [
  "gdextension-api",
 ]
@@ -232,12 +241,12 @@ dependencies = [
 [[package]]
 name = "godot-cell"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#cd31a83d80edc7529ab2ef450d4c59d983913c19"
+source = "git+https://github.com/godot-rust/gdext?branch=master#4c8ea83fc3452485f7b33f2411c136a248457334"
 
 [[package]]
 name = "godot-codegen"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#cd31a83d80edc7529ab2ef450d4c59d983913c19"
+source = "git+https://github.com/godot-rust/gdext?branch=master#4c8ea83fc3452485f7b33f2411c136a248457334"
 dependencies = [
  "godot-bindings",
  "heck",
@@ -250,7 +259,7 @@ dependencies = [
 [[package]]
 name = "godot-core"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#cd31a83d80edc7529ab2ef450d4c59d983913c19"
+source = "git+https://github.com/godot-rust/gdext?branch=master#4c8ea83fc3452485f7b33f2411c136a248457334"
 dependencies = [
  "glam",
  "godot-bindings",
@@ -263,7 +272,7 @@ dependencies = [
 [[package]]
 name = "godot-ffi"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#cd31a83d80edc7529ab2ef450d4c59d983913c19"
+source = "git+https://github.com/godot-rust/gdext?branch=master#4c8ea83fc3452485f7b33f2411c136a248457334"
 dependencies = [
  "gensym",
  "godot-bindings",
@@ -275,7 +284,7 @@ dependencies = [
 [[package]]
 name = "godot-macros"
 version = "0.1.0"
-source = "git+https://github.com/godot-rust/gdext?branch=master#cd31a83d80edc7529ab2ef450d4c59d983913c19"
+source = "git+https://github.com/godot-rust/gdext?branch=master#4c8ea83fc3452485f7b33f2411c136a248457334"
 dependencies = [
  "godot-bindings",
  "proc-macro2",
@@ -289,7 +298,7 @@ version = "0.7.0"
 dependencies = [
  "bincode",
  "godot",
- "hashbrown 0.14.5",
+ "hashbrown",
  "rapier2d",
  "rapier2d-f64",
  "rapier3d",
@@ -299,12 +308,6 @@ dependencies = [
  "serde",
  "serde_json",
 ]
-
-[[package]]
-name = "hashbrown"
-version = "0.12.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a9ee70c43aaf417c914396645a0fa852624801b24ebb7ae78fe8272889ac888"
 
 [[package]]
 name = "hashbrown"
@@ -324,12 +327,12 @@ checksum = "95505c38b4572b2d910cecb0281560f54b440a19336cbbcb27bf6ce6adc6f5a8"
 
 [[package]]
 name = "indexmap"
-version = "1.9.3"
+version = "2.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bd070e393353796e801d209ad339e89596eb4c8d430d18ede6a1cced8fafbd99"
+checksum = "168fb715dda47215e360912c096649d23d58bf392ac62f73919e831745e40f26"
 dependencies = [
- "autocfg",
- "hashbrown 0.12.3",
+ "equivalent",
+ "hashbrown",
  "serde",
 ]
 
@@ -377,12 +380,6 @@ checksum = "97b3888a4aecf77e811145cadf6eef5901f4782c53886191b2f693f24761847c"
 
 [[package]]
 name = "libm"
-version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7fc7aa29613bd6a620df431842069224d8bc9011086b1db4c0e0cd47fa03ec9a"
-
-[[package]]
-name = "libm"
 version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4ec2a862134d2a7d32d7983ddcdd1c4923530833c9f2ea1a44fc5fa473989058"
@@ -411,9 +408,9 @@ checksum = "78ca9ab1a0babb1e7d5695e3530886289c18cf2f87ec19a575a0abdce112e3a3"
 
 [[package]]
 name = "nalgebra"
-version = "0.32.6"
+version = "0.33.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7b5c17de023a86f59ed79891b2e5d5a94c705dbe904a5b5c9c952ea6221b03e4"
+checksum = "3c4b5f057b303842cf3262c27e465f4c303572e7f6b0648f60e16248ac3397f4"
 dependencies = [
  "approx",
  "matrixmultiply",
@@ -428,13 +425,13 @@ dependencies = [
 
 [[package]]
 name = "nalgebra-macros"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "91761aed67d03ad966ef783ae962ef9bbaca728d2dd7ceb7939ec110fffad998"
+checksum = "254a5372af8fc138e36684761d3c0cdb758a4410e938babcff1c860ce14ddbfc"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 1.0.109",
+ "syn",
 ]
 
 [[package]]
@@ -451,6 +448,16 @@ name = "nanoserde-derive"
 version = "0.1.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e943b2c21337b7e3ec6678500687cdc741b7639ad457f234693352075c082204"
+
+[[package]]
+name = "num-bigint"
+version = "0.4.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c165a9ab64cf766f73521c0dd2cfdff64f488b8f0b3e621face3462d3db536d7"
+dependencies = [
+ "num-integer",
+ "num-traits",
+]
 
 [[package]]
 name = "num-complex"
@@ -470,7 +477,7 @@ checksum = "ed3955f1a9c7c0c15e092f9c887db08b1fc683305fdf6eb6684f22555355e202"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.66",
+ "syn",
 ]
 
 [[package]]
@@ -488,6 +495,7 @@ version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f83d14da390562dca69fc84082e73e548e1ad308d24accdedd2720017cb37824"
 dependencies = [
+ "num-bigint",
  "num-integer",
  "num-traits",
 ]
@@ -499,7 +507,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841"
 dependencies = [
  "autocfg",
- "libm 0.2.8",
+ "libm",
 ]
 
 [[package]]
@@ -518,19 +526,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "packed_simd_2"
-version = "0.3.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a1914cd452d8fccd6f9db48147b29fd4ae05bea9dc5d9ad578509f72415de282"
-dependencies = [
- "cfg-if",
- "libm 0.1.4",
-]
-
-[[package]]
 name = "parry2d"
-version = "0.15.1"
-source = "git+https://github.com/dimforge/parry?branch=master#9e723ee3f066da9b61eb4023fe393ff4f81125d3"
+version = "0.16.0"
+source = "git+https://github.com/dimforge/parry?branch=master#029429e1122dc91a8d4201d9fa7a6cc226bafb59"
 dependencies = [
  "approx",
  "arrayvec",
@@ -542,18 +540,20 @@ dependencies = [
  "nalgebra",
  "num-derive",
  "num-traits",
+ "ordered-float",
  "rustc-hash",
  "serde",
  "simba",
  "slab",
  "smallvec",
  "spade",
+ "thiserror",
 ]
 
 [[package]]
 name = "parry2d-f64"
-version = "0.15.1"
-source = "git+https://github.com/dimforge/parry?branch=master#9e723ee3f066da9b61eb4023fe393ff4f81125d3"
+version = "0.16.0"
+source = "git+https://github.com/dimforge/parry?branch=master#029429e1122dc91a8d4201d9fa7a6cc226bafb59"
 dependencies = [
  "approx",
  "arrayvec",
@@ -565,18 +565,20 @@ dependencies = [
  "nalgebra",
  "num-derive",
  "num-traits",
+ "ordered-float",
  "rustc-hash",
  "serde",
  "simba",
  "slab",
  "smallvec",
  "spade",
+ "thiserror",
 ]
 
 [[package]]
 name = "parry3d"
-version = "0.15.1"
-source = "git+https://github.com/dimforge/parry?branch=master#9e723ee3f066da9b61eb4023fe393ff4f81125d3"
+version = "0.16.0"
+source = "git+https://github.com/dimforge/parry?branch=master#029429e1122dc91a8d4201d9fa7a6cc226bafb59"
 dependencies = [
  "approx",
  "arrayvec",
@@ -588,18 +590,20 @@ dependencies = [
  "nalgebra",
  "num-derive",
  "num-traits",
+ "ordered-float",
  "rustc-hash",
  "serde",
  "simba",
  "slab",
  "smallvec",
  "spade",
+ "thiserror",
 ]
 
 [[package]]
 name = "parry3d-f64"
-version = "0.15.1"
-source = "git+https://github.com/dimforge/parry?branch=master#9e723ee3f066da9b61eb4023fe393ff4f81125d3"
+version = "0.16.0"
+source = "git+https://github.com/dimforge/parry?branch=master#029429e1122dc91a8d4201d9fa7a6cc226bafb59"
 dependencies = [
  "approx",
  "arrayvec",
@@ -611,12 +615,14 @@ dependencies = [
  "nalgebra",
  "num-derive",
  "num-traits",
+ "ordered-float",
  "rustc-hash",
  "serde",
  "simba",
  "slab",
  "smallvec",
  "spade",
+ "thiserror",
 ]
 
 [[package]]
@@ -627,9 +633,9 @@ checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.85"
+version = "1.0.86"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "22244ce15aa966053a896d1accb3a6e68469b97c7f33f284b99f0d576879fc23"
+checksum = "5e719e8df665df0d1c8fbfd238015744736151d4445ec0836b8e628aae103b77"
 dependencies = [
  "unicode-ident",
 ]
@@ -645,8 +651,8 @@ dependencies = [
 
 [[package]]
 name = "rapier2d"
-version = "0.20.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#84b66d63e39cb6182974b8f674684748c7c4d594"
+version = "0.21.0"
+source = "git+https://github.com/dimforge/rapier?branch=master#0089365e661bf487073e58e4e800894dc4e4fc41"
 dependencies = [
  "approx",
  "arrayvec",
@@ -671,8 +677,8 @@ dependencies = [
 
 [[package]]
 name = "rapier2d-f64"
-version = "0.20.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#84b66d63e39cb6182974b8f674684748c7c4d594"
+version = "0.21.0"
+source = "git+https://github.com/dimforge/rapier?branch=master#0089365e661bf487073e58e4e800894dc4e4fc41"
 dependencies = [
  "approx",
  "arrayvec",
@@ -697,8 +703,8 @@ dependencies = [
 
 [[package]]
 name = "rapier3d"
-version = "0.20.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#84b66d63e39cb6182974b8f674684748c7c4d594"
+version = "0.21.0"
+source = "git+https://github.com/dimforge/rapier?branch=master#0089365e661bf487073e58e4e800894dc4e4fc41"
 dependencies = [
  "approx",
  "arrayvec",
@@ -723,8 +729,8 @@ dependencies = [
 
 [[package]]
 name = "rapier3d-f64"
-version = "0.20.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#84b66d63e39cb6182974b8f674684748c7c4d594"
+version = "0.21.0"
+source = "git+https://github.com/dimforge/rapier?branch=master#0089365e661bf487073e58e4e800894dc4e4fc41"
 dependencies = [
  "approx",
  "arrayvec",
@@ -810,9 +816,9 @@ checksum = "cbf4a6aa5f6d6888f39e980649f3ad6b666acdce1d78e95b8a2cb076e687ae30"
 
 [[package]]
 name = "rustc-hash"
-version = "1.1.0"
+version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
+checksum = "583034fd73374156e66797ed8e5b0d5690409c9226b22d87cb7f19821c05d152"
 
 [[package]]
 name = "ryu"
@@ -832,12 +838,11 @@ dependencies = [
 [[package]]
 name = "salva2d"
 version = "0.10.0"
-source = "git+https://github.com/ughuuu/salva?branch=update-to-rapier-0.19#7d143774e7d20526b7dd6bf2109c34414ed4b84a"
+source = "git+https://github.com/ughuuu/salva?branch=update-to-rapier-0.19#e4fce4cd0f2609a61163b9dcb091c9ee2f7737b8"
 dependencies = [
  "approx",
  "fnv",
  "generational-arena",
- "instant",
  "itertools",
  "nalgebra",
  "num-traits",
@@ -848,12 +853,11 @@ dependencies = [
 [[package]]
 name = "salva3d"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=update-to-rapier-0.19#7d143774e7d20526b7dd6bf2109c34414ed4b84a"
+source = "git+https://github.com/ughuuu/salva?branch=update-to-rapier-0.19#e4fce4cd0f2609a61163b9dcb091c9ee2f7737b8"
 dependencies = [
  "approx",
  "fnv",
  "generational-arena",
- "instant",
  "itertools",
  "nalgebra",
  "num-traits",
@@ -878,7 +882,7 @@ checksum = "500cbc0ebeb6f46627f50f3f5811ccf6bf00643be300b4c3eabc0ef55dc5b5ba"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.66",
+ "syn",
 ]
 
 [[package]]
@@ -894,15 +898,14 @@ dependencies = [
 
 [[package]]
 name = "simba"
-version = "0.8.1"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "061507c94fc6ab4ba1c9a0305018408e312e17c041eb63bef8aa726fa33aceae"
+checksum = "b3a386a501cd104797982c15ae17aafe8b9261315b5d07e3ec803f2ea26be0fa"
 dependencies = [
  "approx",
- "libm 0.2.8",
+ "libm",
  "num-complex",
  "num-traits",
- "packed_simd_2",
  "paste",
  "wide",
 ]
@@ -928,7 +931,7 @@ version = "2.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f4ec45f91925e2c9ab3b6a857ee9ed36916990df76a1c475d783a328e247cc8"
 dependencies = [
- "hashbrown 0.14.5",
+ "hashbrown",
  "num-traits",
  "robust",
  "smallvec",
@@ -936,20 +939,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "1.0.109"
+version = "2.0.68"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "72b64191b275b66ffe2469e8af2c1cfe3bafa67b529ead792a6d0160888b4237"
-dependencies = [
- "proc-macro2",
- "quote",
- "unicode-ident",
-]
-
-[[package]]
-name = "syn"
-version = "2.0.66"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c42f3f41a2de00b01c0aaad383c5a45241efc8b2d1eda5661812fda5f3cdcff5"
+checksum = "901fa70d88b9d6c98022e23b4136f9f3e54e4662c3bc1bd1d84a42a9a0f0c1e9"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -973,7 +965,7 @@ checksum = "46c3384250002a6d5af4d114f2845d37b57521033f30d5c3f46c4d70e1197533"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.66",
+ "syn",
 ]
 
 [[package]]
@@ -990,9 +982,9 @@ checksum = "3354b9ac3fae1ff6755cb6db53683adb661634f67557942dea4facebec0fee4b"
 
 [[package]]
 name = "uuid"
-version = "1.8.0"
+version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a183cf7feeba97b4dd1c0d46788634f6221d87fa961b305bed08c851829efcc0"
+checksum = "3ea73390fe27785838dcbf75b91b1d84799e28f1ce71e6f372a5dc2200c80de5"
 dependencies = [
  "getrandom",
 ]
@@ -1046,7 +1038,7 @@ dependencies = [
  "once_cell",
  "proc-macro2",
  "quote",
- "syn 2.0.66",
+ "syn",
  "wasm-bindgen-shared",
 ]
 
@@ -1068,7 +1060,7 @@ checksum = "e94f17b526d0a461a191c78ea52bbce64071ed5c04c9ffe424dcb38f74171bb7"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.66",
+ "syn",
  "wasm-bindgen-backend",
  "wasm-bindgen-shared",
 ]
@@ -1116,5 +1108,5 @@ checksum = "15e934569e47891f7d9411f1a451d947a60e000ab3bd24fbb970f000387d1b3b"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.66",
+ "syn",
 ]
