@@ -2,7 +2,7 @@
 rustflags = [
     "-C", "link-args=-sSHARED_MEMORY=1",
     # tried with and without
-    "-C", "link-args=-sEXPORT_ALL=1",
+    #"-C", "link-args=-sEXPORT_ALL=1",
     "-C", "link-args=-sSIDE_MODULE=2",
     "-C", "link-args=-pthread", # was -sUSE_PTHREADS=1 in earlier emscripten versions
     "-C", "target-feature=+atomics,+bulk-memory,+mutable-globals",
