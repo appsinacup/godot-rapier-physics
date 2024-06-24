@@ -14,6 +14,7 @@ dim2 = []
 dim3 = []
 single = []
 double = []
+# TODO add feature for "glam/libm"
 enhanced-determinism = ["rapier2d/enhanced-determinism", "rapier2d-f64/enhanced-determinism", "rapier3d/enhanced-determinism", "rapier3d-f64/enhanced-determinism"]
 simd-stable = ["rapier2d/simd-stable", "rapier2d-f64/simd-stable", "rapier3d/simd-stable", "rapier3d-f64/simd-stable"]
 simd-nightly = ["rapier2d/simd-nightly", "rapier2d-f64/simd-nightly", "rapier3d/simd-nightly", "rapier3d-f64/simd-nightly"]
