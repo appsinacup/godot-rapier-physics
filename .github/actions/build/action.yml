@@ -26,7 +26,10 @@ runs:
       run: |
         rustup install nightly
         rustup default nightly
-        rustup target add ${{ inputs.arch }}
+        rustup toolchain install nightly
+        rustup override set nightly
+        rustup component add rust-src --toolchain nightly
+        rustup target add ${{ inputs.arch }} --toolchain nightly
         cargo update
     - name: Build
       shell: sh
@@ -34,6 +37,7 @@ runs:
         cargo +nightly build --target=${{ inputs.arch }} --release --features="${{ inputs.features }}" ${{ inputs.extra_flags}} --no-default-features
       env:
         RUSTFLAGS: ${{ inputs.env_flags }}
+        EMCC_CFLAGS: "-s ERROR_ON_UNDEFINED_SYMBOLS=0 --no-entry -gsource-map -s STANDALONE_WASM"
     - name: Copy to release
       shell: sh
       run: |

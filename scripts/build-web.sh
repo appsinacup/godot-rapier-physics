@@ -1,5 +1,10 @@
+cargo fmt -- --config-path rustfmt.toml
 cargo clippy --fix --allow-dirty
-cargo +nightly build -Z build-std=panic_abort,std --release --features="simd-stable,experimental-wasm,wasm-bindgen" --target wasm32-unknown-emscripten --no-default-features
+set EMCC_CFLAGS=-s ERROR_ON_UNDEFINED_SYMBOLS=0 --no-entry -gsource-map -s STANDALONE_WASM
+cargo +nightly build -Z build-std=panic_abort,std --features="single-dim2,experimental-wasm,wasm-bindgen" --target wasm32-unknown-emscripten --no-default-features --verbose # --release
 
-cp target/wasm32-unknown-emscripten/release/godot_rapier.wasm bin2d/addons/godot-rapier2d/bin/libgodot_rapier.web.wasm32.wasm
-cp target/wasm32-unknown-emscripten/release/godot_rapier.wasm /Users/dragosdaian/Documents/Godot-Physics-Tests/addons/godot-rapier2d/bin/libgodot_rapier.web.wasm32.wasm
+#cp target/wasm32-unknown-emscripten/release/godot_rapier.wasm bin2d/addons/godot-rapier2d/bin/libgodot_rapier.web.wasm32.wasm
+#cp target/wasm32-unknown-emscripten/release/godot_rapier.wasm /Users/dragosdaian/Documents/Godot-Physics-Tests/addons/godot-rapier2d/bin/libgodot_rapier.web.wasm32.wasm
+
+cp target/wasm32-unknown-emscripten/debug/godot_rapier.wasm bin2d/addons/godot-rapier2d/bin/libgodot_rapier.web.wasm32.wasm
+cp target/wasm32-unknown-emscripten/debug/godot_rapier.wasm /Users/dragosdaian/Documents/Godot-Physics-Tests/addons/godot-rapier2d/bin/libgodot_rapier.web.wasm32.wasm
