@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Build ${{ matrix.arch }} ${{ matrix.precision }} ${{ matrix.features }}
+      - name: Build
         uses: ./.github/actions/build
         with:
           arch: ${{ matrix.arch }}
