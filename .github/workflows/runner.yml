@@ -41,16 +41,16 @@ jobs:
     name:  Godot
     uses: ./.github/workflows/godot_builds.yml
 
-  #web-build:
-  #  name: 🌐 Web Builds
-  #  needs: static-checks
-  #  uses: ./.github/workflows/web_builds.yml
+  web-build:
+    name: 🌐 Web Builds
+    needs: static-checks
+    uses: ./.github/workflows/web_builds.yml
 
   merge:
     runs-on: ubuntu-latest
     name: Merge
     #needs: [android-build, ios-build, linux-build, macos-build, windows-build, godot-build, web-build]
-    needs: [ios-build, linux-build, macos-build, windows-build, godot-build]
+    needs: [ios-build, linux-build, macos-build, windows-build, godot-build, web-build]
     steps:
       - uses: actions/upload-artifact/merge@v4
         with:
