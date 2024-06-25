@@ -1266,22 +1266,23 @@ impl RapierPhysicsServerImpl {
         recovery_as_collision: bool,
         result: *mut PhysicsServer2DExtensionMotionResult,
     ) -> bool {
+        // need to get mutable reference
         if let Some(body) = self.physics_data.collision_objects.get(&body) {
             if let Some(body) = body.get_body() {
                 if let Some(space) = self.physics_data.spaces.get(&body.get_base().get_space()) {
                     let result: &mut PhysicsServer2DExtensionMotionResult = &mut *result;
-                    // TODO
-                    /*
                     return space.test_body_motion(
-                        &mut body,
+                        &body.clone(),
                         from,
                         motion,
                         margin,
                         collide_separation_ray,
                         recovery_as_collision,
                         result,
-                        self.physics_data
-                    );*/
+                        &self.physics_data.physics_engine,
+                        &self.physics_data.shapes,
+                        &self.physics_data.collision_objects,
+                    );
                 }
             }
         }

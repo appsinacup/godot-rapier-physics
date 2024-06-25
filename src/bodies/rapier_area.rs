@@ -581,6 +581,10 @@ impl RapierArea {
         self.monitorable
     }
 
+    pub fn get_priority(&self) -> i32 {
+        self.priority
+    }
+
     pub fn get_queries(&mut self) -> Vec<Callable> {
         let mut queries = Vec::default();
         if self.monitored_objects.is_empty() {

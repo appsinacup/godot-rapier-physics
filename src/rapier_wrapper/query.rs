@@ -7,7 +7,8 @@ use rapier::parry::query::ShapeCastOptions;
 use rapier::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_server_extra::PhysicsData;
+use crate::servers::rapier_physics_server_extra::{PhysicsCollisionObjects, PhysicsData};
+use crate::spaces::rapier_space::RapierSpace;
 pub struct RayHitInfo {
     pub pixel_position: Vector<Real>,
     pub normal: Vector<Real>,
@@ -73,14 +74,9 @@ pub struct QueryExcludedInfo {
     pub query_exclude_size: usize,
     pub query_exclude_body: i64,
 }
-type QueryHandleExcludedCallback = fn(
-    world_handle: WorldHandle,
-    collider_handle: ColliderHandle,
-    user_data: &UserData,
-    handle_excluded_info: &QueryExcludedInfo,
-    physics_data: &PhysicsData,
-) -> bool;
+impl PhysicsEngine {
 pub fn intersect_ray(
+    &self,
     world_handle: WorldHandle,
     from: Vector<Real>,
     dir: Vector<Real>,
@@ -89,12 +85,12 @@ pub fn intersect_ray(
     collide_with_area: bool,
     hit_from_inside: bool,
     hit_info: &mut RayHitInfo,
-    handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
-    physics_data: &PhysicsData,
+    physics_collision_objects: &PhysicsCollisionObjects,
+    space: &RapierSpace,
 ) -> bool {
     let mut result = false;
-    let Some(physics_world) = physics_data.physics_engine.get_world(world_handle) else {
+    let Some(physics_world) = self.get_world(world_handle) else {
         return false;
     };
     let ray = Ray::new(Point { coords: from }, dir);
@@ -106,12 +102,12 @@ pub fn intersect_ray(
         filter = filter.exclude_sensors();
     }
     let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
-        !handle_excluded_callback(
+        !space.is_handle_excluded_callback(
             world_handle,
             handle,
             &physics_world.get_collider_user_data(handle),
             handle_excluded_info,
-            physics_data,
+            physics_collision_objects
         )
     };
     filter.predicate = Some(&predicate);
@@ -149,21 +145,22 @@ pub fn intersect_ray(
     result
 }
 pub fn intersect_point(
+    &self,
     world_handle: WorldHandle,
     position: Vector<Real>,
     collide_with_body: bool,
     collide_with_area: bool,
     hit_info_array: *mut PointHitInfo,
     hit_info_length: usize,
-    handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
-    physics_data: &PhysicsData,
+    physics_collision_objects: &PhysicsCollisionObjects,
+    space: &RapierSpace,
 ) -> usize {
     let mut cpt_hit = 0;
     if hit_info_length <= 0 {
         return cpt_hit;
     }
-    if let Some(physics_world) = physics_data.physics_engine.get_world(world_handle) {
+    if let Some(physics_world) = self.get_world(world_handle) {
         let point = Point { coords: position };
         let mut filter = QueryFilter::new();
         if !collide_with_body {
@@ -173,12 +170,12 @@ pub fn intersect_point(
             filter = filter.exclude_sensors();
         }
         let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
-            !handle_excluded_callback(
+            !space.is_handle_excluded_callback(
                 world_handle,
                 handle,
                 &physics_world.get_collider_user_data(handle),
                 handle_excluded_info,
-                physics_data,
+                physics_collision_objects,
             )
         };
         filter.predicate = Some(&predicate);
@@ -212,16 +209,16 @@ pub fn intersect_point(
     cpt_hit
 }
 pub fn shape_collide(
+    &self,
     shape_vel1: Vector<Real>,
     shape_info1: ShapeInfo,
     shape_vel2: Vector<Real>,
     shape_info2: ShapeInfo,
-    physics_engine: &PhysicsEngine,
 ) -> ShapeCastResult {
     let mut result = ShapeCastResult::new();
-    if let Some(raw_shared_shape1) = physics_engine.get_shape(shape_info1.handle) {
+    if let Some(raw_shared_shape1) = self.get_shape(shape_info1.handle) {
         let shared_shape1 = scale_shape(raw_shared_shape1, shape_info1);
-        if let Some(raw_shared_shape2) = physics_engine.get_shape(shape_info2.handle) {
+        if let Some(raw_shared_shape2) = self.get_shape(shape_info2.handle) {
             let shared_shape2 = scale_shape(raw_shared_shape2, shape_info2);
             let shape_transform1 = shape_info1.transform;
             let shape_transform2 = shape_info2.transform;
@@ -255,19 +252,20 @@ pub fn shape_collide(
     result
 }
 pub fn shape_casting(
+    &self,
     world_handle: WorldHandle,
     shape_vel: Vector<Real>,
     shape_info: ShapeInfo,
     collide_with_body: bool,
     collide_with_area: bool,
-    handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
-    physics_data: &PhysicsData,
+    physics_collision_objects: &PhysicsCollisionObjects,
+    space: &RapierSpace,
 ) -> ShapeCastResult {
     let mut result = ShapeCastResult::new();
-    if let Some(raw_shared_shape) = physics_data.physics_engine.get_shape(shape_info.handle) {
+    if let Some(raw_shared_shape) = self.get_shape(shape_info.handle) {
         let shared_shape = scale_shape(raw_shared_shape, shape_info);
-        if let Some(physics_world) = physics_data.physics_engine.get_world(world_handle) {
+        if let Some(physics_world) = self.get_world(world_handle) {
             let shape_transform = shape_info.transform;
             let mut filter = QueryFilter::new();
             if !collide_with_body {
@@ -277,12 +275,12 @@ pub fn shape_casting(
                 filter = filter.exclude_sensors();
             }
             let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
-                !handle_excluded_callback(
+                !space.is_handle_excluded_callback(
                     world_handle,
                     handle,
                     &physics_world.get_collider_user_data(handle),
                     handle_excluded_info,
-                    physics_data,
+                    physics_collision_objects,
                 )
             };
             filter.predicate = Some(&predicate);
@@ -319,6 +317,7 @@ pub fn shape_casting(
     result
 }
 pub fn intersect_aabb(
+    &self,
     world_handle: WorldHandle,
     aabb_min: Vector<Real>,
     aabb_max: Vector<Real>,
@@ -326,12 +325,12 @@ pub fn intersect_aabb(
     collide_with_area: bool,
     hit_info_slice: &mut [PointHitInfo],
     max_results: usize,
-    handle_excluded_callback: QueryHandleExcludedCallback,
     handle_excluded_info: &QueryExcludedInfo,
-    physics_data: &PhysicsData,
+    physics_collision_objects: &PhysicsCollisionObjects,
+    space: &RapierSpace,
 ) -> usize {
     let mut cpt_hit = 0;
-    if let Some(physics_world) = physics_data.physics_engine.get_world(world_handle) {
+    if let Some(physics_world) = self.get_world(world_handle) {
         let aabb_min_point = Point { coords: aabb_min };
         let aabb_max_point = Point { coords: aabb_max };
         let aabb = Aabb {
@@ -351,12 +350,12 @@ pub fn intersect_aabb(
                         valid_hit = true;
                     }
                     if valid_hit {
-                        valid_hit = !handle_excluded_callback(
+                        valid_hit = !space.is_handle_excluded_callback(
                             world_handle,
                             *handle,
                             &physics_world.get_collider_user_data(*handle),
                             handle_excluded_info,
-                            physics_data,
+                            physics_collision_objects,
                         );
                     }
                 }
@@ -372,7 +371,6 @@ pub fn intersect_aabb(
     }
     cpt_hit
 }
-impl PhysicsEngine {
     pub fn shapes_contact(
         &self,
         shape_info1: ShapeInfo,

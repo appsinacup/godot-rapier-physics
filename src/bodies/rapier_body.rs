@@ -67,6 +67,24 @@ pub struct ForceIntegrationCallbackData {
     pub callable: Callable,
     pub udata: Variant,
 }
+#[derive(Serialize, Clone, Copy)]
+pub struct RidWithPriority {
+    pub rid: Rid,
+    pub priority: i32,
+}
+impl RidWithPriority {
+    pub fn new(rid: Rid, priority: i32) -> Self {
+        Self { rid, priority }
+    }
+}
+impl Default for RidWithPriority {
+    fn default() -> Self {
+        Self {
+            rid: Rid::Invalid,
+            priority: 0,
+        }
+    }
+}
 #[derive(Serialize)]
 pub struct RapierBody {
     // TODO
@@ -109,7 +127,7 @@ pub struct RapierBody {
     to_add_angular_velocity: Angle,
     to_add_linear_velocity: Vector,
     sleep: bool,
-    areas: Vec<Rid>,
+    areas: Vec<RidWithPriority>,
     contacts: Vec<Contact>,
     contact_count: i32,
     #[serde(skip)]
@@ -395,7 +413,9 @@ impl RapierBody {
         if p_area.has_any_space_override() {
             // TODO sort
             let area_rid = p_area.get_base().get_rid();
-            self.areas.push(area_rid);
+            let priority = p_area.get_priority();
+            self.areas.push(RidWithPriority::new(area_rid, priority));
+            self.areas.sort_by(|a, b| b.priority.cmp(&a.priority));
             self.on_area_updated(area_rid, space);
         }
     }
@@ -406,7 +426,7 @@ impl RapierBody {
             return;
         }
         self.base.area_detection_counter -= 1;
-        self.areas.retain(|&x| x != area);
+        self.areas.retain(|&x| x.rid != area);
         self.on_area_updated(area, space);
     }
 
@@ -439,8 +459,8 @@ impl RapierBody {
         if ac > 0 {
             let mut areas = self.areas.clone();
             areas.reverse();
-            for area_rid in areas {
-                if let Some(area) = physics_collision_objects.get(&area_rid) {
+            for area_rid in areas.iter() {
+                if let Some(area) = physics_collision_objects.get(&area_rid.rid) {
                     if let Some(aa) = area.get_area() {
                         if !gravity_done {
                             let area_gravity_mode =
