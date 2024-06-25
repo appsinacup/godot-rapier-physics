@@ -67,8 +67,7 @@ impl RapierDirectBodyStateImpl {
     }
 
     pub(super) fn get_total_angular_damp(&self) -> f32 {
-        let Ok(physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
             return 0.0;
         };
@@ -82,8 +81,7 @@ impl RapierDirectBodyStateImpl {
     }
 
     pub(super) fn get_center_of_mass(&self) -> Vector {
-        let Ok(physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
             return Vector::ZERO;
         };
@@ -98,8 +96,7 @@ impl RapierDirectBodyStateImpl {
     }
 
     pub(super) fn get_center_of_mass_local(&self) -> Vector {
-        let Ok(physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
             return Vector::ZERO;
         };
@@ -113,8 +110,7 @@ impl RapierDirectBodyStateImpl {
     }
 
     pub(super) fn get_inverse_mass(&self) -> f32 {
-        let Ok(physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
             return 0.0;
         };
@@ -128,8 +124,7 @@ impl RapierDirectBodyStateImpl {
     }
 
     pub(super) fn get_inverse_inertia(&self) -> Angle {
-        let Ok(physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
             return ANGLE_ZERO;
         };
@@ -219,8 +214,7 @@ impl RapierDirectBodyStateImpl {
     }
 
     pub(super) fn get_transform(&self) -> Transform {
-        let Ok(physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
             return Transform::default();
         };
@@ -440,8 +434,7 @@ impl RapierDirectBodyStateImpl {
     }
 
     pub(super) fn get_constant_force(&self) -> Vector {
-        let Ok(physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
             return Vector::default();
         };
@@ -474,8 +467,7 @@ impl RapierDirectBodyStateImpl {
     }
 
     pub(super) fn get_constant_torque(&self) -> Angle {
-        let Ok(physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
             return ANGLE_ZERO;
         };
@@ -505,8 +497,7 @@ impl RapierDirectBodyStateImpl {
     }
 
     pub(super) fn is_sleeping(&self) -> bool {
-        let Ok(physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
             return false;
         };
@@ -520,8 +511,7 @@ impl RapierDirectBodyStateImpl {
     }
 
     pub(super) fn get_contact_count(&self) -> i32 {
-        let Ok(physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
             return 0;
         };
@@ -535,8 +525,7 @@ impl RapierDirectBodyStateImpl {
     }
 
     pub(super) fn get_contact_local_position(&self, contact_idx: i32) -> Vector {
-        let Ok(physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
             return Vector::default();
         };
@@ -552,8 +541,7 @@ impl RapierDirectBodyStateImpl {
     }
 
     pub(super) fn get_contact_local_normal(&self, contact_idx: i32) -> Vector {
-        let Ok(physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
             return Vector::default();
         };
@@ -569,8 +557,7 @@ impl RapierDirectBodyStateImpl {
     }
 
     pub(super) fn get_contact_local_shape(&self, contact_idx: i32) -> i32 {
-        let Ok(physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
             return 0;
         };
@@ -586,8 +573,7 @@ impl RapierDirectBodyStateImpl {
     }
 
     pub(super) fn get_contact_local_velocity_at_position(&self, contact_idx: i32) -> Vector {
-        let Ok(physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
             return Vector::default();
         };
@@ -603,8 +589,7 @@ impl RapierDirectBodyStateImpl {
     }
 
     pub(super) fn get_contact_collider(&self, contact_idx: i32) -> Rid {
-        let Ok(physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
             return Rid::Invalid;
         };
@@ -620,8 +605,7 @@ impl RapierDirectBodyStateImpl {
     }
 
     pub(super) fn get_contact_collider_position(&self, contact_idx: i32) -> Vector {
-        let Ok(physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
             return Vector::default();
         };
@@ -637,8 +621,7 @@ impl RapierDirectBodyStateImpl {
     }
 
     pub(super) fn get_contact_collider_id(&self, contact_idx: i32) -> u64 {
-        let Ok(physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
             return 0;
         };
@@ -654,8 +637,7 @@ impl RapierDirectBodyStateImpl {
     }
 
     pub(super) fn get_contact_collider_object(&self, contact_idx: i32) -> Option<Gd<Object>> {
-        let Ok(physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
             return None;
         };
@@ -673,8 +655,7 @@ impl RapierDirectBodyStateImpl {
     }
 
     pub(super) fn get_contact_collider_shape(&self, contact_idx: i32) -> i32 {
-        let Ok(physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
             return 0;
         };
@@ -690,8 +671,7 @@ impl RapierDirectBodyStateImpl {
     }
 
     pub(super) fn get_contact_collider_velocity_at_position(&self, contact_idx: i32) -> Vector {
-        let Ok(physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
             return Vector::default();
         };
@@ -707,8 +687,7 @@ impl RapierDirectBodyStateImpl {
     }
 
     pub(super) fn get_contact_impulse(&self, contact_idx: i32) -> Vector {
-        let Ok(physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
             return Vector::default();
         };

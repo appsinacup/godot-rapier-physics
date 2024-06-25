@@ -1586,3 +1586,8 @@ impl RapierPhysicsServerImpl {
         }
     }
 }
+impl Drop for RapierPhysicsServerImpl {
+    fn drop(&mut self) {
+        godot_error!("RapierPhysicsServer dropped");
+    }
+}

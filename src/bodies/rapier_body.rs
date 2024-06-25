@@ -1317,6 +1317,12 @@ impl RapierBody {
                 self.base.set_transform(transform, true, physics_engine);
             }
             BodyState::LINEAR_VELOCITY => {
+                #[cfg(feature = "dim2")]
+                if p_variant.get_type() != VariantType::VECTOR2 {
+                    godot_error!("Invalid body data.");
+                    return;
+                }
+                #[cfg(feature = "dim3")]
                 if p_variant.get_type() != VariantType::VECTOR3 {
                     godot_error!("Invalid body data.");
                     return;
@@ -1326,7 +1332,7 @@ impl RapierBody {
             BodyState::ANGULAR_VELOCITY => {
                 #[cfg(feature = "dim2")]
                 if p_variant.get_type() != VariantType::FLOAT
-                    || p_variant.get_type() != VariantType::INT
+                    && p_variant.get_type() != VariantType::INT
                 {
                     godot_error!("Invalid body data.");
                 } else {

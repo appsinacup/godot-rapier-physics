@@ -81,9 +81,8 @@ pub fn transform_inverse(transform: &Transform) -> Transform {
 }
 #[cfg(feature = "dim2")]
 pub fn transform_inverse(transform: &Transform) -> Transform {
-    //let determnant = transform.determinant();
-    let determnant = 0.1;
-    if determnant == 0.0 {
+    // todo use determinant
+    if transform.a == Vector::ZERO && transform.b == Vector::ZERO {
         *transform
     } else {
         transform.affine_inverse()
@@ -92,6 +91,7 @@ pub fn transform_inverse(transform: &Transform) -> Transform {
 #[cfg(feature = "dim2")]
 pub fn transform_update(transform: &Transform, rotation: Angle, origin: Vector) -> Transform {
     let mut skew = 0.0;
+    // todo use determinant
     if transform.a != Vector::ZERO {
         skew = transform.skew();
     }
