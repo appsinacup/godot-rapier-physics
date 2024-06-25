@@ -1242,11 +1242,14 @@ impl RapierPhysicsServerImpl {
     }
 
     pub(super) fn joint_clear(&mut self, rid: Rid) {
-        if let Some(prev_joint) = self.physics_data.joints.remove(&rid) {
+        if let Some(mut prev_joint) = self.physics_data.joints.remove(&rid) {
             let mut joint = RapierEmptyJoint::new();
             joint
                 .get_mut_base()
                 .copy_settings_from(prev_joint.get_base(), &mut self.physics_data.physics_engine);
+            prev_joint
+                .get_mut_base()
+                .destroy_joint(&mut self.physics_data.physics_engine);
             self.physics_data.joints.insert(rid, Box::new(joint));
         }
     }
