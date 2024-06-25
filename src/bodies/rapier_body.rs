@@ -1720,7 +1720,7 @@ impl RapierBody {
                     self.set_constant_torque(self.constant_torque, physics_engine);
                 }
                 if self.impulse != Vector::default() {
-                    self.apply_impulse(self.impulse, Vector::default(), physics_engine);
+                    self.apply_central_impulse(self.impulse, physics_engine);
                 }
                 if self.torque != ANGLE_ZERO {
                     self.apply_torque_impulse(self.torque, physics_engine);
