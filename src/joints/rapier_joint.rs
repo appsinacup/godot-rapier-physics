@@ -147,7 +147,7 @@ impl IRapierJoint for RapierEmptyJoint {
 }
 impl Drop for RapierJointBase {
     fn drop(&mut self) {
-        if self.is_valid() {
+        if self.handle != ImpulseJointHandle::invalid() {
             godot_error!("RapierJointBase leaked");
         }
     }
