@@ -1,4 +1,26 @@
-# Documentation
+# 1. Documentation
+
+1. [Rapier Physics Server](#rapier-physics-server)
+2. [Rapier Direct Space State](#rapier-direct-space-state)
+
+## Rapier Physics Server
+
+The new `RapierPhysicsServer2D` and `RapierPhysicsServer3D` can be used just like the `PhysicsServer2D` and `PhysicsServer3D` in GDScript:
+```python
+RapierPhysicsServer2D.body_set_extra_param(...)
+```
+
+The rapeir physics server exposes new methods that expose extra functionality that it has to offer, such as:
+- bodies rounded edges
+- fluids
+- json and binary export
+
+## Rapier Direct Space State
+
+Same as the Rapier Physics Server, the Rapier Direct Space state offeres new functions that allow for functionality such as:
+- json and binary export
+
+# 2. Implementation
 
 1. [Extending Godot Physics](#extending-godot-physics)
 2. [How the Physics Server works with Godot Nodes](#how-the-physics-server-works-with-godot-nodes)
@@ -9,7 +31,7 @@
 
 -----
 
-# Extending Godot Physics
+## Extending Godot Physics
 
 Godot let's any GDExtension create a new `Physics Server` if they call `register_server` on the [PhysicsServer2DManager](https://docs.godotengine.org/en/latest/classes/class_physicsserver2dmanager.html) or [PhysicsServer3DManager](https://docs.godotengine.org/en/latest/classes/class_physicsserver3dmanager.html) and on the callback return a new instance of their custom `Physics Server` that extends either [PhysicsServer2DExtension](https://docs.godotengine.org/en/latest/classes/class_physicsserver2dextension.html) or [PhysicsServer3DExtension](https://docs.godotengine.org/en/latest/classes/class_physicsserver3dextension.html).
 
@@ -38,7 +60,7 @@ Code is reused as much as possible, by having each of these classes call into a 
 
 The code written here is based on the Physics Server from Godot.
 
-# How the Physics Server works with Godot Nodes
+## How the Physics Server works with Godot Nodes
 
 The `Physics Server` is a singleton with a set of API's for bodies, areas, shapes and spaces. An example of this is [body_create](https://docs.godotengine.org/en/latest/classes/class_physicsserver2d.html#class-physicsserver2d-method-body-create) function. This function creates a body, and returns an [RID](https://docs.godotengine.org/en/latest/classes/class_rid.html#class-rid). These `RID`'s are resource id's for objects that are handled by the `Physics Server`.
 
@@ -57,7 +79,7 @@ Also, aside from communication from Godot -> `Physics Server`, there is also the
 
 These functions send a `Callable` to the `Physics Server` that it uses to call back into Godot and notify of certain changes.
 
-# Rapier Physics Server Serialization
+## Rapier Physics Server Serialization
 
 The `Rapier Physics Server`, which is our custom implementation of `Physics Server`, hands out `RID`'s for objects it has internally, similar to how `Godot Physics Server` does. The classes are named similar to how Godot naming works, but with Rapier instead of Godot, eg.:
 - `RapierArea`
@@ -77,14 +99,15 @@ As described in the chapter above, the `Physics Server` creates some resources a
 
 As such, when saving and loading, first one must recreate the Godot scene and make sure all the dependencies are created, and only later load the `Physics Server` state. Even if some of the things the Physics Server loads won't be the exact same, eg. `RID`'s, `Callables`, etc. The simulation will work deterministic as internally it uses Rapier which is itself deterministic. Also the update order isn't based on these resources that Godot hands over.
 
-# Rapier Physics Server Fluids
+## Rapier Physics Server Fluids
 
 Godot Rapier Physics also exposes new nodes, [Fluid2D](../src/fluids/fluid_2d.rs) and [Fluid3D](../src/fluids/fluid_3d.rs). These nodes can set and get position, velocity and acceleration of particles used for fluid simulation. Internally it uses [salva](https://github.com/dimforge/salva) to create them.
 
-# How to build
+## How to build
 
 1. Prerequisites:
 - Install [cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html)
+- [Rust Nightly](https://www.oreilly.com/library/view/rust-programming-by/9781788390637/e07dc768-de29-482e-804b-0274b4bef418.xhtml)
 
 2. Update dependencies to latest:
 
@@ -118,7 +141,7 @@ cp target/release/godot_rapier.dll bin2/addons/godot-rapier2d/bin/godot_rapier.w
 
 For the correct path to use inside the bin folder, look inside the `bin2d/addons/godot-rapier2d.gdextension` or the `bin3d/addons/godot-rapier3d.gdextension`.
 
-## Available features
+### Available features
 
 For features, the following are available:
 - single-dim2
@@ -137,9 +160,9 @@ The `parallel` version doesn't work on web.
 
 The `enhanced-determinism` usually slows down the simulation.
 
-# How to debug
+## How to debug
 
-## Run Godot from debugger inside VSCode
+### Run Godot from debugger inside VSCode
 
 Click `Run and Debug` in VSCode on the left. Add a configuration to the `launch.configurations` similar to this (eg. below one is for macOS):
 ```json

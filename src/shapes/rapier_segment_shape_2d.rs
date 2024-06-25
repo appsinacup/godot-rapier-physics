@@ -1,11 +1,13 @@
 use godot::classes::physics_server_2d::ShapeType;
 use godot::prelude::*;
+use serde::Deserialize;
+use serde::Serialize;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
 use crate::types::*;
-//#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierSegmentShape2D {
     a: Vector2,
     b: Vector2,
@@ -22,6 +24,7 @@ impl RapierSegmentShape2D {
         }
     }
 }
+#[typetag::serde]
 impl IRapierShape for RapierSegmentShape2D {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base

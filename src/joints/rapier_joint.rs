@@ -1,11 +1,10 @@
-use std::any::Any;
-
 use godot::classes::*;
 #[cfg(feature = "dim2")]
 use physics_server_2d::JointType;
 #[cfg(feature = "dim3")]
 use physics_server_3d::JointType;
 use rapier::dynamics::ImpulseJointHandle;
+use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "dim2")]
 use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
@@ -13,7 +12,8 @@ use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 use super::rapier_pin_joint_2d::RapierPinJoint2D;
 use crate::rapier_wrapper::prelude::*;
 use crate::*;
-pub trait IRapierJoint: Any {
+#[typetag::serde(tag = "type")]
+pub trait IRapierJoint: {
     fn get_base(&self) -> &RapierJointBase;
     fn get_mut_base(&mut self) -> &mut RapierJointBase;
     fn get_type(&self) -> JointType;
@@ -26,6 +26,7 @@ pub trait IRapierJoint: Any {
     #[cfg(feature = "dim2")]
     fn get_mut_pin(&mut self) -> Option<&mut RapierPinJoint2D>;
 }
+#[derive(Serialize, Deserialize)]
 pub struct RapierJointBase {
     max_force: f32,
     handle: ImpulseJointHandle,
@@ -98,6 +99,7 @@ impl RapierJointBase {
         self.handle = ImpulseJointHandle::invalid();
     }
 }
+#[derive(Serialize, Deserialize)]
 pub struct RapierEmptyJoint {
     base: RapierJointBase,
 }
@@ -108,6 +110,7 @@ impl RapierEmptyJoint {
         }
     }
 }
+#[typetag::serde]
 impl IRapierJoint for RapierEmptyJoint {
     fn get_type(&self) -> JointType {
         JointType::MAX

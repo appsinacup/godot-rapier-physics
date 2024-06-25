@@ -1,5 +1,3 @@
-use std::any::Any;
-
 #[cfg(feature = "dim2")]
 use godot::engine::physics_server_2d::*;
 #[cfg(feature = "dim3")]
@@ -12,7 +10,8 @@ use serde::Serialize;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_server_extra::PhysicsData;
 use crate::types::*;
-pub trait IRapierShape: Any {
+#[typetag::serde(tag = "type")]
+pub trait IRapierShape {
     fn get_base(&self) -> &RapierShapeBase;
     fn get_mut_base(&mut self) -> &mut RapierShapeBase;
     fn get_type(&self) -> ShapeType;
@@ -27,6 +26,8 @@ pub trait IRapierShape: Any {
 pub struct RapierShapeBase {
     rid: Rid,
     aabb: Rect,
+    // TODO serialize this
+    #[serde(skip)]
     owners: HashMap<Rid, i32>,
     handle: ShapeHandle,
 }
@@ -96,7 +97,6 @@ impl RapierShapeBase {
 
     pub fn add_owner(&mut self, owner: Rid) {
         *self.owners.entry(owner).or_insert(0) += 1;
-        godot_print!("RapierShapeBase: {} owners", self.owners.len());
     }
 
     pub fn remove_owner(&mut self, owner: Rid) {

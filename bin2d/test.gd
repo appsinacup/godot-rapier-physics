@@ -9,7 +9,7 @@ func _on_timer_timeout():
 
 func _process(delta: float) -> void:
 	var space := get_viewport().find_world_2d().direct_space_state as RapierDirectSpaceState2D
-	var space_json = JSON.parse_string(space.export_json())
-	var save_world := FileAccess.open("user://world.json", FileAccess.WRITE)
-	#save_world.store_var(JSON.stringify(space_json, " "))
-	save_world.store_string(space.export_json())
+	var space_json := FileAccess.open("user://space.json", FileAccess.WRITE)
+	var shape_json := FileAccess.open("user://shapes.json", FileAccess.WRITE)
+	space_json.store_string(space.export_json())
+	shape_json.store_string(RapierPhysicsServer2D.shapes_export_json());

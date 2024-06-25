@@ -8,6 +8,8 @@ use godot::prelude::*;
 use hashbrown::HashMap;
 use hashbrown::HashSet;
 use rapier::geometry::ColliderHandle;
+use serde::Deserialize;
+use serde::Serialize;
 use servers::rapier_physics_server_extra::PhysicsCollisionObjects;
 use servers::rapier_physics_server_extra::PhysicsData;
 
@@ -18,6 +20,7 @@ use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_project_settings::*;
 use crate::types::*;
 use crate::*;
+#[derive(Serialize, Deserialize)]
 pub struct RemovedColliderInfo {
     pub rid: Rid,
     pub instance_id: u64,
@@ -47,7 +50,9 @@ const DEFAULT_GRAVITY_VECTOR: &str = "physics/3d/default_gravity_vector";
 const DEFAULT_GRAVITY: &str = "physics/2d/default_gravity";
 #[cfg(feature = "dim3")]
 const DEFAULT_GRAVITY: &str = "physics/3d/default_gravity";
+#[derive(Serialize, Deserialize)]
 pub struct RapierSpace {
+    #[serde(skip)]
     direct_access: Option<Gd<PhysicsDirectSpaceState>>,
     handle: WorldHandle,
     removed_colliders: HashMap<ColliderHandle, RemovedColliderInfo>,
@@ -66,6 +71,9 @@ pub struct RapierSpace {
     island_count: i32,
     active_objects: i32,
     collision_pairs: i32,
+    time_stepped: f32,
+    // todo when serialize is impl for this
+    #[serde(skip)]
     contact_debug: PackedVectorArray,
     contact_debug_count: usize,
 }
@@ -105,6 +113,7 @@ impl RapierSpace {
             island_count: 0,
             active_objects: 0,
             collision_pairs: 0,
+            time_stepped: 0.0,
             contact_debug: PackedVectorArray::new(),
             contact_debug_count: 0,
         }
@@ -241,6 +250,7 @@ impl RapierSpace {
     ) {
         let mut area_update_list = HashSet::default();
         if let Some(space) = physics_data.spaces.get_mut(space_rid) {
+            space.time_stepped += step;
             area_update_list = space.get_area_update_list().clone();
         }
         for area in area_update_list {
@@ -454,9 +464,11 @@ impl RapierSpace {
     }
 
     pub fn export_json(&self, physics_engine: &mut PhysicsEngine) -> String {
-        physics_engine
+        let inner = physics_engine
             .world_export_json(self.handle)
-            .unwrap_or("{}".to_string())
+            .unwrap_or("{}".to_string());
+        let space = serde_json::to_string(&self).unwrap_or("{}".to_string());
+        format!("{{ \"space\": {}, \"inner\": {} }}", space, inner)
     }
 
     pub fn export_binary(&self, physics_engine: &mut PhysicsEngine) -> PackedByteArray {

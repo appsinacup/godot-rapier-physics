@@ -24,7 +24,7 @@ impl RapierDirectSpaceState2D {
         let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         let Some(space) = physics_data.spaces.get(&self.space) else {
-            return "".to_string();
+            return "{}".to_string();
         };
         space.export_json(&mut physics_data.physics_engine)
     }

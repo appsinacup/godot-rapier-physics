@@ -8,6 +8,8 @@ use godot::obj::EngineEnum;
 use godot::prelude::*;
 use hashbrown::HashMap;
 use rapier::geometry::ColliderHandle;
+use serde::Deserialize;
+use serde::Serialize;
 use servers::rapier_physics_server_extra::PhysicsCollisionObjects;
 use servers::rapier_physics_server_extra::PhysicsShapes;
 use servers::rapier_physics_server_extra::PhysicsSpaces;
@@ -18,7 +20,7 @@ use crate::rapier_wrapper::prelude::*;
 use crate::spaces::rapier_space::*;
 use crate::types::*;
 use crate::*;
-// #[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 struct MonitorInfo {
     pub rid: Rid,
     pub instance_id: u64,
@@ -33,10 +35,14 @@ pub enum AreaUpdateMode {
     ResetSpaceOverride,
     None,
 }
-//#[derive(Serialize, Deserialize, Debug)]
+// TODO serialize
+#[derive(Serialize)]
 pub struct RapierArea {
+    #[serde(skip)]
     gravity_override_mode: AreaSpaceOverrideMode,
+    #[serde(skip)]
     linear_damping_override_mode: AreaSpaceOverrideMode,
+    #[serde(skip)]
     angular_damping_override_mode: AreaSpaceOverrideMode,
     gravity: real,
     gravity_vector: Vector,
@@ -46,7 +52,9 @@ pub struct RapierArea {
     angular_damp: real,
     priority: i32,
     monitorable: bool,
+    #[serde(skip)]
     monitor_callback: Callable,
+    #[serde(skip)]
     area_monitor_callback: Callable,
     monitored_objects: HashMap<(ColliderHandle, ColliderHandle), MonitorInfo>,
     detected_bodies: HashMap<Rid, u32>,
@@ -662,6 +670,7 @@ impl RapierArea {
 }
 // We won't use the pointers between threads, so it should be safe.
 unsafe impl Sync for RapierArea {}
+//#[typetag::serde]
 impl IRapierCollisionObject for RapierArea {
     fn get_base(&self) -> &RapierCollisionObject {
         &self.base
