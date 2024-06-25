@@ -5,6 +5,8 @@ use godot::engine::physics_server_3d::*;
 use godot::prelude::*;
 use rapier::dynamics::RigidBodyHandle;
 use rapier::geometry::ColliderHandle;
+use serde::Deserialize;
+use serde::Serialize;
 use servers::rapier_physics_server_extra::PhysicsShapes;
 use servers::rapier_physics_server_extra::PhysicsSpaces;
 
@@ -13,6 +15,7 @@ use super::rapier_body::RapierBody;
 use crate::rapier_wrapper::prelude::*;
 use crate::types::*;
 use crate::*;
+//#[typetag::serde(tag = "type")]
 pub trait IRapierCollisionObject: Sync {
     fn get_base(&self) -> &RapierCollisionObject;
     fn get_mut_base(&mut self) -> &mut RapierCollisionObject;
@@ -100,13 +103,12 @@ pub trait IRapierCollisionObject: Sync {
         physics_spaces: &mut PhysicsSpaces,
     );
 }
-//#[derive(Serialize, Deserialize, Debug, Clone, Copy, Debug, PartialEq)]
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone, Serialize, Deserialize)]
 pub enum CollisionObjectType {
     Area,
     Body,
 }
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct CollisionObjectShape {
     pub xform: Transform,
     pub shape: Rid,
@@ -127,7 +129,8 @@ impl Default for CollisionObjectShape {
         }
     }
 }
-//#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+// TODO deserialize
+#[derive(Serialize)]
 pub struct RapierCollisionObject {
     collision_object_type: CollisionObjectType,
     rid: Rid,
@@ -141,10 +144,17 @@ pub struct RapierCollisionObject {
     collision_mask: u32,
     collision_layer: u32,
     collision_priority: real,
+    // TODO serialize this
+    #[serde(skip)]
     pub(crate) mode: BodyMode,
     body_handle: RigidBodyHandle,
     space_handle: WorldHandle,
     pub(crate) area_detection_counter: u32,
+}
+impl Default for RapierCollisionObject {
+    fn default() -> Self {
+        Self::new(Rid::Invalid, CollisionObjectType::Body)
+    }
 }
 impl RapierCollisionObject {
     pub fn new(rid: Rid, collision_object_type: CollisionObjectType) -> Self {
@@ -537,5 +547,19 @@ impl RapierCollisionObject {
     pub fn interacts_with(&self, p_other: &RapierCollisionObject) -> bool {
         self.collision_layer & p_other.collision_mask != 0
             || p_other.collision_layer & self.collision_mask != 0
+    }
+
+    pub fn destroy_body(&mut self, physics_engine: &mut PhysicsEngine) {
+        if self.body_handle != RigidBodyHandle::invalid() {
+            physics_engine.body_destroy(self.space_handle, self.body_handle);
+            self.body_handle = RigidBodyHandle::invalid();
+        }
+    }
+}
+impl Drop for RapierCollisionObject {
+    fn drop(&mut self) {
+        if self.body_handle != RigidBodyHandle::invalid() {
+            godot_error!("Body leaked");
+        }
     }
 }

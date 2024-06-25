@@ -3,12 +3,14 @@ use godot::engine::physics_server_2d::ShapeType;
 #[cfg(feature = "dim3")]
 use godot::engine::physics_server_3d::ShapeType;
 use godot::prelude::*;
+use serde::Deserialize;
+use serde::Serialize;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
 use crate::types::*;
-//#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierRectangleShape {
     half_extents: Vector,
     base: RapierShapeBase,
@@ -21,6 +23,7 @@ impl RapierRectangleShape {
         }
     }
 }
+#[typetag::serde]
 impl IRapierShape for RapierRectangleShape {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base

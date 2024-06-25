@@ -1,12 +1,14 @@
 use std::num::NonZeroUsize;
 
 use godot::log::godot_error;
+use godot::log::godot_print;
 use rapier::crossbeam;
 use rapier::data::Arena;
 use rapier::prelude::*;
 use salva::integrations::rapier::FluidsPipeline;
 use serde::Deserialize;
 use serde::Serialize;
+use serde_json::Error;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_server_extra::PhysicsCollisionObjects;
@@ -25,14 +27,7 @@ pub struct ContactPointInfo {
     pub pixel_impulse: Real,
     pub pixel_tangent_impulse: TangentImpulse<Real>,
 }
-type CollisionEventCallback = fn(event_info: &CollisionEventInfo, space: &mut RapierSpace);
-type ContactForceEventCallback =
-    fn(event_info: &ContactForceEventInfo, space: &mut RapierSpace) -> bool;
-type ContactPointCallback = fn(
-    contact_info: &ContactPointInfo,
-    event_info: &ContactForceEventInfo,
-    space: &mut RapierSpace,
-) -> bool;
+#[derive(Serialize, Deserialize)]
 pub struct CollisionEventInfo {
     pub collider1: ColliderHandle,
     pub collider2: ColliderHandle,
@@ -43,6 +38,7 @@ pub struct CollisionEventInfo {
     pub is_stopped: bool,
     pub is_removed: bool,
 }
+#[derive(Serialize, Deserialize)]
 pub struct ContactForceEventInfo {
     pub user_data1: UserData,
     pub user_data2: UserData,
@@ -384,6 +380,17 @@ impl PhysicsEngine {
         }
     }
 
+    pub fn print_stats(&mut self, world_handle: WorldHandle) {
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
+            godot_print!(
+                "{} {} {}",
+                physics_world.physics_objects.collider_set.len(),
+                physics_world.physics_objects.rigid_body_set.len(),
+                self.shapes.len(),
+            );
+        }
+    }
+
     pub fn world_get_active_objects_count(&mut self, world_handle: WorldHandle) -> usize {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             return physics_world
@@ -395,19 +402,28 @@ impl PhysicsEngine {
         0
     }
 
-    pub fn world_export_json(&mut self, world_handle: WorldHandle) -> String {
+    pub fn world_export_json(&mut self, world_handle: WorldHandle) -> Result<String, Error> {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
-            let serialized = serde_json::to_string(&physics_world.physics_objects.collider_set);
-            match serialized {
-                Ok(serialized) => {
-                    return serialized;
-                }
-                Err(err) => {
-                    godot_error!("{}", err);
-                }
-            }
+            let collider_set = serde_json::to_string(&physics_world.physics_objects.collider_set)?;
+            let rigid_body_set =
+                serde_json::to_string(&physics_world.physics_objects.rigid_body_set)?;
+            let impulse_joint_set =
+                serde_json::to_string(&physics_world.physics_objects.impulse_joint_set)?;
+            let handle = serde_json::to_string(&physics_world.physics_objects.handle)?;
+            return Ok("{\"collider_set\": ".to_string()
+                + &collider_set
+                + ",\n"
+                + "\"rigid_body_set\": "
+                + &rigid_body_set
+                + ",\n"
+                + "\"impulse_joint_set\": "
+                + &impulse_joint_set
+                + ",\n"
+                + "\"handle\": "
+                + &handle
+                + "}");
         }
-        String::from("{}")
+        Ok("{}".to_string())
     }
 
     pub fn world_export_binary(&mut self, world_handle: WorldHandle) -> Vec<u8> {

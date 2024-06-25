@@ -200,7 +200,10 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     fn integrate_forces(&mut self) {}
 
     fn get_space_state(&mut self) -> Option<Gd<PhysicsDirectSpaceState2D>> {
-        let physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(physics_singleton) = PhysicsServer2D::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return None;
+        };
         let physics_data = &physics_singleton.bind().implementation.physics_data;
         if let Some(body) = physics_data
             .collision_objects

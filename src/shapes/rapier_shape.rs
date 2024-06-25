@@ -1,16 +1,17 @@
-use std::any::Any;
-
 #[cfg(feature = "dim2")]
 use godot::engine::physics_server_2d::*;
 #[cfg(feature = "dim3")]
 use godot::engine::physics_server_3d::*;
 use godot::prelude::*;
 use hashbrown::HashMap;
+use serde::Deserialize;
+use serde::Serialize;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_server_extra::PhysicsData;
 use crate::types::*;
-pub trait IRapierShape: Any {
+#[typetag::serde(tag = "type")]
+pub trait IRapierShape {
     fn get_base(&self) -> &RapierShapeBase;
     fn get_mut_base(&mut self) -> &mut RapierShapeBase;
     fn get_type(&self) -> ShapeType;
@@ -21,10 +22,12 @@ pub trait IRapierShape: Any {
     fn get_data(&self) -> Variant;
     fn get_handle(&self) -> ShapeHandle;
 }
-//#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierShapeBase {
     rid: Rid,
     aabb: Rect,
+    // TODO serialize this
+    #[serde(skip)]
     owners: HashMap<Rid, i32>,
     handle: ShapeHandle,
 }
@@ -45,7 +48,7 @@ impl RapierShapeBase {
         physics_engine: &mut PhysicsEngine,
     ) {
         if self.handle != ShapeHandle::default() {
-            self.destroy_rapier_shape(physics_engine);
+            self.destroy_shape(physics_engine);
         }
         self.aabb = aabb;
         self.handle = handle;
@@ -113,7 +116,7 @@ impl RapierShapeBase {
         self.rid
     }
 
-    fn destroy_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) {
+    pub fn destroy_shape(&mut self, physics_engine: &mut PhysicsEngine) {
         if self.handle != ShapeHandle::default() {
             physics_engine.shape_destroy(self.handle);
             self.handle = ShapeHandle::default();
@@ -124,6 +127,9 @@ impl Drop for RapierShapeBase {
     fn drop(&mut self) {
         if !self.owners.is_empty() {
             godot_error!("RapierShapeBase leaked {} owners", self.owners.len());
+        }
+        if self.is_valid() {
+            godot_error!("RapierShapeBase leaked");
         }
     }
 }

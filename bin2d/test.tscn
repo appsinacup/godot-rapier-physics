@@ -1,128 +1,19 @@
-[gd_scene load_steps=6 format=3 uid="uid://d4exls53gi0df"]
+[gd_scene load_steps=7 format=3 uid="uid://d4exls53gi0df"]
 
-[ext_resource type="Script" path="res://rigid_body_2d.gd" id="1_4sybc"]
 [ext_resource type="Script" path="res://test.gd" id="1_25l3y"]
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_r2n1f"]
-radius = 16.6667
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_4v4tp"]
+[ext_resource type="Script" path="res://collision_shape_2d.gd" id="2_phxx1"]
 
 [sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_j5l1g"]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_sg3i2"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_l7hpj"]
+size = Vector2(10, 10)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_54ruq"]
+
 [node name="Test" type="Node2D"]
 script = ExtResource("1_25l3y")
-
-[node name="JointStatic" type="Node2D" parent="."]
-
-[node name="StaticBodyPin2" type="StaticBody2D" parent="JointStatic"]
-position = Vector2(191, -51)
-
-[node name="CollisionShape2D4" type="CollisionShape2D" parent="JointStatic/StaticBodyPin2"]
-shape = SubResource("CircleShape2D_r2n1f")
-
-[node name="PinJoint2D" type="PinJoint2D" parent="JointStatic/StaticBodyPin2"]
-position = Vector2(1, -1)
-node_a = NodePath("..")
-node_b = NodePath("../../StaticBodyPin3")
-
-[node name="StaticBodyPin3" type="StaticBody2D" parent="JointStatic"]
-position = Vector2(221, -51)
-
-[node name="CollisionShape2D4" type="CollisionShape2D" parent="JointStatic/StaticBodyPin3"]
-shape = SubResource("CircleShape2D_r2n1f")
-
-[node name="JoinStaticRigid" type="Node2D" parent="."]
-
-[node name="RigidBodyPin" type="RigidBody2D" parent="JoinStaticRigid"]
-position = Vector2(54, -53)
-script = ExtResource("1_4sybc")
-
-[node name="CollisionShape2D4" type="CollisionShape2D" parent="JoinStaticRigid/RigidBodyPin"]
-shape = SubResource("RectangleShape2D_4v4tp")
-
-[node name="StaticBodyPin" type="StaticBody2D" parent="JoinStaticRigid"]
-position = Vector2(118, -46)
-
-[node name="CollisionShape2D4" type="CollisionShape2D" parent="JoinStaticRigid/StaticBodyPin"]
-shape = SubResource("CircleShape2D_r2n1f")
-
-[node name="PinJoint2D" type="PinJoint2D" parent="JoinStaticRigid/StaticBodyPin"]
-position = Vector2(1, -1)
-node_a = NodePath("..")
-node_b = NodePath("../../RigidBodyPin")
-
-[node name="JoinStaticRigidAngleLimitLow" type="Node2D" parent="."]
-position = Vector2(-151, -6)
-
-[node name="RigidBodyPin" type="RigidBody2D" parent="JoinStaticRigidAngleLimitLow"]
-position = Vector2(54, -53)
-script = ExtResource("1_4sybc")
-
-[node name="CollisionShape2D4" type="CollisionShape2D" parent="JoinStaticRigidAngleLimitLow/RigidBodyPin"]
-shape = SubResource("RectangleShape2D_4v4tp")
-
-[node name="StaticBodyPin" type="StaticBody2D" parent="JoinStaticRigidAngleLimitLow"]
-position = Vector2(118, -46)
-
-[node name="CollisionShape2D4" type="CollisionShape2D" parent="JoinStaticRigidAngleLimitLow/StaticBodyPin"]
-shape = SubResource("CircleShape2D_r2n1f")
-
-[node name="PinJoint2D" type="PinJoint2D" parent="JoinStaticRigidAngleLimitLow/StaticBodyPin"]
-position = Vector2(1, -1)
-node_a = NodePath("..")
-node_b = NodePath("../../RigidBodyPin")
-angular_limit_enabled = true
-angular_limit_lower = -0.872665
-motor_enabled = true
-motor_target_velocity = -17.4533
-
-[node name="JoinStaticRigidAngleLimitHigh" type="Node2D" parent="."]
-position = Vector2(-151, -6)
-
-[node name="RigidBodyPin" type="RigidBody2D" parent="JoinStaticRigidAngleLimitHigh"]
-position = Vector2(77, -52)
-script = ExtResource("1_4sybc")
-
-[node name="CollisionShape2D4" type="CollisionShape2D" parent="JoinStaticRigidAngleLimitHigh/RigidBodyPin"]
-shape = SubResource("RectangleShape2D_4v4tp")
-
-[node name="StaticBodyPin" type="StaticBody2D" parent="JoinStaticRigidAngleLimitHigh"]
-position = Vector2(118, -46)
-
-[node name="CollisionShape2D4" type="CollisionShape2D" parent="JoinStaticRigidAngleLimitHigh/StaticBodyPin"]
-shape = SubResource("CircleShape2D_r2n1f")
-
-[node name="PinJoint2D" type="PinJoint2D" parent="JoinStaticRigidAngleLimitHigh/StaticBodyPin"]
-position = Vector2(0, -1)
-node_a = NodePath("..")
-node_b = NodePath("../../RigidBodyPin")
-angular_limit_enabled = true
-angular_limit_upper = 0.872665
-motor_enabled = true
-motor_target_velocity = 17.4533
-
-[node name="JointRigid" type="Node2D" parent="."]
-
-[node name="RigidBodyPin2" type="RigidBody2D" parent="JointRigid"]
-position = Vector2(52, -104)
-constant_force = Vector2(1000, 2.08165e-12)
-script = ExtResource("1_4sybc")
-
-[node name="CollisionShape2D4" type="CollisionShape2D" parent="JointRigid/RigidBodyPin2"]
-shape = SubResource("RectangleShape2D_4v4tp")
-
-[node name="PinJoint2D" type="PinJoint2D" parent="JointRigid/RigidBodyPin2"]
-node_a = NodePath("..")
-node_b = NodePath("../../RigidBodyPin3")
-
-[node name="RigidBodyPin3" type="RigidBody2D" parent="JointRigid"]
-position = Vector2(114, -104)
-constant_torque = 5000.0
-script = ExtResource("1_4sybc")
-
-[node name="CollisionShape2D4" type="CollisionShape2D" parent="JointRigid/RigidBodyPin3"]
-shape = SubResource("RectangleShape2D_4v4tp")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 scale = Vector2(4, 4)
@@ -130,12 +21,40 @@ zoom = Vector2(2, 2)
 
 [node name="Timer" type="Timer" parent="."]
 wait_time = 10.0
-autostart = true
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
-position = Vector2(0, 76)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
 shape = SubResource("WorldBoundaryShape2D_j5l1g")
+disabled = true
+
+[node name="StaticBody2D2" type="StaticBody2D" parent="."]
+position = Vector2(-52, -141)
+
+[node name="PinJoint2D" type="PinJoint2D" parent="StaticBody2D2"]
+position = Vector2(2, 1)
+node_a = NodePath("..")
+node_b = NodePath("../../RigidBody2D2")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D2"]
+shape = SubResource("RectangleShape2D_sg3i2")
+
+[node name="RigidBody2D" type="RigidBody2D" parent="."]
+freeze = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D"]
+position = Vector2(0, -6)
+shape = SubResource("RectangleShape2D_l7hpj")
+script = ExtResource("2_phxx1")
+
+[node name="RigidBody2D2" type="RigidBody2D" parent="."]
+position = Vector2(-142, -100)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D2"]
+shape = SubResource("CircleShape2D_54ruq")
+
+[node name="RayCast2D" type="RayCast2D" parent="."]
+position = Vector2(0, -25)
+hit_from_inside = true
 
 [connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]

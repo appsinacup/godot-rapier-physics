@@ -6,6 +6,8 @@ use godot::prelude::*;
 use hashbrown::hash_set::HashSet;
 use rapier::geometry::ColliderHandle;
 use rapier::math::Real;
+use serde::Deserialize;
+use serde::Serialize;
 use servers::rapier_physics_server_extra::PhysicsCollisionObjects;
 use servers::rapier_physics_server_extra::PhysicsShapes;
 use servers::rapier_physics_server_extra::PhysicsSpaces;
@@ -18,7 +20,7 @@ use crate::servers::rapier_project_settings::*;
 use crate::spaces::rapier_space::RapierSpace;
 use crate::types::*;
 use crate::*;
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Contact {
     pub local_pos: Vector,
     pub local_normal: Vector,
@@ -32,6 +34,7 @@ pub struct Contact {
     pub collider_velocity_at_pos: Vector,
     pub impulse: Vector,
 }
+#[derive(Serialize, Deserialize, Debug)]
 pub struct AreaOverrideSettings {
     using_area_gravity: bool,
     using_area_linear_damping: bool,
@@ -60,14 +63,16 @@ impl Default for Contact {
         }
     }
 }
-//#[derive(Serialize, Deserialize, Debug, Clone, Copy, Debug, PartialEq)]
 pub struct ForceIntegrationCallbackData {
     pub callable: Callable,
     pub udata: Variant,
 }
-//#[derive(Serialize, Deserialize, Debug, Clone, Copy, Debug, PartialEq)]
+#[derive(Serialize)]
 pub struct RapierBody {
+    // TODO
+    #[serde(skip)]
     linear_damping_mode: BodyDampMode,
+    #[serde(skip)]
     angular_damping_mode: BodyDampMode,
     linear_damping: real,
     angular_damping: real,
@@ -107,8 +112,11 @@ pub struct RapierBody {
     areas: Vec<Rid>,
     contacts: Vec<Contact>,
     contact_count: i32,
+    #[serde(skip)]
     body_state_callback: Callable,
+    #[serde(skip)]
     fi_callback_data: Option<ForceIntegrationCallbackData>,
+    #[serde(skip)]
     direct_state: Option<Gd<PhysicsDirectBodyState>>,
     base: RapierCollisionObject,
 }
@@ -199,15 +207,6 @@ impl RapierBody {
             false,
             force_update,
         );
-    }
-
-    fn shapes_changed(
-        &mut self,
-        physics_engine: &mut PhysicsEngine,
-        physics_spaces: &mut PhysicsSpaces,
-    ) {
-        self.mass_properties_changed(physics_engine, physics_spaces);
-        self.wakeup(physics_engine);
     }
 
     fn apply_linear_damping(
@@ -1318,6 +1317,12 @@ impl RapierBody {
                 self.base.set_transform(transform, true, physics_engine);
             }
             BodyState::LINEAR_VELOCITY => {
+                #[cfg(feature = "dim2")]
+                if p_variant.get_type() != VariantType::VECTOR2 {
+                    godot_error!("Invalid body data.");
+                    return;
+                }
+                #[cfg(feature = "dim3")]
                 if p_variant.get_type() != VariantType::VECTOR3 {
                     godot_error!("Invalid body data.");
                     return;
@@ -1327,7 +1332,7 @@ impl RapierBody {
             BodyState::ANGULAR_VELOCITY => {
                 #[cfg(feature = "dim2")]
                 if p_variant.get_type() != VariantType::FLOAT
-                    || p_variant.get_type() != VariantType::INT
+                    && p_variant.get_type() != VariantType::INT
                 {
                     godot_error!("Invalid body data.");
                 } else {
@@ -1732,6 +1737,7 @@ impl RapierBody {
 }
 // We won't use the pointers between threads, so it should be safe.
 unsafe impl Sync for RapierBody {}
+//#[typetag::serde]
 impl IRapierCollisionObject for RapierBody {
     fn get_base(&self) -> &RapierCollisionObject {
         &self.base

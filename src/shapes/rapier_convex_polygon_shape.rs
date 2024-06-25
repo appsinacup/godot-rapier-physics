@@ -3,13 +3,17 @@ use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
 use godot::classes::physics_server_3d::*;
 use godot::prelude::*;
+use serde::Deserialize;
+use serde::Serialize;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
 use crate::types::*;
-//#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierConvexPolygonShape {
+    // TODO serialize this
+    #[serde(skip)]
     points: PackedVectorArray,
     base: RapierShapeBase,
 }
@@ -29,6 +33,7 @@ impl RapierConvexPolygonShape {
         aabb_new
     }
 }
+#[typetag::serde]
 impl IRapierShape for RapierConvexPolygonShape {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base

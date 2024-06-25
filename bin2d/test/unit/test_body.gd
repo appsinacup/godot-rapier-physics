@@ -181,7 +181,7 @@ func test_body():
 	PhysicsServer2D.body_set_shape_as_one_way_collision(body_rid, 0, true, 0.0)
 	PhysicsServer2D.body_set_shape_disabled(body_rid, 0, true)
 	PhysicsServer2D.body_set_shape_transform(body_rid, 0, transform)
-	PhysicsServer2D.body_set_state(body_rid, PhysicsServer2D.BodyState.BODY_STATE_ANGULAR_VELOCITY, 4)
+	PhysicsServer2D.body_set_state(body_rid, PhysicsServer2D.BodyState.BODY_STATE_ANGULAR_VELOCITY, 4.0)
 
 	var canvas_instance_id = PhysicsServer2D.body_get_canvas_instance_id(body_rid)
 	assert(canvas_instance_id == 1)
@@ -233,7 +233,7 @@ func test_body():
 	assert(space_rid != RID())
 
 	var state_value = PhysicsServer2D.body_get_state(body_rid, PhysicsServer2D.BodyState.BODY_STATE_ANGULAR_VELOCITY)
-	assert(state_value == 0)
+	assert(state_value == 4)
 
 	var omit_force_integration = PhysicsServer2D.body_is_omitting_force_integration(body_rid)
 	assert(omit_force_integration == true)

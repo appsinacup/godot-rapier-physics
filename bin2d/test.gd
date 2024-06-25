@@ -1,16 +1,15 @@
 extends Node2D
 
 @export var body: RigidBody2D
+var collider:= RapierColliderJSON.new()
 
 func _on_timer_timeout():
 	get_tree().quit()
 
-func _ready():
-	var space := get_viewport().find_world_2d().direct_space_state as RapierDirectSpaceState2D
-	var physics_server = PhysicsServer2D
-	var pos: Vector3
-	#pos.ort
-	#physics_server.body_set_extra_param(body.get_rid(), 0, 20.0)
 
-	#var space_json := space.export_json()
-	#print(space_json)
+func _process(delta: float) -> void:
+	var space := get_viewport().find_world_2d().direct_space_state as RapierDirectSpaceState2D
+	var space_json := FileAccess.open("user://space.json", FileAccess.WRITE)
+	var shape_json := FileAccess.open("user://shapes.json", FileAccess.WRITE)
+	space_json.store_string(space.export_json())
+	shape_json.store_string(RapierPhysicsServer2D.shapes_export_json());

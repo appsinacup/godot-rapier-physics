@@ -16,6 +16,7 @@ pub struct RapierFluid {
     points: Vec<Vector>,
     velocities: Vec<Vector>,
     accelerations: Vec<Vector>,
+    world_handle: WorldHandle,
 }
 impl RapierFluid {
     pub fn new(rid: Rid) -> Self {
@@ -29,6 +30,8 @@ impl RapierFluid {
             points: Vec::new(),
             velocities: Vec::new(),
             accelerations: Vec::new(),
+            // TODO
+            world_handle: WorldHandle::default(),
         }
     }
 
@@ -95,5 +98,12 @@ impl RapierFluid {
 
     pub fn get_space(&self) -> Rid {
         self.space
+    }
+
+    pub fn destroy_fluid(&mut self, physics_engine: &mut PhysicsEngine) {
+        if self.fluid_handle != invalid_handle_double() {
+            physics_engine.fluid_destroy(self.world_handle, self.fluid_handle);
+            self.fluid_handle = invalid_handle_double();
+        }
     }
 }
