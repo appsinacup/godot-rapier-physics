@@ -71,10 +71,6 @@ impl RapierPhysicsServerImpl {
         }
     }
 
-    pub(super) fn physics_data(&self) -> &PhysicsData {
-        &self.physics_data
-    }
-
     pub(super) fn world_boundary_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierWorldBoundaryShape::new(rid);
@@ -155,8 +151,6 @@ impl RapierPhysicsServerImpl {
             RapierShapeBase::call_shape_changed(owners, shape, &mut self.physics_data);
         }
     }
-
-    pub(super) fn shape_set_custom_solver_bias(&mut self, _shape: Rid, _bias: f32) {}
 
     pub(super) fn shape_get_type(&self, shape: Rid) -> ShapeType {
         if let Some(shape) = self.physics_data.shapes.get(&shape) {
@@ -532,6 +526,7 @@ impl RapierPhysicsServerImpl {
         }
     }
 
+    #[cfg(feature = "dim3")]
     pub(super) fn area_set_ray_pickable(&mut self, area: Rid, pickable: bool) {
         if let Some(area) = self.physics_data.collision_objects.get_mut(&area) {
             area.get_mut_base().set_pickable(pickable);
@@ -1187,6 +1182,7 @@ impl RapierPhysicsServerImpl {
         }
     }
 
+    #[cfg(feature = "dim3")]
     pub(super) fn body_set_ray_pickable(&mut self, body: Rid, pickable: bool) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             body.get_mut_base().set_pickable(pickable);

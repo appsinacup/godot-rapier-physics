@@ -209,15 +209,6 @@ impl RapierBody {
         );
     }
 
-    fn shapes_changed(
-        &mut self,
-        physics_engine: &mut PhysicsEngine,
-        physics_spaces: &mut PhysicsSpaces,
-    ) {
-        self.mass_properties_changed(physics_engine, physics_spaces);
-        self.wakeup(physics_engine);
-    }
-
     fn apply_linear_damping(
         &mut self,
         new_value: real,

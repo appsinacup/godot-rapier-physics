@@ -4,7 +4,8 @@ use physics_server_2d::JointType;
 #[cfg(feature = "dim3")]
 use physics_server_3d::JointType;
 use rapier::dynamics::ImpulseJointHandle;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use serde::Serialize;
 
 #[cfg(feature = "dim2")]
 use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
@@ -13,7 +14,7 @@ use super::rapier_pin_joint_2d::RapierPinJoint2D;
 use crate::rapier_wrapper::prelude::*;
 use crate::*;
 #[typetag::serde(tag = "type")]
-pub trait IRapierJoint: {
+pub trait IRapierJoint {
     fn get_base(&self) -> &RapierJointBase;
     fn get_mut_base(&mut self) -> &mut RapierJointBase;
     fn get_type(&self) -> JointType;

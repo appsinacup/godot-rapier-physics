@@ -27,14 +27,6 @@ pub struct ContactPointInfo {
     pub pixel_impulse: Real,
     pub pixel_tangent_impulse: TangentImpulse<Real>,
 }
-type CollisionEventCallback = fn(event_info: &CollisionEventInfo, space: &mut RapierSpace);
-type ContactForceEventCallback =
-    fn(event_info: &ContactForceEventInfo, space: &mut RapierSpace) -> bool;
-type ContactPointCallback = fn(
-    contact_info: &ContactPointInfo,
-    event_info: &ContactForceEventInfo,
-    space: &mut RapierSpace,
-) -> bool;
 #[derive(Serialize, Deserialize)]
 pub struct CollisionEventInfo {
     pub collider1: ColliderHandle,

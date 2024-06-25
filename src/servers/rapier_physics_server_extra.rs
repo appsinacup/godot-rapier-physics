@@ -1,6 +1,5 @@
 use godot::engine::utilities::rid_allocate_id;
 use godot::engine::utilities::rid_from_int64;
-use godot::engine::PhysicsServer2D;
 use godot::prelude::*;
 use hashbrown::HashMap;
 
@@ -45,7 +44,11 @@ impl From<i32> for RapierBodyParam {
 impl RapierPhysicsServer {
     #[func]
     fn body_set_extra_param(body: Rid, param: i32, value: Variant) {
-        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return;
+        };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
@@ -60,7 +63,11 @@ impl RapierPhysicsServer {
 
     #[func]
     fn body_get_extra_param(body: Rid, param: i32) -> Variant {
-        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return 0.0.to_variant();
+        };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         if let Some(body) = physics_data.collision_objects.get(&body) {
             if let Some(body) = body.get_body() {
@@ -72,7 +79,11 @@ impl RapierPhysicsServer {
 
     #[func]
     fn joints_export_json() -> String {
-        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return "{}".to_string();
+        };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         let values = physics_data.joints.values().clone().collect::<Vec<_>>();
         match serde_json::to_string(&values) {
@@ -86,7 +97,11 @@ impl RapierPhysicsServer {
 
     #[func]
     fn joint_export_json(joint: Rid) -> String {
-        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return "{}".to_string();
+        };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         if let Some(joint) = physics_data.joints.get(&joint) {
             match serde_json::to_string(&joint) {
@@ -104,7 +119,11 @@ impl RapierPhysicsServer {
 
     #[func]
     fn shapes_export_json() -> String {
-        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return "{}".to_string();
+        };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         let values = physics_data.shapes.values().clone().collect::<Vec<_>>();
         match serde_json::to_string(&values) {
@@ -118,7 +137,11 @@ impl RapierPhysicsServer {
 
     #[func]
     fn shape_export_json(shape: Rid) -> String {
-        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return "{}".to_string();
+        };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         if let Some(shape) = physics_data.shapes.get(&shape) {
             match serde_json::to_string(&shape) {
@@ -136,7 +159,11 @@ impl RapierPhysicsServer {
 
     #[func]
     fn spaces_export_json() -> String {
-        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return "{}".to_string();
+        };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         let values = physics_data.spaces.values().clone().collect::<Vec<_>>();
         match serde_json::to_string(&values) {
@@ -150,7 +177,11 @@ impl RapierPhysicsServer {
 
     #[func]
     fn space_export_json(space: Rid) -> String {
-        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return "{}".to_string();
+        };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         if let Some(space) = physics_data.spaces.get(&space) {
             match serde_json::to_string(&space) {
@@ -168,9 +199,13 @@ impl RapierPhysicsServer {
 
     #[func]
     fn collision_objects_export_json() -> String {
-        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return "{}".to_string();
+        };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
-        let values = physics_data
+        let _values = physics_data
             .collision_objects
             .values()
             .clone()
@@ -186,15 +221,23 @@ impl RapierPhysicsServer {
     }
 
     #[func]
-    fn collision_object_export_json(collision_object: Rid) -> String {
-        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
-        let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
+    fn collision_object_export_json(_collision_object: Rid) -> String {
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return "{}".to_string();
+        };
+        let _physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         "{}".to_string()
     }
 
     #[func]
     fn fluid_create() -> Rid {
-        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return Rid::Invalid;
+        };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         let rid = rid_from_int64(rid_allocate_id());
         let fluid = RapierFluid::new(rid);
@@ -204,7 +247,11 @@ impl RapierPhysicsServer {
 
     #[func]
     fn fluid_set_space(fluid_rid: Rid, space_rid: Rid) {
-        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return;
+        };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
             fluid.set_space(space_rid);
@@ -213,7 +260,11 @@ impl RapierPhysicsServer {
 
     #[func]
     fn fluid_set_density(fluid_rid: Rid, density: f64) {
-        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return;
+        };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
             fluid.set_density(density);
@@ -222,7 +273,11 @@ impl RapierPhysicsServer {
 
     #[func]
     fn fluid_set_effects(fluid_rid: Rid, params: Array<Gd<FluidEffect>>) {
-        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return;
+        };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
             fluid.set_effects(params);
@@ -231,7 +286,11 @@ impl RapierPhysicsServer {
 
     #[func]
     fn fluid_get_points(fluid_rid: Rid) -> PackedVectorArray {
-        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return PackedVectorArray::default();
+        };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         if let Some(fluid) = physics_data.fluids.get(&fluid_rid) {
             return PackedVectorArray::from(fluid.get_points().as_slice());
@@ -241,7 +300,11 @@ impl RapierPhysicsServer {
 
     #[func]
     fn fluid_get_velocities(fluid_rid: Rid) -> PackedVectorArray {
-        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return PackedVectorArray::default();
+        };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         if let Some(fluid) = physics_data.fluids.get(&fluid_rid) {
             return PackedVectorArray::from(fluid.get_velocities().as_slice());
@@ -251,7 +314,11 @@ impl RapierPhysicsServer {
 
     #[func]
     fn fluid_get_accelerations(fluid_rid: Rid) -> PackedVectorArray {
-        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return PackedVectorArray::default();
+        };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         if let Some(fluid) = physics_data.fluids.get(&fluid_rid) {
             return PackedVectorArray::from(fluid.get_accelerations().as_slice());
@@ -261,7 +328,11 @@ impl RapierPhysicsServer {
 
     #[func]
     fn fluid_set_points(fluid_rid: Rid, points: PackedVectorArray) {
-        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return;
+        };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
             fluid.set_points(points.to_vec());
@@ -274,7 +345,11 @@ impl RapierPhysicsServer {
         points: PackedVectorArray,
         velocities: PackedVectorArray,
     ) {
-        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return;
+        };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
             fluid.set_points_and_velocities(points.to_vec(), velocities.to_vec());
@@ -287,7 +362,11 @@ impl RapierPhysicsServer {
         points: PackedVectorArray,
         velocities: PackedVectorArray,
     ) {
-        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return;
+        };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
             fluid.add_points_and_velocities(points.to_vec(), velocities.to_vec());
@@ -296,7 +375,11 @@ impl RapierPhysicsServer {
 
     #[func]
     fn fluid_delete_points(fluid_rid: Rid, indices: PackedInt32Array) {
-        let mut physics_singleton = PhysicsServer2D::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return;
+        };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
             fluid.delete_points(indices.to_vec());

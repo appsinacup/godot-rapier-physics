@@ -2,7 +2,8 @@ use godot::classes::*;
 use godot::prelude::*;
 use rapier::dynamics::ImpulseJointHandle;
 use rapier::math::Vector;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use serde::Serialize;
 
 use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;

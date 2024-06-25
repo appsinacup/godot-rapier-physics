@@ -30,4 +30,4 @@ target
 .vscode
 *~
 
-*.code-workspaces
+*.code-workspace

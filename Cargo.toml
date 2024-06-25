@@ -10,7 +10,7 @@ publish = false
 crate-type = ["cdylib"]
 
 [features]
-default = ["single-dim3"]
+default = ["single-dim2"]
 dim2 = []
 dim3 = []
 single = []
@@ -59,7 +59,7 @@ parry3d-f64 = {git = "https://github.com/dimforge/parry", branch = "master"}
 codegen-units = 1
 lto = "fat"
 debug = 1
-panic = "abort"
+#panic = "abort"
 strip = "debuginfo"
 opt-level = 3
 

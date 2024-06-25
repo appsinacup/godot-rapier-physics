@@ -18,6 +18,22 @@ impl RapierDirectSpaceState3D {
     }
 }
 #[godot_api]
+impl RapierDirectSpaceState3D {
+    #[func]
+    pub fn export_json(&self) -> String {
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return "{}".to_string();
+        };
+        let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
+        let Some(space) = physics_data.spaces.get(&self.space) else {
+            return "{}".to_string();
+        };
+        space.export_json(&mut physics_data.physics_engine)
+    }
+}
+#[godot_api]
 impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
     fn init(base: Base<PhysicsDirectSpaceState3DExtension>) -> Self {
         Self {
@@ -39,7 +55,11 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         _pick_ray: bool,
         result: *mut PhysicsServerExtensionRayResult,
     ) -> bool {
-        let mut physics_singleton = PhysicsServer::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return false;
+        };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         self.inner.intersect_ray(
             from,
@@ -62,7 +82,11 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         results: *mut PhysicsServerExtensionShapeResult,
         max_results: i32,
     ) -> i32 {
-        let mut physics_singleton = PhysicsServer::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return 0;
+        };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         self.inner.intersect_point(
             position,
@@ -88,7 +112,11 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         results: *mut PhysicsServerExtensionShapeResult,
         max_results: i32,
     ) -> i32 {
-        let mut physics_singleton = PhysicsServer::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return 0;
+        };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         self.inner.intersect_shape(
             shape_rid,
@@ -117,7 +145,11 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         closest_unsafe: *mut f64,
         _info: *mut PhysicsServerExtensionShapeRestInfo,
     ) -> bool {
-        let mut physics_singleton = PhysicsServer::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return false;
+        };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         self.inner.cast_motion(
             shape_rid,
@@ -146,7 +178,11 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         max_results: i32,
         result_count: *mut i32,
     ) -> bool {
-        let mut physics_singleton = PhysicsServer::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return false;
+        };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         self.inner.collide_shape(
             shape_rid,
@@ -174,7 +210,11 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         collide_with_areas: bool,
         rest_info: *mut PhysicsServerExtensionShapeRestInfo,
     ) -> bool {
-        let mut physics_singleton = PhysicsServer::singleton().cast() as Gd<RapierPhysicsServer>;
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return false;
+        };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         self.inner.rest_info(
             shape_rid,

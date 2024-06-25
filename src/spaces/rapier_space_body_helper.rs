@@ -56,7 +56,9 @@ pub fn is_handle_excluded_callback(
     let Some(direct_space) = space.get_direct_state() else {
         return false;
     };
-    let direct_state = direct_space.clone().cast() as Gd<RapierDirectSpaceState>;
+    let Ok(direct_state) = direct_space.clone().try_cast::<RapierDirectSpaceState>() else {
+        return false;
+    };
     let direct_space = direct_state.deref();
     direct_space.is_body_excluded_from_query(collision_object_base.get_rid())
 }
@@ -677,6 +679,7 @@ fn set_collision_info(
 ) {
 }
 impl PhysicsEngine {
+    #[allow(clippy::too_many_arguments)]
     fn should_skip_collision_one_dir(
         &self,
         contact: &ContactResult,

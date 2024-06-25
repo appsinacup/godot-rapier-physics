@@ -13,12 +13,15 @@
 zoom = Vector2(4, 4)
 
 [node name="TestBody" type="Node2D" parent="."]
+process_mode = 4
 script = ExtResource("1_0cd54")
 
 [node name="TestShape" type="Node2D" parent="."]
+process_mode = 4
 script = ExtResource("2_w8p45")
 
 [node name="TestJoint" type="Node2D" parent="."]
+process_mode = 4
 
 [node name="TestJointBase" type="Node2D" parent="TestJoint"]
 script = ExtResource("4_vj35b")
