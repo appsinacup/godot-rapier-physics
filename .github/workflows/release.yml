@@ -52,7 +52,7 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          name: Godot Rapier
+          name: Godot Rapier Nightly
           #godot-rapier-2d-double-enhanced-determinism.zip
           #godot-rapier-2d-double-simd-parallel.zip
           files: |
@@ -61,6 +61,6 @@ jobs:
             godot-rapier-3d-single-enhanced-determinism.zip
             godot-rapier-3d-single-simd-parallel.zip
           generate_release_notes: true
-          draft: true
+          draft: false
           prerelease: true
           fail_on_unmatched_files: true
