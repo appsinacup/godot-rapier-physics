@@ -6,6 +6,8 @@ use godot::engine::physics_server_2d::*;
 use godot::engine::physics_server_3d::*;
 use godot::prelude::*;
 use hashbrown::HashMap;
+use serde::Deserialize;
+use serde::Serialize;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_server_extra::PhysicsData;
@@ -21,7 +23,7 @@ pub trait IRapierShape: Any {
     fn get_data(&self) -> Variant;
     fn get_handle(&self) -> ShapeHandle;
 }
-//#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierShapeBase {
     rid: Rid,
     aabb: Rect,
