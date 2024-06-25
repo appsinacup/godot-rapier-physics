@@ -59,6 +59,6 @@ jobs:
             godot-rapier-3d-single-enhanced-determinism.zip
             godot-rapier-3d-single-simd-parallel.zip
           generate_release_notes: true
-          draft: false
+          draft: true
           prerelease: true
           fail_on_unmatched_files: true
