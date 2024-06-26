@@ -1,1 +1,11 @@
+#[cfg(feature = "dim2")]
+pub mod fluid_2d;
+pub mod fluid_effect;
+pub mod fluid_effect_elasticity;
+pub mod fluid_effect_surface_tension_akinci;
+pub mod fluid_effect_surface_tension_he;
+pub mod fluid_effect_surface_tension_wcsph;
+pub mod fluid_effect_viscosity_artificial;
+pub mod fluid_effect_viscosity_dfsph;
+pub mod fluid_effect_viscosity_xsph;
 pub mod rapier_fluid;
