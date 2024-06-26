@@ -1,6 +1,5 @@
 use std::ffi::c_void;
 
-use godot::engine::native::PhysicsServer2DExtensionMotionResult;
 #[cfg(feature = "dim2")]
 use godot::engine::physics_server_2d::*;
 #[cfg(feature = "dim3")]
@@ -201,12 +200,11 @@ impl RapierPhysicsServerImpl {
         let results_out: *mut Vector = results as *mut Vector;
         let vector2_slice: &mut [Vector] =
             unsafe { std::slice::from_raw_parts_mut(results_out, result_max as usize) };
-        let result = shape_collide(
+        let result = self.physics_data.physics_engine.shape_collide(
             rapier_a_motion,
             shape_a_info,
             rapier_b_motion,
             shape_b_info,
-            &mut self.physics_data.physics_engine,
         );
         if !result.collided {
             return false;
@@ -1264,15 +1262,15 @@ impl RapierPhysicsServerImpl {
         margin: f32,
         collide_separation_ray: bool,
         recovery_as_collision: bool,
-        result: *mut PhysicsServer2DExtensionMotionResult,
+        result: *mut PhysicsServerExtensionMotionResult,
     ) -> bool {
         // need to get mutable reference
         if let Some(body) = self.physics_data.collision_objects.get(&body) {
             if let Some(body) = body.get_body() {
                 if let Some(space) = self.physics_data.spaces.get(&body.get_base().get_space()) {
-                    let result: &mut PhysicsServer2DExtensionMotionResult = &mut *result;
+                    let result: &mut PhysicsServerExtensionMotionResult = &mut *result;
                     return space.test_body_motion(
-                        &body.clone(),
+                        body,
                         from,
                         motion,
                         margin,

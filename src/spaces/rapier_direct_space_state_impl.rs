@@ -57,7 +57,7 @@ impl RapierDirectSpaceStateImpl {
             &mut hit_info,
             &query_excluded_info,
             &physics_data.collision_objects,
-            space
+            space,
         );
         if collide {
             let result = &mut *result;
@@ -122,7 +122,7 @@ impl RapierDirectSpaceStateImpl {
             max_results,
             &mut query_excluded_info,
             &physics_data.collision_objects,
-            space
+            space,
         );
         if result_count > max_results {
             result_count = max_results;
@@ -193,7 +193,7 @@ impl RapierDirectSpaceStateImpl {
                 collide_with_areas,
                 &query_excluded_info,
                 &physics_data.collision_objects,
-                space
+                space,
             );
             if !result.collided {
                 break;
@@ -250,17 +250,19 @@ impl RapierDirectSpaceStateImpl {
         let shape_info = shape_info_from_body_shape(shape.get_handle(), transform);
         let mut query_excluded_info = QueryExcludedInfo::default();
         query_excluded_info.query_collision_layer_mask = collision_mask;
-        let hit = physics_data.physics_engine.shape_casting(
-            space.get_handle(),
-            rapier_motion,
-            shape_info,
-            collide_with_bodies,
-            collide_with_areas,
-            &query_excluded_info,
-            &physics_data.collision_objects,
-            space
-        )
-        .toi;
+        let hit = physics_data
+            .physics_engine
+            .shape_casting(
+                space.get_handle(),
+                rapier_motion,
+                shape_info,
+                collide_with_bodies,
+                collide_with_areas,
+                &query_excluded_info,
+                &physics_data.collision_objects,
+                space,
+            )
+            .toi;
         // TODO compute actual safe and unsafe
         let closest_safe = closest_safe as *mut real;
         *closest_safe = hit;
@@ -312,7 +314,7 @@ impl RapierDirectSpaceStateImpl {
                 collide_with_areas,
                 &mut query_excluded_info,
                 &physics_data.collision_objects,
-                space
+                space,
             );
             if !result.collided {
                 break;
@@ -364,7 +366,7 @@ impl RapierDirectSpaceStateImpl {
             collide_with_areas,
             &mut query_excluded_info,
             &physics_data.collision_objects,
-            space
+            space,
         );
         if !result.collided {
             return false;

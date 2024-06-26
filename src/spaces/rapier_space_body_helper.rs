@@ -14,7 +14,6 @@ use super::RapierDirectSpaceState;
 use crate::bodies::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_server_extra::PhysicsData;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::types::*;
 use crate::*;
@@ -25,7 +24,6 @@ const BODY_MOTION_RECOVER_RATIO: Real = 0.4;
 impl RapierSpace {
     pub fn is_handle_excluded_callback(
         &self,
-        world_handle: WorldHandle,
         collider_handle: ColliderHandle,
         user_data: &UserData,
         handle_excluded_info: &QueryExcludedInfo,
@@ -46,8 +44,8 @@ impl RapierSpace {
         let layer_excluded = collision_object_base.get_collision_layer()
             & handle_excluded_info.query_collision_layer_mask
             == 0;
-        let rid_excluded =
-            handle_excluded_info.query_exclude_body == collision_object_base.get_rid().to_u64() as i64;
+        let rid_excluded = handle_excluded_info.query_exclude_body
+            == collision_object_base.get_rid().to_u64() as i64;
         if canvas_excluded || layer_excluded || rid_excluded {
             return true;
         }
@@ -60,7 +58,7 @@ impl RapierSpace {
         let direct_space = direct_state.deref();
         direct_space.is_body_excluded_from_query(collision_object_base.get_rid())
     }
-    
+
     pub fn test_body_motion(
         &self,
         body: &RapierBody,
@@ -70,9 +68,9 @@ impl RapierSpace {
         collide_separation_ray: bool,
         recovery_as_collision: bool,
         result: &mut PhysicsServerExtensionMotionResult,
-        physics_engine: &mut PhysicsEngine,
-        physics_shapes: &mut PhysicsShapes,
-        physics_collision_objects: &mut PhysicsCollisionObjects,
+        physics_engine: &PhysicsEngine,
+        physics_shapes: &PhysicsShapes,
+        physics_collision_objects: &PhysicsCollisionObjects,
     ) -> bool {
         result.travel = Vector::default();
         let mut body_transform = from; // Because body_transform needs to be modified during recovery
@@ -156,8 +154,8 @@ impl RapierSpace {
         results: &mut [PointHitInfo],
         max_results: usize,
         exclude_body: Rid,
-        physics_engine: &mut PhysicsEngine,
-        physics_collision_objects: &mut PhysicsCollisionObjects,
+        physics_engine: &PhysicsEngine,
+        physics_collision_objects: &PhysicsCollisionObjects,
     ) -> i32 {
         let max_results = max_results;
         if max_results < 1 {
@@ -181,7 +179,7 @@ impl RapierSpace {
             results,
             max_results,
             &handle_excluded_info,
-            &physics_collision_objects,
+            physics_collision_objects,
             self,
         ) as i32
     }
@@ -193,9 +191,9 @@ impl RapierSpace {
         p_motion: Vector,
         p_margin: f32,
         p_recover_motion: &mut Vector,
-        physics_engine: &mut PhysicsEngine,
-        physics_shapes: &mut PhysicsShapes,
-        physics_collision_objects: &mut PhysicsCollisionObjects,
+        physics_engine: &PhysicsEngine,
+        physics_shapes: &PhysicsShapes,
+        physics_collision_objects: &PhysicsCollisionObjects,
     ) -> bool {
         let shape_count = p_body.get_base().get_shape_count();
         if shape_count < 1 {
@@ -204,7 +202,7 @@ impl RapierSpace {
         let min_contact_depth = p_margin * TEST_MOTION_MIN_CONTACT_DEPTH_FACTOR;
         let mut recovered = false;
         let mut recover_attempts = BODY_MOTION_RECOVER_ATTEMPTS;
-        let body_aabb = p_body.get_aabb(&physics_shapes);
+        let body_aabb = p_body.get_aabb(physics_shapes);
         loop {
             let mut results = [PointHitInfo::default(); 32];
             // Undo the currently transform the physics server is aware of and apply the provided one
@@ -231,8 +229,8 @@ impl RapierSpace {
                 if p_body.get_base().is_shape_disabled(body_shape_idx) {
                     continue;
                 }
-                if let Some(body_shape) = physics_shapes
-                    .get(&p_body.get_base().get_shape(body_shape_idx))
+                if let Some(body_shape) =
+                    physics_shapes.get(&p_body.get_base().get_shape(body_shape_idx))
                 {
                     let body_shape_transform =
                         *p_transform * p_body.get_base().get_shape_transform(body_shape_idx);
@@ -247,9 +245,9 @@ impl RapierSpace {
                         let (shape_col_object, shape_index) =
                             RapierCollisionObject::get_collider_user_data(&result.user_data);
                         if let Some(shape_col_object) =
-                            physics_collision_objects.get_mut(&shape_col_object)
+                            physics_collision_objects.get(&shape_col_object)
                         {
-                            if let Some(collision_body) = shape_col_object.get_mut_body() {
+                            if let Some(collision_body) = shape_col_object.get_body() {
                                 if let Some(col_shape) = physics_shapes
                                     .get(&collision_body.get_base().get_shape(shape_index))
                                 {
@@ -330,11 +328,11 @@ impl RapierSpace {
         p_closest_safe: &mut f32,
         p_closest_unsafe: &mut f32,
         p_best_body_shape: &mut i32,
-        physics_engine: &mut PhysicsEngine,
-        physics_shapes: &mut PhysicsShapes,
-        physics_collision_objects: &mut PhysicsCollisionObjects,
+        physics_engine: &PhysicsEngine,
+        physics_shapes: &PhysicsShapes,
+        physics_collision_objects: &PhysicsCollisionObjects,
     ) {
-        let body_aabb = p_body.get_aabb(&physics_shapes);
+        let body_aabb = p_body.get_aabb(physics_shapes);
         let margin_aabb = *p_transform * body_aabb;
         let margin_aabb = margin_aabb.grow(p_margin);
         let mut motion_aabb = margin_aabb;
@@ -350,7 +348,7 @@ impl RapierSpace {
             32,
             p_body.get_base().get_rid(),
             physics_engine,
-            physics_collision_objects
+            physics_collision_objects,
         );
         if result_count == 0 {
             return;
@@ -360,8 +358,8 @@ impl RapierSpace {
             if p_body.get_base().is_shape_disabled(body_shape_idx) {
                 continue;
             }
-            if let Some(body_shape) = physics_shapes
-                .get(&p_body.get_base().get_shape(body_shape_idx))
+            if let Some(body_shape) =
+                physics_shapes.get(&p_body.get_base().get_shape(body_shape_idx))
             {
                 let body_shape_transform =
                     *p_transform * p_body.get_base().get_shape_transform(body_shape_idx);
@@ -390,8 +388,7 @@ impl RapierSpace {
                     }
                     let (shape_col_object, shape_index) =
                         RapierCollisionObject::get_collider_user_data(&result.user_data);
-                    if let Some(shape_col_object) =
-                        physics_collision_objects.get(&shape_col_object)
+                    if let Some(shape_col_object) = physics_collision_objects.get(&shape_col_object)
                     {
                         if let Some(collision_body) = shape_col_object.get_body() {
                             if let Some(col_shape) = physics_shapes
@@ -522,15 +519,15 @@ impl RapierSpace {
         p_best_body_shape: i32,
         p_margin: f32,
         p_result: &mut PhysicsServerExtensionMotionResult,
-        physics_engine: &mut PhysicsEngine,
-        physics_shapes: &mut PhysicsShapes,
-        physics_collision_objects: &mut PhysicsCollisionObjects,
+        physics_engine: &PhysicsEngine,
+        physics_shapes: &PhysicsShapes,
+        physics_collision_objects: &PhysicsCollisionObjects,
     ) -> bool {
         let shape_count = p_body.get_base().get_shape_count();
         if shape_count < 1 {
             return false;
         }
-        let body_aabb = p_body.get_aabb(&physics_shapes);
+        let body_aabb = p_body.get_aabb(physics_shapes);
         let margin_aabb = *p_transform * body_aabb;
         let margin_aabb = margin_aabb.grow(p_margin);
         // also check things at motion
@@ -547,7 +544,7 @@ impl RapierSpace {
             32,
             p_body.get_base().get_rid(),
             physics_engine,
-            physics_collision_objects
+            physics_collision_objects,
         );
         // Optimization
         if result_count == 0 {
@@ -587,9 +584,7 @@ impl RapierSpace {
                 }
                 let (shape_col_object, shape_index) =
                     RapierCollisionObject::get_collider_user_data(&result.user_data);
-                if let Some(shape_col_object) =
-                    physics_collision_objects.get(&shape_col_object)
-                {
+                if let Some(shape_col_object) = physics_collision_objects.get(&shape_col_object) {
                     if let Some(collision_body) = shape_col_object.get_body() {
                         let col_shape_rid = collision_body.get_base().get_shape(shape_index);
                         if let Some(col_shape) = physics_shapes.get(&col_shape_rid) {
@@ -651,8 +646,7 @@ impl RapierSpace {
                 best_body_shape_index,
                 collision_point,
                 vector_to_godot(best_contact.normal2),
-                best_collision_body
-                    .get_velocity_at_local_point(local_position, physics_engine),
+                best_collision_body.get_velocity_at_local_point(local_position, physics_engine),
             );
             return true;
         }
