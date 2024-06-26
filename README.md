@@ -55,6 +55,7 @@ The reason it was rewritten is to do easier cross platform determinism part and 
 - Cross platform determinism.
 - Double builds.
 - Liquids Missing.
+- No support for asymetric collisions (eg. object 1 hitting object 2 but object 2 not hitting object 1).
 
 # Platforms
 

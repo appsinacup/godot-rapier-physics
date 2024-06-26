@@ -142,6 +142,9 @@ impl RapierCollisionObject {
         if collision_object.get_base().is_space_valid() {
             collision_object.shapes_changed(physics_engine, physics_spaces);
         }
+        collision_object
+            .get_mut_base()
+            .update_shapes_indexes(physics_engine);
     }
 
     pub(super) fn set_shape(

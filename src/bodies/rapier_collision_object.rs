@@ -224,6 +224,21 @@ impl RapierCollisionObject {
         handle
     }
 
+    pub(super) fn update_shapes_indexes(&mut self, physics_engine: &mut PhysicsEngine) {
+        if !self.is_valid() {
+            return;
+        }
+        for (shape_index, shape) in self.shapes.iter().enumerate() {
+            let mut user_data = UserData::default();
+            self.set_collider_user_data(&mut user_data, shape_index);
+            physics_engine.collider_set_user_data(
+                self.space_handle,
+                shape.collider_handle,
+                &user_data,
+            );
+        }
+    }
+
     pub(super) fn destroy_shapes(
         &mut self,
         physics_engine: &mut PhysicsEngine,

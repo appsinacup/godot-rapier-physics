@@ -298,6 +298,23 @@ impl PhysicsEngine {
         ColliderHandle::invalid()
     }
 
+    pub fn collider_set_user_data(
+        &mut self,
+        world_handle: WorldHandle,
+        collider_handle: ColliderHandle,
+        user_data: &UserData,
+    ) {
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
+            if let Some(collider) = physics_world
+                .physics_objects
+                .collider_set
+                .get_mut(collider_handle)
+            {
+                collider.user_data = user_data.get_data();
+            }
+        }
+    }
+
     pub fn collider_create_sensor(
         &mut self,
         world_handle: WorldHandle,
