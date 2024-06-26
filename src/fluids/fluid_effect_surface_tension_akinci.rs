@@ -4,28 +4,25 @@ use super::fluid_effect::FluidEffectType;
 use super::fluid_effect::IFluidEffect;
 #[derive(GodotClass)]
 #[class(base=Resource)]
-pub struct FluidEffectElasticity {
+pub struct FluidEffectTensionAkinci {
     #[export]
-    young_modulus: real,
+    fluid_tension_coefficient: real,
     #[export]
-    poisson_ratio: real,
-    #[export]
-    nonlinear_strain: bool,
+    boundary_adhesion_coefficient: real,
 
     base: Base<Resource>,
 }
-impl IFluidEffect for FluidEffectElasticity {
+impl IFluidEffect for FluidEffectTensionAkinci {
     fn get_fluid_effect_type(&self) -> FluidEffectType {
-        FluidEffectType::FluidEffectElasticity
+        FluidEffectType::FluidEffectSurfaceTensionAkinci
     }
 }
 #[godot_api]
-impl IResource for FluidEffectElasticity {
+impl IResource for FluidEffectTensionAkinci {
     fn init(base: Base<Resource>) -> Self {
         Self {
-            young_modulus: 100.0,
-            poisson_ratio: 0.3,
-            nonlinear_strain: true,
+            fluid_tension_coefficient: 1.0,
+            boundary_adhesion_coefficient: 0.0,
             base,
         }
     }

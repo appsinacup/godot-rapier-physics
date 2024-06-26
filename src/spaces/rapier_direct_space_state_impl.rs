@@ -1,3 +1,4 @@
+use godot::builtin::math::ApproxEq;
 use godot::classes::native::*;
 use godot::prelude::*;
 
@@ -39,6 +40,12 @@ impl RapierDirectSpaceStateImpl {
         };
         if !space.is_valid() {
             return false;
+        }
+        // if we don't do this, we end up having a zero size ray which crashes sometimes.
+        // it cannot compute 0 size aabb.
+        let mut to: Vector = to;
+        if from.approx_eq(&to) {
+            to += Vector::splat(1e-3);
         }
         // Raycast Info
         let end = to - from;
