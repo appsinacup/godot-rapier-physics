@@ -681,6 +681,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             query.callv(VariantArray::new());
         }
         drop(guard);
+        self.implementation.finish_flushing_queries();
     }
 
     fn end_sync(&mut self) {

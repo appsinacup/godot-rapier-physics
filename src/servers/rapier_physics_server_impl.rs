@@ -1634,6 +1634,10 @@ impl RapierPhysicsServerImpl {
         self.flushing_queries
     }
 
+    pub(super) fn finish_flushing_queries(&mut self) {
+        self.flushing_queries = false;
+    }
+
     pub(super) fn get_process_info(&mut self, process_info: ProcessInfo) -> i32 {
         match process_info {
             ProcessInfo::ACTIVE_OBJECTS => self.active_objects,
