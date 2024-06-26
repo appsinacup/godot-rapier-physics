@@ -1,7 +1,9 @@
-[gd_scene load_steps=7 format=3 uid="uid://d4exls53gi0df"]
+[gd_scene load_steps=11 format=3 uid="uid://d4exls53gi0df"]
 
 [ext_resource type="Script" path="res://test.gd" id="1_25l3y"]
 [ext_resource type="Script" path="res://collision_shape_2d.gd" id="2_phxx1"]
+[ext_resource type="Script" path="res://area_2d.gd" id="3_65y5d"]
+[ext_resource type="Script" path="res://rigid_body_2d_3.gd" id="4_tdasl"]
 
 [sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_j5l1g"]
 
@@ -11,6 +13,11 @@
 size = Vector2(10, 10)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_54ruq"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_qdw7a"]
+radius = 139.004
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_6ybn3"]
 
 [node name="Test" type="Node2D"]
 script = ExtResource("1_25l3y")
@@ -23,10 +30,11 @@ zoom = Vector2(2, 2)
 wait_time = 10.0
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
+collision_layer = 3
+collision_mask = 3
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
 shape = SubResource("WorldBoundaryShape2D_j5l1g")
-disabled = true
 
 [node name="StaticBody2D2" type="StaticBody2D" parent="."]
 position = Vector2(-52, -141)
@@ -57,4 +65,38 @@ shape = SubResource("CircleShape2D_54ruq")
 position = Vector2(0, -25)
 hit_from_inside = true
 
+[node name="Area2D" type="Area2D" parent="."]
+collision_layer = 2
+collision_mask = 5
+script = ExtResource("3_65y5d")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+position = Vector2(210, -17)
+shape = SubResource("CircleShape2D_qdw7a")
+
+[node name="RigidBody2D3" type="RigidBody2D" parent="."]
+position = Vector2(208, -126)
+collision_layer = 2
+collision_mask = 2
+script = ExtResource("4_tdasl")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D3"]
+shape = SubResource("CircleShape2D_6ybn3")
+
+[node name="RigidBody2D4" type="RigidBody2D" parent="."]
+position = Vector2(211, -67)
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D4"]
+shape = SubResource("CircleShape2D_6ybn3")
+
+[node name="RigidBody2D5" type="RigidBody2D" parent="."]
+position = Vector2(211, -150)
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D5"]
+shape = SubResource("CircleShape2D_6ybn3")
+
 [connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]
+[connection signal="body_entered" from="Area2D" to="Area2D" method="_on_body_entered"]
+[connection signal="body_entered" from="RigidBody2D3" to="RigidBody2D3" method="_on_body_entered"]

@@ -24,6 +24,7 @@ jobs:
       - name: Copy to bin
         shell: sh
         run: |
+          ls target/release
           mv target/release/godot_rapier.dll bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.windows.${{ matrix.arch }}.dll
       - name: Upload
         uses: actions/upload-artifact@v4
