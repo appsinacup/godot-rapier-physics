@@ -11,7 +11,6 @@ const SOLVER_MAX_CCD_SUBSTEPS: &str = "physics/rapier/solver/max_ccd_substeps";
 const CONTACT_SKIN: &str = "physics/rapier/solver/polygon_contact_skin";
 const FLUID_PARTICLE_RADIUS: &str = "physics/rapier/fluid/fluid_particle_radius";
 const FLUID_SMOOTHING_FACTOR: &str = "physics/rapier/fluid/fluid_smoothing_factor";
-pub const MONITORS: [&str; 4] = ["inner_step", "step", "before_step", "flush"];
 #[cfg(feature = "dim2")]
 const LENGTH_UNIT: &str = "physics/rapier/solver/length_unit_2d";
 #[cfg(feature = "dim2")]
@@ -114,13 +113,6 @@ impl RapierProjectSettings {
             "1,100,1,suffix:length_unit",
             true,
         );
-        for monitor in MONITORS {
-            register_setting_plain(
-                ("physics/rapier/monitor/".to_string() + monitor).as_str(),
-                Variant::from(false),
-                true,
-            );
-        }
     }
 
     fn get_setting_int(p_setting: &str) -> i64 {
@@ -171,20 +163,5 @@ impl RapierProjectSettings {
 
     pub fn get_length_unit() -> Real {
         RapierProjectSettings::get_setting_double(LENGTH_UNIT) as Real
-    }
-
-    pub fn get_monitor_enabled(monitor: &str) -> bool {
-        RapierProjectSettings::get_setting_bool(
-            ("physics/rapier/monitor/".to_string() + monitor).as_str(),
-        )
-    }
-
-    pub fn counters_enabled() -> bool {
-        for monitor in MONITORS {
-            if RapierProjectSettings::get_monitor_enabled(monitor) {
-                return true;
-            }
-        }
-        false
     }
 }

@@ -84,7 +84,7 @@ impl RapierSpace {
         let world_settings = WorldSettings {
             particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
             smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
-            counters_enabled: RapierProjectSettings::counters_enabled(),
+            counters_enabled: false,
         };
         let handle = physics_engine.world_create(&world_settings);
         let project_settings = ProjectSettings::singleton();
