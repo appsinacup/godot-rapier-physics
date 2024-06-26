@@ -1,0 +1,2 @@
+class_name FluidEffect
+extends Resource

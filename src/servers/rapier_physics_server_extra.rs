@@ -4,7 +4,6 @@ use godot::prelude::*;
 use hashbrown::HashMap;
 
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
-use crate::fluids::fluid_effect::FluidEffect;
 use crate::fluids::rapier_fluid::RapierFluid;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::handle::WorldHandle;
@@ -272,7 +271,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
-    fn fluid_set_effects(fluid_rid: Rid, params: Array<Gd<FluidEffect>>) {
+    fn fluid_set_effects(fluid_rid: Rid, params: Array<Gd<Resource>>) {
         let Ok(mut physics_singleton) =
             PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {

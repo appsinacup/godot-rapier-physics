@@ -2,7 +2,6 @@ use std::collections::VecDeque;
 
 use godot::prelude::*;
 
-use super::fluid_effect::FluidEffect;
 use crate::rapier_wrapper::prelude::*;
 use crate::types::Vector;
 //#[derive(Serialize, Deserialize, Debug)]
@@ -11,7 +10,7 @@ pub struct RapierFluid {
     enabled: bool,
     density: f64,
     space: Rid,
-    effects: Array<Gd<FluidEffect>>,
+    effects: Array<Gd<Resource>>,
     fluid_handle: HandleDouble,
     points: Vec<Vector>,
     velocities: Vec<Vector>,
@@ -72,7 +71,7 @@ impl RapierFluid {
         &self.accelerations
     }
 
-    pub fn set_effects(&mut self, effects: Array<Gd<FluidEffect>>) {
+    pub fn set_effects(&mut self, effects: Array<Gd<Resource>>) {
         self.effects = effects;
     }
 
