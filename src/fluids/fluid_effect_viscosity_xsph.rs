@@ -4,28 +4,25 @@ use super::fluid_effect::FluidEffectType;
 use super::fluid_effect::IFluidEffect;
 #[derive(GodotClass)]
 #[class(base=Resource)]
-pub struct FluidEffectElasticity {
+pub struct FluidEffectViscosityXSPH {
     #[export]
-    young_modulus: real,
+    fluid_viscosity_coefficient: real,
     #[export]
-    poisson_ratio: real,
-    #[export]
-    nonlinear_strain: bool,
+    boundary_adhesion_coefficient: real,
 
     base: Base<Resource>,
 }
-impl IFluidEffect for FluidEffectElasticity {
+impl IFluidEffect for FluidEffectViscosityXSPH {
     fn get_fluid_effect_type(&self) -> FluidEffectType {
-        FluidEffectType::FluidEffectElasticity
+        FluidEffectType::FluidEffectViscosityXsph
     }
 }
 #[godot_api]
-impl IResource for FluidEffectElasticity {
+impl IResource for FluidEffectViscosityXSPH {
     fn init(base: Base<Resource>) -> Self {
         Self {
-            young_modulus: 100.0,
-            poisson_ratio: 0.3,
-            nonlinear_strain: true,
+            fluid_viscosity_coefficient: 1.0,
+            boundary_adhesion_coefficient: 0.0,
             base,
         }
     }

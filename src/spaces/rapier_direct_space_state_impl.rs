@@ -43,7 +43,7 @@ impl RapierDirectSpaceStateImpl {
         }
         // if we don't do this, we end up having a zero size ray which crashes sometimes.
         // it cannot compute 0 size aabb.
-        let mut to: Vector2 = to;
+        let mut to: Vector = to;
         if from.approx_eq(&to) {
             to += Vector::splat(1e-3);
         }

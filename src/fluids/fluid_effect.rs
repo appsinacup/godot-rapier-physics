@@ -1,4 +1,7 @@
 use godot::prelude::*;
+pub trait IFluidEffect {
+    fn get_fluid_effect_type(&self) -> FluidEffectType;
+}
 #[derive(GodotClass)]
 #[class(base=Resource)]
 pub struct FluidEffect {
@@ -27,7 +30,7 @@ impl IResource for FluidEffect {
         }
     }
 }
-impl FluidEffect {
+impl IFluidEffect for FluidEffect {
     fn get_fluid_effect_type(&self) -> FluidEffectType {
         self.fluid_effect_type.clone()
     }
