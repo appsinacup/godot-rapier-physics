@@ -331,8 +331,8 @@ impl RapierDirectSpaceStateImpl {
                 result.collider;
             query_excluded_info.query_exclude_size += 1;
             unsafe {
-                (*results_out.add(array_idx)) = vector_to_godot(result.pixel_witness1);
-                (*results_out.add(array_idx + 1)) = vector_to_godot(result.pixel_witness2);
+                (*results_out.add(array_idx)) = vector_to_godot(result.pixel_witness2);
+                (*results_out.add(array_idx + 1)) = vector_to_godot(result.pixel_witness1);
             }
             array_idx += 2;
             cpt += 1;
@@ -397,6 +397,7 @@ impl RapierDirectSpaceStateImpl {
             r_info.normal = vector_to_godot(result.normal1);
             r_info.rid = rid;
             r_info.shape = shape_index as i32;
+            r_info.point = vector_to_godot(result.pixel_witness1);
         }
         true
     }

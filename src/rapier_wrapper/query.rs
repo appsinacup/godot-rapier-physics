@@ -215,6 +215,14 @@ impl PhysicsEngine {
         shape_vel2: Vector<Real>,
         shape_info2: ShapeInfo,
     ) -> ShapeCastResult {
+        let mut shape_vel1 = shape_vel1;
+        if shape_vel1 == Vector::zeros() {
+            shape_vel1 = Vector::new(0.0, 1e-3);
+        }
+        let mut shape_vel2 = shape_vel2;
+        if shape_vel2 == Vector::zeros() {
+            shape_vel2 = Vector::new(0.0, 1e-3);
+        }
         let mut result = ShapeCastResult::new();
         if let Some(raw_shared_shape1) = self.get_shape(shape_info1.handle) {
             let shared_shape1 = scale_shape(raw_shared_shape1, shape_info1);
@@ -235,8 +243,9 @@ impl PhysicsEngine {
                     shared_shape2.as_ref(),
                     shape_cast_options,
                 );
-                if let Ok(hit) = toi_result {
-                    if let Some(hit) = hit {
+                match toi_result {
+                    Ok(None) => {}
+                    Ok(Some(hit)) => {
                         result.collided = true;
                         result.toi = hit.time_of_impact;
                         result.normal1 = hit.normal1.into_inner();
@@ -244,8 +253,9 @@ impl PhysicsEngine {
                         result.pixel_witness1 = hit.witness1.coords;
                         result.pixel_witness2 = hit.witness2.coords;
                     }
-                    // can we get a hit without a result?
-                    godot_error!("hit without a result");
+                    Err(err) => {
+                        godot_error!("toi error: {:?}", err);
+                    }
                 }
             }
         }
@@ -263,6 +273,10 @@ impl PhysicsEngine {
         physics_collision_objects: &PhysicsCollisionObjects,
         space: &RapierSpace,
     ) -> ShapeCastResult {
+        let mut shape_vel = shape_vel;
+        if shape_vel == Vector::zeros() {
+            shape_vel = Vector::new(0.0, 1e-3);
+        }
         let mut result = ShapeCastResult::new();
         if let Some(raw_shared_shape) = self.get_shape(shape_info.handle) {
             let shared_shape = scale_shape(raw_shared_shape, shape_info);
@@ -285,9 +299,11 @@ impl PhysicsEngine {
                 };
                 filter.predicate = Some(&predicate);
                 let mut shape_cast_options = ShapeCastOptions::default();
+                //shape_cast_options.max_time_of_impact = Real::MAX;
                 shape_cast_options.max_time_of_impact = 1.0;
                 shape_cast_options.compute_impact_geometry_on_penetration = true;
                 shape_cast_options.stop_at_penetration = true;
+                shape_cast_options.target_distance = 0.0;
                 if let Some((collider_handle, hit)) =
                     physics_world.physics_objects.query_pipeline.cast_shape(
                         &physics_world.physics_objects.rigid_body_set,
@@ -305,10 +321,19 @@ impl PhysicsEngine {
                     result.normal2 = hit.normal2.into_inner();
                     result.collider = collider_handle;
                     result.user_data = physics_world.get_collider_user_data(collider_handle);
-                    // first is world space
+                    // first is in world space
                     let witness1 = hit.witness1;
-                    // second is local space
-                    let witness2 = shape_transform.transform_point(&hit.witness2);
+                    // second is translated by collider transform
+                    let mut witness2 = hit.witness2;
+                    if let Some(collider) = physics_world
+                        .physics_objects
+                        .collider_set
+                        .get(collider_handle)
+                    {
+                        witness2 += collider.position().translation.vector;
+                    } else {
+                        godot_error!("collider not found");
+                    }
                     result.pixel_witness1 = witness1.coords;
                     result.pixel_witness2 = witness2.coords;
                 }
