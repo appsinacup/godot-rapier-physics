@@ -24,7 +24,8 @@ pub fn register_server() {
 pub fn register_server() {
     use godot::engine::PhysicsServer3DManager;
     let mut manager = PhysicsServer3DManager::singleton();
-    let factory = crate::servers::rapier_physics_3d::RapierPhysicsServerFactory3D::new_alloc();
+    let factory =
+        crate::servers::rapier_physics_server_3d::RapierPhysicsServerFactory3D::new_alloc();
     manager.register_server("Rapier3D".into(), factory.callable("create_server"));
 }
 pub fn register_scene() {
