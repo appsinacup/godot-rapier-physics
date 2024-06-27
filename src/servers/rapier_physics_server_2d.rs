@@ -8,6 +8,16 @@ use godot::prelude::*;
 
 use super::rapier_physics_server_impl::RapierPhysicsServerImpl;
 use crate::types::*;
+#[derive(GodotClass, Default)]
+#[class(base=Object,init,tool)]
+pub struct RapierPhysicsServerFactory2D;
+#[godot_api]
+impl RapierPhysicsServerFactory2D {
+    #[func]
+    fn create_server() -> Gd<RapierPhysicsServer2D> {
+        RapierPhysicsServer2D::new_alloc()
+    }
+}
 #[derive(GodotClass)]
 #[class(base=PhysicsServer2DExtension, tool)]
 pub struct RapierPhysicsServer2D {
