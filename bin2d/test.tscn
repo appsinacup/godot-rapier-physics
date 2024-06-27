@@ -1,102 +1,40 @@
-[gd_scene load_steps=11 format=3 uid="uid://d4exls53gi0df"]
+[gd_scene load_steps=6 format=3 uid="uid://cn4jscixu2bmf"]
 
-[ext_resource type="Script" path="res://test.gd" id="1_25l3y"]
-[ext_resource type="Script" path="res://collision_shape_2d.gd" id="2_phxx1"]
-[ext_resource type="Script" path="res://area_2d.gd" id="3_65y5d"]
-[ext_resource type="Script" path="res://rigid_body_2d_3.gd" id="4_tdasl"]
+[ext_resource type="PackedScene" uid="uid://c7x3cn5xnyu5r" path="res://static.tscn" id="1_57sdo"]
+[ext_resource type="Script" path="res://test.gd" id="3_cq71l"]
+[ext_resource type="Script" path="res://ray_cast_2d.gd" id="4_jkjeo"]
 
-[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_j5l1g"]
+[sub_resource type="CircleShape2D" id="CircleShape2D_6y2xx"]
+radius = 1.0
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_sg3i2"]
+[sub_resource type="CircleShape2D" id="CircleShape2D_ykjo6"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_l7hpj"]
-size = Vector2(10, 10)
+[node name="SceneRayOnSwitch" type="Node2D"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_54ruq"]
+[node name="StaticBody2D3" parent="." instance=ExtResource("1_57sdo")]
+position = Vector2(840, 536)
+rotation = -0.00976837
+scale = Vector2(1.38592, 14.6304)
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_qdw7a"]
-radius = 139.004
+[node name="Node2D" type="Node2D" parent="."]
+script = ExtResource("3_cq71l")
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_6ybn3"]
+[node name="Node2D2" type="Node2D" parent="."]
 
-[node name="Test" type="Node2D"]
-script = ExtResource("1_25l3y")
+[node name="RayCast2D" type="ShapeCast2D" parent="."]
+shape = SubResource("CircleShape2D_6y2xx")
+target_position = Vector2(195, 77)
+script = ExtResource("4_jkjeo")
 
-[node name="Camera2D" type="Camera2D" parent="."]
-scale = Vector2(4, 4)
-zoom = Vector2(2, 2)
-
-[node name="Timer" type="Timer" parent="."]
-wait_time = 10.0
-
-[node name="StaticBody2D" type="StaticBody2D" parent="."]
-collision_layer = 3
-collision_mask = 3
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
-shape = SubResource("WorldBoundaryShape2D_j5l1g")
-
-[node name="StaticBody2D2" type="StaticBody2D" parent="."]
-position = Vector2(-52, -141)
-
-[node name="PinJoint2D" type="PinJoint2D" parent="StaticBody2D2"]
-position = Vector2(2, 1)
-node_a = NodePath("..")
-node_b = NodePath("../../RigidBody2D2")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D2"]
-shape = SubResource("RectangleShape2D_sg3i2")
-
-[node name="RigidBody2D" type="RigidBody2D" parent="."]
-freeze = true
+[node name="RigidBody2D" type="StaticBody2D" parent="."]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D"]
-position = Vector2(0, -6)
-shape = SubResource("RectangleShape2D_l7hpj")
-script = ExtResource("2_phxx1")
+position = Vector2(65, 27)
+shape = SubResource("CircleShape2D_ykjo6")
 
-[node name="RigidBody2D2" type="RigidBody2D" parent="."]
-position = Vector2(-142, -100)
+[node name="RigidBody2D2" type="StaticBody2D" parent="."]
+position = Vector2(84, 32)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D2"]
-shape = SubResource("CircleShape2D_54ruq")
-
-[node name="RayCast2D" type="RayCast2D" parent="."]
-position = Vector2(0, -25)
-hit_from_inside = true
-
-[node name="Area2D" type="Area2D" parent="."]
-collision_layer = 2
-collision_mask = 5
-script = ExtResource("3_65y5d")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
-position = Vector2(210, -17)
-shape = SubResource("CircleShape2D_qdw7a")
-
-[node name="RigidBody2D3" type="RigidBody2D" parent="."]
-position = Vector2(208, -126)
-collision_layer = 2
-collision_mask = 2
-script = ExtResource("4_tdasl")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D3"]
-shape = SubResource("CircleShape2D_6ybn3")
-
-[node name="RigidBody2D4" type="RigidBody2D" parent="."]
-position = Vector2(211, -67)
-collision_layer = 2
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D4"]
-shape = SubResource("CircleShape2D_6ybn3")
-
-[node name="RigidBody2D5" type="RigidBody2D" parent="."]
-position = Vector2(211, -150)
-collision_mask = 2
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D5"]
-shape = SubResource("CircleShape2D_6ybn3")
-
-[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]
-[connection signal="body_entered" from="Area2D" to="Area2D" method="_on_body_entered"]
-[connection signal="body_entered" from="RigidBody2D3" to="RigidBody2D3" method="_on_body_entered"]
+position = Vector2(65, 27)
+shape = SubResource("CircleShape2D_ykjo6")
