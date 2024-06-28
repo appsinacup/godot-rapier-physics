@@ -34,10 +34,10 @@ hashbrown = { version = "0.14", features = ["serde", "nightly"] }
 
 godot = { git = "https://github.com/ughuuu/gdext", branch = "make-stuff-serializable", features=["lazy-function-tables", "serde", "api-4-2"] }
 
-rapier2d = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"], optional = true}
-rapier2d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"], optional = true}
-rapier3d = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"], optional = true}
-rapier3d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"], optional = true}
+rapier2d = { version = "0.21", features=["serde-serialize"], optional = true }
+rapier2d-f64 = { version = "0.21", features=["serde-serialize"], optional = true}
+rapier3d = { version = "0.21", features=["serde-serialize"], optional = true}
+rapier3d-f64 = { version = "0.21", features=["serde-serialize"], optional = true}
 salva2d = { git = "https://github.com/dimforge/salva", branch = "master", features = ["rapier"], optional = true }
 salva3d = { git = "https://github.com/dimforge/salva", branch = "master", features = ["rapier"], optional = true }
 serde = { version = "1.0", features = ["derive"] }
@@ -56,15 +56,15 @@ parry3d = {git = "https://github.com/dimforge/parry", branch = "master"}
 parry3d-f64 = {git = "https://github.com/dimforge/parry", branch = "master"}
 
 [profile.release]
-codegen-units = 1
-lto = "fat"
-debug = 1
-panic = "abort"
-strip = "debuginfo"
 opt-level = 3
+debug = 2
+strip = "debuginfo"
+lto = "fat"
+panic = 'unwind'
+codegen-units = 1
 
 [profile.dev]
-split-debuginfo = "unpacked"
+opt-level = 1
 
 [package.metadata.docs.rs]
 license-file = "../LICENSE"
