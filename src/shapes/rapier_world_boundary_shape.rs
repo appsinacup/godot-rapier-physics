@@ -10,7 +10,7 @@ use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::RapierShapeBase;
 use crate::types::*;
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct RapierWorldBoundaryShape {
     normal: Vector,
     d: f32,
