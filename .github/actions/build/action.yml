@@ -30,7 +30,6 @@ runs:
         rustup override set nightly
         rustup component add rust-src --toolchain nightly
         rustup target add ${{ inputs.arch }} --toolchain nightly
-        cargo update
     - name: Build
       shell: sh
       run: |
