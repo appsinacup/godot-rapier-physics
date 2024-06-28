@@ -12,7 +12,7 @@ jobs:
         arch: ["wasm32-unknown-emscripten"]
         precision: [single]
         dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
-        features: [{"feature":"", "name": "normal"}, {"feature":"enhanced-determinism", "name": "enhanced-determinism"}]
+        features: [{"feature":"serde-serialize", "name": "normal"}, {"feature":"enhanced-determinism,serde-serialize", "name": "enhanced-determinism"}]
 
     steps:
       - uses: actions/checkout@v4

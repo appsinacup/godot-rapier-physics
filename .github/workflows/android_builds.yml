@@ -13,7 +13,7 @@ jobs:
         #arch: ["aarch64-linux-android", "armv7-linux-androideabi"]
         precision: [single]
         dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
-        features: [{"feature":"parallel,simd-stable", "name": "simd-parallel"}, {"feature":"enhanced-determinism", "name": "enhanced-determinism"}]
+        features: [{"feature":"parallel,simd-stable,serde-serialize", "name": "simd-parallel"}, {"feature":"enhanced-determinism,serde-serialize", "name": "enhanced-determinism"}]
 
     steps:
       - uses: actions/checkout@v4
