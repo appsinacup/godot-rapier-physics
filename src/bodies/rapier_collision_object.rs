@@ -5,8 +5,6 @@ use godot::engine::physics_server_3d::*;
 use godot::prelude::*;
 use rapier::dynamics::RigidBodyHandle;
 use rapier::geometry::ColliderHandle;
-use serde::Deserialize;
-use serde::Serialize;
 use servers::rapier_physics_server_extra::PhysicsShapes;
 use servers::rapier_physics_server_extra::PhysicsSpaces;
 
@@ -15,7 +13,7 @@ use super::rapier_body::RapierBody;
 use crate::rapier_wrapper::prelude::*;
 use crate::types::*;
 use crate::*;
-//#[typetag::serde(tag = "type")]
+//#[cfg_attr(feature = "serde-serialize", typetag::serde(tag = "type"))]
 pub trait IRapierCollisionObject: Sync {
     fn get_base(&self) -> &RapierCollisionObject;
     fn get_mut_base(&mut self) -> &mut RapierCollisionObject;
@@ -103,12 +101,20 @@ pub trait IRapierCollisionObject: Sync {
         physics_spaces: &mut PhysicsSpaces,
     );
 }
-#[derive(Debug, PartialEq, Copy, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Copy, Clone)]
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub enum CollisionObjectType {
     Area,
     Body,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq)]
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct CollisionObjectShape {
     pub xform: Transform,
     pub shape: Rid,
@@ -130,7 +136,7 @@ impl Default for CollisionObjectShape {
     }
 }
 // TODO deserialize
-#[derive(Serialize)]
+#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
 pub struct RapierCollisionObject {
     collision_object_type: CollisionObjectType,
     rid: Rid,
@@ -145,7 +151,7 @@ pub struct RapierCollisionObject {
     collision_layer: u32,
     collision_priority: real,
     // TODO serialize this
-    #[serde(skip)]
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     pub(crate) mode: BodyMode,
     body_handle: RigidBodyHandle,
     space_handle: WorldHandle,

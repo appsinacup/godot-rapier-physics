@@ -76,6 +76,7 @@ impl RapierPhysicsServer {
         0.0.to_variant()
     }
 
+    #[cfg(feature = "serde-serialize")]
     #[func]
     fn joints_export_json() -> String {
         let Ok(mut physics_singleton) =
@@ -94,6 +95,7 @@ impl RapierPhysicsServer {
         }
     }
 
+    #[cfg(feature = "serde-serialize")]
     #[func]
     fn joint_export_json(joint: Rid) -> String {
         let Ok(mut physics_singleton) =
@@ -116,6 +118,7 @@ impl RapierPhysicsServer {
         "{}".to_string()
     }
 
+    #[cfg(feature = "serde-serialize")]
     #[func]
     fn shapes_export_json() -> String {
         let Ok(mut physics_singleton) =
@@ -134,6 +137,7 @@ impl RapierPhysicsServer {
         }
     }
 
+    #[cfg(feature = "serde-serialize")]
     #[func]
     fn shape_export_json(shape: Rid) -> String {
         let Ok(mut physics_singleton) =
@@ -156,6 +160,7 @@ impl RapierPhysicsServer {
         "{}".to_string()
     }
 
+    #[cfg(feature = "serde-serialize")]
     #[func]
     fn spaces_export_json() -> String {
         let Ok(mut physics_singleton) =
@@ -174,6 +179,7 @@ impl RapierPhysicsServer {
         }
     }
 
+    #[cfg(feature = "serde-serialize")]
     #[func]
     fn space_export_json(space: Rid) -> String {
         let Ok(mut physics_singleton) =

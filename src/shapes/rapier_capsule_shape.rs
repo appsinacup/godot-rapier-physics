@@ -3,13 +3,14 @@ use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
 use godot::classes::physics_server_3d::*;
 use godot::prelude::*;
-use serde::Deserialize;
-use serde::Serialize;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::*;
 use crate::types::*;
-#[derive(Serialize, Deserialize)]
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct RapierCapsuleShape {
     height: f32,
     radius: f32,
@@ -24,7 +25,7 @@ impl RapierCapsuleShape {
         }
     }
 }
-#[typetag::serde]
+#[cfg_attr(feature = "serde-serialize", typetag::serde)]
 impl IRapierShape for RapierCapsuleShape {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base

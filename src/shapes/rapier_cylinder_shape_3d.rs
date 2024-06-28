@@ -1,7 +1,5 @@
 use godot::classes::physics_server_3d::*;
 use godot::prelude::*;
-use serde::Deserialize;
-use serde::Serialize;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::*;
@@ -21,7 +19,7 @@ impl RapierCylinderShape3D {
         }
     }
 }
-#[typetag::serde]
+#[cfg_attr(feature = "serde-serialize", typetag::serde)]
 impl IRapierShape for RapierCylinderShape3D {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base
