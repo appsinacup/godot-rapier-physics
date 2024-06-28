@@ -1,40 +1,63 @@
-[gd_scene load_steps=6 format=3 uid="uid://cn4jscixu2bmf"]
+[gd_scene load_steps=5 format=3 uid="uid://cn4jscixu2bmf"]
 
-[ext_resource type="PackedScene" uid="uid://c7x3cn5xnyu5r" path="res://static.tscn" id="1_57sdo"]
-[ext_resource type="Script" path="res://test.gd" id="3_cq71l"]
-[ext_resource type="Script" path="res://ray_cast_2d.gd" id="4_jkjeo"]
+[sub_resource type="GDScript" id="GDScript_gph3d"]
+script/source = "extends Node2D
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_6y2xx"]
-radius = 1.0
+
+func _ready() -> void:
+	var space := get_viewport().find_world_2d().direct_space_state as RapierDirectSpaceState2D
+	var space_json := FileAccess.open(\"user://space.json\", FileAccess.WRITE)
+	var shapes_json := FileAccess.open(\"user://shapes.json\", FileAccess.WRITE)
+	#space_json.store_string(space.export_json())
+	#shapes_json.store_string(RapierPhysicsServer2D.shapes_export_json())
+"
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_ykjo6"]
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_6y2xx"]
+
+[sub_resource type="GDScript" id="GDScript_swyq8"]
+script/source = "extends ShapeCast2D
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	pass # Replace with function body.
+
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta: float) -> void:
+	print(get_collision_count())
+	print(get_collision_point(0))
+	print(get_collision_point(1))
+"
+
 [node name="SceneRayOnSwitch" type="Node2D"]
 
-[node name="StaticBody2D3" parent="." instance=ExtResource("1_57sdo")]
-position = Vector2(840, 536)
-rotation = -0.00976837
-scale = Vector2(1.38592, 14.6304)
-
 [node name="Node2D" type="Node2D" parent="."]
-script = ExtResource("3_cq71l")
+script = SubResource("GDScript_gph3d")
 
 [node name="Node2D2" type="Node2D" parent="."]
 
-[node name="RayCast2D" type="ShapeCast2D" parent="."]
-shape = SubResource("CircleShape2D_6y2xx")
-target_position = Vector2(195, 77)
-script = ExtResource("4_jkjeo")
-
 [node name="RigidBody2D" type="StaticBody2D" parent="."]
+position = Vector2(133, 63)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D"]
 position = Vector2(65, 27)
 shape = SubResource("CircleShape2D_ykjo6")
 
 [node name="RigidBody2D2" type="StaticBody2D" parent="."]
-position = Vector2(84, 32)
+position = Vector2(132, 67)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D2"]
 position = Vector2(65, 27)
 shape = SubResource("CircleShape2D_ykjo6")
+
+[node name="ShapeCast" type="ShapeCast2D" parent="."]
+position = Vector2(123, 62)
+shape = SubResource("CircleShape2D_6y2xx")
+target_position = Vector2(205, 82)
+script = SubResource("GDScript_swyq8")
+
+[node name="Marker2D" type="Marker2D" parent="."]
+position = Vector2(207, 92)
