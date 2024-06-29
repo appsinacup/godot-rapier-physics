@@ -115,7 +115,15 @@ Godot Rapier Physics also exposes new nodes, [Fluid2D](../src/fluids/fluid_2d.rs
 cargo update
 ```
 
-3. Build the project
+3. Install cargo nightly:
+
+```bash
+rustup toolchain install nightly
+rustup default nightly
+# or when running cargo build, add +nightly
+```
+
+4. Build the project
 ```bash
 cargo build --release
 ```
@@ -128,14 +136,14 @@ cargo build --release --features="single-dim3,parallel,simd-stable" --no-default
 
 Note the `--no-default-features`, because by default it has the `single-dim2` feature
 
-3. Copy the output to bin folder of the addon:
+5. Copy the output to bin folder of the addon:
 
 Eg. macOS
-```
+```bash
 cp target/release/libgodot_rapier.dylib bin2/addons/godot-rapier2d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
 ```
 Eg. Windows
-```
+```bash
 cp target/release/godot_rapier.dll bin2/addons/godot-rapier2d/bin/godot_rapier.windows.x86_64-pc-windows-msvc.dll
 ```
 
