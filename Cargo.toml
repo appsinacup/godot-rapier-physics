@@ -69,6 +69,3 @@ opt-level = 1
 
 [package.metadata.docs.rs]
 license-file = "../LICENSE"
-
-[toolchain]
-channel = "nightly-2024-06-01"

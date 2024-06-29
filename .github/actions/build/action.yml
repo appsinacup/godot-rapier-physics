@@ -21,19 +21,14 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Rust Install Nightly 2024-06-01
+    - name: Rust Add target
       shell: sh
       run: |
-        rustup install nightly
-        rustup default nightly
-        rustup toolchain install nightly
-        rustup override set nightly
-        rustup component add rust-src --toolchain nightly
-        rustup target add ${{ inputs.arch }} --toolchain nightly
+        rustup target add ${{ inputs.arch }}
     - name: Build
       shell: sh
       run: |
-        cargo +nightly build --target=${{ inputs.arch }} --release --features="${{ inputs.features }}" ${{ inputs.extra_flags}} --no-default-features
+        cargo build --target=${{ inputs.arch }} --release --features="${{ inputs.features }}" ${{ inputs.extra_flags}} --no-default-features
       env:
         RUSTFLAGS: ${{ inputs.env_flags }}
         EMCC_CFLAGS: "-s ERROR_ON_UNDEFINED_SYMBOLS=0 --no-entry -gsource-map -s STANDALONE_WASM"

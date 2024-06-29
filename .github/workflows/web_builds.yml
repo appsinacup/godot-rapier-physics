@@ -20,7 +20,7 @@ jobs:
       - name: Set up Emscripten latest
         uses: mymindstorm/setup-emsdk@v12
         with:
-          #version: 3.1.61
+          #version: 3.1.62
           version: 3.1.39
           no-cache: false
 
@@ -30,11 +30,8 @@ jobs:
 
       - name: Rust Install Nightly
         run: |
-          rustup toolchain install nightly
-          rustup override set nightly
-          #rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
-          rustup component add rust-src --toolchain nightly
-          rustup target add wasm32-unknown-emscripten --toolchain nightly
+          rustup component add rust-src
+          rustup target add wasm32-unknown-emscripten
 
       - name: Build
         uses: ./.github/actions/build
