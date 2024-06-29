@@ -62,7 +62,8 @@ debug = 2
 strip = "debuginfo"
 lto = "fat"
 panic = 'unwind'
-codegen-units = 1
+#codegen-units = 1
+codegen-units = 9999
 
 [profile.dev]
 opt-level = 1
