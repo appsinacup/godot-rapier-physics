@@ -29,9 +29,9 @@ mod types;
 use godot::prelude::*;
 #[derive(GodotClass)]
 #[class(base=Object, init)]
-pub struct RapierPhysics2DExtensionLibrary {}
+pub struct RapierPhysicsExtensionLibrary {}
 #[gdextension]
-unsafe impl ExtensionLibrary for RapierPhysics2DExtensionLibrary {
+unsafe impl ExtensionLibrary for RapierPhysicsExtensionLibrary {
     fn min_level() -> InitLevel {
         InitLevel::Servers
     }
