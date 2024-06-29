@@ -191,7 +191,7 @@ impl RapierArea {
                 self.base.area_detection_counter += 1;
                 let handle_pair_hash = (collider_handle, area_collider_handle);
                 if self.monitored_objects.contains_key(&handle_pair_hash) {
-                    godot_error!("Body is already being monitored");
+                    //godot_error!("Body is already being monitored");
                     return;
                 }
                 self.monitored_objects.insert(
