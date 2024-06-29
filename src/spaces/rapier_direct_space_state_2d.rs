@@ -20,6 +20,7 @@ impl RapierDirectSpaceState2D {
 }
 #[godot_api]
 impl RapierDirectSpaceState2D {
+    #[cfg(feature = "serde-serialize")]
     #[func]
     pub fn export_json(&self) -> String {
         let Ok(mut physics_singleton) =
@@ -36,6 +37,7 @@ impl RapierDirectSpaceState2D {
 }
 #[godot_api]
 impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
+    #[no_mangle]
     fn init(base: Base<PhysicsDirectSpaceState2DExtension>) -> Self {
         Self {
             inner: RapierDirectSpaceStateImpl::default(),

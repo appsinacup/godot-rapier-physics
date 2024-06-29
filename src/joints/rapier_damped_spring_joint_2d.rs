@@ -1,8 +1,6 @@
 use godot::classes::*;
 use godot::prelude::*;
 use rapier::dynamics::ImpulseJointHandle;
-use serde::Deserialize;
-use serde::Serialize;
 
 use super::rapier_joint::RapierJointBase;
 use super::rapier_pin_joint_2d::RapierPinJoint2D;
@@ -11,7 +9,10 @@ use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
 use crate::types::*;
 use crate::*;
-#[derive(Serialize, Deserialize)]
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct RapierDampedSpringJoint2D {
     rest_length: real,
     stiffness: real,
@@ -105,7 +106,7 @@ impl RapierDampedSpringJoint2D {
         }
     }
 }
-#[typetag::serde]
+#[cfg_attr(feature = "serde-serialize", typetag::serde)]
 impl IRapierJoint for RapierDampedSpringJoint2D {
     fn get_type(&self) -> physics_server_2d::JointType {
         physics_server_2d::JointType::DAMPED_SPRING

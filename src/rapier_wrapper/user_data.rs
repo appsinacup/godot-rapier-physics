@@ -1,6 +1,8 @@
-use serde::Deserialize;
-use serde::Serialize;
-#[derive(Copy, Clone, Eq, Hash, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Copy, Clone, Eq, Hash, PartialEq, Default)]
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct UserData {
     pub part1: u64,
     pub part2: u64,

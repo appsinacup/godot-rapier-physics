@@ -6,8 +6,6 @@ use godot::prelude::*;
 use hashbrown::hash_set::HashSet;
 use rapier::geometry::ColliderHandle;
 use rapier::math::Real;
-use serde::Deserialize;
-use serde::Serialize;
 use servers::rapier_physics_server_extra::PhysicsCollisionObjects;
 use servers::rapier_physics_server_extra::PhysicsShapes;
 use servers::rapier_physics_server_extra::PhysicsSpaces;
@@ -20,7 +18,11 @@ use crate::servers::rapier_project_settings::*;
 use crate::spaces::rapier_space::RapierSpace;
 use crate::types::*;
 use crate::*;
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct Contact {
     pub local_pos: Vector,
     pub local_normal: Vector,
@@ -34,7 +36,10 @@ pub struct Contact {
     pub collider_velocity_at_pos: Vector,
     pub impulse: Vector,
 }
-#[derive(Serialize, Deserialize, Debug)]
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct AreaOverrideSettings {
     using_area_gravity: bool,
     using_area_linear_damping: bool,
@@ -67,7 +72,8 @@ pub struct ForceIntegrationCallbackData {
     pub callable: Callable,
     pub udata: Variant,
 }
-#[derive(Serialize, Clone, Copy)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
 pub struct RidWithPriority {
     pub rid: Rid,
     pub priority: i32,
@@ -85,12 +91,12 @@ impl Default for RidWithPriority {
         }
     }
 }
-#[derive(Serialize)]
+#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
 pub struct RapierBody {
     // TODO
-    #[serde(skip)]
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     linear_damping_mode: BodyDampMode,
-    #[serde(skip)]
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     angular_damping_mode: BodyDampMode,
     linear_damping: real,
     angular_damping: real,
@@ -130,11 +136,11 @@ pub struct RapierBody {
     areas: Vec<RidWithPriority>,
     contacts: Vec<Contact>,
     contact_count: i32,
-    #[serde(skip)]
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     body_state_callback: Callable,
-    #[serde(skip)]
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     fi_callback_data: Option<ForceIntegrationCallbackData>,
-    #[serde(skip)]
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     direct_state: Option<Gd<PhysicsDirectBodyState>>,
     base: RapierCollisionObject,
 }
@@ -1757,7 +1763,7 @@ impl RapierBody {
 }
 // We won't use the pointers between threads, so it should be safe.
 unsafe impl Sync for RapierBody {}
-//#[typetag::serde]
+//#[cfg_attr(feature = "serde-serialize", typetag::serde)]
 impl IRapierCollisionObject for RapierBody {
     fn get_base(&self) -> &RapierCollisionObject {
         &self.base

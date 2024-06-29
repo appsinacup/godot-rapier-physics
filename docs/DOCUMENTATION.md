@@ -123,19 +123,19 @@ cargo build --release
 By default it builds for 2d, if you want to specify additional build features, you can do so with the `--features` flag:
 
 ```bash
-cargo build --release --features="single-dim3,parallel,simd-stable" --no-default-features
+cargo build --release --features="single-dim3,parallel,simd-stable,serde-serialize" --no-default-features
 ```
 
 Note the `--no-default-features`, because by default it has the `single-dim2` feature
 
-3. Copy the output to bin folder of the addon:
+4. Copy the output to bin folder of the addon:
 
 Eg. macOS
-```
+```bash
 cp target/release/libgodot_rapier.dylib bin2/addons/godot-rapier2d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
 ```
 Eg. Windows
-```
+```bash
 cp target/release/godot_rapier.dll bin2/addons/godot-rapier2d/bin/godot_rapier.windows.x86_64-pc-windows-msvc.dll
 ```
 
@@ -151,6 +151,7 @@ For features, the following are available:
 - parallel
 - simd-stable
 - enhanced-determinism
+- serde-serialize
 
 The `single` and `double` refer to the [precision](https://docs.godotengine.org/en/stable/tutorials/physics/large_world_coordinates.html) used in Godot.
 
@@ -159,6 +160,8 @@ The `dim2` or `dim3` refers to the rapier and salva versions used, and to what c
 The `parallel` version doesn't work on web.
 
 The `enhanced-determinism` usually slows down the simulation.
+
+The `serde-serialize` feature enabled serialization methods for physics server.
 
 ## How to debug
 

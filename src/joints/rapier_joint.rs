@@ -4,8 +4,6 @@ use physics_server_2d::JointType;
 #[cfg(feature = "dim3")]
 use physics_server_3d::JointType;
 use rapier::dynamics::ImpulseJointHandle;
-use serde::Deserialize;
-use serde::Serialize;
 
 #[cfg(feature = "dim2")]
 use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
@@ -13,7 +11,7 @@ use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 use super::rapier_pin_joint_2d::RapierPinJoint2D;
 use crate::rapier_wrapper::prelude::*;
 use crate::*;
-#[typetag::serde(tag = "type")]
+#[cfg_attr(feature = "serde-serialize", typetag::serde(tag = "type"))]
 pub trait IRapierJoint {
     fn get_base(&self) -> &RapierJointBase;
     fn get_mut_base(&mut self) -> &mut RapierJointBase;
@@ -27,7 +25,10 @@ pub trait IRapierJoint {
     #[cfg(feature = "dim2")]
     fn get_mut_pin(&mut self) -> Option<&mut RapierPinJoint2D>;
 }
-#[derive(Serialize, Deserialize)]
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct RapierJointBase {
     max_force: f32,
     handle: ImpulseJointHandle,
@@ -100,7 +101,10 @@ impl RapierJointBase {
         self.handle = ImpulseJointHandle::invalid();
     }
 }
-#[derive(Serialize, Deserialize)]
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct RapierEmptyJoint {
     base: RapierJointBase,
 }
@@ -111,7 +115,7 @@ impl RapierEmptyJoint {
         }
     }
 }
-#[typetag::serde]
+#[cfg_attr(feature = "serde-serialize", typetag::serde)]
 impl IRapierJoint for RapierEmptyJoint {
     fn get_type(&self) -> JointType {
         JointType::MAX

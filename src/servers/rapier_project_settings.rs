@@ -44,9 +44,6 @@ pub fn register_setting(
         ORDER += 1;
     }
 }
-pub fn register_setting_plain(p_name: &str, p_value: Variant, p_needs_restart: bool) {
-    register_setting(p_name, p_value, p_needs_restart, PropertyHint::NONE, "");
-}
 pub fn register_setting_ranged(
     p_name: &str,
     p_value: Variant,
@@ -125,12 +122,6 @@ impl RapierProjectSettings {
         let project_settings = ProjectSettings::singleton();
         let setting_value = project_settings.get_setting_with_override(p_setting.into());
         setting_value.to::<f64>()
-    }
-
-    fn get_setting_bool(p_setting: &str) -> bool {
-        let project_settings = ProjectSettings::singleton();
-        let setting_value = project_settings.get_setting_with_override(p_setting.into());
-        setting_value.to::<bool>()
     }
 
     pub fn get_solver_max_ccd_substeps() -> i64 {

@@ -1,9 +1,11 @@
 use rapier::data::Index;
 use salva::object::ContiguousArenaIndex;
 use salva::object::FluidHandle;
-use serde::Deserialize;
-use serde::Serialize;
-#[derive(Serialize, Deserialize, Debug, Copy, Clone, Eq, Hash, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, Hash, PartialEq)]
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct HandleDouble {
     id: usize,
     generation: u64,

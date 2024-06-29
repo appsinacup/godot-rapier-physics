@@ -8,8 +8,6 @@ use godot::prelude::*;
 use hashbrown::HashMap;
 use hashbrown::HashSet;
 use rapier::geometry::ColliderHandle;
-use serde::Deserialize;
-use serde::Serialize;
 use servers::rapier_physics_server_extra::PhysicsCollisionObjects;
 use servers::rapier_physics_server_extra::PhysicsData;
 
@@ -20,7 +18,10 @@ use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_project_settings::*;
 use crate::types::*;
 use crate::*;
-#[derive(Serialize, Deserialize)]
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct RemovedColliderInfo {
     pub rid: Rid,
     pub instance_id: u64,
@@ -50,9 +51,12 @@ const DEFAULT_GRAVITY_VECTOR: &str = "physics/3d/default_gravity_vector";
 const DEFAULT_GRAVITY: &str = "physics/2d/default_gravity";
 #[cfg(feature = "dim3")]
 const DEFAULT_GRAVITY: &str = "physics/3d/default_gravity";
-#[derive(Serialize, Deserialize)]
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct RapierSpace {
-    #[serde(skip)]
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     direct_access: Option<Gd<PhysicsDirectSpaceState>>,
     handle: WorldHandle,
     removed_colliders: HashMap<ColliderHandle, RemovedColliderInfo>,
@@ -73,7 +77,7 @@ pub struct RapierSpace {
     collision_pairs: i32,
     time_stepped: f32,
     // todo when serialize is impl for this
-    #[serde(skip)]
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     contact_debug: PackedVectorArray,
     contact_debug_count: usize,
 }
@@ -463,6 +467,7 @@ impl RapierSpace {
         self.contact_max_allowed_penetration
     }
 
+    #[cfg(feature = "serde-serialize")]
     pub fn export_json(&self, physics_engine: &mut PhysicsEngine) -> String {
         let inner = physics_engine
             .world_export_json(self.handle)
@@ -471,6 +476,7 @@ impl RapierSpace {
         format!("{{ \"space\": {}, \"inner\": {} }}", space, inner)
     }
 
+    #[cfg(feature = "serde-serialize")]
     pub fn export_binary(&self, physics_engine: &mut PhysicsEngine) -> PackedByteArray {
         let mut buf = PackedByteArray::new();
         let binary_data = physics_engine.world_export_binary(self.handle);

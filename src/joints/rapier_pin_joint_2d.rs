@@ -2,15 +2,16 @@ use godot::classes::*;
 use godot::prelude::*;
 use rapier::dynamics::ImpulseJointHandle;
 use rapier::math::Vector;
-use serde::Deserialize;
-use serde::Serialize;
 
 use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::joints::rapier_joint::RapierJointBase;
 use crate::rapier_wrapper::prelude::*;
-#[derive(Serialize, Deserialize)]
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct RapierPinJoint2D {
     angular_limit_lower: f32,
     angular_limit_upper: f32,
@@ -151,7 +152,7 @@ impl RapierPinJoint2D {
         }
     }
 }
-#[typetag::serde]
+#[cfg_attr(feature = "serde-serialize", typetag::serde)]
 impl IRapierJoint for RapierPinJoint2D {
     fn get_base(&self) -> &RapierJointBase {
         &self.base

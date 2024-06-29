@@ -4,13 +4,11 @@ use godot::engine::physics_server_2d::*;
 use godot::engine::physics_server_3d::*;
 use godot::prelude::*;
 use hashbrown::HashMap;
-use serde::Deserialize;
-use serde::Serialize;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_server_extra::PhysicsData;
 use crate::types::*;
-#[typetag::serde(tag = "type")]
+#[cfg_attr(feature = "serde-serialize", typetag::serde(tag = "type"))]
 pub trait IRapierShape {
     fn get_base(&self) -> &RapierShapeBase;
     fn get_mut_base(&mut self) -> &mut RapierShapeBase;
@@ -22,12 +20,15 @@ pub trait IRapierShape {
     fn get_data(&self) -> Variant;
     fn get_handle(&self) -> ShapeHandle;
 }
-#[derive(Serialize, Deserialize, Debug)]
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct RapierShapeBase {
     rid: Rid,
     aabb: Rect,
     // TODO serialize this
-    #[serde(skip)]
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     owners: HashMap<Rid, i32>,
     handle: ShapeHandle,
 }

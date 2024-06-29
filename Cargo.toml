@@ -10,13 +10,14 @@ publish = false
 crate-type = ["cdylib"]
 
 [features]
-default = ["single-dim2"]
+default = ["single-dim2", "serde-serialize"]
 dim2 = []
 dim3 = []
 single = []
 double = []
 # TODO add feature for "glam/libm"
 enhanced-determinism = ["rapier2d/enhanced-determinism", "rapier2d-f64/enhanced-determinism", "rapier3d/enhanced-determinism", "rapier3d-f64/enhanced-determinism"]
+serde-serialize = ["serde", "hashbrown/serde", "bincode", "serde_json", "typetag", "godot/serde", "rapier2d/serde-serialize", "rapier2d-f64/serde-serialize", "rapier3d/serde-serialize", "rapier3d-f64/serde-serialize" ]
 simd-stable = ["rapier2d/simd-stable", "rapier2d-f64/simd-stable", "rapier3d/simd-stable", "rapier3d-f64/simd-stable"]
 simd-nightly = ["rapier2d/simd-nightly", "rapier2d-f64/simd-nightly", "rapier3d/simd-nightly", "rapier3d-f64/simd-nightly"]
 wasm-bindgen = ["rapier2d/wasm-bindgen", "rapier2d-f64/wasm-bindgen", "rapier3d/wasm-bindgen", "rapier3d-f64/wasm-bindgen"]
@@ -29,20 +30,20 @@ double-dim3 = ["double", "dim3", "rapier3d-f64", "salva3d"]
 
 
 [dependencies]
-bincode = "1"
-hashbrown = { version = "0.14", features = ["serde", "nightly"] }
+bincode = { version = "1", optional = true }
+hashbrown = { version = "0.14" }
 
-godot = { git = "https://github.com/ughuuu/gdext", branch = "make-stuff-serializable", features=["lazy-function-tables", "serde", "api-4-2"] }
+godot = { git = "https://github.com/ughuuu/gdext", branch = "make-stuff-serializable", features=["lazy-function-tables", "api-4-2"] }
 
-rapier2d = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"], optional = true}
-rapier2d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"], optional = true}
-rapier3d = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"], optional = true}
-rapier3d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master", features=["serde-serialize"], optional = true}
-salva2d = { git = "https://github.com/ughuuu/salva", branch = "update-to-rapier-0.19", features = ["rapier"], optional = true }
-salva3d = { git = "https://github.com/ughuuu/salva", branch = "update-to-rapier-0.19", features = ["rapier"], optional = true }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-typetag = "0.2"
+rapier2d = { version = "0.21", optional = true }
+rapier2d-f64 = { version = "0.21", optional = true}
+rapier3d = { version = "0.21", optional = true}
+rapier3d-f64 = { version = "0.21", optional = true}
+salva2d = { git = "https://github.com/dimforge/salva", branch = "master", features = ["rapier"], optional = true }
+salva3d = { git = "https://github.com/dimforge/salva", branch = "master", features = ["rapier"], optional = true }
+serde = { version = "1.0", features = ["derive"], optional = true }
+serde_json = { version = "1.0", optional = true }
+typetag = { version = "0.2", optional = true }
 
 [patch.crates-io]
 rapier2d = {git = "https://github.com/dimforge/rapier", branch = "master"}
@@ -56,15 +57,15 @@ parry3d = {git = "https://github.com/dimforge/parry", branch = "master"}
 parry3d-f64 = {git = "https://github.com/dimforge/parry", branch = "master"}
 
 [profile.release]
-codegen-units = 1
-lto = "fat"
-debug = 1
-#panic = "abort"
-strip = "debuginfo"
 opt-level = 3
+debug = 2
+strip = "debuginfo"
+lto = "fat"
+panic = 'unwind'
+codegen-units = 1
 
 [profile.dev]
-split-debuginfo = "unpacked"
+opt-level = 1
 
 [package.metadata.docs.rs]
 license-file = "../LICENSE"

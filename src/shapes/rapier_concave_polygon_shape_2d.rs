@@ -1,12 +1,13 @@
 use godot::engine::physics_server_2d::ShapeType;
 use godot::prelude::*;
-use serde::Deserialize;
-use serde::Serialize;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::*;
 use crate::types::*;
-#[derive(Serialize, Deserialize, Debug)]
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct RapierConcavePolygonShape2D {
     points: Vec<Vector2>,
     segments: Vec<[i32; 2]>,
@@ -32,7 +33,7 @@ fn find_or_insert_point(points: &mut Vec<Vector2>, new_point: Vector2) -> usize 
     points.push(new_point);
     idx
 }
-#[typetag::serde]
+#[cfg_attr(feature = "serde-serialize", typetag::serde)]
 impl IRapierShape for RapierConcavePolygonShape2D {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base

@@ -4,7 +4,6 @@ use godot::prelude::*;
 use hashbrown::HashMap;
 
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
-use crate::fluids::fluid_effect::FluidEffect;
 use crate::fluids::rapier_fluid::RapierFluid;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::handle::WorldHandle;
@@ -77,6 +76,7 @@ impl RapierPhysicsServer {
         0.0.to_variant()
     }
 
+    #[cfg(feature = "serde-serialize")]
     #[func]
     fn joints_export_json() -> String {
         let Ok(mut physics_singleton) =
@@ -95,6 +95,7 @@ impl RapierPhysicsServer {
         }
     }
 
+    #[cfg(feature = "serde-serialize")]
     #[func]
     fn joint_export_json(joint: Rid) -> String {
         let Ok(mut physics_singleton) =
@@ -117,6 +118,7 @@ impl RapierPhysicsServer {
         "{}".to_string()
     }
 
+    #[cfg(feature = "serde-serialize")]
     #[func]
     fn shapes_export_json() -> String {
         let Ok(mut physics_singleton) =
@@ -135,6 +137,7 @@ impl RapierPhysicsServer {
         }
     }
 
+    #[cfg(feature = "serde-serialize")]
     #[func]
     fn shape_export_json(shape: Rid) -> String {
         let Ok(mut physics_singleton) =
@@ -157,6 +160,7 @@ impl RapierPhysicsServer {
         "{}".to_string()
     }
 
+    #[cfg(feature = "serde-serialize")]
     #[func]
     fn spaces_export_json() -> String {
         let Ok(mut physics_singleton) =
@@ -175,6 +179,7 @@ impl RapierPhysicsServer {
         }
     }
 
+    #[cfg(feature = "serde-serialize")]
     #[func]
     fn space_export_json(space: Rid) -> String {
         let Ok(mut physics_singleton) =
@@ -272,7 +277,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
-    fn fluid_set_effects(fluid_rid: Rid, params: Array<Gd<FluidEffect>>) {
+    fn fluid_set_effects(fluid_rid: Rid, params: Array<Gd<Resource>>) {
         let Ok(mut physics_singleton) =
             PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
