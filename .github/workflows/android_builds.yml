@@ -29,13 +29,13 @@ jobs:
       - name: Install Cargo NDK
         shell: sh
         run: |
-          rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
+          rustup component add rust-src --toolchain x86_64-unknown-linux-gnu
       - name: Build share libraries
         shell: sh
         run: |
           rustup target add armv7-linux-androideabi
           rustup target add aarch64-linux-android
-          #cargo +nightly ndk -t armeabi-v7a -t arm64-v8a -o ./jniLibs build --release
+          #cargo ndk -t armeabi-v7a -t arm64-v8a -o ./jniLibs build --release
       - name: Build
         uses: ./.github/actions/build
         with:
