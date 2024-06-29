@@ -21,7 +21,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Rust Install Nightly
+    - name: Rust Install Nightly 2024-06-01
       shell: sh
       run: |
         rustup install nightly
