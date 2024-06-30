@@ -1339,8 +1339,13 @@ impl RapierBody {
                     godot_error!("Invalid body data.");
                     return;
                 }
+                transform_scale()
+                let old_scale = self.base.get_transform().scale();
                 let transform = p_variant.to();
                 self.base.set_transform(transform, true, physics_engine);
+                if old_scale != self.base.get_transform().scale() {
+                    self.recreate_shapes(physics_engine, physics_spaces);
+                }
             }
             BodyState::LINEAR_VELOCITY => {
                 #[cfg(feature = "dim2")]

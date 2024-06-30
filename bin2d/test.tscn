@@ -1,63 +1,40 @@
-[gd_scene load_steps=5 format=3 uid="uid://cn4jscixu2bmf"]
+[gd_scene load_steps=4 format=3 uid="uid://cn4jscixu2bmf"]
 
-[sub_resource type="GDScript" id="GDScript_gph3d"]
-script/source = "extends Node2D
+[sub_resource type="CircleShape2D" id="CircleShape2D_hx78t"]
 
+[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_ila5n"]
+normal = Vector2(-0.0425147, -0.999096)
 
-func _ready() -> void:
-	var space := get_viewport().find_world_2d().direct_space_state as RapierDirectSpaceState2D
-	var space_json := FileAccess.open(\"user://space.json\", FileAccess.WRITE)
-	var shapes_json := FileAccess.open(\"user://shapes.json\", FileAccess.WRITE)
-	#space_json.store_string(space.export_json())
-	#shapes_json.store_string(RapierPhysicsServer2D.shapes_export_json())
-"
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_ykjo6"]
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_6y2xx"]
-
-[sub_resource type="GDScript" id="GDScript_swyq8"]
-script/source = "extends ShapeCast2D
-
-
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-	pass # Replace with function body.
-
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	print(get_collision_count())
-	print(get_collision_point(0))
-	print(get_collision_point(1))
-"
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wa3gk"]
 
 [node name="SceneRayOnSwitch" type="Node2D"]
 
 [node name="Node2D" type="Node2D" parent="."]
-script = SubResource("GDScript_gph3d")
 
-[node name="Node2D2" type="Node2D" parent="."]
-
-[node name="RigidBody2D" type="StaticBody2D" parent="."]
-position = Vector2(133, 63)
+[node name="RigidBody2D" type="RigidBody2D" parent="."]
+position = Vector2(7.74, 2.08165e-12)
+scale = Vector2(2.35, 1)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D"]
-position = Vector2(65, 27)
-shape = SubResource("CircleShape2D_ykjo6")
+position = Vector2(-48.74, -1)
+shape = SubResource("CircleShape2D_hx78t")
 
-[node name="RigidBody2D2" type="StaticBody2D" parent="."]
-position = Vector2(132, 67)
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D2"]
-position = Vector2(65, 27)
-shape = SubResource("CircleShape2D_ykjo6")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(-6, 61)
+rotation = -0.060205
+shape = SubResource("WorldBoundaryShape2D_ila5n")
 
-[node name="ShapeCast" type="ShapeCast2D" parent="."]
-position = Vector2(123, 62)
-shape = SubResource("CircleShape2D_6y2xx")
-target_position = Vector2(205, 82)
-script = SubResource("GDScript_swyq8")
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(4, 4)
 
 [node name="Marker2D" type="Marker2D" parent="."]
-position = Vector2(207, 92)
+position = Vector2(-107, 0)
+gizmo_extents = 61.9
+
+[node name="RigidBody2D2" type="RigidBody2D" parent="."]
+position = Vector2(-110, -40)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D2"]
+shape = SubResource("RectangleShape2D_wa3gk")
