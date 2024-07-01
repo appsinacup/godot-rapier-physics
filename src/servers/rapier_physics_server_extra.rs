@@ -170,13 +170,12 @@ impl RapierPhysicsServer {
         };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         let values = physics_data.spaces.values().clone().collect::<Vec<_>>();
-        match serde_json::to_string(&values) {
-            Ok(s) => s,
-            Err(err) => {
-                godot_error!("{}", err);
-                "{}".to_string()
-            }
-        }
+        let values = values
+            .iter()
+            .map(|space| space.export_json(&mut physics_data.physics_engine))
+            .collect::<Vec<_>>()
+            .join("},{");
+        format!("[{{{}}}]", values)
     }
 
     #[cfg(feature = "serde-serialize")]

@@ -713,7 +713,7 @@ impl IRapierCollisionObject for RapierArea {
             return;
         }
         self.base.set_space(p_space, physics_engine, physics_spaces);
-        self.recreate_shapes(physics_engine, physics_shapes);
+        self.recreate_shapes(physics_engine, physics_shapes, physics_spaces);
     }
 
     fn add_shape(
@@ -831,7 +831,7 @@ impl IRapierCollisionObject for RapierArea {
         physics_engine: &mut PhysicsEngine,
         physics_shapes: &mut PhysicsShapes,
     ) -> ColliderHandle {
-        if !self.base.is_space_valid() {
+        if !self.base.is_valid() {
             return ColliderHandle::invalid();
         }
         let mat = self.init_material();
@@ -847,8 +847,14 @@ impl IRapierCollisionObject for RapierArea {
         &mut self,
         physics_engine: &mut PhysicsEngine,
         physics_shapes: &mut PhysicsShapes,
+        physics_spaces: &mut PhysicsSpaces,
     ) {
-        RapierCollisionObject::recreate_shapes(self, physics_engine, physics_shapes);
+        RapierCollisionObject::recreate_shapes(
+            self,
+            physics_engine,
+            physics_shapes,
+            physics_spaces,
+        );
     }
 
     fn shape_changed(

@@ -3,6 +3,7 @@ use std::num::NonZeroUsize;
 use godot::log::godot_print;
 use rapier::crossbeam;
 use rapier::data::Arena;
+use rapier::math::DEFAULT_EPSILON;
 use rapier::prelude::*;
 use salva::integrations::rapier::FluidsPipeline;
 
@@ -223,6 +224,9 @@ impl PhysicsWorld {
                     contact_info.normal = manifold_normal;
                     // Read the geometric contacts.
                     for contact_point in &manifold.points {
+                        if contact_point.dist > DEFAULT_EPSILON {
+                            continue;
+                        }
                         let collider_pos_1 = collider1.position() * contact_point.local_p1;
                         let collider_pos_2 = collider2.position() * contact_point.local_p2;
                         let point_velocity_1 = body1.velocity_at_point(&collider_pos_1);

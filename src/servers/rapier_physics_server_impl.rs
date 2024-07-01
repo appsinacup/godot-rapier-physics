@@ -907,6 +907,7 @@ impl RapierPhysicsServerImpl {
                     value,
                     &mut self.physics_data.physics_engine,
                     &mut self.physics_data.spaces,
+                    &mut self.physics_data.shapes,
                 );
             }
         }

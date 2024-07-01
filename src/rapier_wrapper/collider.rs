@@ -133,7 +133,7 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
         ShapeType::Compound => {
             if let Some(new_shape) = shape.as_compound() {
                 let new_shapes = new_shape.shapes();
-                let mut shapes_vec = Vec::<(Isometry<Real>, SharedShape)>::new();
+                let mut shapes_vec = Vec::new();
                 for shape in new_shapes {
                     let new_shape = scale_shape(&shape.1, shape_info);
                     shapes_vec.push((shape.0, new_shape));
@@ -150,7 +150,7 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
 #[cfg(feature = "dim3")]
 pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
     let scale = shape_info.scale;
-    if scale.x == 1.0 && scale.y == 1.0 {
+    if scale.x == 1.0 && scale.y == 1.0 && scale.z == 1.0 {
         return shape.clone();
     }
     match shape.shape_type() {
@@ -262,7 +262,7 @@ impl PhysicsEngine {
             }
             collider.set_friction_combine_rule(CoefficientCombineRule::Multiply);
             collider.set_restitution_combine_rule(CoefficientCombineRule::Max);
-            collider.set_density(0.0);
+            collider.set_density(1.0);
             // less data to serialize
             collider.set_collision_groups(InteractionGroups {
                 memberships: Group::GROUP_1,

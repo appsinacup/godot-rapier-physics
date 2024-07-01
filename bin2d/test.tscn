@@ -1,25 +1,49 @@
 [gd_scene load_steps=4 format=3 uid="uid://cn4jscixu2bmf"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_hx78t"]
+[sub_resource type="CircleShape2D" id="CircleShape2D_lc8oa"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_irytb"]
 
 [sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_ila5n"]
 normal = Vector2(-0.0425147, -0.999096)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_wa3gk"]
-
 [node name="SceneRayOnSwitch" type="Node2D"]
 
-[node name="Node2D" type="Node2D" parent="."]
+[node name="RigidBody2D2" type="RigidBody2D" parent="."]
+position = Vector2(-54, -682)
+rotation = -1.51672
+scale = Vector2(4, 2.51)
+mass = 100.0
+max_contacts_reported = 1
 
-[node name="RigidBody2D" type="RigidBody2D" parent="."]
-position = Vector2(7.74, 2.08165e-12)
-scale = Vector2(2.35, 1)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D2"]
+position = Vector2(-89, 3)
+scale = Vector2(1.89, 1)
+shape = SubResource("CircleShape2D_lc8oa")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D"]
-position = Vector2(-48.74, -1)
-shape = SubResource("CircleShape2D_hx78t")
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="RigidBody2D2"]
+position = Vector2(-88.2483, 25.9664)
+scale = Vector2(1.89, 1)
+shape = SubResource("CircleShape2D_lc8oa")
+
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="RigidBody2D2"]
+position = Vector2(-87.2888, 54.2119)
+scale = Vector2(1.89, 1)
+shape = SubResource("CircleShape2D_lc8oa")
+
+[node name="RigidBody2D3" type="RigidBody2D" parent="."]
+position = Vector2(-80, -513)
+rotation = -1.51672
+scale = Vector2(4, 2.51)
+max_contacts_reported = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D3"]
+position = Vector2(-89, 3)
+scale = Vector2(1.89, 1)
+shape = SubResource("RectangleShape2D_irytb")
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
+position = Vector2(-1, 55)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
 position = Vector2(-6, 61)
@@ -27,14 +51,4 @@ rotation = -0.060205
 shape = SubResource("WorldBoundaryShape2D_ila5n")
 
 [node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(4, 4)
-
-[node name="Marker2D" type="Marker2D" parent="."]
-position = Vector2(-107, 0)
-gizmo_extents = 61.9
-
-[node name="RigidBody2D2" type="RigidBody2D" parent="."]
-position = Vector2(-110, -40)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D2"]
-shape = SubResource("RectangleShape2D_wa3gk")
+zoom = Vector2(2, 2)

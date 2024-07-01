@@ -13,10 +13,20 @@ impl RapierCollisionObject {
         collision_object: &mut dyn IRapierCollisionObject,
         physics_engine: &mut PhysicsEngine,
         physics_shapes: &mut PhysicsShapes,
+        physics_spaces: &mut PhysicsSpaces,
     ) {
         for i in 0..collision_object.get_base().get_shape_count() as usize {
             if collision_object.get_base().shapes[i].disabled {
                 continue;
+            }
+            if collision_object.get_base().shapes[i].collider_handle != ColliderHandle::invalid() {
+                collision_object.get_mut_base().shapes[i].collider_handle =
+                    collision_object.get_base().destroy_shape(
+                        collision_object.get_base().shapes[i],
+                        i,
+                        physics_spaces,
+                        physics_engine,
+                    );
             }
             collision_object.get_mut_base().shapes[i].collider_handle = collision_object
                 .create_shape(
@@ -25,10 +35,6 @@ impl RapierCollisionObject {
                     physics_engine,
                     physics_shapes,
                 );
-            if collision_object.get_base().shapes[i].collider_handle == ColliderHandle::invalid() {
-                collision_object.get_mut_base().shapes[i].disabled = true;
-                continue;
-            }
             collision_object.get_base().update_shape_transform(
                 &collision_object.get_base().shapes[i],
                 physics_engine,

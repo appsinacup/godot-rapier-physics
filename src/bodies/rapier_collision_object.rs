@@ -32,6 +32,7 @@ pub trait IRapierCollisionObject: Sync {
         &mut self,
         physics_engine: &mut PhysicsEngine,
         physics_shapes: &mut PhysicsShapes,
+        physics_spaces: &mut PhysicsSpaces,
     );
     fn add_shape(
         &mut self,
@@ -312,7 +313,15 @@ impl RapierCollisionObject {
                 godot_error!("Rapier shape is invalid");
                 return;
             }
-            let shape_info = shape_info_from_body_shape(shape_handle, shape.xform);
+            let scale = transform_scale(&self.transform);
+            let mut shape_info = shape_info_from_body_shape(shape_handle, shape.xform);
+            shape_info.scale = vector_to_rapier(vector_to_godot(shape_info.scale) * scale);
+            let position = shape_info
+                .transform
+                .translation
+                .vector
+                .component_mul(&vector_to_rapier(scale));
+            shape_info.transform.translation.vector = position;
             physics_engine.collider_set_transform(
                 self.space_handle,
                 shape.collider_handle,

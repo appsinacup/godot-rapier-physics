@@ -1326,6 +1326,7 @@ impl RapierBody {
         p_variant: Variant,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
+        physics_shapes: &mut PhysicsShapes,
     ) {
         match p_state {
             BodyState::TRANSFORM => {
@@ -1339,12 +1340,12 @@ impl RapierBody {
                     godot_error!("Invalid body data.");
                     return;
                 }
-                transform_scale()
-                let old_scale = self.base.get_transform().scale();
+                let old_scale = transform_scale(&self.base.get_transform());
                 let transform = p_variant.to();
+                let new_scale = transform_scale(&transform);
                 self.base.set_transform(transform, true, physics_engine);
-                if old_scale != self.base.get_transform().scale() {
-                    self.recreate_shapes(physics_engine, physics_spaces);
+                if old_scale != new_scale {
+                    self.recreate_shapes(physics_engine, physics_shapes, physics_spaces);
                 }
             }
             BodyState::LINEAR_VELOCITY => {
@@ -1806,7 +1807,7 @@ impl IRapierCollisionObject for RapierBody {
         }
         self.set_space_before(physics_spaces);
         self.base.set_space(space, physics_engine, physics_spaces);
-        self.recreate_shapes(physics_engine, physics_shapes);
+        self.recreate_shapes(physics_engine, physics_shapes, physics_spaces);
         self.set_space_after(physics_engine, physics_spaces);
     }
 
@@ -1925,7 +1926,7 @@ impl IRapierCollisionObject for RapierBody {
         physics_engine: &mut PhysicsEngine,
         physics_shapes: &mut PhysicsShapes,
     ) -> ColliderHandle {
-        if !self.base.is_space_valid() {
+        if !self.base.is_valid() {
             return ColliderHandle::invalid();
         }
         let mat = self.init_material();
@@ -1940,8 +1941,17 @@ impl IRapierCollisionObject for RapierBody {
         &mut self,
         physics_engine: &mut PhysicsEngine,
         physics_shapes: &mut PhysicsShapes,
+        physics_spaces: &mut PhysicsSpaces,
     ) {
-        RapierCollisionObject::recreate_shapes(self, physics_engine, physics_shapes);
+        if !self.base.is_valid() {
+            return;
+        }
+        RapierCollisionObject::recreate_shapes(
+            self,
+            physics_engine,
+            physics_shapes,
+            physics_spaces,
+        );
     }
 
     fn init_material(&self) -> Material {
