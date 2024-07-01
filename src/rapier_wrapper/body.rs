@@ -389,10 +389,28 @@ impl PhysicsEngine {
                 .rigid_body_set
                 .get_mut(body_handle)
         {
-            body.set_additional_mass_properties(
-                MassProperties::new(Point { coords: local_com }, mass, inertia),
-                wake_up,
-            );
+            let colliders = body.colliders();
+            let current_mass = body.mass();
+            let mass_multiple = mass / current_mass;
+            let colliders_len_inv = 1.0 / (colliders.len() as f32);
+            for collider in colliders {
+                if let Some(collider) = physics_world
+                    .physics_objects
+                    .collider_set
+                    .get_mut(*collider)
+                {
+                    // reuse local center
+                    let mass_properties = collider.shape().mass_properties(1.0);
+                    let local_com = mass_properties.local_com;
+                    let collider_mass = collider.mass();
+                    let mass_properties = MassProperties::new(
+                        local_com,
+                        collider_mass * mass_multiple,
+                        inertia * colliders_len_inv,
+                    );
+                    collider.set_mass_properties(mass_properties)
+                }
+            }
             if force_update {
                 body.recompute_mass_properties_from_colliders(
                     &physics_world.physics_objects.collider_set,

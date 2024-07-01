@@ -27,7 +27,8 @@ fn skew_polyline(vertices: &Vec<Point<Real>>, skew: Real) -> SharedShape {
 // Function to skew a shape
 #[cfg(feature = "dim2")]
 pub fn skew_shape(shape: &SharedShape, skew: Real) -> SharedShape {
-    if skew == 0.0 {
+    use godot::builtin::math::FloatExt;
+    if skew.is_zero_approx() {
         return shape.clone();
     }
     match shape.shape_type() {
@@ -268,7 +269,7 @@ impl PhysicsEngine {
             }
             collider.set_friction_combine_rule(CoefficientCombineRule::Multiply);
             collider.set_restitution_combine_rule(CoefficientCombineRule::Max);
-            collider.set_density(0.0);
+            collider.set_density(1.0);
             collider.set_collision_groups(InteractionGroups {
                 memberships: Group::from(mat.collision_layer),
                 filter: Group::from(mat.collision_mask),
