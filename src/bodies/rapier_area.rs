@@ -374,26 +374,13 @@ impl RapierArea {
         if let Some(space) = physics_spaces.get_mut(&space_rid) {
             space.area_remove_from_area_update_list(*area_rid);
         }
-        for (detected_body, _) in detected_bodies {
-            let mut area_override_settings = None;
-            if let Some(body) = physics_collision_objects.get(&detected_body) {
-                if let Some(body) = body.get_body() {
-                    area_override_settings = Some(
-                        body.get_area_override_settings(physics_spaces, physics_collision_objects),
-                    );
-                }
-            }
-            if let Some(area_override_settings) = area_override_settings {
-                if let Some(body) = physics_collision_objects.get_mut(&detected_body) {
-                    if let Some(body) = body.get_mut_body() {
-                        body.apply_area_override(
-                            area_override_settings,
-                            physics_engine,
-                            physics_spaces,
-                        );
-                    }
-                }
-            }
+        for (detected_body, _) in &detected_bodies {
+            RapierBody::apply_area_orverride_to_body(
+                detected_body,
+                physics_engine,
+                physics_spaces,
+                physics_collision_objects,
+            );
         }
     }
 
@@ -840,7 +827,10 @@ impl IRapierCollisionObject for RapierArea {
     }
 
     fn init_material(&self) -> Material {
-        default_material()
+        Material::new(
+            self.base.get_collision_layer(),
+            self.base.get_collision_mask(),
+        )
     }
 
     fn recreate_shapes(

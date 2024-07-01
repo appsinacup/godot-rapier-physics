@@ -1,4 +1,5 @@
 use bodies::rapier_area::RapierArea;
+use bodies::rapier_body::RapierBody;
 use godot::classes::ProjectSettings;
 #[cfg(feature = "dim2")]
 use godot::engine::physics_server_2d::*;
@@ -295,29 +296,13 @@ impl RapierSpace {
             }
         }
         space.reset_mass_properties_update_list();
-        for body in body_area_update_list {
-            let area_override_settings;
-            if let Some(body) = physics_data.collision_objects.get(&body)
-                && let Some(body) = body.get_body()
-            {
-                area_override_settings = Some(body.get_area_override_settings(
-                    &mut physics_data.spaces,
-                    &physics_data.collision_objects,
-                ));
-            } else {
-                area_override_settings = None;
-            }
-            if let Some(area_override_settings) = area_override_settings
-                && let Some(body) = physics_data.collision_objects.get_mut(&body)
-            {
-                if let Some(body) = body.get_mut_body() {
-                    body.apply_area_override(
-                        area_override_settings,
-                        &mut physics_data.physics_engine,
-                        &mut physics_data.spaces,
-                    );
-                }
-            }
+        for body in &body_area_update_list {
+            RapierBody::apply_area_orverride_to_body(
+                body,
+                &mut physics_data.physics_engine,
+                &mut physics_data.spaces,
+                &mut physics_data.collision_objects,
+            );
         }
         for body in gravity_update_list {
             if let Some(body) = physics_data.collision_objects.get_mut(&body)
@@ -336,7 +321,6 @@ impl RapierSpace {
                 space_handle,
                 &settings,
                 RapierSpace::collision_filter_body_callback,
-                RapierSpace::collision_filter_sensor_callback,
                 RapierSpace::collision_modify_contacts_callback,
                 space,
                 &mut physics_data.collision_objects,

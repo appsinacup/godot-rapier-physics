@@ -23,7 +23,6 @@ pub struct CollisionFilterInfo {
 }
 pub struct PhysicsHooksCollisionFilter<'a> {
     pub collision_filter_body_callback: &'a CollisionFilterCallback,
-    pub collision_filter_sensor_callback: &'a CollisionFilterCallback,
     pub collision_modify_contacts_callback: &'a CollisionModifyContactsCallback,
     pub physics_collision_objects: &'a PhysicsCollisionObjects,
 }
@@ -45,21 +44,6 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
             return None;
         }
         result
-    }
-
-    fn filter_intersection_pair(&self, context: &PairFilterContext) -> bool {
-        let Some(collider1) = context.colliders.get(context.collider1) else {
-            return false;
-        };
-        let Some(collider2) = context.colliders.get(context.collider2) else {
-            return false;
-        };
-        let filter_info = CollisionFilterInfo {
-            user_data1: UserData::new(collider1.user_data),
-            user_data2: UserData::new(collider2.user_data),
-        };
-        // Handle intersection filtering for sensors
-        (self.collision_filter_sensor_callback)(&filter_info, self.physics_collision_objects)
     }
 
     fn modify_solver_contacts(&self, context: &mut ContactModificationContext) {

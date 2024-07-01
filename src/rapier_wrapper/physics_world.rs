@@ -102,7 +102,6 @@ impl PhysicsWorld {
         &mut self,
         settings: &SimulationSettings,
         collision_filter_body_callback: CollisionFilterCallback,
-        collision_filter_sensor_callback: CollisionFilterCallback,
         collision_modify_contacts_callback: CollisionModifyContactsCallback,
         space: &mut RapierSpace,
         physics_collision_objects: &mut PhysicsCollisionObjects,
@@ -122,7 +121,6 @@ impl PhysicsWorld {
         let liquid_gravity = settings.pixel_liquid_gravity;
         let physics_hooks = PhysicsHooksCollisionFilter {
             collision_filter_body_callback: &collision_filter_body_callback,
-            collision_filter_sensor_callback: &collision_filter_sensor_callback,
             collision_modify_contacts_callback: &collision_modify_contacts_callback,
             physics_collision_objects,
         };
@@ -460,7 +458,6 @@ impl PhysicsEngine {
         world_handle: WorldHandle,
         settings: &SimulationSettings,
         collision_filter_body_callback: CollisionFilterCallback,
-        collision_filter_sensor_callback: CollisionFilterCallback,
         collision_modify_contacts_callback: CollisionModifyContactsCallback,
         space: &mut RapierSpace,
         physics_collision_objects: &mut PhysicsCollisionObjects,
@@ -469,7 +466,6 @@ impl PhysicsEngine {
             physics_world.step(
                 settings,
                 collision_filter_body_callback,
-                collision_filter_sensor_callback,
                 collision_modify_contacts_callback,
                 space,
                 physics_collision_objects,
