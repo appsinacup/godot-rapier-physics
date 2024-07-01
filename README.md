@@ -52,7 +52,6 @@ The reason it was rewritten is to do easier cross platform determinism part and 
 - SeparationRayShape2D, ConcavePolygonShape3D, HeightMapShape3D, 3D joints.
 - Web exports.
 - Android exports.
-- Cross platform determinism.
 - Double builds.
 - Liquids Missing.
 - No support for asymetric collisions (eg. object 1 hitting object 2 but object 2 not hitting object 1). More info here [Rapier Collision groups and solver groups](https://rapier.rs/docs/user_guides/rust/colliders/#collision-groups-and-solver-groups). This is the exact check rapier does: `(A.layer & B.mask) != 0 && (B.layer & A.mask) != 0`
