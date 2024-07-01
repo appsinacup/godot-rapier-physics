@@ -230,11 +230,14 @@ name = "glam"
 version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9e05e7e6723e3455f4818c7b26e855439f7546cf617ef669d1adedb8669e5cb9"
+dependencies = [
+ "libm",
+]
 
 [[package]]
 name = "godot"
 version = "0.1.1"
-source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#1a59fd720bf2fa1e95d485e378067bdf76b2424b"
+source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#093d1d89ccf73e80617e0c748c75b5019fe5112d"
 dependencies = [
  "godot-core",
  "godot-macros",
@@ -243,22 +246,27 @@ dependencies = [
 [[package]]
 name = "godot-bindings"
 version = "0.1.1"
-source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#1a59fd720bf2fa1e95d485e378067bdf76b2424b"
+source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#093d1d89ccf73e80617e0c748c75b5019fe5112d"
 dependencies = [
  "gdextension-api",
+ "hashbrown",
 ]
 
 [[package]]
 name = "godot-cell"
 version = "0.1.1"
-source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#1a59fd720bf2fa1e95d485e378067bdf76b2424b"
+source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#093d1d89ccf73e80617e0c748c75b5019fe5112d"
+dependencies = [
+ "hashbrown",
+]
 
 [[package]]
 name = "godot-codegen"
 version = "0.1.1"
-source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#1a59fd720bf2fa1e95d485e378067bdf76b2424b"
+source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#093d1d89ccf73e80617e0c748c75b5019fe5112d"
 dependencies = [
  "godot-bindings",
+ "hashbrown",
  "heck",
  "nanoserde",
  "proc-macro2",
@@ -269,24 +277,26 @@ dependencies = [
 [[package]]
 name = "godot-core"
 version = "0.1.1"
-source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#1a59fd720bf2fa1e95d485e378067bdf76b2424b"
+source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#093d1d89ccf73e80617e0c748c75b5019fe5112d"
 dependencies = [
  "glam",
  "godot-bindings",
  "godot-cell",
  "godot-codegen",
  "godot-ffi",
+ "hashbrown",
  "serde",
 ]
 
 [[package]]
 name = "godot-ffi"
 version = "0.1.1"
-source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#1a59fd720bf2fa1e95d485e378067bdf76b2424b"
+source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#093d1d89ccf73e80617e0c748c75b5019fe5112d"
 dependencies = [
  "gensym",
  "godot-bindings",
  "godot-codegen",
+ "hashbrown",
  "libc",
  "paste",
 ]
@@ -294,9 +304,10 @@ dependencies = [
 [[package]]
 name = "godot-macros"
 version = "0.1.1"
-source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#1a59fd720bf2fa1e95d485e378067bdf76b2424b"
+source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#093d1d89ccf73e80617e0c748c75b5019fe5112d"
 dependencies = [
  "godot-bindings",
+ "hashbrown",
  "proc-macro2",
  "quote",
  "venial",
@@ -536,9 +547,9 @@ checksum = "3fdb12b2476b595f9358c5161aa467c2438859caa136dec86c26fdd2efe17b92"
 
 [[package]]
 name = "ordered-float"
-version = "4.2.0"
+version = "4.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a76df7075c7d4d01fdcb46c912dd17fba5b60c78ea480b475f2b6ab6f666584e"
+checksum = "19ff2cf528c6c03d9ed653d6c4ce1dc0582dc4af309790ad92f07c1cd551b0be"
 dependencies = [
  "num-traits",
 ]
@@ -670,7 +681,7 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.21.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#0089365e661bf487073e58e4e800894dc4e4fc41"
+source = "git+https://github.com/dimforge/rapier?branch=master#66b6b55ea21b6b43fd1870dba0fab3cc96a3fa4b"
 dependencies = [
  "approx",
  "arrayvec",
@@ -696,7 +707,7 @@ dependencies = [
 [[package]]
 name = "rapier2d-f64"
 version = "0.21.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#0089365e661bf487073e58e4e800894dc4e4fc41"
+source = "git+https://github.com/dimforge/rapier?branch=master#66b6b55ea21b6b43fd1870dba0fab3cc96a3fa4b"
 dependencies = [
  "approx",
  "arrayvec",
@@ -722,7 +733,7 @@ dependencies = [
 [[package]]
 name = "rapier3d"
 version = "0.21.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#0089365e661bf487073e58e4e800894dc4e4fc41"
+source = "git+https://github.com/dimforge/rapier?branch=master#66b6b55ea21b6b43fd1870dba0fab3cc96a3fa4b"
 dependencies = [
  "approx",
  "arrayvec",
@@ -748,7 +759,7 @@ dependencies = [
 [[package]]
 name = "rapier3d-f64"
 version = "0.21.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#0089365e661bf487073e58e4e800894dc4e4fc41"
+source = "git+https://github.com/dimforge/rapier?branch=master#66b6b55ea21b6b43fd1870dba0fab3cc96a3fa4b"
 dependencies = [
  "approx",
  "arrayvec",
@@ -907,9 +918,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.118"
+version = "1.0.119"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d947f6b3163d8857ea16c4fa0dd4840d52f3041039a85decd46867eb1abef2e4"
+checksum = "e8eddb61f0697cc3989c5d64b452f5488e2b8a60fd7d5076a3045076ffef8cb0"
 dependencies = [
  "itoa",
  "ryu",
@@ -1133,9 +1144,9 @@ dependencies = [
 
 [[package]]
 name = "wide"
-version = "0.7.24"
+version = "0.7.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a040b111774ab63a19ef46bbc149398ab372b4ccdcfd719e9814dbd7dfd76c8"
+checksum = "2caba658a80831539b30698ae9862a72db6697dfdd7151e46920f5f2755c3ce2"
 dependencies = [
  "bytemuck",
  "safe_arch",
