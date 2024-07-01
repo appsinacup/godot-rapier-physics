@@ -1,7 +1,6 @@
 use std::mem::swap;
 
 use godot::prelude::*;
-use rapier::utils::SimdBasis;
 use servers::rapier_physics_server_extra::PhysicsCollisionObjects;
 
 use super::rapier_space::RapierSpace;
@@ -40,35 +39,15 @@ impl RapierSpace {
         }
     }
 
-    pub fn collision_filter_common_callback(
-        filter_info: &CollisionFilterInfo,
-        r_colliders_info: &mut CollidersInfo,
-        physics_collision_objects: &PhysicsCollisionObjects,
-    ) -> bool {
-        (r_colliders_info.object1, r_colliders_info.shape1) =
-            RapierCollisionObject::get_collider_user_data(&filter_info.user_data1);
-        (r_colliders_info.object2, r_colliders_info.shape2) =
-            RapierCollisionObject::get_collider_user_data(&filter_info.user_data2);
-        if let Some(body1) = physics_collision_objects.get(&r_colliders_info.object1)
-            && let Some(body2) = physics_collision_objects.get(&r_colliders_info.object2)
-        {
-            return body1.get_base().interacts_with(body2.get_base());
-        }
-        false
-    }
-
     pub fn collision_filter_body_callback(
         filter_info: &CollisionFilterInfo,
         physics_collision_objects: &PhysicsCollisionObjects,
     ) -> bool {
         let mut colliders_info = CollidersInfo::default();
-        if !Self::collision_filter_common_callback(
-            filter_info,
-            &mut colliders_info,
-            physics_collision_objects,
-        ) {
-            return false;
-        }
+        (colliders_info.object1, colliders_info.shape1) =
+            RapierCollisionObject::get_collider_user_data(&filter_info.user_data1);
+        (colliders_info.object2, colliders_info.shape2) =
+            RapierCollisionObject::get_collider_user_data(&filter_info.user_data2);
         if let Some(body1) = physics_collision_objects.get(&colliders_info.object1)
             && let Some(body1) = body1.get_body()
             && let Some(body2) = physics_collision_objects.get(&colliders_info.object2)
@@ -79,18 +58,6 @@ impl RapierSpace {
             return false;
         }
         true
-    }
-
-    pub fn collision_filter_sensor_callback(
-        filter_info: &CollisionFilterInfo,
-        physics_collision_objects: &PhysicsCollisionObjects,
-    ) -> bool {
-        let mut colliders_info = CollidersInfo::default();
-        Self::collision_filter_common_callback(
-            filter_info,
-            &mut colliders_info,
-            physics_collision_objects,
-        )
     }
 
     pub fn collision_modify_contacts_callback(
@@ -107,8 +74,7 @@ impl RapierSpace {
         {
             let collision_base_1 = collision_object_1.get_base();
             let collision_base_2 = collision_object_2.get_base();
-            if collision_base_1.interacts_with(collision_base_2)
-                && !collision_base_1.is_shape_disabled(shape1)
+            if !collision_base_1.is_shape_disabled(shape1)
                 && !collision_base_2.is_shape_disabled(shape2)
             {
                 result.body1 = collision_base_1.is_shape_set_as_one_way_collision(shape1);
@@ -374,10 +340,8 @@ impl RapierSpace {
         {
             let depth = real::max(0.0, -contact_info.pixel_distance); // negative distance means penetration
             let normal = contact_info.normal;
-            // TODO calculate impulse for 2d and 3d
-            let tangent = contact_info.normal.orthonormal_vector();
-            let impulse = contact_info.pixel_impulse * normal
-                + contact_info.pixel_tangent_impulse.x * tangent;
+            // send just impulse directly along normal
+            let impulse = contact_info.pixel_impulse * vector_to_godot(normal);
             let vel_pos1 = contact_info.pixel_velocity_pos_1;
             let vel_pos2 = contact_info.pixel_velocity_pos_2;
             if let Some(body1) = p_object1.get_mut_body() {
@@ -412,7 +376,7 @@ impl RapierSpace {
                             instance_id2,
                             body2.get_base().get_rid(),
                             vector_to_godot(vel_pos2),
-                            vector_to_godot(impulse),
+                            impulse,
                         );
                     }
                     if body2.can_report_contacts() {
@@ -429,7 +393,7 @@ impl RapierSpace {
                             instance_id1,
                             body1.get_base().get_rid(),
                             vector_to_godot(vel_pos1),
-                            vector_to_godot(impulse),
+                            -impulse,
                         );
                     }
                 }

@@ -440,6 +440,33 @@ impl RapierBody {
         space.body_add_to_area_update_list(self.base.get_rid());
     }
 
+    pub fn apply_area_orverride_to_body(
+        body: &Rid,
+        physics_engine: &mut PhysicsEngine,
+        physics_spaces: &mut PhysicsSpaces,
+        physics_collision_objects: &mut PhysicsCollisionObjects,
+    ) {
+        let mut area_override_settings = None;
+        if let Some(body) = physics_collision_objects.get(body) {
+            if let Some(body) = body.get_body() {
+                area_override_settings = Some(
+                    body.get_area_override_settings(physics_spaces, physics_collision_objects),
+                );
+            }
+        }
+        if let Some(area_override_settings) = area_override_settings {
+            if let Some(body) = physics_collision_objects.get_mut(body) {
+                if let Some(body) = body.get_mut_body() {
+                    body.apply_area_override(
+                        area_override_settings,
+                        physics_engine,
+                        physics_spaces,
+                    );
+                }
+            }
+        }
+    }
+
     pub fn get_area_override_settings(
         &self,
         physics_spaces: &mut PhysicsSpaces,
@@ -462,7 +489,8 @@ impl RapierBody {
         let mut linear_damping_done = self.linear_damping_mode == BodyDampMode::REPLACE;
         let mut angular_damping_done = self.angular_damping_mode == BodyDampMode::REPLACE;
         let origin = self.get_base().get_transform().origin;
-        if ac > 0 {
+        // only compute if we don't omit force integration
+        if ac > 0 && !self.omit_force_integration {
             let mut areas = self.areas.clone();
             areas.reverse();
             for area_rid in areas.iter() {
@@ -548,8 +576,13 @@ impl RapierBody {
             }
         }
         // Override or combine damping with body's values.
-        total_linear_damping += self.linear_damping;
-        total_angular_damping += self.angular_damping;
+        if !self.omit_force_integration {
+            total_linear_damping += self.linear_damping;
+            total_angular_damping += self.angular_damping;
+        } else {
+            linear_damping_done = true;
+            angular_damping_done = true;
+        }
         AreaOverrideSettings {
             using_area_gravity,
             using_area_linear_damping,
@@ -597,8 +630,16 @@ impl RapierBody {
             physics_engine,
             physics_spaces,
         );
+        if self.omit_force_integration || self.using_area_gravity {
+            self.apply_gravity_scale(0.0, physics_engine);
+        } else {
+            // Enable simulation gravity.
+            self.apply_gravity_scale(self.gravity_scale, physics_engine);
+        }
         if let Some(space) = physics_spaces.get_mut(&self.base.get_space()) {
-            if self.using_area_gravity {
+            if self.omit_force_integration {
+                space.body_remove_from_gravity_update_list(self.base.get_rid());
+            } else if self.using_area_gravity {
                 // Add default gravity from space.
                 if !gravity_done {
                     self.total_gravity += space.get_default_area_param(AreaParameter::GRAVITY).to();
@@ -606,11 +647,8 @@ impl RapierBody {
                 // Apply gravity scale to computed value.
                 self.total_gravity *= self.gravity_scale;
                 // Disable simulation gravity and apply it manually instead.
-                self.apply_gravity_scale(0.0, physics_engine);
                 space.body_add_to_gravity_update_list(self.base.get_rid());
             } else {
-                // Enable simulation gravity.
-                self.apply_gravity_scale(self.gravity_scale, physics_engine);
                 space.body_remove_from_gravity_update_list(self.base.get_rid());
             }
         }
@@ -1326,6 +1364,7 @@ impl RapierBody {
         p_variant: Variant,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
+        physics_shapes: &mut PhysicsShapes,
     ) {
         match p_state {
             BodyState::TRANSFORM => {
@@ -1339,8 +1378,13 @@ impl RapierBody {
                     godot_error!("Invalid body data.");
                     return;
                 }
+                let old_scale = transform_scale(&self.base.get_transform());
                 let transform = p_variant.to();
+                let new_scale = transform_scale(&transform);
                 self.base.set_transform(transform, true, physics_engine);
+                if old_scale != new_scale {
+                    self.recreate_shapes(physics_engine, physics_shapes, physics_spaces);
+                }
             }
             BodyState::LINEAR_VELOCITY => {
                 #[cfg(feature = "dim2")]
@@ -1682,8 +1726,11 @@ impl RapierBody {
         self.contact_count
     }
 
-    pub fn contacts(&self) -> &Vec<Contact> {
-        &self.contacts
+    pub fn contacts(&self) -> Vec<&Contact> {
+        self.contacts
+            .iter()
+            .take(self.contact_count as usize)
+            .collect()
     }
 
     fn set_space_before(&mut self, physics_spaces: &mut PhysicsSpaces) {
@@ -1715,22 +1762,28 @@ impl RapierBody {
                 self.force_sleep(physics_engine);
             }
             if self.base.mode.ord() >= BodyMode::RIGID.ord() {
-                self.apply_gravity_scale(self.gravity_scale, physics_engine);
-                if self.linear_damping_mode == BodyDampMode::COMBINE {
-                    self.apply_linear_damping(
-                        self.linear_damping,
-                        true,
-                        physics_engine,
-                        physics_spaces,
-                    );
-                }
-                if self.angular_damping_mode == BodyDampMode::COMBINE {
-                    self.apply_angular_damping(
-                        self.angular_damping,
-                        true,
-                        physics_engine,
-                        physics_spaces,
-                    );
+                if self.omit_force_integration {
+                    self.apply_gravity_scale(0.0, physics_engine);
+                    self.apply_linear_damping(0.0, false, physics_engine, physics_spaces);
+                    self.apply_linear_damping(0.0, false, physics_engine, physics_spaces);
+                } else {
+                    self.apply_gravity_scale(self.gravity_scale, physics_engine);
+                    if self.linear_damping_mode == BodyDampMode::COMBINE {
+                        self.apply_linear_damping(
+                            self.linear_damping,
+                            true,
+                            physics_engine,
+                            physics_spaces,
+                        );
+                    }
+                    if self.angular_damping_mode == BodyDampMode::COMBINE {
+                        self.apply_angular_damping(
+                            self.angular_damping,
+                            true,
+                            physics_engine,
+                            physics_spaces,
+                        );
+                    }
                 }
                 self.mass_properties_changed(physics_engine, physics_spaces);
                 if self.linear_velocity != Vector::default() {
@@ -1801,7 +1854,7 @@ impl IRapierCollisionObject for RapierBody {
         }
         self.set_space_before(physics_spaces);
         self.base.set_space(space, physics_engine, physics_spaces);
-        self.recreate_shapes(physics_engine, physics_shapes);
+        self.recreate_shapes(physics_engine, physics_shapes, physics_spaces);
         self.set_space_after(physics_engine, physics_spaces);
     }
 
@@ -1920,7 +1973,7 @@ impl IRapierCollisionObject for RapierBody {
         physics_engine: &mut PhysicsEngine,
         physics_shapes: &mut PhysicsShapes,
     ) -> ColliderHandle {
-        if !self.base.is_space_valid() {
+        if !self.base.is_valid() {
             return ColliderHandle::invalid();
         }
         let mat = self.init_material();
@@ -1935,8 +1988,17 @@ impl IRapierCollisionObject for RapierBody {
         &mut self,
         physics_engine: &mut PhysicsEngine,
         physics_shapes: &mut PhysicsShapes,
+        physics_spaces: &mut PhysicsSpaces,
     ) {
-        RapierCollisionObject::recreate_shapes(self, physics_engine, physics_shapes);
+        if !self.base.is_valid() {
+            return;
+        }
+        RapierCollisionObject::recreate_shapes(
+            self,
+            physics_engine,
+            physics_shapes,
+            physics_spaces,
+        );
     }
 
     fn init_material(&self) -> Material {
@@ -1944,6 +2006,8 @@ impl IRapierCollisionObject for RapierBody {
             friction: self.friction,
             restitution: self.bounce,
             contact_skin: self.contact_skin,
+            collision_layer: self.base.get_collision_layer(),
+            collision_mask: self.base.get_collision_mask(),
         }
     }
 

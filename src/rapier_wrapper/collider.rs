@@ -133,7 +133,7 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
         ShapeType::Compound => {
             if let Some(new_shape) = shape.as_compound() {
                 let new_shapes = new_shape.shapes();
-                let mut shapes_vec = Vec::<(Isometry<Real>, SharedShape)>::new();
+                let mut shapes_vec = Vec::new();
                 for shape in new_shapes {
                     let new_shape = scale_shape(&shape.1, shape_info);
                     shapes_vec.push((shape.0, new_shape));
@@ -150,7 +150,7 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
 #[cfg(feature = "dim3")]
 pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
     let scale = shape_info.scale;
-    if scale.x == 1.0 && scale.y == 1.0 {
+    if scale.x == 1.0 && scale.y == 1.0 && scale.z == 1.0 {
         return shape.clone();
     }
     match shape.shape_type() {
@@ -219,12 +219,18 @@ pub struct Material {
     pub friction: Real,
     pub restitution: Real,
     pub contact_skin: Real,
+    pub collision_mask: u32,
+    pub collision_layer: u32,
 }
-pub fn default_material() -> Material {
-    Material {
-        friction: 1.0,
-        restitution: 0.0,
-        contact_skin: 0.0,
+impl Material {
+    pub fn new(collision_layer: u32, collision_mask: u32) -> Material {
+        Material {
+            friction: -1.0,
+            restitution: -1.0,
+            contact_skin: -1.0,
+            collision_layer,
+            collision_mask,
+        }
     }
 }
 fn shape_is_halfspace(shape: &SharedShape) -> bool {
@@ -263,10 +269,9 @@ impl PhysicsEngine {
             collider.set_friction_combine_rule(CoefficientCombineRule::Multiply);
             collider.set_restitution_combine_rule(CoefficientCombineRule::Max);
             collider.set_density(0.0);
-            // less data to serialize
             collider.set_collision_groups(InteractionGroups {
-                memberships: Group::GROUP_1,
-                filter: Group::GROUP_1,
+                memberships: Group::from(mat.collision_layer),
+                filter: Group::from(mat.collision_mask),
             });
             collider.set_solver_groups(InteractionGroups {
                 memberships: Group::GROUP_1,

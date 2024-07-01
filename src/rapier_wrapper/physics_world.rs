@@ -3,6 +3,7 @@ use std::num::NonZeroUsize;
 use godot::log::godot_print;
 use rapier::crossbeam;
 use rapier::data::Arena;
+use rapier::math::DEFAULT_EPSILON;
 use rapier::prelude::*;
 use salva::integrations::rapier::FluidsPipeline;
 
@@ -101,7 +102,6 @@ impl PhysicsWorld {
         &mut self,
         settings: &SimulationSettings,
         collision_filter_body_callback: CollisionFilterCallback,
-        collision_filter_sensor_callback: CollisionFilterCallback,
         collision_modify_contacts_callback: CollisionModifyContactsCallback,
         space: &mut RapierSpace,
         physics_collision_objects: &mut PhysicsCollisionObjects,
@@ -121,7 +121,6 @@ impl PhysicsWorld {
         let liquid_gravity = settings.pixel_liquid_gravity;
         let physics_hooks = PhysicsHooksCollisionFilter {
             collision_filter_body_callback: &collision_filter_body_callback,
-            collision_filter_sensor_callback: &collision_filter_sensor_callback,
             collision_modify_contacts_callback: &collision_modify_contacts_callback,
             physics_collision_objects,
         };
@@ -223,6 +222,9 @@ impl PhysicsWorld {
                     contact_info.normal = manifold_normal;
                     // Read the geometric contacts.
                     for contact_point in &manifold.points {
+                        if contact_point.dist > DEFAULT_EPSILON {
+                            continue;
+                        }
                         let collider_pos_1 = collider1.position() * contact_point.local_p1;
                         let collider_pos_2 = collider2.position() * contact_point.local_p2;
                         let point_velocity_1 = body1.velocity_at_point(&collider_pos_1);
@@ -456,7 +458,6 @@ impl PhysicsEngine {
         world_handle: WorldHandle,
         settings: &SimulationSettings,
         collision_filter_body_callback: CollisionFilterCallback,
-        collision_filter_sensor_callback: CollisionFilterCallback,
         collision_modify_contacts_callback: CollisionModifyContactsCallback,
         space: &mut RapierSpace,
         physics_collision_objects: &mut PhysicsCollisionObjects,
@@ -465,7 +466,6 @@ impl PhysicsEngine {
             physics_world.step(
                 settings,
                 collision_filter_body_callback,
-                collision_filter_sensor_callback,
                 collision_modify_contacts_callback,
                 space,
                 physics_collision_objects,

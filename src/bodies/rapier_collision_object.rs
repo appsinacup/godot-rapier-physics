@@ -32,6 +32,7 @@ pub trait IRapierCollisionObject: Sync {
         &mut self,
         physics_engine: &mut PhysicsEngine,
         physics_shapes: &mut PhysicsShapes,
+        physics_spaces: &mut PhysicsSpaces,
     );
     fn add_shape(
         &mut self,
@@ -149,7 +150,6 @@ pub struct RapierCollisionObject {
     inv_transform: Transform,
     collision_mask: u32,
     collision_layer: u32,
-    collision_priority: real,
     // TODO serialize this
     #[cfg_attr(feature = "serde-serialize", serde(skip))]
     pub(crate) mode: BodyMode,
@@ -180,7 +180,6 @@ impl RapierCollisionObject {
             inv_transform: Transform::default(),
             collision_mask: 1,
             collision_layer: 1,
-            collision_priority: 1.0,
             mode,
             body_handle: RigidBodyHandle::invalid(),
             space_handle: WorldHandle::default(),
@@ -312,7 +311,15 @@ impl RapierCollisionObject {
                 godot_error!("Rapier shape is invalid");
                 return;
             }
-            let shape_info = shape_info_from_body_shape(shape_handle, shape.xform);
+            let scale = transform_scale(&self.transform);
+            let mut shape_info = shape_info_from_body_shape(shape_handle, shape.xform);
+            shape_info.scale = vector_to_rapier(vector_to_godot(shape_info.scale) * scale);
+            let position = shape_info
+                .transform
+                .translation
+                .vector
+                .component_mul(&vector_to_rapier(scale));
+            shape_info.transform.translation.vector = position;
             physics_engine.collider_set_transform(
                 self.space_handle,
                 shape.collider_handle,
@@ -530,31 +537,28 @@ impl RapierCollisionObject {
         0.0
     }
 
-    pub fn set_collision_mask(&mut self, p_mask: u32) {
+    pub fn set_collision_mask(&mut self, p_mask: u32, physics_engine: &mut PhysicsEngine) {
         self.collision_mask = p_mask;
+        if self.is_valid() {
+            let material = Material::new(self.collision_layer, self.collision_mask);
+            physics_engine.body_update_material(self.space_handle, self.body_handle, &material);
+        }
     }
 
     pub fn get_collision_mask(&self) -> u32 {
         self.collision_mask
     }
 
-    pub fn set_collision_layer(&mut self, p_layer: u32) {
+    pub fn set_collision_layer(&mut self, p_layer: u32, physics_engine: &mut PhysicsEngine) {
         self.collision_layer = p_layer;
+        if self.is_valid() {
+            let material = Material::new(self.collision_layer, self.collision_mask);
+            physics_engine.body_update_material(self.space_handle, self.body_handle, &material);
+        }
     }
 
     pub fn get_collision_layer(&self) -> u32 {
         self.collision_layer
-    }
-
-    pub fn set_collision_priority(&mut self, p_priority: real) {
-        if p_priority < 0.0 {
-            return;
-        }
-        self.collision_priority = p_priority;
-    }
-
-    pub fn get_collision_priority(&self) -> real {
-        self.collision_priority
     }
 
     pub fn get_mode(&self) -> BodyMode {
@@ -563,11 +567,6 @@ impl RapierCollisionObject {
 
     pub fn set_pickable(&mut self, p_pickable: bool) {
         self.pickable = p_pickable;
-    }
-
-    pub fn interacts_with(&self, p_other: &RapierCollisionObject) -> bool {
-        self.collision_layer & p_other.collision_mask != 0
-            || p_other.collision_layer & self.collision_mask != 0
     }
 
     pub fn destroy_body(&mut self, physics_engine: &mut PhysicsEngine) {

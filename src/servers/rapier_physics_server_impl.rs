@@ -486,7 +486,8 @@ impl RapierPhysicsServerImpl {
 
     pub(super) fn area_set_collision_layer(&mut self, area: Rid, layer: u32) {
         if let Some(area) = self.physics_data.collision_objects.get_mut(&area) {
-            area.get_mut_base().set_collision_layer(layer);
+            area.get_mut_base()
+                .set_collision_layer(layer, &mut self.physics_data.physics_engine);
         }
     }
 
@@ -499,7 +500,8 @@ impl RapierPhysicsServerImpl {
 
     pub(super) fn area_set_collision_mask(&mut self, area: Rid, mask: u32) {
         if let Some(area) = self.physics_data.collision_objects.get_mut(&area) {
-            area.get_mut_base().set_collision_mask(mask);
+            area.get_mut_base()
+                .set_collision_mask(mask, &mut self.physics_data.physics_engine);
         }
     }
 
@@ -584,26 +586,12 @@ impl RapierPhysicsServerImpl {
                 &mut self.physics_data.spaces,
             );
         }
-        let mut area_override_settings = None;
-        if let Some(body) = self.physics_data.collision_objects.get(&body)
-            && let Some(body) = body.get_body()
-        {
-            area_override_settings = Some(body.get_area_override_settings(
-                &mut self.physics_data.spaces,
-                &self.physics_data.collision_objects,
-            ));
-        }
-        if let Some(body) = self.physics_data.collision_objects.get_mut(&body)
-            && let Some(body) = body.get_mut_body()
-        {
-            if let Some(area_override_settings) = area_override_settings {
-                body.apply_area_override(
-                    area_override_settings,
-                    &mut self.physics_data.physics_engine,
-                    &mut self.physics_data.spaces,
-                );
-            }
-        }
+        RapierBody::apply_area_orverride_to_body(
+            &body,
+            &mut self.physics_data.physics_engine,
+            &mut self.physics_data.spaces,
+            &mut self.physics_data.collision_objects,
+        );
     }
 
     pub(super) fn body_get_mode(&self, body: Rid) -> BodyMode {
@@ -829,7 +817,8 @@ impl RapierPhysicsServerImpl {
 
     pub(super) fn body_set_collision_layer(&mut self, body: Rid, layer: u32) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
-            body.get_mut_base().set_collision_layer(layer);
+            body.get_mut_base()
+                .set_collision_layer(layer, &mut self.physics_data.physics_engine);
         }
     }
 
@@ -842,7 +831,8 @@ impl RapierPhysicsServerImpl {
 
     pub(super) fn body_set_collision_mask(&mut self, body: Rid, mask: u32) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
-            body.get_mut_base().set_collision_mask(mask);
+            body.get_mut_base()
+                .set_collision_mask(mask, &mut self.physics_data.physics_engine);
         }
     }
 
@@ -853,16 +843,9 @@ impl RapierPhysicsServerImpl {
         0
     }
 
-    pub(super) fn body_set_collision_priority(&mut self, body: Rid, priority: f32) {
-        if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
-            body.get_mut_base().set_collision_priority(priority);
-        }
-    }
+    pub(super) fn body_set_collision_priority(&mut self, _body: Rid, _priority: f32) {}
 
-    pub(super) fn body_get_collision_priority(&self, body: Rid) -> f32 {
-        if let Some(body) = self.physics_data.collision_objects.get(&body) {
-            return body.get_base().get_collision_priority();
-        }
+    pub(super) fn body_get_collision_priority(&self, _body: Rid) -> f32 {
         0.0
     }
 
@@ -907,6 +890,7 @@ impl RapierPhysicsServerImpl {
                     value,
                     &mut self.physics_data.physics_engine,
                     &mut self.physics_data.spaces,
+                    &mut self.physics_data.shapes,
                 );
             }
         }
@@ -1161,6 +1145,12 @@ impl RapierPhysicsServerImpl {
                 body.set_omit_force_integration(enable);
             }
         }
+        RapierBody::apply_area_orverride_to_body(
+            &body,
+            &mut self.physics_data.physics_engine,
+            &mut self.physics_data.spaces,
+            &mut self.physics_data.collision_objects,
+        );
     }
 
     pub(super) fn body_is_omitting_force_integration(&self, body: Rid) -> bool {
@@ -1354,11 +1344,14 @@ impl RapierPhysicsServerImpl {
                 body_b,
                 &mut self.physics_data.physics_engine,
             ));
-            if let Some(prev_joint) = self.physics_data.joints.remove(&rid) {
+            if let Some(mut prev_joint) = self.physics_data.joints.remove(&rid) {
                 joint.get_mut_base().copy_settings_from(
                     prev_joint.get_base(),
                     &mut self.physics_data.physics_engine,
                 );
+                prev_joint
+                    .get_mut_base()
+                    .destroy_joint(&mut self.physics_data.physics_engine);
             }
         } else {
             joint = Box::new(RapierEmptyJoint::new());
@@ -1388,11 +1381,14 @@ impl RapierPhysicsServerImpl {
                 body_b,
                 &mut self.physics_data.physics_engine,
             ));
-            if let Some(prev_joint) = self.physics_data.joints.remove(&rid) {
+            if let Some(mut prev_joint) = self.physics_data.joints.remove(&rid) {
                 joint.get_mut_base().copy_settings_from(
                     prev_joint.get_base(),
                     &mut self.physics_data.physics_engine,
                 );
+                prev_joint
+                    .get_mut_base()
+                    .destroy_joint(&mut self.physics_data.physics_engine);
             }
         } else {
             joint = Box::new(RapierEmptyJoint::new());
@@ -1420,11 +1416,14 @@ impl RapierPhysicsServerImpl {
                 body_b,
                 &mut self.physics_data.physics_engine,
             ));
-            if let Some(prev_joint) = self.physics_data.joints.remove(&rid) {
+            if let Some(mut prev_joint) = self.physics_data.joints.remove(&rid) {
                 joint.get_mut_base().copy_settings_from(
                     prev_joint.get_base(),
                     &mut self.physics_data.physics_engine,
                 );
+                prev_joint
+                    .get_mut_base()
+                    .destroy_joint(&mut self.physics_data.physics_engine);
             }
         } else {
             joint = Box::new(RapierEmptyJoint::new());

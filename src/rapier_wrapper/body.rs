@@ -219,6 +219,10 @@ impl PhysicsEngine {
                     if mat.contact_skin >= 0.0 {
                         col.set_contact_skin(mat.contact_skin);
                     }
+                    col.set_collision_groups(InteractionGroups {
+                        memberships: Group::from(mat.collision_layer),
+                        filter: Group::from(mat.collision_mask),
+                    });
                 }
             }
         }
