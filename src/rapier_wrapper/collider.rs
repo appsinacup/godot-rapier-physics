@@ -268,7 +268,7 @@ impl PhysicsEngine {
             }
             collider.set_friction_combine_rule(CoefficientCombineRule::Multiply);
             collider.set_restitution_combine_rule(CoefficientCombineRule::Max);
-            collider.set_density(1.0);
+            collider.set_density(0.0);
             collider.set_collision_groups(InteractionGroups {
                 memberships: Group::from(mat.collision_layer),
                 filter: Group::from(mat.collision_mask),
