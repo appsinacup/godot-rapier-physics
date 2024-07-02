@@ -1504,6 +1504,12 @@ impl RapierPhysicsServerImpl {
         JointType::MAX
     }
 
+    fn reset_space_if_empty(&mut self, space: Rid) {
+        if let Some(space) = self.physics_data.spaces.get_mut(&space) {
+            space.reset_space_if_empty(&mut self.physics_data.physics_engine);
+        }
+    }
+
     pub(super) fn free_rid(&mut self, rid: Rid) {
         if let Some(mut shape) = self.physics_data.shapes.remove(&rid) {
             for (owner, _) in shape.get_base().get_owners() {
@@ -1522,6 +1528,7 @@ impl RapierPhysicsServerImpl {
             return;
         }
         if let Some(mut body) = self.physics_data.collision_objects.remove(&rid) {
+            let space = body.get_base().get_space();
             body.set_space(
                 Rid::Invalid,
                 &mut self.physics_data.physics_engine,
@@ -1538,6 +1545,7 @@ impl RapierPhysicsServerImpl {
             }
             body.get_mut_base()
                 .destroy_body(&mut self.physics_data.physics_engine);
+            self.reset_space_if_empty(space);
             return;
         }
         if let Some(mut space) = self.physics_data.spaces.remove(&rid) {
@@ -1556,6 +1564,7 @@ impl RapierPhysicsServerImpl {
             joint
                 .get_mut_base()
                 .destroy_joint(&mut self.physics_data.physics_engine);
+            self.reset_space_if_empty(joint.get_base().get_space());
             return;
         }
         if let Some(mut fluid) = self.physics_data.fluids.remove(&rid) {

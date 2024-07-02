@@ -86,7 +86,7 @@ impl RapierPhysicsServer {
         };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         let values = physics_data.joints.values().clone().collect::<Vec<_>>();
-        match serde_json::to_string(&values) {
+        match serde_json::to_string_pretty(&values) {
             Ok(s) => s,
             Err(err) => {
                 godot_error!("{}", err);
@@ -105,7 +105,7 @@ impl RapierPhysicsServer {
         };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         if let Some(joint) = physics_data.joints.get(&joint) {
-            match serde_json::to_string(&joint) {
+            match serde_json::to_string_pretty(&joint) {
                 Ok(s) => {
                     return s;
                 }
@@ -128,7 +128,7 @@ impl RapierPhysicsServer {
         };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         let values = physics_data.shapes.values().clone().collect::<Vec<_>>();
-        match serde_json::to_string(&values) {
+        match serde_json::to_string_pretty(&values) {
             Ok(s) => s,
             Err(err) => {
                 godot_error!("{}", err);
@@ -147,7 +147,7 @@ impl RapierPhysicsServer {
         };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         if let Some(shape) = physics_data.shapes.get(&shape) {
-            match serde_json::to_string(&shape) {
+            match serde_json::to_string_pretty(&shape) {
                 Ok(s) => {
                     return s;
                 }
@@ -162,24 +162,6 @@ impl RapierPhysicsServer {
 
     #[cfg(feature = "serde-serialize")]
     #[func]
-    fn spaces_export_json() -> String {
-        let Ok(mut physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
-        else {
-            return "{}".to_string();
-        };
-        let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
-        let values = physics_data.spaces.values().clone().collect::<Vec<_>>();
-        let values = values
-            .iter()
-            .map(|space| space.export_json(&mut physics_data.physics_engine))
-            .collect::<Vec<_>>()
-            .join("},{");
-        format!("[{{{}}}]", values)
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    #[func]
     fn space_export_json(space: Rid) -> String {
         let Ok(mut physics_singleton) =
             PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
@@ -188,15 +170,7 @@ impl RapierPhysicsServer {
         };
         let physics_data = &mut physics_singleton.bind_mut().implementation.physics_data;
         if let Some(space) = physics_data.spaces.get(&space) {
-            match serde_json::to_string(&space) {
-                Ok(s) => {
-                    return s;
-                }
-                Err(err) => {
-                    godot_error!("{}", err);
-                    return "{}".to_string();
-                }
-            }
+            return space.export_json(&mut physics_data.physics_engine);
         }
         "{}".to_string()
     }
@@ -214,7 +188,7 @@ impl RapierPhysicsServer {
             .values()
             .clone()
             .collect::<Vec<_>>();
-        //match serde_json::to_string(&values) {
+        //match serde_json::to_string_pretty(&values) {
         //    Ok(s) => s,
         //    Err(err) => {
         //        godot_error!("{}", err);

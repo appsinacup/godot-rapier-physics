@@ -379,8 +379,8 @@ impl PhysicsEngine {
         body_handle: RigidBodyHandle,
         mass: Real,
         inertia: AngVector<Real>,
-        local_com: Vector<Real>,
-        wake_up: bool,
+        _local_com: Vector<Real>,
+        _wake_up: bool,
         force_update: bool,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
@@ -392,7 +392,7 @@ impl PhysicsEngine {
             let colliders = body.colliders();
             let current_mass = body.mass();
             let mass_multiple = mass / current_mass;
-            let colliders_len_inv = 1.0 / (colliders.len() as f32);
+            let _colliders_len_inv = 1.0 / (colliders.len() as f32);
             for collider in colliders {
                 if let Some(collider) = physics_world
                     .physics_objects
@@ -402,13 +402,15 @@ impl PhysicsEngine {
                     // reuse local center
                     let mass_properties = collider.shape().mass_properties(1.0);
                     let local_com = mass_properties.local_com;
+                    //let shape_inertia = mass_properties.inv_principal_inertia_sqrt;
                     let collider_mass = collider.mass();
-                    let mass_properties = MassProperties::new(
+                    let _mass_properties = MassProperties::new(
                         local_com,
                         collider_mass * mass_multiple,
-                        inertia * colliders_len_inv,
+                        inertia, // * colliders_len_inv,
                     );
-                    collider.set_mass_properties(mass_properties)
+                    //collider.set_mass_properties(mass_properties);
+                    collider.set_mass(collider_mass * mass_multiple);
                 }
             }
             if force_update {

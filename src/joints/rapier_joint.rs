@@ -33,14 +33,25 @@ pub struct RapierJointBase {
     max_force: f32,
     handle: ImpulseJointHandle,
     space_handle: WorldHandle,
+    space_rid: Rid,
     disabled_collisions_between_bodies: bool,
 }
+impl Default for RapierJointBase {
+    fn default() -> Self {
+        Self::new(
+            WorldHandle::default(),
+            Rid::Invalid,
+            ImpulseJointHandle::invalid(),
+        )
+    }
+}
 impl RapierJointBase {
-    pub fn new(space_handle: WorldHandle, handle: ImpulseJointHandle) -> Self {
+    pub fn new(space_handle: WorldHandle, space_rid: Rid, handle: ImpulseJointHandle) -> Self {
         Self {
             max_force: f32::MAX,
             handle,
             space_handle,
+            space_rid,
             disabled_collisions_between_bodies: true,
         }
     }
@@ -51,6 +62,10 @@ impl RapierJointBase {
 
     pub fn get_space_handle(&self) -> WorldHandle {
         self.space_handle
+    }
+
+    pub fn get_space(&self) -> Rid {
+        self.space_rid
     }
 
     pub fn set_max_force(&mut self, force: f32) {
@@ -111,7 +126,11 @@ pub struct RapierEmptyJoint {
 impl RapierEmptyJoint {
     pub fn new() -> Self {
         Self {
-            base: RapierJointBase::new(WorldHandle::default(), ImpulseJointHandle::invalid()),
+            base: RapierJointBase::new(
+                WorldHandle::default(),
+                Rid::Invalid,
+                ImpulseJointHandle::invalid(),
+            ),
         }
     }
 }

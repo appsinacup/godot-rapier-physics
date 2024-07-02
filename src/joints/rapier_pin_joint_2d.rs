@@ -1,6 +1,5 @@
 use godot::classes::*;
 use godot::prelude::*;
-use rapier::dynamics::ImpulseJointHandle;
 use rapier::math::Vector;
 
 use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
@@ -33,7 +32,7 @@ impl RapierPinJoint2D {
             motor_target_velocity: 0.0,
             motor_enabled: false,
             angular_limit_enabled: false,
-            base: RapierJointBase::new(WorldHandle::default(), ImpulseJointHandle::invalid()),
+            base: RapierJointBase::default(),
         };
         let body_a_rid = body_a.get_base().get_rid();
         let body_b_rid = body_b.get_base().get_rid();
@@ -51,6 +50,7 @@ impl RapierPinJoint2D {
         let rapier_anchor_a = Vector::new(anchor_a.x, anchor_a.y);
         let rapier_anchor_b = Vector::new(anchor_b.x, anchor_b.y);
         let space_handle = body_a.get_base().get_space_handle();
+        let space_rid = body_a.get_base().get_space();
         let handle = physics_engine.joint_create_revolute(
             space_handle,
             body_a.get_base().get_body_handle(),
@@ -70,7 +70,7 @@ impl RapierPinJoint2D {
             motor_target_velocity: 0.0,
             motor_enabled: false,
             angular_limit_enabled: false,
-            base: RapierJointBase::new(space_handle, handle),
+            base: RapierJointBase::new(space_handle, space_rid, handle),
         }
     }
 
