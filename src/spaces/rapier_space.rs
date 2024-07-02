@@ -19,6 +19,11 @@ use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_project_settings::*;
 use crate::types::*;
 use crate::*;
+#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
+pub struct SpaceExport<'a> {
+    pub inner: &'a PhysicsObjects,
+    pub space: &'a RapierSpace,
+}
 #[cfg_attr(
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
@@ -453,22 +458,46 @@ impl RapierSpace {
 
     #[cfg(feature = "serde-serialize")]
     pub fn export_json(&self, physics_engine: &mut PhysicsEngine) -> String {
-        let inner = physics_engine
-            .world_export_json(self.handle)
-            .unwrap_or("{}".to_string());
-        let space = serde_json::to_string(&self).unwrap_or("{}".to_string());
-        format!("{{ \"space\": {}, \"inner\": {} }}", space, inner)
+        if let Some(inner) = physics_engine.world_export(self.handle) {
+            let space_export = SpaceExport { inner, space: self };
+            match serde_json::to_string_pretty(&space_export) {
+                Ok(s) => return s,
+                Err(e) => {
+                    godot_error!("Failed to serialize space: {}", e);
+                }
+            }
+        }
+        "{}".to_string()
     }
 
     #[cfg(feature = "serde-serialize")]
     pub fn export_binary(&self, physics_engine: &mut PhysicsEngine) -> PackedByteArray {
         let mut buf = PackedByteArray::new();
-        let binary_data = physics_engine.world_export_binary(self.handle);
-        buf.resize(binary_data.len());
-        for i in 0..binary_data.len() {
-            buf[i] = binary_data[i];
+        if let Some(inner) = physics_engine.world_export(self.handle) {
+            let space_export = SpaceExport { inner, space: self };
+            let binary_data = bincode::serialize(&space_export);
+            if binary_data.is_err() {
+                godot_error!("Failed to serialize space: {}", binary_data.err().unwrap());
+            } else {
+                let binary_data = binary_data.unwrap();
+                buf.resize(binary_data.len());
+                for i in 0..binary_data.len() {
+                    buf[i] = binary_data[i];
+                }
+            }
         }
         buf
+    }
+
+    pub fn reset_space_if_empty(&mut self, physics_engine: &mut PhysicsEngine) {
+        if self.is_valid() {
+            let world_settings = WorldSettings {
+                particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
+                smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
+                counters_enabled: false,
+            };
+            physics_engine.world_reset_if_empty(self.handle, &world_settings);
+        }
     }
 
     pub fn destroy_space(&mut self, physics_engine: &mut PhysicsEngine) {

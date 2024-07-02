@@ -358,9 +358,12 @@ impl RapierCollisionObject {
             self.destroy_shapes(physics_engine, physics_spaces);
             // Reset area detection counter to keep it consistent for new detections
             self.area_detection_counter = 0;
+            if let Some(space) = physics_spaces.get_mut(&self.space) {
+                space.reset_space_if_empty(physics_engine);
+            }
         }
         self.space = p_space;
-        if let Some(space) = physics_spaces.get(&self.space) {
+        if let Some(space) = physics_spaces.get_mut(&self.space) {
             self.space_handle = space.get_handle();
         } else {
             self.space_handle = WorldHandle::default();

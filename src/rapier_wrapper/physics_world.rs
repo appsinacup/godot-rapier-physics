@@ -51,12 +51,17 @@ pub struct ContactForceEventInfo {
     derive(serde::Serialize, serde::Deserialize)
 )]
 pub struct PhysicsObjects {
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     pub query_pipeline: QueryPipeline,
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     pub island_manager: IslandManager,
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     pub broad_phase: BroadPhaseMultiSap,
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     pub narrow_phase: NarrowPhase,
     pub impulse_joint_set: ImpulseJointSet,
     pub multibody_joint_set: MultibodyJointSet,
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     pub ccd_solver: CCDSolver,
 
     pub collider_set: ColliderSet,
@@ -387,6 +392,20 @@ impl PhysicsEngine {
         }
     }
 
+    pub fn world_reset_if_empty(&mut self, world_handle: WorldHandle, settings: &WorldSettings) {
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
+            if physics_world.physics_objects.impulse_joint_set.is_empty()
+                && physics_world.physics_objects.rigid_body_set.is_empty()
+                && physics_world.physics_objects.collider_set.is_empty()
+            {
+                let new_physics_world = PhysicsWorld::new(settings);
+                physics_world.fluids_pipeline = new_physics_world.fluids_pipeline;
+                physics_world.physics_pipeline = new_physics_world.physics_pipeline;
+                physics_world.physics_objects = new_physics_world.physics_objects;
+            }
+        }
+    }
+
     pub fn print_stats(&mut self, world_handle: WorldHandle) {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             godot_print!(
@@ -409,48 +428,11 @@ impl PhysicsEngine {
         0
     }
 
-    #[cfg(feature = "serde-serialize")]
-    pub fn world_export_json(
-        &mut self,
-        world_handle: WorldHandle,
-    ) -> Result<String, serde_json::Error> {
+    pub fn world_export(&mut self, world_handle: WorldHandle) -> Option<&PhysicsObjects> {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
-            let collider_set = serde_json::to_string(&physics_world.physics_objects.collider_set)?;
-            let rigid_body_set =
-                serde_json::to_string(&physics_world.physics_objects.rigid_body_set)?;
-            let impulse_joint_set =
-                serde_json::to_string(&physics_world.physics_objects.impulse_joint_set)?;
-            let handle = serde_json::to_string(&physics_world.physics_objects.handle)?;
-            return Ok("{\"collider_set\": ".to_string()
-                + &collider_set
-                + ",\n"
-                + "\"rigid_body_set\": "
-                + &rigid_body_set
-                + ",\n"
-                + "\"impulse_joint_set\": "
-                + &impulse_joint_set
-                + ",\n"
-                + "\"handle\": "
-                + &handle
-                + "}");
+            return Some(&physics_world.physics_objects);
         }
-        Ok("{}".to_string())
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    pub fn world_export_binary(&mut self, world_handle: WorldHandle) -> Vec<u8> {
-        if let Some(physics_world) = self.get_mut_world(world_handle) {
-            let serialized = bincode::serialize(&physics_world.physics_objects);
-            match serialized {
-                Ok(serialized) => {
-                    return serialized;
-                }
-                Err(err) => {
-                    godot::log::godot_error!("{}", err);
-                }
-            }
-        }
-        Vec::new()
+        None
     }
 
     pub fn world_step(

@@ -1,6 +1,5 @@
 use godot::classes::*;
 use godot::prelude::*;
-use rapier::dynamics::ImpulseJointHandle;
 
 use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 use super::rapier_joint::RapierJointBase;
@@ -9,7 +8,6 @@ use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
 use crate::types::*;
-use crate::*;
 #[cfg_attr(
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
@@ -27,7 +25,7 @@ impl RapierGrooveJoint2D {
         physics_engine: &mut PhysicsEngine,
     ) -> Self {
         let invalid_joint = Self {
-            base: RapierJointBase::new(WorldHandle::default(), ImpulseJointHandle::invalid()),
+            base: RapierJointBase::default(),
         };
         let body_a_rid = body_a.get_base().get_rid();
         let body_b_rid = body_b.get_base().get_rid();
@@ -52,6 +50,7 @@ impl RapierGrooveJoint2D {
         let anchor_b = base_b.get_inv_transform() * p_b_anchor;
         let rapier_anchor_b = vector_to_rapier(anchor_b);
         let space_handle = body_a.get_base().get_space_handle();
+        let space_rid = body_a.get_base().get_space();
         let handle = physics_engine.joint_create_prismatic(
             space_handle,
             body_a.get_base().get_body_handle(),
@@ -63,7 +62,7 @@ impl RapierGrooveJoint2D {
             true,
         );
         Self {
-            base: RapierJointBase::new(space_handle, handle),
+            base: RapierJointBase::new(space_handle, space_rid, handle),
         }
     }
 }
