@@ -394,12 +394,6 @@ impl PhysicsEngine {
 
     pub fn world_reset_if_empty(&mut self, world_handle: WorldHandle, settings: &WorldSettings) {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
-            let rigidbodies = physics_world.physics_objects.collider_set.len();
-            godot_print!("Rigidbodies: {}", rigidbodies);
-            let colliders = physics_world.physics_objects.rigid_body_set.len();
-            godot_print!("Colliders: {}", colliders);
-            let joints = physics_world.physics_objects.impulse_joint_set.len();
-            godot_print!("Joints: {}", joints);
             if physics_world.physics_objects.impulse_joint_set.is_empty()
                 && physics_world.physics_objects.rigid_body_set.is_empty()
                 && physics_world.physics_objects.collider_set.is_empty()
