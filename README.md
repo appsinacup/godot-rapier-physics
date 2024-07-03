@@ -31,26 +31,19 @@ Creating objects until FPS drops below 30. Running on a macbook m2 pro. Everythi
 
 Each table shows max shape count. Higher number is better.
 
-## 2D
+Shape|Godot 2D|Godot 3D|Rapier 2D|Rapier 3D|Jolt 3D
+-|-|-|-|-|-
+Sphere|5000|3300|5000|4200|8000
+Box|3500|3200|4500|4000|7200
+Capsule|4500|2700|4500|3700|7400
+Convex Polygon|3500|3100|4000|4000|8000
 
-Shape|Godot Physics 2D| Rapier Physics 2D
--|-|-
-Circle|6000|1000
-Rectangle|5500|5500
-Capsule|6000|3200
-Convex Polygon|5000|2000
-Concave Polygon|2000|770
+# Note
 
-## 3D
+This plugin was recently rewritten from c++ to rust. There are still some things missing from what it had originally and may have some new bugs that it didn't have before.
 
-Shape|Godot Physics 3D| Rapier Physics 3D
--|-|-
-Sphere|1000|1000
-Box|Spheres|1000
-Capsule|Spheres|1000
-Cylinder|Spheres|1000
-Convex Polygon|Spheres|1000
-Concave Polygon|Spheres|1000
+The reason it was rewritten is to do easier cross platform determinism part and exports to web.
+
 # Installation
 
 - Automatic (Recommended): Download the plugin from the official [Godot Asset Store](https://godotengine.org/asset-library/asset/2267) using the `AssetLib` tab in Godot:
@@ -66,12 +59,6 @@ After installing, go to `Advanced Settings` -> `Physics` -> `2D` or `3D`. Change
 <p align="center">
 <img src="docs/rapier-vid.gif"/>
 </p>
-
-# Note
-
-This plugin was recently rewritten from c++ to rust. There are still some things missing from what it had originally and may have some new bugs that it didn't have before.
-
-The reason it was rewritten is to do easier cross platform determinism part and exports to web.
 
 # Limitations
 
