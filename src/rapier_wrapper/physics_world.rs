@@ -110,10 +110,12 @@ impl PhysicsWorld {
         space: &mut RapierSpace,
         physics_collision_objects: &mut PhysicsCollisionObjects,
     ) {
-        let mut integration_parameters = IntegrationParameters::default();
-        integration_parameters.length_unit = settings.length_unit;
-        integration_parameters.dt = settings.dt;
-        integration_parameters.max_ccd_substeps = settings.max_ccd_substeps;
+        let mut integration_parameters = IntegrationParameters {
+            length_unit: settings.length_unit,
+            dt: settings.dt,
+            max_ccd_substeps: settings.max_ccd_substeps,
+            ..Default::default()
+        };
         if let Some(iterations) = NonZeroUsize::new(settings.num_solver_iterations) {
             integration_parameters.num_solver_iterations = iterations;
         }

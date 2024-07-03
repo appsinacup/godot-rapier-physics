@@ -4,6 +4,7 @@ use godot::classes::physics_server_2d::*;
 use godot::classes::physics_server_3d::*;
 use godot::prelude::*;
 use hashbrown::hash_set::HashSet;
+#[cfg(feature = "dim3")]
 use rapier::dynamics::LockedAxes;
 use rapier::geometry::ColliderHandle;
 use rapier::math::Real;
@@ -730,6 +731,7 @@ impl RapierBody {
         !self.contacts.is_empty()
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn add_contact(
         &mut self,
         local_pos: Vector,

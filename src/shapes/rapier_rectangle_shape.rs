@@ -51,7 +51,7 @@ impl IRapierShape for RapierRectangleShape {
     }
 
     #[cfg(feature = "dim3")]
-    fn get_moment_of_inertia(&self, mass: f32, scale: Vector) -> Vector3 {
+    fn get_moment_of_inertia(&self, mass: f32, _scale: Vector) -> Vector3 {
         let lx = self.half_extents.x;
         let ly = self.half_extents.y;
         let lz = self.half_extents.z;

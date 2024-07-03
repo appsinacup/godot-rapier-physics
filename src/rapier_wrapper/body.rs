@@ -391,6 +391,7 @@ impl PhysicsEngine {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn body_set_mass_properties(
         &mut self,
         world_handle: WorldHandle,
@@ -438,7 +439,7 @@ impl PhysicsEngine {
                     //collider.set_density(colliders_len_inv)
                 }
             }
-            let props = MassProperties::new(Point { coords: _local_com }, mass, inertia);
+            let _props = MassProperties::new(Point { coords: _local_com }, mass, inertia);
             //body.set_additional_mass_properties(props, true);
             if force_update {
                 body.recompute_mass_properties_from_colliders(

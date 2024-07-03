@@ -77,8 +77,7 @@ impl PhysicsEngine {
     pub fn shape_create_halfspace(&mut self, normal: Vector<Real>, distance: Real) -> ShapeHandle {
         let shape = SharedShape::halfspace(UnitVector::new_normalize(normal));
         let shape_position = Isometry::new(normal * distance, ANG_ZERO);
-        let mut shapes_vec = Vec::new();
-        shapes_vec.push((shape_position, shape));
+        let shapes_vec = vec![(shape_position, shape)];
         let shape_compound = SharedShape::compound(shapes_vec);
         self.insert_shape(shape_compound)
     }
