@@ -29,7 +29,7 @@ Godot Rapier Physics is a 2D and 3D physics drop-in replacement for the [Godot g
 
 Creating objects until FPS drops below 30. Running on a macbook m2 pro. Everything is run inside the godot editor using the [Godot Physics Tests](https://github.com/fabriceci/Godot-Physics-Tests) repository.
 
-Each table shows max shape count. Higher number is better.
+Each cell shows max shape count. Higher number is better.
 
 Shape|Godot 2D|Godot 3D|Rapier 2D|Rapier 3D|Jolt 3D
 -|-|-|-|-|-
