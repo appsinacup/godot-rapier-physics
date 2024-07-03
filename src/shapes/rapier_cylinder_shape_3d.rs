@@ -71,12 +71,12 @@ impl IRapierShape for RapierCylinderShape3D {
             }
             VariantType::DICTIONARY => {
                 let dictionary: Dictionary = data.to();
-                if let Some(height) = dictionary.get("height") {
+                if let Some(height) = dictionary.get("height")
+                    && let Some(radius) = dictionary.get("radius")
+                {
                     if let Ok(height) = height.try_to::<real>() {
                         self.height = height;
                     }
-                }
-                if let Some(radius) = dictionary.get("radius") {
                     if let Ok(radius) = radius.try_to::<real>() {
                         self.radius = radius;
                     }
@@ -86,6 +86,9 @@ impl IRapierShape for RapierCylinderShape3D {
                 godot_error!("Invalid shape data");
                 return;
             }
+        }
+        if self.radius >= self.height * 0.5 {
+            self.radius = self.height * 0.5;
         }
         let handle = self.create_rapier_shape(physics_engine);
         self.base

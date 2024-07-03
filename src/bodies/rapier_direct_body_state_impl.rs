@@ -22,11 +22,11 @@ impl RapierDirectBodyStateImpl {
     }
 
     pub(super) fn default() -> Self {
-        let physics_singleton = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>();
-        if physics_singleton.is_ok() {
+        if let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        {
             return Self {
                 body: Rid::Invalid,
-                physics_singleton: Some(physics_singleton.unwrap()),
+                physics_singleton: Some(physics_singleton),
             };
         }
         Self {
@@ -139,6 +139,18 @@ impl RapierDirectBodyStateImpl {
             }
         }
         ANGLE_ZERO
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn get_inverse_inertia_tensor(&self) -> Basis {
+        // TODO
+        Basis::IDENTITY
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn get_principal_inertia_axes(&self) -> Basis {
+        // TODO
+        Basis::IDENTITY
     }
 
     pub(super) fn set_linear_velocity(&mut self, velocity: Vector) {

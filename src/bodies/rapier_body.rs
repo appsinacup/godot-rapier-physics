@@ -4,6 +4,7 @@ use godot::classes::physics_server_2d::*;
 use godot::classes::physics_server_3d::*;
 use godot::prelude::*;
 use hashbrown::hash_set::HashSet;
+use rapier::dynamics::LockedAxes;
 use rapier::geometry::ColliderHandle;
 use rapier::math::Real;
 use servers::rapier_physics_server_extra::PhysicsCollisionObjects;
@@ -106,6 +107,8 @@ pub struct RapierBody {
     gravity_scale: real,
     bounce: real,
     friction: real,
+    #[cfg(feature = "dim3")]
+    axis_lock: u8,
     mass: real,
     mass_properties_update_pending: bool,
     inertia: Angle,
@@ -157,6 +160,8 @@ impl RapierBody {
             gravity_scale: 1.0,
             bounce: 0.0,
             friction: 1.0,
+            #[cfg(feature = "dim3")]
+            axis_lock: 0,
             mass: 1.0,
             mass_properties_update_pending: false,
             inertia: ANGLE_ZERO,
@@ -231,6 +236,8 @@ impl RapierBody {
             false,
             force_update,
         );
+        #[cfg(feature = "dim3")]
+        self.apply_axis_lock(physics_engine);
     }
 
     fn apply_linear_damping(
@@ -334,6 +341,46 @@ impl RapierBody {
             vector_to_rapier(self.linear_velocity),
         );
         self.linear_velocity = Vector::default();
+    }
+
+    #[cfg(feature = "dim3")]
+    pub fn set_axis_lock(
+        &mut self,
+        axis: BodyAxis,
+        lock: bool,
+        physics_engine: &mut PhysicsEngine,
+    ) {
+        self.axis_lock = if lock {
+            self.axis_lock | (axis.ord() as u8)
+        } else {
+            self.axis_lock & (!axis.ord() as u8)
+        };
+        #[cfg(feature = "dim3")]
+        self.apply_axis_lock(physics_engine);
+    }
+
+    #[cfg(feature = "dim3")]
+    fn apply_axis_lock(&mut self, physics_engine: &mut PhysicsEngine) {
+        if !self.base.is_valid() {
+            return;
+        }
+        if self.base.mode == BodyMode::RIGID_LINEAR {
+            self.axis_lock |= LockedAxes::ROTATION_LOCKED.bits();
+        }
+        if let Some(axis_lock) = LockedAxes::from_bits(self.axis_lock) {
+            physics_engine.body_set_axis_lock(
+                self.base.get_space_handle(),
+                self.base.get_body_handle(),
+                axis_lock,
+            );
+        } else {
+            godot_error!("Invalid axis lock: {}", self.axis_lock);
+        }
+    }
+
+    #[cfg(feature = "dim3")]
+    pub fn is_axis_locked(&self, axis: BodyAxis) -> bool {
+        self.axis_lock & (axis.ord() as u8) != 0
     }
 
     pub fn get_linear_velocity(&self, physics_engine: &PhysicsEngine) -> Vector {
@@ -1285,7 +1332,7 @@ impl RapierBody {
                 let mat = self.init_material();
                 let body_handle = self.base.get_body_handle();
                 let space_handle = self.base.get_space_handle();
-                if !self.base.is_valid() {
+                if self.base.is_valid() {
                     physics_engine.body_update_material(space_handle, body_handle, &mat);
                 }
             }
@@ -1804,6 +1851,8 @@ impl RapierBody {
                 if self.torque != ANGLE_ZERO {
                     self.apply_torque_impulse(self.torque, physics_engine);
                 }
+                #[cfg(feature = "dim3")]
+                self.apply_axis_lock(physics_engine);
                 self.set_continuous_collision_detection_mode(self.ccd_enabled, physics_engine);
                 physics_engine.body_update_material(
                     self.base.get_space_handle(),

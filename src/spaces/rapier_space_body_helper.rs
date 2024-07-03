@@ -574,52 +574,54 @@ impl RapierSpace {
                 * p_body
                     .get_base()
                     .get_shape_transform(body_shape_idx as usize);
-            let body_shape_obj = physics_shapes.get(&body_shape).unwrap();
-            let body_shape_info =
-                shape_info_from_body_shape(body_shape_obj.get_handle(), body_shape_transform);
-            for result_idx in 0..result_count {
-                let result = &mut results[result_idx as usize];
-                if !result.user_data.is_valid() {
-                    continue;
-                }
-                let (shape_col_object, shape_index) =
-                    RapierCollisionObject::get_collider_user_data(&result.user_data);
-                if let Some(shape_col_object) = physics_collision_objects.get(&shape_col_object) {
-                    if let Some(collision_body) = shape_col_object.get_body() {
-                        let col_shape_rid = collision_body.get_base().get_shape(shape_index);
-                        if let Some(col_shape) = physics_shapes.get(&col_shape_rid) {
-                            let col_shape_transform = collision_body.get_base().get_transform()
-                                * collision_body.get_base().get_shape_transform(shape_index);
-                            let col_shape_info = shape_info_from_body_shape(
-                                col_shape.get_handle(),
-                                col_shape_transform,
-                            );
-                            let contact = physics_engine.shapes_contact(
-                                body_shape_info,
-                                col_shape_info,
-                                p_margin,
-                            );
-                            if !contact.collided {
-                                continue;
-                            }
-                            if physics_engine.should_skip_collision_one_dir(
-                                &contact,
-                                body_shape_obj,
-                                collision_body,
-                                shape_index,
-                                &col_shape_transform,
-                                p_margin,
-                                RapierSpace::get_last_step(),
-                                p_motion,
-                            ) {
-                                continue;
-                            }
-                            if contact.pixel_distance < min_distance {
-                                min_distance = contact.pixel_distance;
-                                best_collision_body = Some(collision_body);
-                                best_collision_shape_index = shape_index as i32;
-                                best_body_shape_index = body_shape_idx;
-                                best_contact = contact;
+            if let Some(body_shape_obj) = physics_shapes.get(&body_shape) {
+                let body_shape_info =
+                    shape_info_from_body_shape(body_shape_obj.get_handle(), body_shape_transform);
+                for result_idx in 0..result_count {
+                    let result = &mut results[result_idx as usize];
+                    if !result.user_data.is_valid() {
+                        continue;
+                    }
+                    let (shape_col_object, shape_index) =
+                        RapierCollisionObject::get_collider_user_data(&result.user_data);
+                    if let Some(shape_col_object) = physics_collision_objects.get(&shape_col_object)
+                    {
+                        if let Some(collision_body) = shape_col_object.get_body() {
+                            let col_shape_rid = collision_body.get_base().get_shape(shape_index);
+                            if let Some(col_shape) = physics_shapes.get(&col_shape_rid) {
+                                let col_shape_transform = collision_body.get_base().get_transform()
+                                    * collision_body.get_base().get_shape_transform(shape_index);
+                                let col_shape_info = shape_info_from_body_shape(
+                                    col_shape.get_handle(),
+                                    col_shape_transform,
+                                );
+                                let contact = physics_engine.shapes_contact(
+                                    body_shape_info,
+                                    col_shape_info,
+                                    p_margin,
+                                );
+                                if !contact.collided {
+                                    continue;
+                                }
+                                if physics_engine.should_skip_collision_one_dir(
+                                    &contact,
+                                    body_shape_obj,
+                                    collision_body,
+                                    shape_index,
+                                    &col_shape_transform,
+                                    p_margin,
+                                    RapierSpace::get_last_step(),
+                                    p_motion,
+                                ) {
+                                    continue;
+                                }
+                                if contact.pixel_distance < min_distance {
+                                    min_distance = contact.pixel_distance;
+                                    best_collision_body = Some(collision_body);
+                                    best_collision_shape_index = shape_index as i32;
+                                    best_body_shape_index = body_shape_idx;
+                                    best_contact = contact;
+                                }
                             }
                         }
                     }
@@ -709,8 +711,7 @@ impl PhysicsEngine {
                 .get_base()
                 .get_shape_one_way_collision_margin(shape_index);
             let mut valid_depth = owc_margin.max(p_margin);
-            if collision_body.get_base().get_type() == CollisionObjectType::Body {
-                let b = collision_body.get_body().unwrap();
+            if let Some(b) = collision_body.get_body() {
                 if b.get_base().mode.ord() >= BodyMode::KINEMATIC.ord() {
                     // fix for moving platforms (kinematic and dynamic), margin is increased by how much it moved in the
                     // given direction

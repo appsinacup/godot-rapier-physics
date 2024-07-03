@@ -27,6 +27,8 @@ use crate::shapes::rapier_circle_shape::RapierCircleShape;
 #[cfg(feature = "dim2")]
 use crate::shapes::rapier_concave_polygon_shape_2d::RapierConcavePolygonShape2D;
 use crate::shapes::rapier_convex_polygon_shape::RapierConvexPolygonShape;
+#[cfg(feature = "dim3")]
+use crate::shapes::rapier_cylinder_shape_3d::RapierCylinderShape3D;
 use crate::shapes::rapier_rectangle_shape::RapierRectangleShape;
 #[cfg(feature = "dim2")]
 use crate::shapes::rapier_segment_shape_2d::RapierSegmentShape2D;
@@ -113,6 +115,14 @@ impl RapierPhysicsServerImpl {
         rid
     }
 
+    #[cfg(feature = "dim3")]
+    pub(super) fn cylinder_shape_create(&mut self) -> Rid {
+        let rid = rid_from_int64(rid_allocate_id());
+        let shape = RapierCylinderShape3D::new(rid);
+        self.physics_data.shapes.insert(rid, Box::new(shape));
+        rid
+    }
+
     pub(super) fn convex_polygon_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierConvexPolygonShape::new(rid);
@@ -184,10 +194,9 @@ impl RapierPhysicsServerImpl {
         result_count: *mut i32,
     ) -> bool {
         let result = self.physics_data.shapes.get_many_mut([&shape_a, &shape_b]);
-        if result.is_none() {
+        let Some([shape_a, shape_b]) = result else {
             return false;
-        }
-        let [shape_a, shape_b] = result.unwrap();
+        };
         let shape_a_handle = shape_a.get_base().get_handle();
         let shape_b_handle = shape_b.get_base().get_handle();
         if !shape_a.get_base().is_valid() || !shape_b.get_base().is_valid() {
@@ -1077,6 +1086,25 @@ impl RapierPhysicsServerImpl {
                 body.set_linear_velocity(v, &mut self.physics_data.physics_engine);
             }
         }
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn body_set_axis_lock(&mut self, body: Rid, axis: BodyAxis, lock: bool) {
+        if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
+            if let Some(body) = body.get_mut_body() {
+                body.set_axis_lock(axis, lock, &mut self.physics_data.physics_engine);
+            }
+        }
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn body_is_axis_locked(&self, body: Rid, axis: BodyAxis) -> bool {
+        if let Some(body) = self.physics_data.collision_objects.get(&body) {
+            if let Some(body) = body.get_body() {
+                return body.is_axis_locked(axis);
+            }
+        }
+        false
     }
 
     pub(super) fn body_add_collision_exception(&mut self, body: Rid, excepted_body: Rid) {

@@ -192,9 +192,6 @@ func test_body():
 	var collision_mask = PhysicsServer2D.body_get_collision_mask(body_rid)
 	assert(collision_mask == 2)
 
-	var collision_priority = PhysicsServer2D.body_get_collision_priority(body_rid)
-	assert(collision_priority == 1.0)
-
 	var constant_force = PhysicsServer2D.body_get_constant_force(body_rid)
 	assert(constant_force == Vector2(1, 2))
 

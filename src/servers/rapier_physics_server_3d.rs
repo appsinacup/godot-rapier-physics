@@ -51,6 +51,10 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         self.implementation.capsule_shape_create()
     }
 
+    fn cylinder_shape_create(&mut self) -> Rid {
+        self.implementation.cylinder_shape_create()
+    }
+
     fn convex_polygon_shape_create(&mut self) -> Rid {
         self.implementation.convex_polygon_shape_create()
     }
@@ -417,6 +421,14 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
     fn body_set_axis_velocity(&mut self, body: Rid, axis_velocity: Vector) {
         self.implementation
             .body_set_axis_velocity(body, axis_velocity);
+    }
+
+    fn body_set_axis_lock(&mut self, body: Rid, axis: BodyAxis, lock: bool) {
+        self.implementation.body_set_axis_lock(body, axis, lock);
+    }
+
+    fn body_is_axis_locked(&self, body: Rid, axis: BodyAxis) -> bool {
+        self.implementation.body_is_axis_locked(body, axis)
     }
 
     fn body_add_collision_exception(&mut self, body: Rid, excepted_body: Rid) {

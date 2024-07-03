@@ -1,3 +1,4 @@
+use godot::builtin::math::FloatExt;
 use godot::log::godot_error;
 use rapier::prelude::*;
 use salva::integrations::rapier::ColliderSampling;
@@ -26,8 +27,9 @@ fn skew_polyline(vertices: &Vec<Point<Real>>, skew: Real) -> SharedShape {
 }
 // Function to skew a shape
 #[cfg(feature = "dim2")]
-pub fn skew_shape(shape: &SharedShape, skew: Real) -> SharedShape {
+pub fn skew_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
     use godot::builtin::math::FloatExt;
+    let skew = shape_info.skew;
     if skew.is_zero_approx() {
         return shape.clone();
     }
@@ -37,7 +39,7 @@ pub fn skew_shape(shape: &SharedShape, skew: Real) -> SharedShape {
                 let shapes = compound.shapes();
                 let mut transformed_shapes = Vec::new();
                 for (position, sub_shape) in shapes.iter() {
-                    let skewed_sub_shape = skew_shape(sub_shape, skew);
+                    let skewed_sub_shape = skew_shape(sub_shape, shape_info);
                     let transformed_position = *position;
                     transformed_shapes.push((transformed_position, skewed_sub_shape));
                 }
@@ -75,15 +77,17 @@ pub fn skew_shape(shape: &SharedShape, skew: Real) -> SharedShape {
     }
     shape.clone()
 }
-#[cfg(feature = "dim2")]
+#[cfg(feature = "dim3")]
+fn skew_shape(shape: &SharedShape, _shape_info: ShapeInfo) -> SharedShape {
+    shape.clone()
+}
 pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
-    let mut new_shape = shape.clone();
-    if shape_info.skew != 0.0 {
-        new_shape = skew_shape(shape, shape_info.skew);
-    }
-    let shape = new_shape;
+    let shape = skew_shape(&shape.clone(), shape_info);
     let scale = shape_info.scale;
-    if scale.x == 1.0 && scale.y == 1.0 {
+    if (scale - Vector::repeat(1.0))
+        .norm_squared()
+        .is_zero_approx()
+    {
         return shape.clone();
     }
     match shape.shape_type() {
@@ -114,6 +118,18 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
                 return SharedShape::new(new_shape.clone().scaled(&scale));
             }
         }
+        #[cfg(feature = "dim3")]
+        ShapeType::Cylinder => {
+            if let Some(new_shape) = shape.as_cylinder() {
+                if let Some(new_shape) = new_shape.scaled(&scale, SUBDIVISIONS) {
+                    match new_shape {
+                        Left(shape) => return SharedShape::new(shape),
+                        Right(shape) => return SharedShape::new(shape),
+                    }
+                }
+            }
+        }
+        #[cfg(feature = "dim2")]
         ShapeType::ConvexPolygon => {
             if let Some(new_shape) = shape.as_convex_polygon() {
                 if let Some(new_shape) = new_shape.clone().scaled(&scale) {
@@ -135,74 +151,6 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
             if let Some(new_shape) = shape.as_compound() {
                 let new_shapes = new_shape.shapes();
                 let mut shapes_vec = Vec::new();
-                for shape in new_shapes {
-                    let new_shape = scale_shape(&shape.1, shape_info);
-                    shapes_vec.push((shape.0, new_shape));
-                }
-                return SharedShape::compound(shapes_vec);
-            }
-        }
-        _ => {
-            godot_error!("Shape type not supported for scaling");
-        }
-    }
-    shape.clone()
-}
-#[cfg(feature = "dim3")]
-pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
-    let scale = shape_info.scale;
-    if scale.x == 1.0 && scale.y == 1.0 && scale.z == 1.0 {
-        return shape.clone();
-    }
-    match shape.shape_type() {
-        ShapeType::Ball => {
-            if let Some(new_shape) = shape.as_ball() {
-                if let Some(new_shape) = new_shape.scaled(&scale, SUBDIVISIONS) {
-                    match new_shape {
-                        Left(shape) => return SharedShape::new(shape),
-                        Right(shape) => return SharedShape::new(shape),
-                    }
-                }
-            }
-        }
-        ShapeType::Cuboid => {
-            if let Some(new_shape) = shape.as_cuboid() {
-                return SharedShape::new(new_shape.scaled(&scale));
-            }
-        }
-        ShapeType::HalfSpace => {
-            if let Some(new_shape) = shape.as_halfspace() {
-                if let Some(new_shape) = new_shape.scaled(&scale) {
-                    return SharedShape::new(new_shape);
-                }
-            }
-        }
-        ShapeType::Polyline => {
-            if let Some(new_shape) = shape.as_polyline() {
-                return SharedShape::new(new_shape.clone().scaled(&scale));
-            }
-        }
-        ShapeType::ConvexPolyhedron => {
-            if let Some(new_shape) = shape.as_convex_polyhedron() {
-                if let Some(new_shape) = new_shape.clone().scaled(&scale) {
-                    return SharedShape::new(new_shape);
-                }
-            }
-        }
-        ShapeType::Capsule => {
-            if let Some(new_shape) = shape.as_capsule() {
-                if let Some(new_shape) = new_shape.scaled(&scale, SUBDIVISIONS) {
-                    match new_shape {
-                        Left(shape) => return SharedShape::new(shape),
-                        Right(shape) => return SharedShape::new(shape),
-                    }
-                }
-            }
-        }
-        ShapeType::Compound => {
-            if let Some(new_shape) = shape.as_compound() {
-                let new_shapes = new_shape.shapes();
-                let mut shapes_vec = Vec::<(Isometry<Real>, SharedShape)>::new();
                 for shape in new_shapes {
                     let new_shape = scale_shape(&shape.1, shape_info);
                     shapes_vec.push((shape.0, new_shape));
@@ -259,6 +207,7 @@ impl PhysicsEngine {
             let is_shape_halfspace = shape_is_halfspace(shape);
             let mut collider = ColliderBuilder::new(shape.clone())
                 .contact_force_event_threshold(-Real::MAX)
+                .density(1.0)
                 .build();
             // TODO update when https://github.com/dimforge/rapier/issues/622 is fixed
             if mat.friction >= 0.0 {
@@ -269,7 +218,6 @@ impl PhysicsEngine {
             }
             collider.set_friction_combine_rule(CoefficientCombineRule::Multiply);
             collider.set_restitution_combine_rule(CoefficientCombineRule::Max);
-            collider.set_density(1.0);
             collider.set_collision_groups(InteractionGroups {
                 memberships: Group::from(mat.collision_layer),
                 filter: Group::from(mat.collision_mask),

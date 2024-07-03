@@ -26,3 +26,4 @@ enabled=PackedStringArray()
 
 2d/physics_engine="Rapier2D"
 3d/default_gravity=10.0
+rapier/solver/polygon_contact_skin=5.62998

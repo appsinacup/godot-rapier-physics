@@ -1,46 +1,58 @@
-[gd_scene load_steps=4 format=3 uid="uid://cn4jscixu2bmf"]
+[gd_scene load_steps=6 format=3 uid="uid://cn4jscixu2bmf"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_lc8oa"]
+[ext_resource type="Script" path="res://rigid_body_2d_2.gd" id="1_cujln"]
+[ext_resource type="Script" path="res://test.gd" id="1_fs1uw"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_irytb"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_w8421"]
 
 [sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_ila5n"]
 normal = Vector2(-0.0425147, -0.999096)
 
 [node name="SceneRayOnSwitch" type="Node2D"]
-
-[node name="RigidBody2D2" type="RigidBody2D" parent="."]
-position = Vector2(-54, -682)
-rotation = -1.51672
-scale = Vector2(4, 2.51)
-mass = 100.0
-max_contacts_reported = 1
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D2"]
-position = Vector2(-89, 3)
-scale = Vector2(1.89, 1)
-shape = SubResource("CircleShape2D_lc8oa")
-
-[node name="CollisionShape2D2" type="CollisionShape2D" parent="RigidBody2D2"]
-position = Vector2(-88.2483, 25.9664)
-scale = Vector2(1.89, 1)
-shape = SubResource("CircleShape2D_lc8oa")
-
-[node name="CollisionShape2D3" type="CollisionShape2D" parent="RigidBody2D2"]
-position = Vector2(-87.2888, 54.2119)
-scale = Vector2(1.89, 1)
-shape = SubResource("CircleShape2D_lc8oa")
+script = ExtResource("1_fs1uw")
 
 [node name="RigidBody2D3" type="RigidBody2D" parent="."]
 position = Vector2(-80, -513)
 rotation = -1.51672
 scale = Vector2(4, 2.51)
 max_contacts_reported = 1
+script = ExtResource("1_cujln")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D3"]
 position = Vector2(-89, 3)
 scale = Vector2(1.89, 1)
 shape = SubResource("RectangleShape2D_irytb")
+
+[node name="RigidBody2D6" type="RigidBody2D" parent="."]
+position = Vector2(-141, -516)
+rotation = -2.00014
+scale = Vector2(4, 2.51)
+max_contacts_reported = 1
+script = ExtResource("1_cujln")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D6"]
+position = Vector2(-89, 3)
+scale = Vector2(1.89, 1)
+shape = SubResource("RectangleShape2D_irytb")
+
+[node name="RigidBody2D4" type="RigidBody2D" parent="."]
+position = Vector2(91, -158)
+rotation = -1.51672
+max_contacts_reported = 1
+script = ExtResource("1_cujln")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D4"]
+shape = SubResource("CircleShape2D_w8421")
+
+[node name="RigidBody2D5" type="RigidBody2D" parent="."]
+position = Vector2(217, -158)
+rotation = -1.51672
+max_contacts_reported = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D5"]
+shape = SubResource("CircleShape2D_w8421")
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
 position = Vector2(-1, 55)

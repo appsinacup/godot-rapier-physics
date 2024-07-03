@@ -81,8 +81,7 @@ impl IRapierShape for RapierCapsuleShape {
             }
             VariantType::DICTIONARY => {
                 let dictionary: Dictionary = data.to();
-                if !dictionary.contains_key("length") && !dictionary.contains_key("slide_on_slope")
-                {
+                if !dictionary.contains_key("length") && !dictionary.contains_key("height") {
                     godot_error!("Invalid shape data.");
                     return;
                 }

@@ -1,10 +1,10 @@
 use godot::prelude::*;
 
-use super::fluid_effect::FluidEffectType;
-use super::fluid_effect::IFluidEffect;
+use super::fluid_effect_2d::FluidEffect2DType;
+use super::fluid_effect_2d::IFluidEffect2D;
 #[derive(GodotClass)]
 #[class(base=Resource)]
-pub struct FluidEffectSurfaceTensionWCSPH {
+pub struct FluidEffect2DTensionHE {
     #[export]
     fluid_tension_coefficient: real,
     #[export]
@@ -12,13 +12,13 @@ pub struct FluidEffectSurfaceTensionWCSPH {
 
     base: Base<Resource>,
 }
-impl IFluidEffect for FluidEffectSurfaceTensionWCSPH {
-    fn get_fluid_effect_type(&self) -> FluidEffectType {
-        FluidEffectType::FluidEffectSurfaceTensionWcsph
+impl IFluidEffect2D for FluidEffect2DTensionHE {
+    fn get_fluid_effect_type(&self) -> FluidEffect2DType {
+        FluidEffect2DType::FluidEffect2DSurfaceTensionHe
     }
 }
 #[godot_api]
-impl IResource for FluidEffectSurfaceTensionWCSPH {
+impl IResource for FluidEffect2DTensionHE {
     fn init(base: Base<Resource>) -> Self {
         Self {
             fluid_tension_coefficient: 1.0,
