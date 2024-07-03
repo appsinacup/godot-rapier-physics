@@ -27,11 +27,48 @@ mod shapes;
 mod spaces;
 mod types;
 use godot::prelude::*;
+#[cfg(feature = "dim2")]
 #[derive(GodotClass)]
 #[class(base=Object, init)]
-pub struct RapierPhysicsExtensionLibrary {}
+pub struct RapierPhysics2DExtensionLibrary {}
+#[cfg(feature = "dim2")]
 #[gdextension]
-unsafe impl ExtensionLibrary for RapierPhysicsExtensionLibrary {
+unsafe impl ExtensionLibrary for RapierPhysics2DExtensionLibrary {
+    fn min_level() -> InitLevel {
+        InitLevel::Servers
+    }
+
+    fn on_level_init(level: InitLevel) {
+        match level {
+            InitLevel::Scene => {
+                servers::register_scene();
+            }
+            InitLevel::Servers => {
+                servers::register_server();
+            }
+            _ => (),
+        }
+    }
+
+    fn on_level_deinit(level: InitLevel) {
+        match level {
+            InitLevel::Scene => {
+                servers::unregister_scene();
+            }
+            InitLevel::Servers => {
+                servers::unregister_server();
+            }
+            _ => (),
+        }
+    }
+}
+#[cfg(feature = "dim3")]
+#[derive(GodotClass)]
+#[class(base=Object, init)]
+pub struct RapierPhysics3DExtensionLibrary {}
+#[cfg(feature = "dim3")]
+#[gdextension]
+unsafe impl ExtensionLibrary for RapierPhysics3DExtensionLibrary {
     fn min_level() -> InitLevel {
         InitLevel::Servers
     }

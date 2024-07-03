@@ -27,6 +27,7 @@ use crate::shapes::rapier_circle_shape::RapierCircleShape;
 #[cfg(feature = "dim2")]
 use crate::shapes::rapier_concave_polygon_shape_2d::RapierConcavePolygonShape2D;
 use crate::shapes::rapier_convex_polygon_shape::RapierConvexPolygonShape;
+#[cfg(feature = "dim3")]
 use crate::shapes::rapier_cylinder_shape_3d::RapierCylinderShape3D;
 use crate::shapes::rapier_rectangle_shape::RapierRectangleShape;
 #[cfg(feature = "dim2")]
@@ -114,6 +115,7 @@ impl RapierPhysicsServerImpl {
         rid
     }
 
+    #[cfg(feature = "dim3")]
     pub(super) fn cylinder_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierCylinderShape3D::new(rid);

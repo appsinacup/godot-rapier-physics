@@ -8,7 +8,7 @@ const SOLVER_NUM_ADDITIONAL_FRICTION_ITERATIONS: &str =
 const SOLVER_NUM_INTERNAL_PGS_ITERATIONS: &str =
     "physics/rapier/solver/num_internal_pgs_iterations";
 const SOLVER_MAX_CCD_SUBSTEPS: &str = "physics/rapier/solver/max_ccd_substeps";
-const CONTACT_SKIN: &str = "physics/rapier/solver/polygon_contact_skin";
+const CONTACT_SKIN: &str = "physics/rapier/solver/contact_skin";
 const FLUID_PARTICLE_RADIUS: &str = "physics/rapier/fluid/fluid_particle_radius";
 const FLUID_SMOOTHING_FACTOR: &str = "physics/rapier/fluid/fluid_smoothing_factor";
 #[cfg(feature = "dim2")]

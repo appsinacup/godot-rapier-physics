@@ -1285,7 +1285,7 @@ impl RapierBody {
                 let mat = self.init_material();
                 let body_handle = self.base.get_body_handle();
                 let space_handle = self.base.get_space_handle();
-                if !self.base.is_valid() {
+                if self.base.is_valid() {
                     physics_engine.body_update_material(space_handle, body_handle, &mat);
                 }
             }

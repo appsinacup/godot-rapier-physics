@@ -1,10 +1,10 @@
 use godot::prelude::*;
 
-use super::fluid_effect::FluidEffectType;
-use super::fluid_effect::IFluidEffect;
+use super::fluid_effect_2d::FluidEffect2DType;
+use super::fluid_effect_2d::IFluidEffect2D;
 #[derive(GodotClass)]
 #[class(base=Resource)]
-pub struct FluidEffectViscosityXSPH {
+pub struct FluidEffect2DViscosityXSPH {
     #[export]
     fluid_viscosity_coefficient: real,
     #[export]
@@ -12,13 +12,13 @@ pub struct FluidEffectViscosityXSPH {
 
     base: Base<Resource>,
 }
-impl IFluidEffect for FluidEffectViscosityXSPH {
-    fn get_fluid_effect_type(&self) -> FluidEffectType {
-        FluidEffectType::FluidEffectViscosityXsph
+impl IFluidEffect2D for FluidEffect2DViscosityXSPH {
+    fn get_fluid_effect_type(&self) -> FluidEffect2DType {
+        FluidEffect2DType::FluidEffect2DViscosityXsph
     }
 }
 #[godot_api]
-impl IResource for FluidEffectViscosityXSPH {
+impl IResource for FluidEffect2DViscosityXSPH {
     fn init(base: Base<Resource>) -> Self {
         Self {
             fluid_viscosity_coefficient: 1.0,

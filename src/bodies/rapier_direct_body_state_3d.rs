@@ -53,6 +53,14 @@ impl IPhysicsDirectBodyState3DExtension for RapierDirectBodyState3D {
         self.implementation.get_inverse_inertia()
     }
 
+    fn get_inverse_inertia_tensor(&self) -> Basis {
+        self.implementation.get_inverse_inertia_tensor()
+    }
+
+    fn get_principal_inertia_axes(&self) -> Basis {
+        self.implementation.get_principal_inertia_axes()
+    }
+
     fn set_linear_velocity(&mut self, velocity: Vector) {
         self.implementation.set_linear_velocity(velocity)
     }
