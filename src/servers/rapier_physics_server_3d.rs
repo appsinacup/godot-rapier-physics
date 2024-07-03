@@ -51,6 +51,10 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         self.implementation.capsule_shape_create()
     }
 
+    fn cylinder_shape_create(&mut self) -> Rid {
+        self.implementation.cylinder_shape_create()
+    }
+
     fn convex_polygon_shape_create(&mut self) -> Rid {
         self.implementation.convex_polygon_shape_create()
     }
