@@ -25,6 +25,32 @@
 
 Godot Rapier Physics is a 2D and 3D physics drop-in replacement for the [Godot game engine](https://github.com/godotengine/godot) that adds stability through [rapier](https://github.com/dimforge/rapier) and fluids through [salva](https://github.com/dimforge/salva).
 
+# Performance
+
+Creating objects until FPS drops below 30. Running on a macbook m2 pro. Everything is run inside the godot editor using the [Godot Physics Tests](https://github.com/fabriceci/Godot-Physics-Tests) repository.
+
+Each table shows max shape count. Higher number is better.
+
+## 2D
+
+Shape|Godot Physics 2D| Rapier Physics 2D
+-|-|-
+Circle|6000|1000
+Rectangle|5500|5500
+Capsule|6000|3200
+Convex Polygon|5000|2000
+Concave Polygon|2000|770
+
+## 3D
+
+Shape|Godot Physics 3D| Rapier Physics 3D
+-|-|-
+Sphere|1000|1000
+Box|Spheres|1000
+Capsule|Spheres|1000
+Cylinder|Spheres|1000
+Convex Polygon|Spheres|1000
+Concave Polygon|Spheres|1000
 # Installation
 
 - Automatic (Recommended): Download the plugin from the official [Godot Asset Store](https://godotengine.org/asset-library/asset/2267) using the `AssetLib` tab in Godot:
