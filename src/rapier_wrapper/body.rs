@@ -407,6 +407,12 @@ impl PhysicsEngine {
                 .rigid_body_set
                 .get_mut(body_handle)
         {
+            #[cfg(feature = "dim2")]
+            if inertia == ANG_ZERO {
+                body.lock_rotations(true, wake_up);
+            } else {
+                body.lock_rotations(false, wake_up);
+            }
             let colliders = body.colliders();
             let colliders_len_inv = 1.0 / (colliders.len() as f32);
             for collider in colliders {
