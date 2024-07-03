@@ -370,8 +370,10 @@ impl RapierCollisionObject {
             self.space = Rid::Invalid;
             return;
         }
-        let mut user_data = UserData::default();
-        user_data.part1 = self.rid.to_u64();
+        let user_data = UserData {
+            part1: self.rid.to_u64(),
+            ..Default::default()
+        };
         let position = vector_to_rapier(self.transform.origin);
         let angle = transform_rotation_rapier(&self.transform);
         if self.mode == BodyMode::STATIC {

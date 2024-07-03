@@ -59,6 +59,7 @@ impl RapierSpace {
         direct_space.is_body_excluded_from_query(collision_object_base.get_rid())
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn test_body_motion(
         &self,
         body: &RapierBody,
@@ -96,7 +97,7 @@ impl RapierSpace {
         let mut best_body_shape = -1;
         self.cast_motion(
             body,
-            &mut body_transform,
+            &body_transform,
             motion,
             collide_separation_ray,
             self.get_contact_max_allowed_penetration(),
@@ -120,7 +121,7 @@ impl RapierSpace {
             body_transform.origin += unsafe_motion;
             collided = self.body_motion_collide(
                 body,
-                &mut body_transform,
+                &body_transform,
                 motion,
                 best_body_shape,
                 margin,
@@ -145,6 +146,7 @@ impl RapierSpace {
         collided
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn rapier_intersect_aabb(
         &self,
         aabb: Rect,
@@ -157,7 +159,6 @@ impl RapierSpace {
         physics_engine: &PhysicsEngine,
         physics_collision_objects: &PhysicsCollisionObjects,
     ) -> i32 {
-        let max_results = max_results;
         if max_results < 1 {
             return 0;
         }
@@ -184,6 +185,7 @@ impl RapierSpace {
         ) as i32
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn body_motion_recover(
         &self,
         p_body: &RapierBody,
@@ -317,6 +319,7 @@ impl RapierSpace {
         recovered
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn cast_motion(
         &self,
         p_body: &RapierBody,
@@ -511,6 +514,7 @@ impl RapierSpace {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn body_motion_collide(
         &self,
         p_body: &RapierBody,
@@ -656,6 +660,7 @@ impl RapierSpace {
     }
 }
 #[cfg(feature = "dim2")]
+#[allow(clippy::too_many_arguments)]
 fn set_collision_info(
     p_result: &mut PhysicsServerExtensionMotionResult,
     collider: Rid,

@@ -165,6 +165,7 @@ impl RapierArea {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn on_body_enter(
         &mut self,
         collider_handle: ColliderHandle,
@@ -213,6 +214,7 @@ impl RapierArea {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn on_body_exit(
         &mut self,
         collider_handle: ColliderHandle,
@@ -266,6 +268,7 @@ impl RapierArea {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn on_area_enter(
         &mut self,
         collider_handle: ColliderHandle,
@@ -309,6 +312,7 @@ impl RapierArea {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn on_area_exit(
         &mut self,
         collider_handle: ColliderHandle,

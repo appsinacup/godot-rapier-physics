@@ -46,7 +46,11 @@ impl PhysicsEngine {
                 rigid_body = RigidBodyBuilder::fixed().build();
             }
         }
-        // let default values better
+        let activation = rigid_body.activation_mut();
+        let default_activation = RigidBodyActivation::default();
+        activation.angular_threshold = default_activation.angular_threshold;
+        activation.normalized_linear_threshold = default_activation.normalized_linear_threshold;
+        activation.time_until_sleep = 0.5;
         set_rigid_body_properties_internal(&mut rigid_body, pos, rot, true);
         rigid_body.user_data = user_data.get_data();
         physics_world
@@ -367,8 +371,8 @@ impl PhysicsEngine {
                 activation.angular_threshold = default_activation.angular_threshold;
                 activation.normalized_linear_threshold =
                     default_activation.normalized_linear_threshold;
+                activation.time_until_sleep = 0.5;
             }
-            // TODO: Check if is requiered
             if !can_sleep && body.is_sleeping() {
                 body.wake_up(true);
             }
@@ -391,6 +395,7 @@ impl PhysicsEngine {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn body_set_mass_properties(
         &mut self,
         world_handle: WorldHandle,
@@ -438,7 +443,7 @@ impl PhysicsEngine {
                     //collider.set_density(colliders_len_inv)
                 }
             }
-            let props = MassProperties::new(Point { coords: _local_com }, mass, inertia);
+            let _props = MassProperties::new(Point { coords: _local_com }, mass, inertia);
             //body.set_additional_mass_properties(props, true);
             if force_update {
                 body.recompute_mass_properties_from_colliders(

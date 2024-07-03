@@ -7,7 +7,6 @@ use crate::types::Vector;
 //#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierFluid {
     rid: Rid,
-    enabled: bool,
     density: f64,
     space: Rid,
     effects: Array<Gd<Resource>>,
@@ -21,7 +20,6 @@ impl RapierFluid {
     pub fn new(rid: Rid) -> Self {
         Self {
             rid,
-            enabled: true,
             density: 1.0,
             space: Rid::Invalid,
             effects: Array::default(),

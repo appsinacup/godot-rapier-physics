@@ -24,6 +24,7 @@ impl RapierDirectSpaceStateImpl {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub unsafe fn intersect_ray(
         &mut self,
         from: Vector,
@@ -50,8 +51,10 @@ impl RapierDirectSpaceStateImpl {
         // Raycast Info
         let end = to - from;
         let dir = vector_normalized(end);
-        let mut query_excluded_info = QueryExcludedInfo::default();
-        query_excluded_info.query_collision_layer_mask = collision_mask;
+        let query_excluded_info = QueryExcludedInfo {
+            query_collision_layer_mask: collision_mask,
+            ..Default::default()
+        };
         let mut hit_info = RayHitInfo::default();
         let collide = physics_data.physics_engine.intersect_ray(
             space.get_handle(),
@@ -90,6 +93,7 @@ impl RapierDirectSpaceStateImpl {
         false
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub unsafe fn intersect_point(
         &mut self,
         position: Vector,
@@ -101,10 +105,10 @@ impl RapierDirectSpaceStateImpl {
         max_results: i32,
         physics_data: &PhysicsData,
     ) -> i32 {
-        let max_results = max_results as usize;
         if max_results <= 0 {
             return 0;
         }
+        let max_results = max_results as usize;
         let Some(space) = physics_data.spaces.get(&self.space) else {
             return 0;
         };
@@ -116,9 +120,11 @@ impl RapierDirectSpaceStateImpl {
         hit_info_array.resize_with(max_results, Default::default);
         let hit_info_ptr = hit_info_array.as_mut_ptr();
         // Initialize query_excluded_info
-        let mut query_excluded_info = QueryExcludedInfo::default();
-        query_excluded_info.query_canvas_instance_id = canvas_instance_id;
-        query_excluded_info.query_collision_layer_mask = collision_mask;
+        let query_excluded_info = QueryExcludedInfo {
+            query_canvas_instance_id: canvas_instance_id,
+            query_collision_layer_mask: collision_mask,
+            ..Default::default()
+        };
         // Perform intersection
         let mut result_count = physics_data.physics_engine.intersect_point(
             space.get_handle(),
@@ -127,7 +133,7 @@ impl RapierDirectSpaceStateImpl {
             collide_with_areas,
             hit_info_ptr,
             max_results,
-            &mut query_excluded_info,
+            &query_excluded_info,
             &physics_data.collision_objects,
             space,
         );
@@ -136,21 +142,21 @@ impl RapierDirectSpaceStateImpl {
         }
         let results_slice: &mut [PhysicsServerExtensionShapeResult] =
             unsafe { std::slice::from_raw_parts_mut(results, max_results) };
-        for i in 0..max_results {
+        for (i, result_slice) in results_slice.iter_mut().enumerate().take(max_results) {
             let hit_info = unsafe { &mut *hit_info_ptr.add(i) };
             let (rid, shape_index) =
                 RapierCollisionObject::get_collider_user_data(&hit_info.user_data);
-            results_slice[i].rid = rid;
-            results_slice[i].shape = shape_index as i32;
+            result_slice.rid = rid;
+            result_slice.shape = shape_index as i32;
             let collision_object_2d = physics_data.collision_objects.get(&rid);
             if let Some(collision_object_2d) = collision_object_2d {
                 let instance_id = collision_object_2d.get_base().get_instance_id();
-                results_slice[i].collider_id = ObjectId { id: instance_id };
+                result_slice.collider_id = ObjectId { id: instance_id };
                 if instance_id != 0 {
                     if let Ok(object) =
                         Gd::<Node>::try_from_instance_id(InstanceId::from_i64(instance_id as i64))
                     {
-                        results_slice[i].set_collider(object)
+                        result_slice.set_collider(object)
                     }
                 }
             }
@@ -158,6 +164,7 @@ impl RapierDirectSpaceStateImpl {
         result_count as i32
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub unsafe fn intersect_shape(
         &mut self,
         shape_rid: Rid,
@@ -182,8 +189,10 @@ impl RapierDirectSpaceStateImpl {
             return 0;
         }
         let shape_info = shape_info_from_body_shape(shape.get_handle(), transform);
-        let mut query_excluded_info = QueryExcludedInfo::default();
-        query_excluded_info.query_collision_layer_mask = collision_mask;
+        let mut query_excluded_info = QueryExcludedInfo {
+            query_collision_layer_mask: collision_mask,
+            ..Default::default()
+        };
         let mut query_exclude = Vec::new();
         query_exclude.resize_with(max_results, Default::default);
         query_excluded_info.query_exclude = query_exclude;
@@ -231,6 +240,7 @@ impl RapierDirectSpaceStateImpl {
         cpt as i32
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub unsafe fn cast_motion(
         &mut self,
         shape_rid: Rid,
@@ -255,8 +265,10 @@ impl RapierDirectSpaceStateImpl {
         }
         let rapier_motion = vector_to_rapier(motion);
         let shape_info = shape_info_from_body_shape(shape.get_handle(), transform);
-        let mut query_excluded_info = QueryExcludedInfo::default();
-        query_excluded_info.query_collision_layer_mask = collision_mask;
+        let query_excluded_info = QueryExcludedInfo {
+            query_collision_layer_mask: collision_mask,
+            ..Default::default()
+        };
         let hit = physics_data
             .physics_engine
             .shape_casting(
@@ -278,6 +290,7 @@ impl RapierDirectSpaceStateImpl {
         true
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub unsafe fn collide_shape(
         &mut self,
         shape_rid: Rid,
@@ -304,8 +317,10 @@ impl RapierDirectSpaceStateImpl {
         }
         let results_out = results as *mut Vector;
         let shape_info = shape_info_from_body_shape(shape.get_handle(), transform);
-        let mut query_excluded_info = QueryExcludedInfo::default();
-        query_excluded_info.query_collision_layer_mask = collision_mask;
+        let mut query_excluded_info = QueryExcludedInfo {
+            query_collision_layer_mask: collision_mask,
+            ..Default::default()
+        };
         let mut query_exclude = Vec::new();
         query_exclude.resize_with(max_results, Default::default);
         query_excluded_info.query_exclude = query_exclude;
@@ -319,7 +334,7 @@ impl RapierDirectSpaceStateImpl {
                 shape_info,
                 collide_with_bodies,
                 collide_with_areas,
-                &mut query_excluded_info,
+                &query_excluded_info,
                 &physics_data.collision_objects,
                 space,
             );
@@ -340,6 +355,7 @@ impl RapierDirectSpaceStateImpl {
         array_idx > 0
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub unsafe fn rest_info(
         &mut self,
         shape_rid: Rid,
@@ -363,15 +379,17 @@ impl RapierDirectSpaceStateImpl {
         }
         let rapier_motion = vector_to_rapier(motion);
         let shape_info = shape_info_from_body_shape(shape.get_handle(), transform);
-        let mut query_excluded_info = QueryExcludedInfo::default();
-        query_excluded_info.query_collision_layer_mask = collision_mask;
+        let query_excluded_info = QueryExcludedInfo {
+            query_collision_layer_mask: collision_mask,
+            ..Default::default()
+        };
         let result = physics_data.physics_engine.shape_casting(
             space.get_handle(),
             rapier_motion,
             shape_info,
             collide_with_bodies,
             collide_with_areas,
-            &mut query_excluded_info,
+            &query_excluded_info,
             &physics_data.collision_objects,
             space,
         );

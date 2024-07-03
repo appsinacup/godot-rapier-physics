@@ -93,7 +93,7 @@ impl IRapierShape for RapierConvexPolygonShape {
             VariantType::PACKED_VECTOR2_ARRAY | VariantType::PACKED_VECTOR3_ARRAY => {
                 if let Ok(arr) = data.try_to::<PackedVectorArray>() {
                     let size = arr.len();
-                    if size <= 0 {
+                    if size == 0 {
                         return;
                     }
                     self.points = arr;
@@ -103,7 +103,7 @@ impl IRapierShape for RapierConvexPolygonShape {
             VariantType::PACKED_FLOAT64_ARRAY | VariantType::PACKED_FLOAT32_ARRAY => {
                 if let Ok(arr) = data.try_to::<PackedFloatArray>() {
                     let size = arr.len() / 4;
-                    if size <= 0 {
+                    if size == 0 {
                         return;
                     }
                     self.points = PackedVectorArray::new();

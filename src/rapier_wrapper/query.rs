@@ -75,6 +75,7 @@ pub struct QueryExcludedInfo {
     pub query_exclude_body: i64,
 }
 impl PhysicsEngine {
+    #[allow(clippy::too_many_arguments)]
     pub fn intersect_ray(
         &self,
         world_handle: WorldHandle,
@@ -143,6 +144,7 @@ impl PhysicsEngine {
         result
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn intersect_point(
         &self,
         world_handle: WorldHandle,
@@ -156,7 +158,7 @@ impl PhysicsEngine {
         space: &RapierSpace,
     ) -> usize {
         let mut cpt_hit = 0;
-        if hit_info_length <= 0 {
+        if hit_info_length == 0 {
             return cpt_hit;
         }
         if let Some(physics_world) = self.get_world(world_handle) {
@@ -229,10 +231,10 @@ impl PhysicsEngine {
                 let shared_shape2 = scale_shape(raw_shared_shape2, shape_info2);
                 let shape_transform1 = shape_info1.transform;
                 let shape_transform2 = shape_info2.transform;
-                let mut shape_cast_options = ShapeCastOptions::default();
-                shape_cast_options.max_time_of_impact = 1.0;
-                shape_cast_options.compute_impact_geometry_on_penetration = true;
-                shape_cast_options.stop_at_penetration = true;
+                let shape_cast_options = ShapeCastOptions {
+                    max_time_of_impact: 1.0,
+                    ..Default::default()
+                };
                 let toi_result = parry::query::cast_shapes(
                     &shape_transform1,
                     &shape_vel1,
@@ -261,6 +263,7 @@ impl PhysicsEngine {
         result
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn shape_casting(
         &self,
         world_handle: WorldHandle,
@@ -297,12 +300,10 @@ impl PhysicsEngine {
                     )
                 };
                 filter.predicate = Some(&predicate);
-                let mut shape_cast_options = ShapeCastOptions::default();
-                //shape_cast_options.max_time_of_impact = Real::MAX;
-                shape_cast_options.max_time_of_impact = 1.0;
-                shape_cast_options.compute_impact_geometry_on_penetration = true;
-                shape_cast_options.stop_at_penetration = true;
-                shape_cast_options.target_distance = 0.0;
+                let shape_cast_options = ShapeCastOptions {
+                    max_time_of_impact: 1.0,
+                    ..Default::default()
+                };
                 if let Some((collider_handle, hit)) =
                     physics_world.physics_objects.query_pipeline.cast_shape(
                         &physics_world.physics_objects.rigid_body_set,
@@ -341,6 +342,7 @@ impl PhysicsEngine {
         result
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn intersect_aabb(
         &self,
         world_handle: WorldHandle,

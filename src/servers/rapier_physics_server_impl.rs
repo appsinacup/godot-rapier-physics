@@ -1,3 +1,4 @@
+#[cfg(feature = "dim2")]
 use std::ffi::c_void;
 
 #[cfg(feature = "dim2")]
@@ -181,6 +182,8 @@ impl RapierPhysicsServerImpl {
         0.0
     }
 
+    #[cfg(feature = "dim2")]
+    #[allow(clippy::too_many_arguments)]
     pub(super) unsafe fn shape_collide(
         &mut self,
         shape_a: Rid,
@@ -439,12 +442,14 @@ impl RapierPhysicsServerImpl {
         0
     }
 
+    #[cfg(feature = "dim2")]
     pub(super) fn area_attach_canvas_instance_id(&mut self, area: Rid, id: u64) {
         if let Some(area) = self.physics_data.collision_objects.get_mut(&area) {
             area.get_mut_base().set_canvas_instance_id(id);
         }
     }
 
+    #[cfg(feature = "dim2")]
     pub(super) fn area_get_canvas_instance_id(&self, area: Rid) -> u64 {
         if let Some(area) = self.physics_data.collision_objects.get(&area) {
             return area.get_base().get_canvas_instance_id();
@@ -529,6 +534,7 @@ impl RapierPhysicsServerImpl {
         }
     }
 
+    #[cfg(feature = "dim2")]
     pub(super) fn area_set_pickable(&mut self, area: Rid, pickable: bool) {
         if let Some(area) = self.physics_data.collision_objects.get_mut(&area) {
             area.get_mut_base().set_pickable(pickable);
@@ -707,6 +713,7 @@ impl RapierPhysicsServerImpl {
         }
     }
 
+    #[cfg(feature = "dim2")]
     pub(super) fn body_set_shape_as_one_way_collision(
         &mut self,
         body: Rid,
@@ -759,12 +766,14 @@ impl RapierPhysicsServerImpl {
         0
     }
 
+    #[cfg(feature = "dim2")]
     pub(super) fn body_attach_canvas_instance_id(&mut self, body: Rid, id: u64) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             body.get_mut_base().set_canvas_instance_id(id);
         }
     }
 
+    #[cfg(feature = "dim2")]
     pub(super) fn body_get_canvas_instance_id(&self, body: Rid) -> u64 {
         if let Some(body) = self.physics_data.collision_objects.get(&body) {
             return body.get_base().get_canvas_instance_id();
@@ -1078,8 +1087,7 @@ impl RapierPhysicsServerImpl {
     pub(super) fn body_set_axis_velocity(&mut self, body: Rid, axis_velocity: Vector) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                let axis_velocity = axis_velocity;
-                let mut v = body.get_linear_velocity(&mut self.physics_data.physics_engine);
+                let mut v = body.get_linear_velocity(&self.physics_data.physics_engine);
                 let axis = vector_normalized(axis_velocity);
                 v -= axis * axis.dot(v);
                 v += axis_velocity;
@@ -1211,6 +1219,8 @@ impl RapierPhysicsServerImpl {
         }
     }
 
+    #[cfg(feature = "dim2")]
+    #[allow(clippy::too_many_arguments)]
     pub(super) unsafe fn body_collide_shape(
         &mut self,
         body: Rid,
@@ -1247,6 +1257,7 @@ impl RapierPhysicsServerImpl {
         )
     }
 
+    #[cfg(feature = "dim2")]
     pub(super) fn body_set_pickable(&mut self, body: Rid, pickable: bool) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             body.get_mut_base().set_pickable(pickable);
@@ -1272,6 +1283,8 @@ impl RapierPhysicsServerImpl {
         None
     }
 
+    #[cfg(feature = "dim2")]
+    #[allow(clippy::too_many_arguments)]
     pub unsafe fn body_test_motion(
         &self,
         body: Rid,
