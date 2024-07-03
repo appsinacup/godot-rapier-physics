@@ -36,12 +36,12 @@ impl RapierDirectSpaceState3D {
 #[godot_api]
 impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
     fn init(base: Base<PhysicsDirectSpaceState3DExtension>) -> Self {
-        let physics_singleton = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>();
-        if physics_singleton.is_ok() {
+        if let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        {
             return Self {
                 inner: RapierDirectSpaceStateImpl::default(),
                 space: Rid::Invalid,
-                physics_singleton: Some(physics_singleton.unwrap()),
+                physics_singleton: Some(physics_singleton),
                 base,
             };
         }

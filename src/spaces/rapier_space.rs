@@ -475,14 +475,15 @@ impl RapierSpace {
         let mut buf = PackedByteArray::new();
         if let Some(inner) = physics_engine.world_export(self.handle) {
             let space_export = SpaceExport { inner, space: self };
-            let binary_data = bincode::serialize(&space_export);
-            if binary_data.is_err() {
-                godot_error!("Failed to serialize space: {}", binary_data.err().unwrap());
-            } else {
-                let binary_data = binary_data.unwrap();
-                buf.resize(binary_data.len());
-                for i in 0..binary_data.len() {
-                    buf[i] = binary_data[i];
+            match bincode::serialize(&space_export) {
+                Ok(binary_data) => {
+                    buf.resize(binary_data.len());
+                    for i in 0..binary_data.len() {
+                        buf[i] = binary_data[i];
+                    }
+                }
+                Err(e) => {
+                    godot_error!("Failed to serialize space: {}", e);
                 }
             }
         }

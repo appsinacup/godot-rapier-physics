@@ -194,10 +194,9 @@ impl RapierPhysicsServerImpl {
         result_count: *mut i32,
     ) -> bool {
         let result = self.physics_data.shapes.get_many_mut([&shape_a, &shape_b]);
-        if result.is_none() {
+        let Some([shape_a, shape_b]) = result else {
             return false;
-        }
-        let [shape_a, shape_b] = result.unwrap();
+        };
         let shape_a_handle = shape_a.get_base().get_handle();
         let shape_b_handle = shape_b.get_base().get_handle();
         if !shape_a.get_base().is_valid() || !shape_b.get_base().is_valid() {
