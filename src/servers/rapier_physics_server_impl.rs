@@ -1088,6 +1088,25 @@ impl RapierPhysicsServerImpl {
         }
     }
 
+    #[cfg(feature = "dim3")]
+    pub(super) fn body_set_axis_lock(&mut self, body: Rid, axis: BodyAxis, lock: bool) {
+        if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
+            if let Some(body) = body.get_mut_body() {
+                body.set_axis_lock(axis, lock, &mut self.physics_data.physics_engine);
+            }
+        }
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn body_is_axis_locked(&self, body: Rid, axis: BodyAxis) -> bool {
+        if let Some(body) = self.physics_data.collision_objects.get(&body) {
+            if let Some(body) = body.get_body() {
+                return body.is_axis_locked(axis);
+            }
+        }
+        false
+    }
+
     pub(super) fn body_add_collision_exception(&mut self, body: Rid, excepted_body: Rid) {
         if let Some(body) = self.physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {

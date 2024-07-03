@@ -1,3 +1,5 @@
+use godot::builtin::math::FloatExt;
+use godot::log::godot_error;
 use nalgebra::Point;
 use rapier::prelude::*;
 
@@ -191,6 +193,22 @@ impl PhysicsEngine {
         }
     }
 
+    pub fn body_set_axis_lock(
+        &mut self,
+        world_handle: WorldHandle,
+        body_handle: RigidBodyHandle,
+        axis_lock: LockedAxes,
+    ) {
+        if let Some(physics_world) = self.get_mut_world(world_handle)
+            && let Some(body) = physics_world
+                .physics_objects
+                .rigid_body_set
+                .get_mut(body_handle)
+        {
+            body.set_locked_axes(axis_lock, true);
+        }
+    }
+
     pub fn body_update_material(
         &mut self,
         world_handle: WorldHandle,
@@ -380,7 +398,7 @@ impl PhysicsEngine {
         mass: Real,
         inertia: AngVector<Real>,
         _local_com: Vector<Real>,
-        _wake_up: bool,
+        wake_up: bool,
         force_update: bool,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
@@ -390,9 +408,7 @@ impl PhysicsEngine {
                 .get_mut(body_handle)
         {
             let colliders = body.colliders();
-            let current_mass = body.mass();
-            let mass_multiple = mass / current_mass;
-            let _colliders_len_inv = 1.0 / (colliders.len() as f32);
+            let colliders_len_inv = 1.0 / (colliders.len() as f32);
             for collider in colliders {
                 if let Some(collider) = physics_world
                     .physics_objects
@@ -401,18 +417,23 @@ impl PhysicsEngine {
                 {
                     // reuse local center
                     let mass_properties = collider.shape().mass_properties(1.0);
+                    if mass_properties.mass().is_zero_approx() {
+                        godot_error!("Collider has zero computed mass");
+                    }
                     let local_com = mass_properties.local_com;
                     //let shape_inertia = mass_properties.inv_principal_inertia_sqrt;
-                    let collider_mass = collider.mass();
                     let _mass_properties = MassProperties::new(
                         local_com,
-                        collider_mass * mass_multiple,
+                        colliders_len_inv,
                         inertia, // * colliders_len_inv,
                     );
                     //collider.set_mass_properties(mass_properties);
-                    collider.set_mass(collider_mass * mass_multiple);
+                    collider.set_mass(colliders_len_inv);
+                    //collider.set_density(colliders_len_inv)
                 }
             }
+            let props = MassProperties::new(Point { coords: _local_com }, mass, inertia);
+            //body.set_additional_mass_properties(props, true);
             if force_update {
                 body.recompute_mass_properties_from_colliders(
                     &physics_world.physics_objects.collider_set,
