@@ -38,6 +38,8 @@ Box|3500|3200|4500|4000|7200
 Capsule|4500|2700|4500|3700|7400
 Convex Polygon|3500|3100|4000|4000|8000
 
+The rapier vanilla lib is capable of running about 2x the number of shapes. The thing that slows this library down is the implementation and wrapping part with Godot. That can and will be improved.
+
 # Note
 
 This plugin was recently rewritten from c++ to rust. There are still some things missing from what it had originally and performance is about 1.5x slower than before. This should improve with time.
