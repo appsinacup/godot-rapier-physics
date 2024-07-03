@@ -40,9 +40,7 @@ Convex Polygon|3500|3100|4000|4000|8000
 
 # Note
 
-This plugin was recently rewritten from c++ to rust. There are still some things missing from what it had originally and may have some new bugs that it didn't have before.
-
-The reason it was rewritten is to do easier cross platform determinism part and exports to web.
+This plugin was recently rewritten from c++ to rust. There are still some things missing from what it had originally and performance is about 1.5x slower than before. This should improve with time.
 
 # Installation
 
