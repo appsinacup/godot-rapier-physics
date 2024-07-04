@@ -2,7 +2,7 @@ use godot::classes::*;
 use godot::prelude::*;
 
 use super::rapier_direct_body_state_impl::RapierDirectBodyStateImpl;
-use crate::servers::RapierPhysicsServer;
+use crate::servers::rapier_physics_singleton::physics_data;
 use crate::spaces::rapier_space::RapierSpace;
 use crate::types::*;
 #[derive(GodotClass)]
@@ -208,11 +208,7 @@ impl IPhysicsDirectBodyState3DExtension for RapierDirectBodyState3D {
     fn integrate_forces(&mut self) {}
 
     fn get_space_state(&mut self) -> Option<Gd<PhysicsDirectSpaceState3D>> {
-        let Ok(physics_singleton) = PhysicsServer3D::singleton().try_cast::<RapierPhysicsServer>()
-        else {
-            return None;
-        };
-        let physics_data = &physics_singleton.bind().implementation.physics_data;
+        let physics_data = physics_data();
         if let Some(body) = physics_data
             .collision_objects
             .get(self.implementation.get_body())

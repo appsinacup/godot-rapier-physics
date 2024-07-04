@@ -11,7 +11,6 @@ use crate::servers::RapierPhysicsServer;
 use crate::types::*;
 pub struct RapierDirectBodyStateImpl {
     body: Rid,
-    physics_singleton: Option<Gd<RapierPhysicsServer>>,
 }
 impl RapierDirectBodyStateImpl {
     pub(super) fn set_body(&mut self, body: Rid) {
@@ -23,17 +22,7 @@ impl RapierDirectBodyStateImpl {
     }
 
     pub(super) fn default() -> Self {
-        if let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
-        {
-            return Self {
-                body: Rid::Invalid,
-                physics_singleton: Some(physics_singleton),
-            };
-        }
-        Self {
-            body: Rid::Invalid,
-            physics_singleton: None,
-        }
+        Self { body: Rid::Invalid }
     }
 
     pub(super) fn get_total_gravity(&self) -> Vector {

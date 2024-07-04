@@ -3,7 +3,6 @@ use godot::classes::*;
 use godot::prelude::*;
 
 use super::rapier_direct_space_state_impl::RapierDirectSpaceStateImpl;
-use crate::servers::rapier_physics_singleton::physics_data;
 use crate::servers::RapierPhysicsServer;
 use crate::types::PhysicsServer;
 #[derive(GodotClass)]
@@ -11,7 +10,6 @@ use crate::types::PhysicsServer;
 pub struct RapierDirectSpaceState2D {
     inner: RapierDirectSpaceStateImpl,
     space: Rid,
-    physics_singleton: Option<Gd<RapierPhysicsServer>>,
     base: Base<PhysicsDirectSpaceState2DExtension>,
 }
 impl RapierDirectSpaceState2D {
@@ -36,19 +34,9 @@ impl RapierDirectSpaceState2D {
 impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
     #[no_mangle]
     fn init(base: Base<PhysicsDirectSpaceState2DExtension>) -> Self {
-        if let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
-        {
-            return Self {
-                inner: RapierDirectSpaceStateImpl::default(),
-                space: Rid::Invalid,
-                physics_singleton: Some(physics_singleton),
-                base,
-            };
-        }
         Self {
             inner: RapierDirectSpaceStateImpl::default(),
             space: Rid::Invalid,
-            physics_singleton: None,
             base,
         }
     }

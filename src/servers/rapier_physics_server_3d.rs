@@ -5,6 +5,7 @@ use godot::engine::physics_server_3d::*;
 use godot::prelude::*;
 
 use super::rapier_physics_server_impl::RapierPhysicsServerImpl;
+use super::rapier_physics_singleton::physics_data;
 use crate::types::*;
 #[derive(GodotClass, Default)]
 #[class(base=Object,init,tool)]
@@ -659,12 +660,12 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
     }
 
     fn flush_queries(&mut self) {
+        let physics_data = physics_data();
         self.implementation.flushing_queries = false;
         let mut queries = Vec::default();
-        for space in self.implementation.physics_data.active_spaces.values() {
-            if let Some(space) = self.implementation.physics_data.spaces.get_mut(space) {
-                let query =
-                    space.get_queries(&mut self.implementation.physics_data.collision_objects);
+        for space in physics_data.active_spaces.values() {
+            if let Some(space) = physics_data.spaces.get_mut(space) {
+                let query = space.get_queries(&mut physics_data.collision_objects);
                 queries.extend(query);
             }
         }
@@ -674,9 +675,9 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         }
         drop(guard);
         self.implementation.flushing_queries = true;
-        for space in self.implementation.physics_data.active_spaces.values() {
-            if let Some(space) = self.implementation.physics_data.spaces.get_mut(space) {
-                space.update_after_queries(&mut self.implementation.physics_data.collision_objects);
+        for space in physics_data.active_spaces.values() {
+            if let Some(space) = physics_data.spaces.get_mut(space) {
+                space.update_after_queries(&mut physics_data.collision_objects);
             }
         }
     }

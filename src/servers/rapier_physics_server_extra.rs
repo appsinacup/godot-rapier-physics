@@ -3,7 +3,6 @@ use godot::engine::utilities::rid_from_int64;
 use godot::prelude::*;
 
 use super::rapier_physics_singleton::physics_data;
-use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::fluids::rapier_fluid::RapierFluid;
 use crate::servers::RapierPhysicsServer;
 use crate::types::*;
@@ -139,7 +138,6 @@ impl RapierPhysicsServer {
 
     #[func]
     fn collision_object_export_json(_collision_object: Rid) -> String {
-        let physics_data = physics_data();
         "{}".to_string()
     }
 
