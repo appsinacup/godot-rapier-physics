@@ -6,8 +6,8 @@ use godot::prelude::*;
 use rapier::geometry::ColliderHandle;
 use rapier::math::Real;
 use rapier::math::DEFAULT_EPSILON;
-use servers::rapier_physics_server_extra::PhysicsCollisionObjects;
-use servers::rapier_physics_server_extra::PhysicsShapes;
+use servers::rapier_physics_singleton::PhysicsCollisionObjects;
+use servers::rapier_physics_singleton::PhysicsShapes;
 
 use super::rapier_space::RapierSpace;
 use super::RapierDirectSpaceState;

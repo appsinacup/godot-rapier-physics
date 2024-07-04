@@ -8,9 +8,9 @@ use hashbrown::hash_set::HashSet;
 use rapier::dynamics::LockedAxes;
 use rapier::geometry::ColliderHandle;
 use rapier::math::DEFAULT_EPSILON;
-use servers::rapier_physics_server_extra::PhysicsCollisionObjects;
-use servers::rapier_physics_server_extra::PhysicsShapes;
-use servers::rapier_physics_server_extra::PhysicsSpaces;
+use servers::rapier_physics_singleton::PhysicsCollisionObjects;
+use servers::rapier_physics_singleton::PhysicsShapes;
+use servers::rapier_physics_singleton::PhysicsSpaces;
 
 use super::rapier_area::RapierArea;
 use crate::bodies::rapier_collision_object::*;
@@ -143,7 +143,7 @@ pub struct RapierBody {
     contacts: Vec<Contact>,
     contact_count: i32,
     #[cfg_attr(feature = "serde-serialize", serde(skip))]
-    body_state_callback: Callable,
+    body_state_callback: Option<Callable>,
     #[cfg_attr(feature = "serde-serialize", serde(skip))]
     fi_callback_data: Option<ForceIntegrationCallbackData>,
     #[cfg_attr(feature = "serde-serialize", serde(skip))]
@@ -197,7 +197,7 @@ impl RapierBody {
             areas: Vec::new(),
             contacts: Vec::new(),
             contact_count: 0,
-            body_state_callback: Callable::invalid(),
+            body_state_callback: None,
             fi_callback_data: None,
             direct_state: None,
             base: RapierCollisionObject::new(rid, CollisionObjectType::Body),
@@ -436,11 +436,11 @@ impl RapierBody {
     }
 
     pub fn set_state_sync_callback(&mut self, p_callable: Callable) {
-        self.body_state_callback = p_callable;
+        self.body_state_callback = Some(p_callable);
     }
 
-    pub fn get_state_sync_callback(&self) -> &Callable {
-        &self.body_state_callback
+    pub fn get_state_sync_callback(&self) -> Option<&Callable> {
+        self.body_state_callback.as_ref()
     }
 
     pub fn set_force_integration_callback(&mut self, callable: Callable, udata: Variant) {
@@ -455,12 +455,18 @@ impl RapierBody {
         self.fi_callback_data.as_ref()
     }
 
-    pub fn get_direct_state(&mut self) -> Option<&Gd<PhysicsDirectBodyState>> {
+    pub fn create_direct_state(&mut self) -> Option<&Gd<PhysicsDirectBodyState>> {
         if self.direct_state.is_none() {
             let mut direct_space_state = RapierDirectBodyState::new_alloc();
-            direct_space_state.bind_mut().set_body(self.base.get_rid());
+            let mut direct_state = direct_space_state.bind_mut();
+            direct_state.set_body(self.base.get_rid());
+            drop(direct_state);
             self.direct_state = Some(direct_space_state.upcast());
         }
+        self.direct_state.as_ref()
+    }
+
+    pub fn get_direct_state(&self) -> Option<&Gd<PhysicsDirectBodyState>> {
         self.direct_state.as_ref()
     }
 

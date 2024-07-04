@@ -5,8 +5,8 @@ use godot::engine::physics_server_3d::*;
 use godot::prelude::*;
 use rapier::dynamics::RigidBodyHandle;
 use rapier::geometry::ColliderHandle;
-use servers::rapier_physics_server_extra::PhysicsShapes;
-use servers::rapier_physics_server_extra::PhysicsSpaces;
+use servers::rapier_physics_singleton::PhysicsShapes;
+use servers::rapier_physics_singleton::PhysicsSpaces;
 
 use super::rapier_area::RapierArea;
 use super::rapier_body::RapierBody;

@@ -1,7 +1,7 @@
 use rapier::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_server_extra::PhysicsCollisionObjects;
+use crate::servers::rapier_physics_singleton::PhysicsCollisionObjects;
 #[derive(Default)]
 pub struct OneWayDirection {
     pub body1: bool,

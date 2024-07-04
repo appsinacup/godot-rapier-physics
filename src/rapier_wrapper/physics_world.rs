@@ -7,7 +7,7 @@ use rapier::prelude::*;
 use salva::integrations::rapier::FluidsPipeline;
 
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_server_extra::PhysicsCollisionObjects;
+use crate::servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use crate::spaces::rapier_space::RapierSpace;
 pub struct ActiveBodyInfo {
     pub body_user_data: UserData,
