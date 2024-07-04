@@ -33,7 +33,7 @@ Each cell shows max shape count. Higher number is better.
 
 Shape|Godot 2D|Godot 3D|Rapier 2D (C++)|Rapier 2D (Rust)|Rapier 3D (Rust)|Jolt 3D
 -|-|-|-|-|-|-
-Sphere|5000|3300|8800|8200|5200|8000
+Sphere|5000|3300|8800|5500|5200|8000
 Box|3500|3200|7700|8000|5200|7200
 Capsule|4500|2700|8000|7000|5100|7400
 Convex Polygon|3500|3100|6500|6300|5000|8000
