@@ -7,7 +7,6 @@ use physics_server_3d::*;
 
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::servers::rapier_physics_singleton::physics_data;
-use crate::servers::RapierPhysicsServer;
 use crate::types::*;
 pub struct RapierDirectBodyStateImpl {
     body: Rid,
