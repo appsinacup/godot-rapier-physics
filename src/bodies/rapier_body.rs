@@ -455,7 +455,7 @@ impl RapierBody {
         self.fi_callback_data.as_ref()
     }
 
-    pub fn create_direct_state(&mut self) -> Option<&Gd<PhysicsDirectBodyState>> {
+    pub fn create_direct_state(&mut self) {
         if self.direct_state.is_none() {
             let mut direct_space_state = RapierDirectBodyState::new_alloc();
             let mut direct_state = direct_space_state.bind_mut();
@@ -463,7 +463,6 @@ impl RapierBody {
             drop(direct_state);
             self.direct_state = Some(direct_space_state.upcast());
         }
-        self.direct_state.as_ref()
     }
 
     pub fn get_direct_state(&self) -> Option<&Gd<PhysicsDirectBodyState>> {

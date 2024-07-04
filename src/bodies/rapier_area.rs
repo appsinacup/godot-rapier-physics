@@ -578,7 +578,7 @@ impl RapierArea {
         self.priority
     }
 
-    pub fn get_queries(&self) -> Vec<(Callable, Array<Variant>)> {
+    pub fn get_queries(&self) -> Vec<(Callable, Vec<Variant>)> {
         let mut queries = Vec::default();
         if self.monitored_objects.is_empty() {
             return queries;
@@ -590,20 +590,20 @@ impl RapierArea {
             }
             let arg_array;
             if monitor_info.state > 0 {
-                arg_array = array![
+                arg_array = vec![
                     AreaBodyStatus::ADDED.to_variant(),
                     monitor_info.rid.to_variant(),
                     monitor_info.instance_id.to_variant(),
                     monitor_info.object_shape_index.to_variant(),
-                    monitor_info.area_shape_index.to_variant()
+                    monitor_info.area_shape_index.to_variant(),
                 ];
             } else {
-                arg_array = array![
+                arg_array = vec![
                     AreaBodyStatus::REMOVED.to_variant(),
                     monitor_info.rid.to_variant(),
                     monitor_info.instance_id.to_variant(),
                     monitor_info.object_shape_index.to_variant(),
-                    monitor_info.area_shape_index.to_variant()
+                    monitor_info.area_shape_index.to_variant(),
                 ];
             }
             if monitor_info.collision_object_type == CollisionObjectType::Body {

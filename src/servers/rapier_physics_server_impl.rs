@@ -1390,7 +1390,8 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                return body.create_direct_state().cloned();
+                body.create_direct_state();
+                return body.get_direct_state().cloned();
             }
         }
         None

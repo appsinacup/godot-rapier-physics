@@ -698,7 +698,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         }
         let guard = self.base_mut();
         for query in queries {
-            query.0.callv(query.1);
+            query.0.callv(Array::from(query.1.as_slice()));
         }
         drop(guard);
         self.implementation.flushing_queries = true;

@@ -212,7 +212,7 @@ impl RapierSpace {
     pub fn get_queries(
         &mut self,
         physics_data_collision_objects: &mut PhysicsCollisionObjects,
-    ) -> Vec<(Callable, Array<Variant>)> {
+    ) -> Vec<(Callable, Vec<Variant>)> {
         let mut queries = Vec::default();
         for body_rid in self.state_query_list.clone() {
             if let Some(body) = physics_data_collision_objects.get_mut(&body_rid) {
@@ -228,14 +228,14 @@ impl RapierSpace {
                         if let Some(fi_callback_data) = body.get_force_integration_callback() {
                             queries.push((
                                 fi_callback_data.callable.clone(),
-                                array![direct_state.to_variant(), fi_callback_data.udata.clone()],
+                                vec![direct_state.to_variant(), fi_callback_data.udata.clone()],
                             ));
                         }
                         //  Sync body server with Godot by sending body direct state
                         if let Some(state_sync_callback) = body.get_state_sync_callback() {
                             queries.push((
                                 state_sync_callback.clone(),
-                                array![direct_state.to_variant()],
+                                vec![direct_state.to_variant()],
                             ));
                         }
                     }
