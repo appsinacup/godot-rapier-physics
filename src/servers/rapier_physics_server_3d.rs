@@ -662,17 +662,17 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
     fn flush_queries(&mut self) {
         let physics_data = physics_data();
         self.implementation.flushing_queries = false;
-        let mut queries = Vec::default();
+        let guard = self.base_mut();
+        //let mut queries = Vec::default();
         for space in physics_data.active_spaces.values() {
             if let Some(space) = physics_data.spaces.get_mut(space) {
                 let query = space.get_queries(&mut physics_data.collision_objects);
-                queries.extend(query);
+                //queries.extend(query);
             }
         }
-        let guard = self.base_mut();
-        for query in queries {
-            query.0.callv(Array::from(query.1.as_slice()));
-        }
+        //for query in queries {
+        //query.0.callv(Array::from(query.1.as_slice()));
+        //}
         drop(guard);
         self.implementation.flushing_queries = true;
         for space in physics_data.active_spaces.values() {

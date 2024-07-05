@@ -457,9 +457,10 @@ impl RapierBody {
     pub fn create_direct_state(&mut self) {
         if self.direct_state.is_none() {
             let mut direct_space_state = RapierDirectBodyState::new_alloc();
-            let mut direct_state = direct_space_state.bind_mut();
-            direct_state.set_body(self.base.get_rid());
-            drop(direct_state);
+            {
+                let mut direct_state = direct_space_state.bind_mut();
+                direct_state.set_body(self.base.get_rid());
+            }
             self.direct_state = Some(direct_space_state.upcast());
         }
     }
