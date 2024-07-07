@@ -1,26 +1,4 @@
-# 1. Documentation
-
-1. [Rapier Physics Server](#rapier-physics-server)
-2. [Rapier Direct Space State](#rapier-direct-space-state)
-
-## Rapier Physics Server
-
-The new `RapierPhysicsServer2D` and `RapierPhysicsServer3D` can be used just like the `PhysicsServer2D` and `PhysicsServer3D` in GDScript:
-```python
-RapierPhysicsServer2D.body_set_extra_param(...)
-```
-
-The rapeir physics server exposes new methods that expose extra functionality that it has to offer, such as:
-- bodies rounded edges
-- fluids
-- json and binary export
-
-## Rapier Direct Space State
-
-Same as the Rapier Physics Server, the Rapier Direct Space state offeres new functions that allow for functionality such as:
-- json and binary export
-
-# 2. Implementation
+# Contributing
 
 1. [Extending Godot Physics](#extending-godot-physics)
 2. [How the Physics Server works with Godot Nodes](#how-the-physics-server-works-with-godot-nodes)
