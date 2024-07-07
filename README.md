@@ -9,7 +9,7 @@
 
 <p align = "center">
     <strong>
-        <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/docs/DOCUMENTATION.md">Documentation</a> | <a href="https://discord.gg/56dMud8HYn">Discord</a>
+        <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/CONTRIBUTING.md">Contributing</a> | <a href="https://godot.rapier.rs">Documentation</a> | <a href="https://discord.gg/56dMud8HYn">Discord</a>
     </strong>
 </p>
 
@@ -24,26 +24,6 @@
 -----
 
 Godot Rapier Physics is a 2D and 3D physics drop-in replacement for the [Godot game engine](https://github.com/godotengine/godot) that adds stability through [rapier](https://github.com/dimforge/rapier) and fluids through [salva](https://github.com/dimforge/salva).
-
-# Performance
-
-Creating objects until FPS drops below 30. Running on a macbook m2 pro with Godot 4.2. Everything is run inside the godot editor using the [Godot Physics Tests](https://github.com/fabriceci/Godot-Physics-Tests) repository.
-
-Each cell shows max shape count. Higher number is better.
-
-Shape|Godot 2D|Godot 3D|Rapier 2D (C++)|Rapier 2D (Rust)|Rapier 3D (Rust)|Jolt 3D
--|-|-|-|-|-|-
-Sphere|5000|3300|8800|6200|4200|8000
-Box|3500|3200|7700|5800|4000|7200
-Capsule|4500|2700|8000|5800|3700|7400
-Convex Polygon|3500|3100|6500|4800|4000|8000
-
-TODO run pyramid and joints tests.
-
-
-# Note
-
-This plugin was recently rewritten from C++ to Rust. There are still some things missing from what it had originally and performance is slower than it used to be. This is to be considered beta and still work in progress.
 
 # Installation
 
