@@ -29,8 +29,8 @@ runs:
       shell: sh
       run: |
         cargo build --target=${{ inputs.arch }} --release --features="${{ inputs.features }}" ${{ inputs.extra_flags}} --no-default-features
-      env:
-        RUSTFLAGS: ${{ inputs.env_flags }}
+      #env:
+        #RUSTFLAGS: ${{ inputs.env_flags }}
         #EMCC_CFLAGS: "-s ERROR_ON_UNDEFINED_SYMBOLS=0 --no-entry -gsource-map -s STANDALONE_WASM"
     - name: Copy to release
       shell: sh
