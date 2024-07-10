@@ -36,10 +36,10 @@ jobs:
         uses: ./.github/actions/build
         with:
           arch: ${{ matrix.arch }}
-          extra_flags: "-Z build-std=panic_abort,std"
+          extra_flags: "-Z build-std=std"
           precision: ${{ matrix.precision }}
           features: ${{ matrix.features.feature }},${{ matrix.precision }}-${{ matrix.dimensions.feature }},experimental-wasm,wasm-bindgen
-          env_flags: "-C target-feature=+atomics,+bulk-memory"
+          #env_flags: "-C target-feature=+atomics,+bulk-memory"
       - name: Copy to bin
         shell: sh
         run: |
