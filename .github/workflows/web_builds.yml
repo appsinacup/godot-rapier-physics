@@ -29,8 +29,9 @@ jobs:
 
       - name: Rust Install Nightly
         run: |
-          rustup component add rust-src
-          rustup target add wasm32-unknown-emscripten
+          rustup toolchain install nightly
+          rustup component add rust-src --toolchain nightly
+          rustup target add wasm32-unknown-emscripten --toolchain nightly
 
       - name: Build
         uses: ./.github/actions/build
