@@ -28,7 +28,7 @@ impl RapierDampedSpringJoint2D {
         let invalid_joint = Self {
             rest_length: 0.0,
             stiffness: 20.0,
-            damping: 1.5,
+            damping: 1.0,
             base: RapierJointBase::default(),
         };
         let body_a_rid = body_a.get_base().get_rid();
@@ -54,14 +54,14 @@ impl RapierDampedSpringJoint2D {
             vector_to_rapier(rapier_anchor_a),
             vector_to_rapier(rapier_anchor_b),
             20.0,
-            1.5,
+            1.0,
             rest_length,
             true,
         );
         Self {
             rest_length,
             stiffness: 20.0,
-            damping: 1.5,
+            damping: 1.0,
             base: RapierJointBase::new(space_handle, space_rid, handle),
         }
     }

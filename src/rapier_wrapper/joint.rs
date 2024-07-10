@@ -22,7 +22,6 @@ impl PhysicsEngine {
             let mut joint = RevoluteJointBuilder::new()
                 .local_anchor1(Point { coords: anchor_1 })
                 .local_anchor2(Point { coords: anchor_2 })
-                .motor_model(MotorModel::ForceBased)
                 .contacts_enabled(!disable_collision);
             if angular_limit_enabled {
                 joint = joint.limits([angular_limit_lower, angular_limit_upper]);
@@ -128,7 +127,10 @@ impl PhysicsEngine {
         {
             joint
                 .data
-                .set_motor_position(JointAxis::AngX, rest_length, stiffness, damping);
+                .set_motor_position(JointAxis::LinX, rest_length, stiffness, damping);
+            joint
+                .data
+                .set_motor_model(JointAxis::LinX, MotorModel::AccelerationBased);
         }
     }
 
