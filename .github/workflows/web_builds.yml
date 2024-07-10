@@ -18,10 +18,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Emscripten latest
-        uses: mymindstorm/setup-emsdk@v12
+        uses: mymindstorm/setup-emsdk@14
         with:
           version: 3.1.62
-          no-cache: false
 
       - name: Verify Emscripten setup
         run: |

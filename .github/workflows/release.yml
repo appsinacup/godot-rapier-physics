@@ -50,7 +50,7 @@ jobs:
           zip -r "godot-rapier-3d-single-enhanced-determinism.zip" godot-rapier-3d-single-enhanced-determinism
           zip -r "godot-rapier-3d-single-simd-parallel.zip" godot-rapier-3d-single-simd-parallel
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: Godot Rapier Nightly
           files: |
