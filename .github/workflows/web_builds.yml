@@ -20,8 +20,7 @@ jobs:
       - name: Set up Emscripten latest
         uses: mymindstorm/setup-emsdk@v12
         with:
-          #version: 3.1.62
-          version: 3.1.39
+          version: 3.1.62
           no-cache: false
 
       - name: Verify Emscripten setup
