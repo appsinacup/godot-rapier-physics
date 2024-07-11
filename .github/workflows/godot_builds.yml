@@ -21,4 +21,9 @@ jobs:
           name: godot-rapier-${{ matrix.dimensions }}-${{ matrix.precision }}-${{ matrix.features }}-gdext
           path: |
             bin${{ matrix.dimensions }}
+            !bin${{ matrix.dimensions }}/test/*
+            !bin${{ matrix.dimensions }}/export_presets.cfg
+            !bin${{ matrix.dimensions }}/project.godot
+            !bin${{ matrix.dimensions }}/test.gd
+            !bin${{ matrix.dimensions }}/test.tscn
           if-no-files-found: error

@@ -3,7 +3,7 @@ name = "godot-rapier"
 version = "0.7.0"
 edition = "2021"
 license = "MIT"
-rust-version = "1.78"
+rust-version = "1.81"
 publish = false
 
 [lib]

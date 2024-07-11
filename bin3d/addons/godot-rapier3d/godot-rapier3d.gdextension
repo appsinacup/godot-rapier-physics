@@ -20,8 +20,8 @@ linux.release.x86_64 = "bin/libgodot_rapier.linux.x86_64-unknown-linux-gnu.so"
 #android.release.arm64 = "bin/libgodot_rapier.android.arm64.so"
 ios.debug = "bin/libgodot_rapier.ios.framework"
 ios.release = "bin/libgodot_rapier.ios.framework"
-web.debug.wasm32 = "bin/libgodot_rapier.web.wasm32.wasm"
-web.release.wasm32 = "bin/libgodot_rapier.web.wasm32.wasm"
+web.debug.wasm32 = "bin/godot_rapier.wasm"
+web.release.wasm32 = "bin/godot_rapier.wasm"
 
 [icons]
 
