@@ -64,8 +64,8 @@ lto = "fat"
 panic = 'unwind'
 codegen-units = 1
 
-#[profile.dev]
-#opt-level = 1
+[profile.dev]
+opt-level = 1
 
 [package.metadata.docs.rs]
 license-file = "../LICENSE"
