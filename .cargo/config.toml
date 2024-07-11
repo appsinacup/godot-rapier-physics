@@ -23,3 +23,11 @@ rustflags = [
   "link-args=-sDISABLE_EXCEPTION_CATCHING=1",
   "-Zlink-native-libraries=no",
 ]
+[target.armv7-linux-androideabi]
+linker = "armv7a-linux-androideabi23-clang"
+[target.aarch64-linux-android]
+linker = "aarch64-linux-android23-clang"
+[target.x86_64-linux-android]
+linker = "x86_64-linux-android23-clang"
+[target.i686-linux-android]
+linker = "i686-linux-android23-clang"
