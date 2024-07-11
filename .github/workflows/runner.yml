@@ -49,8 +49,7 @@ jobs:
   merge:
     runs-on: ubuntu-latest
     name: Merge
-    #needs: [android-build, ios-build, linux-build, macos-build, windows-build, godot-build, web-build]
-    needs: [ios-build, linux-build, macos-build, windows-build, godot-build, web-build]
+    needs: [android-build, ios-build, linux-build, macos-build, windows-build, godot-build, web-build]
     steps:
       - uses: actions/upload-artifact/merge@v4
         with:
