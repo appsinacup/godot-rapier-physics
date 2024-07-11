@@ -5,7 +5,7 @@ on:
 jobs:
   android:
     runs-on: "ubuntu-20.04"
-    name: ${{ matrix.dimensions.short }} ${{ matrix.precision }} ${{ matrix.features.name }} ${{ matrix.arch }}
+    name: ${{ matrix.dimensions.short }} ${{ matrix.precision }} ${{ matrix.features.name }} ${{ matrix.arch.name }}
     strategy:
       fail-fast: false
       matrix:
@@ -53,16 +53,16 @@ jobs:
       - name: Build
         uses: ./.github/actions/build
         with:
-          arch: ${{ matrix.arch }}
+          arch: ${{ matrix.arch.arch }}
           features: ${{ matrix.features.feature }},${{ matrix.precision }}-${{ matrix.dimensions.feature }}
       - name: Copy to bin
         shell: sh
         run: |
-          mv target/release/libgodot_rapier.so bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.android.{{ matrix.arch }}.so
+          mv target/release/libgodot_rapier.so bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.android.{{ matrix.arch.arch }}.so
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch}}
+          name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch.arch }}
           path: |
             bin${{ matrix.dimensions.short }}/**/*.so
           if-no-files-found: error
