@@ -58,6 +58,6 @@ After installing, go to `Advanced Settings` -> `Physics` -> `2D` or `3D`. Change
 - Windows (x86_64, x86_32)
 - macOS (x86-64 + arm64 Universal)
 - Linux (x86_64)
-- *DISABLED* Android (x86_64, arm64)
+- Android (x86_64, x86_32, arm64)
 - iOS (arm64)
-- *DISABLED* Web (wasm32)
+- Web (wasm32)
