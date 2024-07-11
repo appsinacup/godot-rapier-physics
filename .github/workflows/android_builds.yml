@@ -34,7 +34,7 @@ jobs:
           echo $ANDROID_SDK_ROOT
           echo $ANDROID_NDK_HOME
           echo ${{steps.setup-ndk.outputs.ndk-path }}
-          
+          ls ${{steps.setup-ndk.outputs.ndk-path }}
       - name: Set android compiler
         shell: sh
         run: |
@@ -44,16 +44,6 @@ jobs:
           echo "CARGO_TARGET_I686_LINUX_ANDROID_LINKER=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/i686-linux-android23-clang" >> $GITHUB_ENV
           echo "CLANG_PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/clang" >> $GITHUB_ENV
           echo "LIBCLANG_PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/lib64/libclang.so.12git" >> $GITHUB_ENV
-      #- name: Install Cargo NDK
-      #  shell: sh
-      #  run: |
-      #    rustup component add rust-src --toolchain x86_64-unknown-linux-gnu
-      #- name: Build share libraries
-      #  shell: sh
-      #  run: |
-      #    rustup target add armv7-linux-androideabi
-      #    rustup target add aarch64-linux-android
-      #    #cargo ndk -t armeabi-v7a -t arm64-v8a -o ./jniLibs build --release
       - name: Build
         uses: ./.github/actions/build
         with:
