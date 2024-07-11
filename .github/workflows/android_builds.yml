@@ -5,14 +5,11 @@ on:
 jobs:
   android:
     runs-on: "ubuntu-20.04"
-    name: ${{ matrix.dimensions.short }} ${{ matrix.precision }} ${{ matrix.features.name }} ${{ matrix.arch.name }}
+    name: ${{ matrix.dimensions.short }} ${{ matrix.precision }} ${{ matrix.features.name }} ${{ matrix.arch }}
     strategy:
       fail-fast: false
       matrix:
-        arch: [{"arch": "x86_64-linux-android", "name": "x86_64"},
-          {"arch": "aarch64-linux-android",  "name": "arm64"},
-          {"arch": "i686-linux-android", "name": "x86_32"},
-          {"arch": "armv7-linux-androideabi", "name": "arm32"}]
+        arch: ["x86_64-linux-android", "aarch64-linux-android", "i686-linux-android", "armv7-linux-androideabi",]
         precision: [single]
         dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
         features: [{"feature":"parallel,simd-stable,serde-serialize", "name": "simd-parallel"}, {"feature":"enhanced-determinism,serde-serialize", "name": "enhanced-determinism"}]
@@ -47,16 +44,16 @@ jobs:
       - name: Build
         uses: ./.github/actions/build
         with:
-          arch: ${{ matrix.arch.arch }}
+          arch: ${{ matrix.arch }}
           features: ${{ matrix.features.feature }},${{ matrix.precision }}-${{ matrix.dimensions.feature }}
       - name: Copy to bin
         shell: sh
         run: |
-          mv target/release/libgodot_rapier.so bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.android.{{ matrix.arch.arch }}.so
+          mv target/release/libgodot_rapier.so bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.android.${{ matrix.arch }}.so
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch.arch }}
+          name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch }}
           path: |
             bin${{ matrix.dimensions.short }}/**/*.so
           if-no-files-found: error
