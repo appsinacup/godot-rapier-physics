@@ -2090,7 +2090,6 @@ impl IRapierCollisionObject for RapierBody {
 impl Drop for RapierBody {
     fn drop(&mut self) {
         if let Some(direct_state) = &self.direct_state {
-            // TODO
             direct_state.clone().free();
         }
     }
