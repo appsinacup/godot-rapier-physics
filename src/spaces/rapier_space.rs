@@ -310,6 +310,13 @@ impl RapierSpace {
             );
         }
         for body in gravity_update_list {
+            // first update the area override
+            RapierBody::apply_area_override_to_body(
+                &body,
+                &mut physics_data.physics_engine,
+                &mut physics_data.spaces,
+                &mut physics_data.collision_objects,
+            );
             if let Some(body) = physics_data.collision_objects.get_mut(&body)
                 && let Some(body) = body.get_mut_body()
             {

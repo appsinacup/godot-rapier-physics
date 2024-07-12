@@ -468,7 +468,7 @@ impl RapierBody {
             let area_rid = p_area.get_base().get_rid();
             let priority = p_area.get_priority();
             self.areas.push(RidWithPriority::new(area_rid, priority));
-            self.areas.sort_by(|a, b| b.priority.cmp(&a.priority));
+            self.areas.sort_by(|a, b| a.priority.cmp(&b.priority));
             self.on_area_updated(area_rid, space);
         }
     }
