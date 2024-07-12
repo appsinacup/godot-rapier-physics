@@ -1285,7 +1285,6 @@ impl RapierPhysicsServerImpl {
         None
     }
 
-    #[cfg(feature = "dim2")]
     #[allow(clippy::too_many_arguments)]
     pub unsafe fn body_test_motion(
         &self,
@@ -1293,6 +1292,7 @@ impl RapierPhysicsServerImpl {
         from: Transform,
         motion: Vector,
         margin: f32,
+        max_collisions: i32,
         collide_separation_ray: bool,
         recovery_as_collision: bool,
         result: *mut PhysicsServerExtensionMotionResult,

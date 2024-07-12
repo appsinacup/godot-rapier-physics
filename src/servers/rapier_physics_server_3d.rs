@@ -507,8 +507,16 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         recovery_as_collision: bool,
         result: *mut PhysicsServerExtensionMotionResult,
     ) -> bool {
-        // TODO
-        false
+        self.implementation.body_test_motion(
+            body,
+            from,
+            motion,
+            margin,
+            max_collisions,
+            collide_separation_ray,
+            recovery_as_collision,
+            result,
+        )
     }
 
     fn joint_create(&mut self) -> Rid {

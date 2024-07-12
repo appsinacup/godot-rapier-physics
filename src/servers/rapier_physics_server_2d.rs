@@ -572,6 +572,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             from,
             motion,
             margin,
+            1,
             collide_separation_ray,
             recovery_as_collision,
             result,
