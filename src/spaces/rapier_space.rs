@@ -101,9 +101,8 @@ impl RapierSpace {
         let default_gravity_dir: Vector = project_settings
             .get_setting_with_override(DEFAULT_GRAVITY_VECTOR.into())
             .to();
-        let default_gravity_value: real = project_settings
-            .get_setting_with_override(DEFAULT_GRAVITY.into())
-            .to();
+        let default_gravity_value =
+            variant_to_float(&project_settings.get_setting_with_override(DEFAULT_GRAVITY.into()));
         Self {
             direct_access: Some(direct_access.upcast()),
             handle,
@@ -276,7 +275,8 @@ impl RapierSpace {
         };
         let body_area_update_list = space.get_body_area_update_list().clone();
         let gravity_update_list = space.get_gravity_update_list().clone();
-        let default_gravity_value: real = space.get_default_area_param(AreaParameter::GRAVITY).to();
+        let default_gravity_value: real =
+            variant_to_float(&space.get_default_area_param(AreaParameter::GRAVITY));
         let default_gravity_dir = space
             .get_default_area_param(AreaParameter::GRAVITY_VECTOR)
             .to();
@@ -357,10 +357,10 @@ impl RapierSpace {
 
     pub fn set_default_area_param(&mut self, param: AreaParameter, value: Variant) {
         match param {
-            AreaParameter::GRAVITY => self.default_gravity_value = value.to(),
+            AreaParameter::GRAVITY => self.default_gravity_value = variant_to_float(&value),
             AreaParameter::GRAVITY_VECTOR => self.default_gravity_dir = value.to(),
-            AreaParameter::LINEAR_DAMP => self.default_linear_damping = value.to(),
-            AreaParameter::ANGULAR_DAMP => self.default_angular_damping = value.to(),
+            AreaParameter::LINEAR_DAMP => self.default_linear_damping = variant_to_float(&value),
+            AreaParameter::ANGULAR_DAMP => self.default_angular_damping = variant_to_float(&value),
             _ => {}
         }
     }

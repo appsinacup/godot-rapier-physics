@@ -9,6 +9,8 @@ use rapier::dynamics::ImpulseJointHandle;
 use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 #[cfg(feature = "dim2")]
 use super::rapier_pin_joint_2d::RapierPinJoint2D;
+#[cfg(feature = "dim3")]
+use super::rapier_pin_joint_3d::RapierPinJoint3D;
 use crate::rapier_wrapper::prelude::*;
 use crate::*;
 #[cfg_attr(feature = "serde-serialize", typetag::serde(tag = "type"))]
@@ -20,10 +22,14 @@ pub trait IRapierJoint {
     fn get_damped_spring(&self) -> Option<&RapierDampedSpringJoint2D>;
     #[cfg(feature = "dim2")]
     fn get_pin(&self) -> Option<&RapierPinJoint2D>;
+    #[cfg(feature = "dim3")]
+    fn get_pin(&self) -> Option<&RapierPinJoint3D>;
     #[cfg(feature = "dim2")]
     fn get_mut_damped_spring(&mut self) -> Option<&mut RapierDampedSpringJoint2D>;
     #[cfg(feature = "dim2")]
     fn get_mut_pin(&mut self) -> Option<&mut RapierPinJoint2D>;
+    #[cfg(feature = "dim3")]
+    fn get_mut_pin(&mut self) -> Option<&mut RapierPinJoint3D>;
 }
 #[cfg_attr(
     feature = "serde-serialize",
@@ -158,6 +164,11 @@ impl IRapierJoint for RapierEmptyJoint {
         None
     }
 
+    #[cfg(feature = "dim3")]
+    fn get_pin(&self) -> Option<&RapierPinJoint3D> {
+        None
+    }
+
     #[cfg(feature = "dim2")]
     fn get_mut_damped_spring(&mut self) -> Option<&mut RapierDampedSpringJoint2D> {
         None
@@ -165,6 +176,11 @@ impl IRapierJoint for RapierEmptyJoint {
 
     #[cfg(feature = "dim2")]
     fn get_mut_pin(&mut self) -> Option<&mut RapierPinJoint2D> {
+        None
+    }
+
+    #[cfg(feature = "dim3")]
+    fn get_mut_pin(&mut self) -> Option<&mut RapierPinJoint3D> {
         None
     }
 }

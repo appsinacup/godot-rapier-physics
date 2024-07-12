@@ -507,8 +507,16 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         recovery_as_collision: bool,
         result: *mut PhysicsServerExtensionMotionResult,
     ) -> bool {
-        // TODO
-        false
+        self.implementation.body_test_motion(
+            body,
+            from,
+            motion,
+            margin,
+            max_collisions,
+            collide_separation_ray,
+            recovery_as_collision,
+            result,
+        )
     }
 
     fn joint_create(&mut self) -> Rid {
@@ -519,6 +527,86 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         self.implementation.joint_clear(rid);
     }
 
+    fn joint_make_pin(
+        &mut self,
+        joint: Rid,
+        body_a: Rid,
+        local_a: Vector3,
+        body_b: Rid,
+        local_b: Vector3,
+    ) {
+        self.implementation
+            .joint_make_pin(joint, body_a, local_a, body_b, local_b);
+    }
+
+    fn pin_joint_set_param(&mut self, joint: Rid, param: PinJointParam, value: f32) {
+        self.implementation.pin_joint_set_param(joint, param, value);
+    }
+
+    fn pin_joint_get_param(&self, joint: Rid, param: PinJointParam) -> f32 {
+        self.implementation.pin_joint_get_param(joint, param)
+    }
+
+    fn pin_joint_set_local_a(&mut self, joint: Rid, local_A: Vector3) {
+        self.implementation.pin_joint_set_local_a(joint, local_A);
+    }
+
+    fn pin_joint_get_local_a(&self, joint: Rid) -> Vector3 {
+        self.implementation.pin_joint_get_local_a(joint)
+    }
+
+    fn pin_joint_set_local_b(&mut self, joint: Rid, local_B: Vector3) {
+        self.implementation.pin_joint_set_local_b(joint, local_B);
+    }
+
+    fn pin_joint_get_local_b(&self, joint: Rid) -> Vector3 {
+        self.implementation.pin_joint_get_local_b(joint)
+    }
+
+    fn joint_make_hinge(
+        &mut self,
+        joint: Rid,
+        body_A: Rid,
+        hinge_A: Transform3D,
+        body_B: Rid,
+        hinge_B: Transform3D,
+    ) {
+        self.implementation
+            .joint_make_hinge(joint, body_A, hinge_A, body_B, hinge_B);
+    }
+
+    fn joint_make_hinge_simple(
+        &mut self,
+        joint: Rid,
+        body_A: Rid,
+        pivot_A: Vector3,
+        axis_A: Vector3,
+        body_B: Rid,
+        pivot_B: Vector3,
+        axis_B: Vector3,
+    ) {
+        self.implementation
+            .joint_make_hinge_simple(joint, body_A, pivot_A, axis_A, body_B, pivot_B, axis_B);
+    }
+
+    fn hinge_joint_set_param(&mut self, joint: Rid, param: HingeJointParam, value: f32) {
+        self.implementation
+            .hinge_joint_set_param(joint, param, value);
+    }
+
+    fn hinge_joint_get_param(&self, joint: Rid, param: HingeJointParam) -> f32 {
+        self.implementation.hinge_joint_get_param(joint, param)
+    }
+
+    fn hinge_joint_set_flag(&mut self, joint: Rid, flag: HingeJointFlag, enabled: bool) {
+        self.implementation
+            .hinge_joint_set_flag(joint, flag, enabled);
+    }
+
+    fn hinge_joint_get_flag(&self, joint: Rid, flag: HingeJointFlag) -> bool {
+        self.implementation.hinge_joint_get_flag(joint, flag)
+    }
+
     fn joint_disable_collisions_between_bodies(&mut self, joint: Rid, disable: bool) {
         self.implementation
             .joint_disable_collisions_between_bodies(joint, disable);
@@ -527,6 +615,15 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
     fn joint_is_disabled_collisions_between_bodies(&self, joint: Rid) -> bool {
         self.implementation
             .joint_is_disabled_collisions_between_bodies(joint)
+    }
+
+    fn joint_set_solver_priority(&mut self, joint: Rid, priority: i32) {
+        self.implementation
+            .joint_set_solver_priority(joint, priority);
+    }
+
+    fn joint_get_solver_priority(&self, joint: Rid) -> i32 {
+        self.implementation.joint_get_solver_priority(joint)
     }
 
     fn joint_get_type(&self, joint: Rid) -> JointType {

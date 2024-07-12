@@ -34,6 +34,47 @@ impl PhysicsEngine {
         ImpulseJointHandle::invalid()
     }
 
+    #[cfg(feature = "dim3")]
+    pub fn joint_create_spherical(
+        &mut self,
+        world_handle: WorldHandle,
+        body_handle_1: RigidBodyHandle,
+        body_handle_2: RigidBodyHandle,
+        anchor_1: Vector<Real>,
+        anchor_2: Vector<Real>,
+        disable_collision: bool,
+    ) -> ImpulseJointHandle {
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
+            let joint = SphericalJointBuilder::new()
+                .local_anchor1(Point { coords: anchor_1 })
+                .local_anchor2(Point { coords: anchor_2 })
+                .contacts_enabled(!disable_collision);
+            return physics_world.insert_joint(body_handle_1, body_handle_2, joint);
+        }
+        ImpulseJointHandle::invalid()
+    }
+
+    #[cfg(feature = "dim3")]
+    pub fn join_change_sperical_anchors(
+        &mut self,
+        world_handle: WorldHandle,
+        joint_handle: ImpulseJointHandle,
+        anchor_1: Vector<Real>,
+        anchor_2: Vector<Real>,
+    ) {
+        if let Some(physics_world) = self.get_mut_world(world_handle)
+            && let Some(joint) = physics_world
+                .physics_objects
+                .impulse_joint_set
+                .get_mut(joint_handle)
+            && let Some(joint) = joint.data.as_spherical_mut()
+        {
+            joint
+                .set_local_anchor1(Point { coords: anchor_1 })
+                .set_local_anchor2(Point { coords: anchor_2 });
+        }
+    }
+
     #[allow(clippy::too_many_arguments)]
     pub fn joint_change_revolute_params(
         &mut self,

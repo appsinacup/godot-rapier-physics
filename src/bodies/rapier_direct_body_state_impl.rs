@@ -53,7 +53,8 @@ impl RapierDirectBodyStateImpl {
             }
         }
         if let Some(space) = physics_data.spaces.get(&space_rid) {
-            let default_gravity: f32 = space.get_default_area_param(AreaParameter::GRAVITY).to();
+            let default_gravity =
+                variant_to_float(&space.get_default_area_param(AreaParameter::GRAVITY));
             let default_gravity_vector: Vector = space
                 .get_default_area_param(AreaParameter::GRAVITY_VECTOR)
                 .to();

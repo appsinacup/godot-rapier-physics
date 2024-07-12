@@ -22,6 +22,8 @@ use crate::joints::rapier_joint::IRapierJoint;
 use crate::joints::rapier_joint::RapierEmptyJoint;
 #[cfg(feature = "dim2")]
 use crate::joints::rapier_pin_joint_2d::RapierPinJoint2D;
+#[cfg(feature = "dim3")]
+use crate::joints::rapier_pin_joint_3d::RapierPinJoint3D;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_capsule_shape::RapierCapsuleShape;
 use crate::shapes::rapier_circle_shape::RapierCircleShape;
@@ -1283,7 +1285,6 @@ impl RapierPhysicsServerImpl {
         None
     }
 
-    #[cfg(feature = "dim2")]
     #[allow(clippy::too_many_arguments)]
     pub unsafe fn body_test_motion(
         &self,
@@ -1291,6 +1292,7 @@ impl RapierPhysicsServerImpl {
         from: Transform,
         motion: Vector,
         margin: f32,
+        max_collisions: i32,
         collide_separation_ray: bool,
         recovery_as_collision: bool,
         result: *mut PhysicsServerExtensionMotionResult,
@@ -1371,6 +1373,141 @@ impl RapierPhysicsServerImpl {
             return joint.get_base().is_disabled_collisions_between_bodies();
         }
         true
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn joint_set_solver_priority(&mut self, _joint: Rid, _priority: i32) {}
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn joint_get_solver_priority(&self, _joint: Rid) -> i32 {
+        1
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn joint_make_pin(
+        &mut self,
+        rid: Rid,
+        body_a: Rid,
+        local_a: Vector3,
+        body_b: Rid,
+        local_b: Vector3,
+    ) {
+        let mut joint: Box<dyn IRapierJoint>;
+        if let Some(body_a) = self.physics_data.collision_objects.get(&body_a)
+            && let Some(body_b) = self.physics_data.collision_objects.get(&body_b)
+        {
+            joint = Box::new(RapierPinJoint3D::new(
+                local_a,
+                local_b,
+                body_a,
+                body_b,
+                &mut self.physics_data.physics_engine,
+            ));
+            if let Some(mut prev_joint) = self.physics_data.joints.remove(&rid) {
+                joint.get_mut_base().copy_settings_from(
+                    prev_joint.get_base(),
+                    &mut self.physics_data.physics_engine,
+                );
+                prev_joint
+                    .get_mut_base()
+                    .destroy_joint(&mut self.physics_data.physics_engine);
+            }
+        } else {
+            joint = Box::new(RapierEmptyJoint::new());
+        }
+        self.physics_data.joints.insert(rid, joint);
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn pin_joint_set_param(&mut self, _joint: Rid, _param: PinJointParam, _value: f32) {}
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn pin_joint_get_param(&self, _joint: Rid, _param: PinJointParam) -> f32 {
+        0.0
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn pin_joint_set_local_a(&mut self, joint: Rid, local_a: Vector3) {
+        if let Some(joint) = self.physics_data.joints.get_mut(&joint) {
+            if let Some(joint) = joint.get_mut_pin() {
+                joint.set_anchor_a(local_a, &mut self.physics_data.physics_engine);
+            }
+        }
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn pin_joint_get_local_a(&self, joint: Rid) -> Vector3 {
+        if let Some(joint) = self.physics_data.joints.get(&joint) {
+            if let Some(joint) = joint.get_pin() {
+                return joint.get_anchor_a();
+            }
+        }
+        Vector3::ZERO
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn pin_joint_set_local_b(&mut self, joint: Rid, local_b: Vector3) {
+        if let Some(joint) = self.physics_data.joints.get_mut(&joint) {
+            if let Some(joint) = joint.get_mut_pin() {
+                joint.set_anchor_b(local_b, &mut self.physics_data.physics_engine);
+            }
+        }
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn pin_joint_get_local_b(&self, joint: Rid) -> Vector3 {
+        if let Some(joint) = self.physics_data.joints.get(&joint) {
+            if let Some(joint) = joint.get_pin() {
+                return joint.get_anchor_b();
+            }
+        }
+        Vector3::ZERO
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn joint_make_hinge(
+        &mut self,
+        joint: Rid,
+        body_A: Rid,
+        hinge_A: Transform3D,
+        body_B: Rid,
+        hinge_B: Transform3D,
+    ) {
+        unimplemented!()
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn joint_make_hinge_simple(
+        &mut self,
+        joint: Rid,
+        body_A: Rid,
+        pivot_A: Vector3,
+        axis_A: Vector3,
+        body_B: Rid,
+        pivot_B: Vector3,
+        axis_B: Vector3,
+    ) {
+        unimplemented!()
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn hinge_joint_set_param(&mut self, joint: Rid, param: HingeJointParam, value: f32) {
+        unimplemented!()
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn hinge_joint_get_param(&self, joint: Rid, param: HingeJointParam) -> f32 {
+        unimplemented!()
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn hinge_joint_set_flag(&mut self, joint: Rid, flag: HingeJointFlag, enabled: bool) {
+        unimplemented!()
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn hinge_joint_get_flag(&self, joint: Rid, flag: HingeJointFlag) -> bool {
+        unimplemented!()
     }
 
     #[cfg(feature = "dim2")]

@@ -690,6 +690,20 @@ fn set_collision_info(
     collision_normal: Vector,
     collider_velocity: Vector,
 ) {
+    use godot::classes::native::PhysicsServer3DExtensionMotionCollision;
+    let id = collider_id.id;
+    p_result.collisions = core::array::from_fn(|_i| PhysicsServer3DExtensionMotionCollision {
+        position: collision_point,
+        normal: collision_normal,
+        collider_velocity,
+        collider_angular_velocity: Vector::ZERO,
+        depth: p_result.collision_depth,
+        local_shape: collision_local_shape,
+        collider_id: ObjectId { id },
+        collider,
+        collider_shape,
+    });
+    p_result.collision_count = 1;
 }
 impl PhysicsEngine {
     #[allow(clippy::too_many_arguments)]

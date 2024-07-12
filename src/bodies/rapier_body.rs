@@ -251,9 +251,8 @@ impl RapierBody {
         if let Some(space) = physics_spaces.get(&self.base.get_space()) {
             self.total_linear_damping = new_value;
             if apply_default {
-                let linear_damp: real = space
-                    .get_default_area_param(AreaParameter::LINEAR_DAMP)
-                    .to();
+                let linear_damp =
+                    variant_to_float(&space.get_default_area_param(AreaParameter::LINEAR_DAMP));
                 self.total_linear_damping += linear_damp;
             }
             physics_engine.body_set_linear_damping(
@@ -274,9 +273,8 @@ impl RapierBody {
         if let Some(space) = physics_spaces.get(&self.base.get_space()) {
             self.total_angular_damping = new_value;
             if apply_default {
-                let angular_damp: real = space
-                    .get_default_area_param(AreaParameter::ANGULAR_DAMP)
-                    .to();
+                let angular_damp =
+                    variant_to_float(&space.get_default_area_param(AreaParameter::ANGULAR_DAMP));
                 self.total_angular_damping += angular_damp;
             }
             physics_engine.body_set_angular_damping(
@@ -680,8 +678,8 @@ impl RapierBody {
         if let Some(space) = physics_spaces.get_mut(&self.base.get_space()) {
             // Add default gravity from space.
             if !gravity_done {
-                let default_gravity: f32 =
-                    space.get_default_area_param(AreaParameter::GRAVITY).to();
+                let default_gravity =
+                    variant_to_float(&space.get_default_area_param(AreaParameter::GRAVITY));
                 let default_gravity_vector: Vector = space
                     .get_default_area_param(AreaParameter::GRAVITY_VECTOR)
                     .to();
