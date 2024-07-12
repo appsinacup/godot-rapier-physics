@@ -43,9 +43,8 @@ After installing, go to `Advanced Settings` -> `Physics` -> `2D` or `3D`. Change
 
 # Limitations
 
-- SeparationRayShape2D missing.
+- SeparationRayShape missing.
 - SoftBody3D missing.
-- CharacterBody3D missing.
 - ConcavePolygonShape3D, HeightMapShape3D, 3D joints.
 - Cross platform determinism.
 - Double builds.
