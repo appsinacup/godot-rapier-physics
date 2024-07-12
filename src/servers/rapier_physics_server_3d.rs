@@ -522,13 +522,13 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
     fn joint_make_pin(
         &mut self,
         joint: Rid,
-        body_A: Rid,
-        local_A: Vector3,
-        body_B: Rid,
-        local_B: Vector3,
+        body_a: Rid,
+        local_a: Vector3,
+        body_b: Rid,
+        local_b: Vector3,
     ) {
         self.implementation
-            .joint_make_pin(joint, body_A, local_A, body_B, local_B);
+            .joint_make_pin(joint, body_a, local_a, body_b, local_b);
     }
 
     fn pin_joint_set_param(&mut self, joint: Rid, param: PinJointParam, value: f32) {
@@ -607,6 +607,15 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
     fn joint_is_disabled_collisions_between_bodies(&self, joint: Rid) -> bool {
         self.implementation
             .joint_is_disabled_collisions_between_bodies(joint)
+    }
+
+    fn joint_set_solver_priority(&mut self, joint: Rid, priority: i32) {
+        self.implementation
+            .joint_set_solver_priority(joint, priority);
+    }
+
+    fn joint_get_solver_priority(&self, joint: Rid) -> i32 {
+        self.implementation.joint_get_solver_priority(joint)
     }
 
     fn joint_get_type(&self, joint: Rid) -> JointType {
