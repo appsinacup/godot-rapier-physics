@@ -379,7 +379,7 @@ impl RapierArea {
             space.area_remove_from_area_update_list(*area_rid);
         }
         for (detected_body, _) in &detected_bodies {
-            RapierBody::apply_area_orverride_to_body(
+            RapierBody::apply_area_override_to_body(
                 detected_body,
                 physics_engine,
                 physics_spaces,
