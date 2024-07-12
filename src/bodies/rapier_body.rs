@@ -465,7 +465,6 @@ impl RapierBody {
     pub fn add_area(&mut self, p_area: &RapierArea, space: &mut RapierSpace) {
         self.base.area_detection_counter += 1;
         if p_area.has_any_space_override() {
-            // TODO sort
             let area_rid = p_area.get_base().get_rid();
             let priority = p_area.get_priority();
             self.areas.push(RidWithPriority::new(area_rid, priority));
@@ -488,7 +487,7 @@ impl RapierBody {
         space.body_add_to_area_update_list(self.base.get_rid());
     }
 
-    pub fn apply_area_orverride_to_body(
+    pub fn apply_area_override_to_body(
         body: &Rid,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
@@ -538,7 +537,7 @@ impl RapierBody {
         let mut angular_damping_done = self.angular_damping_mode == BodyDampMode::REPLACE;
         let origin = self.get_base().get_transform().origin;
         // only compute if we don't omit force integration
-        if ac > 0 && !self.omit_force_integration {
+        if ac > 0 {
             let mut areas = self.areas.clone();
             areas.reverse();
             for area_rid in areas.iter() {
@@ -678,6 +677,19 @@ impl RapierBody {
             physics_engine,
             physics_spaces,
         );
+        if let Some(space) = physics_spaces.get_mut(&self.base.get_space()) {
+            // Add default gravity from space.
+            if !gravity_done {
+                let default_gravity: f32 =
+                    space.get_default_area_param(AreaParameter::GRAVITY).to();
+                let default_gravity_vector: Vector = space
+                    .get_default_area_param(AreaParameter::GRAVITY_VECTOR)
+                    .to();
+                self.total_gravity += default_gravity_vector * default_gravity;
+            }
+            // Apply gravity scale to computed value.
+            self.total_gravity *= self.gravity_scale;
+        }
         if self.omit_force_integration || self.using_area_gravity {
             self.apply_gravity_scale(0.0, physics_engine);
         } else {
@@ -685,15 +697,7 @@ impl RapierBody {
             self.apply_gravity_scale(self.gravity_scale, physics_engine);
         }
         if let Some(space) = physics_spaces.get_mut(&self.base.get_space()) {
-            if self.omit_force_integration {
-                space.body_remove_from_gravity_update_list(self.base.get_rid());
-            } else if self.using_area_gravity {
-                // Add default gravity from space.
-                if !gravity_done {
-                    self.total_gravity += space.get_default_area_param(AreaParameter::GRAVITY).to();
-                }
-                // Apply gravity scale to computed value.
-                self.total_gravity *= self.gravity_scale;
+            if self.using_area_gravity && !self.omit_force_integration {
                 // Disable simulation gravity and apply it manually instead.
                 space.body_add_to_gravity_update_list(self.base.get_rid());
             } else {

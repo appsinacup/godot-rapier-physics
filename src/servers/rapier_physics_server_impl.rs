@@ -601,7 +601,7 @@ impl RapierPhysicsServerImpl {
                 &mut self.physics_data.spaces,
             );
         }
-        RapierBody::apply_area_orverride_to_body(
+        RapierBody::apply_area_override_to_body(
             &body,
             &mut self.physics_data.physics_engine,
             &mut self.physics_data.spaces,
@@ -1181,7 +1181,7 @@ impl RapierPhysicsServerImpl {
                 body.set_omit_force_integration(enable);
             }
         }
-        RapierBody::apply_area_orverride_to_body(
+        RapierBody::apply_area_override_to_body(
             &body,
             &mut self.physics_data.physics_engine,
             &mut self.physics_data.spaces,

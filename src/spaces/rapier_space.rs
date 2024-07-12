@@ -302,7 +302,7 @@ impl RapierSpace {
         }
         space.reset_mass_properties_update_list();
         for body in &body_area_update_list {
-            RapierBody::apply_area_orverride_to_body(
+            RapierBody::apply_area_override_to_body(
                 body,
                 &mut physics_data.physics_engine,
                 &mut physics_data.spaces,
