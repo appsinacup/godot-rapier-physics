@@ -423,7 +423,7 @@ impl RapierArea {
             }
 
             AreaParameter::GRAVITY => {
-                let new_gravity = p_value.to();
+                let new_gravity = variant_to_float(&p_value);
                 if new_gravity != self.gravity {
                     self.gravity = new_gravity;
                     if self.gravity_override_mode != AreaSpaceOverrideMode::DISABLED {
@@ -459,7 +459,7 @@ impl RapierArea {
                 }
             }
             AreaParameter::GRAVITY_POINT_UNIT_DISTANCE => {
-                let new_gravity_point_unit_distance = p_value.to();
+                let new_gravity_point_unit_distance = variant_to_float(&p_value);
                 if self.gravity_point_unit_distance != new_gravity_point_unit_distance {
                     self.gravity_point_unit_distance = new_gravity_point_unit_distance;
                     if self.gravity_override_mode != AreaSpaceOverrideMode::DISABLED {
@@ -483,7 +483,7 @@ impl RapierArea {
                 }
             }
             AreaParameter::LINEAR_DAMP => {
-                let new_linear_damp = p_value.to();
+                let new_linear_damp = variant_to_float(&p_value);
                 if self.linear_damp != new_linear_damp {
                     self.linear_damp = new_linear_damp;
                     if self.linear_damping_override_mode != AreaSpaceOverrideMode::DISABLED {
@@ -507,7 +507,7 @@ impl RapierArea {
                 }
             }
             AreaParameter::ANGULAR_DAMP => {
-                let new_angular_damp = p_value.to();
+                let new_angular_damp = variant_to_float(&p_value);
                 if self.angular_damp != new_angular_damp {
                     self.angular_damp = new_angular_damp;
                     if self.angular_damping_override_mode != AreaSpaceOverrideMode::DISABLED {
