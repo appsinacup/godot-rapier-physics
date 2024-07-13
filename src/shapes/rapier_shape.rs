@@ -13,7 +13,6 @@ pub trait IRapierShape {
     fn get_base(&self) -> &RapierShapeBase;
     fn get_mut_base(&mut self) -> &mut RapierShapeBase;
     fn get_type(&self) -> ShapeType;
-    fn get_moment_of_inertia(&self, mass: f32, scale: Vector) -> Angle;
     fn allows_one_way_collision(&self) -> bool;
     fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle;
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine);
@@ -42,16 +41,16 @@ impl RapierShapeBase {
         }
     }
 
-    pub(super) fn set_handle(
-        &mut self,
-        handle: ShapeHandle,
-        aabb: Rect,
-        physics_engine: &mut PhysicsEngine,
-    ) {
+    pub(super) fn set_handle(&mut self, handle: ShapeHandle, physics_engine: &mut PhysicsEngine) {
         if self.handle != ShapeHandle::default() {
             self.destroy_shape(physics_engine);
         }
-        self.aabb = aabb;
+        let rapier_aabb = physics_engine.shape_get_aabb(handle);
+        let vertices = rapier_aabb.vertices();
+        self.aabb = Rect::new(
+            vector_to_godot(vertices[0].coords),
+            vector_to_godot(rapier_aabb.extents()),
+        );
         self.handle = handle;
     }
 
@@ -122,6 +121,15 @@ impl RapierShapeBase {
             physics_engine.shape_destroy(self.handle);
             self.handle = ShapeHandle::default();
         }
+    }
+
+    pub fn get_moment_of_inertia(
+        &self,
+        mass: f32,
+        _scale: Vector,
+        physics_engine: &PhysicsEngine,
+    ) -> Angle {
+        physics_engine.shape_get_moment_of_inertia(self.handle, mass)
     }
 }
 impl Drop for RapierShapeBase {

@@ -145,7 +145,10 @@ impl RapierPhysicsServerImpl {
 
     #[cfg(feature = "dim3")]
     pub(super) fn concave_polygon_shape_create(&mut self) -> Rid {
-        Rid::Invalid
+        let rid = rid_from_int64(rid_allocate_id());
+        let shape = RapierHeightMapShape3D::new(rid);
+        self.physics_data.shapes.insert(rid, Box::new(shape));
+        rid
     }
 
     #[cfg(feature = "dim3")]

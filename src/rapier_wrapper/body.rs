@@ -1,5 +1,3 @@
-use godot::builtin::math::FloatExt;
-use godot::log::godot_error;
 use nalgebra::Point;
 use rapier::prelude::*;
 
@@ -428,23 +426,19 @@ impl PhysicsEngine {
                 {
                     // reuse local center
                     let mass_properties = collider.shape().mass_properties(1.0);
-                    if mass_properties.mass().is_zero_approx() {
-                        godot_error!("Collider has zero computed mass");
+                    let mut shape_inertia = mass_properties.principal_inertia();
+                    if shape_inertia == ANG_ZERO {
+                        shape_inertia = collider.shape().compute_local_aabb().volume();
                     }
                     let local_com = mass_properties.local_com;
-                    //let shape_inertia = mass_properties.inv_principal_inertia_sqrt;
-                    let _mass_properties = MassProperties::new(
+                    let mass_properties = MassProperties::new(
                         local_com,
-                        colliders_len_inv,
-                        inertia, // * colliders_len_inv,
+                        colliders_len_inv * mass,
+                        shape_inertia * colliders_len_inv * inertia,
                     );
-                    //collider.set_mass_properties(mass_properties);
-                    collider.set_mass(colliders_len_inv);
-                    //collider.set_density(colliders_len_inv)
+                    collider.set_mass_properties(mass_properties)
                 }
             }
-            let _props = MassProperties::new(Point { coords: _local_com }, mass, inertia);
-            //body.set_additional_mass_properties(props, true);
             if force_update {
                 body.recompute_mass_properties_from_colliders(
                     &physics_world.physics_objects.collider_set,
@@ -634,5 +628,21 @@ impl PhysicsEngine {
         {
             body.sleep();
         }
+    }
+
+    pub fn body_get_mass_properties(
+        &self,
+        world_handle: WorldHandle,
+        body_handle: RigidBodyHandle,
+    ) -> RigidBodyMassProps {
+        if let Some(physics_world) = self.get_world(world_handle)
+            && let Some(body) = physics_world
+                .physics_objects
+                .rigid_body_set
+                .get(body_handle)
+        {
+            return body.mass_properties().clone();
+        }
+        RigidBodyMassProps::default()
     }
 }

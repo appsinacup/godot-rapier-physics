@@ -114,10 +114,32 @@ impl PhysicsEngine {
         self.insert_shape(shape)
     }
 
-    pub fn shape_create_concave_polyline(&mut self, points: &Vec<Vector<Real>>) -> ShapeHandle {
+    pub fn shape_create_concave_polyline(
+        &mut self,
+        points: &Vec<Vector<Real>>,
+        indices: Option<Vec<[u32; 2]>>,
+    ) -> ShapeHandle {
         let points_vec = point_array_to_vec(points);
-        let shape = SharedShape::polyline(points_vec, None);
+        let shape = SharedShape::polyline(points_vec, indices);
         self.insert_shape(shape)
+    }
+
+    pub fn shape_get_moment_of_inertia(&self, handle: ShapeHandle, mass: f32) -> AngVector<Real> {
+        if let Some(shape) = self.get_shape(handle) {
+            let inertia = shape.mass_properties(mass).inv_principal_inertia_sqrt;
+            if inertia == ANG_ZERO {
+                return shape.compute_local_aabb().volume();
+            }
+            return inertia;
+        }
+        ANG_ZERO
+    }
+
+    pub fn shape_get_aabb(&self, handle: ShapeHandle) -> rapier::prelude::Aabb {
+        if let Some(shape) = self.get_shape(handle) {
+            return shape.compute_local_aabb();
+        }
+        rapier::prelude::Aabb::new_invalid()
     }
 
     pub fn shape_destroy(&mut self, shape_handle: ShapeHandle) {

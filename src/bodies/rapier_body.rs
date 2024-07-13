@@ -1580,28 +1580,9 @@ impl RapierBody {
         }
         if self.calculate_inertia {
             self.inertia = ANGLE_ZERO;
-            if total_area != 0.0 {
-                for i in 0..shape_count {
-                    if self.base.is_shape_disabled(i) {
-                        continue;
-                    }
-                    if let Some(shape) = physics_shapes.get(&self.base.get_shape(i)) {
-                        let shape_area = shape.get_base().get_aabb_area();
-                        if shape_area == 0.0 || self.mass == 0.0 {
-                            continue;
-                        }
-                        let shape_mass = shape_area * self.mass / total_area;
-                        let mtx = self.base.get_shape_transform(i);
-                        let scale = transform_scale(&mtx);
-                        self.inertia += self.get_inertia_for_shape(
-                            shape.get_moment_of_inertia(shape_mass, scale),
-                            shape_mass,
-                            mtx,
-                            i,
-                        );
-                    }
-                }
-            }
+            self.inertia = physics_engine
+                .body_get_mass_properties(self.base.get_space_handle(), self.base.get_body_handle())
+                .effective_world_inv_inertia_sqrt;
         }
         self.apply_mass_properties(force_update, physics_engine);
     }

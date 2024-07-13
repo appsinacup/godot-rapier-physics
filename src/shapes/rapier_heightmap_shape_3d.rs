@@ -29,10 +29,6 @@ impl RapierHeightMapShape3D {
             base: RapierShapeBase::new(rid),
         }
     }
-
-    fn compute_aabb(&self, scale: Vector) -> Rect {
-        Rect::new(Vector::ZERO, Vector::ZERO)
-    }
 }
 #[cfg_attr(feature = "serde-serialize", typetag::serde)]
 impl IRapierShape for RapierHeightMapShape3D {
@@ -46,10 +42,6 @@ impl IRapierShape for RapierHeightMapShape3D {
 
     fn get_type(&self) -> ShapeType {
         ShapeType::CONVEX_POLYGON
-    }
-
-    fn get_moment_of_inertia(&self, _mass: f32, _scale: Vector) -> Vector3 {
-        Vector::ZERO
     }
 
     fn allows_one_way_collision(&self) -> bool {
@@ -128,8 +120,7 @@ impl IRapierShape for RapierHeightMapShape3D {
             }
         }
         let handle = self.create_rapier_shape(physics_engine);
-        self.base
-            .set_handle(handle, self.compute_aabb(Vector::ONE), physics_engine);
+        self.base.set_handle(handle, physics_engine);
     }
 
     fn get_data(&self) -> Variant {
