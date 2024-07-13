@@ -98,6 +98,22 @@ impl PhysicsEngine {
         self.insert_shape(shape)
     }
 
+    #[cfg(feature = "dim3")]
+    pub fn shape_create_heightmap(
+        &mut self,
+        heights: &[Real],
+        width: i32,
+        depth: i32,
+    ) -> ShapeHandle {
+        use nalgebra::Vector3;
+        let width = width as usize;
+        let depth = depth as usize;
+        let heights = DMatrix::from_fn(width, depth, |i, j| heights[j * (width) + i]);
+        let shape =
+            SharedShape::heightfield(heights, Vector3::new(depth as Real, 1.0, width as Real));
+        self.insert_shape(shape)
+    }
+
     pub fn shape_create_concave_polyline(&mut self, points: &Vec<Vector<Real>>) -> ShapeHandle {
         let points_vec = point_array_to_vec(points);
         let shape = SharedShape::polyline(points_vec, None);

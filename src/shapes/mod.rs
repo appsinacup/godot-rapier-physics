@@ -5,6 +5,8 @@ pub mod rapier_concave_polygon_shape_2d;
 pub mod rapier_convex_polygon_shape;
 #[cfg(feature = "dim3")]
 pub mod rapier_cylinder_shape_3d;
+#[cfg(feature = "dim3")]
+pub mod rapier_heightmap_shape_3d;
 pub mod rapier_rectangle_shape;
 #[cfg(feature = "dim2")]
 pub mod rapier_segment_shape_2d;

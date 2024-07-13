@@ -32,6 +32,8 @@ use crate::shapes::rapier_concave_polygon_shape_2d::RapierConcavePolygonShape2D;
 use crate::shapes::rapier_convex_polygon_shape::RapierConvexPolygonShape;
 #[cfg(feature = "dim3")]
 use crate::shapes::rapier_cylinder_shape_3d::RapierCylinderShape3D;
+#[cfg(feature = "dim3")]
+use crate::shapes::rapier_heightmap_shape_3d::RapierHeightMapShape3D;
 use crate::shapes::rapier_rectangle_shape::RapierRectangleShape;
 #[cfg(feature = "dim2")]
 use crate::shapes::rapier_segment_shape_2d::RapierSegmentShape2D;
@@ -148,7 +150,10 @@ impl RapierPhysicsServerImpl {
 
     #[cfg(feature = "dim3")]
     pub(super) fn heightmap_shape_create(&mut self) -> Rid {
-        Rid::Invalid
+        let rid = rid_from_int64(rid_allocate_id());
+        let shape = RapierHeightMapShape3D::new(rid);
+        self.physics_data.shapes.insert(rid, Box::new(shape));
+        rid
     }
 
     pub(super) fn shape_set_data(&mut self, shape: Rid, data: Variant) {
