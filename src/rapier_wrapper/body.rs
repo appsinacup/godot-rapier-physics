@@ -418,6 +418,7 @@ impl PhysicsEngine {
             }
             let colliders = body.colliders();
             let colliders_len_inv = 1.0 / (colliders.len() as f32);
+            let new_mass = colliders_len_inv * mass;
             for collider in colliders {
                 if let Some(collider) = physics_world
                     .physics_objects
@@ -425,18 +426,27 @@ impl PhysicsEngine {
                     .get_mut(*collider)
                 {
                     // reuse local center
-                    let mass_properties = collider.shape().mass_properties(1.0);
+                    let mut mass_properties = collider.shape().mass_properties(1.0);
+                    // compute density 1.0 inertia
+                    let shape_inertia = mass_properties.principal_inertia();
+                    // find out how much we need to scale inertia to reach total inertia
+                    let mut inertia_coefficient = 1.0;
+                    if inertia != ANG_ZERO && shape_inertia != ANG_ZERO {
+                        inertia_coefficient = inertia / shape_inertia;
+                    }
+                    // update inertia with mass
+                    mass_properties.set_mass(new_mass, true);
                     let mut shape_inertia = mass_properties.principal_inertia();
                     if shape_inertia == ANG_ZERO {
                         shape_inertia = collider.shape().compute_local_aabb().volume();
                     }
                     let local_com = mass_properties.local_com;
-                    let mass_properties = MassProperties::new(
-                        local_com,
-                        colliders_len_inv * mass,
-                        shape_inertia * colliders_len_inv * inertia,
-                    );
-                    collider.set_mass_properties(mass_properties)
+                    // make each shape inertia relative to total inertia
+                    if inertia != ANG_ZERO && shape_inertia != ANG_ZERO {
+                        shape_inertia *= inertia_coefficient;
+                    }
+                    let mass_properties = MassProperties::new(local_com, new_mass, shape_inertia);
+                    collider.set_mass_properties(mass_properties);
                 }
             }
             if force_update {
