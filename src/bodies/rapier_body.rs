@@ -7,7 +7,7 @@ use hashbrown::hash_set::HashSet;
 #[cfg(feature = "dim3")]
 use rapier::dynamics::LockedAxes;
 use rapier::geometry::ColliderHandle;
-use rapier::math::Real;
+use rapier::math::DEFAULT_EPSILON;
 use servers::rapier_physics_server_extra::PhysicsCollisionObjects;
 use servers::rapier_physics_server_extra::PhysicsShapes;
 use servers::rapier_physics_server_extra::PhysicsSpaces;
@@ -111,8 +111,10 @@ pub struct RapierBody {
     #[cfg(feature = "dim3")]
     axis_lock: u8,
     mass: real,
+    inv_mass: real,
     mass_properties_update_pending: bool,
     inertia: Angle,
+    inv_inertia: Angle,
     #[cfg(feature = "dim3")]
     inv_inertia_tensor: Basis,
     contact_skin: real,
@@ -164,8 +166,10 @@ impl RapierBody {
             #[cfg(feature = "dim3")]
             axis_lock: 0,
             mass: 1.0,
+            inv_mass: 1.0,
             mass_properties_update_pending: false,
             inertia: ANGLE_ZERO,
+            inv_inertia: ANGLE_ZERO,
             #[cfg(feature = "dim3")]
             inv_inertia_tensor: Basis::IDENTITY,
             contact_skin: RapierProjectSettings::get_contact_skin(),
@@ -1156,6 +1160,11 @@ impl RapierBody {
                     return;
                 }
                 self.mass = mass_value;
+                if self.mass.is_zero_approx() {
+                    self.inv_mass = 0.0;
+                } else {
+                    self.inv_mass = 1.0 / self.mass;
+                }
                 if self.base.mode.ord() >= BodyMode::RIGID.ord() {
                     self.mass_properties_changed(physics_engine, physics_spaces);
                 }
@@ -1195,10 +1204,18 @@ impl RapierBody {
                 }
             }
             BodyParameter::CENTER_OF_MASS => {
+                #[cfg(feature = "dim2")]
                 if p_value.get_type() != VariantType::VECTOR2 {
+                    godot_error!("Invalid body data.");
+                    return;
+                }
+                #[cfg(feature = "dim3")]
+                if p_value.get_type() != VariantType::VECTOR3 {
+                    godot_error!("Invalid body data.");
                     return;
                 }
                 self.center_of_mass = p_value.to();
+                self.calculate_center_of_mass = false;
                 if self.base.mode.ord() >= BodyMode::RIGID.ord() {
                     self.mass_properties_changed(physics_engine, physics_spaces);
                 }
@@ -1548,105 +1565,72 @@ impl RapierBody {
         if self.base.mode.ord() < BodyMode::RIGID.ord() {
             return;
         }
-        let mut total_area = 0.0;
-        let shape_count = self.base.get_shape_count() as usize;
-        for i in 0..shape_count {
-            if self.base.is_shape_disabled(i) {
-                continue;
+        // compute rigidbody mass properties by changing collider mass. Will get overriden later
+        let rigid_body_mass_properties = physics_engine.body_get_mass_properties(
+            self.base.get_space_handle(),
+            self.base.get_body_handle(),
+            self.mass,
+        );
+        if self.calculate_center_of_mass || self.calculate_inertia {
+            if self.calculate_center_of_mass {
+                self.center_of_mass =
+                    vector_to_godot(rigid_body_mass_properties.local_mprops.local_com.coords);
             }
-            if let Some(shape) = physics_shapes.get(&self.base.get_shape(i)) {
-                total_area += shape.get_base().get_aabb_area();
-            }
-        }
-        if self.calculate_center_of_mass {
-            self.center_of_mass = Vector::default();
-            if total_area != 0.0 {
-                for i in 0..shape_count {
-                    if self.base.is_shape_disabled(i) {
-                        continue;
-                    }
-                    if let Some(shape) = physics_shapes.get(&self.base.get_shape(i)) {
-                        let shape_area = shape.get_base().get_aabb_area();
-                        if shape_area == 0.0 || self.mass == 0.0 {
-                            continue;
-                        }
-                        let shape_mass = shape_area * self.mass / total_area;
-                        // NOTE: we assume that the shape origin is also its center of mass.
-                        self.center_of_mass += shape_mass * self.base.get_shape_transform(i).origin;
-                    }
-                }
-                self.center_of_mass /= self.mass;
+            if self.calculate_inertia {
+                let angular_inertia = rigid_body_mass_properties.local_mprops.principal_inertia();
+                self.inertia = angle_to_godot(angular_inertia);
             }
         }
-        if self.calculate_inertia {
-            self.inertia = ANGLE_ZERO;
-            if total_area != 0.0 {
-                for i in 0..shape_count {
-                    if self.base.is_shape_disabled(i) {
-                        continue;
-                    }
-                    if let Some(shape) = physics_shapes.get(&self.base.get_shape(i)) {
-                        let shape_area = shape.get_base().get_aabb_area();
-                        if shape_area == 0.0 || self.mass == 0.0 {
-                            continue;
-                        }
-                        let shape_mass = shape_area * self.mass / total_area;
-                        let mtx = self.base.get_shape_transform(i);
-                        let scale = transform_scale(&mtx);
-                        self.inertia += self.get_inertia_for_shape(
-                            shape.get_moment_of_inertia(shape_mass, scale),
-                            shape_mass,
-                            mtx,
-                            i,
-                        );
-                    }
-                }
+        if self.inertia.is_zero_approx() {
+            self.inv_inertia = ANGLE_ZERO;
+        }
+        #[cfg(feature = "dim2")]
+        if !self.inertia.is_zero_approx() {
+            self.inv_inertia = 1.0 / self.inertia;
+        }
+        #[cfg(feature = "dim3")]
+        if !self.inertia.is_zero_approx() {
+            // inv inertia
+            if !self.inv_inertia.x.is_zero_approx() {
+                self.inv_inertia.x = 1.0 / self.inertia.x;
+            } else {
+                self.inv_inertia.x = 0.0;
             }
+            if !self.inv_inertia.y.is_zero_approx() {
+                self.inv_inertia.y = 1.0 / self.inertia.y;
+            } else {
+                self.inv_inertia.y = 0.0;
+            }
+            if !self.inv_inertia.z.is_zero_approx() {
+                self.inv_inertia.z = 1.0 / self.inertia.z;
+            } else {
+                self.inv_inertia.z = 0.0;
+            }
+            // inv inertia tensor
+            let rotation_matrix = rigid_body_mass_properties
+                .local_mprops
+                .principal_inertia_local_frame
+                .to_rotation_matrix();
+            let vector = rotation_matrix.matrix();
+            let column_0 = vector
+                .column(0)
+                .pseudo_inverse(DEFAULT_EPSILON)
+                .unwrap_or_default();
+            let column_1 = vector
+                .column(1)
+                .pseudo_inverse(DEFAULT_EPSILON)
+                .unwrap_or_default();
+            let column_2 = vector
+                .column(2)
+                .pseudo_inverse(DEFAULT_EPSILON)
+                .unwrap_or_default();
+            self.inv_inertia_tensor = Basis::from_cols(
+                Vector3::new(column_0.x, column_0.y, column_0.z),
+                Vector3::new(column_1.x, column_1.y, column_1.z),
+                Vector3::new(column_2.x, column_2.y, column_2.z),
+            );
         }
         self.apply_mass_properties(force_update, physics_engine);
-    }
-
-    #[cfg(feature = "dim2")]
-    fn get_inertia_for_shape(
-        &self,
-        moment_of_inertia: Angle,
-        shape_mass: Real,
-        shape_transform: Transform,
-        _i: usize,
-    ) -> Real {
-        let mtx = shape_transform;
-        let _scale = transform_scale(&mtx);
-        let shape_origin = mtx.origin - self.center_of_mass;
-        moment_of_inertia + shape_mass * shape_origin.length_squared()
-    }
-
-    #[cfg(feature = "dim3")]
-    fn get_inertia_for_shape(
-        &self,
-        moment_of_inertia: Angle,
-        shape_mass: Real,
-        shape_transform: Transform,
-        _i: usize,
-    ) -> Vector3 {
-        let mut shape_inertia_tensor = Basis::from_scale(moment_of_inertia);
-        let shape_transform = shape_transform;
-        let shape_basis = shape_transform.basis.orthonormalized();
-        // NOTE: we don't take the scale of collision shapes into account when computing the inertia tensor!
-        shape_inertia_tensor = shape_basis * shape_inertia_tensor * shape_basis.transposed();
-        let shape_origin = shape_transform.origin - self.center_of_mass;
-        let shape_outer = shape_origin.outer(shape_origin);
-        let mut shape_dot = Basis::IDENTITY * (shape_origin.dot(shape_origin));
-        shape_dot.set_col_a(shape_dot.col_a() - shape_outer.col_a());
-        shape_dot.set_col_b(shape_dot.col_b() - shape_outer.col_b());
-        shape_dot.set_col_c(shape_dot.col_c() - shape_outer.col_c());
-        shape_dot *= shape_mass;
-        let mut inertia_tensor = shape_inertia_tensor;
-        inertia_tensor.set_col_a(inertia_tensor.col_a() + shape_dot.col_a());
-        inertia_tensor.set_col_b(inertia_tensor.col_b() + shape_dot.col_b());
-        inertia_tensor.set_col_c(inertia_tensor.col_c() + shape_dot.col_c());
-        //return inertia_tensor.diagonalize().transposed();
-        // TODO
-        moment_of_inertia
     }
 
     pub fn reset_mass_properties(
@@ -1668,30 +1652,11 @@ impl RapierBody {
     }
 
     pub fn get_inv_mass(&self) -> real {
-        if self.mass != 0.0 {
-            return 1.0 / self.mass;
-        }
-        0.0
+        self.inv_mass
     }
 
-    #[cfg(feature = "dim2")]
     pub fn get_inv_inertia(&self) -> Angle {
-        if self.inertia != ANGLE_ZERO {
-            return 1.0 / self.inertia;
-        }
-        ANGLE_ZERO
-    }
-
-    #[cfg(feature = "dim3")]
-    pub fn get_inv_inertia(&self) -> Angle {
-        if self.inertia != ANGLE_ZERO {
-            return Vector3::new(
-                1.0 / self.inertia.x,
-                1.0 / self.inertia.y,
-                1.0 / self.inertia.z,
-            );
-        }
-        ANGLE_ZERO
+        self.inv_inertia
     }
 
     #[cfg(feature = "dim3")]

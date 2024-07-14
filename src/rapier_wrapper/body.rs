@@ -1,5 +1,3 @@
-use godot::builtin::math::FloatExt;
-use godot::log::godot_error;
 use nalgebra::Point;
 use rapier::prelude::*;
 
@@ -50,7 +48,7 @@ impl PhysicsEngine {
         let default_activation = RigidBodyActivation::default();
         activation.angular_threshold = default_activation.angular_threshold;
         activation.normalized_linear_threshold = default_activation.normalized_linear_threshold;
-        activation.time_until_sleep = 0.5;
+        //activation.time_until_sleep = 0.5;
         set_rigid_body_properties_internal(&mut rigid_body, pos, rot, true);
         rigid_body.user_data = user_data.get_data();
         physics_world
@@ -371,7 +369,7 @@ impl PhysicsEngine {
                 activation.angular_threshold = default_activation.angular_threshold;
                 activation.normalized_linear_threshold =
                     default_activation.normalized_linear_threshold;
-                activation.time_until_sleep = 0.5;
+                //activation.time_until_sleep = 0.5;
             }
             if !can_sleep && body.is_sleeping() {
                 body.wake_up(true);
@@ -402,7 +400,7 @@ impl PhysicsEngine {
         body_handle: RigidBodyHandle,
         mass: Real,
         inertia: AngVector<Real>,
-        _local_com: Vector<Real>,
+        local_com: Vector<Real>,
         wake_up: bool,
         force_update: bool,
     ) {
@@ -418,33 +416,19 @@ impl PhysicsEngine {
             } else {
                 body.lock_rotations(false, wake_up);
             }
-            let colliders = body.colliders();
-            let colliders_len_inv = 1.0 / (colliders.len() as f32);
-            for collider in colliders {
+            for collider in body.colliders() {
                 if let Some(collider) = physics_world
                     .physics_objects
                     .collider_set
                     .get_mut(*collider)
                 {
-                    // reuse local center
-                    let mass_properties = collider.shape().mass_properties(1.0);
-                    if mass_properties.mass().is_zero_approx() {
-                        godot_error!("Collider has zero computed mass");
-                    }
-                    let local_com = mass_properties.local_com;
-                    //let shape_inertia = mass_properties.inv_principal_inertia_sqrt;
-                    let _mass_properties = MassProperties::new(
-                        local_com,
-                        colliders_len_inv,
-                        inertia, // * colliders_len_inv,
-                    );
-                    //collider.set_mass_properties(mass_properties);
-                    collider.set_mass(colliders_len_inv);
-                    //collider.set_density(colliders_len_inv)
+                    collider.set_density(0.0);
                 }
             }
-            let _props = MassProperties::new(Point { coords: _local_com }, mass, inertia);
-            //body.set_additional_mass_properties(props, true);
+            body.set_additional_mass_properties(
+                MassProperties::new(Point { coords: local_com }, mass, inertia),
+                wake_up,
+            );
             if force_update {
                 body.recompute_mass_properties_from_colliders(
                     &physics_world.physics_objects.collider_set,
@@ -634,5 +618,34 @@ impl PhysicsEngine {
         {
             body.sleep();
         }
+    }
+
+    pub fn body_get_mass_properties(
+        &mut self,
+        world_handle: WorldHandle,
+        body_handle: RigidBodyHandle,
+        mass: Real,
+    ) -> RigidBodyMassProps {
+        if let Some(physics_world) = self.get_mut_world(world_handle)
+            && let Some(body) = physics_world
+                .physics_objects
+                .rigid_body_set
+                .get_mut(body_handle)
+        {
+            for collider in body.colliders() {
+                if let Some(collider) = physics_world
+                    .physics_objects
+                    .collider_set
+                    .get_mut(*collider)
+                {
+                    collider.set_mass(mass);
+                }
+            }
+            body.recompute_mass_properties_from_colliders(
+                &physics_world.physics_objects.collider_set,
+            );
+            return body.mass_properties().clone();
+        }
+        RigidBodyMassProps::default()
     }
 }

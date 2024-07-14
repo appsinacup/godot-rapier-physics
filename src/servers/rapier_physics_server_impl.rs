@@ -27,11 +27,12 @@ use crate::joints::rapier_pin_joint_3d::RapierPinJoint3D;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_capsule_shape::RapierCapsuleShape;
 use crate::shapes::rapier_circle_shape::RapierCircleShape;
-#[cfg(feature = "dim2")]
-use crate::shapes::rapier_concave_polygon_shape_2d::RapierConcavePolygonShape2D;
+use crate::shapes::rapier_concave_polygon_shape::RapierConcavePolygonShape;
 use crate::shapes::rapier_convex_polygon_shape::RapierConvexPolygonShape;
 #[cfg(feature = "dim3")]
 use crate::shapes::rapier_cylinder_shape_3d::RapierCylinderShape3D;
+#[cfg(feature = "dim3")]
+use crate::shapes::rapier_heightmap_shape_3d::RapierHeightMapShape3D;
 use crate::shapes::rapier_rectangle_shape::RapierRectangleShape;
 #[cfg(feature = "dim2")]
 use crate::shapes::rapier_segment_shape_2d::RapierSegmentShape2D;
@@ -136,19 +137,25 @@ impl RapierPhysicsServerImpl {
     #[cfg(feature = "dim2")]
     pub(super) fn concave_polygon_shape_create(&mut self) -> Rid {
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierConcavePolygonShape2D::new(rid);
+        let shape = RapierConcavePolygonShape::new(rid);
         self.physics_data.shapes.insert(rid, Box::new(shape));
         rid
     }
 
     #[cfg(feature = "dim3")]
     pub(super) fn concave_polygon_shape_create(&mut self) -> Rid {
-        Rid::Invalid
+        let rid = rid_from_int64(rid_allocate_id());
+        let shape = RapierConcavePolygonShape::new(rid);
+        self.physics_data.shapes.insert(rid, Box::new(shape));
+        rid
     }
 
     #[cfg(feature = "dim3")]
     pub(super) fn heightmap_shape_create(&mut self) -> Rid {
-        Rid::Invalid
+        let rid = rid_from_int64(rid_allocate_id());
+        let shape = RapierHeightMapShape3D::new(rid);
+        self.physics_data.shapes.insert(rid, Box::new(shape));
+        rid
     }
 
     pub(super) fn shape_set_data(&mut self, shape: Rid, data: Variant) {
@@ -169,6 +176,12 @@ impl RapierPhysicsServerImpl {
             return shape.get_type();
         }
         ShapeType::CUSTOM
+    }
+
+    pub(super) fn shape_set_margin(&mut self, _shape: Rid, _margin: real) {}
+
+    pub(super) fn shape_get_margin(&self, _shape: Rid) -> real {
+        0.0
     }
 
     pub(super) fn shape_get_data(&self, shape: Rid) -> Variant {

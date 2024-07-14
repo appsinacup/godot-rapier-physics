@@ -43,22 +43,6 @@ impl IRapierShape for RapierCircleShape {
         ShapeType::SPHERE
     }
 
-    #[cfg(feature = "dim2")]
-    fn get_moment_of_inertia(&self, mass: f32, scale: Vector) -> f32 {
-        let a = self.radius * scale.x;
-        let b = self.radius * scale.y;
-        mass * (a * a + b * b) / 4.0
-    }
-
-    #[cfg(feature = "dim3")]
-    fn get_moment_of_inertia(&self, mass: f32, scale: Vector) -> Angle {
-        let a = self.radius * scale.x;
-        let b = self.radius * scale.y;
-        let c = self.radius * scale.z;
-        let inertia = mass * (a * a + b * b + c * c) / 4.0;
-        Vector3::new(inertia, inertia, inertia)
-    }
-
     fn allows_one_way_collision(&self) -> bool {
         true
     }
@@ -78,11 +62,7 @@ impl IRapierShape for RapierCircleShape {
             }
         }
         let handle = self.create_rapier_shape(physics_engine);
-        let rect = Rect::new(
-            -Vector::splat(self.radius),
-            Vector::splat(self.radius) * 2.0,
-        );
-        self.base.set_handle(handle, rect, physics_engine);
+        self.base.set_handle(handle, physics_engine);
     }
 
     fn get_data(&self) -> Variant {

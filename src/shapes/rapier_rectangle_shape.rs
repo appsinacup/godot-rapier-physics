@@ -44,24 +44,6 @@ impl IRapierShape for RapierRectangleShape {
         ShapeType::BOX
     }
 
-    #[cfg(feature = "dim2")]
-    fn get_moment_of_inertia(&self, mass: f32, scale: Vector) -> f32 {
-        let he2 = self.half_extents * 2.0 * scale;
-        mass * he2.dot(he2) / 12.0
-    }
-
-    #[cfg(feature = "dim3")]
-    fn get_moment_of_inertia(&self, mass: f32, _scale: Vector) -> Vector3 {
-        let lx = self.half_extents.x;
-        let ly = self.half_extents.y;
-        let lz = self.half_extents.z;
-        Vector3::new(
-            (mass / 3.0) * (ly * ly + lz * lz),
-            (mass / 3.0) * (lx * lx + lz * lz),
-            (mass / 3.0) * (lx * lx + ly * ly),
-        )
-    }
-
     fn allows_one_way_collision(&self) -> bool {
         true
     }
@@ -74,9 +56,8 @@ impl IRapierShape for RapierRectangleShape {
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         if let Ok(v) = data.try_to() {
             self.half_extents = v;
-            let aabb = Rect::new(-self.half_extents, self.half_extents * 2.0);
             let handle = self.create_rapier_shape(physics_engine);
-            self.base.set_handle(handle, aabb, physics_engine);
+            self.base.set_handle(handle, physics_engine);
         } else {
             godot_error!("Invalid data type for RapierRectangleShape");
         }

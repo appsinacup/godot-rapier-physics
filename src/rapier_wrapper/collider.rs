@@ -137,6 +137,13 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
                 }
             }
         }
+        #[cfg(feature = "dim3")]
+        ShapeType::HeightField => {
+            if let Some(new_shape) = shape.as_heightfield() {
+                let new_shape = new_shape.clone().scaled(&scale);
+                return SharedShape::new(new_shape);
+            }
+        }
         ShapeType::Capsule => {
             if let Some(new_shape) = shape.as_capsule() {
                 if let Some(new_shape) = new_shape.scaled(&scale, SUBDIVISIONS) {

@@ -41,16 +41,6 @@ impl IRapierShape for RapierWorldBoundaryShape {
         ShapeType::WORLD_BOUNDARY
     }
 
-    #[cfg(feature = "dim2")]
-    fn get_moment_of_inertia(&self, _mass: f32, _scale: Vector) -> Angle {
-        f32::MAX
-    }
-
-    #[cfg(feature = "dim3")]
-    fn get_moment_of_inertia(&self, _mass: f32, _scale: Vector) -> Angle {
-        Vector3::new(f32::MAX, f32::MAX, f32::MAX)
-    }
-
     fn allows_one_way_collision(&self) -> bool {
         true
     }
@@ -80,8 +70,7 @@ impl IRapierShape for RapierWorldBoundaryShape {
         self.normal = arr.at(0).to();
         self.d = variant_to_float(&arr.at(1));
         let handle = self.create_rapier_shape(physics_engine);
-        let rect = Rect2::new(Vector2::new(-1e4, -1e4), Vector2::new(1e4 * 2.0, 1e4 * 2.0));
-        self.base.set_handle(handle, rect, physics_engine);
+        self.base.set_handle(handle, physics_engine);
     }
 
     #[cfg(feature = "dim3")]
@@ -94,11 +83,7 @@ impl IRapierShape for RapierWorldBoundaryShape {
         self.normal = plane.normal;
         self.d = plane.d;
         let handle = self.create_rapier_shape(physics_engine);
-        let rect = Aabb::new(
-            Vector::new(-1e4, -1e4, -1e4),
-            Vector::new(1e4 * 2.0, 1e4 * 2.0, 1e4 * 2.0),
-        );
-        self.base.set_handle(handle, rect, physics_engine);
+        self.base.set_handle(handle, physics_engine);
     }
 
     #[cfg(feature = "dim2")]
