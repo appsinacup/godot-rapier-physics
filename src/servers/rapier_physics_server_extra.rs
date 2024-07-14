@@ -240,4 +240,30 @@ impl RapierPhysicsServer {
             fluid.delete_points(indices.to_vec());
         }
     }
+
+    #[func]
+    fn body_set_state_sync_callback(body: Rid, callable: Callable) {
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return;
+        };
+        physics_singleton
+            .bind_mut()
+            .implementation
+            .body_set_state_sync_callback(body, callable);
+    }
+
+    #[func]
+    fn space_set_debug_contacts(space: Rid, max_contacts: i32) {
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return;
+        };
+        physics_singleton
+            .bind_mut()
+            .implementation
+            .space_set_debug_contacts(space, max_contacts);
+    }
 }
