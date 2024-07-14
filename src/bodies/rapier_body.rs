@@ -7,6 +7,8 @@ use hashbrown::hash_set::HashSet;
 #[cfg(feature = "dim3")]
 use rapier::dynamics::LockedAxes;
 use rapier::geometry::ColliderHandle;
+#[cfg(feature = "dim3")]
+use rapier::math::DEFAULT_EPSILON;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsShapes;
 use servers::rapier_physics_singleton::PhysicsSpaces;
@@ -310,6 +312,7 @@ impl RapierBody {
         if self.base.mode.ord() >= BodyMode::KINEMATIC.ord() {
             let mut send_contacts = self.can_report_contacts();
             if godot::engine::Os::singleton().is_debug_build() {
+                // TODO how to optimize this, make it to get debug contacts somehow
                 send_contacts = true;
             }
             physics_engine.collider_set_contact_force_events_enabled(
@@ -435,7 +438,11 @@ impl RapierBody {
     }
 
     pub fn set_state_sync_callback(&mut self, p_callable: Callable) {
-        self.body_state_callback = Some(p_callable);
+        if !p_callable.is_valid() {
+            self.body_state_callback = None;
+        } else {
+            self.body_state_callback = Some(p_callable);
+        }
     }
 
     pub fn get_state_sync_callback(&self) -> Option<&Callable> {

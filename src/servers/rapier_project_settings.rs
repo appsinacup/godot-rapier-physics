@@ -1,6 +1,7 @@
 use godot::classes::*;
 use godot::global::*;
 use godot::prelude::*;
+use rapier::dynamics::IntegrationParameters;
 use rapier::math::Real;
 const SOLVER_NUM_ITERATIONS: &str = "physics/rapier/solver/num_iterations";
 const SOLVER_NUM_ADDITIONAL_FRICTION_ITERATIONS: &str =
@@ -62,28 +63,29 @@ pub fn register_setting_ranged(
 pub struct RapierProjectSettings;
 impl RapierProjectSettings {
     pub fn register_settings() {
+        let integration_parameters = IntegrationParameters::default();
         register_setting_ranged(
             SOLVER_NUM_INTERNAL_PGS_ITERATIONS,
-            Variant::from(1),
+            Variant::from(integration_parameters.num_internal_pgs_iterations as i32),
             "1,4,or_greater",
             true,
         );
         register_setting_ranged(
             SOLVER_NUM_ADDITIONAL_FRICTION_ITERATIONS,
-            Variant::from(4),
-            "1,16,or_greater",
+            Variant::from(integration_parameters.num_additional_friction_iterations as i32),
+            "0,16,or_greater",
             true,
         );
         register_setting_ranged(
             SOLVER_NUM_ITERATIONS,
-            Variant::from(4),
+            Variant::from(integration_parameters.num_solver_iterations.get() as i32),
             "1,16,or_greater",
             true,
         );
         register_setting_ranged(
             SOLVER_MAX_CCD_SUBSTEPS,
-            Variant::from(1),
-            "1,16,or_greater",
+            Variant::from(integration_parameters.max_ccd_substeps as i32),
+            "0,16,or_greater",
             true,
         );
         register_setting_ranged(

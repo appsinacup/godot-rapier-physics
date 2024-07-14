@@ -221,29 +221,22 @@ impl RapierSpace {
                 }
             }
         }
-        let mut array_2 = array![Variant::nil(), Variant::nil()];
-        let mut array_3 = array![Variant::nil(), Variant::nil(), Variant::nil()];
         for body_rid in self.state_query_list.clone() {
             if let Some(body) = physics_data_collision_objects.get(&body_rid) {
                 if let Some(body) = body.get_body() {
                     if let Some(direct_state) = body.get_direct_state() {
                         if let Some(fi_callback_data) = body.get_force_integration_callback() {
-                            array_2.set(0, fi_callback_data.callable.to_variant());
-                            array_2.set(1, fi_callback_data.udata.to_variant());
-                            fi_callback_data.callable.callv(array_2);
-                            //queries.push((
-                            //    fi_callback_data.callable.clone(),
-                            //    vec![direct_state.to_variant(), fi_callback_data.udata.clone()],
-                            //));
+                            queries.push((
+                                fi_callback_data.callable.clone(),
+                                vec![direct_state.to_variant(), fi_callback_data.udata.clone()],
+                            ));
                         }
                         //  Sync body server with Godot by sending body direct state
                         if let Some(state_sync_callback) = body.get_state_sync_callback() {
-                            state_sync_callback
-                                .callv(Array::from(vec![direct_state.to_variant()].as_slice()));
-                            //queries.push((
-                            //    state_sync_callback.clone(),
-                            //    vec![direct_state.to_variant()],
-                            //));
+                            queries.push((
+                                state_sync_callback.clone(),
+                                vec![direct_state.to_variant()],
+                            ));
                         }
                     }
                 }

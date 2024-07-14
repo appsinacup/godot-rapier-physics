@@ -151,17 +151,19 @@ impl RapierPhysicsServerImpl {
 
     #[cfg(feature = "dim3")]
     pub(super) fn concave_polygon_shape_create(&mut self) -> Rid {
+        let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierConcavePolygonShape::new(rid);
-        self.physics_data.shapes.insert(rid, Box::new(shape));
+        physics_data.shapes.insert(rid, Box::new(shape));
         rid
     }
 
     #[cfg(feature = "dim3")]
     pub(super) fn heightmap_shape_create(&mut self) -> Rid {
+        let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
         let shape = RapierHeightMapShape3D::new(rid);
-        self.physics_data.shapes.insert(rid, Box::new(shape));
+        physics_data.shapes.insert(rid, Box::new(shape));
         rid
     }
 
@@ -1510,30 +1512,30 @@ impl RapierPhysicsServerImpl {
         body_b: Rid,
         local_b: Vector3,
     ) {
+        let physics_data = physics_data();
         let mut joint: Box<dyn IRapierJoint>;
-        if let Some(body_a) = self.physics_data.collision_objects.get(&body_a)
-            && let Some(body_b) = self.physics_data.collision_objects.get(&body_b)
+        if let Some(body_a) = physics_data.collision_objects.get(&body_a)
+            && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
             joint = Box::new(RapierPinJoint3D::new(
                 local_a,
                 local_b,
                 body_a,
                 body_b,
-                &mut self.physics_data.physics_engine,
+                &mut physics_data.physics_engine,
             ));
-            if let Some(mut prev_joint) = self.physics_data.joints.remove(&rid) {
-                joint.get_mut_base().copy_settings_from(
-                    prev_joint.get_base(),
-                    &mut self.physics_data.physics_engine,
-                );
+            if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
+                joint
+                    .get_mut_base()
+                    .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
                 prev_joint
                     .get_mut_base()
-                    .destroy_joint(&mut self.physics_data.physics_engine);
+                    .destroy_joint(&mut physics_data.physics_engine);
             }
         } else {
             joint = Box::new(RapierEmptyJoint::new());
         }
-        self.physics_data.joints.insert(rid, joint);
+        physics_data.joints.insert(rid, joint);
     }
 
     #[cfg(feature = "dim3")]
@@ -1546,16 +1548,18 @@ impl RapierPhysicsServerImpl {
 
     #[cfg(feature = "dim3")]
     pub(super) fn pin_joint_set_local_a(&mut self, joint: Rid, local_a: Vector3) {
-        if let Some(joint) = self.physics_data.joints.get_mut(&joint) {
+        let physics_data = physics_data();
+        if let Some(joint) = physics_data.joints.get_mut(&joint) {
             if let Some(joint) = joint.get_mut_pin() {
-                joint.set_anchor_a(local_a, &mut self.physics_data.physics_engine);
+                joint.set_anchor_a(local_a, &mut physics_data.physics_engine);
             }
         }
     }
 
     #[cfg(feature = "dim3")]
     pub(super) fn pin_joint_get_local_a(&self, joint: Rid) -> Vector3 {
-        if let Some(joint) = self.physics_data.joints.get(&joint) {
+        let physics_data = physics_data();
+        if let Some(joint) = physics_data.joints.get(&joint) {
             if let Some(joint) = joint.get_pin() {
                 return joint.get_anchor_a();
             }
@@ -1565,16 +1569,18 @@ impl RapierPhysicsServerImpl {
 
     #[cfg(feature = "dim3")]
     pub(super) fn pin_joint_set_local_b(&mut self, joint: Rid, local_b: Vector3) {
-        if let Some(joint) = self.physics_data.joints.get_mut(&joint) {
+        let physics_data = physics_data();
+        if let Some(joint) = physics_data.joints.get_mut(&joint) {
             if let Some(joint) = joint.get_mut_pin() {
-                joint.set_anchor_b(local_b, &mut self.physics_data.physics_engine);
+                joint.set_anchor_b(local_b, &mut physics_data.physics_engine);
             }
         }
     }
 
     #[cfg(feature = "dim3")]
     pub(super) fn pin_joint_get_local_b(&self, joint: Rid) -> Vector3 {
-        if let Some(joint) = self.physics_data.joints.get(&joint) {
+        let physics_data = physics_data();
+        if let Some(joint) = physics_data.joints.get(&joint) {
             if let Some(joint) = joint.get_pin() {
                 return joint.get_anchor_b();
             }

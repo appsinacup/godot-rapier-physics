@@ -112,10 +112,7 @@ impl RapierDirectBodyStateImpl {
 
     #[cfg(feature = "dim3")]
     pub(super) fn get_inverse_inertia_tensor(&self) -> Basis {
-        let Some(ref physics_singleton) = self.physics_singleton else {
-            return Basis::IDENTITY;
-        };
-        let physics_data = &physics_singleton.bind().implementation.physics_data;
+        let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 return body.get_inv_inertia_tensor();
