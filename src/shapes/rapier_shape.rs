@@ -122,15 +122,6 @@ impl RapierShapeBase {
             self.handle = ShapeHandle::default();
         }
     }
-
-    pub fn get_moment_of_inertia(
-        &self,
-        mass: f32,
-        _scale: Vector,
-        physics_engine: &PhysicsEngine,
-    ) -> Angle {
-        physics_engine.shape_get_moment_of_inertia(self.handle, mass)
-    }
 }
 impl Drop for RapierShapeBase {
     fn drop(&mut self) {

@@ -56,18 +56,16 @@ impl IRapierShape for RapierHeightMapShape3D {
         match data.get_type() {
             VariantType::DICTIONARY => {
                 if let Ok(dictionary) = data.try_to::<Dictionary>() {
-                    if let Some(width) = dictionary.get("width")
-                        && let Ok(width) = width.try_to::<i32>()
-                        && let Some(depth) = dictionary.get("depth")
+                    let width = dictionary.get_or_nil("width");
+                    let depth = dictionary.get_or_nil("depth");
+                    let new_heights = dictionary.get_or_nil("heights");
+                    if let Ok(width) = width.try_to::<i32>()
                         && let Ok(depth) = depth.try_to::<i32>()
-                        && let Some(new_heights) = dictionary.get("heights")
                     {
-                        if width <= 0 || depth <= 0 {
-                            godot_error!("Heightmap must have positive width and depth");
+                        if width <= 1 || depth <= 1 {
+                            godot_error!("Heightmap must have width and depth at least 2");
                             return;
                         }
-                        self.width = width;
-                        self.depth = depth;
                         let heights: PackedFloatArray;
                         if let Ok(new_heights) = new_heights.try_to::<PackedFloatArray>() {
                             heights = new_heights;
@@ -104,20 +102,21 @@ impl IRapierShape for RapierHeightMapShape3D {
                             godot_error!("Invalid heightmap shape data");
                             return;
                         }
-                        if heights.len() != (width * depth) as usize {
-                            godot_error!("Invalid heightmap shape data");
-                            return;
-                        }
                         self.heights = heights;
                         self.width = width;
                         self.depth = depth;
                     }
                 }
             }
-            _ => {
-                godot_error!("Invalid shape data");
-                return;
-            }
+            _ => godot_error!("Invalid heightmap shape data"),
+        }
+        if self.heights.len() != (self.width * self.depth) as usize {
+            godot_error!("Invalid heightmap shape data");
+            return;
+        }
+        if self.width <= 1 || self.depth <= 1 {
+            godot_error!("Heightmap must have width and depth at least 2");
+            return;
         }
         let handle = self.create_rapier_shape(physics_engine);
         self.base.set_handle(handle, physics_engine);
@@ -125,9 +124,9 @@ impl IRapierShape for RapierHeightMapShape3D {
 
     fn get_data(&self) -> Variant {
         let mut dictionary = Dictionary::new();
-        dictionary.insert("width", self.width);
-        dictionary.insert("depth", self.depth);
-        dictionary.insert("heights", self.heights.clone());
+        let _ = dictionary.insert("width", self.width);
+        let _ = dictionary.insert("depth", self.depth);
+        let _ = dictionary.insert("heights", self.heights.clone());
         dictionary.to_variant()
     }
 

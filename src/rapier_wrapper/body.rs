@@ -48,7 +48,7 @@ impl PhysicsEngine {
         let default_activation = RigidBodyActivation::default();
         activation.angular_threshold = default_activation.angular_threshold;
         activation.normalized_linear_threshold = default_activation.normalized_linear_threshold;
-        activation.time_until_sleep = 0.5;
+        //activation.time_until_sleep = 0.5;
         set_rigid_body_properties_internal(&mut rigid_body, pos, rot, true);
         rigid_body.user_data = user_data.get_data();
         physics_world
@@ -369,7 +369,7 @@ impl PhysicsEngine {
                 activation.angular_threshold = default_activation.angular_threshold;
                 activation.normalized_linear_threshold =
                     default_activation.normalized_linear_threshold;
-                activation.time_until_sleep = 0.5;
+                //activation.time_until_sleep = 0.5;
             }
             if !can_sleep && body.is_sleeping() {
                 body.wake_up(true);
@@ -400,7 +400,7 @@ impl PhysicsEngine {
         body_handle: RigidBodyHandle,
         mass: Real,
         inertia: AngVector<Real>,
-        _local_com: Vector<Real>,
+        local_com: Vector<Real>,
         wake_up: bool,
         force_update: bool,
     ) {
@@ -416,39 +416,19 @@ impl PhysicsEngine {
             } else {
                 body.lock_rotations(false, wake_up);
             }
-            let colliders = body.colliders();
-            let colliders_len_inv = 1.0 / (colliders.len() as f32);
-            let new_mass = colliders_len_inv * mass;
-            for collider in colliders {
+            for collider in body.colliders() {
                 if let Some(collider) = physics_world
                     .physics_objects
                     .collider_set
                     .get_mut(*collider)
                 {
-                    // reuse local center
-                    let mut mass_properties = collider.shape().mass_properties(1.0);
-                    // compute density 1.0 inertia
-                    let shape_inertia = mass_properties.principal_inertia();
-                    // find out how much we need to scale inertia to reach total inertia
-                    let mut inertia_coefficient = 1.0;
-                    if inertia != ANG_ZERO && shape_inertia != ANG_ZERO {
-                        inertia_coefficient = inertia / shape_inertia;
-                    }
-                    // update inertia with mass
-                    mass_properties.set_mass(new_mass, true);
-                    let mut shape_inertia = mass_properties.principal_inertia();
-                    if shape_inertia == ANG_ZERO {
-                        shape_inertia = collider.shape().compute_local_aabb().volume();
-                    }
-                    let local_com = mass_properties.local_com;
-                    // make each shape inertia relative to total inertia
-                    if inertia != ANG_ZERO && shape_inertia != ANG_ZERO {
-                        shape_inertia *= inertia_coefficient;
-                    }
-                    let mass_properties = MassProperties::new(local_com, new_mass, shape_inertia);
-                    collider.set_mass_properties(mass_properties);
+                    collider.set_density(0.0);
                 }
             }
+            body.set_additional_mass_properties(
+                MassProperties::new(Point { coords: local_com }, mass, inertia),
+                wake_up,
+            );
             if force_update {
                 body.recompute_mass_properties_from_colliders(
                     &physics_world.physics_objects.collider_set,
@@ -641,16 +621,29 @@ impl PhysicsEngine {
     }
 
     pub fn body_get_mass_properties(
-        &self,
+        &mut self,
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
+        mass: Real,
     ) -> RigidBodyMassProps {
-        if let Some(physics_world) = self.get_world(world_handle)
+        if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(body) = physics_world
                 .physics_objects
                 .rigid_body_set
-                .get(body_handle)
+                .get_mut(body_handle)
         {
+            for collider in body.colliders() {
+                if let Some(collider) = physics_world
+                    .physics_objects
+                    .collider_set
+                    .get_mut(*collider)
+                {
+                    collider.set_mass(mass);
+                }
+            }
+            body.recompute_mass_properties_from_colliders(
+                &physics_world.physics_objects.collider_set,
+            );
             return body.mass_properties().clone();
         }
         RigidBodyMassProps::default()

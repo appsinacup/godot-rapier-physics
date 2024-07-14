@@ -1,4 +1,7 @@
-use godot::engine::physics_server_2d::ShapeType;
+#[cfg(feature = "dim2")]
+use godot::classes::physics_server_2d::*;
+#[cfg(feature = "dim3")]
+use godot::classes::physics_server_3d::*;
 use godot::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
@@ -8,12 +11,12 @@ use crate::types::PackedVectorArray;
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
 )]
-pub struct RapierConcavePolygonShape2D {
+pub struct RapierConcavePolygonShape {
     #[cfg_attr(feature = "serde-serialize", serde(skip))]
     points: PackedVectorArray,
     base: RapierShapeBase,
 }
-impl RapierConcavePolygonShape2D {
+impl RapierConcavePolygonShape {
     pub fn new(rid: Rid) -> Self {
         Self {
             points: PackedVectorArray::default(),
@@ -22,7 +25,7 @@ impl RapierConcavePolygonShape2D {
     }
 }
 #[cfg_attr(feature = "serde-serialize", typetag::serde)]
-impl IRapierShape for RapierConcavePolygonShape2D {
+impl IRapierShape for RapierConcavePolygonShape {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base
     }
@@ -41,7 +44,6 @@ impl IRapierShape for RapierConcavePolygonShape2D {
 
     fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
         let point_count = self.points.len();
-        godot_print!("{}", self.points);
         let mut rapier_points = Vec::with_capacity(point_count);
         for i in 0..point_count {
             rapier_points.push(vector_to_rapier(self.points[i]));
@@ -56,17 +58,39 @@ impl IRapierShape for RapierConcavePolygonShape2D {
 
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         match data.get_type() {
+            #[cfg(feature = "dim3")]
+            VariantType::DICTIONARY => {
+                if let Ok(dictionary) = data.try_to::<Dictionary>() {
+                    if let Some(points) = dictionary.get("faces")
+                        && let Ok(arr) = points.try_to::<PackedVector3Array>()
+                    {
+                        let len = arr.len();
+                        if len == 0 {
+                            return;
+                        }
+                        if len % 3 != 0 {
+                            godot_error!(
+                                "ConcavePolygon3D must have a multiple of 3 number of points"
+                            );
+                            return;
+                        }
+                        self.points = arr;
+                    }
+                }
+            }
+            #[cfg(feature = "dim2")]
             VariantType::PACKED_VECTOR2_ARRAY => {
-                let arr: PackedVector2Array = data.to();
-                let len = arr.len();
-                if len == 0 {
-                    return;
+                if let Ok(arr) = data.try_to::<PackedVector2Array>() {
+                    let len = self.points.len();
+                    if len == 0 {
+                        return;
+                    }
+                    if len % 2 != 0 {
+                        godot_error!("ConcavePolygon2D must have an even number of points");
+                        return;
+                    }
+                    self.points = arr;
                 }
-                if len % 2 != 0 {
-                    godot_error!("ConcavePolygon2D must have an even number of points");
-                    return;
-                }
-                self.points = arr;
             }
             _ => {
                 // Handle dictionary with arrays

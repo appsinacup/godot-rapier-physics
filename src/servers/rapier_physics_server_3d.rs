@@ -81,6 +81,14 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         self.implementation.shape_get_type(shape)
     }
 
+    fn shape_set_margin(&mut self, shape: Rid, margin: real) {
+        self.implementation.shape_set_margin(shape, margin)
+    }
+
+    fn shape_get_margin(&self, shape: Rid) -> real {
+        self.implementation.shape_get_margin(shape)
+    }
+
     fn shape_get_data(&self, shape: Rid) -> Variant {
         self.implementation.shape_get_data(shape)
     }
