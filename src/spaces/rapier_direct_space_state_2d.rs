@@ -3,8 +3,7 @@ use godot::classes::*;
 use godot::prelude::*;
 
 use super::rapier_direct_space_state_impl::RapierDirectSpaceStateImpl;
-use crate::servers::RapierPhysicsServer;
-use crate::types::PhysicsServer;
+use crate::servers::rapier_physics_singleton::physics_data;
 #[derive(GodotClass)]
 #[class(base=PhysicsDirectSpaceState2DExtension,tool)]
 pub struct RapierDirectSpaceState2D {

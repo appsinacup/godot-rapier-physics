@@ -7,7 +7,6 @@ use hashbrown::hash_set::HashSet;
 #[cfg(feature = "dim3")]
 use rapier::dynamics::LockedAxes;
 use rapier::geometry::ColliderHandle;
-use rapier::math::DEFAULT_EPSILON;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsShapes;
 use servers::rapier_physics_singleton::PhysicsSpaces;
