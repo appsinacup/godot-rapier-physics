@@ -311,7 +311,7 @@ impl RapierBody {
         // Send contact infos for dynamic bodies
         if self.base.mode.ord() >= BodyMode::KINEMATIC.ord() {
             let mut send_contacts = self.can_report_contacts();
-            if self.base.is_debugging_contacts && godot::engine::Os::singleton().is_debug_build(){
+            if self.base.is_debugging_contacts && godot::engine::Os::singleton().is_debug_build() {
                 send_contacts = true;
             }
             physics_engine.collider_set_contact_force_events_enabled(
