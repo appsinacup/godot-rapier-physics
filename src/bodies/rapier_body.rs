@@ -487,8 +487,11 @@ impl RapierBody {
     }
 
     pub fn remove_area(&mut self, area: Rid, space: &mut RapierSpace) {
+        if !self.base.is_space_valid() {
+            return;
+        }
         if self.base.area_detection_counter == 0 {
-            godot_error!("Area detection counter is zero.");
+            godot_error!("Area detection counter is zero");
             return;
         }
         self.base.area_detection_counter -= 1;

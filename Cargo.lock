@@ -64,15 +64,6 @@ dependencies = [
 
 [[package]]
 name = "bit-vec"
-version = "0.6.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "349f9b6a179ed607305526ca489b34ad0a41aed5f7980fa90eb03160b69598fb"
-dependencies = [
- "serde",
-]
-
-[[package]]
-name = "bit-vec"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d2c54ff287cfc0a34f38a6b832ea1bd8e448a330b3e40a50859e6488bee07f22"
@@ -566,7 +557,7 @@ dependencies = [
 [[package]]
 name = "parry2d"
 version = "0.16.1"
-source = "git+https://github.com/dimforge/parry?branch=master#b72ccd4f95ab54d3b71a743958ba91dc25727764"
+source = "git+https://github.com/dimforge/parry?branch=master#2ba291c231033bd562923aba494f645cf96a7091"
 dependencies = [
  "approx",
  "arrayvec",
@@ -591,7 +582,7 @@ dependencies = [
 [[package]]
 name = "parry2d-f64"
 version = "0.16.1"
-source = "git+https://github.com/dimforge/parry?branch=master#b72ccd4f95ab54d3b71a743958ba91dc25727764"
+source = "git+https://github.com/dimforge/parry?branch=master#2ba291c231033bd562923aba494f645cf96a7091"
 dependencies = [
  "approx",
  "arrayvec",
@@ -616,7 +607,7 @@ dependencies = [
 [[package]]
 name = "parry3d"
 version = "0.16.1"
-source = "git+https://github.com/dimforge/parry?branch=master#b72ccd4f95ab54d3b71a743958ba91dc25727764"
+source = "git+https://github.com/dimforge/parry?branch=master#2ba291c231033bd562923aba494f645cf96a7091"
 dependencies = [
  "approx",
  "arrayvec",
@@ -641,7 +632,7 @@ dependencies = [
 [[package]]
 name = "parry3d-f64"
 version = "0.16.1"
-source = "git+https://github.com/dimforge/parry?branch=master#b72ccd4f95ab54d3b71a743958ba91dc25727764"
+source = "git+https://github.com/dimforge/parry?branch=master#2ba291c231033bd562923aba494f645cf96a7091"
 dependencies = [
  "approx",
  "arrayvec",
@@ -690,11 +681,11 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.21.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#87ada34008f4a1a313ccf8c3040040bab4f10e69"
+source = "git+https://github.com/dimforge/rapier?branch=master#6a295d3e8e372390174cc5b3e286631eb47495c1"
 dependencies = [
  "approx",
  "arrayvec",
- "bit-vec 0.6.3",
+ "bit-vec",
  "bitflags",
  "crossbeam",
  "downcast-rs",
@@ -716,11 +707,11 @@ dependencies = [
 [[package]]
 name = "rapier2d-f64"
 version = "0.21.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#685dc1729d066af1b1a71a6536d9c35af9503d00"
+source = "git+https://github.com/dimforge/rapier?branch=master#6a295d3e8e372390174cc5b3e286631eb47495c1"
 dependencies = [
  "approx",
  "arrayvec",
- "bit-vec 0.7.0",
+ "bit-vec",
  "bitflags",
  "crossbeam",
  "downcast-rs",
@@ -742,11 +733,11 @@ dependencies = [
 [[package]]
 name = "rapier3d"
 version = "0.21.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#87ada34008f4a1a313ccf8c3040040bab4f10e69"
+source = "git+https://github.com/dimforge/rapier?branch=master#6a295d3e8e372390174cc5b3e286631eb47495c1"
 dependencies = [
  "approx",
  "arrayvec",
- "bit-vec 0.6.3",
+ "bit-vec",
  "bitflags",
  "crossbeam",
  "downcast-rs",
@@ -768,11 +759,11 @@ dependencies = [
 [[package]]
 name = "rapier3d-f64"
 version = "0.21.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#685dc1729d066af1b1a71a6536d9c35af9503d00"
+source = "git+https://github.com/dimforge/rapier?branch=master#6a295d3e8e372390174cc5b3e286631eb47495c1"
 dependencies = [
  "approx",
  "arrayvec",
- "bit-vec 0.7.0",
+ "bit-vec",
  "bitflags",
  "crossbeam",
  "downcast-rs",
@@ -979,9 +970,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.70"
+version = "2.0.71"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f0209b68b3613b093e0ec905354eccaedcfe83b8cb37cbdeae64026c3064c16"
+checksum = "b146dcf730474b4bcd16c311627b31ede9ab149045db4d6088b3becaea046462"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -990,18 +981,18 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "1.0.61"
+version = "1.0.62"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c546c80d6be4bc6a00c0f01730c08df82eaa7a7a61f11d656526506112cc1709"
+checksum = "f2675633b1499176c2dff06b0856a27976a8f9d436737b4cf4f312d4d91d8bbb"
 dependencies = [
  "thiserror-impl",
 ]
 
 [[package]]
 name = "thiserror-impl"
-version = "1.0.61"
+version = "1.0.62"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "46c3384250002a6d5af4d114f2845d37b57521033f30d5c3f46c4d70e1197533"
+checksum = "d20468752b09f49e909e55a5d338caa8bedf615594e9d80bc4c565d30faf798c"
 dependencies = [
  "proc-macro2",
  "quote",

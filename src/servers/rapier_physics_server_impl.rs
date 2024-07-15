@@ -11,6 +11,7 @@ use godot::prelude::*;
 
 use super::rapier_physics_singleton::physics_data;
 use super::rapier_project_settings::RapierProjectSettings;
+use crate::bodies::rapier_area::AreaUpdateMode;
 use crate::bodies::rapier_area::RapierArea;
 use crate::bodies::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
@@ -509,10 +510,35 @@ impl RapierPhysicsServerImpl {
             space.set_default_area_param(param, value);
             return;
         }
+        let area_update_mode = AreaUpdateMode::None;
         if let Some(area) = physics_data.collision_objects.get_mut(&area) {
             if let Some(area) = area.get_mut_area() {
                 area.set_param(param, value, &mut physics_data.spaces);
             }
+        }
+        match area_update_mode {
+            AreaUpdateMode::EnableSpaceOverride => {
+                RapierArea::enable_space_override(
+                    &area,
+                    &mut physics_data.spaces,
+                    &mut physics_data.collision_objects,
+                );
+            }
+            AreaUpdateMode::DisableSpaceOverride => {
+                RapierArea::enable_space_override(
+                    &area,
+                    &mut physics_data.spaces,
+                    &mut physics_data.collision_objects,
+                );
+            }
+            AreaUpdateMode::ResetSpaceOverride => {
+                RapierArea::enable_space_override(
+                    &area,
+                    &mut physics_data.spaces,
+                    &mut physics_data.collision_objects,
+                );
+            }
+            _ => {}
         }
     }
 

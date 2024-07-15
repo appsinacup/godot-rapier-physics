@@ -177,41 +177,40 @@ impl RapierArea {
         area_shape: usize,
         space: &mut RapierSpace,
     ) {
-        if let Some(body) = body {
-            if let Some(body) = body.get_mut_body() {
-                // Add to keep track of currently detected bodies
-                if let Some(detected_body) = self.detected_bodies.get_mut(&body_rid) {
-                    *detected_body += 1;
-                } else {
-                    self.detected_bodies.insert(body_rid, 1);
+        // Add to keep track of currently detected bodies
+        if let Some(detected_body) = self.detected_bodies.get_mut(&body_rid) {
+            *detected_body += 1;
+        } else {
+            self.detected_bodies.insert(body_rid, 1);
+            if let Some(body) = body {
+                if let Some(body) = body.get_mut_body() {
                     body.add_area(self, space);
                 }
-                if self.monitor_callback.is_none() {
-                    return;
-                }
-                self.base.area_detection_counter += 1;
-                let handle_pair_hash = (collider_handle, area_collider_handle);
-                if self.monitored_objects.contains_key(&handle_pair_hash) {
-                    // comment this out for now, investigate more if this is expected or not.
-                    //godot_error!("Body is already being monitored");
-                    return;
-                }
-                self.monitored_objects.insert(
-                    handle_pair_hash,
-                    MonitorInfo {
-                        rid: body_rid,
-                        instance_id: body_instance_id,
-                        object_shape_index: body_shape as u32,
-                        area_shape_index: area_shape as u32,
-                        collision_object_type: CollisionObjectType::Body,
-                        state: 1,
-                    },
-                );
-                space.area_add_to_monitor_query_list(self.base.get_rid());
+            } else {
+                godot_error!("Body not found when entering area");
             }
-        } else {
-            godot_error!("other body is null");
         }
+        if self.monitor_callback.is_none() {
+            return;
+        }
+        self.base.area_detection_counter += 1;
+        let handle_pair_hash = (collider_handle, area_collider_handle);
+        if self.monitored_objects.contains_key(&handle_pair_hash) {
+            godot_error!("Body is already being monitored");
+            return;
+        }
+        self.monitored_objects.insert(
+            handle_pair_hash,
+            MonitorInfo {
+                rid: body_rid,
+                instance_id: body_instance_id,
+                object_shape_index: body_shape as u32,
+                area_shape_index: area_shape as u32,
+                collision_object_type: CollisionObjectType::Body,
+                state: 1,
+            },
+        );
+        space.area_add_to_monitor_query_list(self.base.get_rid());
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -226,16 +225,14 @@ impl RapierArea {
         area_shape: usize,
         space: &mut RapierSpace,
     ) {
-        if body.is_some() {
-            // Remove from currently detected bodies
-            if let Some(detected_body) = self.detected_bodies.get_mut(&body_rid) {
-                *detected_body -= 1;
-                if *detected_body == 0 {
-                    self.detected_bodies.remove(&body_rid);
-                    if let Some(body) = body {
-                        if let Some(body) = body.get_mut_body() {
-                            body.remove_area(self.base.get_rid(), space);
-                        }
+        // Remove from currently detected bodies
+        if let Some(detected_body) = self.detected_bodies.get_mut(&body_rid) {
+            *detected_body -= 1;
+            if *detected_body == 0 {
+                self.detected_bodies.remove(&body_rid);
+                if let Some(body) = body {
+                    if let Some(body) = body.get_mut_body() {
+                        body.remove_area(self.base.get_rid(), space);
                     }
                 }
             }
@@ -243,28 +240,26 @@ impl RapierArea {
         if self.monitor_callback.is_none() {
             return;
         }
-        if body.is_some() {
-            self.base.area_detection_counter -= 1;
-        }
+        self.base.area_detection_counter -= 1;
         let handle_pair_hash = (collider_handle, area_collider_handle);
-        if let hashbrown::hash_map::Entry::Vacant(e) =
-            self.monitored_objects.entry(handle_pair_hash)
-        {
-            e.insert(MonitorInfo {
-                rid: body_rid,
-                instance_id: body_instance_id,
-                object_shape_index: body_shape as u32,
-                area_shape_index: area_shape as u32,
-                collision_object_type: CollisionObjectType::Body,
-                state: -1,
-            });
-            space.area_add_to_monitor_query_list(self.base.get_rid());
-        } else {
-            if self.monitored_objects[&handle_pair_hash].state != 1 {
-                godot_error!("Body is not being monitored");
-                return;
+        if let Some(monitored_object) = self.monitored_objects.get(&handle_pair_hash) {
+            if monitored_object.state != 1 {
+                godot_error!("Body has not entered the area");
             }
             self.monitored_objects.remove(&handle_pair_hash);
+        } else {
+            self.monitored_objects.insert(
+                handle_pair_hash,
+                MonitorInfo {
+                    rid: body_rid,
+                    instance_id: body_instance_id,
+                    object_shape_index: body_shape as u32,
+                    area_shape_index: area_shape as u32,
+                    collision_object_type: CollisionObjectType::Body,
+                    state: -1,
+                },
+            );
+            space.area_add_to_monitor_query_list(self.base.get_rid());
         }
     }
 
@@ -340,24 +335,24 @@ impl RapierArea {
             }
         }
         let handle_pair_hash = (collider_handle, area_collider_handle);
-        if let hashbrown::hash_map::Entry::Occupied(mut e) =
-            self.monitored_objects.entry(handle_pair_hash)
-        {
-            e.insert(MonitorInfo {
-                rid: other_area_rid,
-                instance_id: other_area_instance_id,
-                object_shape_index: other_area_shape as u32,
-                area_shape_index: area_shape as u32,
-                collision_object_type: CollisionObjectType::Area,
-                state: -1,
-            });
-            space.area_add_to_monitor_query_list(self.base.get_rid());
-        } else {
-            if self.monitored_objects[&handle_pair_hash].state != 1 {
+        if let Some(monitored_object) = self.monitored_objects.get(&handle_pair_hash) {
+            if monitored_object.state != 1 {
                 godot_error!("Area is not being monitored");
-                return;
             }
             self.monitored_objects.remove(&handle_pair_hash);
+        } else {
+            self.monitored_objects.insert(
+                handle_pair_hash,
+                MonitorInfo {
+                    rid: other_area_rid,
+                    instance_id: other_area_instance_id,
+                    object_shape_index: other_area_shape as u32,
+                    area_shape_index: area_shape as u32,
+                    collision_object_type: CollisionObjectType::Area,
+                    state: -1,
+                },
+            );
+            space.area_add_to_monitor_query_list(self.base.get_rid());
         }
     }
 
@@ -657,14 +652,10 @@ impl RapierArea {
             area.monitored_objects.clear();
         }
         if let Some(space) = physics_spaces.get_mut(&previous_space_rid) {
-            if let Some(area) = physics_collision_objects.get_mut(area_rid)
-                && let Some(area) = area.get_mut_area()
-            {
-                if !area.detected_bodies.is_empty() {
-                    space.area_add_to_monitor_query_list(*area_rid);
-                }
-                space.area_remove_from_area_update_list(*area_rid);
+            if !detected_bodies.is_empty() {
+                space.area_add_to_monitor_query_list(*area_rid);
             }
+            space.area_remove_from_area_update_list(*area_rid);
             for (detected_body, _) in detected_bodies {
                 if let Some(body) = physics_collision_objects.get_mut(&detected_body) {
                     if let Some(body) = body.get_mut_body() {

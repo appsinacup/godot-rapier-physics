@@ -3,14 +3,14 @@ name = "godot-rapier"
 version = "0.7.0"
 edition = "2021"
 license = "MIT"
-rust-version = "1.81"
+rust-version = "1.80"
 publish = false
 
 [lib]
 crate-type = ["cdylib"]
 
 [features]
-default = ["single-dim3", "serde-serialize", "parallel", "simd-stable"]
+default = ["single-dim2", "serde-serialize", "parallel", "simd-stable"]
 dim2 = []
 dim3 = []
 single = []
@@ -67,6 +67,7 @@ codegen-units = 1
 
 [profile.dev]
 opt-level = 1
+panic = 'unwind'
 
 [package.metadata.docs.rs]
 license-file = "../LICENSE"
