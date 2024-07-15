@@ -671,6 +671,8 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
             }
         }
         for query in queries {
+            // TODO optimize function calls copying data.
+            // TODO optimize after these are called, the callbacks into direct state objects.
             query.0.callv(Array::from(query.1.as_slice()));
         }
         drop(guard);

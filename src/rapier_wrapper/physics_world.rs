@@ -190,15 +190,15 @@ impl PhysicsWorld {
             };
             space.collision_event_callback(&event_info, physics_collision_objects);
         }
-        while let Ok((contact_force_event, contact_pair)) = contact_force_recv.try_recv() {
+        while let Ok(contact_pair) = contact_force_recv.try_recv() {
             if let Some(collider1) = self
                 .physics_objects
                 .collider_set
-                .get(contact_force_event.collider1)
+                .get(contact_pair.collider1)
                 && let Some(collider2) = self
                     .physics_objects
                     .collider_set
-                    .get(contact_force_event.collider2)
+                    .get(contact_pair.collider2)
             {
                 // Handle the contact force event.
                 let event_info = ContactForceEventInfo {
@@ -213,7 +213,8 @@ impl PhysicsWorld {
                 {
                     // Find the contact pair, if it exists, between two colliders
                     let mut contact_info = ContactPointInfo::default();
-                    let mut swap = false;
+                    let swap = false;
+                    /*
                     if contact_force_event.collider1 != contact_pair.collider1 {
                         assert!(contact_force_event.collider1 == contact_pair.collider2);
                         assert!(contact_force_event.collider2 == contact_pair.collider1);
@@ -221,6 +222,7 @@ impl PhysicsWorld {
                     } else {
                         assert!(contact_force_event.collider2 == contact_pair.collider2);
                     }
+                     */
                     // We may also read the contact manifolds to access the contact geometry.
                     for manifold in &contact_pair.manifolds {
                         let manifold_normal = manifold.data.normal;

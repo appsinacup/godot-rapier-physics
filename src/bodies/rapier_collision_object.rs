@@ -150,6 +150,7 @@ pub struct RapierCollisionObject {
     inv_transform: Transform,
     collision_mask: u32,
     collision_layer: u32,
+    pub(crate) is_debugging_contacts: bool,
     // TODO serialize this
     #[cfg_attr(feature = "serde-serialize", serde(skip))]
     pub(crate) mode: BodyMode,
@@ -180,6 +181,7 @@ impl RapierCollisionObject {
             inv_transform: Transform::default(),
             collision_mask: 1,
             collision_layer: 1,
+            is_debugging_contacts: false,
             mode,
             body_handle: RigidBodyHandle::invalid(),
             space_handle: WorldHandle::default(),
@@ -365,6 +367,7 @@ impl RapierCollisionObject {
         self.space = p_space;
         if let Some(space) = physics_spaces.get_mut(&self.space) {
             self.space_handle = space.get_handle();
+            self.is_debugging_contacts = space.is_debugging_contacts();
         } else {
             self.space_handle = WorldHandle::default();
             self.space = Rid::Invalid;

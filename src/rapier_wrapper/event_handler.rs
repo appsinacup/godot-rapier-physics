@@ -4,12 +4,12 @@ use rapier::crossbeam;
 use rapier::prelude::*;
 pub struct ContactEventHandler {
     collision_send: Sender<CollisionEvent>,
-    contact_force_send: Sender<(ContactForceEvent, ContactPair)>,
+    contact_force_send: Sender<ContactPair>,
 }
 impl ContactEventHandler {
     pub fn new(
         collision_send: Sender<CollisionEvent>,
-        contact_force_send: Sender<(ContactForceEvent, ContactPair)>,
+        contact_force_send: Sender<ContactPair>,
     ) -> Self {
         ContactEventHandler {
             collision_send,
@@ -35,14 +35,13 @@ impl EventHandler for ContactEventHandler {
 
     fn handle_contact_force_event(
         &self,
-        dt: Real,
+        _dt: Real,
         _bodies: &RigidBodySet,
         _colliders: &ColliderSet,
         contact_pair: &ContactPair,
-        total_force_magnitude: Real,
+        _total_force_magnitude: Real,
     ) {
-        let result = ContactForceEvent::from_contact_pair(dt, contact_pair, total_force_magnitude);
-        match self.contact_force_send.send((result, contact_pair.clone())) {
+        match self.contact_force_send.send(contact_pair.clone()) {
             Ok(_) => (),
             Err(err) => {
                 godot_error!("Failed to send contact force event {}", err.to_string());

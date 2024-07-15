@@ -68,31 +68,31 @@ impl RapierProjectSettings {
             SOLVER_NUM_INTERNAL_PGS_ITERATIONS,
             Variant::from(integration_parameters.num_internal_pgs_iterations as i32),
             "1,4,or_greater",
-            true,
+            false,
         );
         register_setting_ranged(
             SOLVER_NUM_ADDITIONAL_FRICTION_ITERATIONS,
             Variant::from(integration_parameters.num_additional_friction_iterations as i32),
             "0,16,or_greater",
-            true,
+            false,
         );
         register_setting_ranged(
             SOLVER_NUM_ITERATIONS,
             Variant::from(integration_parameters.num_solver_iterations.get() as i32),
             "1,16,or_greater",
-            true,
+            false,
         );
         register_setting_ranged(
             SOLVER_MAX_CCD_SUBSTEPS,
             Variant::from(integration_parameters.max_ccd_substeps as i32),
             "0,16,or_greater",
-            true,
+            false,
         );
         register_setting_ranged(
             CONTACT_SKIN,
             Variant::from(0.0),
             "0,10,0.00001,or_greater",
-            true,
+            false,
         );
         register_setting_ranged(
             FLUID_PARTICLE_RADIUS,
@@ -104,13 +104,13 @@ impl RapierProjectSettings {
             FLUID_SMOOTHING_FACTOR,
             Variant::from(2.0),
             "0,10,0.00001,suffix:%",
-            true,
+            false,
         );
         register_setting_ranged(
             LENGTH_UNIT,
             Variant::from(LENGTH_UNIT_VALUE),
             "1,100,1,suffix:length_unit",
-            true,
+            false,
         );
     }
 
@@ -118,6 +118,12 @@ impl RapierProjectSettings {
         let project_settings = ProjectSettings::singleton();
         let setting_value = project_settings.get_setting_with_override(p_setting.into());
         setting_value.to::<i64>()
+    }
+
+    fn get_setting_bool(p_setting: &str) -> bool {
+        let project_settings = ProjectSettings::singleton();
+        let setting_value = project_settings.get_setting_with_override(p_setting.into());
+        setting_value.to::<bool>()
     }
 
     fn get_setting_double(p_setting: &str) -> f64 {
