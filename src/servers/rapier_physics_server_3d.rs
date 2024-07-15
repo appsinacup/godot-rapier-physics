@@ -5,6 +5,7 @@ use godot::engine::physics_server_3d::*;
 use godot::prelude::*;
 
 use super::rapier_physics_server_impl::RapierPhysicsServerImpl;
+use super::rapier_physics_singleton::physics_data;
 use crate::types::*;
 #[derive(GodotClass, Default)]
 #[class(base=Object,init,tool)]
@@ -659,13 +660,28 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
     }
 
     fn flush_queries(&mut self) {
-        let queries = self.implementation.flush_queries();
+        let physics_data = physics_data();
+        self.implementation.flushing_queries = true;
         let guard = self.base_mut();
+        let mut queries = Vec::default();
+        for space in physics_data.active_spaces.values() {
+            if let Some(space) = physics_data.spaces.get_mut(space) {
+                let query = space.get_queries(&mut physics_data.collision_objects);
+                queries.extend(query);
+            }
+        }
         for query in queries {
-            query.callv(VariantArray::new());
+            // TODO optimize function calls copying data.
+            // TODO optimize after these are called, the callbacks into direct state objects.
+            query.0.callv(Array::from(query.1.as_slice()));
         }
         drop(guard);
-        self.implementation.finish_flushing_queries();
+        self.implementation.flushing_queries = false;
+        for space in physics_data.active_spaces.values() {
+            if let Some(space) = physics_data.spaces.get_mut(space) {
+                space.update_after_queries(&mut physics_data.collision_objects);
+            }
+        }
     }
 
     fn end_sync(&mut self) {

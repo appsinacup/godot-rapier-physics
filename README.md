@@ -9,7 +9,7 @@
 
 <p align = "center">
     <strong>
-        <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/CONTRIBUTING.md">Contributing</a> | <a href="https://godot.rapier.rs">Documentation</a> | <a href="https://discord.gg/56dMud8HYn">Discord</a>
+        <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/docs/CONTRIBUTING.md">Contributing</a> | <a href="https://discord.gg/56dMud8HYn">Discord</a>
     </strong>
 </p>
 
@@ -41,24 +41,6 @@ After installing, go to `Advanced Settings` -> `Physics` -> `2D` or `3D`. Change
 <img src="docs/rapier-vid.gif"/>
 </p>
 
-# Limitations
+# Implementation Progress
 
-- SeparationRayShape missing.
-- SoftBody3D missing.
-- ConcavePolygonShape3D, HeightMapShape3D, 3D joints.
-- Cross platform determinism.
-- Double builds.
-- Liquids Missing.
-- No support for asymetric collisions (eg. object 1 hitting object 2 but object 2 not hitting object 1). More info here [Rapier Collision groups and solver groups](https://rapier.rs/docs/user_guides/rust/colliders/#collision-groups-and-solver-groups). This is the exact check rapier does: `(A.layer & B.mask) != 0 && (B.layer & A.mask) != 0`
-- Friction works differently than it does in Godot. The current formula is: friction is multiplied by other friction, bounce is taken the max value.
-- Setting Center of Mass to Custom or Custom Inertia doesn't work right now.
-- On web you cannot run both Rapier2D and Rapier3D at the same time.
-
-# Platforms
-
-- Windows (x86_64, x86_32)
-- macOS (x86-64 + arm64 Universal)
-- Linux (x86_64)
-- Android (x86_64, x86_32, arm64)
-- iOS (arm64)
-- Web (wasm32)
+This plugin is still being developed. See the [Implementation Progress](https://godot.rapier.rs/docs/progress/) to get an idea of what status it is in and what features it has.

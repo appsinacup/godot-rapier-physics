@@ -4,7 +4,7 @@ use godot::prelude::*;
 
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_server_extra::PhysicsData;
+use crate::servers::rapier_physics_singleton::PhysicsData;
 use crate::types::*;
 pub struct RapierDirectSpaceStateImpl {
     pub space: Rid,

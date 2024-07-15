@@ -2,13 +2,14 @@ use godot::classes::*;
 use godot::prelude::*;
 
 use super::rapier_direct_body_state_impl::RapierDirectBodyStateImpl;
-use crate::servers::RapierPhysicsServer;
+use crate::servers::rapier_physics_singleton::physics_data;
 use crate::spaces::rapier_space::RapierSpace;
 use crate::types::*;
 #[derive(GodotClass)]
 #[class(base=PhysicsDirectBodyState2DExtension,tool)]
 pub struct RapierDirectBodyState2D {
     implementation: RapierDirectBodyStateImpl,
+    transform: Transform,
     base: Base<PhysicsDirectBodyState2DExtension>,
 }
 impl RapierDirectBodyState2D {
@@ -21,6 +22,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     fn init(base: Base<PhysicsDirectBodyState2DExtension>) -> Self {
         Self {
             implementation: RapierDirectBodyStateImpl::default(),
+            transform: Transform::IDENTITY,
             base,
         }
     }
@@ -200,11 +202,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     fn integrate_forces(&mut self) {}
 
     fn get_space_state(&mut self) -> Option<Gd<PhysicsDirectSpaceState2D>> {
-        let Ok(physics_singleton) = PhysicsServer2D::singleton().try_cast::<RapierPhysicsServer>()
-        else {
-            return None;
-        };
-        let physics_data = &physics_singleton.bind().implementation.physics_data;
+        let physics_data = physics_data();
         if let Some(body) = physics_data
             .collision_objects
             .get(self.implementation.get_body())

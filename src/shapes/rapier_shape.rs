@@ -6,7 +6,7 @@ use godot::prelude::*;
 use hashbrown::HashMap;
 
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_server_extra::PhysicsData;
+use crate::servers::rapier_physics_singleton::PhysicsData;
 use crate::types::*;
 #[cfg_attr(feature = "serde-serialize", typetag::serde(tag = "type"))]
 pub trait IRapierShape {

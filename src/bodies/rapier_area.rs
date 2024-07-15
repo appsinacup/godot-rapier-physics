@@ -8,9 +8,9 @@ use godot::obj::EngineEnum;
 use godot::prelude::*;
 use hashbrown::HashMap;
 use rapier::geometry::ColliderHandle;
-use servers::rapier_physics_server_extra::PhysicsCollisionObjects;
-use servers::rapier_physics_server_extra::PhysicsShapes;
-use servers::rapier_physics_server_extra::PhysicsSpaces;
+use servers::rapier_physics_singleton::PhysicsCollisionObjects;
+use servers::rapier_physics_singleton::PhysicsShapes;
+use servers::rapier_physics_singleton::PhysicsSpaces;
 
 use super::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;
@@ -54,9 +54,9 @@ pub struct RapierArea {
     priority: i32,
     monitorable: bool,
     #[cfg_attr(feature = "serde-serialize", serde(skip))]
-    monitor_callback: Callable,
+    monitor_callback: Option<Callable>,
     #[cfg_attr(feature = "serde-serialize", serde(skip))]
-    area_monitor_callback: Callable,
+    area_monitor_callback: Option<Callable>,
     monitored_objects: HashMap<(ColliderHandle, ColliderHandle), MonitorInfo>,
     detected_bodies: HashMap<Rid, u32>,
     base: RapierCollisionObject,
@@ -77,8 +77,8 @@ impl RapierArea {
             angular_damp: 0.0,
             priority: 0,
             monitorable: false,
-            monitor_callback: Callable::invalid(),
-            area_monitor_callback: Callable::invalid(),
+            monitor_callback: None,
+            area_monitor_callback: None,
             monitored_objects: HashMap::default(),
             detected_bodies: HashMap::default(),
             base: RapierCollisionObject::new(rid, CollisionObjectType::Area),
@@ -177,41 +177,40 @@ impl RapierArea {
         area_shape: usize,
         space: &mut RapierSpace,
     ) {
-        if let Some(body) = body {
-            if let Some(body) = body.get_mut_body() {
-                // Add to keep track of currently detected bodies
-                if let Some(detected_body) = self.detected_bodies.get_mut(&body_rid) {
-                    *detected_body += 1;
-                } else {
-                    self.detected_bodies.insert(body_rid, 1);
+        // Add to keep track of currently detected bodies
+        if let Some(detected_body) = self.detected_bodies.get_mut(&body_rid) {
+            *detected_body += 1;
+        } else {
+            self.detected_bodies.insert(body_rid, 1);
+            if let Some(body) = body {
+                if let Some(body) = body.get_mut_body() {
                     body.add_area(self, space);
                 }
-                if self.monitor_callback.is_null() {
-                    return;
-                }
-                self.base.area_detection_counter += 1;
-                let handle_pair_hash = (collider_handle, area_collider_handle);
-                if self.monitored_objects.contains_key(&handle_pair_hash) {
-                    // comment this out for now, investigate more if this is expected or not.
-                    //godot_error!("Body is already being monitored");
-                    return;
-                }
-                self.monitored_objects.insert(
-                    handle_pair_hash,
-                    MonitorInfo {
-                        rid: body_rid,
-                        instance_id: body_instance_id,
-                        object_shape_index: body_shape as u32,
-                        area_shape_index: area_shape as u32,
-                        collision_object_type: CollisionObjectType::Body,
-                        state: 1,
-                    },
-                );
-                space.area_add_to_monitor_query_list(self.base.get_rid());
+            } else {
+                godot_error!("Body not found when entering area");
             }
-        } else {
-            godot_error!("other body is null");
         }
+        if self.monitor_callback.is_none() {
+            return;
+        }
+        self.base.area_detection_counter += 1;
+        let handle_pair_hash = (collider_handle, area_collider_handle);
+        if self.monitored_objects.contains_key(&handle_pair_hash) {
+            godot_error!("Body is already being monitored");
+            return;
+        }
+        self.monitored_objects.insert(
+            handle_pair_hash,
+            MonitorInfo {
+                rid: body_rid,
+                instance_id: body_instance_id,
+                object_shape_index: body_shape as u32,
+                area_shape_index: area_shape as u32,
+                collision_object_type: CollisionObjectType::Body,
+                state: 1,
+            },
+        );
+        space.area_add_to_monitor_query_list(self.base.get_rid());
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -226,45 +225,41 @@ impl RapierArea {
         area_shape: usize,
         space: &mut RapierSpace,
     ) {
-        if body.is_some() {
-            // Remove from currently detected bodies
-            if let Some(detected_body) = self.detected_bodies.get_mut(&body_rid) {
-                *detected_body -= 1;
-                if *detected_body == 0 {
-                    self.detected_bodies.remove(&body_rid);
-                    if let Some(body) = body {
-                        if let Some(body) = body.get_mut_body() {
-                            body.remove_area(self.base.get_rid(), space);
-                        }
+        // Remove from currently detected bodies
+        if let Some(detected_body) = self.detected_bodies.get_mut(&body_rid) {
+            *detected_body -= 1;
+            if *detected_body == 0 {
+                self.detected_bodies.remove(&body_rid);
+                if let Some(body) = body {
+                    if let Some(body) = body.get_mut_body() {
+                        body.remove_area(self.base.get_rid(), space);
                     }
                 }
             }
         }
-        if self.monitor_callback.is_null() {
+        if self.monitor_callback.is_none() {
             return;
         }
-        if body.is_some() {
-            self.base.area_detection_counter -= 1;
-        }
+        self.base.area_detection_counter -= 1;
         let handle_pair_hash = (collider_handle, area_collider_handle);
-        if let hashbrown::hash_map::Entry::Vacant(e) =
-            self.monitored_objects.entry(handle_pair_hash)
-        {
-            e.insert(MonitorInfo {
-                rid: body_rid,
-                instance_id: body_instance_id,
-                object_shape_index: body_shape as u32,
-                area_shape_index: area_shape as u32,
-                collision_object_type: CollisionObjectType::Body,
-                state: -1,
-            });
-            space.area_add_to_monitor_query_list(self.base.get_rid());
-        } else {
-            if self.monitored_objects[&handle_pair_hash].state != 1 {
-                godot_error!("Body is not being monitored");
-                return;
+        if let Some(monitored_object) = self.monitored_objects.get(&handle_pair_hash) {
+            if monitored_object.state != 1 {
+                godot_error!("Body has not entered the area");
             }
             self.monitored_objects.remove(&handle_pair_hash);
+        } else {
+            self.monitored_objects.insert(
+                handle_pair_hash,
+                MonitorInfo {
+                    rid: body_rid,
+                    instance_id: body_instance_id,
+                    object_shape_index: body_shape as u32,
+                    area_shape_index: area_shape as u32,
+                    collision_object_type: CollisionObjectType::Body,
+                    state: -1,
+                },
+            );
+            space.area_add_to_monitor_query_list(self.base.get_rid());
         }
     }
 
@@ -280,7 +275,7 @@ impl RapierArea {
         area_shape: usize,
         space: &mut RapierSpace,
     ) {
-        if self.area_monitor_callback.is_null() {
+        if self.area_monitor_callback.is_none() {
             return;
         }
         if let Some(other_area) = other_area {
@@ -324,7 +319,7 @@ impl RapierArea {
         area_shape: usize,
         space: &mut RapierSpace,
     ) {
-        if self.area_monitor_callback.is_null() {
+        if self.area_monitor_callback.is_none() {
             return;
         }
         if let Some(other_area) = other_area {
@@ -340,24 +335,24 @@ impl RapierArea {
             }
         }
         let handle_pair_hash = (collider_handle, area_collider_handle);
-        if let hashbrown::hash_map::Entry::Occupied(mut e) =
-            self.monitored_objects.entry(handle_pair_hash)
-        {
-            e.insert(MonitorInfo {
-                rid: other_area_rid,
-                instance_id: other_area_instance_id,
-                object_shape_index: other_area_shape as u32,
-                area_shape_index: area_shape as u32,
-                collision_object_type: CollisionObjectType::Area,
-                state: -1,
-            });
-            space.area_add_to_monitor_query_list(self.base.get_rid());
-        } else {
-            if self.monitored_objects[&handle_pair_hash].state != 1 {
+        if let Some(monitored_object) = self.monitored_objects.get(&handle_pair_hash) {
+            if monitored_object.state != 1 {
                 godot_error!("Area is not being monitored");
-                return;
             }
             self.monitored_objects.remove(&handle_pair_hash);
+        } else {
+            self.monitored_objects.insert(
+                handle_pair_hash,
+                MonitorInfo {
+                    rid: other_area_rid,
+                    instance_id: other_area_instance_id,
+                    object_shape_index: other_area_shape as u32,
+                    area_shape_index: area_shape as u32,
+                    collision_object_type: CollisionObjectType::Area,
+                    state: -1,
+                },
+            );
+            space.area_add_to_monitor_query_list(self.base.get_rid());
         }
     }
 
@@ -395,11 +390,11 @@ impl RapierArea {
     }
 
     pub fn set_monitor_callback(&mut self, callback: Callable) {
-        self.monitor_callback = callback;
+        self.monitor_callback = Some(callback);
     }
 
     pub fn set_area_monitor_callback(&mut self, callback: Callable) {
-        self.area_monitor_callback = callback;
+        self.area_monitor_callback = Some(callback);
     }
 
     pub fn set_param(
@@ -578,37 +573,47 @@ impl RapierArea {
         self.priority
     }
 
-    pub fn get_queries(&mut self) -> Vec<Callable> {
+    pub fn get_queries(&self) -> Vec<(Callable, Vec<Variant>)> {
         let mut queries = Vec::default();
         if self.monitored_objects.is_empty() {
             return queries;
         }
         for (_, monitor_info) in &self.monitored_objects {
-            let mut arg_array = VariantArray::new();
-            arg_array.resize(5, &Variant::nil());
             if monitor_info.state == 0 {
-                godot_error!("Is this an error?");
+                godot_error!("Invalid monitor state");
                 continue;
             }
+            let arg_array;
             if monitor_info.state > 0 {
-                arg_array.set(0, AreaBodyStatus::ADDED.to_variant());
+                arg_array = vec![
+                    AreaBodyStatus::ADDED.to_variant(),
+                    monitor_info.rid.to_variant(),
+                    monitor_info.instance_id.to_variant(),
+                    monitor_info.object_shape_index.to_variant(),
+                    monitor_info.area_shape_index.to_variant(),
+                ];
             } else {
-                arg_array.set(0, AreaBodyStatus::REMOVED.to_variant());
+                arg_array = vec![
+                    AreaBodyStatus::REMOVED.to_variant(),
+                    monitor_info.rid.to_variant(),
+                    monitor_info.instance_id.to_variant(),
+                    monitor_info.object_shape_index.to_variant(),
+                    monitor_info.area_shape_index.to_variant(),
+                ];
             }
-            arg_array.set(1, monitor_info.rid.to_variant());
-            arg_array.set(2, monitor_info.instance_id.to_variant());
-            arg_array.set(3, monitor_info.object_shape_index.to_variant());
-            arg_array.set(4, monitor_info.area_shape_index.to_variant());
             if monitor_info.collision_object_type == CollisionObjectType::Body {
-                if self.monitor_callback.is_valid() {
-                    queries.push(self.monitor_callback.bindv(arg_array));
+                if let Some(ref monitor_callback) = self.monitor_callback {
+                    queries.push((monitor_callback.clone(), arg_array));
                 }
-            } else if self.area_monitor_callback.is_valid() {
-                queries.push(self.area_monitor_callback.bindv(arg_array));
+            } else if let Some(ref area_monitor_callback) = self.area_monitor_callback {
+                queries.push((area_monitor_callback.clone(), arg_array));
             }
         }
-        self.monitored_objects.clear();
         queries
+    }
+
+    pub fn clear_monitored_objects(&mut self) {
+        self.monitored_objects.clear();
     }
 
     pub fn compute_gravity(&self, position: Vector) -> Vector {
@@ -647,14 +652,10 @@ impl RapierArea {
             area.monitored_objects.clear();
         }
         if let Some(space) = physics_spaces.get_mut(&previous_space_rid) {
-            if let Some(area) = physics_collision_objects.get_mut(area_rid)
-                && let Some(area) = area.get_mut_area()
-            {
-                if !area.detected_bodies.is_empty() {
-                    space.area_add_to_monitor_query_list(*area_rid);
-                }
-                space.area_remove_from_area_update_list(*area_rid);
+            if !detected_bodies.is_empty() {
+                space.area_add_to_monitor_query_list(*area_rid);
             }
+            space.area_remove_from_area_update_list(*area_rid);
             for (detected_body, _) in detected_bodies {
                 if let Some(body) = physics_collision_objects.get_mut(&detected_body) {
                     if let Some(body) = body.get_mut_body() {

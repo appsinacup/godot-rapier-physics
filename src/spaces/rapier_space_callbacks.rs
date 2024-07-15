@@ -1,7 +1,7 @@
 use std::mem::swap;
 
 use godot::prelude::*;
-use servers::rapier_physics_server_extra::PhysicsCollisionObjects;
+use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 
 use super::rapier_space::RapierSpace;
 use crate::bodies::rapier_collision_object::*;
