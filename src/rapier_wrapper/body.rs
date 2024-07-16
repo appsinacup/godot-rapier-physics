@@ -121,6 +121,7 @@ impl PhysicsEngine {
                 .get(body_handle)
         {
             let rotation = body.rotation().euler_angles();
+            // roll pitch yaw
             return AngVector::new(rotation.0, rotation.1, rotation.2);
         }
         ANG_ZERO

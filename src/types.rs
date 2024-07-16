@@ -101,7 +101,10 @@ pub fn transform_update(transform: &Transform, rotation: Angle, origin: Vector) 
 pub fn transform_update(transform: &Transform, rotation: Angle, origin: Vector) -> Transform {
     use godot::builtin::Basis;
     use godot::builtin::EulerOrder;
-    let new_transform = Transform::new(Basis::from_euler(EulerOrder::XYZ, rotation), origin);
+    // angle comes here in roll pitch yaw
+    // godot works with pitch yaw roll for get
+    // and roll yaw pitch for set
+    let new_transform = Transform::new(Basis::from_euler(EulerOrder::YXZ, rotation), origin);
     let scale = transform.basis.scale();
     new_transform.scaled_local(scale)
 }
@@ -110,7 +113,7 @@ pub fn transform_rotation_rapier(
     transform: &godot::builtin::Transform3D,
 ) -> rapier::math::AngVector<rapier::math::Real> {
     use crate::rapier_wrapper::convert::vector_to_rapier;
-    vector_to_rapier(transform.basis.to_euler(godot::builtin::EulerOrder::XYZ))
+    vector_to_rapier(transform.basis.to_euler(godot::builtin::EulerOrder::YXZ))
 }
 #[cfg(feature = "dim2")]
 pub fn transform_rotation_rapier(
