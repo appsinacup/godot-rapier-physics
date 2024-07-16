@@ -10,15 +10,14 @@ pub enum BodyType {
 }
 fn set_rigid_body_properties_internal(
     rigid_body: &mut RigidBody,
-    pos: Translation<Real>,
-    rot: Rotation<Real>,
-    teleport: bool,
+    pos: Vector<Real>,
+    rot: AngVector<Real>,
     wake_up: bool,
 ) {
-    if rigid_body.is_dynamic() || rigid_body.is_fixed() || teleport {
-        rigid_body.set_position(Isometry::from_parts(pos, rot), wake_up);
+    if !rigid_body.is_kinematic() {
+        rigid_body.set_position(Isometry::new(pos, rot), wake_up);
     } else {
-        rigid_body.set_next_kinematic_position(Isometry::from_parts(pos, rot));
+        rigid_body.set_next_kinematic_position(Isometry::new(pos, rot));
     }
 }
 impl PhysicsEngine {
@@ -26,7 +25,7 @@ impl PhysicsEngine {
         &mut self,
         world_handle: WorldHandle,
         pos: Vector<Real>,
-        rot: Rotation<Real>,
+        rot: AngVector<Real>,
         user_data: &UserData,
         body_type: BodyType,
     ) -> RigidBodyHandle {
@@ -50,13 +49,7 @@ impl PhysicsEngine {
         activation.angular_threshold = default_activation.angular_threshold;
         activation.normalized_linear_threshold = default_activation.normalized_linear_threshold;
         activation.time_until_sleep = 0.5;
-        set_rigid_body_properties_internal(
-            &mut rigid_body,
-            Translation::from(pos),
-            rot,
-            true,
-            true,
-        );
+        set_rigid_body_properties_internal(&mut rigid_body, pos, rot, true);
         rigid_body.user_data = user_data.get_data();
         physics_world
             .physics_objects
@@ -115,20 +108,41 @@ impl PhysicsEngine {
         Vector::default()
     }
 
+    #[cfg(feature = "dim3")]
     pub fn body_get_angle(
         &self,
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
-    ) -> Rotation<Real> {
+    ) -> AngVector<Real> {
         if let Some(physics_world) = self.get_world(world_handle)
             && let Some(body) = physics_world
                 .physics_objects
                 .rigid_body_set
                 .get(body_handle)
         {
-            return *body.rotation();
+            let rotation = body.rotation().euler_angles();
+            // roll pitch yaw
+            return AngVector::new(rotation.0, rotation.1, rotation.2);
         }
-        Rotation::default()
+        ANG_ZERO
+    }
+
+    #[cfg(feature = "dim2")]
+    pub fn body_get_angle(
+        &self,
+        world_handle: WorldHandle,
+        body_handle: RigidBodyHandle,
+    ) -> AngVector<Real> {
+        if let Some(physics_world) = self.get_world(world_handle)
+            && let Some(body) = physics_world
+                .physics_objects
+                .rigid_body_set
+                .get(body_handle)
+        {
+            let rotation = body.rotation().angle();
+            return rotation;
+        }
+        ANG_ZERO
     }
 
     pub fn body_set_transform(
@@ -136,7 +150,7 @@ impl PhysicsEngine {
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
         pixel_pos: Vector<Real>,
-        rot: Rotation<Real>,
+        rot: AngVector<Real>,
         wake_up: bool,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
@@ -145,13 +159,7 @@ impl PhysicsEngine {
                 .rigid_body_set
                 .get_mut(body_handle)
         {
-            set_rigid_body_properties_internal(
-                body,
-                Translation::from(pixel_pos),
-                rot,
-                false,
-                wake_up,
-            );
+            set_rigid_body_properties_internal(body, pixel_pos, rot, wake_up);
         }
     }
 
