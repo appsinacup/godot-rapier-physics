@@ -1,5 +1,7 @@
 use godot::classes::*;
 use godot::prelude::*;
+use rapier::math::Real;
+use rapier::math::Rotation;
 #[cfg(feature = "single")]
 pub type PackedFloatArray = PackedFloat32Array;
 #[cfg(feature = "double")]
@@ -89,37 +91,49 @@ pub fn transform_inverse(transform: &Transform) -> Transform {
     }
 }
 #[cfg(feature = "dim2")]
-pub fn transform_update(transform: &Transform, rotation: Angle, origin: Vector) -> Transform {
+pub fn transform_update(
+    transform: &Transform,
+    rotation: Rotation<Real>,
+    origin: Vector,
+) -> Transform {
     let mut skew = 0.0;
-    // todo use determinant
-    if transform.a != Vector::ZERO {
+    if !transform.determinant().is_zero_approx() {
         skew = transform.skew();
     }
-    Transform::from_angle_scale_skew_origin(rotation, transform.scale(), skew, origin)
+    Transform::from_angle_scale_skew_origin(rotation.angle(), transform.scale(), skew, origin)
 }
 #[cfg(feature = "dim3")]
-pub fn transform_update(transform: &Transform, rotation: Angle, origin: Vector) -> Transform {
+pub fn transform_update(
+    transform: &Transform,
+    rotation: Rotation<Real>,
+    origin: Vector,
+) -> Transform {
     use godot::builtin::Basis;
-    use godot::builtin::EulerOrder;
-    // angle comes here in roll pitch yaw
-    // godot works with pitch yaw roll for get
-    // and roll yaw pitch for set
-    let new_transform = Transform::new(Basis::from_euler(EulerOrder::YXZ, rotation), origin);
+    let quaternion = rotation.quaternion();
+    let new_transform = Transform::new(
+        Basis::from_quat(Quaternion::new(
+            quaternion.coords.x,
+            quaternion.coords.y,
+            quaternion.coords.z,
+            quaternion.coords.w,
+        )),
+        origin,
+    );
     let scale = transform.basis.scale();
     new_transform.scaled_local(scale)
 }
 #[cfg(feature = "dim3")]
-pub fn transform_rotation_rapier(
-    transform: &godot::builtin::Transform3D,
-) -> rapier::math::AngVector<rapier::math::Real> {
-    use crate::rapier_wrapper::convert::vector_to_rapier;
-    vector_to_rapier(transform.basis.to_euler(godot::builtin::EulerOrder::YXZ))
+pub fn transform_rotation_rapier(transform: &godot::builtin::Transform3D) -> Rotation<Real> {
+    use rapier::na::Vector4;
+    let quaternion = transform.basis.to_quat();
+    Rotation::from_quaternion(rapier::na::Quaternion {
+        coords: Vector4::new(quaternion.x, quaternion.y, quaternion.z, quaternion.w),
+    })
 }
 #[cfg(feature = "dim2")]
-pub fn transform_rotation_rapier(
-    transform: &godot::builtin::Transform2D,
-) -> rapier::math::AngVector<rapier::math::Real> {
-    transform.rotation()
+pub fn transform_rotation_rapier(transform: &godot::builtin::Transform2D) -> Rotation<Real> {
+    let angle = transform.rotation();
+    Rotation::from_angle(angle)
 }
 pub fn vector_normalized(vector: Vector) -> Vector {
     if vector != Vector::ZERO {
