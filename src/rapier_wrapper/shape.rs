@@ -36,10 +36,10 @@ pub fn shape_info_from_body_shape(shape_handle: ShapeHandle, transform: Transfor
     use nalgebra::Translation3;
     let quaternion = transform.basis.to_quat();
     let rotation = Rotation::from_quaternion(Quaternion::new(
+        quaternion.w,
         quaternion.x,
         quaternion.y,
         quaternion.z,
-        quaternion.w,
     ));
     let translation = Translation3::from(vector_to_rapier(transform.origin));
     let isometry = Isometry3::from_parts(translation, rotation);
