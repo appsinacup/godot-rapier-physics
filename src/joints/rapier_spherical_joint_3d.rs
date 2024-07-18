@@ -1,6 +1,7 @@
 use godot::classes::*;
 use godot::prelude::*;
 
+use super::rapier_revolute_joint::RapierRevoluteJoint;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::joints::rapier_joint::RapierJointBase;
@@ -9,12 +10,12 @@ use crate::rapier_wrapper::prelude::*;
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
 )]
-pub struct RapierPinJoint3D {
+pub struct RapierSphericalJoint3D {
     anchor_a: Vector3,
     anchor_b: Vector3,
     base: RapierJointBase,
 }
-impl RapierPinJoint3D {
+impl RapierSphericalJoint3D {
     pub fn new(
         anchor_a: Vector3,
         anchor_b: Vector3,
@@ -48,6 +49,8 @@ impl RapierPinJoint3D {
             body_b.get_base().get_body_handle(),
             rapier_anchor_a,
             rapier_anchor_b,
+            false,
+            false,
             true,
         );
         Self {
@@ -96,7 +99,7 @@ impl RapierPinJoint3D {
     }
 }
 #[cfg_attr(feature = "serde-serialize", typetag::serde)]
-impl IRapierJoint for RapierPinJoint3D {
+impl IRapierJoint for RapierSphericalJoint3D {
     fn get_base(&self) -> &RapierJointBase {
         &self.base
     }
@@ -109,11 +112,19 @@ impl IRapierJoint for RapierPinJoint3D {
         physics_server_3d::JointType::PIN
     }
 
-    fn get_pin(&self) -> Option<&RapierPinJoint3D> {
+    fn get_spherical(&self) -> Option<&RapierSphericalJoint3D> {
         Some(self)
     }
 
-    fn get_mut_pin(&mut self) -> Option<&mut RapierPinJoint3D> {
+    fn get_revolute(&self) -> Option<&RapierRevoluteJoint> {
+        None
+    }
+
+    fn get_mut_spherical(&mut self) -> Option<&mut RapierSphericalJoint3D> {
         Some(self)
+    }
+
+    fn get_mut_revolute(&mut self) -> Option<&mut RapierRevoluteJoint> {
+        None
     }
 }

@@ -16,8 +16,10 @@ impl PhysicsEngine {
         angular_limit_enabled: bool,
         motor_target_velocity: Real,
         motor_enabled: bool,
+        multibody: bool,
+        kinematic: bool,
         disable_collision: bool,
-    ) -> ImpulseJointHandle {
+    ) -> JointHandle {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             let mut joint = RevoluteJointBuilder::new()
                 .local_anchor1(Point { coords: anchor_1 })
@@ -29,9 +31,55 @@ impl PhysicsEngine {
             if motor_enabled {
                 joint = joint.motor_velocity(motor_target_velocity, 0.0);
             }
-            return physics_world.insert_joint(body_handle_1, body_handle_2, joint);
+            return physics_world.insert_joint(
+                body_handle_1,
+                body_handle_2,
+                multibody,
+                kinematic,
+                joint,
+            );
         }
-        ImpulseJointHandle::invalid()
+        JointHandle::default()
+    }
+
+    #[cfg(feature = "dim3")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn joint_create_revolute(
+        &mut self,
+        world_handle: WorldHandle,
+        body_handle_1: RigidBodyHandle,
+        body_handle_2: RigidBodyHandle,
+        anchor_1: Vector<Real>,
+        anchor_2: Vector<Real>,
+        angular_limit_lower: Real,
+        angular_limit_upper: Real,
+        angular_limit_enabled: bool,
+        motor_target_velocity: Real,
+        motor_enabled: bool,
+        disable_collision: bool,
+    ) -> JointHandle {
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
+            let axis = anchor_1 - anchor_2;
+            let unit_axis = UnitVector::new_normalize(axis.normalize());
+            let mut joint = RevoluteJointBuilder::new(unit_axis)
+                .local_anchor1(Point { coords: anchor_1 })
+                .local_anchor2(Point { coords: anchor_2 })
+                .contacts_enabled(!disable_collision);
+            if angular_limit_enabled {
+                joint = joint.limits([angular_limit_lower, angular_limit_upper]);
+            }
+            if motor_enabled {
+                joint = joint.motor_velocity(motor_target_velocity, 0.0);
+            }
+            return physics_world.insert_joint(
+                body_handle_1,
+                body_handle_2,
+                multibody,
+                kinematic,
+                joint,
+            );
+        }
+        JointHandle::default()
     }
 
     #[cfg(feature = "dim3")]
@@ -42,8 +90,10 @@ impl PhysicsEngine {
         body_handle_2: RigidBodyHandle,
         anchor_1: Vector<Real>,
         anchor_2: Vector<Real>,
+        multibody: bool,
+        kinematic: bool,
         disable_collision: bool,
-    ) -> ImpulseJointHandle {
+    ) -> JointHandle {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             let joint = SphericalJointBuilder::new()
                 .local_anchor1(Point { coords: anchor_1 })
@@ -51,23 +101,20 @@ impl PhysicsEngine {
                 .contacts_enabled(!disable_collision);
             return physics_world.insert_joint(body_handle_1, body_handle_2, joint);
         }
-        ImpulseJointHandle::invalid()
+        JointHandle::default()
     }
 
     #[cfg(feature = "dim3")]
     pub fn join_change_sperical_anchors(
         &mut self,
         world_handle: WorldHandle,
-        joint_handle: ImpulseJointHandle,
+        joint_handle: JointHandle,
         anchor_1: Vector<Real>,
         anchor_2: Vector<Real>,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
-            && let Some(joint) = physics_world
-                .physics_objects
-                .impulse_joint_set
-                .get_mut(joint_handle)
-            && let Some(joint) = joint.data.as_spherical_mut()
+            && let Some(joint) = physics_world.get_mut_joint(joint_handle)
+            && let Some(joint) = joint.as_spherical_mut()
         {
             joint
                 .set_local_anchor1(Point { coords: anchor_1 })
@@ -79,7 +126,7 @@ impl PhysicsEngine {
     pub fn joint_change_revolute_params(
         &mut self,
         world_handle: WorldHandle,
-        joint_handle: ImpulseJointHandle,
+        joint_handle: JointHandle,
         angular_limit_lower: Real,
         angular_limit_upper: Real,
         angular_limit_enabled: bool,
@@ -87,11 +134,8 @@ impl PhysicsEngine {
         motor_enabled: bool,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
-            && let Some(joint) = physics_world
-                .physics_objects
-                .impulse_joint_set
-                .get_mut(joint_handle)
-            && let Some(joint) = joint.data.as_revolute_mut()
+            && let Some(joint) = physics_world.get_mut_joint(joint_handle)
+            && let Some(joint) = joint.as_revolute_mut()
         {
             if motor_enabled {
                 joint
@@ -116,17 +160,25 @@ impl PhysicsEngine {
         anchor_1: Vector<Real>,
         anchor_2: Vector<Real>,
         limits: Vector<Real>,
+        multibody: bool,
+        kinematic: bool,
         disable_collision: bool,
-    ) -> ImpulseJointHandle {
+    ) -> JointHandle {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             let joint = PrismaticJointBuilder::new(UnitVector::new_unchecked(axis))
                 .local_anchor1(Point { coords: anchor_1 })
                 .local_anchor2(Point { coords: anchor_2 })
                 .limits([limits.x, limits.y])
                 .contacts_enabled(!disable_collision);
-            return physics_world.insert_joint(body_handle_1, body_handle_2, joint);
+            return physics_world.insert_joint(
+                body_handle_1,
+                body_handle_2,
+                multibody,
+                kinematic,
+                joint,
+            );
         }
-        ImpulseJointHandle::invalid()
+        JointHandle::default()
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -140,42 +192,43 @@ impl PhysicsEngine {
         stiffness: Real,
         damping: Real,
         rest_length: Real,
+        multibody: bool,
+        kinematic: bool,
         disable_collision: bool,
-    ) -> ImpulseJointHandle {
+    ) -> JointHandle {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             let joint = SpringJointBuilder::new(rest_length, stiffness, damping)
                 .local_anchor1(Point { coords: anchor_1 })
                 .local_anchor2(Point { coords: anchor_2 })
                 .contacts_enabled(!disable_collision);
-            return physics_world.insert_joint(body_handle_1, body_handle_2, joint);
+            return physics_world.insert_joint(
+                body_handle_1,
+                body_handle_2,
+                multibody,
+                kinematic,
+                joint,
+            );
         }
-        ImpulseJointHandle::invalid()
+        JointHandle::default()
     }
 
     pub fn joint_change_spring_params(
         &mut self,
         world_handle: WorldHandle,
-        joint_handle: ImpulseJointHandle,
+        joint_handle: JointHandle,
         stiffness: Real,
         damping: Real,
         rest_length: Real,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
-            && let Some(joint) = physics_world
-                .physics_objects
-                .impulse_joint_set
-                .get_mut(joint_handle)
+            && let Some(joint) = physics_world.get_mut_joint(joint_handle)
         {
-            joint
-                .data
-                .set_motor_position(JointAxis::LinX, rest_length, stiffness, damping);
-            joint
-                .data
-                .set_motor_model(JointAxis::LinX, MotorModel::AccelerationBased);
+            joint.set_motor_position(JointAxis::LinX, rest_length, stiffness, damping);
+            joint.set_motor_model(JointAxis::LinX, MotorModel::AccelerationBased);
         }
     }
 
-    pub fn destroy_joint(&mut self, world_handle: WorldHandle, joint_handle: ImpulseJointHandle) {
+    pub fn destroy_joint(&mut self, world_handle: WorldHandle, joint_handle: JointHandle) {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             physics_world.remove_joint(joint_handle);
         }
@@ -184,16 +237,13 @@ impl PhysicsEngine {
     pub fn joint_change_disable_collision(
         &mut self,
         world_handle: WorldHandle,
-        joint_handle: ImpulseJointHandle,
+        joint_handle: JointHandle,
         disable_collision: bool,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
-            && let Some(joint) = physics_world
-                .physics_objects
-                .impulse_joint_set
-                .get_mut(joint_handle)
+            && let Some(joint) = physics_world.get_mut_joint(joint_handle)
         {
-            joint.data.set_contacts_enabled(!disable_collision);
+            joint.set_contacts_enabled(!disable_collision);
         }
     }
 }

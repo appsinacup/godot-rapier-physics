@@ -3,14 +3,12 @@ use godot::classes::*;
 use physics_server_2d::JointType;
 #[cfg(feature = "dim3")]
 use physics_server_3d::JointType;
-use rapier::dynamics::ImpulseJointHandle;
 
 #[cfg(feature = "dim2")]
 use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
-#[cfg(feature = "dim2")]
-use super::rapier_pin_joint_2d::RapierPinJoint2D;
+use super::rapier_revolute_joint::RapierRevoluteJoint;
 #[cfg(feature = "dim3")]
-use super::rapier_pin_joint_3d::RapierPinJoint3D;
+use super::rapier_spherical_joint_3d::RapierSphericalJoint3D;
 use crate::rapier_wrapper::prelude::*;
 use crate::*;
 #[cfg_attr(feature = "serde-serialize", typetag::serde(tag = "type"))]
@@ -20,16 +18,14 @@ pub trait IRapierJoint {
     fn get_type(&self) -> JointType;
     #[cfg(feature = "dim2")]
     fn get_damped_spring(&self) -> Option<&RapierDampedSpringJoint2D>;
-    #[cfg(feature = "dim2")]
-    fn get_pin(&self) -> Option<&RapierPinJoint2D>;
+    fn get_revolute(&self) -> Option<&RapierRevoluteJoint>;
     #[cfg(feature = "dim3")]
-    fn get_pin(&self) -> Option<&RapierPinJoint3D>;
+    fn get_spherical(&self) -> Option<&RapierSphericalJoint3D>;
     #[cfg(feature = "dim2")]
     fn get_mut_damped_spring(&mut self) -> Option<&mut RapierDampedSpringJoint2D>;
-    #[cfg(feature = "dim2")]
-    fn get_mut_pin(&mut self) -> Option<&mut RapierPinJoint2D>;
+    fn get_mut_revolute(&mut self) -> Option<&mut RapierRevoluteJoint>;
     #[cfg(feature = "dim3")]
-    fn get_mut_pin(&mut self) -> Option<&mut RapierPinJoint3D>;
+    fn get_mut_spherical(&mut self) -> Option<&mut RapierSphericalJoint3D>;
 }
 #[cfg_attr(
     feature = "serde-serialize",
@@ -37,22 +33,18 @@ pub trait IRapierJoint {
 )]
 pub struct RapierJointBase {
     max_force: f32,
-    handle: ImpulseJointHandle,
+    handle: JointHandle,
     space_handle: WorldHandle,
     space_rid: Rid,
     disabled_collisions_between_bodies: bool,
 }
 impl Default for RapierJointBase {
     fn default() -> Self {
-        Self::new(
-            WorldHandle::default(),
-            Rid::Invalid,
-            ImpulseJointHandle::invalid(),
-        )
+        Self::new(WorldHandle::default(), Rid::Invalid, JointHandle::default())
     }
 }
 impl RapierJointBase {
-    pub fn new(space_handle: WorldHandle, space_rid: Rid, handle: ImpulseJointHandle) -> Self {
+    pub fn new(space_handle: WorldHandle, space_rid: Rid, handle: JointHandle) -> Self {
         Self {
             max_force: f32::MAX,
             handle,
@@ -62,7 +54,7 @@ impl RapierJointBase {
         }
     }
 
-    pub fn get_handle(&self) -> ImpulseJointHandle {
+    pub fn get_handle(&self) -> JointHandle {
         self.handle
     }
 
@@ -83,7 +75,7 @@ impl RapierJointBase {
     }
 
     pub fn is_valid(&self) -> bool {
-        self.space_handle != WorldHandle::default() && self.handle != ImpulseJointHandle::invalid()
+        self.space_handle != WorldHandle::default() && self.handle != JointHandle::default()
     }
 
     pub fn disable_collisions_between_bodies(
@@ -119,7 +111,7 @@ impl RapierJointBase {
 
     pub fn destroy_joint(&mut self, physics_engine: &mut PhysicsEngine) {
         physics_engine.destroy_joint(self.space_handle, self.handle);
-        self.handle = ImpulseJointHandle::invalid();
+        self.handle = JointHandle::default();
     }
 }
 #[cfg_attr(
@@ -135,7 +127,7 @@ impl RapierEmptyJoint {
             base: RapierJointBase::new(
                 WorldHandle::default(),
                 Rid::Invalid,
-                ImpulseJointHandle::invalid(),
+                JointHandle::default(),
             ),
         }
     }
@@ -159,13 +151,12 @@ impl IRapierJoint for RapierEmptyJoint {
         None
     }
 
-    #[cfg(feature = "dim2")]
-    fn get_pin(&self) -> Option<&RapierPinJoint2D> {
+    fn get_revolute(&self) -> Option<&RapierRevoluteJoint> {
         None
     }
 
     #[cfg(feature = "dim3")]
-    fn get_pin(&self) -> Option<&RapierPinJoint3D> {
+    fn get_spherical(&self) -> Option<&RapierSphericalJoint3D> {
         None
     }
 
@@ -174,19 +165,18 @@ impl IRapierJoint for RapierEmptyJoint {
         None
     }
 
-    #[cfg(feature = "dim2")]
-    fn get_mut_pin(&mut self) -> Option<&mut RapierPinJoint2D> {
+    fn get_mut_revolute(&mut self) -> Option<&mut RapierRevoluteJoint> {
         None
     }
 
     #[cfg(feature = "dim3")]
-    fn get_mut_pin(&mut self) -> Option<&mut RapierPinJoint3D> {
+    fn get_mut_spherical(&mut self) -> Option<&mut RapierSphericalJoint3D> {
         None
     }
 }
 impl Drop for RapierJointBase {
     fn drop(&mut self) {
-        if self.handle != ImpulseJointHandle::invalid() {
+        if self.handle != JointHandle::default() {
             godot_error!("RapierJointBase leaked");
         }
     }

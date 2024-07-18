@@ -1,17 +1,24 @@
 use godot::classes::*;
 use godot::prelude::*;
-use rapier::math::Vector;
+#[cfg(feature = "dim2")]
+use physics_server_2d::JointType;
+#[cfg(feature = "dim3")]
+use physics_server_3d::JointType;
 
+#[cfg(feature = "dim2")]
 use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
+#[cfg(feature = "dim3")]
+use super::rapier_spherical_joint_3d::RapierSphericalJoint3D;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::joints::rapier_joint::RapierJointBase;
 use crate::rapier_wrapper::prelude::*;
+use crate::types::Vector;
 #[cfg_attr(
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
 )]
-pub struct RapierPinJoint2D {
+pub struct RapierRevoluteJoint {
     angular_limit_lower: f32,
     angular_limit_upper: f32,
     motor_target_velocity: f32,
@@ -19,9 +26,10 @@ pub struct RapierPinJoint2D {
     angular_limit_enabled: bool,
     base: RapierJointBase,
 }
-impl RapierPinJoint2D {
+impl RapierRevoluteJoint {
     pub fn new(
-        pos: Vector2,
+        anchor_a: Vector,
+        anchor_b: Vector,
         body_a: &Box<dyn IRapierCollisionObject>,
         body_b: &Box<dyn IRapierCollisionObject>,
         physics_engine: &mut PhysicsEngine,
@@ -45,10 +53,10 @@ impl RapierPinJoint2D {
         {
             return invalid_joint;
         }
-        let anchor_a = body_a.get_base().get_inv_transform() * pos;
-        let anchor_b = body_b.get_base().get_inv_transform() * pos;
-        let rapier_anchor_a = Vector::new(anchor_a.x, anchor_a.y);
-        let rapier_anchor_b = Vector::new(anchor_b.x, anchor_b.y);
+        let anchor_a = body_a.get_base().get_inv_transform() * anchor_a;
+        let anchor_b = body_b.get_base().get_inv_transform() * anchor_b;
+        let rapier_anchor_a = vector_to_rapier(anchor_a);
+        let rapier_anchor_b = vector_to_rapier(anchor_b);
         let space_handle = body_a.get_base().get_space_handle();
         let space_rid = body_a.get_base().get_space();
         let handle = physics_engine.joint_create_revolute(
@@ -62,6 +70,8 @@ impl RapierPinJoint2D {
             false,
             0.0,
             false,
+            false,
+            false,
             true,
         );
         Self {
@@ -74,6 +84,7 @@ impl RapierPinJoint2D {
         }
     }
 
+    #[cfg(feature = "dim2")]
     pub fn set_param(
         &mut self,
         p_param: physics_server_2d::PinJointParam,
@@ -106,6 +117,40 @@ impl RapierPinJoint2D {
         );
     }
 
+    #[cfg(feature = "dim3")]
+    pub fn set_param(
+        &mut self,
+        p_param: physics_server_3d::HingeJointParam,
+        p_value: f32,
+        physics_engine: &mut PhysicsEngine,
+    ) {
+        match p_param {
+            physics_server_3d::HingeJointParam::LIMIT_UPPER => {
+                self.angular_limit_upper = p_value;
+            }
+            physics_server_3d::HingeJointParam::LIMIT_LOWER => {
+                self.angular_limit_lower = p_value;
+            }
+            physics_server_3d::HingeJointParam::MOTOR_TARGET_VELOCITY => {
+                self.motor_target_velocity = p_value;
+            }
+            _ => {}
+        }
+        if !self.base.is_valid() {
+            return;
+        }
+        physics_engine.joint_change_revolute_params(
+            self.base.get_space_handle(),
+            self.base.get_handle(),
+            self.angular_limit_lower,
+            self.angular_limit_upper,
+            self.angular_limit_enabled,
+            self.motor_target_velocity,
+            self.motor_enabled,
+        );
+    }
+
+    #[cfg(feature = "dim2")]
     pub fn get_param(&self, p_param: physics_server_2d::PinJointParam) -> f32 {
         match p_param {
             physics_server_2d::PinJointParam::LIMIT_UPPER => self.angular_limit_upper,
@@ -115,6 +160,17 @@ impl RapierPinJoint2D {
         }
     }
 
+    #[cfg(feature = "dim3")]
+    pub fn get_param(&self, p_param: physics_server_3d::HingeJointParam) -> f32 {
+        match p_param {
+            physics_server_3d::HingeJointParam::LIMIT_UPPER => self.angular_limit_upper,
+            physics_server_3d::HingeJointParam::LIMIT_LOWER => self.angular_limit_lower,
+            physics_server_3d::HingeJointParam::MOTOR_TARGET_VELOCITY => self.motor_target_velocity,
+            _ => 0.0,
+        }
+    }
+
+    #[cfg(feature = "dim2")]
     pub fn set_flag(
         &mut self,
         p_flag: physics_server_2d::PinJointFlag,
@@ -144,6 +200,37 @@ impl RapierPinJoint2D {
         );
     }
 
+    #[cfg(feature = "dim3")]
+    pub fn set_flag(
+        &mut self,
+        p_flag: physics_server_3d::HingeJointFlag,
+        p_enabled: bool,
+        physics_engine: &mut PhysicsEngine,
+    ) {
+        match p_flag {
+            physics_server_3d::HingeJointFlag::USE_LIMIT => {
+                self.angular_limit_enabled = p_enabled;
+            }
+            physics_server_3d::HingeJointFlag::ENABLE_MOTOR => {
+                self.motor_enabled = p_enabled;
+            }
+            _ => {}
+        }
+        if !self.base.is_valid() {
+            return;
+        }
+        physics_engine.joint_change_revolute_params(
+            self.base.get_space_handle(),
+            self.base.get_handle(),
+            self.angular_limit_lower,
+            self.angular_limit_upper,
+            self.angular_limit_enabled,
+            self.motor_target_velocity,
+            self.motor_enabled,
+        );
+    }
+
+    #[cfg(feature = "dim2")]
     pub fn get_flag(&self, p_flag: physics_server_2d::PinJointFlag) -> bool {
         match p_flag {
             physics_server_2d::PinJointFlag::ANGULAR_LIMIT_ENABLED => self.angular_limit_enabled,
@@ -151,9 +238,18 @@ impl RapierPinJoint2D {
             _ => false,
         }
     }
+
+    #[cfg(feature = "dim3")]
+    pub fn get_flag(&self, p_flag: physics_server_3d::HingeJointFlag) -> bool {
+        match p_flag {
+            physics_server_3d::HingeJointFlag::USE_LIMIT => self.angular_limit_enabled,
+            physics_server_3d::HingeJointFlag::ENABLE_MOTOR => self.motor_enabled,
+            _ => false,
+        }
+    }
 }
 #[cfg_attr(feature = "serde-serialize", typetag::serde)]
-impl IRapierJoint for RapierPinJoint2D {
+impl IRapierJoint for RapierRevoluteJoint {
     fn get_base(&self) -> &RapierJointBase {
         &self.base
     }
@@ -162,23 +258,41 @@ impl IRapierJoint for RapierPinJoint2D {
         &mut self.base
     }
 
-    fn get_type(&self) -> physics_server_2d::JointType {
-        physics_server_2d::JointType::PIN
+    #[cfg(feature = "dim2")]
+    fn get_type(&self) -> JointType {
+        JointType::PIN
     }
 
+    #[cfg(feature = "dim3")]
+    fn get_type(&self) -> JointType {
+        JointType::HINGE
+    }
+
+    #[cfg(feature = "dim2")]
     fn get_damped_spring(&self) -> Option<&RapierDampedSpringJoint2D> {
         None
     }
 
-    fn get_pin(&self) -> Option<&RapierPinJoint2D> {
+    fn get_revolute(&self) -> Option<&RapierRevoluteJoint> {
         Some(self)
     }
 
+    #[cfg(feature = "dim3")]
+    fn get_spherical(&self) -> Option<&RapierSphericalJoint3D> {
+        None
+    }
+
+    #[cfg(feature = "dim2")]
     fn get_mut_damped_spring(&mut self) -> Option<&mut RapierDampedSpringJoint2D> {
         None
     }
 
-    fn get_mut_pin(&mut self) -> Option<&mut RapierPinJoint2D> {
+    fn get_mut_revolute(&mut self) -> Option<&mut RapierRevoluteJoint> {
         Some(self)
+    }
+
+    #[cfg(feature = "dim3")]
+    fn get_mut_spherical(&mut self) -> Option<&mut RapierSphericalJoint3D> {
+        None
     }
 }

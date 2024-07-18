@@ -3,12 +3,23 @@ use std::num::NonZeroUsize;
 use godot::log::godot_print;
 use rapier::crossbeam;
 use rapier::data::Arena;
+use rapier::data::Index;
 use rapier::prelude::*;
 use salva::integrations::rapier::FluidsPipeline;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use crate::spaces::rapier_space::RapierSpace;
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug, Default)]
+pub struct JointHandle {
+    pub index: Index,
+    pub kinematic: bool,
+    pub multibody: bool,
+}
 pub struct ActiveBodyInfo {
     pub body_user_data: UserData,
 }
@@ -338,23 +349,125 @@ impl PhysicsWorld {
         &mut self,
         body_handle_1: RigidBodyHandle,
         body_handle_2: RigidBodyHandle,
+        multibody: bool,
+        kinematic: bool,
         joint: impl Into<GenericJoint>,
-    ) -> ImpulseJointHandle {
+    ) -> JointHandle {
         let rigid_body_1_handle = body_handle_1;
         let rigid_body_2_handle = body_handle_2;
-        self.physics_objects.impulse_joint_set.insert(
-            rigid_body_1_handle,
-            rigid_body_2_handle,
-            joint,
-            true,
-        )
+        match (multibody, kinematic) {
+            (false, _) => {
+                let impulse_joint_handle = self.physics_objects.impulse_joint_set.insert(
+                    rigid_body_1_handle,
+                    rigid_body_2_handle,
+                    joint,
+                    true,
+                );
+                return JointHandle {
+                    index: impulse_joint_handle.0,
+                    kinematic,
+                    multibody,
+                };
+            }
+            (true, true) => {
+                let multibody_joint_handle = self
+                    .physics_objects
+                    .multibody_joint_set
+                    .insert_kinematic(rigid_body_1_handle, rigid_body_2_handle, joint, true);
+                if let Some(multibody_joint_handle) = multibody_joint_handle {
+                    return JointHandle {
+                        index: multibody_joint_handle.0,
+                        kinematic,
+                        multibody,
+                    };
+                }
+            }
+            (true, false) => {
+                let multibody_joint_handle = self.physics_objects.multibody_joint_set.insert(
+                    rigid_body_1_handle,
+                    rigid_body_2_handle,
+                    joint,
+                    true,
+                );
+                if let Some(multibody_joint_handle) = multibody_joint_handle {
+                    return JointHandle {
+                        index: multibody_joint_handle.0,
+                        kinematic,
+                        multibody,
+                    };
+                }
+            }
+        }
+        JointHandle::default()
     }
 
-    pub fn remove_joint(&mut self, handle: ImpulseJointHandle) {
-        let joint_handle = handle;
-        self.physics_objects
-            .impulse_joint_set
-            .remove(joint_handle, true);
+    pub fn get_mut_joint(&mut self, handle: JointHandle) -> Option<&mut GenericJoint> {
+        match handle.multibody {
+            false => {
+                let joint = self
+                    .physics_objects
+                    .impulse_joint_set
+                    .get_mut(ImpulseJointHandle(handle.index));
+                if let Some(joint) = joint {
+                    return Some(&mut joint.data);
+                }
+            }
+            true => {
+                let joint = self
+                    .physics_objects
+                    .multibody_joint_set
+                    .get_mut(MultibodyJointHandle(handle.index));
+                if let Some((multibody, link_id)) = joint
+                    && let Some(link) = multibody.link_mut(link_id)
+                {
+                    return Some(&mut link.joint.data);
+                }
+            }
+        }
+        None
+    }
+
+    pub fn get_joint(&self, handle: JointHandle) -> Option<&GenericJoint> {
+        match handle.multibody {
+            false => {
+                let joint = self
+                    .physics_objects
+                    .impulse_joint_set
+                    .get(ImpulseJointHandle(handle.index));
+                if let Some(joint) = joint {
+                    return Some(&joint.data);
+                }
+            }
+            true => {
+                let joint = self
+                    .physics_objects
+                    .multibody_joint_set
+                    .get(MultibodyJointHandle(handle.index));
+                if let Some((multibody, link_id)) = joint
+                    && let Some(link) = multibody.link(link_id)
+                {
+                    return Some(&link.joint.data);
+                }
+            }
+        }
+        None
+    }
+
+    pub fn remove_joint(&mut self, handle: JointHandle) {
+        match handle.multibody {
+            false => {
+                let joint_handle = handle;
+                self.physics_objects
+                    .impulse_joint_set
+                    .remove(ImpulseJointHandle(joint_handle.index), true);
+            }
+            true => {
+                let joint_handle = handle;
+                self.physics_objects
+                    .multibody_joint_set
+                    .remove(MultibodyJointHandle(joint_handle.index), true);
+            }
+        }
     }
 }
 #[derive(Default)]
@@ -402,6 +515,13 @@ impl PhysicsEngine {
     pub fn world_reset_if_empty(&mut self, world_handle: WorldHandle, settings: &WorldSettings) {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             if physics_world.physics_objects.impulse_joint_set.is_empty()
+                && physics_world
+                    .physics_objects
+                    .multibody_joint_set
+                    .multibodies()
+                    .peekable()
+                    .peek()
+                    .is_some()
                 && physics_world.physics_objects.rigid_body_set.is_empty()
                 && physics_world.physics_objects.collider_set.is_empty()
             {
