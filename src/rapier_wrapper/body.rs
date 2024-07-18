@@ -12,9 +12,10 @@ fn set_rigid_body_properties_internal(
     rigid_body: &mut RigidBody,
     pos: Translation<Real>,
     rot: Rotation<Real>,
+    teleport: bool,
     wake_up: bool,
 ) {
-    if !rigid_body.is_kinematic() {
+    if rigid_body.is_dynamic() || rigid_body.is_fixed() || teleport {
         rigid_body.set_position(Isometry::from_parts(pos, rot), wake_up);
     } else {
         rigid_body.set_next_kinematic_position(Isometry::from_parts(pos, rot));
@@ -49,7 +50,13 @@ impl PhysicsEngine {
         activation.angular_threshold = default_activation.angular_threshold;
         activation.normalized_linear_threshold = default_activation.normalized_linear_threshold;
         activation.time_until_sleep = 0.5;
-        set_rigid_body_properties_internal(&mut rigid_body, Translation::from(pos), rot, true);
+        set_rigid_body_properties_internal(
+            &mut rigid_body,
+            Translation::from(pos),
+            rot,
+            true,
+            true,
+        );
         rigid_body.user_data = user_data.get_data();
         physics_world
             .physics_objects
@@ -138,7 +145,13 @@ impl PhysicsEngine {
                 .rigid_body_set
                 .get_mut(body_handle)
         {
-            set_rigid_body_properties_internal(body, Translation::from(pixel_pos), rot, wake_up);
+            set_rigid_body_properties_internal(
+                body,
+                Translation::from(pixel_pos),
+                rot,
+                false,
+                wake_up,
+            );
         }
     }
 
