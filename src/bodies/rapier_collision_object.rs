@@ -222,6 +222,7 @@ impl RapierCollisionObject {
                     handle = physics_engine.collider_create_sensor(
                         self.space_handle,
                         shape_handle,
+                        &mat,
                         self.body_handle,
                         &user_data,
                     );

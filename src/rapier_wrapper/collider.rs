@@ -280,6 +280,7 @@ impl PhysicsEngine {
         &mut self,
         world_handle: WorldHandle,
         shape_handle: ShapeHandle,
+        mat: &Material,
         body_handle: RigidBodyHandle,
         user_data: &UserData,
     ) -> ColliderHandle {
@@ -289,8 +290,8 @@ impl PhysicsEngine {
             collider.set_active_events(ActiveEvents::COLLISION_EVENTS);
             // less data to serialize
             collider.set_collision_groups(InteractionGroups {
-                memberships: Group::NONE,
-                filter: Group::NONE,
+                memberships: Group::from(mat.collision_layer),
+                filter: Group::from(mat.collision_layer),
             });
             collider.set_solver_groups(InteractionGroups {
                 memberships: Group::NONE,
