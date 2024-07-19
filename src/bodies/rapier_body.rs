@@ -320,6 +320,39 @@ impl RapierBody {
                 send_contacts,
             );
         }
+        self.update_collider_filters(collider_handle, space_handle, physics_engine);
+    }
+
+    fn update_colliders_filters(&self, physics_engine: &mut PhysicsEngine) {
+        let colliders = physics_engine
+            .body_get_colliders(self.base.get_space_handle(), self.base.get_body_handle())
+            .to_vec();
+        for collider in colliders {
+            self.update_collider_filters(collider, self.base.get_space_handle(), physics_engine);
+        }
+    }
+
+    fn update_collider_filters(
+        &self,
+        collider_handle: ColliderHandle,
+        space_handle: WorldHandle,
+        physics_engine: &mut PhysicsEngine,
+    ) {
+        // if it has any exception, it needs to filter for them
+        let filter_contacts_enabled = self.exceptions.is_empty();
+        physics_engine.collider_set_filter_contacts_enabled(
+            space_handle,
+            collider_handle,
+            filter_contacts_enabled,
+        );
+        // if we are a conveyer belt, we need to modify contacts
+        let modify_contacts_enabled = self.get_static_angular_velocity() != ANGLE_ZERO
+            || self.get_static_linear_velocity() != Vector::ZERO;
+        physics_engine.collider_set_modify_contacts_enabled(
+            space_handle,
+            collider_handle,
+            modify_contacts_enabled,
+        );
     }
 
     pub fn to_add_static_constant_linear_velocity(&mut self, linear_velocity: Vector) {
@@ -336,6 +369,7 @@ impl RapierBody {
         physics_engine: &mut PhysicsEngine,
     ) {
         self.linear_velocity = p_linear_velocity;
+        self.update_colliders_filters(physics_engine);
         if self.base.mode == BodyMode::STATIC || !self.base.is_valid() {
             return;
         }
@@ -397,7 +431,10 @@ impl RapierBody {
     }
 
     pub fn get_static_linear_velocity(&self) -> Vector {
-        self.linear_velocity
+        if self.base.mode == BodyMode::STATIC {
+            return self.linear_velocity;
+        }
+        Vector::default()
     }
 
     pub fn set_angular_velocity(
@@ -406,10 +443,8 @@ impl RapierBody {
         physics_engine: &mut PhysicsEngine,
     ) {
         self.angular_velocity = p_angular_velocity;
-        if self.base.mode == BodyMode::STATIC {
-            return;
-        }
-        if !self.base.is_valid() {
+        self.update_colliders_filters(physics_engine);
+        if self.base.mode == BodyMode::STATIC || !self.base.is_valid() {
             return;
         }
         physics_engine.body_set_angular_velocity(
@@ -433,7 +468,10 @@ impl RapierBody {
     }
 
     pub fn get_static_angular_velocity(&self) -> Angle {
-        self.angular_velocity
+        if self.base.mode == BodyMode::STATIC {
+            return self.angular_velocity;
+        }
+        ANGLE_ZERO
     }
 
     pub fn set_state_sync_callback(&mut self, p_callable: Callable) {
@@ -804,12 +842,14 @@ impl RapierBody {
         c.impulse = impulse;
     }
 
-    pub fn add_exception(&mut self, exception: Rid) {
+    pub fn add_exception(&mut self, exception: Rid, physics_engine: &mut PhysicsEngine) {
         self.exceptions.insert(exception);
+        self.update_colliders_filters(physics_engine);
     }
 
-    pub fn remove_exception(&mut self, exception: Rid) {
+    pub fn remove_exception(&mut self, exception: Rid, physics_engine: &mut PhysicsEngine) {
         self.exceptions.remove(&exception);
+        self.update_colliders_filters(physics_engine);
     }
 
     pub fn has_exception(&self, exception: Rid) -> bool {
@@ -1435,6 +1475,7 @@ impl RapierBody {
                 space.body_add_to_active_list(rid);
             }
         }
+        self.update_colliders_filters(physics_engine);
         if p_mode.ord() >= BodyMode::RIGID.ord() {
             self.mass_properties_changed(physics_engine, physics_spaces);
         }

@@ -202,6 +202,52 @@ fn shape_is_halfspace(shape: &SharedShape) -> bool {
     shape.shape_type() == ShapeType::HalfSpace
 }
 impl PhysicsEngine {
+    pub fn collider_set_modify_contacts_enabled(
+        &mut self,
+        world_handle: WorldHandle,
+        collider_handle: ColliderHandle,
+        enable: bool,
+    ) {
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
+            if let Some(collider) = physics_world
+                .physics_objects
+                .collider_set
+                .get_mut(collider_handle)
+            {
+                let mut active_events = collider.active_hooks();
+                if enable {
+                    active_events |= ActiveHooks::MODIFY_SOLVER_CONTACTS;
+                } else {
+                    active_events &= !ActiveHooks::MODIFY_SOLVER_CONTACTS;
+                }
+                collider.set_active_hooks(active_events);
+            }
+        }
+    }
+
+    pub fn collider_set_filter_contacts_enabled(
+        &mut self,
+        world_handle: WorldHandle,
+        collider_handle: ColliderHandle,
+        enable: bool,
+    ) {
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
+            if let Some(collider) = physics_world
+                .physics_objects
+                .collider_set
+                .get_mut(collider_handle)
+            {
+                let mut active_events = collider.active_hooks();
+                if enable {
+                    active_events |= ActiveHooks::FILTER_CONTACT_PAIRS;
+                } else {
+                    active_events &= !ActiveHooks::FILTER_CONTACT_PAIRS;
+                }
+                collider.set_active_hooks(active_events);
+            }
+        }
+    }
+
     pub fn collider_create_solid(
         &mut self,
         world_handle: WorldHandle,
@@ -236,9 +282,6 @@ impl PhysicsEngine {
             collider.set_contact_skin(mat.contact_skin);
             collider.set_contact_force_event_threshold(-Real::MAX);
             collider.user_data = user_data.get_data();
-            collider.set_active_hooks(
-                ActiveHooks::FILTER_CONTACT_PAIRS | ActiveHooks::MODIFY_SOLVER_CONTACTS,
-            );
             if let Some(physics_world) = self.get_mut_world(world_handle) {
                 let collider_handle = physics_world.insert_collider(collider, body_handle);
                 // register fluid coupling. Dynamic coupling doens't work for halfspace
