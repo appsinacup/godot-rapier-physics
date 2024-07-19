@@ -320,15 +320,27 @@ impl RapierBody {
                 send_contacts,
             );
         }
-        self.update_collider_filters(collider_handle, space_handle, physics_engine);
+        self.update_collider_filters(collider_handle, space_handle, physics_engine, false);
     }
 
     fn update_colliders_filters(&self, physics_engine: &mut PhysicsEngine) {
         let colliders = physics_engine
             .body_get_colliders(self.base.get_space_handle(), self.base.get_body_handle())
             .to_vec();
+        let mut override_modify_contacts = false;
+        for shape in self.base.shapes.clone() {
+            if shape.one_way_collision && !shape.disabled {
+                override_modify_contacts = true;
+                break;
+            }
+        }
         for collider in colliders {
-            self.update_collider_filters(collider, self.base.get_space_handle(), physics_engine);
+            self.update_collider_filters(
+                collider,
+                self.base.get_space_handle(),
+                physics_engine,
+                override_modify_contacts,
+            );
         }
     }
 
@@ -337,6 +349,7 @@ impl RapierBody {
         collider_handle: ColliderHandle,
         space_handle: WorldHandle,
         physics_engine: &mut PhysicsEngine,
+        override_modify_contacts: bool,
     ) {
         // if it has any exception, it needs to filter for them
         let filter_contacts_enabled = !self.exceptions.is_empty();
@@ -346,8 +359,10 @@ impl RapierBody {
             filter_contacts_enabled,
         );
         // if we are a conveyer belt, we need to modify contacts
+        // also if any shape is one-way
         let modify_contacts_enabled = self.get_static_angular_velocity() != ANGLE_ZERO
-            || self.get_static_linear_velocity() != Vector::ZERO;
+            || self.get_static_linear_velocity() != Vector::ZERO
+            || override_modify_contacts;
         physics_engine.collider_set_modify_contacts_enabled(
             space_handle,
             collider_handle,
@@ -2091,6 +2106,8 @@ impl IRapierCollisionObject for RapierBody {
     ) {
         self.mass_properties_changed(physics_engine, physics_spaces);
         self.wakeup(physics_engine);
+        // in case we have a one way shape
+        self.update_colliders_filters(physics_engine);
     }
 
     fn shape_changed(
