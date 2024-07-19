@@ -222,6 +222,7 @@ impl RapierCollisionObject {
                     handle = physics_engine.collider_create_sensor(
                         self.space_handle,
                         shape_handle,
+                        &mat,
                         self.body_handle,
                         &user_data,
                     );
@@ -335,12 +336,8 @@ impl RapierCollisionObject {
             return;
         }
         let position = physics_engine.body_get_position(self.space_handle, self.body_handle);
-        let angle = physics_engine.body_get_angle(self.space_handle, self.body_handle);
-        self.transform = transform_update(
-            &self.transform,
-            angle_to_godot(angle),
-            vector_to_godot(position),
-        );
+        let rotation = physics_engine.body_get_angle(self.space_handle, self.body_handle);
+        self.transform = transform_update(&self.transform, rotation, vector_to_godot(position));
         self.inv_transform = transform_inverse(&self.transform);
     }
 

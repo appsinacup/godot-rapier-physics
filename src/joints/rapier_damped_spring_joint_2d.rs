@@ -2,7 +2,7 @@ use godot::classes::*;
 use godot::prelude::*;
 
 use super::rapier_joint::RapierJointBase;
-use super::rapier_pin_joint_2d::RapierPinJoint2D;
+use super::rapier_revolute_joint::RapierRevoluteJoint;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
@@ -56,6 +56,8 @@ impl RapierDampedSpringJoint2D {
             20.0,
             1.0,
             rest_length,
+            false,
+            false,
             true,
         );
         Self {
@@ -123,7 +125,7 @@ impl IRapierJoint for RapierDampedSpringJoint2D {
         Some(self)
     }
 
-    fn get_pin(&self) -> Option<&RapierPinJoint2D> {
+    fn get_revolute(&self) -> Option<&RapierRevoluteJoint> {
         None
     }
 
@@ -131,7 +133,7 @@ impl IRapierJoint for RapierDampedSpringJoint2D {
         Some(self)
     }
 
-    fn get_mut_pin(&mut self) -> Option<&mut RapierPinJoint2D> {
+    fn get_mut_revolute(&mut self) -> Option<&mut RapierRevoluteJoint> {
         None
     }
 }

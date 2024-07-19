@@ -230,8 +230,8 @@ impl PhysicsEngine {
                 filter: Group::from(mat.collision_mask),
             });
             collider.set_solver_groups(InteractionGroups {
-                memberships: Group::GROUP_1,
-                filter: Group::GROUP_1,
+                memberships: Group::NONE,
+                filter: Group::NONE,
             });
             collider.set_contact_skin(mat.contact_skin);
             collider.set_contact_force_event_threshold(-Real::MAX);
@@ -280,6 +280,7 @@ impl PhysicsEngine {
         &mut self,
         world_handle: WorldHandle,
         shape_handle: ShapeHandle,
+        mat: &Material,
         body_handle: RigidBodyHandle,
         user_data: &UserData,
     ) -> ColliderHandle {
@@ -289,12 +290,12 @@ impl PhysicsEngine {
             collider.set_active_events(ActiveEvents::COLLISION_EVENTS);
             // less data to serialize
             collider.set_collision_groups(InteractionGroups {
-                memberships: Group::GROUP_1,
-                filter: Group::GROUP_1,
+                memberships: Group::from(mat.collision_layer),
+                filter: Group::from(mat.collision_layer),
             });
             collider.set_solver_groups(InteractionGroups {
-                memberships: Group::GROUP_1,
-                filter: Group::GROUP_1,
+                memberships: Group::NONE,
+                filter: Group::NONE,
             });
             let mut collision_types = collider.active_collision_types();
             // Area vs Area

@@ -32,11 +32,17 @@ pub fn shape_info_from_body_shape(shape_handle: ShapeHandle, transform: Transfor
 #[cfg(feature = "dim3")]
 pub fn shape_info_from_body_shape(shape_handle: ShapeHandle, transform: Transform) -> ShapeInfo {
     use nalgebra::Isometry3;
-    let euler_angles = transform.basis.to_euler(godot::builtin::EulerOrder::XYZ);
-    let isometry = Isometry3::new(
-        vector_to_rapier(transform.origin),
-        vector_to_rapier(euler_angles),
-    );
+    use nalgebra::Quaternion;
+    use nalgebra::Translation3;
+    let quaternion = transform.basis.to_quat();
+    let rotation = Rotation::from_quaternion(Quaternion::new(
+        quaternion.w,
+        quaternion.x,
+        quaternion.y,
+        quaternion.z,
+    ));
+    let translation = Translation3::from(vector_to_rapier(transform.origin));
+    let isometry = Isometry3::from_parts(translation, rotation);
     ShapeInfo {
         handle: shape_handle,
         transform: isometry,
