@@ -339,7 +339,7 @@ impl RapierBody {
         physics_engine: &mut PhysicsEngine,
     ) {
         // if it has any exception, it needs to filter for them
-        let filter_contacts_enabled = self.exceptions.is_empty();
+        let filter_contacts_enabled = !self.exceptions.is_empty();
         physics_engine.collider_set_filter_contacts_enabled(
             space_handle,
             collider_handle,
