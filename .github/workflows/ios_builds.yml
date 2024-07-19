@@ -25,18 +25,6 @@ jobs:
         shell: sh
         run: |
           mv target/release/libgodot_rapier.dylib bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.ios.framework/libgodot_rapier.ios.dylib
-      - name: iOS Sign
-        shell: pwsh
-        env:
-          APPLE_CERT_BASE64: ${{ secrets.PROD_MACOS_CERTIFICATE }}
-          APPLE_CERT_PASSWORD: ${{ secrets.PROD_MACOS_CERTIFICATE_PWD }}
-          APPLE_DEV_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_APPLE_ID }}
-          APPLE_DEV_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
-          APPLE_DEV_PASSWORD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
-          APPLE_DEV_APP_ID: ${{ secrets.PROD_MACOS_APPLE_DEV_APP_ID }}
-        run: |
-          ./scripts/ci-sign-macos.ps1 bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.ios.framework/libgodot_rapier.ios.dylib
-        if: ${{ env.APPLE_DEV_ID }}
 
       - name: Upload
         uses: actions/upload-artifact@v4
