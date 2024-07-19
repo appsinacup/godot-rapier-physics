@@ -1246,7 +1246,7 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.add_exception(excepted_body);
+                body.add_exception(excepted_body, &mut physics_data.physics_engine);
                 body.wakeup(&mut physics_data.physics_engine);
             }
         }
@@ -1256,7 +1256,7 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.remove_exception(excepted_body);
+                body.remove_exception(excepted_body, &mut physics_data.physics_engine);
                 body.wakeup(&mut physics_data.physics_engine);
             }
         }

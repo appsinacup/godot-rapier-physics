@@ -641,4 +641,20 @@ impl PhysicsEngine {
         }
         RigidBodyMassProps::default()
     }
+
+    pub fn body_get_colliders(
+        &mut self,
+        world_handle: WorldHandle,
+        rigidbody_handle: RigidBodyHandle,
+    ) -> &[ColliderHandle] {
+        if let Some(physics_world) = self.get_mut_world(world_handle)
+            && let Some(body) = physics_world
+                .physics_objects
+                .rigid_body_set
+                .get_mut(rigidbody_handle)
+        {
+            return body.colliders();
+        }
+        &[]
+    }
 }
