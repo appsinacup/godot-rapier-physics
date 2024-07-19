@@ -407,8 +407,7 @@ impl PhysicsEngine {
         margin: Real,
     ) -> ContactResult {
         let mut result = ContactResult::default();
-        //let prediction = Real::max(0.002, margin);
-        let prediction = margin;
+        let prediction = Real::max(0.002, margin);
         if let Some(raw_shared_shape1) = self.get_shape(shape_info1.handle) {
             let shared_shape1 = scale_shape(raw_shared_shape1, shape_info1);
             if let Some(raw_shared_shape2) = self.get_shape(shape_info2.handle) {

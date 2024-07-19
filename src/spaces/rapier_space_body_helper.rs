@@ -250,6 +250,9 @@ impl RapierSpace {
                             physics_collision_objects.get(&shape_col_object)
                         {
                             if let Some(collision_body) = shape_col_object.get_body() {
+                                if collision_body.has_exception(p_body.get_base().get_rid()) {
+                                    continue;
+                                }
                                 if let Some(col_shape) = physics_shapes
                                     .get(&collision_body.get_base().get_shape(shape_index))
                                 {
@@ -394,6 +397,9 @@ impl RapierSpace {
                     if let Some(shape_col_object) = physics_collision_objects.get(&shape_col_object)
                     {
                         if let Some(collision_body) = shape_col_object.get_body() {
+                            if collision_body.has_exception(p_body.get_base().get_rid()) {
+                                continue;
+                            }
                             if let Some(col_shape) = physics_shapes
                                 .get(&collision_body.get_base().get_shape(shape_index))
                             {
@@ -591,6 +597,9 @@ impl RapierSpace {
                     if let Some(shape_col_object) = physics_collision_objects.get(&shape_col_object)
                     {
                         if let Some(collision_body) = shape_col_object.get_body() {
+                            if collision_body.has_exception(p_body.get_base().get_rid()) {
+                                continue;
+                            }
                             let col_shape_rid = collision_body.get_base().get_shape(shape_index);
                             if let Some(col_shape) = physics_shapes.get(&col_shape_rid) {
                                 let col_shape_transform = collision_body.get_base().get_transform()
