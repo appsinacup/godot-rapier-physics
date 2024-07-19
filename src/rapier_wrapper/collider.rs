@@ -276,8 +276,8 @@ impl PhysicsEngine {
                 filter: Group::from(mat.collision_mask),
             });
             collider.set_solver_groups(InteractionGroups {
-                memberships: Group::NONE,
-                filter: Group::NONE,
+                memberships: Group::GROUP_1,
+                filter: Group::GROUP_1,
             });
             collider.set_contact_skin(mat.contact_skin);
             collider.set_contact_force_event_threshold(-Real::MAX);
@@ -337,8 +337,8 @@ impl PhysicsEngine {
                 filter: Group::from(mat.collision_layer),
             });
             collider.set_solver_groups(InteractionGroups {
-                memberships: Group::NONE,
-                filter: Group::NONE,
+                memberships: Group::GROUP_1,
+                filter: Group::GROUP_1,
             });
             let mut collision_types = collider.active_collision_types();
             // Area vs Area
