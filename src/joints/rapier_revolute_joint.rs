@@ -1,5 +1,4 @@
 use godot::classes::*;
-use godot::prelude::*;
 #[cfg(feature = "dim2")]
 use physics_server_2d::JointType;
 #[cfg(feature = "dim3")]

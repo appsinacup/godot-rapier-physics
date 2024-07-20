@@ -49,8 +49,14 @@ impl IRapierShape for RapierConcavePolygonShape {
             rapier_points.push(vector_to_rapier(self.points[i]));
         }
         let mut segments = Vec::new();
+        #[cfg(feature = "dim2")]
         for i in (0..point_count).step_by(2) {
             let s = [(i) as u32, (i + 1) as u32];
+            segments.push(s);
+        }
+        #[cfg(feature = "dim3")]
+        for i in (0..point_count).step_by(3) {
+            let s = [(i) as u32, (i + 1) as u32, (i + 2) as u32];
             segments.push(s);
         }
         physics_engine.shape_create_concave_polyline(&rapier_points, Some(segments))

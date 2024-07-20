@@ -1389,7 +1389,7 @@ impl RapierPhysicsServerImpl {
         from: Transform,
         motion: Vector,
         margin: f32,
-        max_collisions: i32,
+        _max_collisions: i32,
         collide_separation_ray: bool,
         recovery_as_collision: bool,
         result: *mut PhysicsServerExtensionMotionResult,
@@ -1612,10 +1612,10 @@ impl RapierPhysicsServerImpl {
         rid: Rid,
         body_a: Rid,
         pivot_a: Vector3,
-        axis_a: Vector3,
+        _axis_a: Vector3,
         body_b: Rid,
         pivot_b: Vector3,
-        axis_b: Vector3,
+        _axis_b: Vector3,
     ) {
         let physics_data = physics_data();
         let mut joint: Box<dyn IRapierJoint>;
