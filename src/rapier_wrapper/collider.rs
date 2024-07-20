@@ -113,8 +113,15 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
                 }
             }
         }
+        #[cfg(feature = "dim2")]
         ShapeType::Polyline => {
             if let Some(new_shape) = shape.as_polyline() {
+                return SharedShape::new(new_shape.clone().scaled(&scale));
+            }
+        }
+        #[cfg(feature = "dim3")]
+        ShapeType::TriMesh => {
+            if let Some(new_shape) = shape.as_trimesh() {
                 return SharedShape::new(new_shape.clone().scaled(&scale));
             }
         }
