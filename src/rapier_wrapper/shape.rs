@@ -120,6 +120,7 @@ impl PhysicsEngine {
         self.insert_shape(shape)
     }
 
+    #[cfg(feature = "dim2")]
     pub fn shape_create_concave_polyline(
         &mut self,
         points: &Vec<Vector<Real>>,
@@ -127,6 +128,17 @@ impl PhysicsEngine {
     ) -> ShapeHandle {
         let points_vec = point_array_to_vec(points);
         let shape = SharedShape::polyline(points_vec, indices);
+        self.insert_shape(shape)
+    }
+
+    #[cfg(feature = "dim3")]
+    pub fn shape_create_concave_polyline(
+        &mut self,
+        points: &Vec<Vector<Real>>,
+        indices: Option<Vec<[u32; 3]>>,
+    ) -> ShapeHandle {
+        let points_vec = point_array_to_vec(points);
+        let shape = SharedShape::trimesh(points_vec, indices.unwrap());
         self.insert_shape(shape)
     }
 
