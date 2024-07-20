@@ -120,12 +120,6 @@ impl RapierProjectSettings {
         setting_value.to::<i64>()
     }
 
-    fn get_setting_bool(p_setting: &str) -> bool {
-        let project_settings = ProjectSettings::singleton();
-        let setting_value = project_settings.get_setting_with_override(p_setting.into());
-        setting_value.to::<bool>()
-    }
-
     fn get_setting_double(p_setting: &str) -> f64 {
         let project_settings = ProjectSettings::singleton();
         let setting_value = project_settings.get_setting_with_override(p_setting.into());

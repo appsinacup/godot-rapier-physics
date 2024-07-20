@@ -886,7 +886,6 @@ impl RapierBody {
     pub fn force_mass_update(
         &mut self,
         physics_spaces: &mut PhysicsSpaces,
-        physics_shapes: &mut PhysicsShapes,
         physics_engine: &mut PhysicsEngine,
     ) {
         if self.mass_properties_update_pending {
@@ -894,7 +893,7 @@ impl RapierBody {
             if let Some(space) = physics_spaces.get_mut(&self.base.get_space()) {
                 space.body_remove_from_mass_properties_update_list(self.base.get_rid());
             }
-            self.update_mass_properties(true, physics_shapes, physics_engine);
+            self.update_mass_properties(true, physics_engine);
         }
     }
 
@@ -1628,7 +1627,6 @@ impl RapierBody {
     pub fn update_mass_properties(
         &mut self,
         force_update: bool,
-        physics_shapes: &mut PhysicsShapes,
         physics_engine: &mut PhysicsEngine,
     ) {
         self.mass_properties_update_pending = false;

@@ -9,7 +9,6 @@ use crate::types::*;
 #[class(base=PhysicsDirectBodyState2DExtension,tool)]
 pub struct RapierDirectBodyState2D {
     implementation: RapierDirectBodyStateImpl,
-    transform: Transform,
     base: Base<PhysicsDirectBodyState2DExtension>,
 }
 impl RapierDirectBodyState2D {
@@ -22,7 +21,6 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
     fn init(base: Base<PhysicsDirectBodyState2DExtension>) -> Self {
         Self {
             implementation: RapierDirectBodyStateImpl::default(),
-            transform: Transform::IDENTITY,
             base,
         }
     }

@@ -319,7 +319,6 @@ impl RapierSpace {
             {
                 body.update_mass_properties(
                     false,
-                    &mut physics_data.shapes,
                     &mut physics_data.physics_engine,
                 );
             }

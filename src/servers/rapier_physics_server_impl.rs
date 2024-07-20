@@ -189,8 +189,10 @@ impl RapierPhysicsServerImpl {
         ShapeType::CUSTOM
     }
 
+    #[cfg(feature = "dim3")]
     pub(super) fn shape_set_margin(&mut self, _shape: Rid, _margin: real) {}
 
+    #[cfg(feature = "dim3")]
     pub(super) fn shape_get_margin(&self, _shape: Rid) -> real {
         0.0
     }
@@ -1040,7 +1042,6 @@ impl RapierPhysicsServerImpl {
             if let Some(body) = body.get_mut_body() {
                 body.force_mass_update(
                     &mut physics_data.spaces,
-                    &mut physics_data.shapes,
                     &mut physics_data.physics_engine,
                 );
                 body.apply_central_impulse(impulse, &mut physics_data.physics_engine);
@@ -1054,7 +1055,6 @@ impl RapierPhysicsServerImpl {
             if let Some(body) = body.get_mut_body() {
                 body.force_mass_update(
                     &mut physics_data.spaces,
-                    &mut physics_data.shapes,
                     &mut physics_data.physics_engine,
                 );
                 body.apply_torque_impulse(impulse, &mut physics_data.physics_engine);
@@ -1068,7 +1068,6 @@ impl RapierPhysicsServerImpl {
             if let Some(body) = body.get_mut_body() {
                 body.force_mass_update(
                     &mut physics_data.spaces,
-                    &mut physics_data.shapes,
                     &mut physics_data.physics_engine,
                 );
                 body.apply_impulse(impulse, position, &mut physics_data.physics_engine);
@@ -1082,7 +1081,6 @@ impl RapierPhysicsServerImpl {
             if let Some(body) = body.get_mut_body() {
                 body.force_mass_update(
                     &mut physics_data.spaces,
-                    &mut physics_data.shapes,
                     &mut physics_data.physics_engine,
                 );
                 body.apply_central_force(force, &mut physics_data.physics_engine);
@@ -1096,7 +1094,6 @@ impl RapierPhysicsServerImpl {
             if let Some(body) = body.get_mut_body() {
                 body.force_mass_update(
                     &mut physics_data.spaces,
-                    &mut physics_data.shapes,
                     &mut physics_data.physics_engine,
                 );
                 body.apply_force(force, position, &mut physics_data.physics_engine);
@@ -1110,7 +1107,6 @@ impl RapierPhysicsServerImpl {
             if let Some(body) = body.get_mut_body() {
                 body.force_mass_update(
                     &mut physics_data.spaces,
-                    &mut physics_data.shapes,
                     &mut physics_data.physics_engine,
                 );
                 body.apply_torque(torque, &mut physics_data.physics_engine);
@@ -1124,7 +1120,6 @@ impl RapierPhysicsServerImpl {
             if let Some(body) = body.get_mut_body() {
                 body.force_mass_update(
                     &mut physics_data.spaces,
-                    &mut physics_data.shapes,
                     &mut physics_data.physics_engine,
                 );
                 body.add_constant_central_force(force, &mut physics_data.physics_engine);
@@ -1138,7 +1133,6 @@ impl RapierPhysicsServerImpl {
             if let Some(body) = body.get_mut_body() {
                 body.force_mass_update(
                     &mut physics_data.spaces,
-                    &mut physics_data.shapes,
                     &mut physics_data.physics_engine,
                 );
                 body.add_constant_force(force, position, &mut physics_data.physics_engine);
@@ -1152,7 +1146,6 @@ impl RapierPhysicsServerImpl {
             if let Some(body) = body.get_mut_body() {
                 body.force_mass_update(
                     &mut physics_data.spaces,
-                    &mut physics_data.shapes,
                     &mut physics_data.physics_engine,
                 );
                 body.add_constant_torque(torque, &mut physics_data.physics_engine);
@@ -1166,7 +1159,6 @@ impl RapierPhysicsServerImpl {
             if let Some(body) = body.get_mut_body() {
                 body.force_mass_update(
                     &mut physics_data.spaces,
-                    &mut physics_data.shapes,
                     &mut physics_data.physics_engine,
                 );
                 body.set_constant_force(force, &mut physics_data.physics_engine);
@@ -1190,7 +1182,6 @@ impl RapierPhysicsServerImpl {
             if let Some(body) = body.get_mut_body() {
                 body.force_mass_update(
                     &mut physics_data.spaces,
-                    &mut physics_data.shapes,
                     &mut physics_data.physics_engine,
                 );
                 body.set_constant_torque(torque, &mut physics_data.physics_engine);
