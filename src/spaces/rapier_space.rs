@@ -317,11 +317,7 @@ impl RapierSpace {
             if let Some(body) = physics_data.collision_objects.get_mut(body)
                 && let Some(body) = body.get_mut_body()
             {
-                body.update_mass_properties(
-                    false,
-                    &mut physics_data.shapes,
-                    &mut physics_data.physics_engine,
-                );
+                body.update_mass_properties(false, &mut physics_data.physics_engine);
             }
         }
         space.reset_mass_properties_update_list();

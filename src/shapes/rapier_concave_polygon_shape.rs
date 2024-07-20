@@ -81,7 +81,7 @@ impl IRapierShape for RapierConcavePolygonShape {
             #[cfg(feature = "dim2")]
             VariantType::PACKED_VECTOR2_ARRAY => {
                 if let Ok(arr) = data.try_to::<PackedVector2Array>() {
-                    let len = self.points.len();
+                    let len = arr.len();
                     if len == 0 {
                         return;
                     }
