@@ -1040,10 +1040,7 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(
-                    &mut physics_data.spaces,
-                    &mut physics_data.physics_engine,
-                );
+                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.physics_engine);
                 body.apply_central_impulse(impulse, &mut physics_data.physics_engine);
             }
         }
@@ -1053,10 +1050,7 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(
-                    &mut physics_data.spaces,
-                    &mut physics_data.physics_engine,
-                );
+                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.physics_engine);
                 body.apply_torque_impulse(impulse, &mut physics_data.physics_engine);
             }
         }
@@ -1066,10 +1060,7 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(
-                    &mut physics_data.spaces,
-                    &mut physics_data.physics_engine,
-                );
+                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.physics_engine);
                 body.apply_impulse(impulse, position, &mut physics_data.physics_engine);
             }
         }
@@ -1079,10 +1070,7 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(
-                    &mut physics_data.spaces,
-                    &mut physics_data.physics_engine,
-                );
+                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.physics_engine);
                 body.apply_central_force(force, &mut physics_data.physics_engine);
             }
         }
@@ -1092,10 +1080,7 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(
-                    &mut physics_data.spaces,
-                    &mut physics_data.physics_engine,
-                );
+                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.physics_engine);
                 body.apply_force(force, position, &mut physics_data.physics_engine);
             }
         }
@@ -1105,10 +1090,7 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(
-                    &mut physics_data.spaces,
-                    &mut physics_data.physics_engine,
-                );
+                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.physics_engine);
                 body.apply_torque(torque, &mut physics_data.physics_engine);
             }
         }
@@ -1118,10 +1100,7 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(
-                    &mut physics_data.spaces,
-                    &mut physics_data.physics_engine,
-                );
+                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.physics_engine);
                 body.add_constant_central_force(force, &mut physics_data.physics_engine);
             }
         }
@@ -1131,10 +1110,7 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(
-                    &mut physics_data.spaces,
-                    &mut physics_data.physics_engine,
-                );
+                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.physics_engine);
                 body.add_constant_force(force, position, &mut physics_data.physics_engine);
             }
         }
@@ -1144,10 +1120,7 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(
-                    &mut physics_data.spaces,
-                    &mut physics_data.physics_engine,
-                );
+                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.physics_engine);
                 body.add_constant_torque(torque, &mut physics_data.physics_engine);
             }
         }
@@ -1157,10 +1130,7 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(
-                    &mut physics_data.spaces,
-                    &mut physics_data.physics_engine,
-                );
+                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.physics_engine);
                 body.set_constant_force(force, &mut physics_data.physics_engine);
             }
         }
@@ -1180,10 +1150,7 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(
-                    &mut physics_data.spaces,
-                    &mut physics_data.physics_engine,
-                );
+                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.physics_engine);
                 body.set_constant_torque(torque, &mut physics_data.physics_engine);
             }
         }
