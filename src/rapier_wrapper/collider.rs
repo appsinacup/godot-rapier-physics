@@ -113,7 +113,6 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
                 }
             }
         }
-        #[cfg(feature = "dim2")]
         ShapeType::Polyline => {
             if let Some(new_shape) = shape.as_polyline() {
                 return SharedShape::new(new_shape.clone().scaled(&scale));
@@ -139,6 +138,14 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
         #[cfg(feature = "dim2")]
         ShapeType::ConvexPolygon => {
             if let Some(new_shape) = shape.as_convex_polygon() {
+                if let Some(new_shape) = new_shape.clone().scaled(&scale) {
+                    return SharedShape::new(new_shape);
+                }
+            }
+        }
+        #[cfg(feature = "dim3")]
+        ShapeType::ConvexPolyhedron => {
+            if let Some(new_shape) = shape.as_convex_polyhedron() {
                 if let Some(new_shape) = new_shape.clone().scaled(&scale) {
                     return SharedShape::new(new_shape);
                 }
