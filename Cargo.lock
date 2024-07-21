@@ -557,7 +557,8 @@ dependencies = [
 [[package]]
 name = "parry2d"
 version = "0.16.1"
-source = "git+https://github.com/dimforge/parry?branch=master#2ba291c231033bd562923aba494f645cf96a7091"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c8aa1c304489b71ab35ad4080c5a333a5fc24b2a5f244f197dedb93276c9a05"
 dependencies = [
  "approx",
  "arrayvec",
@@ -582,7 +583,8 @@ dependencies = [
 [[package]]
 name = "parry2d-f64"
 version = "0.16.1"
-source = "git+https://github.com/dimforge/parry?branch=master#2ba291c231033bd562923aba494f645cf96a7091"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "32cd734c28d0feb8cdccd1d3c39ac2ef0798b330c1511e177d896ca0ef10dc9d"
 dependencies = [
  "approx",
  "arrayvec",
@@ -607,7 +609,8 @@ dependencies = [
 [[package]]
 name = "parry3d"
 version = "0.16.1"
-source = "git+https://github.com/dimforge/parry?branch=master#2ba291c231033bd562923aba494f645cf96a7091"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec1d9cc5a359352e2be7e47270cef9f9e175794c03302553353804a436228e7f"
 dependencies = [
  "approx",
  "arrayvec",
@@ -632,7 +635,8 @@ dependencies = [
 [[package]]
 name = "parry3d-f64"
 version = "0.16.1"
-source = "git+https://github.com/dimforge/parry?branch=master#2ba291c231033bd562923aba494f645cf96a7091"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ffeec9b9368a1e06997b467777f021a4cfa184eff3369764ebc72e8ae2c67135"
 dependencies = [
  "approx",
  "arrayvec",
@@ -681,7 +685,7 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.21.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#6a295d3e8e372390174cc5b3e286631eb47495c1"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#1a0665c2c11ddaa56e97aaa17dbe70734e048f7e"
 dependencies = [
  "approx",
  "arrayvec",
@@ -707,7 +711,7 @@ dependencies = [
 [[package]]
 name = "rapier2d-f64"
 version = "0.21.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#6a295d3e8e372390174cc5b3e286631eb47495c1"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#1a0665c2c11ddaa56e97aaa17dbe70734e048f7e"
 dependencies = [
  "approx",
  "arrayvec",
@@ -733,7 +737,7 @@ dependencies = [
 [[package]]
 name = "rapier3d"
 version = "0.21.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#6a295d3e8e372390174cc5b3e286631eb47495c1"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#1a0665c2c11ddaa56e97aaa17dbe70734e048f7e"
 dependencies = [
  "approx",
  "arrayvec",
@@ -759,7 +763,7 @@ dependencies = [
 [[package]]
 name = "rapier3d-f64"
 version = "0.21.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#6a295d3e8e372390174cc5b3e286631eb47495c1"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#1a0665c2c11ddaa56e97aaa17dbe70734e048f7e"
 dependencies = [
  "approx",
  "arrayvec",
@@ -981,18 +985,18 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "1.0.62"
+version = "1.0.63"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f2675633b1499176c2dff06b0856a27976a8f9d436737b4cf4f312d4d91d8bbb"
+checksum = "c0342370b38b6a11b6cc11d6a805569958d54cfa061a29969c3b5ce2ea405724"
 dependencies = [
  "thiserror-impl",
 ]
 
 [[package]]
 name = "thiserror-impl"
-version = "1.0.62"
+version = "1.0.63"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d20468752b09f49e909e55a5d338caa8bedf615594e9d80bc4c565d30faf798c"
+checksum = "a4558b58466b9ad7ca0f102865eccc95938dca1a74a856f2b57b6629050da261"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1171,3 +1175,23 @@ dependencies = [
  "quote",
  "syn",
 ]
+
+[[patch.unused]]
+name = "parry2d"
+version = "0.17.0"
+source = "git+https://github.com/dimforge/parry?branch=master#71fe6dedeff28ae27f0b015b2efd24b73cdd8aa5"
+
+[[patch.unused]]
+name = "parry2d-f64"
+version = "0.17.0"
+source = "git+https://github.com/dimforge/parry?branch=master#71fe6dedeff28ae27f0b015b2efd24b73cdd8aa5"
+
+[[patch.unused]]
+name = "parry3d"
+version = "0.17.0"
+source = "git+https://github.com/dimforge/parry?branch=master#71fe6dedeff28ae27f0b015b2efd24b73cdd8aa5"
+
+[[patch.unused]]
+name = "parry3d-f64"
+version = "0.17.0"
+source = "git+https://github.com/dimforge/parry?branch=master#71fe6dedeff28ae27f0b015b2efd24b73cdd8aa5"

@@ -195,9 +195,9 @@ pub struct Material {
 impl Material {
     pub fn new(collision_layer: u32, collision_mask: u32) -> Material {
         Material {
-            friction: -1.0,
-            restitution: -1.0,
-            contact_skin: -1.0,
+            friction: 0.0,
+            restitution: 0.0,
+            contact_skin: 0.0,
             collision_layer,
             collision_mask,
         }
@@ -276,15 +276,10 @@ impl PhysicsEngine {
                 .contact_force_event_threshold(-Real::MAX)
                 .density(1.0)
                 .build();
-            // TODO update when https://github.com/dimforge/rapier/issues/622 is fixed
-            if mat.friction >= 0.0 {
-                collider.set_friction(mat.friction);
-            }
-            if mat.restitution >= 0.0 {
-                collider.set_restitution(mat.restitution);
-            }
-            collider.set_friction_combine_rule(CoefficientCombineRule::Multiply);
-            collider.set_restitution_combine_rule(CoefficientCombineRule::Max);
+            collider.set_friction(mat.friction);
+            collider.set_restitution(mat.restitution);
+            collider.set_friction_combine_rule(CoefficientCombineRule::Min);
+            collider.set_restitution_combine_rule(CoefficientCombineRule::Sum);
             collider.set_collision_groups(InteractionGroups {
                 memberships: Group::from(mat.collision_layer),
                 filter: Group::from(mat.collision_mask),

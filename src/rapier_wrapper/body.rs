@@ -222,16 +222,9 @@ impl PhysicsEngine {
                     .collider_set
                     .get_mut(*collider)
                 {
-                    // TODO update when https://github.com/dimforge/rapier/issues/622 is fixed
-                    if mat.friction >= 0.0 {
-                        col.set_friction(mat.friction);
-                    }
-                    if mat.restitution >= 0.0 {
-                        col.set_restitution(mat.restitution);
-                    }
-                    if mat.contact_skin >= 0.0 {
-                        col.set_contact_skin(mat.contact_skin);
-                    }
+                    col.set_friction(mat.friction);
+                    col.set_restitution(mat.restitution);
+                    col.set_contact_skin(mat.contact_skin);
                     col.set_collision_groups(InteractionGroups {
                         memberships: Group::from(mat.collision_layer),
                         filter: Group::from(mat.collision_mask),
