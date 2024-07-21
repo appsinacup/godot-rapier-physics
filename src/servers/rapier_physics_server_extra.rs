@@ -142,7 +142,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
-    fn fluid_create() -> Rid {
+    pub(crate) fn fluid_create() -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
         let fluid = RapierFluid::new(rid);
@@ -151,7 +151,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
-    fn fluid_set_space(fluid_rid: Rid, space_rid: Rid) {
+    pub(crate) fn fluid_set_space(fluid_rid: Rid, space_rid: Rid) {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
             fluid.set_space(space_rid);
@@ -159,7 +159,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
-    fn fluid_set_density(fluid_rid: Rid, density: f64) {
+    pub(crate) fn fluid_set_density(fluid_rid: Rid, density: real) {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
             fluid.set_density(density);
@@ -167,7 +167,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
-    fn fluid_set_effects(fluid_rid: Rid, params: Array<Gd<Resource>>) {
+    pub(crate) fn fluid_set_effects(fluid_rid: Rid, params: Array<Option<Gd<Resource>>>) {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
             fluid.set_effects(params);
@@ -175,7 +175,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
-    fn fluid_get_points(fluid_rid: Rid) -> PackedVectorArray {
+    pub(crate) fn fluid_get_points(fluid_rid: Rid) -> PackedVectorArray {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get(&fluid_rid) {
             return PackedVectorArray::from(fluid.get_points().as_slice());
@@ -184,7 +184,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
-    fn fluid_get_velocities(fluid_rid: Rid) -> PackedVectorArray {
+    pub(crate) fn fluid_get_velocities(fluid_rid: Rid) -> PackedVectorArray {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get(&fluid_rid) {
             return PackedVectorArray::from(fluid.get_velocities().as_slice());
@@ -193,7 +193,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
-    fn fluid_get_accelerations(fluid_rid: Rid) -> PackedVectorArray {
+    pub(crate) fn fluid_get_accelerations(fluid_rid: Rid) -> PackedVectorArray {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get(&fluid_rid) {
             return PackedVectorArray::from(fluid.get_accelerations().as_slice());
@@ -202,7 +202,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
-    fn fluid_set_points(fluid_rid: Rid, points: PackedVectorArray) {
+    pub(crate) fn fluid_set_points(fluid_rid: Rid, points: PackedVectorArray) {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
             fluid.set_points(points.to_vec());
@@ -210,7 +210,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
-    fn fluid_set_points_and_velocities(
+    pub(crate) fn fluid_set_points_and_velocities(
         fluid_rid: Rid,
         points: PackedVectorArray,
         velocities: PackedVectorArray,
@@ -222,7 +222,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
-    fn fluid_add_points_and_velocities(
+    pub(crate) fn fluid_add_points_and_velocities(
         fluid_rid: Rid,
         points: PackedVectorArray,
         velocities: PackedVectorArray,
@@ -234,7 +234,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
-    fn fluid_delete_points(fluid_rid: Rid, indices: PackedInt32Array) {
+    pub(crate) fn fluid_delete_points(fluid_rid: Rid, indices: PackedInt32Array) {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
             fluid.delete_points(indices.to_vec());

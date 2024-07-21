@@ -7,9 +7,9 @@ use crate::types::Vector;
 //#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierFluid {
     rid: Rid,
-    density: f64,
+    density: real,
     space: Rid,
-    effects: Array<Gd<Resource>>,
+    effects: Array<Option<Gd<Resource>>>,
     fluid_handle: HandleDouble,
     points: Vec<Vector>,
     velocities: Vec<Vector>,
@@ -69,15 +69,15 @@ impl RapierFluid {
         &self.accelerations
     }
 
-    pub fn set_effects(&mut self, effects: Array<Gd<Resource>>) {
+    pub fn set_effects(&mut self, effects: Array<Option<Gd<Resource>>>) {
         self.effects = effects;
     }
 
-    pub fn get_density(&self) -> f64 {
+    pub fn get_density(&self) -> real {
         self.density
     }
 
-    pub fn set_density(&mut self, density: f64) {
+    pub fn set_density(&mut self, density: real) {
         self.density = density;
     }
 
