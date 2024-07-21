@@ -36,10 +36,10 @@ hashbrown = { version = "0.14" }
 godot = { git = "https://github.com/ughuuu/gdext", branch = "make-stuff-serializable", features=["api-4-2"] }
 #godot = { git = "https://github.com/godot-rust/gdext", branch = "master", features=["api-4-2"] }
 
-rapier2d = { version = "0.21", optional = true }
-rapier2d-f64 = { version = "0.21", optional = true}
-rapier3d = { version = "0.21", optional = true}
-rapier3d-f64 = { version = "0.21", optional = true}
+rapier2d = { git = "https://github.com/ughuuu/rapier", branch = "custom-changes", optional = true }
+rapier2d-f64 = { git = "https://github.com/ughuuu/rapier", branch = "custom-changes", optional = true}
+rapier3d = { git = "https://github.com/ughuuu/rapier", branch = "custom-changes", optional = true}
+rapier3d-f64 = { git = "https://github.com/ughuuu/rapier", branch = "custom-changes", optional = true}
 salva2d = { git = "https://github.com/dimforge/salva", branch = "master", features = ["rapier"], optional = true }
 salva3d = { git = "https://github.com/dimforge/salva", branch = "master", features = ["rapier"], optional = true }
 serde = { version = "1.0", features = ["derive"], optional = true }
@@ -47,13 +47,13 @@ serde_json = { version = "1.0", optional = true }
 typetag = { version = "0.2", optional = true }
 
 [patch.crates-io]
-rapier2d = {git = "https://github.com/dimforge/rapier", branch = "master"}
-rapier2d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master"}
+rapier2d = {git = "https://github.com/ughuuu/rapier", branch = "custom-changes"}
+rapier2d-f64 = {git = "https://github.com/ughuuu/rapier", branch = "custom-changes"}
 parry2d = {git = "https://github.com/dimforge/parry", branch = "master"}
 parry2d-f64 = {git = "https://github.com/dimforge/parry", branch = "master"}
 
-rapier3d = {git = "https://github.com/dimforge/rapier", branch = "master"}
-rapier3d-f64 = {git = "https://github.com/dimforge/rapier", branch = "master"}
+rapier3d = {git = "https://github.com/ughuuu/rapier", branch = "custom-changes"}
+rapier3d-f64 = {git = "https://github.com/ughuuu/rapier", branch = "custom-changes"}
 parry3d = {git = "https://github.com/dimforge/parry", branch = "master"}
 parry3d-f64 = {git = "https://github.com/dimforge/parry", branch = "master"}
 

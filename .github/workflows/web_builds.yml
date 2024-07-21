@@ -35,7 +35,6 @@ jobs:
         with:
           arch: ${{ matrix.arch }}
           extra_flags: "-Z build-std=std"
-          precision: ${{ matrix.precision }}
           features: ${{ matrix.features.feature }},${{ matrix.precision }}-${{ matrix.dimensions.feature }},experimental-wasm,wasm-bindgen
       - name: Copy to bin
         shell: sh
