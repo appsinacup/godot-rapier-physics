@@ -1,4 +1,4 @@
-use godot::engine::notify::CanvasItemNotification;
+use godot::engine::notify::Node3DNotification;
 use godot::engine::Engine;
 use godot::engine::Time;
 use godot::prelude::*;
@@ -52,7 +52,8 @@ impl Fluid3D {
         let guard = self.base_mut();
         RapierPhysicsServer::fluid_set_points(rid, rapier_points.clone());
         drop(guard);
-        self.to_gd().queue_redraw();
+        // TODO
+        //self.to_gd().queue_redraw();
     }
 
     #[func]
@@ -83,7 +84,7 @@ impl Fluid3D {
         }
         let mut fluid_gd = self.to_gd();
         fluid_gd.set_process(self.debug_draw || self.lifetime > 0.0);
-        fluid_gd.queue_redraw();
+        //fluid_gd.queue_redraw();
     }
 
     #[func]
@@ -118,27 +119,35 @@ impl Fluid3D {
     }
 
     #[func]
-    fn create_rectangle_points(&self, width: i32, height: i32) -> PackedVectorArray {
+    fn create_box_points(&self, width: i32, height: i32, depth: i32) -> PackedVectorArray {
         let mut new_points = PackedVectorArray::default();
-        new_points.resize((width * height) as usize);
+        new_points.resize((width * height * depth) as usize);
         for i in 0..width {
             for j in 0..height {
-                new_points[(i + j * width) as usize] =
-                    Vector2::new(i as f32 * self.radius * 2.0, j as f32 * self.radius * 2.0);
+                for k in 0..depth {
+                    new_points[(i + j * width + k * width * height) as usize] = Vector::new(
+                        i as f32 * self.radius * 2.0,
+                        j as f32 * self.radius * 2.0,
+                        k as f32 * self.radius * 2.0,
+                    );
+                }
             }
         }
         new_points
     }
 
     #[func]
-    fn create_circle_points(&self, p_radius: i32) -> PackedVectorArray {
+    fn create_sphere_points(&self, p_radius: i32) -> PackedVectorArray {
         let mut new_points = PackedVectorArray::default();
         for i in -p_radius..p_radius {
             for j in -p_radius..p_radius {
-                let x = i as f32 * self.radius * 2.0;
-                let y = j as f32 * self.radius * 2.0;
-                if i * i + j * j <= p_radius * p_radius {
-                    new_points.push(Vector2::new(x, y));
+                for k in -p_radius..p_radius {
+                    let x = i as f32 * self.radius * 2.0;
+                    let y = j as f32 * self.radius * 2.0;
+                    let z = k as f32 * self.radius * 2.0;
+                    if i * i + j * j <= p_radius * p_radius {
+                        new_points.push(Vector::new(x, y, z));
+                    }
                 }
             }
         }
@@ -166,7 +175,8 @@ impl Fluid3D {
         let guard = self.base_mut();
         RapierPhysicsServer::fluid_add_points_and_velocities(rid, p_points, p_velocities);
         drop(guard);
-        self.to_gd().queue_redraw();
+        // TODO
+        //self.to_gd().queue_redraw();
     }
 
     #[func]
@@ -191,7 +201,8 @@ impl Fluid3D {
         let guard = self.base_mut();
         RapierPhysicsServer::fluid_add_points_and_velocities(rid, points, p_velocities);
         drop(guard);
-        self.to_gd().queue_redraw();
+        // TODO
+        //self.to_gd().queue_redraw();
     }
 
     #[func]
@@ -204,7 +215,9 @@ impl Fluid3D {
             self.points.remove(p_indices[i] as usize);
             self.create_times.remove(p_indices[i] as usize);
         }
-        self.to_gd().queue_redraw();
+
+        // TODO
+        //self.to_gd().queue_redraw();
     }
 
     #[func]
@@ -250,21 +263,23 @@ impl INode3D for Fluid3D {
         }
     }
 
-    fn on_notification(&mut self, p_what: CanvasItemNotification) {
+    fn on_notification(&mut self, p_what: Node3DNotification) {
         match p_what {
-            CanvasItemNotification::PROCESS => {
+            Node3DNotification::PROCESS => {
                 if self.debug_draw {
-                    self.to_gd().queue_redraw();
+                    // TODO
+                    //self.to_gd().queue_redraw();
                 }
                 if !Engine::singleton().is_editor_hint() {
                     self.delete_old_particles();
                 }
             }
-            CanvasItemNotification::ENTER_TREE
-            | CanvasItemNotification::WORLD_3D_CHANGED
-            | CanvasItemNotification::TRANSFORM_CHANGED
-            | CanvasItemNotification::LOCAL_TRANSFORM_CHANGED
-            | CanvasItemNotification::TRANSLATION_CHANGED => {
+            Node3DNotification::ENTER_TREE
+            | Node3DNotification::ENTER_WORLD
+            | Node3DNotification::EXIT_WORLD
+            | Node3DNotification::TRANSFORM_CHANGED
+            | Node3DNotification::LOCAL_TRANSFORM_CHANGED
+            | Node3DNotification::TRANSLATION_CHANGED => {
                 let mut space_rid = Rid::Invalid;
                 if let Some(space) = self.to_gd().get_world_3d() {
                     space_rid = space.get_space();
@@ -276,15 +291,17 @@ impl INode3D for Fluid3D {
                 self.set_points(self.points.clone());
                 let mut fluid_gd = self.to_gd();
                 fluid_gd.set_notify_transform(self.debug_draw);
-                fluid_gd.queue_redraw();
+                // TODO
+                //fluid_gd.queue_redraw();
             }
-            CanvasItemNotification::EXIT_TREE => {
+            Node3DNotification::EXIT_TREE => {
                 let rid = self.rid;
                 let guard = self.base_mut();
                 RapierPhysicsServer::fluid_set_space(rid, Rid::Invalid);
                 drop(guard);
             }
-            CanvasItemNotification::DRAW => {
+            /*
+            Node3DNotification::DRAW => {
                 if self.debug_draw {
                     self.points = self.get_points();
                     for point in self.points.as_slice() {
@@ -299,7 +316,7 @@ impl INode3D for Fluid3D {
                         );
                     }
                 }
-            }
+            } */
             _ => {}
         }
     }
