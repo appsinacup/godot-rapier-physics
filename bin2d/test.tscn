@@ -1,27 +1,39 @@
-[gd_scene load_steps=6 format=3 uid="uid://cn4jscixu2bmf"]
+[gd_scene load_steps=7 format=3 uid="uid://cn4jscixu2bmf"]
 
-[ext_resource type="Script" path="res://rigid_body_2d_2.gd" id="1_cujln"]
 [ext_resource type="Script" path="res://test.gd" id="1_fs1uw"]
+[ext_resource type="Script" path="res://addons/godot-rapier2d/fluid_2d_circle.gd" id="2_w3yho"]
+
+[sub_resource type="FluidEffect2DSurfaceTensionWCSPH" id="FluidEffect2DSurfaceTensionWCSPH_pdp7j"]
+fluid_tension_coefficient = 10.0
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_irytb"]
+size = Vector2(23.2032, 53.1578)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_w8421"]
 
-[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_ila5n"]
-normal = Vector2(-0.0425147, -0.999096)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_3ytxo"]
+size = Vector2(1402.17, 77.1209)
 
 [node name="SceneRayOnSwitch" type="Node2D"]
 script = ExtResource("1_fs1uw")
+
+[node name="Fluid2D" type="Fluid2D" parent="."]
+debug_draw = true
+effects = Array[Resource]([SubResource("FluidEffect2DSurfaceTensionWCSPH_pdp7j")])
+points = PackedVector2Array(-80, 3.05176e-05, -39.9999, -40, -39.9999, 6.10352e-05, -40, 39.9999, 0.00012207, -80, 0, -40, 0, 0, 0.00012207, 40, 40.0001, -40, 40, 0, 40.0001, 40)
+position = Vector2(-500, -1440)
+rotation = 1.23226
+script = ExtResource("2_w3yho")
+circle_radius = 2
 
 [node name="RigidBody2D3" type="RigidBody2D" parent="."]
 position = Vector2(-80, -513)
 rotation = -1.51672
 scale = Vector2(4, 2.51)
 max_contacts_reported = 1
-script = ExtResource("1_cujln")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D3"]
-position = Vector2(-89, 3)
+position = Vector2(-55.6281, -90.968)
 scale = Vector2(1.89, 1)
 shape = SubResource("RectangleShape2D_irytb")
 
@@ -30,10 +42,9 @@ position = Vector2(-141, -516)
 rotation = -2.00014
 scale = Vector2(4, 2.51)
 max_contacts_reported = 1
-script = ExtResource("1_cujln")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D6"]
-position = Vector2(-89, 3)
+position = Vector2(-62.4293, -0.92878)
 scale = Vector2(1.89, 1)
 shape = SubResource("RectangleShape2D_irytb")
 
@@ -41,7 +52,6 @@ shape = SubResource("RectangleShape2D_irytb")
 position = Vector2(91, -158)
 rotation = -1.51672
 max_contacts_reported = 1
-script = ExtResource("1_cujln")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D4"]
 shape = SubResource("CircleShape2D_w8421")
@@ -58,9 +68,40 @@ shape = SubResource("CircleShape2D_w8421")
 position = Vector2(-1, 55)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
-position = Vector2(-6, 61)
+position = Vector2(22.5, 61.5)
 rotation = -0.060205
-shape = SubResource("WorldBoundaryShape2D_ila5n")
+shape = SubResource("RectangleShape2D_3ytxo")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(-862, -874)
+rotation = 1.20339
+shape = SubResource("RectangleShape2D_3ytxo")
+
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(164, -1290)
+rotation = 1.20339
+shape = SubResource("RectangleShape2D_3ytxo")
+
+[node name="CollisionShape2D4" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(958, -200)
+rotation = 1.20339
+shape = SubResource("RectangleShape2D_3ytxo")
+
+[node name="CollisionShape2D5" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(860, 366)
+rotation = 2.29629
+shape = SubResource("RectangleShape2D_3ytxo")
+
+[node name="CollisionShape2D6" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(188, 627)
+rotation = 3.26575
+shape = SubResource("RectangleShape2D_3ytxo")
+
+[node name="CollisionShape2D7" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(-281, 322)
+rotation = 4.15832
+shape = SubResource("RectangleShape2D_3ytxo")
 
 [node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(2, 2)
+position = Vector2(215, 125)
+zoom = Vector2(0.5, 0.5)

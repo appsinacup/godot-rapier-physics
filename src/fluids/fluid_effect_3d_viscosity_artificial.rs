@@ -21,7 +21,7 @@ impl IFluidEffect3D for FluidEffect3DViscosityArtificial {
 impl IResource for FluidEffect3DViscosityArtificial {
     fn init(base: Base<Resource>) -> Self {
         Self {
-            fluid_viscosity_coefficient: 1.0,
+            fluid_viscosity_coefficient: 200.0,
             boundary_adhesion_coefficient: 0.0,
             base,
         }

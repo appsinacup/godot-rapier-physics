@@ -11,24 +11,12 @@ config_version=5
 [application]
 
 config/name="Godot Rapier 2D"
-run/main_scene="res://samples/softbody2d/create-a-softbody/create.tscn"
 config/features=PackedStringArray("4.3")
 config/icon="res://addons/godot-rapier2d/logo_square_2d.png"
-
-[display]
-
-window/size/viewport_width=1920
-window/size/viewport_height=1080
-
-[editor_plugins]
-
-enabled=PackedStringArray()
 
 [physics]
 
 2d/physics_engine="Rapier2D"
-3d/default_gravity=10.0
-rapier/solver/polygon_contact_skin=5.62998
 
 [rendering]
 

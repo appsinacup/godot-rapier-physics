@@ -4,7 +4,7 @@ use super::fluid_effect_3d::FluidEffect3DType;
 use super::fluid_effect_3d::IFluidEffect3D;
 #[derive(GodotClass)]
 #[class(base=Resource)]
-pub struct FluidEffect3DTensionHE {
+pub struct FluidEffect3DSurfaceTensionHE {
     #[export]
     fluid_tension_coefficient: real,
     #[export]
@@ -12,13 +12,13 @@ pub struct FluidEffect3DTensionHE {
 
     base: Base<Resource>,
 }
-impl IFluidEffect3D for FluidEffect3DTensionHE {
+impl IFluidEffect3D for FluidEffect3DSurfaceTensionHE {
     fn get_fluid_effect_type(&self) -> FluidEffect3DType {
         FluidEffect3DType::FluidEffect3DSurfaceTensionHe
     }
 }
 #[godot_api]
-impl IResource for FluidEffect3DTensionHE {
+impl IResource for FluidEffect3DSurfaceTensionHE {
     fn init(base: Base<Resource>) -> Self {
         Self {
             fluid_tension_coefficient: 1.0,

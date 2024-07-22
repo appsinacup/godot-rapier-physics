@@ -13,7 +13,7 @@ pub struct FluidEffect2D {
 #[godot(via = GString)]
 pub enum FluidEffect2DType {
     FluidEffect2DElasticity = 0,
-    FluidEffect2DSurfaceTensionAkinci = 1,
+    FluidEffect2DSurfaceTensionAKINCI = 1,
     FluidEffect2DSurfaceTensionHe = 2,
     FluidEffect2DSurfaceTensionWcsph = 3,
     FluidEffect2DViscosityArtificial = 4,

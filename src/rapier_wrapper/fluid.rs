@@ -5,7 +5,6 @@ use salva::solver::*;
 
 use super::shape::point_array_to_vec;
 use crate::rapier_wrapper::prelude::*;
-use crate::types::PackedVectorArray;
 impl PhysicsEngine {
     pub fn fluid_create(&mut self, world_handle: WorldHandle, density: Real) -> HandleDouble {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
@@ -198,8 +197,8 @@ impl PhysicsEngine {
         &self,
         world_handle: WorldHandle,
         fluid_handle: HandleDouble,
-    ) -> PackedVectorArray {
-        let mut array = PackedVectorArray::new();
+    ) -> Vec<crate::types::Vector> {
+        let mut array = Vec::new();
         if let Some(physics_world) = self.get_world(world_handle)
             && let Some(fluid) = physics_world
                 .fluids_pipeline
@@ -218,8 +217,8 @@ impl PhysicsEngine {
         &self,
         world_handle: WorldHandle,
         fluid_handle: HandleDouble,
-    ) -> PackedVectorArray {
-        let mut array = PackedVectorArray::new();
+    ) -> Vec<crate::types::Vector> {
+        let mut array = Vec::new();
         if let Some(physics_world) = self.get_world(world_handle)
             && let Some(fluid) = physics_world
                 .fluids_pipeline
@@ -238,8 +237,8 @@ impl PhysicsEngine {
         &self,
         world_handle: WorldHandle,
         fluid_handle: HandleDouble,
-    ) -> PackedVectorArray {
-        let mut array = PackedVectorArray::new();
+    ) -> Vec<crate::types::Vector> {
+        let mut array = Vec::new();
         if let Some(physics_world) = self.get_world(world_handle)
             && let Some(fluid) = physics_world
                 .fluids_pipeline

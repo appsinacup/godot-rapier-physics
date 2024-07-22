@@ -35,3 +35,4 @@ pub mod fluid_effect_3d_viscosity_dfsph;
 #[cfg(feature = "dim3")]
 pub mod fluid_effect_3d_viscosity_xsph;
 pub mod rapier_fluid;
+pub mod types;

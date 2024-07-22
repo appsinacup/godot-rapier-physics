@@ -142,7 +142,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
-    fn fluid_create() -> Rid {
+    pub(crate) fn fluid_create() -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
         let fluid = RapierFluid::new(rid);
@@ -151,90 +151,114 @@ impl RapierPhysicsServer {
     }
 
     #[func]
-    fn fluid_set_space(fluid_rid: Rid, space_rid: Rid) {
+    pub(crate) fn fluid_set_space(fluid_rid: Rid, space_rid: Rid) {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
-            fluid.set_space(space_rid);
+            fluid.set_space(
+                space_rid,
+                &mut physics_data.spaces,
+                &mut physics_data.physics_engine,
+            );
         }
     }
 
     #[func]
-    fn fluid_set_density(fluid_rid: Rid, density: f64) {
+    pub(crate) fn fluid_set_density(fluid_rid: Rid, density: real) {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
-            fluid.set_density(density);
+            fluid.set_density(density, &mut physics_data.physics_engine);
         }
     }
 
     #[func]
-    fn fluid_set_effects(fluid_rid: Rid, params: Array<Gd<Resource>>) {
+    pub(crate) fn fluid_set_effects(fluid_rid: Rid, effects: Array<Option<Gd<Resource>>>) {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
-            fluid.set_effects(params);
+            fluid.set_effects(effects, &mut physics_data.physics_engine);
         }
     }
 
     #[func]
-    fn fluid_get_points(fluid_rid: Rid) -> PackedVectorArray {
+    pub(crate) fn fluid_get_points(fluid_rid: Rid) -> PackedVectorArray {
         let physics_data = physics_data();
-        if let Some(fluid) = physics_data.fluids.get(&fluid_rid) {
-            return PackedVectorArray::from(fluid.get_points().as_slice());
+        if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
+            return PackedVectorArray::from(
+                fluid
+                    .get_points(&mut physics_data.physics_engine)
+                    .as_slice(),
+            );
         }
         PackedVectorArray::default()
     }
 
     #[func]
-    fn fluid_get_velocities(fluid_rid: Rid) -> PackedVectorArray {
-        let physics_data = physics_data();
-        if let Some(fluid) = physics_data.fluids.get(&fluid_rid) {
-            return PackedVectorArray::from(fluid.get_velocities().as_slice());
-        }
-        PackedVectorArray::default()
-    }
-
-    #[func]
-    fn fluid_get_accelerations(fluid_rid: Rid) -> PackedVectorArray {
-        let physics_data = physics_data();
-        if let Some(fluid) = physics_data.fluids.get(&fluid_rid) {
-            return PackedVectorArray::from(fluid.get_accelerations().as_slice());
-        }
-        PackedVectorArray::default()
-    }
-
-    #[func]
-    fn fluid_set_points(fluid_rid: Rid, points: PackedVectorArray) {
+    pub(crate) fn fluid_get_velocities(fluid_rid: Rid) -> PackedVectorArray {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
-            fluid.set_points(points.to_vec());
+            return PackedVectorArray::from(
+                fluid
+                    .get_velocities(&mut physics_data.physics_engine)
+                    .as_slice(),
+            );
+        }
+        PackedVectorArray::default()
+    }
+
+    #[func]
+    pub(crate) fn fluid_get_accelerations(fluid_rid: Rid) -> PackedVectorArray {
+        let physics_data = physics_data();
+        if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
+            return PackedVectorArray::from(
+                fluid
+                    .get_accelerations(&mut physics_data.physics_engine)
+                    .as_slice(),
+            );
+        }
+        PackedVectorArray::default()
+    }
+
+    #[func]
+    pub(crate) fn fluid_set_points(fluid_rid: Rid, points: PackedVectorArray) {
+        let physics_data = physics_data();
+        if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
+            fluid.set_points(points.to_vec(), &mut physics_data.physics_engine);
         }
     }
 
     #[func]
-    fn fluid_set_points_and_velocities(
+    pub(crate) fn fluid_set_points_and_velocities(
         fluid_rid: Rid,
         points: PackedVectorArray,
         velocities: PackedVectorArray,
     ) {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
-            fluid.set_points_and_velocities(points.to_vec(), velocities.to_vec());
+            fluid.set_points_and_velocities(
+                points.to_vec(),
+                velocities.to_vec(),
+                &mut physics_data.physics_engine,
+            );
         }
     }
 
     #[func]
-    fn fluid_add_points_and_velocities(
+    pub(crate) fn fluid_add_points_and_velocities(
         fluid_rid: Rid,
         points: PackedVectorArray,
         velocities: PackedVectorArray,
     ) {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
-            fluid.add_points_and_velocities(points.to_vec(), velocities.to_vec());
+            fluid.add_points_and_velocities(
+                points.to_vec(),
+                velocities.to_vec(),
+                &mut physics_data.physics_engine,
+            );
         }
     }
 
     #[func]
-    fn fluid_delete_points(fluid_rid: Rid, indices: PackedInt32Array) {
+    pub(crate) fn fluid_delete_points(fluid_rid: Rid, indices: PackedInt32Array) {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
             fluid.delete_points(indices.to_vec());
