@@ -9,7 +9,7 @@
 
 <p align = "center">
     <strong>
-        <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/CONTRIBUTING.md">Contributing</a> | <a href="https://godot.rapier.rs">Documentation</a> | <a href="https://discord.gg/56dMud8HYn">Discord</a>
+        <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/CONTRIBUTING.md">Contributing</a> | <a href="https://godot.rapier.rs">Documentation</a> | <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/CHANGELOG.md">Changelog</a> | <a href="https://discord.gg/56dMud8HYn">Discord</a>
     </strong>
 </p>
 
