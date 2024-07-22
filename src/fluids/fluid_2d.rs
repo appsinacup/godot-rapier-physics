@@ -1,6 +1,5 @@
 use godot::engine::notify::CanvasItemNotification;
 use godot::engine::Engine;
-use godot::engine::IPhysicsServer2DExtension;
 use godot::engine::Time;
 use godot::prelude::*;
 
@@ -10,7 +9,9 @@ use crate::types::*;
 #[derive(GodotClass)]
 #[class(base=Node2D)]
 pub struct Fluid2D {
+    #[var(get)]
     rid: Rid,
+    #[var(get)]
     radius: real,
     #[export]
     #[var(get, set = set_debug_draw)]
@@ -104,10 +105,8 @@ impl Fluid2D {
         new_points.resize((width * height) as usize);
         for i in 0..width {
             for j in 0..height {
-                new_points[(i + j * width) as usize] = Vector2::new(
-                    i as f32 * self.radius * 2.0,
-                    j as f32 * self.radius * 2.0,
-                );
+                new_points[(i + j * width) as usize] =
+                    Vector2::new(i as f32 * self.radius * 2.0, j as f32 * self.radius * 2.0);
             }
         }
         new_points
