@@ -43,7 +43,10 @@ impl Fluid3D {
         for i in old_times..self.points.len() {
             self.create_times[i] = ticks as f32;
         }
-        let gl_transform = self.to_gd().get_global_transform();
+        let mut gl_transform = Transform3D::IDENTITY;
+        if self.to_gd().is_inside_tree() {
+            gl_transform = self.to_gd().get_global_transform();
+        }
         let mut rapier_points = self.points.clone();
         for i in 0..self.points.len() {
             rapier_points[i] = gl_transform * (self.points[i]);
@@ -111,7 +114,10 @@ impl Fluid3D {
         let guard = self.base();
         let mut new_points = RapierPhysicsServer::fluid_get_points(rid);
         drop(guard);
-        let gl_transform = self.to_gd().get_global_transform().affine_inverse();
+        let mut gl_transform = Transform3D::IDENTITY;
+        if self.to_gd().is_inside_tree() {
+            gl_transform = self.to_gd().get_global_transform().affine_inverse();
+        }
         for i in 0..new_points.len() {
             new_points[i] = gl_transform * new_points[i];
         }
@@ -164,7 +170,7 @@ impl Fluid3D {
         self.points.extend_array(&p_points);
         let old_times = self.create_times.len();
         let ticks = Time::singleton().get_ticks_msec();
-        for i in old_times..self.points.len() {
+        for _i in old_times..self.points.len() {
             self.create_times.push(ticks as f32);
         }
         let gl_transform = self.to_gd().get_global_transform();
@@ -274,16 +280,16 @@ impl INode3D for Fluid3D {
                     self.delete_old_particles();
                 }
             }
-            Node3DNotification::ENTER_TREE
-            | Node3DNotification::ENTER_WORLD
-            | Node3DNotification::EXIT_WORLD
-            | Node3DNotification::TRANSFORM_CHANGED
-            | Node3DNotification::LOCAL_TRANSFORM_CHANGED
-            | Node3DNotification::TRANSLATION_CHANGED => {
+            Node3DNotification::ENTER_TREE | Node3DNotification::ENTER_WORLD => {
                 let mut space_rid = Rid::Invalid;
-                if let Some(space) = self.to_gd().get_world_3d() {
+                let fluid_gd = self.to_gd();
+                if !fluid_gd.is_inside_tree() {
+                    return;
+                }
+                if let Some(space) = fluid_gd.get_world_3d() {
                     space_rid = space.get_space();
                 }
+                drop(fluid_gd);
                 let rid = self.rid;
                 let guard = self.base_mut();
                 RapierPhysicsServer::fluid_set_space(rid, space_rid);
@@ -291,10 +297,20 @@ impl INode3D for Fluid3D {
                 self.set_points(self.points.clone());
                 let mut fluid_gd = self.to_gd();
                 fluid_gd.set_notify_transform(self.debug_draw);
+            }
+            Node3DNotification::TRANSFORM_CHANGED
+            | Node3DNotification::LOCAL_TRANSFORM_CHANGED
+            | Node3DNotification::TRANSLATION_CHANGED => {
+                if !self.to_gd().is_inside_tree() {
+                    return;
+                }
+                self.set_points(self.points.clone());
+                let mut fluid_gd = self.to_gd();
+                fluid_gd.set_notify_transform(self.debug_draw);
                 // TODO
                 //fluid_gd.queue_redraw();
             }
-            Node3DNotification::EXIT_TREE => {
+            Node3DNotification::EXIT_TREE | Node3DNotification::EXIT_WORLD => {
                 let rid = self.rid;
                 let guard = self.base_mut();
                 RapierPhysicsServer::fluid_set_space(rid, Rid::Invalid);

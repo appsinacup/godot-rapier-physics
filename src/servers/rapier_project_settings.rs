@@ -10,12 +10,19 @@ const SOLVER_NUM_INTERNAL_PGS_ITERATIONS: &str =
     "physics/rapier/solver/num_internal_pgs_iterations";
 const SOLVER_MAX_CCD_SUBSTEPS: &str = "physics/rapier/solver/max_ccd_substeps";
 const CONTACT_SKIN: &str = "physics/rapier/solver/contact_skin";
-const FLUID_PARTICLE_RADIUS: &str = "physics/rapier/fluid/fluid_particle_radius";
+#[cfg(feature = "dim2")]
+const FLUID_PARTICLE_RADIUS: &str = "physics/rapier/fluid/fluid_particle_radius_2d";
+#[cfg(feature = "dim3")]
+const FLUID_PARTICLE_RADIUS: &str = "physics/rapier/fluid/fluid_particle_radius_3d";
 const FLUID_SMOOTHING_FACTOR: &str = "physics/rapier/fluid/fluid_smoothing_factor";
 #[cfg(feature = "dim2")]
 const LENGTH_UNIT: &str = "physics/rapier/solver/length_unit_2d";
 #[cfg(feature = "dim2")]
 const LENGTH_UNIT_VALUE: real = 100.0;
+#[cfg(feature = "dim2")]
+const FLUID_PARTICLE_VALUE: real = 20.0;
+#[cfg(feature = "dim3")]
+const FLUID_PARTICLE_VALUE: real = 0.2;
 #[cfg(feature = "dim3")]
 const LENGTH_UNIT: &str = "physics/rapier/solver/length_unit_3d";
 #[cfg(feature = "dim3")]
@@ -96,7 +103,7 @@ impl RapierProjectSettings {
         );
         register_setting_ranged(
             FLUID_PARTICLE_RADIUS,
-            Variant::from(20.0),
+            Variant::from(FLUID_PARTICLE_VALUE),
             "0,100,0.00001",
             true,
         );

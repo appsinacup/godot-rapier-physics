@@ -155,7 +155,7 @@ impl Fluid2D {
         self.points.extend_array(&p_points);
         let old_times = self.create_times.len();
         let ticks = Time::singleton().get_ticks_msec();
-        for i in old_times..self.points.len() {
+        for _i in old_times..self.points.len() {
             self.create_times.push(ticks as f32);
         }
         let gl_transform = self.to_gd().get_global_transform();
