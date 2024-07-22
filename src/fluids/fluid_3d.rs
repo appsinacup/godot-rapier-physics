@@ -35,7 +35,7 @@ pub struct Fluid3D {
 #[godot_api]
 impl Fluid3D {
     #[func]
-    fn set_points(&mut self, p_points: PackedVector2Array) {
+    fn set_points(&mut self, p_points: PackedVectorArray) {
         self.points = p_points;
         let old_times = self.create_times.len();
         self.create_times.resize(self.points.len());
@@ -44,10 +44,14 @@ impl Fluid3D {
             self.create_times[i] = ticks as f32;
         }
         let gl_transform = self.to_gd().get_global_transform();
+        let mut rapier_points = self.points.clone();
         for i in 0..self.points.len() {
-            self.points[i] = gl_transform * (self.points[i]);
+            rapier_points[i] = gl_transform * (self.points[i]);
         }
-        RapierPhysicsServer::fluid_set_points(self.rid, self.points.clone());
+        let rid = self.rid;
+        let guard = self.base_mut();
+        RapierPhysicsServer::fluid_set_points(rid, rapier_points.clone());
+        drop(guard);
         self.to_gd().queue_redraw();
     }
 
@@ -55,7 +59,11 @@ impl Fluid3D {
     fn set_density(&mut self, p_density: real) {
         if self.density != p_density {
             self.density = p_density;
-            RapierPhysicsServer::fluid_set_density(self.rid, self.density);
+            let rid = self.rid;
+            let density = self.density;
+            let guard = self.base_mut();
+            RapierPhysicsServer::fluid_set_density(rid, density);
+            drop(guard);
         }
     }
 
@@ -75,23 +83,33 @@ impl Fluid3D {
         }
         let mut fluid_gd = self.to_gd();
         fluid_gd.set_process(self.debug_draw || self.lifetime > 0.0);
-        fluid_gd.set_notify_transform(self.debug_draw);
         fluid_gd.queue_redraw();
     }
 
     #[func]
-    fn get_accelerations(&self) -> PackedVector2Array {
-        RapierPhysicsServer::fluid_get_accelerations(self.rid)
+    fn get_accelerations(&self) -> PackedVectorArray {
+        let rid = self.rid;
+        let guard = self.base();
+        let accelerations = RapierPhysicsServer::fluid_get_accelerations(rid);
+        drop(guard);
+        accelerations
     }
 
     #[func]
-    fn get_velocities(&self) -> PackedVector2Array {
-        RapierPhysicsServer::fluid_get_velocities(self.rid)
+    fn get_velocities(&self) -> PackedVectorArray {
+        let rid = self.rid;
+        let guard = self.base();
+        let velocities = RapierPhysicsServer::fluid_get_velocities(rid);
+        drop(guard);
+        velocities
     }
 
     #[func]
-    fn get_points(&self) -> PackedVector2Array {
-        let mut new_points = RapierPhysicsServer::fluid_get_points(self.rid);
+    fn get_points(&self) -> PackedVectorArray {
+        let rid = self.rid;
+        let guard = self.base();
+        let mut new_points = RapierPhysicsServer::fluid_get_points(rid);
+        drop(guard);
         let gl_transform = self.to_gd().get_global_transform().affine_inverse();
         for i in 0..new_points.len() {
             new_points[i] = gl_transform * new_points[i];
@@ -100,8 +118,8 @@ impl Fluid3D {
     }
 
     #[func]
-    fn create_rectangle_points(&self, width: i32, height: i32) -> PackedVector2Array {
-        let mut new_points = PackedVector2Array::default();
+    fn create_rectangle_points(&self, width: i32, height: i32) -> PackedVectorArray {
+        let mut new_points = PackedVectorArray::default();
         new_points.resize((width * height) as usize);
         for i in 0..width {
             for j in 0..height {
@@ -113,8 +131,8 @@ impl Fluid3D {
     }
 
     #[func]
-    fn create_circle_points(&self, p_radius: i32) -> PackedVector2Array {
-        let mut new_points = PackedVector2Array::default();
+    fn create_circle_points(&self, p_radius: i32) -> PackedVectorArray {
+        let mut new_points = PackedVectorArray::default();
         for i in -p_radius..p_radius {
             for j in -p_radius..p_radius {
                 let x = i as f32 * self.radius * 2.0;
@@ -130,8 +148,8 @@ impl Fluid3D {
     #[func]
     fn add_points_and_velocities(
         &mut self,
-        p_points: PackedVector2Array,
-        p_velocities: PackedVector2Array,
+        p_points: PackedVectorArray,
+        p_velocities: PackedVectorArray,
     ) {
         let mut p_points = p_points;
         self.points.extend_array(&p_points);
@@ -144,15 +162,18 @@ impl Fluid3D {
         for i in 0..self.points.len() {
             p_points[i] = gl_transform * (p_points[i]);
         }
-        RapierPhysicsServer::fluid_add_points_and_velocities(self.rid, p_points, p_velocities);
+        let rid = self.rid;
+        let guard = self.base_mut();
+        RapierPhysicsServer::fluid_add_points_and_velocities(rid, p_points, p_velocities);
+        drop(guard);
         self.to_gd().queue_redraw();
     }
 
     #[func]
     fn set_points_and_velocities(
         &mut self,
-        p_points: PackedVector2Array,
-        p_velocities: PackedVector2Array,
+        p_points: PackedVectorArray,
+        p_velocities: PackedVectorArray,
     ) {
         self.points = p_points;
         let old_times = self.create_times.len();
@@ -165,17 +186,20 @@ impl Fluid3D {
         for i in 0..self.points.len() {
             self.points[i] = gl_transform * (self.points[i]);
         }
-        RapierPhysicsServer::fluid_add_points_and_velocities(
-            self.rid,
-            self.points.clone(),
-            p_velocities,
-        );
+        let rid = self.rid;
+        let points = self.points.clone();
+        let guard = self.base_mut();
+        RapierPhysicsServer::fluid_add_points_and_velocities(rid, points, p_velocities);
+        drop(guard);
         self.to_gd().queue_redraw();
     }
 
     #[func]
     fn delete_points(&mut self, p_indices: PackedInt32Array) {
-        RapierPhysicsServer::fluid_delete_points(self.rid, p_indices.clone());
+        let rid = self.rid;
+        let guard = self.base_mut();
+        RapierPhysicsServer::fluid_delete_points(rid, p_indices.clone());
+        drop(guard);
         for i in 0..p_indices.len() {
             self.points.remove(p_indices[i] as usize);
             self.create_times.remove(p_indices[i] as usize);
@@ -186,7 +210,11 @@ impl Fluid3D {
     #[func]
     fn set_effects(&mut self, p_effects: Array<Option<Gd<Resource>>>) {
         self.effects = p_effects;
-        RapierPhysicsServer::fluid_set_effects(self.rid, self.effects.clone());
+        let rid = self.rid;
+        let effects = self.effects.clone();
+        let guard = self.base_mut();
+        RapierPhysicsServer::fluid_set_effects(rid, effects);
+        drop(guard);
     }
 
     fn delete_old_particles(&mut self) {
@@ -241,14 +269,20 @@ impl INode3D for Fluid3D {
                 if let Some(space) = self.to_gd().get_world_3d() {
                     space_rid = space.get_space();
                 }
-                RapierPhysicsServer::fluid_set_space(space_rid, space_rid);
+                let rid = self.rid;
+                let guard = self.base_mut();
+                RapierPhysicsServer::fluid_set_space(rid, space_rid);
+                drop(guard);
                 self.set_points(self.points.clone());
-                if self.debug_draw {
-                    self.to_gd().queue_redraw();
-                }
+                let mut fluid_gd = self.to_gd();
+                fluid_gd.set_notify_transform(self.debug_draw);
+                fluid_gd.queue_redraw();
             }
             CanvasItemNotification::EXIT_TREE => {
-                RapierPhysicsServer::fluid_set_space(self.rid, Rid::Invalid);
+                let rid = self.rid;
+                let guard = self.base_mut();
+                RapierPhysicsServer::fluid_set_space(rid, Rid::Invalid);
+                drop(guard);
             }
             CanvasItemNotification::DRAW => {
                 if self.debug_draw {

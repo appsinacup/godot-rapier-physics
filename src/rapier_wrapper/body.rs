@@ -408,7 +408,8 @@ impl PhysicsEngine {
                     .collider_set
                     .get_mut(*collider)
                 {
-                    collider.set_density(0.0);
+                    // TODO
+                    collider.set_density(1.0);
                 }
             }
             body.set_additional_mass_properties(

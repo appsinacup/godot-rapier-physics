@@ -35,7 +35,7 @@ pub struct Fluid2D {
 #[godot_api]
 impl Fluid2D {
     #[func]
-    fn set_points(&mut self, p_points: PackedVector2Array) {
+    fn set_points(&mut self, p_points: PackedVectorArray) {
         self.points = p_points;
         let old_times = self.create_times.len();
         self.create_times.resize(self.points.len());
@@ -87,7 +87,7 @@ impl Fluid2D {
     }
 
     #[func]
-    fn get_accelerations(&self) -> PackedVector2Array {
+    fn get_accelerations(&self) -> PackedVectorArray {
         let rid = self.rid;
         let guard = self.base();
         let accelerations = RapierPhysicsServer::fluid_get_accelerations(rid);
@@ -96,7 +96,7 @@ impl Fluid2D {
     }
 
     #[func]
-    fn get_velocities(&self) -> PackedVector2Array {
+    fn get_velocities(&self) -> PackedVectorArray {
         let rid = self.rid;
         let guard = self.base();
         let velocities = RapierPhysicsServer::fluid_get_velocities(rid);
@@ -105,7 +105,7 @@ impl Fluid2D {
     }
 
     #[func]
-    fn get_points(&self) -> PackedVector2Array {
+    fn get_points(&self) -> PackedVectorArray {
         let rid = self.rid;
         let guard = self.base();
         let mut new_points = RapierPhysicsServer::fluid_get_points(rid);
@@ -118,8 +118,8 @@ impl Fluid2D {
     }
 
     #[func]
-    fn create_rectangle_points(&self, width: i32, height: i32) -> PackedVector2Array {
-        let mut new_points = PackedVector2Array::default();
+    fn create_rectangle_points(&self, width: i32, height: i32) -> PackedVectorArray {
+        let mut new_points = PackedVectorArray::default();
         new_points.resize((width * height) as usize);
         for i in 0..width {
             for j in 0..height {
@@ -131,8 +131,8 @@ impl Fluid2D {
     }
 
     #[func]
-    fn create_circle_points(&self, p_radius: i32) -> PackedVector2Array {
-        let mut new_points = PackedVector2Array::default();
+    fn create_circle_points(&self, p_radius: i32) -> PackedVectorArray {
+        let mut new_points = PackedVectorArray::default();
         for i in -p_radius..p_radius {
             for j in -p_radius..p_radius {
                 let x = i as f32 * self.radius * 2.0;
@@ -148,8 +148,8 @@ impl Fluid2D {
     #[func]
     fn add_points_and_velocities(
         &mut self,
-        p_points: PackedVector2Array,
-        p_velocities: PackedVector2Array,
+        p_points: PackedVectorArray,
+        p_velocities: PackedVectorArray,
     ) {
         let mut p_points = p_points;
         self.points.extend_array(&p_points);
@@ -172,8 +172,8 @@ impl Fluid2D {
     #[func]
     fn set_points_and_velocities(
         &mut self,
-        p_points: PackedVector2Array,
-        p_velocities: PackedVector2Array,
+        p_points: PackedVectorArray,
+        p_velocities: PackedVectorArray,
     ) {
         self.points = p_points;
         let old_times = self.create_times.len();

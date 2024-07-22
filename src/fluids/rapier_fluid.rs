@@ -46,7 +46,7 @@ impl RapierFluid {
             let rapier_points = self
                 .points
                 .iter()
-                .map(|vec: &godot::prelude::Vector2| vector_to_rapier(*vec))
+                .map(|vec: &crate::types::Vector| vector_to_rapier(*vec))
                 .collect::<Vec<_>>();
             physics_engine.fluid_change_points(
                 self.space_handle,
@@ -70,12 +70,12 @@ impl RapierFluid {
             let rapier_points = self
                 .points
                 .iter()
-                .map(|vec: &godot::prelude::Vector2| vector_to_rapier(*vec))
+                .map(|vec: &crate::types::Vector| vector_to_rapier(*vec))
                 .collect::<Vec<_>>();
             let rapier_velocities = self
                 .velocities
                 .iter()
-                .map(|vec: &godot::prelude::Vector2| vector_to_rapier(*vec))
+                .map(|vec: &crate::types::Vector| vector_to_rapier(*vec))
                 .collect::<Vec<_>>();
             physics_engine.fluid_change_points_and_velocities(
                 self.space_handle,
@@ -99,11 +99,11 @@ impl RapierFluid {
         if self.is_valid() {
             let rapier_points = points
                 .iter()
-                .map(|vec: &godot::prelude::Vector2| vector_to_rapier(*vec))
+                .map(|vec: &crate::types::Vector| vector_to_rapier(*vec))
                 .collect::<Vec<_>>();
             let rapier_velocities = velocities
                 .iter()
-                .map(|vec: &godot::prelude::Vector2| vector_to_rapier(*vec))
+                .map(|vec: &crate::types::Vector| vector_to_rapier(*vec))
                 .collect::<Vec<_>>();
             physics_engine.fluid_add_points_and_velocities(
                 self.space_handle,
