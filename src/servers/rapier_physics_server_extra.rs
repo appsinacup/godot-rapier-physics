@@ -171,10 +171,10 @@ impl RapierPhysicsServer {
     }
 
     #[func]
-    pub(crate) fn fluid_set_effects(fluid_rid: Rid, params: Array<Option<Gd<Resource>>>) {
+    pub(crate) fn fluid_set_effects(fluid_rid: Rid, effects: Array<Option<Gd<Resource>>>) {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
-            fluid.set_effects(params, &mut physics_data.physics_engine);
+            fluid.set_effects(effects, &mut physics_data.physics_engine);
         }
     }
 

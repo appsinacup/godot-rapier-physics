@@ -44,10 +44,14 @@ impl Fluid2D {
             self.create_times[i] = ticks as f32;
         }
         let gl_transform = self.to_gd().get_global_transform();
+        let mut rapier_points = self.points.clone();
         for i in 0..self.points.len() {
-            self.points[i] = gl_transform * (self.points[i]);
+            rapier_points[i] = gl_transform * (self.points[i]);
         }
-        RapierPhysicsServer::fluid_set_points(self.rid, self.points.clone());
+        let rid = self.rid;
+        let guard = self.base_mut();
+        RapierPhysicsServer::fluid_set_points(rid, rapier_points.clone());
+        drop(guard);
         self.to_gd().queue_redraw();
     }
 
@@ -55,7 +59,11 @@ impl Fluid2D {
     fn set_density(&mut self, p_density: real) {
         if self.density != p_density {
             self.density = p_density;
-            RapierPhysicsServer::fluid_set_density(self.rid, self.density);
+            let rid = self.rid;
+            let density = self.density;
+            let guard = self.base_mut();
+            RapierPhysicsServer::fluid_set_density(rid, density);
+            drop(guard);
         }
     }
 
@@ -75,23 +83,33 @@ impl Fluid2D {
         }
         let mut fluid_gd = self.to_gd();
         fluid_gd.set_process(self.debug_draw || self.lifetime > 0.0);
-        fluid_gd.set_notify_transform(self.debug_draw);
         fluid_gd.queue_redraw();
     }
 
     #[func]
     fn get_accelerations(&self) -> PackedVector2Array {
-        RapierPhysicsServer::fluid_get_accelerations(self.rid)
+        let rid = self.rid;
+        let guard = self.base();
+        let accelerations = RapierPhysicsServer::fluid_get_accelerations(rid);
+        drop(guard);
+        accelerations
     }
 
     #[func]
     fn get_velocities(&self) -> PackedVector2Array {
-        RapierPhysicsServer::fluid_get_velocities(self.rid)
+        let rid = self.rid;
+        let guard = self.base();
+        let velocities = RapierPhysicsServer::fluid_get_velocities(rid);
+        drop(guard);
+        velocities
     }
 
     #[func]
     fn get_points(&self) -> PackedVector2Array {
-        let mut new_points = RapierPhysicsServer::fluid_get_points(self.rid);
+        let rid = self.rid;
+        let guard = self.base();
+        let mut new_points = RapierPhysicsServer::fluid_get_points(rid);
+        drop(guard);
         let gl_transform = self.to_gd().get_global_transform().affine_inverse();
         for i in 0..new_points.len() {
             new_points[i] = gl_transform * new_points[i];
@@ -144,7 +162,10 @@ impl Fluid2D {
         for i in 0..self.points.len() {
             p_points[i] = gl_transform * (p_points[i]);
         }
-        RapierPhysicsServer::fluid_add_points_and_velocities(self.rid, p_points, p_velocities);
+        let rid = self.rid;
+        let guard = self.base_mut();
+        RapierPhysicsServer::fluid_add_points_and_velocities(rid, p_points, p_velocities);
+        drop(guard);
         self.to_gd().queue_redraw();
     }
 
@@ -165,17 +186,20 @@ impl Fluid2D {
         for i in 0..self.points.len() {
             self.points[i] = gl_transform * (self.points[i]);
         }
-        RapierPhysicsServer::fluid_add_points_and_velocities(
-            self.rid,
-            self.points.clone(),
-            p_velocities,
-        );
+        let rid = self.rid;
+        let points = self.points.clone();
+        let guard = self.base_mut();
+        RapierPhysicsServer::fluid_add_points_and_velocities(rid, points, p_velocities);
+        drop(guard);
         self.to_gd().queue_redraw();
     }
 
     #[func]
     fn delete_points(&mut self, p_indices: PackedInt32Array) {
-        RapierPhysicsServer::fluid_delete_points(self.rid, p_indices.clone());
+        let rid = self.rid;
+        let guard = self.base_mut();
+        RapierPhysicsServer::fluid_delete_points(rid, p_indices.clone());
+        drop(guard);
         for i in 0..p_indices.len() {
             self.points.remove(p_indices[i] as usize);
             self.create_times.remove(p_indices[i] as usize);
@@ -186,7 +210,11 @@ impl Fluid2D {
     #[func]
     fn set_effects(&mut self, p_effects: Array<Option<Gd<Resource>>>) {
         self.effects = p_effects;
-        RapierPhysicsServer::fluid_set_effects(self.rid, self.effects.clone());
+        let rid = self.rid;
+        let effects = self.effects.clone();
+        let guard = self.base_mut();
+        RapierPhysicsServer::fluid_set_effects(rid, effects);
+        drop(guard);
     }
 
     fn delete_old_particles(&mut self) {
@@ -239,27 +267,35 @@ impl INode2D for Fluid2D {
             | CanvasItemNotification::TRANSLATION_CHANGED => {
                 let mut space_rid = Rid::Invalid;
                 if let Some(space) = self.to_gd().get_world_2d() {
-                    space_rid = space.get_rid();
+                    space_rid = space.get_space();
                 }
-                RapierPhysicsServer::fluid_set_space(space_rid, space_rid);
+                let rid = self.rid;
+                let guard = self.base_mut();
+                RapierPhysicsServer::fluid_set_space(rid, space_rid);
+                drop(guard);
                 self.set_points(self.points.clone());
-                if self.debug_draw {
-                    self.to_gd().queue_redraw();
-                }
+                let mut fluid_gd = self.to_gd();
+                fluid_gd.set_notify_transform(self.debug_draw);
+                fluid_gd.queue_redraw();
             }
             CanvasItemNotification::EXIT_TREE => {
-                RapierPhysicsServer::fluid_set_space(self.rid, Rid::Invalid);
+                let rid = self.rid;
+                let guard = self.base_mut();
+                RapierPhysicsServer::fluid_set_space(rid, Rid::Invalid);
+                drop(guard);
             }
             CanvasItemNotification::DRAW => {
                 if self.debug_draw {
                     self.points = self.get_points();
                     for point in self.points.as_slice() {
+                        let mut color = Color::WHITE;
+                        color.a = 0.4;
                         self.to_gd().draw_rect(
                             Rect2::new(
                                 *point - Vector2::new(self.radius / 2.0, self.radius / 2.0),
                                 Vector2::new(self.radius, self.radius),
                             ),
-                            Color::WHITE,
+                            color,
                         );
                     }
                 }

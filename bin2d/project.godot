@@ -20,15 +20,11 @@ config/icon="res://addons/godot-rapier2d/logo_square_2d.png"
 window/size/viewport_width=1920
 window/size/viewport_height=1080
 
-[editor_plugins]
-
-enabled=PackedStringArray()
-
 [physics]
 
 2d/physics_engine="Rapier2D"
-3d/default_gravity=10.0
-rapier/solver/polygon_contact_skin=5.62998
+rapier/fluid/fluid_particle_radius=10.0
+rapier/fluid/fluid_smoothing_factor=1.0
 
 [rendering]
 

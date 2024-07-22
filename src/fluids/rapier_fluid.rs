@@ -17,7 +17,6 @@ pub struct RapierFluid {
     points: Vec<Vector>,
     velocities: Vec<Vector>,
     accelerations: Vec<Vector>,
-    world_handle: WorldHandle,
 }
 impl RapierFluid {
     pub fn new(rid: Rid) -> Self {
@@ -31,8 +30,6 @@ impl RapierFluid {
             points: Vec::new(),
             velocities: Vec::new(),
             accelerations: Vec::new(),
-            // TODO
-            world_handle: WorldHandle::default(),
         }
     }
 
@@ -130,7 +127,7 @@ impl RapierFluid {
 
     pub fn get_points(&mut self, physics_engine: &mut PhysicsEngine) -> &Vec<Vector> {
         if self.is_valid() {
-            self.points = physics_engine.fluid_get_points(self.world_handle, self.fluid_handle);
+            self.points = physics_engine.fluid_get_points(self.space_handle, self.fluid_handle);
         }
         &self.points
     }
@@ -138,7 +135,7 @@ impl RapierFluid {
     pub fn get_velocities(&mut self, physics_engine: &mut PhysicsEngine) -> &Vec<Vector> {
         if self.is_valid() {
             self.velocities =
-                physics_engine.fluid_get_velocities(self.world_handle, self.fluid_handle);
+                physics_engine.fluid_get_velocities(self.space_handle, self.fluid_handle);
         }
         &self.velocities
     }
@@ -146,9 +143,69 @@ impl RapierFluid {
     pub fn get_accelerations(&mut self, physics_engine: &mut PhysicsEngine) -> &Vec<Vector> {
         if self.is_valid() {
             self.accelerations =
-                physics_engine.fluid_get_accelerations(self.world_handle, self.fluid_handle);
+                physics_engine.fluid_get_accelerations(self.space_handle, self.fluid_handle);
         }
         &self.accelerations
+    }
+
+    fn set_effect(&self, effect: &Gd<Resource>, physics_engine: &mut PhysicsEngine) {
+        if let Ok(effect) = effect.clone().try_cast::<FluidEffectElasticity>() {
+            let effect = effect.bind();
+            physics_engine.fluid_add_effect_elasticity(
+                self.space_handle,
+                self.fluid_handle,
+                effect.get_young_modulus(),
+                effect.get_poisson_ratio(),
+                effect.get_nonlinear_strain(),
+            );
+        } else if let Ok(effect) = effect.clone().try_cast::<FluidEffectSurfaceTensionAKINCI>() {
+            let effect = effect.bind();
+            physics_engine.fluid_add_effect_surface_tension_akinci(
+                self.space_handle,
+                self.fluid_handle,
+                effect.get_fluid_tension_coefficient(),
+                effect.get_boundary_adhesion_coefficient(),
+            );
+        } else if let Ok(effect) = effect.clone().try_cast::<FluidEffectSurfaceTensionHE>() {
+            let effect = effect.bind();
+            physics_engine.fluid_add_effect_surface_tension_he(
+                self.space_handle,
+                self.fluid_handle,
+                effect.get_fluid_tension_coefficient(),
+                effect.get_boundary_adhesion_coefficient(),
+            );
+        } else if let Ok(effect) = effect.clone().try_cast::<FluidEffectSurfaceTensionWCSPH>() {
+            let effect = effect.bind();
+            physics_engine.fluid_add_effect_surface_tension_wcsph(
+                self.space_handle,
+                self.fluid_handle,
+                effect.get_fluid_tension_coefficient(),
+                effect.get_boundary_adhesion_coefficient(),
+            );
+        } else if let Ok(effect) = effect.clone().try_cast::<FluidEffectViscosityArtificial>() {
+            let effect = effect.bind();
+            physics_engine.fluid_add_effect_viscosity_artificial(
+                self.space_handle,
+                self.fluid_handle,
+                effect.get_fluid_viscosity_coefficient(),
+                effect.get_boundary_adhesion_coefficient(),
+            );
+        } else if let Ok(effect) = effect.clone().try_cast::<FluidEffectViscosityDFSPH>() {
+            let effect = effect.bind();
+            physics_engine.fluid_add_effect_viscosity_dfsph(
+                self.space_handle,
+                self.fluid_handle,
+                effect.get_fluid_viscosity_coefficient(),
+            );
+        } else if let Ok(effect) = effect.clone().try_cast::<FluidEffectViscosityXSPH>() {
+            let effect = effect.bind();
+            physics_engine.fluid_add_effect_viscosity_xsph(
+                self.space_handle,
+                self.fluid_handle,
+                effect.get_fluid_viscosity_coefficient(),
+                effect.get_boundary_adhesion_coefficient(),
+            );
+        }
     }
 
     pub fn set_effects(
@@ -157,82 +214,14 @@ impl RapierFluid {
         physics_engine: &mut PhysicsEngine,
     ) {
         if self.effects != effects {
-            self.effects = effects;
+            self.effects = effects.clone();
         }
         if self.is_valid() {
             physics_engine.fluid_clear_effects(self.space_handle, self.fluid_handle);
-            for i in 0..self.effects.len() {
-                let effect = self.effects.get(i);
-                if let Some(effect) = effect
-                    && let Some(effect) = effect
-                {
-                    if let Ok(effect) = effect.clone().try_cast::<FluidEffectElasticity>() {
-                        let effect = effect.bind();
-                        physics_engine.fluid_add_effect_elasticity(
-                            self.space_handle,
-                            self.fluid_handle,
-                            effect.get_young_modulus(),
-                            effect.get_poisson_ratio(),
-                            effect.get_nonlinear_strain(),
-                        );
-                    } else if let Ok(effect) =
-                        effect.clone().try_cast::<FluidEffectSurfaceTensionAKINCI>()
-                    {
-                        let effect = effect.bind();
-                        physics_engine.fluid_add_effect_surface_tension_akinci(
-                            self.space_handle,
-                            self.fluid_handle,
-                            effect.get_fluid_tension_coefficient(),
-                            effect.get_boundary_adhesion_coefficient(),
-                        );
-                    } else if let Ok(effect) =
-                        effect.clone().try_cast::<FluidEffectSurfaceTensionHE>()
-                    {
-                        let effect = effect.bind();
-                        physics_engine.fluid_add_effect_surface_tension_he(
-                            self.space_handle,
-                            self.fluid_handle,
-                            effect.get_fluid_tension_coefficient(),
-                            effect.get_boundary_adhesion_coefficient(),
-                        );
-                    } else if let Ok(effect) =
-                        effect.clone().try_cast::<FluidEffectSurfaceTensionWCSPH>()
-                    {
-                        let effect = effect.bind();
-                        physics_engine.fluid_add_effect_surface_tension_wcsph(
-                            self.space_handle,
-                            self.fluid_handle,
-                            effect.get_fluid_tension_coefficient(),
-                            effect.get_boundary_adhesion_coefficient(),
-                        );
-                    } else if let Ok(effect) =
-                        effect.clone().try_cast::<FluidEffectViscosityArtificial>()
-                    {
-                        let effect = effect.bind();
-                        physics_engine.fluid_add_effect_viscosity_artificial(
-                            self.space_handle,
-                            self.fluid_handle,
-                            effect.get_fluid_viscosity_coefficient(),
-                            effect.get_boundary_adhesion_coefficient(),
-                        );
-                    } else if let Ok(effect) =
-                        effect.clone().try_cast::<FluidEffectViscosityDFSPH>()
-                    {
-                        let effect = effect.bind();
-                        physics_engine.fluid_add_effect_viscosity_dfsph(
-                            self.space_handle,
-                            self.fluid_handle,
-                            effect.get_fluid_viscosity_coefficient(),
-                        );
-                    } else if let Ok(effect) = effect.try_cast::<FluidEffectViscosityXSPH>() {
-                        let effect = effect.bind();
-                        physics_engine.fluid_add_effect_viscosity_xsph(
-                            self.space_handle,
-                            self.fluid_handle,
-                            effect.get_fluid_viscosity_coefficient(),
-                            effect.get_boundary_adhesion_coefficient(),
-                        );
-                    }
+            for effect in self.effects.iter_shared() {
+                if let Some(effect) = effect {
+                    let effect = effect.clone();
+                    self.set_effect(&effect, physics_engine);
                 }
             }
         }
@@ -285,9 +274,9 @@ impl RapierFluid {
 
     pub fn destroy_fluid(&mut self, physics_engine: &mut PhysicsEngine) {
         if self.is_valid() {
-            physics_engine.fluid_destroy(self.world_handle, self.fluid_handle);
+            physics_engine.fluid_destroy(self.space_handle, self.fluid_handle);
             self.fluid_handle = invalid_handle_double();
-            self.world_handle = WorldHandle::default()
+            self.space_handle = WorldHandle::default()
         }
     }
 }
