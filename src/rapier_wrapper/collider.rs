@@ -1,5 +1,5 @@
 use godot::builtin::math::FloatExt;
-use godot::log::godot_error;
+use godot::global::godot_error;
 use rapier::prelude::*;
 use salva::integrations::rapier::ColliderSampling;
 use salva::object::Boundary;

@@ -1,5 +1,5 @@
 use crossbeam::channel::Sender;
-use godot::log::godot_error;
+use godot::global::godot_error;
 use rapier::crossbeam;
 use rapier::prelude::*;
 pub struct ContactEventHandler {

@@ -70,7 +70,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
-        results: *mut godot::engine::native::PhysicsServer2DExtensionShapeResult,
+        results: *mut godot::classes::native::PhysicsServer2DExtensionShapeResult,
         max_results: i32,
     ) -> i32 {
         let physics_data = physics_data();
@@ -95,7 +95,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
-        results: *mut godot::engine::native::PhysicsServer2DExtensionShapeResult,
+        results: *mut godot::classes::native::PhysicsServer2DExtensionShapeResult,
         max_results: i32,
     ) -> i32 {
         let physics_data = physics_data();
@@ -178,7 +178,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
-        rest_info: *mut godot::engine::native::PhysicsServer2DExtensionShapeRestInfo,
+        rest_info: *mut godot::classes::native::PhysicsServer2DExtensionShapeRestInfo,
     ) -> bool {
         let physics_data = physics_data();
         self.inner.rest_info(

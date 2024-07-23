@@ -1,5 +1,5 @@
-use godot::engine::utilities::rid_allocate_id;
-use godot::engine::utilities::rid_from_int64;
+use godot::global::rid_allocate_id;
+use godot::global::rid_from_int64;
 use godot::prelude::*;
 
 use super::rapier_physics_singleton::physics_data;

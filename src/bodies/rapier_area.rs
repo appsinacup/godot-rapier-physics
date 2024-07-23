@@ -1,8 +1,8 @@
 #[cfg(feature = "dim2")]
-use godot::engine::physics_server_2d::*;
+use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
-use godot::engine::physics_server_3d::*;
-use godot::log::godot_error;
+use godot::classes::physics_server_3d::*;
+use godot::global::godot_error;
 use godot::meta::ToGodot;
 use godot::obj::EngineEnum;
 use godot::prelude::*;
@@ -583,24 +583,23 @@ impl RapierArea {
                 godot_error!("Invalid monitor state");
                 continue;
             }
-            let arg_array;
-            if monitor_info.state > 0 {
-                arg_array = vec![
+            let arg_array = if monitor_info.state > 0 {
+                vec![
                     AreaBodyStatus::ADDED.to_variant(),
                     monitor_info.rid.to_variant(),
                     monitor_info.instance_id.to_variant(),
                     monitor_info.object_shape_index.to_variant(),
                     monitor_info.area_shape_index.to_variant(),
-                ];
+                ]
             } else {
-                arg_array = vec![
+                vec![
                     AreaBodyStatus::REMOVED.to_variant(),
                     monitor_info.rid.to_variant(),
                     monitor_info.instance_id.to_variant(),
                     monitor_info.object_shape_index.to_variant(),
                     monitor_info.area_shape_index.to_variant(),
-                ];
-            }
+                ]
+            };
             if monitor_info.collision_object_type == CollisionObjectType::Body {
                 if let Some(ref monitor_callback) = self.monitor_callback {
                     queries.push((monitor_callback.clone(), arg_array));

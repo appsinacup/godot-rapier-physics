@@ -1,7 +1,4 @@
 use godot::prelude::*;
-
-use super::fluid_effect_2d::FluidEffect2DType;
-use super::fluid_effect_2d::IFluidEffect2D;
 #[derive(GodotClass)]
 #[class(base=Resource)]
 pub struct FluidEffect2DViscosityXSPH {
@@ -11,11 +8,6 @@ pub struct FluidEffect2DViscosityXSPH {
     boundary_adhesion_coefficient: real,
 
     base: Base<Resource>,
-}
-impl IFluidEffect2D for FluidEffect2DViscosityXSPH {
-    fn get_fluid_effect_type(&self) -> FluidEffect2DType {
-        FluidEffect2DType::FluidEffect2DViscosityXsph
-    }
 }
 #[godot_api]
 impl IResource for FluidEffect2DViscosityXSPH {

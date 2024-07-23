@@ -1,7 +1,4 @@
 use godot::prelude::*;
-
-use super::fluid_effect_3d::FluidEffect3DType;
-use super::fluid_effect_3d::IFluidEffect3D;
 #[derive(GodotClass)]
 #[class(base=Resource)]
 pub struct FluidEffect3DElasticity {
@@ -13,11 +10,6 @@ pub struct FluidEffect3DElasticity {
     nonlinear_strain: bool,
 
     base: Base<Resource>,
-}
-impl IFluidEffect3D for FluidEffect3DElasticity {
-    fn get_fluid_effect_type(&self) -> FluidEffect3DType {
-        FluidEffect3DType::FluidEffect3DElasticity
-    }
 }
 #[godot_api]
 impl IResource for FluidEffect3DElasticity {

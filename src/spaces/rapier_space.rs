@@ -1,10 +1,10 @@
 use bodies::rapier_area::RapierArea;
 use bodies::rapier_body::RapierBody;
-use godot::classes::ProjectSettings;
 #[cfg(feature = "dim2")]
-use godot::engine::physics_server_2d::*;
+use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
-use godot::engine::physics_server_3d::*;
+use godot::classes::physics_server_3d::*;
+use godot::classes::ProjectSettings;
 use godot::prelude::*;
 use hashbrown::HashMap;
 use hashbrown::HashSet;

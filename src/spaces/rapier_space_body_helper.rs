@@ -689,6 +689,7 @@ fn set_collision_info(
     p_result.collider_velocity = collider_velocity;
 }
 #[cfg(feature = "dim3")]
+#[allow(clippy::too_many_arguments)]
 fn set_collision_info(
     p_result: &mut PhysicsServerExtensionMotionResult,
     collider: Rid,

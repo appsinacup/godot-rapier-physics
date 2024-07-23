@@ -218,11 +218,9 @@ impl RapierFluid {
         }
         if self.is_valid() {
             physics_engine.fluid_clear_effects(self.space_handle, self.fluid_handle);
-            for effect in self.effects.iter_shared() {
-                if let Some(effect) = effect {
-                    let effect = effect.clone();
-                    self.set_effect(&effect, physics_engine);
-                }
+            for effect in self.effects.iter_shared().flatten() {
+                let effect = effect.clone();
+                self.set_effect(&effect, physics_engine);
             }
         }
     }

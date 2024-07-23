@@ -2,11 +2,11 @@
 use std::ffi::c_void;
 
 #[cfg(feature = "dim2")]
-use godot::engine::physics_server_2d::*;
+use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
-use godot::engine::physics_server_3d::*;
-use godot::engine::utilities::rid_allocate_id;
-use godot::engine::utilities::rid_from_int64;
+use godot::classes::physics_server_3d::*;
+use godot::global::rid_allocate_id;
+use godot::global::rid_from_int64;
 use godot::prelude::*;
 
 use super::rapier_physics_singleton::physics_data;
@@ -1607,6 +1607,7 @@ impl RapierPhysicsServerImpl {
     }
 
     #[cfg(feature = "dim3")]
+    #[allow(clippy::too_many_arguments)]
     pub(super) fn joint_make_hinge_simple(
         &mut self,
         rid: Rid,

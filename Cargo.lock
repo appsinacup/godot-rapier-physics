@@ -236,8 +236,8 @@ dependencies = [
 
 [[package]]
 name = "godot"
-version = "0.1.2"
-source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#bddf5afb125ade5ec0a6bf74bdb89cce7e567bbb"
+version = "0.1.3"
+source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#8cd94602265d9c7448443dd51b6a94c81d666ec6"
 dependencies = [
  "godot-core",
  "godot-macros",
@@ -245,8 +245,8 @@ dependencies = [
 
 [[package]]
 name = "godot-bindings"
-version = "0.1.2"
-source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#bddf5afb125ade5ec0a6bf74bdb89cce7e567bbb"
+version = "0.1.3"
+source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#8cd94602265d9c7448443dd51b6a94c81d666ec6"
 dependencies = [
  "gdextension-api",
  "hashbrown",
@@ -254,16 +254,16 @@ dependencies = [
 
 [[package]]
 name = "godot-cell"
-version = "0.1.2"
-source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#bddf5afb125ade5ec0a6bf74bdb89cce7e567bbb"
+version = "0.1.3"
+source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#8cd94602265d9c7448443dd51b6a94c81d666ec6"
 dependencies = [
  "hashbrown",
 ]
 
 [[package]]
 name = "godot-codegen"
-version = "0.1.2"
-source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#bddf5afb125ade5ec0a6bf74bdb89cce7e567bbb"
+version = "0.1.3"
+source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#8cd94602265d9c7448443dd51b6a94c81d666ec6"
 dependencies = [
  "godot-bindings",
  "hashbrown",
@@ -276,8 +276,8 @@ dependencies = [
 
 [[package]]
 name = "godot-core"
-version = "0.1.2"
-source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#bddf5afb125ade5ec0a6bf74bdb89cce7e567bbb"
+version = "0.1.3"
+source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#8cd94602265d9c7448443dd51b6a94c81d666ec6"
 dependencies = [
  "glam",
  "godot-bindings",
@@ -290,8 +290,8 @@ dependencies = [
 
 [[package]]
 name = "godot-ffi"
-version = "0.1.2"
-source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#bddf5afb125ade5ec0a6bf74bdb89cce7e567bbb"
+version = "0.1.3"
+source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#8cd94602265d9c7448443dd51b6a94c81d666ec6"
 dependencies = [
  "gensym",
  "godot-bindings",
@@ -303,8 +303,8 @@ dependencies = [
 
 [[package]]
 name = "godot-macros"
-version = "0.1.2"
-source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#bddf5afb125ade5ec0a6bf74bdb89cce7e567bbb"
+version = "0.1.3"
+source = "git+https://github.com/ughuuu/gdext?branch=make-stuff-serializable#8cd94602265d9c7448443dd51b6a94c81d666ec6"
 dependencies = [
  "godot-bindings",
  "hashbrown",
@@ -1179,19 +1179,19 @@ dependencies = [
 [[patch.unused]]
 name = "parry2d"
 version = "0.17.0"
-source = "git+https://github.com/dimforge/parry?branch=master#71fe6dedeff28ae27f0b015b2efd24b73cdd8aa5"
+source = "git+https://github.com/dimforge/parry?branch=master#ee77d3c3c2c2c96cfd7f93dd82ad5963e6880946"
 
 [[patch.unused]]
 name = "parry2d-f64"
 version = "0.17.0"
-source = "git+https://github.com/dimforge/parry?branch=master#71fe6dedeff28ae27f0b015b2efd24b73cdd8aa5"
+source = "git+https://github.com/dimforge/parry?branch=master#ee77d3c3c2c2c96cfd7f93dd82ad5963e6880946"
 
 [[patch.unused]]
 name = "parry3d"
 version = "0.17.0"
-source = "git+https://github.com/dimforge/parry?branch=master#71fe6dedeff28ae27f0b015b2efd24b73cdd8aa5"
+source = "git+https://github.com/dimforge/parry?branch=master#ee77d3c3c2c2c96cfd7f93dd82ad5963e6880946"
 
 [[patch.unused]]
 name = "parry3d-f64"
 version = "0.17.0"
-source = "git+https://github.com/dimforge/parry?branch=master#71fe6dedeff28ae27f0b015b2efd24b73cdd8aa5"
+source = "git+https://github.com/dimforge/parry?branch=master#ee77d3c3c2c2c96cfd7f93dd82ad5963e6880946"
