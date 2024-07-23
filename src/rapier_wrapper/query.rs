@@ -1,6 +1,6 @@
 use std::ops::Mul;
 
-use godot::log::godot_error;
+use godot::global::godot_error;
 use nalgebra::zero;
 use rapier::parry;
 use rapier::parry::query::ShapeCastOptions;

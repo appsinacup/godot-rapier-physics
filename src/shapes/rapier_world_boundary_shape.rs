@@ -1,7 +1,7 @@
 #[cfg(feature = "dim2")]
-use godot::engine::physics_server_2d::ShapeType;
+use godot::classes::physics_server_2d::ShapeType;
 #[cfg(feature = "dim3")]
-use godot::engine::physics_server_3d::ShapeType;
+use godot::classes::physics_server_3d::ShapeType;
 use godot::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;

@@ -311,7 +311,7 @@ impl RapierBody {
         // Send contact infos for dynamic bodies
         if self.base.mode.ord() >= BodyMode::KINEMATIC.ord() {
             let mut send_contacts = self.can_report_contacts();
-            if self.base.is_debugging_contacts && godot::engine::Os::singleton().is_debug_build() {
+            if self.base.is_debugging_contacts && godot::classes::Os::singleton().is_debug_build() {
                 send_contacts = true;
             }
             physics_engine.collider_set_contact_force_events_enabled(
@@ -370,10 +370,12 @@ impl RapierBody {
         );
     }
 
+    #[allow(clippy::wrong_self_convention)]
     pub fn to_add_static_constant_linear_velocity(&mut self, linear_velocity: Vector) {
         self.to_add_linear_velocity = linear_velocity;
     }
 
+    #[allow(clippy::wrong_self_convention)]
     pub fn to_add_static_constant_angular_velocity(&mut self, angular_velocity: Angle) {
         self.to_add_angular_velocity = angular_velocity;
     }

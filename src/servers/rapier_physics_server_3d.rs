@@ -1,7 +1,7 @@
+use godot::classes::physics_server_3d::*;
 use godot::classes::IPhysicsServer3DExtension;
 use godot::classes::PhysicsServer3DExtension;
 use godot::classes::{self};
-use godot::engine::physics_server_3d::*;
 use godot::prelude::*;
 
 use super::rapier_physics_server_impl::RapierPhysicsServerImpl;

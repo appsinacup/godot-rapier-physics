@@ -1,9 +1,9 @@
 use std::ffi::c_void;
 
+use godot::classes::physics_server_2d::*;
 use godot::classes::IPhysicsServer2DExtension;
 use godot::classes::PhysicsServer2DExtension;
 use godot::classes::{self};
-use godot::engine::physics_server_2d::*;
 use godot::prelude::*;
 
 use super::rapier_physics_server_impl::RapierPhysicsServerImpl;

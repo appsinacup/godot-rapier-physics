@@ -85,6 +85,7 @@ impl PhysicsEngine {
     }
 
     #[cfg(feature = "dim3")]
+    #[allow(clippy::too_many_arguments)]
     pub fn joint_create_spherical(
         &mut self,
         world_handle: WorldHandle,

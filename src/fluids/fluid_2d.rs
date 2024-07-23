@@ -1,11 +1,12 @@
-use godot::engine::notify::CanvasItemNotification;
-use godot::engine::Engine;
-use godot::engine::Time;
+use godot::classes::notify::CanvasItemNotification;
+use godot::classes::Engine;
+use godot::classes::Time;
 use godot::prelude::*;
 
 use crate::servers::rapier_project_settings::RapierProjectSettings;
 use crate::servers::RapierPhysicsServer;
 use crate::types::*;
+/// Class description maybe
 #[derive(GodotClass)]
 #[class(base=Node2D)]
 pub struct Fluid2D {
@@ -34,6 +35,7 @@ pub struct Fluid2D {
 }
 #[godot_api]
 impl Fluid2D {
+    /// Set the points of the fluid [PackedVector2Array]
     #[func]
     fn set_points(&mut self, p_points: PackedVectorArray) {
         self.points = p_points;
@@ -180,7 +182,7 @@ impl Fluid2D {
         let old_times = self.create_times.len();
         self.create_times.resize(self.points.len());
         let ticks = Time::singleton().get_ticks_msec();
-        for i in old_times..self.points.len() {
+        for _i in old_times..self.points.len() {
             self.create_times.push(ticks as f32);
         }
         let gl_transform = self.to_gd().get_global_transform();

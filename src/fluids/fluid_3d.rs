@@ -1,6 +1,6 @@
-use godot::engine::notify::Node3DNotification;
-use godot::engine::Engine;
-use godot::engine::Time;
+use godot::classes::notify::Node3DNotification;
+use godot::classes::Engine;
+use godot::classes::Time;
 use godot::prelude::*;
 
 use crate::servers::rapier_project_settings::RapierProjectSettings;
@@ -195,7 +195,7 @@ impl Fluid3D {
         let old_times = self.create_times.len();
         self.create_times.resize(self.points.len());
         let ticks = Time::singleton().get_ticks_msec();
-        for i in old_times..self.points.len() {
+        for _i in old_times..self.points.len() {
             self.create_times.push(ticks as f32);
         }
         let gl_transform = self.to_gd().get_global_transform();

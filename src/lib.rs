@@ -50,17 +50,7 @@ unsafe impl ExtensionLibrary for RapierPhysics2DExtensionLibrary {
         }
     }
 
-    fn on_level_deinit(level: InitLevel) {
-        match level {
-            InitLevel::Scene => {
-                servers::unregister_scene();
-            }
-            InitLevel::Servers => {
-                servers::unregister_server();
-            }
-            _ => (),
-        }
-    }
+    fn on_level_deinit(_level: InitLevel) {}
 }
 #[cfg(feature = "dim3")]
 #[derive(GodotClass)]
@@ -81,25 +71,9 @@ unsafe impl ExtensionLibrary for RapierPhysics3DExtensionLibrary {
             InitLevel::Servers => {
                 servers::register_server();
             }
-            InitLevel::Editor => {
-                servers::register_editor();
-            }
             _ => (),
         }
     }
 
-    fn on_level_deinit(level: InitLevel) {
-        match level {
-            InitLevel::Scene => {
-                servers::unregister_scene();
-            }
-            InitLevel::Servers => {
-                servers::unregister_server();
-            }
-            InitLevel::Editor => {
-                servers::unregister_editor();
-            }
-            _ => (),
-        }
-    }
+    fn on_level_deinit(_level: InitLevel) {}
 }
