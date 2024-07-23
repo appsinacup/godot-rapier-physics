@@ -1,7 +1,7 @@
 shader_type canvas_item;
 
-uniform float threshold = 0.85;
-uniform vec4 water_color: source_color = vec4(0,1,1,0.7);
+uniform float threshold = 0.8;
+uniform vec4 water_color: source_color = vec4(0.12,0.24,0.45,0.65);
 uniform vec4 test_color: source_color = vec4(1,0,1,1);
 
 uniform float speed = 0.1; // Speed of movement
