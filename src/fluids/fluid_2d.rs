@@ -6,7 +6,6 @@ use godot::prelude::*;
 use crate::servers::rapier_project_settings::RapierProjectSettings;
 use crate::servers::RapierPhysicsServer;
 use crate::types::*;
-/// Class description maybe
 #[derive(GodotClass)]
 #[class(base=Node2D)]
 pub struct Fluid2D {
@@ -35,7 +34,6 @@ pub struct Fluid2D {
 }
 #[godot_api]
 impl Fluid2D {
-    /// Set the points of the fluid [PackedVector2Array]
     #[func]
     fn set_points(&mut self, p_points: PackedVectorArray) {
         self.points = p_points;
