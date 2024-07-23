@@ -1,14 +1,23 @@
+@tool
 class_name Fluid2DRenderer
 extends MultiMeshInstance2D
 
 @export var fluid: Fluid2D
-@export var color: Color
+@export var color: Color = Color(0.8, 0.8, 0.8, 0.3)
+
 
 func _ready():
-	multimesh = multimesh.duplicate(true)
+	if multimesh == null:
+		multimesh = MultiMesh.new()
+		multimesh.mesh = load("res://addons/godot-rapier2d/circle_mesh.tres").duplicate()
+		multimesh.use_colors = true
+	if texture == null:
+		texture = load("res://addons/godot-rapier2d/Radial2D.svg")
 
 func _process(_delta):
-	global_position = fluid.global_position
+	if fluid == null:
+		return
+	global_transform = fluid.global_transform
 	var index = 0
 	multimesh.instance_count = fluid.points.size()
 	var points = fluid.points

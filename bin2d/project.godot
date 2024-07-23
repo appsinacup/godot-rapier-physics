@@ -11,8 +11,14 @@ config_version=5
 [application]
 
 config/name="Godot Rapier 2D"
+run/main_scene="res://samples/softbody2d/create-a-softbody/create.tscn"
 config/features=PackedStringArray("4.3")
 config/icon="res://addons/godot-rapier2d/logo_square_2d.png"
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
 
 [physics]
 

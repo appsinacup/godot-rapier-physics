@@ -21,7 +21,7 @@ impl IFluidEffect3D for FluidEffect3DSurfaceTensionAKINCI {
 impl IResource for FluidEffect3DSurfaceTensionAKINCI {
     fn init(base: Base<Resource>) -> Self {
         Self {
-            fluid_tension_coefficient: 1000.0,
+            fluid_tension_coefficient: 1.0,
             boundary_adhesion_coefficient: 0.0,
             base,
         }
