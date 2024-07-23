@@ -2,6 +2,7 @@
 
 ## v0.7.19
 
+* Update to newest gdext. Remove warnings by [@Ughuuu](https://github.com/Ughuuu) in [#161](https://github.com/appsinacup/godot-rapier-physics/pull/161)
 * Liquid nice to have features by [@Ughuuu](https://github.com/Ughuuu) in [#160](https://github.com/appsinacup/godot-rapier-physics/pull/160)
 * Liquids impl by [@Ughuuu](https://github.com/Ughuuu) in [#159](https://github.com/appsinacup/godot-rapier-physics/pull/159)
 
