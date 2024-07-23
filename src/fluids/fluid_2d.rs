@@ -82,6 +82,7 @@ impl Fluid2D {
             self.debug_draw = p_debug_draw;
         }
         let mut fluid_gd = self.to_gd();
+        fluid_gd.set_notify_transform(self.debug_draw);
         fluid_gd.set_process(self.debug_draw || self.lifetime > 0.0);
         fluid_gd.queue_redraw();
     }
