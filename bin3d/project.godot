@@ -28,4 +28,3 @@ enabled=PackedStringArray("res://addons/godot-rapier3d/plugin.cfg")
 
 2d/physics_engine="Rapier2D"
 3d/physics_engine="Rapier3D"
-rapier/fluid/fluid_particle_radius_3d=0.2

@@ -261,7 +261,10 @@ impl RapierPhysicsServer {
     pub(crate) fn fluid_delete_points(fluid_rid: Rid, indices: PackedInt32Array) {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
-            fluid.delete_points(indices.to_vec());
+            let mut indices = indices.to_vec();
+            indices.sort_unstable();
+            indices.reverse();
+            fluid.delete_points(indices, &mut physics_data.physics_engine);
         }
     }
 

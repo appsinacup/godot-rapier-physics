@@ -111,8 +111,7 @@ impl PhysicsEngine {
         &mut self,
         world_handle: WorldHandle,
         fluid_handle: HandleDouble,
-        indexes: &usize,
-        indexes_count: usize,
+        indices: Vec<i32>,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(fluid) = physics_world
@@ -121,42 +120,39 @@ impl PhysicsEngine {
                 .fluids_mut()
                 .get_mut(handle_to_fluid_handle(fluid_handle))
         {
-            unsafe {
-                let indexes_raw = std::slice::from_raw_parts(indexes, indexes_count);
-                // create mask from array of indexes
-                let mut mask = vec![false; fluid.positions.len()];
-                for i in 0..indexes_count {
-                    if fluid.positions.len() <= indexes_raw[i] {
-                        continue;
-                    }
-                    mask[indexes_raw[i]] = true;
+            // create mask from array of indexes
+            let mut mask = vec![false; fluid.positions.len()];
+            for i in 0..indices.len() {
+                if fluid.positions.len() <= indices[i] as usize {
+                    continue;
                 }
-                let mut i = 0;
-                // remove all points that are not in the mask
-                fluid.positions.retain(|_| {
-                    let delete = mask[i];
-                    i += 1;
-                    !delete
-                });
-                let mut i = 0;
-                fluid.velocities.retain(|_| {
-                    let delete = mask[i];
-                    i += 1;
-                    !delete
-                });
-                let mut i = 0;
-                fluid.accelerations.retain(|_| {
-                    let delete = mask[i];
-                    i += 1;
-                    !delete
-                });
-                let mut i = 0;
-                fluid.volumes.retain(|_| {
-                    let delete = mask[i];
-                    i += 1;
-                    !delete
-                });
+                mask[indices[i] as usize] = true;
             }
+            let mut i = 0;
+            // remove all points that are not in the mask
+            fluid.positions.retain(|_| {
+                let delete = mask[i];
+                i += 1;
+                !delete
+            });
+            let mut i = 0;
+            fluid.velocities.retain(|_| {
+                let delete = mask[i];
+                i += 1;
+                !delete
+            });
+            let mut i = 0;
+            fluid.accelerations.retain(|_| {
+                let delete = mask[i];
+                i += 1;
+                !delete
+            });
+            let mut i = 0;
+            fluid.volumes.retain(|_| {
+                let delete = mask[i];
+                i += 1;
+                !delete
+            });
         }
     }
 
