@@ -1179,19 +1179,19 @@ dependencies = [
 [[patch.unused]]
 name = "parry2d"
 version = "0.17.0"
-source = "git+https://github.com/dimforge/parry?branch=master#ee77d3c3c2c2c96cfd7f93dd82ad5963e6880946"
+source = "git+https://github.com/dimforge/parry?branch=master#a0bff1f068f64c1c3dfadb9fad90068e6a81119f"
 
 [[patch.unused]]
 name = "parry2d-f64"
 version = "0.17.0"
-source = "git+https://github.com/dimforge/parry?branch=master#ee77d3c3c2c2c96cfd7f93dd82ad5963e6880946"
+source = "git+https://github.com/dimforge/parry?branch=master#a0bff1f068f64c1c3dfadb9fad90068e6a81119f"
 
 [[patch.unused]]
 name = "parry3d"
 version = "0.17.0"
-source = "git+https://github.com/dimforge/parry?branch=master#ee77d3c3c2c2c96cfd7f93dd82ad5963e6880946"
+source = "git+https://github.com/dimforge/parry?branch=master#a0bff1f068f64c1c3dfadb9fad90068e6a81119f"
 
 [[patch.unused]]
 name = "parry3d-f64"
 version = "0.17.0"
-source = "git+https://github.com/dimforge/parry?branch=master#ee77d3c3c2c2c96cfd7f93dd82ad5963e6880946"
+source = "git+https://github.com/dimforge/parry?branch=master#a0bff1f068f64c1c3dfadb9fad90068e6a81119f"

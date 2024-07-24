@@ -1,59 +1,94 @@
 [gd_scene load_steps=7 format=3 uid="uid://cn4jscixu2bmf"]
 
 [ext_resource type="Script" path="res://test.gd" id="1_fs1uw"]
-[ext_resource type="Script" path="res://addons/godot-rapier2d/fluid_2d_shader_renderer.gd" id="5_f52jn"]
-[ext_resource type="Material" uid="uid://cysnk7s2ll173" path="res://addons/godot-rapier2d/water_shader.tres" id="6_ml4s1"]
+[ext_resource type="Script" path="res://addons/godot-rapier2d/fluid_2d_rectangle.gd" id="2_ytw3m"]
 
-[sub_resource type="FluidEffect2DViscosityXSPH" id="FluidEffect2DViscosityXSPH_bfnyu"]
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_4p047"]
+friction = 0.0
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_irytb"]
-size = Vector2(23.2032, 53.1578)
+size = Vector2(100, 100)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_3ytxo"]
-size = Vector2(1402.17, 77.1209)
+size = Vector2(1402.17, 10)
+
+[sub_resource type="FluidEffect2DSurfaceTensionWCSPH" id="FluidEffect2DSurfaceTensionWCSPH_3ls6n"]
+fluid_tension_coefficient = 10.0
 
 [node name="SceneRayOnSwitch" type="Node2D"]
 script = ExtResource("1_fs1uw")
 
-[node name="Fluid2D" type="Fluid2D" parent="."]
-debug_draw = true
-lifetime = 0.1
-effects = Array[Resource]([SubResource("FluidEffect2DViscosityXSPH_bfnyu")])
-points = PackedVector2Array(-365.63, 182.523, -325.629, 22.5219, -325.629, 62.5206, -325.629, 102.524, -325.63, 142.522, -325.628, 182.522, -325.629, 222.522, -325.628, 262.522, -325.63, 302.523, -325.628, 342.524, -285.63, -17.4773, -285.626, 22.522, -285.629, 62.5205, -285.628, 102.522, -285.63, 142.523, -285.627, 182.522, -285.628, 222.52, -285.628, 262.522, -285.629, 302.524, -285.63, 342.523, -285.627, 382.523, -245.627, -57.4795, -245.629, -17.4803, -245.628, 22.5231, -245.628, 62.5222, -245.627, 102.523, -245.629, 142.522, -245.629, 182.524, -245.63, 222.523, -245.628, 262.524, -245.627, 302.524, -245.628, 342.523, -245.629, 382.522, -245.63, 422.525, -205.627, -97.4794, -205.626, -57.4795, -205.628, -17.4786, -205.627, 22.5221, -205.628, 62.5215, -205.628, 102.522, -205.629, 142.522, -205.628, 182.524, -205.628, 222.522, -205.628, 262.523, -205.628, 302.524, -205.628, 342.524, -205.628, 382.523, -205.628, 422.525, -205.629, 462.525, -165.627, -137.478, -165.627, -97.479, -165.627, -57.4796, -165.627, -17.48, -165.627, 22.5214, -165.629, 62.5205, -165.628, 102.522, -165.627, 142.522, -165.628, 182.522, -165.629, 222.522, -165.627, 262.524, -165.627, 302.523, -165.628, 342.525, -165.627, 382.524, -165.629, 422.525, -165.628, 462.524, -165.627, 502.524, -125.629, -137.48, -125.628, -97.4802, -125.628, -57.4791, -125.626, -17.4797, -125.627, 22.522, -125.627, 62.5212, -125.627, 102.522, -125.625, 142.523, -125.628, 182.521, -125.628, 222.522, -125.628, 262.524, -125.628, 302.524, -125.628, 342.523, -125.63, 382.523, -125.629, 422.523, -125.627, 462.525, -125.628, 502.525, -85.6267, -137.481, -85.6283, -97.4796, -85.6252, -57.4777, -85.6268, -17.4789, -85.6264, 22.5212, -85.6245, 62.5221, -85.6277, 102.521, -85.6246, 142.523, -85.6277, 182.523, -85.6255, 222.522, -85.6298, 262.522, -85.6265, 302.523, -85.627, 342.523, -85.6265, 382.523, -85.6264, 422.524, -85.6268, 462.524, -85.6265, 502.524, -45.6261, -137.48, -45.6254, -97.4795, -45.6255, -57.4801, -45.6273, -17.4788, -45.6273, 22.5217, -45.6254, 62.5232, -45.6248, 102.521, -45.6255, 142.522, -45.626, 182.523, -45.6265, 222.523, -45.6271, 262.523, -45.6282, 302.523, -45.6278, 342.523, -45.6266, 382.523, -45.625, 422.524, -45.625, 462.525, -45.6259, 502.524, -5.62622, -177.481, -5.62616, -137.48, -5.62561, -97.4805, -5.62762, -57.4785, -5.62512, -17.4778, -5.62683, 22.5216, -5.62625, 62.5216, -5.62775, 102.521, -5.62531, 142.523, -5.62729, 182.523, -5.6275, 222.522, -5.62482, 262.523, -5.62711, 302.524, -5.6254, 342.523, -5.62552, 382.524, -5.62619, 422.525, -5.62619, 462.523, -5.62744, 502.524, 34.3753, -137.479, 34.3743, -97.4795, 34.3739, -57.4796, 34.3756, -17.48, 34.3741, 22.5216, 34.3755, 62.5217, 34.3736, 102.522, 34.3726, 142.521, 34.3742, 182.524, 34.3744, 222.524, 34.3741, 262.522, 34.3736, 302.523, 34.3756, 342.525, 34.3733, 382.524, 34.3741, 422.525, 34.3736, 462.524, 34.3739, 502.525, 74.374, -137.479, 74.3744, -97.4807, 74.3739, -57.4797, 74.3744, -17.478, 74.3738, 22.5206, 74.3727, 62.5217, 74.3744, 102.524, 74.3752, 142.523, 74.3739, 182.523, 74.3727, 222.523, 74.3742, 262.523, 74.3734, 302.525, 74.3736, 342.524, 74.3738, 382.524, 74.3748, 422.525, 74.3745, 462.524, 74.3743, 502.525, 114.374, -137.48, 114.376, -97.4801, 114.376, -57.4786, 114.375, -17.4784, 114.374, 22.5231, 114.374, 62.5211, 114.372, 102.521, 114.373, 142.52, 114.373, 182.524, 114.373, 222.523, 114.374, 262.523, 114.375, 302.523, 114.373, 342.523, 114.374, 382.523, 114.374, 422.523, 114.375, 462.524, 114.374, 502.526, 154.376, -137.48, 154.375, -97.4785, 154.375, -57.4775, 154.374, -17.4796, 154.374, 22.5199, 154.374, 62.5227, 154.374, 102.522, 154.374, 142.521, 154.375, 182.523, 154.374, 222.521, 154.375, 262.523, 154.374, 302.524, 154.375, 342.524, 154.373, 382.524, 154.374, 422.523, 154.375, 462.525, 154.373, 502.525, 194.375, -97.479, 194.376, -57.4781, 194.374, -17.479, 194.374, 22.5215, 194.374, 62.5225, 194.375, 102.52, 194.374, 142.522, 194.374, 182.521, 194.376, 222.523, 194.374, 262.523, 194.375, 302.524, 194.375, 342.523, 194.374, 382.524, 194.375, 422.524, 194.374, 462.525, 234.376, -57.4797, 234.376, -17.479, 234.374, 22.5193, 234.375, 62.5217, 234.374, 102.523, 234.373, 142.522, 234.375, 182.522, 234.375, 222.522, 234.374, 262.523, 234.374, 302.524, 234.375, 342.523, 234.374, 382.523, 234.375, 422.526, 274.375, -17.4792, 274.376, 22.5221, 274.376, 62.5221, 274.375, 102.521, 274.375, 142.522, 274.376, 182.522, 274.376, 222.524, 274.375, 262.523, 274.375, 302.524, 274.376, 342.525, 274.375, 382.524, 314.375, 22.5214, 314.376, 62.5209, 314.375, 102.522, 314.376, 142.523, 314.376, 182.523, 314.376, 222.522, 314.376, 262.523, 314.376, 302.523, 314.376, 342.523)
-position = Vector2(-422, -1614)
-rotation = -0.0934819
-
 [node name="RigidBody2D3" type="RigidBody2D" parent="."]
-position = Vector2(-80, -513)
-rotation = -1.51672
-scale = Vector2(4, 2.51)
-mass = 2.0
+position = Vector2(151, -752)
+physics_material_override = SubResource("PhysicsMaterial_4p047")
 max_contacts_reported = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D3"]
 position = Vector2(-55.6281, -90.968)
-scale = Vector2(1.89, 1)
 shape = SubResource("RectangleShape2D_irytb")
 
-[node name="RigidBody2D6" type="RigidBody2D" parent="."]
-position = Vector2(-141, -516)
-rotation = -2.00014
-scale = Vector2(4, 2.51)
-mass = 2.0
+[node name="RigidBody2D7" type="RigidBody2D" parent="."]
+position = Vector2(-221, -603)
+physics_material_override = SubResource("PhysicsMaterial_4p047")
 max_contacts_reported = 1
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D6"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D7"]
 position = Vector2(-62.4293, -0.92878)
-scale = Vector2(1.89, 1)
+shape = SubResource("RectangleShape2D_irytb")
+
+[node name="RigidBody2D8" type="RigidBody2D" parent="."]
+position = Vector2(-244, -823)
+physics_material_override = SubResource("PhysicsMaterial_4p047")
+max_contacts_reported = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D8"]
+position = Vector2(-62.4293, -0.92878)
+shape = SubResource("RectangleShape2D_irytb")
+
+[node name="RigidBody2D4" type="RigidBody2D" parent="."]
+position = Vector2(91, -1156)
+physics_material_override = SubResource("PhysicsMaterial_4p047")
+max_contacts_reported = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D4"]
+position = Vector2(-55.6281, -90.968)
+shape = SubResource("RectangleShape2D_irytb")
+
+[node name="RigidBody2D9" type="RigidBody2D" parent="."]
+position = Vector2(-243, -916)
+physics_material_override = SubResource("PhysicsMaterial_4p047")
+max_contacts_reported = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D9"]
+position = Vector2(-62.4293, -0.92878)
+shape = SubResource("RectangleShape2D_irytb")
+
+[node name="RigidBody2D10" type="RigidBody2D" parent="."]
+position = Vector2(-281, -1007)
+physics_material_override = SubResource("PhysicsMaterial_4p047")
+max_contacts_reported = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D10"]
+position = Vector2(-17, -1.00001)
+shape = SubResource("RectangleShape2D_irytb")
+
+[node name="RigidBody2D11" type="RigidBody2D" parent="."]
+position = Vector2(-304, -1227)
+physics_material_override = SubResource("PhysicsMaterial_4p047")
+max_contacts_reported = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D11"]
+position = Vector2(0.999992, 114)
 shape = SubResource("RectangleShape2D_irytb")
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
 position = Vector2(-1, 55)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
-position = Vector2(22.5, 61.5)
-rotation = -0.060205
+position = Vector2(22.5, 32.9698)
 shape = SubResource("RectangleShape2D_3ytxo")
+one_way_collision = true
+one_way_collision_margin = 0.0
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="StaticBody2D"]
 position = Vector2(-862, -874)
@@ -90,8 +125,10 @@ position = Vector2(132, -12.9999)
 rotation = -0.435001
 zoom = Vector2(0.5, 0.5)
 
-[node name="Fluid2DShaderRenderer" type="CanvasLayer" parent="." node_paths=PackedStringArray("fluid", "camera")]
-script = ExtResource("5_f52jn")
-fluid = NodePath("../Fluid2D")
-camera = NodePath("../Camera2D")
-water_material = ExtResource("6_ml4s1")
+[node name="Fluid2D" type="Fluid2D" parent="."]
+debug_draw = true
+density = 1000.0
+effects = Array[Resource]([SubResource("FluidEffect2DSurfaceTensionWCSPH_3ls6n")])
+points = PackedVector2Array(0, 0, 40, 0, 80, 0, 120, 0, 160, 0, 200, 0, 240, 0, 280, 0, 320, 0, 360, 0, 0, 40, 40, 40, 80, 40, 120, 40, 160, 40, 200, 40, 240, 40, 280, 40, 320, 40, 360, 40, 0, 80, 40, 80, 80, 80, 120, 80, 160, 80, 200, 80, 240, 80, 280, 80, 320, 80, 360, 80, 0, 120, 40, 120, 80, 120, 120, 120, 160, 120, 200, 120, 240, 120, 280, 120, 320, 120, 360, 120, 0, 160, 40, 160, 80, 160, 120, 160, 160, 160, 200, 160, 240, 160, 280, 160, 320, 160, 360, 160, 0, 200, 40, 200, 80, 200, 120, 200, 160, 200, 200, 200, 240, 200, 280, 200, 320, 200, 360, 200, 0, 240, 40, 240, 80, 240, 120, 240, 160, 240, 200, 240, 240, 240, 280, 240, 320, 240, 360, 240, 0, 280, 40, 280, 80, 280, 120, 280, 160, 280, 200, 280, 240, 280, 280, 280, 320, 280, 360, 280, 0, 320, 40, 320, 80, 320, 120, 320, 160, 320, 200, 320, 240, 320, 280, 320, 320, 320, 360, 320, 0, 360, 40, 360, 80, 360, 120, 360, 160, 360, 200, 360, 240, 360, 280, 360, 320, 360, 360, 360)
+position = Vector2(-738, -1787)
+script = ExtResource("2_ytw3m")

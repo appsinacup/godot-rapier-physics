@@ -49,7 +49,7 @@ impl PhysicsEngine {
         let default_activation = RigidBodyActivation::default();
         activation.angular_threshold = default_activation.angular_threshold;
         activation.normalized_linear_threshold = default_activation.normalized_linear_threshold;
-        activation.time_until_sleep = 0.5;
+        //activation.time_until_sleep = 0.5;
         set_rigid_body_properties_internal(
             &mut rigid_body,
             Translation::from(pos),
@@ -355,7 +355,7 @@ impl PhysicsEngine {
                 activation.angular_threshold = default_activation.angular_threshold;
                 activation.normalized_linear_threshold =
                     default_activation.normalized_linear_threshold;
-                activation.time_until_sleep = 0.5;
+                //activation.time_until_sleep = 0.5;
             }
             if !can_sleep && body.is_sleeping() {
                 body.wake_up(true);
