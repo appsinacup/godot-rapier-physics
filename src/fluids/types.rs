@@ -38,3 +38,7 @@ pub type FluidEffectViscosityXSPH =
 #[cfg(feature = "dim3")]
 pub type FluidEffectViscosityXSPH =
     super::fluid_effect_3d_viscosity_xsph::FluidEffect3DViscosityXSPH;
+#[cfg(feature = "dim2")]
+pub type Fluid = super::fluid_2d::Fluid2D;
+#[cfg(feature = "dim3")]
+pub type Fluid = super::fluid_3d::Fluid3D;

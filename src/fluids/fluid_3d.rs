@@ -1,8 +1,8 @@
 use godot::classes::notify::Node3DNotification;
 use godot::classes::Engine;
-use godot::classes::Time;
 use godot::prelude::*;
 
+use super::fluid_impl::FluidImpl;
 use crate::servers::rapier_project_settings::RapierProjectSettings;
 use crate::servers::RapierPhysicsServer;
 use crate::types::*;
@@ -10,118 +10,63 @@ use crate::types::*;
 #[class(base=Node3D)]
 pub struct Fluid3D {
     #[var(get)]
-    rid: Rid,
+    pub(crate) rid: Rid,
     #[var(get)]
-    radius: real,
+    pub(crate) radius: real,
     #[export]
     #[var(get, set = set_debug_draw)]
-    debug_draw: bool,
+    pub(crate) debug_draw: bool,
     #[export]
     #[var(get, set = set_density)]
-    density: real,
+    pub(crate) density: real,
     #[export]
     #[var(get, set = set_lifetime)]
-    lifetime: real,
+    pub(crate) lifetime: real,
     #[export]
     #[var(get, set = set_effects)]
-    effects: Array<Option<Gd<Resource>>>,
+    pub(crate) effects: Array<Option<Gd<Resource>>>,
 
     #[export]
     #[var(get = get_points, set = set_points)]
-    points: PackedVectorArray,
-    create_times: PackedFloat32Array,
+    pub(crate) points: PackedVectorArray,
+    pub(crate) create_times: PackedFloat32Array,
     base: Base<Node3D>,
 }
 #[godot_api]
 impl Fluid3D {
     #[func]
     fn set_points(&mut self, p_points: PackedVectorArray) {
-        self.points = p_points;
-        let old_times = self.create_times.len();
-        self.create_times.resize(self.points.len());
-        let ticks = Time::singleton().get_ticks_msec();
-        for i in old_times..self.points.len() {
-            self.create_times[i] = ticks as f32;
-        }
-        let mut gl_transform = Transform3D::IDENTITY;
-        if self.to_gd().is_inside_tree() {
-            gl_transform = self.to_gd().get_global_transform();
-        }
-        let mut rapier_points = self.points.clone();
-        for i in 0..self.points.len() {
-            rapier_points[i] = gl_transform * (self.points[i]);
-        }
-        let rid = self.rid;
-        let guard = self.base_mut();
-        RapierPhysicsServer::fluid_set_points(rid, rapier_points.clone());
-        drop(guard);
-        // TODO
-        //self.to_gd().queue_redraw();
+        FluidImpl::set_points(self, p_points);
     }
 
     #[func]
     fn set_density(&mut self, p_density: real) {
-        if self.density != p_density {
-            self.density = p_density;
-            let rid = self.rid;
-            let density = self.density;
-            let guard = self.base_mut();
-            RapierPhysicsServer::fluid_set_density(rid, density);
-            drop(guard);
-        }
+        FluidImpl::set_density(self, p_density);
     }
 
     #[func]
     fn set_lifetime(&mut self, p_lifetime: real) {
-        if self.lifetime != p_lifetime {
-            self.lifetime = p_lifetime;
-            self.to_gd()
-                .set_process(self.debug_draw || self.lifetime > 0.0);
-        }
+        FluidImpl::set_lifetime(self, p_lifetime);
     }
 
     #[func]
     fn set_debug_draw(&mut self, p_debug_draw: bool) {
-        if self.debug_draw != p_debug_draw {
-            self.debug_draw = p_debug_draw;
-        }
-        let mut fluid_gd = self.to_gd();
-        fluid_gd.set_process(self.debug_draw || self.lifetime > 0.0);
-        //fluid_gd.queue_redraw();
+        FluidImpl::set_debug_draw(self, p_debug_draw);
     }
 
     #[func]
     fn get_accelerations(&self) -> PackedVectorArray {
-        let rid = self.rid;
-        let guard = self.base();
-        let accelerations = RapierPhysicsServer::fluid_get_accelerations(rid);
-        drop(guard);
-        accelerations
+        FluidImpl::get_accelerations(self)
     }
 
     #[func]
     fn get_velocities(&self) -> PackedVectorArray {
-        let rid = self.rid;
-        let guard = self.base();
-        let velocities = RapierPhysicsServer::fluid_get_velocities(rid);
-        drop(guard);
-        velocities
+        FluidImpl::get_velocities(self)
     }
 
     #[func]
     fn get_points(&self) -> PackedVectorArray {
-        let rid = self.rid;
-        let guard = self.base();
-        let mut new_points = RapierPhysicsServer::fluid_get_points(rid);
-        drop(guard);
-        let mut gl_transform = Transform3D::IDENTITY;
-        if self.to_gd().is_inside_tree() {
-            gl_transform = self.to_gd().get_global_transform().affine_inverse();
-        }
-        for i in 0..new_points.len() {
-            new_points[i] = gl_transform * new_points[i];
-        }
-        new_points
+        FluidImpl::get_points(self)
     }
 
     #[func]
@@ -151,7 +96,7 @@ impl Fluid3D {
                     let x = i as f32 * self.radius * 2.0;
                     let y = j as f32 * self.radius * 2.0;
                     let z = k as f32 * self.radius * 2.0;
-                    if i * i + j * j <= p_radius * p_radius {
+                    if i * i + j * j * k * k <= p_radius * p_radius {
                         new_points.push(Vector::new(x, y, z));
                     }
                 }
@@ -166,23 +111,7 @@ impl Fluid3D {
         p_points: PackedVectorArray,
         p_velocities: PackedVectorArray,
     ) {
-        let mut p_points = p_points;
-        self.points.extend_array(&p_points);
-        let old_times = self.create_times.len();
-        let ticks = Time::singleton().get_ticks_msec();
-        for _i in old_times..self.points.len() {
-            self.create_times.push(ticks as f32);
-        }
-        let gl_transform = self.to_gd().get_global_transform();
-        for i in 0..self.points.len() {
-            p_points[i] = gl_transform * (p_points[i]);
-        }
-        let rid = self.rid;
-        let guard = self.base_mut();
-        RapierPhysicsServer::fluid_add_points_and_velocities(rid, p_points, p_velocities);
-        drop(guard);
-        // TODO
-        //self.to_gd().queue_redraw();
+        FluidImpl::add_points_and_velocities(self, p_points, p_velocities);
     }
 
     #[func]
@@ -191,66 +120,17 @@ impl Fluid3D {
         p_points: PackedVectorArray,
         p_velocities: PackedVectorArray,
     ) {
-        self.points = p_points;
-        let old_times = self.create_times.len();
-        self.create_times.resize(self.points.len());
-        let ticks = Time::singleton().get_ticks_msec();
-        for _i in old_times..self.points.len() {
-            self.create_times.push(ticks as f32);
-        }
-        let gl_transform = self.to_gd().get_global_transform();
-        for i in 0..self.points.len() {
-            self.points[i] = gl_transform * (self.points[i]);
-        }
-        let rid = self.rid;
-        let points = self.points.clone();
-        let guard = self.base_mut();
-        RapierPhysicsServer::fluid_add_points_and_velocities(rid, points, p_velocities);
-        drop(guard);
-        // TODO
-        //self.to_gd().queue_redraw();
+        FluidImpl::set_points_and_velocities(self, p_points, p_velocities);
     }
 
     #[func]
     fn delete_points(&mut self, p_indices: PackedInt32Array) {
-        let rid = self.rid;
-        let guard = self.base_mut();
-        RapierPhysicsServer::fluid_delete_points(rid, p_indices.clone());
-        drop(guard);
-        for i in 0..p_indices.len() {
-            self.points.remove(p_indices[i] as usize);
-            self.create_times.remove(p_indices[i] as usize);
-        }
-
-        // TODO
-        //self.to_gd().queue_redraw();
+        FluidImpl::delete_points(self, p_indices);
     }
 
     #[func]
     fn set_effects(&mut self, p_effects: Array<Option<Gd<Resource>>>) {
-        self.effects = p_effects;
-        let rid = self.rid;
-        let effects = self.effects.clone();
-        let guard = self.base_mut();
-        RapierPhysicsServer::fluid_set_effects(rid, effects);
-        drop(guard);
-    }
-
-    fn delete_old_particles(&mut self) {
-        if self.lifetime <= 0.0 {
-            return;
-        }
-        let ticks = Time::singleton().get_ticks_msec() as f32;
-        let mut to_remove = PackedInt32Array::default();
-        for i in 0..self.create_times.len() {
-            if ticks - self.create_times[i] > self.lifetime * 1000.0 {
-                to_remove.push(i as i32);
-            }
-        }
-        if !to_remove.is_empty() {
-            to_remove.reverse();
-            self.delete_points(to_remove);
-        }
+        FluidImpl::set_effects(self, p_effects);
     }
 }
 #[godot_api]
@@ -277,7 +157,7 @@ impl INode3D for Fluid3D {
                     //self.to_gd().queue_redraw();
                 }
                 if !Engine::singleton().is_editor_hint() {
-                    self.delete_old_particles();
+                    FluidImpl::delete_old_particles(self);
                 }
             }
             Node3DNotification::ENTER_TREE | Node3DNotification::ENTER_WORLD => {

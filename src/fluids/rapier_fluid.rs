@@ -255,8 +255,8 @@ impl RapierFluid {
         }
         self.fluid_handle = invalid_handle_double();
         self.space_handle = WorldHandle::default();
-        self.space = p_space;
-        if let Some(space) = physics_spaces.get(&self.space) {
+        if let Some(space) = physics_spaces.get(&p_space) {
+            self.space = p_space;
             self.space_handle = space.get_handle();
             if self.space_handle != WorldHandle::default() {
                 self.fluid_handle = physics_engine.fluid_create(self.space_handle, self.density);
