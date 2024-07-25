@@ -10,8 +10,8 @@ func _ready():
 		multimesh = MultiMesh.new()
 		multimesh.transform_format = MultiMesh.TRANSFORM_3D
 		var sphere := SphereMesh.new()
-		sphere.radius = 0.2
-		sphere.height = 0.4
+		sphere.radius = ProjectSettings.get("physics/rapier/fluid/fluid_particle_radius_3d") / 2
+		sphere.height = ProjectSettings.get("physics/rapier/fluid/fluid_particle_radius_3d")
 		multimesh.mesh = sphere
 		#multimesh.mesh = load("res://addons/godot-rapier2d/circle_mesh.tres").duplicate()
 		multimesh.use_colors = true

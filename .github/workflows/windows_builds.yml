@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: ["x86_64-pc-windows-msvc", "i686-pc-windows-msvc"]
+        arch: ["x86_64-pc-windows-msvc", "i686-pc-windows-msvc", "aarch64-pc-windows-msvc"]
         precision: [single]
         dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
         features: [{"feature":"parallel,simd-stable,serde-serialize", "name": "simd-parallel"}, {"feature":"enhanced-determinism,serde-serialize", "name": "enhanced-determinism"}]

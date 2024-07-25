@@ -114,15 +114,14 @@ impl RapierFluid {
         }
     }
 
-    pub fn delete_points(&mut self, indices: Vec<i32>) {
-        let mut removals = indices.into_iter().collect::<VecDeque<_>>();
-        removals.make_contiguous().sort_unstable();
-        removals.make_contiguous().reverse();
+    pub fn delete_points(&mut self, indices: Vec<i32>, physics_engine: &mut PhysicsEngine) {
+        let removals = indices.clone().into_iter().collect::<VecDeque<_>>();
         for index in removals {
             self.points.remove(index as usize);
             self.velocities.remove(index as usize);
             self.accelerations.remove(index as usize);
         }
+        physics_engine.fluid_delete_points(self.space_handle, self.fluid_handle, indices);
     }
 
     pub fn get_points(&mut self, physics_engine: &mut PhysicsEngine) -> &Vec<Vector> {

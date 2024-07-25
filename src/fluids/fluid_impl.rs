@@ -89,7 +89,10 @@ impl FluidImpl {
         p_points: PackedVectorArray,
         p_velocities: PackedVectorArray,
     ) {
-        let mut p_points = p_points;
+        if p_points.len() != p_velocities.len() {
+            godot_error!("points and velocities must be the same length");
+            return;
+        }
         fluid.points.extend_array(&p_points);
         let old_times = fluid.create_times.len();
         let ticks = Time::singleton().get_ticks_msec();
@@ -97,12 +100,13 @@ impl FluidImpl {
             fluid.create_times.push(ticks as f32);
         }
         let gl_transform = fluid.to_gd().get_global_transform();
-        for i in 0..fluid.points.len() {
-            p_points[i] = gl_transform * (p_points[i]);
+        let mut rapier_points = p_points.clone();
+        for i in 0..p_points.len() {
+            rapier_points[i] = gl_transform * (p_points[i]);
         }
         let rid = fluid.rid;
         let guard = fluid.base_mut();
-        RapierPhysicsServer::fluid_add_points_and_velocities(rid, p_points, p_velocities);
+        RapierPhysicsServer::fluid_add_points_and_velocities(rid, rapier_points, p_velocities);
         drop(guard);
     }
 
@@ -111,6 +115,10 @@ impl FluidImpl {
         p_points: PackedVectorArray,
         p_velocities: PackedVectorArray,
     ) {
+        if p_points.len() != p_velocities.len() {
+            godot_error!("points and velocities must be the same length");
+            return;
+        }
         fluid.points = p_points;
         let old_times = fluid.create_times.len();
         fluid.create_times.resize(fluid.points.len());
@@ -134,6 +142,9 @@ impl FluidImpl {
         let guard = fluid.base_mut();
         RapierPhysicsServer::fluid_delete_points(rid, p_indices.clone());
         drop(guard);
+        let mut p_indices = p_indices.to_vec();
+        p_indices.sort_unstable();
+        p_indices.reverse();
         for i in 0..p_indices.len() {
             fluid.points.remove(p_indices[i] as usize);
             fluid.create_times.remove(p_indices[i] as usize);
@@ -161,7 +172,6 @@ impl FluidImpl {
             }
         }
         if !to_remove.is_empty() {
-            to_remove.reverse();
             FluidImpl::delete_points(fluid, to_remove);
         }
     }
