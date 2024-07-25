@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.7.20
+
+* Update fluid faucet demo. Also add windows arm64 builds [@Ughuuu](https://github.com/Ughuuu) in [#165](https://github.com/appsinacup/godot-rapier-physics/pull/165)
+* Move to impl class fluid so code is shared by [@Ughuuu](https://github.com/Ughuuu) in [#163](https://github.com/appsinacup/godot-rapier-physics/pull/163)
+
 ## v0.7.19
 
 * Update to newest gdext. Remove warnings by [@Ughuuu](https://github.com/Ughuuu) in [#161](https://github.com/appsinacup/godot-rapier-physics/pull/161)
