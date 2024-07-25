@@ -125,6 +125,8 @@ impl PhysicsWorld {
             length_unit: settings.length_unit,
             dt: settings.dt,
             max_ccd_substeps: settings.max_ccd_substeps,
+            joint_damping_ratio: settings.joint_damping_ratio,
+            joint_natural_frequency: settings.joint_natural_frequency,
             ..Default::default()
         };
         if let Some(iterations) = NonZeroUsize::new(settings.num_solver_iterations) {

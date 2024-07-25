@@ -53,6 +53,8 @@ pub struct RapierPhysicsServerImpl {
     num_additional_friction_iterations: usize,
     num_internal_pgs_iterations: usize,
     num_solver_iterations: usize,
+    joint_damping_ratio: f32,
+    joint_natural_frequency: f32,
 }
 impl RapierPhysicsServerImpl {
     pub(super) fn default() -> Self {
@@ -71,6 +73,8 @@ impl RapierPhysicsServerImpl {
                 RapierProjectSettings::get_solver_num_internal_pgs_iterations() as usize,
             num_solver_iterations: RapierProjectSettings::get_solver_num_solver_iterations()
                 as usize,
+            joint_damping_ratio: RapierProjectSettings::get_joint_damping_ratio(),
+            joint_natural_frequency: RapierProjectSettings::get_joint_natural_frequency(),
         }
     }
 
@@ -1961,6 +1965,8 @@ impl RapierPhysicsServerImpl {
                 num_additional_friction_iterations: self.num_additional_friction_iterations,
                 num_internal_pgs_iterations: self.num_internal_pgs_iterations,
                 num_solver_iterations: self.num_solver_iterations,
+                joint_damping_ratio: self.joint_damping_ratio,
+                joint_natural_frequency: self.joint_natural_frequency,
                 pixel_gravity: vector_to_rapier(Vector::ZERO),
                 pixel_liquid_gravity: vector_to_rapier(Vector::ZERO),
             };

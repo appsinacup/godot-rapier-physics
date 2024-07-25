@@ -21,4 +21,6 @@ pub struct SimulationSettings {
     pub pixel_gravity: Vector<Real>,
     pub pixel_liquid_gravity: Vector<Real>,
     pub max_ccd_substeps: usize,
+    pub joint_damping_ratio: Real,
+    pub joint_natural_frequency: Real,
 }

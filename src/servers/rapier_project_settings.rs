@@ -27,6 +27,8 @@ const FLUID_PARTICLE_VALUE: real = 0.5;
 const LENGTH_UNIT: &str = "physics/rapier/solver/length_unit_3d";
 #[cfg(feature = "dim3")]
 const LENGTH_UNIT_VALUE: real = 1.0;
+const JOINT_DAMPING_RATIO: &str = "physics/rapier/joint/damping_ratio";
+const JOINT_NATURAL_FREQUENCY: &str = "physics/rapier/joint/natural_frequency";
 pub fn register_setting(
     p_name: &str,
     p_value: Variant,
@@ -102,6 +104,18 @@ impl RapierProjectSettings {
             false,
         );
         register_setting_ranged(
+            JOINT_DAMPING_RATIO,
+            Variant::from(integration_parameters.joint_damping_ratio),
+            "0,10,0.00001,or_greater",
+            false,
+        );
+        register_setting_ranged(
+            JOINT_NATURAL_FREQUENCY,
+            Variant::from(integration_parameters.joint_natural_frequency),
+            "0,10,0.00001,or_greater",
+            false,
+        );
+        register_setting_ranged(
             FLUID_PARTICLE_RADIUS,
             Variant::from(FLUID_PARTICLE_VALUE),
             "0,100,0.00001",
@@ -163,5 +177,13 @@ impl RapierProjectSettings {
 
     pub fn get_length_unit() -> Real {
         RapierProjectSettings::get_setting_double(LENGTH_UNIT) as Real
+    }
+
+    pub fn get_joint_damping_ratio() -> Real {
+        RapierProjectSettings::get_setting_double(JOINT_DAMPING_RATIO) as Real
+    }
+
+    pub fn get_joint_natural_frequency() -> Real {
+        RapierProjectSettings::get_setting_double(JOINT_NATURAL_FREQUENCY) as Real
     }
 }
