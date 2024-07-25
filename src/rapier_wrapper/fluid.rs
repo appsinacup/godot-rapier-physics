@@ -179,9 +179,7 @@ impl PhysicsEngine {
                 .take(new_point_count)
                 .collect();
             // copy back the accelerations that were before, if they exist
-            for i in 0..fluid.accelerations.len() {
-                accelerations[i] = fluid.accelerations[i];
-            }
+            accelerations[..fluid.accelerations.len()].copy_from_slice(&fluid.accelerations[..]);
             fluid.accelerations = accelerations;
             fluid.volumes = std::iter::repeat(fluid.default_particle_volume())
                 .take(new_point_count)

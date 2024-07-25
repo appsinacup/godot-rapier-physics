@@ -371,10 +371,10 @@ impl PhysicsEngine {
                     let mut valid_hit = false;
                     if let Some(collider) = physics_world.physics_objects.collider_set.get(*handle)
                     {
-                        // type filder
-                        if collider.is_sensor() && collide_with_area {
-                            valid_hit = true;
-                        } else if !collider.is_sensor() && collide_with_body {
+                        // type filter
+                        if (collider.is_sensor() && collide_with_area)
+                            || (!collider.is_sensor() && collide_with_body)
+                        {
                             valid_hit = true;
                         }
                         if valid_hit {

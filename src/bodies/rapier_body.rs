@@ -1319,7 +1319,7 @@ impl RapierBody {
                     } else {
                         self.apply_linear_damping(
                             self.linear_damping,
-                            true,
+                            self.linear_damping_mode == BodyDampMode::COMBINE,
                             physics_engine,
                             physics_spaces,
                         );
@@ -1341,7 +1341,7 @@ impl RapierBody {
                     } else {
                         self.apply_angular_damping(
                             self.angular_damping,
-                            true,
+                            self.angular_damping_mode == BodyDampMode::COMBINE,
                             physics_engine,
                             physics_spaces,
                         );
@@ -1854,22 +1854,18 @@ impl RapierBody {
                     self.apply_linear_damping(0.0, false, physics_engine, physics_spaces);
                 } else {
                     self.apply_gravity_scale(self.gravity_scale, physics_engine);
-                    if self.linear_damping_mode == BodyDampMode::COMBINE {
-                        self.apply_linear_damping(
-                            self.linear_damping,
-                            true,
-                            physics_engine,
-                            physics_spaces,
-                        );
-                    }
-                    if self.angular_damping_mode == BodyDampMode::COMBINE {
-                        self.apply_angular_damping(
-                            self.angular_damping,
-                            true,
-                            physics_engine,
-                            physics_spaces,
-                        );
-                    }
+                    self.apply_linear_damping(
+                        self.linear_damping,
+                        self.linear_damping_mode == BodyDampMode::COMBINE,
+                        physics_engine,
+                        physics_spaces,
+                    );
+                    self.apply_angular_damping(
+                        self.angular_damping,
+                        self.linear_damping_mode == BodyDampMode::COMBINE,
+                        physics_engine,
+                        physics_spaces,
+                    );
                 }
                 self.mass_properties_changed(physics_engine, physics_spaces);
                 if self.linear_velocity != Vector::default() {
