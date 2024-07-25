@@ -1,13 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://cn4jscixu2bmf"]
+[gd_scene load_steps=4 format=3 uid="uid://cn4jscixu2bmf"]
 
 [ext_resource type="Script" path="res://test.gd" id="1_fs1uw"]
-[ext_resource type="Script" path="res://addons/godot-rapier2d/faucet_2d.gd" id="2_x3fwv"]
 
-[sub_resource type="FluidEffect2DSurfaceTensionAKINCI" id="FluidEffect2DSurfaceTensionAKINCI_6urm6"]
-fluid_tension_coefficient = 100.0
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_irytb"]
-size = Vector2(99.8327, 380.267)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_r4e3q"]
+size = Vector2(143.423, 123.296)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_3ytxo"]
 size = Vector2(1402.17, 77.1209)
@@ -15,42 +11,49 @@ size = Vector2(1402.17, 77.1209)
 [node name="SceneRayOnSwitch" type="Node2D"]
 script = ExtResource("1_fs1uw")
 
-[node name="Fluid2D" type="Fluid2D" parent="."]
-debug_draw = true
-effects = Array[Resource]([SubResource("FluidEffect2DSurfaceTensionAKINCI_6urm6")])
-position = Vector2(-243, -841)
-rotation = 1.5708
-script = ExtResource("2_x3fwv")
-
-[node name="RigidBody2D3" type="RigidBody2D" parent="."]
-position = Vector2(-80, -513)
-rotation = -1.51672
-mass = 20000.0
+[node name="RigidBody2D4" type="RigidBody2D" parent="."]
+position = Vector2(-290, -687)
+mass = 100.0
 max_contacts_reported = 1
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D3"]
-position = Vector2(16.7868, -254.523)
-scale = Vector2(1.89, 1)
-shape = SubResource("RectangleShape2D_irytb")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D4"]
+position = Vector2(91.4772, -75.2912)
+shape = SubResource("RectangleShape2D_r4e3q")
+
+[node name="RigidBody2D5" type="RigidBody2D" parent="."]
+position = Vector2(-288, -830)
+mass = 100.0
+max_contacts_reported = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D5"]
+position = Vector2(91.4772, -75.2912)
+shape = SubResource("RectangleShape2D_r4e3q")
 
 [node name="RigidBody2D6" type="RigidBody2D" parent="."]
-position = Vector2(10, -461)
-rotation = -2.00014
-mass = 20000.0
+position = Vector2(-288, -979)
+mass = 100.0
 max_contacts_reported = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D6"]
-position = Vector2(-62.4293, -0.92878)
-scale = Vector2(1.89, 1)
-shape = SubResource("RectangleShape2D_irytb")
+position = Vector2(91.4772, -75.2912)
+shape = SubResource("RectangleShape2D_r4e3q")
+
+[node name="RigidBody2D7" type="RigidBody2D" parent="."]
+position = Vector2(-290, -1120)
+mass = 100.0
+max_contacts_reported = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D7"]
+position = Vector2(91.4772, -75.2912)
+shape = SubResource("RectangleShape2D_r4e3q")
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
 position = Vector2(-1, 55)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
-position = Vector2(22.5, 61.5)
-rotation = -0.060205
+position = Vector2(15, 75)
 shape = SubResource("RectangleShape2D_3ytxo")
+one_way_collision = true
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="StaticBody2D"]
 position = Vector2(-862, -874)
