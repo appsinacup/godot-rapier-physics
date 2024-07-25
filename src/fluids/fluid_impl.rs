@@ -4,7 +4,6 @@ use godot::prelude::*;
 use super::types::Fluid;
 use crate::servers::RapierPhysicsServer;
 use crate::types::PackedVectorArray;
-use crate::types::Transform;
 pub struct FluidImpl {}
 impl FluidImpl {
     pub fn set_points(fluid: &mut Fluid, p_points: PackedVectorArray) {
@@ -15,8 +14,7 @@ impl FluidImpl {
         for i in old_times..fluid.points.len() {
             fluid.create_times[i] = ticks as f32;
         }
-        let mut gl_transform = Transform::IDENTITY;
-        gl_transform = fluid.to_gd().get_global_transform();
+        let gl_transform = fluid.to_gd().get_global_transform();
         let mut rapier_points = fluid.points.clone();
         for i in 0..fluid.points.len() {
             rapier_points[i] = gl_transform * (fluid.points[i]);
@@ -145,9 +143,9 @@ impl FluidImpl {
         let mut p_indices = p_indices.to_vec();
         p_indices.sort_unstable();
         p_indices.reverse();
-        for i in 0..p_indices.len() {
-            fluid.points.remove(p_indices[i] as usize);
-            fluid.create_times.remove(p_indices[i] as usize);
+        for index in p_indices {
+            fluid.points.remove(index as usize);
+            fluid.create_times.remove(index as usize);
         }
     }
 
