@@ -421,9 +421,9 @@ checksum = "a7a70ba024b9dc04c27ea2f0c0548feb474ec5c54bba33a7f72f873a39d07b24"
 
 [[package]]
 name = "matrixmultiply"
-version = "0.3.8"
+version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7574c1cf36da4798ab73da5b215bbf444f50718207754cb522201d78d1cd0ff2"
+checksum = "9380b911e3e96d10c1f415da0876389aaf1b56759054eeb0de7df940c456ba1a"
 dependencies = [
  "autocfg",
  "rawpointer",
@@ -565,6 +565,29 @@ dependencies = [
  "bitflags",
  "downcast-rs",
  "either",
+ "log",
+ "nalgebra",
+ "num-derive",
+ "num-traits",
+ "ordered-float",
+ "rustc-hash",
+ "simba",
+ "slab",
+ "smallvec",
+ "spade",
+ "thiserror",
+]
+
+[[package]]
+name = "parry2d"
+version = "0.17.0"
+source = "git+https://github.com/ughuuu/parry?branch=custom-changes#f5ef3972cff06d6aefad9fb4233bd02952e486e5"
+dependencies = [
+ "approx",
+ "arrayvec",
+ "bitflags",
+ "downcast-rs",
+ "either",
  "indexmap",
  "log",
  "nalgebra",
@@ -685,7 +708,7 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.21.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#1a0665c2c11ddaa56e97aaa17dbe70734e048f7e"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#2ae2a9cacf4991397e673a60227179cb9d76bb70"
 dependencies = [
  "approx",
  "arrayvec",
@@ -699,7 +722,7 @@ dependencies = [
  "num-derive",
  "num-traits",
  "ordered-float",
- "parry2d",
+ "parry2d 0.17.0",
  "rayon",
  "rustc-hash",
  "serde",
@@ -711,7 +734,7 @@ dependencies = [
 [[package]]
 name = "rapier2d-f64"
 version = "0.21.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#1a0665c2c11ddaa56e97aaa17dbe70734e048f7e"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#2ae2a9cacf4991397e673a60227179cb9d76bb70"
 dependencies = [
  "approx",
  "arrayvec",
@@ -737,7 +760,7 @@ dependencies = [
 [[package]]
 name = "rapier3d"
 version = "0.21.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#1a0665c2c11ddaa56e97aaa17dbe70734e048f7e"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#2ae2a9cacf4991397e673a60227179cb9d76bb70"
 dependencies = [
  "approx",
  "arrayvec",
@@ -763,7 +786,7 @@ dependencies = [
 [[package]]
 name = "rapier3d-f64"
 version = "0.21.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#1a0665c2c11ddaa56e97aaa17dbe70734e048f7e"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#2ae2a9cacf4991397e673a60227179cb9d76bb70"
 dependencies = [
  "approx",
  "arrayvec",
@@ -880,7 +903,7 @@ dependencies = [
  "itertools",
  "nalgebra",
  "num-traits",
- "parry2d",
+ "parry2d 0.16.1",
  "rapier2d",
 ]
 
@@ -962,9 +985,9 @@ checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
 
 [[package]]
 name = "spade"
-version = "2.9.0"
+version = "2.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f4ec45f91925e2c9ab3b6a857ee9ed36916990df76a1c475d783a328e247cc8"
+checksum = "7d676a3ce6cfd1e455199fefcf82db082f970872ce017df660f076a4e07a0d64"
 dependencies = [
  "hashbrown",
  "num-traits",
@@ -1072,9 +1095,9 @@ dependencies = [
 
 [[package]]
 name = "version_check"
-version = "0.9.4"
+version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
+checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 
 [[package]]
 name = "wasi"
@@ -1177,21 +1200,16 @@ dependencies = [
 ]
 
 [[patch.unused]]
-name = "parry2d"
-version = "0.17.0"
-source = "git+https://github.com/dimforge/parry?branch=master#a0bff1f068f64c1c3dfadb9fad90068e6a81119f"
-
-[[patch.unused]]
 name = "parry2d-f64"
 version = "0.17.0"
-source = "git+https://github.com/dimforge/parry?branch=master#a0bff1f068f64c1c3dfadb9fad90068e6a81119f"
+source = "git+https://github.com/ughuuu/parry?branch=custom-changes#f5ef3972cff06d6aefad9fb4233bd02952e486e5"
 
 [[patch.unused]]
 name = "parry3d"
 version = "0.17.0"
-source = "git+https://github.com/dimforge/parry?branch=master#a0bff1f068f64c1c3dfadb9fad90068e6a81119f"
+source = "git+https://github.com/ughuuu/parry?branch=custom-changes#f5ef3972cff06d6aefad9fb4233bd02952e486e5"
 
 [[patch.unused]]
 name = "parry3d-f64"
 version = "0.17.0"
-source = "git+https://github.com/dimforge/parry?branch=master#a0bff1f068f64c1c3dfadb9fad90068e6a81119f"
+source = "git+https://github.com/ughuuu/parry?branch=custom-changes#f5ef3972cff06d6aefad9fb4233bd02952e486e5"
