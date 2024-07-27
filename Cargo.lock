@@ -565,6 +565,29 @@ dependencies = [
  "bitflags",
  "downcast-rs",
  "either",
+ "log",
+ "nalgebra",
+ "num-derive",
+ "num-traits",
+ "ordered-float",
+ "rustc-hash",
+ "simba",
+ "slab",
+ "smallvec",
+ "spade",
+ "thiserror",
+]
+
+[[package]]
+name = "parry2d"
+version = "0.17.0"
+source = "git+https://github.com/ughuuu/parry?branch=custom-changes#f5ef3972cff06d6aefad9fb4233bd02952e486e5"
+dependencies = [
+ "approx",
+ "arrayvec",
+ "bitflags",
+ "downcast-rs",
+ "either",
  "indexmap",
  "log",
  "nalgebra",
@@ -685,7 +708,7 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.21.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#1a0665c2c11ddaa56e97aaa17dbe70734e048f7e"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#2ae2a9cacf4991397e673a60227179cb9d76bb70"
 dependencies = [
  "approx",
  "arrayvec",
@@ -699,7 +722,7 @@ dependencies = [
  "num-derive",
  "num-traits",
  "ordered-float",
- "parry2d",
+ "parry2d 0.17.0",
  "rayon",
  "rustc-hash",
  "serde",
@@ -711,7 +734,7 @@ dependencies = [
 [[package]]
 name = "rapier2d-f64"
 version = "0.21.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#1a0665c2c11ddaa56e97aaa17dbe70734e048f7e"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#2ae2a9cacf4991397e673a60227179cb9d76bb70"
 dependencies = [
  "approx",
  "arrayvec",
@@ -737,7 +760,7 @@ dependencies = [
 [[package]]
 name = "rapier3d"
 version = "0.21.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#1a0665c2c11ddaa56e97aaa17dbe70734e048f7e"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#2ae2a9cacf4991397e673a60227179cb9d76bb70"
 dependencies = [
  "approx",
  "arrayvec",
@@ -763,7 +786,7 @@ dependencies = [
 [[package]]
 name = "rapier3d-f64"
 version = "0.21.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#1a0665c2c11ddaa56e97aaa17dbe70734e048f7e"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#2ae2a9cacf4991397e673a60227179cb9d76bb70"
 dependencies = [
  "approx",
  "arrayvec",
@@ -880,7 +903,7 @@ dependencies = [
  "itertools",
  "nalgebra",
  "num-traits",
- "parry2d",
+ "parry2d 0.16.1",
  "rapier2d",
 ]
 
@@ -1177,21 +1200,16 @@ dependencies = [
 ]
 
 [[patch.unused]]
-name = "parry2d"
-version = "0.17.0"
-source = "git+https://github.com/ughuuu/parry?branch=custom-changes#5c1b5a34e4e28477eb4b20d2e7ad8508fbc992e0"
-
-[[patch.unused]]
 name = "parry2d-f64"
 version = "0.17.0"
-source = "git+https://github.com/ughuuu/parry?branch=custom-changes#5c1b5a34e4e28477eb4b20d2e7ad8508fbc992e0"
+source = "git+https://github.com/ughuuu/parry?branch=custom-changes#f5ef3972cff06d6aefad9fb4233bd02952e486e5"
 
 [[patch.unused]]
 name = "parry3d"
 version = "0.17.0"
-source = "git+https://github.com/ughuuu/parry?branch=custom-changes#5c1b5a34e4e28477eb4b20d2e7ad8508fbc992e0"
+source = "git+https://github.com/ughuuu/parry?branch=custom-changes#f5ef3972cff06d6aefad9fb4233bd02952e486e5"
 
 [[patch.unused]]
 name = "parry3d-f64"
 version = "0.17.0"
-source = "git+https://github.com/ughuuu/parry?branch=custom-changes#5c1b5a34e4e28477eb4b20d2e7ad8508fbc992e0"
+source = "git+https://github.com/ughuuu/parry?branch=custom-changes#f5ef3972cff06d6aefad9fb4233bd02952e486e5"
