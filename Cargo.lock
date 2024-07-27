@@ -1179,19 +1179,19 @@ dependencies = [
 [[patch.unused]]
 name = "parry2d"
 version = "0.17.0"
-source = "git+https://github.com/dimforge/parry?branch=master#a0bff1f068f64c1c3dfadb9fad90068e6a81119f"
+source = "git+https://github.com/ughuuu/parry?branch=custom-changes#5c1b5a34e4e28477eb4b20d2e7ad8508fbc992e0"
 
 [[patch.unused]]
 name = "parry2d-f64"
 version = "0.17.0"
-source = "git+https://github.com/dimforge/parry?branch=master#a0bff1f068f64c1c3dfadb9fad90068e6a81119f"
+source = "git+https://github.com/ughuuu/parry?branch=custom-changes#5c1b5a34e4e28477eb4b20d2e7ad8508fbc992e0"
 
 [[patch.unused]]
 name = "parry3d"
 version = "0.17.0"
-source = "git+https://github.com/dimforge/parry?branch=master#a0bff1f068f64c1c3dfadb9fad90068e6a81119f"
+source = "git+https://github.com/ughuuu/parry?branch=custom-changes#5c1b5a34e4e28477eb4b20d2e7ad8508fbc992e0"
 
 [[patch.unused]]
 name = "parry3d-f64"
 version = "0.17.0"
-source = "git+https://github.com/dimforge/parry?branch=master#a0bff1f068f64c1c3dfadb9fad90068e6a81119f"
+source = "git+https://github.com/ughuuu/parry?branch=custom-changes#5c1b5a34e4e28477eb4b20d2e7ad8508fbc992e0"
