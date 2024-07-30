@@ -195,22 +195,26 @@ impl RapierArea {
         }
         self.base.area_detection_counter += 1;
         let handle_pair_hash = (collider_handle, area_collider_handle);
-        if self.monitored_objects.contains_key(&handle_pair_hash) {
-            godot_error!("Body is already being monitored");
-            return;
+        if let Some(monitored_object) = self.monitored_objects.get(&handle_pair_hash) {
+            // in case it already exited this frame and now it enters, cancel out the event
+            if monitored_object.state != -1 {
+                godot_error!("Body has not exited the area");
+            }
+            self.monitored_objects.remove(&handle_pair_hash);
+        } else {
+            self.monitored_objects.insert(
+                handle_pair_hash,
+                MonitorInfo {
+                    rid: body_rid,
+                    instance_id: body_instance_id,
+                    object_shape_index: body_shape as u32,
+                    area_shape_index: area_shape as u32,
+                    collision_object_type: CollisionObjectType::Body,
+                    state: 1,
+                },
+            );
+            space.area_add_to_monitor_query_list(self.base.get_rid());
         }
-        self.monitored_objects.insert(
-            handle_pair_hash,
-            MonitorInfo {
-                rid: body_rid,
-                instance_id: body_instance_id,
-                object_shape_index: body_shape as u32,
-                area_shape_index: area_shape as u32,
-                collision_object_type: CollisionObjectType::Body,
-                state: 1,
-            },
-        );
-        space.area_add_to_monitor_query_list(self.base.get_rid());
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -243,6 +247,7 @@ impl RapierArea {
         self.base.area_detection_counter -= 1;
         let handle_pair_hash = (collider_handle, area_collider_handle);
         if let Some(monitored_object) = self.monitored_objects.get(&handle_pair_hash) {
+            // in case it already entered this frame and now it exits, cancel out the event
             if monitored_object.state != 1 {
                 godot_error!("Body has not entered the area");
             }
@@ -284,26 +289,30 @@ impl RapierArea {
                     return;
                 }
                 other_area.base.area_detection_counter += 1;
-                let handle_pair_hash = (collider_handle, area_collider_handle);
-                if self.monitored_objects.contains_key(&handle_pair_hash) {
-                    godot_error!("Area is already being monitored");
-                    return;
-                }
-                self.monitored_objects.insert(
-                    handle_pair_hash,
-                    MonitorInfo {
-                        rid: other_area_rid,
-                        instance_id: other_area_instance_id,
-                        object_shape_index: other_area_shape as u32,
-                        area_shape_index: area_shape as u32,
-                        collision_object_type: CollisionObjectType::Area,
-                        state: 1,
-                    },
-                );
-                space.area_add_to_monitor_query_list(self.base.get_rid());
             }
         } else {
             godot_error!("other area is null");
+        }
+        let handle_pair_hash = (collider_handle, area_collider_handle);
+        if let Some(monitored_object) = self.monitored_objects.get(&handle_pair_hash) {
+            // in case it already exited this frame and now it enters, cancel out the event
+            if monitored_object.state != -1 {
+                godot_error!("Area is already being monitored");
+            }
+            self.monitored_objects.remove(&handle_pair_hash);
+        } else {
+            self.monitored_objects.insert(
+                handle_pair_hash,
+                MonitorInfo {
+                    rid: other_area_rid,
+                    instance_id: other_area_instance_id,
+                    object_shape_index: other_area_shape as u32,
+                    area_shape_index: area_shape as u32,
+                    collision_object_type: CollisionObjectType::Area,
+                    state: 1,
+                },
+            );
+            space.area_add_to_monitor_query_list(self.base.get_rid());
         }
     }
 
