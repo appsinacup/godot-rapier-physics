@@ -343,7 +343,7 @@ impl PhysicsEngine {
             // less data to serialize
             collider.set_collision_groups(InteractionGroups {
                 memberships: Group::from(mat.collision_layer),
-                filter: Group::from(mat.collision_layer),
+                filter: Group::from(mat.collision_mask),
             });
             collider.set_solver_groups(InteractionGroups {
                 memberships: Group::GROUP_1,
