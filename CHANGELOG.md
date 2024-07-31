@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.7.22
+
+- Fix touchscreen issue by [@Ughuuu](https://github.com/Ughuuu) in [#173](https://github.com/appsinacup/godot-rapier-physics/pull/173)
+
+
+## v0.7.21
+
+- Parry convergence issues custom branch. by [@Ughuuu](https://github.com/Ughuuu) in [#168](https://github.com/appsinacup/godot-rapier-physics/pull/168)
+- Fix area event issues by [@Ughuuu](https://github.com/Ughuuu) in [#172](https://github.com/appsinacup/godot-rapier-physics/pull/172)
+
 ## v0.7.20
 
 * fix linear/angular damp by [@Ughuuu](https://github.com/Ughuuu) in [#167](https://github.com/appsinacup/godot-rapier-physics/pull/167)
