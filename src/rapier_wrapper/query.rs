@@ -222,7 +222,7 @@ impl PhysicsEngine {
         }
         let mut shape_vel2 = shape_vel2;
         if shape_vel2 == Vector::zeros() {
-            shape_vel2 = Vector::identity() * 1e-3;
+            shape_vel2 = -Vector::identity() * 1e-3;
         }
         let mut result = ShapeCastResult::new();
         if let Some(raw_shared_shape1) = self.get_shape(shape_info1.handle) {
