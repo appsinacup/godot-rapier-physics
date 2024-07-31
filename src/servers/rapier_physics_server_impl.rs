@@ -244,8 +244,6 @@ impl RapierPhysicsServerImpl {
         let rapier_a_motion = vector_to_rapier(motion_a);
         let rapier_b_motion = vector_to_rapier(motion_b);
         let results_out: *mut Vector = results as *mut Vector;
-        let vector2_slice: &mut [Vector] =
-            unsafe { std::slice::from_raw_parts_mut(results_out, result_max as usize) };
         let result = physics_data.physics_engine.shape_collide(
             rapier_a_motion,
             shape_a_info,
@@ -255,9 +253,13 @@ impl RapierPhysicsServerImpl {
         if !result.collided {
             return false;
         }
-        *result_count = 1;
-        vector2_slice[0] = vector_to_godot(result.pixel_witness1);
-        vector2_slice[1] = vector_to_godot(result.pixel_witness2);
+        if result_max >= 1 {
+            *result_count = 1;
+            let vector2_slice: &mut [Vector] =
+                unsafe { std::slice::from_raw_parts_mut(results_out, result_max as usize) };
+            vector2_slice[0] = vector_to_godot(result.pixel_witness1);
+            vector2_slice[1] = vector_to_godot(result.pixel_witness2);
+        }
         true
     }
 
