@@ -46,7 +46,7 @@ impl IRapierShape for RapierCylinderShape3D {
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         match data.get_type() {
             VariantType::ARRAY => {
-                let arr: Array<f32> = data.to();
+                let arr: Array<f32> = data.try_to().unwrap_or_default();
                 if arr.len() != 2 {
                     return;
                 }
@@ -54,12 +54,12 @@ impl IRapierShape for RapierCylinderShape3D {
                 self.radius = arr.at(1);
             }
             VariantType::VECTOR2 => {
-                let vector_data: Vector2 = data.to();
+                let vector_data: Vector2 = data.try_to().unwrap_or_default();
                 self.height = vector_data.y;
                 self.radius = vector_data.x;
             }
             VariantType::DICTIONARY => {
-                let dictionary: Dictionary = data.to();
+                let dictionary: Dictionary = data.try_to().unwrap_or_default();
                 if let Some(height) = dictionary.get("height")
                     && let Some(radius) = dictionary.get("radius")
                 {

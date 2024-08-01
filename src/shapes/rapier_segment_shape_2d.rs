@@ -52,7 +52,7 @@ impl IRapierShape for RapierSegmentShape2D {
             godot_error!("Invalid shape data");
             return;
         }
-        let r: Rect2 = data.to();
+        let r: Rect2 = data.try_to().unwrap_or_default();
         self.a = r.position;
         self.b = r.position + r.size;
         let handle = self.create_rapier_shape(physics_engine);

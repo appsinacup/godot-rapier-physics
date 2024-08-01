@@ -615,8 +615,10 @@ impl RapierBody {
                 if let Some(area) = physics_collision_objects.get(&area_rid.rid) {
                     if let Some(aa) = area.get_area() {
                         if !gravity_done {
-                            let area_gravity_mode =
-                                aa.get_param(AreaParameter::GRAVITY_OVERRIDE_MODE).to();
+                            let area_gravity_mode = aa
+                                .get_param(AreaParameter::GRAVITY_OVERRIDE_MODE)
+                                .try_to()
+                                .unwrap_or(AreaSpaceOverrideMode::DISABLED);
                             if area_gravity_mode != AreaSpaceOverrideMode::DISABLED {
                                 let area_gravity = aa.compute_gravity(origin);
                                 match area_gravity_mode {
@@ -639,8 +641,10 @@ impl RapierBody {
                             }
                         }
                         if !linear_damping_done {
-                            let area_linear_damping_mode =
-                                aa.get_param(AreaParameter::LINEAR_DAMP_OVERRIDE_MODE).to();
+                            let area_linear_damping_mode = aa
+                                .get_param(AreaParameter::LINEAR_DAMP_OVERRIDE_MODE)
+                                .try_to()
+                                .unwrap_or(AreaSpaceOverrideMode::DISABLED);
                             if area_linear_damping_mode != AreaSpaceOverrideMode::DISABLED {
                                 let area_linear_damping = aa.get_linear_damp();
                                 match area_linear_damping_mode {
@@ -663,8 +667,10 @@ impl RapierBody {
                             }
                         }
                         if !angular_damping_done {
-                            let area_angular_damping_mode =
-                                aa.get_param(AreaParameter::ANGULAR_DAMP_OVERRIDE_MODE).to();
+                            let area_angular_damping_mode = aa
+                                .get_param(AreaParameter::ANGULAR_DAMP_OVERRIDE_MODE)
+                                .try_to()
+                                .unwrap_or(AreaSpaceOverrideMode::DISABLED);
                             if area_angular_damping_mode != AreaSpaceOverrideMode::DISABLED {
                                 let area_angular_damping = aa.get_angular_damp();
                                 match area_angular_damping_mode {
@@ -755,7 +761,8 @@ impl RapierBody {
                     variant_to_float(&space.get_default_area_param(AreaParameter::GRAVITY));
                 let default_gravity_vector: Vector = space
                     .get_default_area_param(AreaParameter::GRAVITY_VECTOR)
-                    .to();
+                    .try_to()
+                    .unwrap_or_default();
                 self.total_gravity += default_gravity_vector * default_gravity;
             }
             // Apply gravity scale to computed value.
@@ -1123,6 +1130,9 @@ impl RapierBody {
             self.base.get_space_handle(),
             self.base.get_body_handle(),
             p_can_sleep,
+            self.base.activation_angular_threshold,
+            self.base.activation_linear_threshold,
+            self.base.activation_time_until_sleep,
         );
     }
 
@@ -1284,7 +1294,7 @@ impl RapierBody {
                     godot_error!("Invalid body data.");
                     return;
                 }
-                self.center_of_mass = p_value.to();
+                self.center_of_mass = p_value.try_to().unwrap_or_default();
                 self.calculate_center_of_mass = false;
                 if self.base.mode.ord() >= BodyMode::RIGID.ord() {
                     self.mass_properties_changed(physics_engine, physics_spaces);
@@ -1308,7 +1318,7 @@ impl RapierBody {
                 if p_value.get_type() != VariantType::INT {
                     return;
                 }
-                let mode_value = p_value.to();
+                let mode_value = p_value.try_to().unwrap_or_default();
                 if self.linear_damping_mode.ord() != mode_value {
                     self.linear_damping_mode = BodyDampMode::from_ord(mode_value);
                     if self.linear_damping_mode == BodyDampMode::REPLACE {
@@ -1330,7 +1340,7 @@ impl RapierBody {
                 if p_value.get_type() != VariantType::INT {
                     return;
                 }
-                let mode_value = p_value.to();
+                let mode_value = p_value.try_to().unwrap_or_default();
                 if self.angular_damping_mode.ord() != mode_value {
                     self.angular_damping_mode = BodyDampMode::from_ord(mode_value);
                     if self.angular_damping_mode == BodyDampMode::REPLACE {
@@ -1518,7 +1528,7 @@ impl RapierBody {
                     return;
                 }
                 let old_scale = transform_scale(&self.base.get_transform());
-                let transform = p_variant.to();
+                let transform = p_variant.try_to().unwrap_or_default();
                 let new_scale = transform_scale(&transform);
                 self.base.set_transform(transform, true, physics_engine);
                 if old_scale != new_scale {
@@ -1536,7 +1546,7 @@ impl RapierBody {
                     godot_error!("Invalid body data.");
                     return;
                 }
-                self.set_linear_velocity(p_variant.to(), physics_engine);
+                self.set_linear_velocity(p_variant.try_to().unwrap_or_default(), physics_engine);
             }
             BodyState::ANGULAR_VELOCITY => {
                 #[cfg(feature = "dim2")]
@@ -1551,7 +1561,10 @@ impl RapierBody {
                 if p_variant.get_type() != VariantType::VECTOR3 {
                     godot_error!("Invalid body data.");
                 } else {
-                    self.set_angular_velocity(p_variant.to(), physics_engine);
+                    self.set_angular_velocity(
+                        p_variant.try_to().unwrap_or_default(),
+                        physics_engine,
+                    );
                 }
             }
             BodyState::SLEEPING => {
@@ -1562,7 +1575,7 @@ impl RapierBody {
                 if self.base.mode == BodyMode::STATIC {
                     return;
                 }
-                self.sleep = p_variant.to();
+                self.sleep = p_variant.try_to().unwrap_or_default();
                 if let Some(space) = physics_spaces.get_mut(&self.base.get_space()) {
                     if self.sleep {
                         if self.can_sleep {
@@ -1580,7 +1593,7 @@ impl RapierBody {
                     godot_error!("Invalid body data.");
                     return;
                 }
-                self.can_sleep = p_variant.to();
+                self.can_sleep = p_variant.try_to().unwrap_or_default();
                 if self.base.mode.ord() >= BodyMode::RIGID.ord() {
                     self.set_can_sleep(self.can_sleep, physics_engine);
                     if !self.active && !self.can_sleep {

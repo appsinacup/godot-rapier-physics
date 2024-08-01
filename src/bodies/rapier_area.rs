@@ -63,8 +63,6 @@ pub struct RapierArea {
 }
 impl RapierArea {
     pub fn new(rid: Rid) -> Self {
-        //let default_linear_damping: real = project_settings.get_setting_with_override("physics/2d/default_linear_damp".into()).to();
-        //let default_angular_damping: real = project_settings.get_setting_with_override("physics/2d/default_angular_damp".into()).to();
         Self {
             gravity_override_mode: AreaSpaceOverrideMode::DISABLED,
             linear_damping_override_mode: AreaSpaceOverrideMode::DISABLED,
@@ -415,7 +413,8 @@ impl RapierArea {
         match p_param {
             AreaParameter::GRAVITY_OVERRIDE_MODE => {
                 let had_override = self.has_any_space_override();
-                self.gravity_override_mode = AreaSpaceOverrideMode::from_ord(p_value.to());
+                self.gravity_override_mode =
+                    AreaSpaceOverrideMode::from_ord(p_value.try_to().unwrap_or_default());
                 let has_override = self.has_any_space_override();
                 if has_override != had_override {
                     if has_override {
@@ -439,7 +438,7 @@ impl RapierArea {
                 }
             }
             AreaParameter::GRAVITY_VECTOR => {
-                let new_gravity_vector = p_value.to();
+                let new_gravity_vector = p_value.try_to().unwrap_or_default();
                 if self.gravity_vector != new_gravity_vector {
                     self.gravity_vector = new_gravity_vector;
                     if self.gravity_override_mode != AreaSpaceOverrideMode::DISABLED {
@@ -451,7 +450,7 @@ impl RapierArea {
                 }
             }
             AreaParameter::GRAVITY_IS_POINT => {
-                let new_gravity_is_point = p_value.to();
+                let new_gravity_is_point = p_value.try_to().unwrap_or_default();
                 if self.gravity_is_point != new_gravity_is_point {
                     self.gravity_is_point = new_gravity_is_point;
                     if self.gravity_override_mode != AreaSpaceOverrideMode::DISABLED {
@@ -476,7 +475,8 @@ impl RapierArea {
             }
             AreaParameter::LINEAR_DAMP_OVERRIDE_MODE => {
                 let had_override = self.has_any_space_override();
-                self.linear_damping_override_mode = AreaSpaceOverrideMode::from_ord(p_value.to());
+                self.linear_damping_override_mode =
+                    AreaSpaceOverrideMode::from_ord(p_value.try_to().unwrap_or_default());
                 let has_override = self.has_any_space_override();
                 if has_override != had_override {
                     if has_override {
@@ -500,7 +500,8 @@ impl RapierArea {
             }
             AreaParameter::ANGULAR_DAMP_OVERRIDE_MODE => {
                 let had_override = self.has_any_space_override();
-                self.angular_damping_override_mode = AreaSpaceOverrideMode::from_ord(p_value.to());
+                self.angular_damping_override_mode =
+                    AreaSpaceOverrideMode::from_ord(p_value.try_to().unwrap_or_default());
                 let has_override = self.has_any_space_override();
                 if has_override != had_override {
                     if has_override {
@@ -523,7 +524,7 @@ impl RapierArea {
                 }
             }
             AreaParameter::PRIORITY => {
-                let new_priority = p_value.to();
+                let new_priority = p_value.try_to().unwrap_or_default();
                 if self.priority != new_priority {
                     self.priority = new_priority;
                     if self.has_any_space_override() {

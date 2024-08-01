@@ -2,6 +2,27 @@ use rapier::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
 impl PhysicsEngine {
+    fn joint_wake_up_connected_rigidbodies(
+        &mut self,
+        world_handle: WorldHandle,
+        joint_handle: JointHandle,
+    ) {
+        let mut body1 = None;
+        let mut body2 = None;
+        if let Some(physics_world) = self.get_world(world_handle)
+            && let Some(joint) = physics_world.get_impulse_joint(joint_handle)
+        {
+            body1 = Some(joint.body1);
+            body2 = Some(joint.body2);
+        }
+        if let Some(body1) = body1
+            && let Some(body2) = body2
+        {
+            self.body_wake_up(world_handle, body1, false);
+            self.body_wake_up(world_handle, body2, false);
+        }
+    }
+
     #[cfg(feature = "dim2")]
     #[allow(clippy::too_many_arguments)]
     pub fn joint_create_revolute(
@@ -20,6 +41,8 @@ impl PhysicsEngine {
         kinematic: bool,
         disable_collision: bool,
     ) -> JointHandle {
+        self.body_wake_up(world_handle, body_handle_1, false);
+        self.body_wake_up(world_handle, body_handle_2, false);
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             let mut joint = RevoluteJointBuilder::new()
                 .local_anchor1(Point { coords: anchor_1 })
@@ -60,6 +83,8 @@ impl PhysicsEngine {
         kinematic: bool,
         disable_collision: bool,
     ) -> JointHandle {
+        self.body_wake_up(world_handle, body_handle_1, false);
+        self.body_wake_up(world_handle, body_handle_2, false);
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             let axis = anchor_1 - anchor_2;
             let unit_axis = UnitVector::new_normalize(axis.normalize());
@@ -97,6 +122,8 @@ impl PhysicsEngine {
         kinematic: bool,
         disable_collision: bool,
     ) -> JointHandle {
+        self.body_wake_up(world_handle, body_handle_1, false);
+        self.body_wake_up(world_handle, body_handle_2, false);
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             let joint = SphericalJointBuilder::new()
                 .local_anchor1(Point { coords: anchor_1 })
@@ -121,6 +148,7 @@ impl PhysicsEngine {
         anchor_1: Vector<Real>,
         anchor_2: Vector<Real>,
     ) {
+        self.joint_wake_up_connected_rigidbodies(world_handle, joint_handle);
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(joint) = physics_world.get_mut_joint(joint_handle)
             && let Some(joint) = joint.as_spherical_mut()
@@ -142,6 +170,7 @@ impl PhysicsEngine {
         motor_target_velocity: Real,
         motor_enabled: bool,
     ) {
+        self.joint_wake_up_connected_rigidbodies(world_handle, joint_handle);
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(joint) = physics_world.get_mut_joint(joint_handle)
             && let Some(joint) = joint.as_revolute_mut()
@@ -173,6 +202,8 @@ impl PhysicsEngine {
         kinematic: bool,
         disable_collision: bool,
     ) -> JointHandle {
+        self.body_wake_up(world_handle, body_handle_1, false);
+        self.body_wake_up(world_handle, body_handle_2, false);
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             let joint = PrismaticJointBuilder::new(UnitVector::new_unchecked(axis))
                 .local_anchor1(Point { coords: anchor_1 })
@@ -205,6 +236,8 @@ impl PhysicsEngine {
         kinematic: bool,
         disable_collision: bool,
     ) -> JointHandle {
+        self.body_wake_up(world_handle, body_handle_1, false);
+        self.body_wake_up(world_handle, body_handle_2, false);
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             let joint = SpringJointBuilder::new(rest_length, stiffness, damping)
                 .local_anchor1(Point { coords: anchor_1 })
@@ -229,6 +262,7 @@ impl PhysicsEngine {
         damping: Real,
         rest_length: Real,
     ) {
+        self.joint_wake_up_connected_rigidbodies(world_handle, joint_handle);
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(joint) = physics_world.get_mut_joint(joint_handle)
         {
@@ -238,6 +272,7 @@ impl PhysicsEngine {
     }
 
     pub fn destroy_joint(&mut self, world_handle: WorldHandle, joint_handle: JointHandle) {
+        self.joint_wake_up_connected_rigidbodies(world_handle, joint_handle);
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             physics_world.remove_joint(joint_handle);
         }
@@ -249,6 +284,7 @@ impl PhysicsEngine {
         joint_handle: JointHandle,
         disable_collision: bool,
     ) {
+        self.joint_wake_up_connected_rigidbodies(world_handle, joint_handle);
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(joint) = physics_world.get_mut_joint(joint_handle)
         {
