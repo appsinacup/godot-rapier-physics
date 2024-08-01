@@ -49,7 +49,7 @@ impl IRapierShape for RapierCapsuleShape {
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         match data.get_type() {
             VariantType::ARRAY => {
-                let arr: Array<f32> = data.to();
+                let arr: Array<f32> = data.try_to().unwrap_or_default();
                 if arr.len() != 2 {
                     return;
                 }
@@ -57,12 +57,12 @@ impl IRapierShape for RapierCapsuleShape {
                 self.radius = arr.at(1);
             }
             VariantType::VECTOR2 => {
-                let vector_data: Vector2 = data.to();
+                let vector_data: Vector2 = data.try_to().unwrap_or_default();
                 self.height = vector_data.y;
                 self.radius = vector_data.x;
             }
             VariantType::DICTIONARY => {
-                let dictionary: Dictionary = data.to();
+                let dictionary: Dictionary = data.try_to().unwrap_or_default();
                 if !dictionary.contains_key("length") && !dictionary.contains_key("height") {
                     godot_error!("Invalid shape data.");
                     return;

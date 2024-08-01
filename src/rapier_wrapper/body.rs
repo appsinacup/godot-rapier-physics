@@ -50,6 +50,9 @@ impl PhysicsEngine {
         rot: Rotation<Real>,
         user_data: &UserData,
         body_type: BodyType,
+        activation_angular_threshold: Real,
+        activation_linear_threshold: Real,
+        activation_time_until_sleep: Real,
     ) -> RigidBodyHandle {
         let Some(physics_world) = self.get_mut_world(world_handle) else {
             return RigidBodyHandle::invalid();
@@ -67,10 +70,9 @@ impl PhysicsEngine {
             }
         }
         let activation = rigid_body.activation_mut();
-        let default_activation = RigidBodyActivation::default();
-        activation.angular_threshold = default_activation.angular_threshold;
-        activation.normalized_linear_threshold = default_activation.normalized_linear_threshold;
-        //activation.time_until_sleep = 0.5;
+        activation.angular_threshold = activation_angular_threshold;
+        activation.normalized_linear_threshold = activation_linear_threshold;
+        activation.time_until_sleep = activation_time_until_sleep;
         set_rigid_body_properties_internal(
             &mut rigid_body,
             Translation::from(pos),
@@ -369,6 +371,9 @@ impl PhysicsEngine {
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
         can_sleep: bool,
+        activation_angular_threshold: Real,
+        activation_linear_threshold: Real,
+        activation_time_until_sleep: Real,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(body) = physics_world
@@ -382,11 +387,9 @@ impl PhysicsEngine {
                 activation.normalized_linear_threshold = -1.0;
             } else {
                 let activation = body.activation_mut();
-                let default_activation = RigidBodyActivation::default();
-                activation.angular_threshold = default_activation.angular_threshold;
-                activation.normalized_linear_threshold =
-                    default_activation.normalized_linear_threshold;
-                //activation.time_until_sleep = 0.5;
+                activation.angular_threshold = activation_angular_threshold;
+                activation.normalized_linear_threshold = activation_linear_threshold;
+                activation.time_until_sleep = activation_time_until_sleep;
             }
             if !can_sleep && body.is_sleeping() {
                 body.wake_up(true);

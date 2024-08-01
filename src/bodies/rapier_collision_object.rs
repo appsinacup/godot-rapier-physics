@@ -2,6 +2,7 @@
 use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
 use godot::classes::physics_server_3d::*;
+use godot::classes::ProjectSettings;
 use godot::prelude::*;
 use rapier::dynamics::RigidBodyHandle;
 use rapier::geometry::ColliderHandle;
@@ -13,6 +14,18 @@ use super::rapier_body::RapierBody;
 use crate::rapier_wrapper::prelude::*;
 use crate::types::*;
 use crate::*;
+#[cfg(feature = "dim2")]
+const SLEEP_THRESHOLD_LINEAR: &str = "physics/2d/sleep_threshold_linear";
+#[cfg(feature = "dim3")]
+const SLEEP_THRESHOLD_LINEAR: &str = "physics/3d/sleep_threshold_linear";
+#[cfg(feature = "dim2")]
+const SLEEP_THRESHOLD_ANGULAR: &str = "physics/2d/sleep_threshold_angular";
+#[cfg(feature = "dim3")]
+const SLEEP_THRESHOLD_ANGULAR: &str = "physics/3d/sleep_threshold_angular";
+#[cfg(feature = "dim2")]
+const TIME_BEFORE_SLEEP: &str = "physics/2d/time_before_sleep";
+#[cfg(feature = "dim3")]
+const TIME_BEFORE_SLEEP: &str = "physics/3d/time_before_sleep";
 //#[cfg_attr(feature = "serde-serialize", typetag::serde(tag = "type"))]
 pub trait IRapierCollisionObject: Sync {
     fn get_base(&self) -> &RapierCollisionObject;
@@ -156,6 +169,9 @@ pub struct RapierCollisionObject {
     pub(crate) mode: BodyMode,
     body_handle: RigidBodyHandle,
     space_handle: WorldHandle,
+    pub(crate) activation_angular_threshold: real,
+    pub(crate) activation_linear_threshold: real,
+    pub(crate) activation_time_until_sleep: real,
     pub(crate) area_detection_counter: u32,
 }
 impl Default for RapierCollisionObject {
@@ -169,6 +185,19 @@ impl RapierCollisionObject {
         if collision_object_type == CollisionObjectType::Area {
             mode = BodyMode::STATIC;
         }
+        let project_settings = ProjectSettings::singleton();
+        let activation_angular_threshold = project_settings
+            .get_setting_with_override(SLEEP_THRESHOLD_ANGULAR.into())
+            .try_to()
+            .unwrap_or_default();
+        let activation_linear_threshold = project_settings
+            .get_setting_with_override(SLEEP_THRESHOLD_LINEAR.into())
+            .try_to()
+            .unwrap_or_default();
+        let activation_time_until_sleep = project_settings
+            .get_setting_with_override(TIME_BEFORE_SLEEP.into())
+            .try_to()
+            .unwrap_or_default();
         Self {
             collision_object_type,
             rid,
@@ -185,6 +214,9 @@ impl RapierCollisionObject {
             mode,
             body_handle: RigidBodyHandle::invalid(),
             space_handle: WorldHandle::default(),
+            activation_angular_threshold,
+            activation_linear_threshold,
+            activation_time_until_sleep,
             area_detection_counter: 0,
         }
     }
@@ -383,6 +415,9 @@ impl RapierCollisionObject {
                 angle,
                 &user_data,
                 BodyType::Static,
+                self.activation_angular_threshold,
+                self.activation_linear_threshold,
+                self.activation_time_until_sleep,
             );
         } else if self.mode == BodyMode::KINEMATIC {
             self.body_handle = physics_engine.body_create(
@@ -391,6 +426,9 @@ impl RapierCollisionObject {
                 angle,
                 &user_data,
                 BodyType::Kinematic,
+                self.activation_angular_threshold,
+                self.activation_linear_threshold,
+                self.activation_time_until_sleep,
             );
         } else {
             self.body_handle = physics_engine.body_create(
@@ -399,6 +437,9 @@ impl RapierCollisionObject {
                 angle,
                 &user_data,
                 BodyType::Dynamic,
+                self.activation_angular_threshold,
+                self.activation_linear_threshold,
+                self.activation_time_until_sleep,
             );
         }
     }

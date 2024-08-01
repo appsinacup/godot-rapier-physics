@@ -55,7 +55,7 @@ impl IRapierShape for RapierWorldBoundaryShape {
             godot_error!("Invalid shape data");
             return;
         }
-        let arr: Array<Variant> = data.to();
+        let arr: Array<Variant> = data.try_to().unwrap_or_default();
         if arr.len() != 2 {
             godot_error!("Invalid data size for WorldBoundaryShape2D.");
             return;
@@ -67,7 +67,7 @@ impl IRapierShape for RapierWorldBoundaryShape {
             godot_error!("Invalid data type for WorldBoundaryShape2D.");
             return;
         }
-        self.normal = arr.at(0).to();
+        self.normal = arr.at(0).try_to().unwrap_or_default();
         self.d = variant_to_float(&arr.at(1));
         let handle = self.create_rapier_shape(physics_engine);
         self.base.set_handle(handle, physics_engine);
@@ -79,7 +79,7 @@ impl IRapierShape for RapierWorldBoundaryShape {
             godot_error!("Invalid shape data");
             return;
         }
-        let plane: Plane = data.to();
+        let plane: Plane = data.try_to().unwrap_or_default();
         self.normal = plane.normal;
         self.d = plane.d;
         let handle = self.create_rapier_shape(physics_engine);

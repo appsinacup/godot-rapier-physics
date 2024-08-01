@@ -455,6 +455,19 @@ impl PhysicsWorld {
         None
     }
 
+    pub fn get_impulse_joint(&self, handle: JointHandle) -> Option<&ImpulseJoint> {
+        match handle.multibody {
+            false => {
+                let joint = self
+                    .physics_objects
+                    .impulse_joint_set
+                    .get(ImpulseJointHandle(handle.index));
+                joint
+            }
+            true => None,
+        }
+    }
+
     pub fn remove_joint(&mut self, handle: JointHandle) {
         match handle.multibody {
             false => {

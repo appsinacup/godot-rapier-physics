@@ -43,7 +43,8 @@ impl RapierDirectBodyStateImpl {
                 variant_to_float(&space.get_default_area_param(AreaParameter::GRAVITY));
             let default_gravity_vector: Vector = space
                 .get_default_area_param(AreaParameter::GRAVITY_VECTOR)
-                .to();
+                .try_to()
+                .unwrap_or_default();
             return default_gravity_vector * gravity_scale * default_gravity;
         }
         Vector::ZERO
