@@ -79,7 +79,7 @@ impl IRapierShape for RapierWorldBoundaryShape {
             godot_error!("Invalid shape data");
             return;
         }
-        let plane: Plane = data.try_to().unwrap_or_default();
+        let plane: Plane = data.try_to().unwrap_or(Plane::invalid());
         self.normal = plane.normal;
         self.d = plane.d;
         let handle = self.create_rapier_shape(physics_engine);
