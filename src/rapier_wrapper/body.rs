@@ -22,6 +22,27 @@ fn set_rigid_body_properties_internal(
     }
 }
 impl PhysicsEngine {
+    fn body_wake_up_connected_rigidbodies(
+        &mut self,
+        world_handle: WorldHandle,
+        body_handle: RigidBodyHandle,
+    ) {
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
+            for (rb1, rb2, ..) in physics_world
+                .physics_objects
+                .impulse_joint_set
+                .attached_joints(body_handle)
+            {
+                if let Some(rb1) = physics_world.physics_objects.rigid_body_set.get_mut(rb1) {
+                    rb1.wake_up(true);
+                }
+                if let Some(rb2) = physics_world.physics_objects.rigid_body_set.get_mut(rb2) {
+                    rb2.wake_up(true);
+                }
+            }
+        }
+    }
+
     pub fn body_create(
         &mut self,
         world_handle: WorldHandle,
@@ -89,6 +110,7 @@ impl PhysicsEngine {
                 }
             }
         }
+        self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
     }
 
     pub fn body_destroy(&mut self, world_handle: WorldHandle, body_handle: RigidBodyHandle) {
@@ -153,6 +175,7 @@ impl PhysicsEngine {
                 wake_up,
             );
         }
+        self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
     }
 
     pub fn body_get_linear_velocity(
@@ -186,6 +209,7 @@ impl PhysicsEngine {
         {
             body.set_linvel(vel, true);
         }
+        self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
     }
 
     pub fn body_set_axis_lock(
@@ -202,6 +226,7 @@ impl PhysicsEngine {
         {
             body.set_locked_axes(axis_lock, true);
         }
+        self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
     }
 
     pub fn body_update_material(
@@ -231,7 +256,9 @@ impl PhysicsEngine {
                     });
                 }
             }
+            body.wake_up(false);
         }
+        self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
     }
 
     #[cfg(feature = "dim2")]
@@ -282,6 +309,7 @@ impl PhysicsEngine {
         {
             body.set_angvel(vel, true);
         }
+        self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
     }
 
     pub fn body_set_linear_damping(
@@ -298,6 +326,7 @@ impl PhysicsEngine {
         {
             body.set_linear_damping(linear_damping);
         }
+        self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
     }
 
     pub fn body_set_angular_damping(
@@ -314,6 +343,7 @@ impl PhysicsEngine {
         {
             body.set_angular_damping(angular_damping);
         }
+        self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
     }
 
     pub fn body_set_gravity_scale(
@@ -331,6 +361,7 @@ impl PhysicsEngine {
         {
             body.set_gravity_scale(gravity_scale, wake_up);
         }
+        self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
     }
 
     pub fn body_set_can_sleep(
@@ -361,6 +392,7 @@ impl PhysicsEngine {
                 body.wake_up(true);
             }
         }
+        self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
     }
 
     pub fn body_set_ccd_enabled(
@@ -377,6 +409,7 @@ impl PhysicsEngine {
         {
             body.enable_ccd(enable);
         }
+        self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -421,6 +454,7 @@ impl PhysicsEngine {
                 );
             }
         }
+        self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
     }
 
     pub fn body_add_force(
@@ -437,6 +471,7 @@ impl PhysicsEngine {
         {
             body.add_force(force, true);
         }
+        self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
     }
 
     pub fn body_add_force_at_point(
@@ -455,6 +490,7 @@ impl PhysicsEngine {
             let local_point = Point { coords: point } + body.center_of_mass().coords;
             body.add_force_at_point(force, local_point, true);
         }
+        self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
     }
 
     pub fn body_add_torque(
@@ -471,6 +507,7 @@ impl PhysicsEngine {
         {
             body.add_torque(torque, true);
         }
+        self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
     }
 
     pub fn body_apply_impulse(
@@ -487,6 +524,7 @@ impl PhysicsEngine {
         {
             body.apply_impulse(impulse, true);
         }
+        self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
     }
 
     pub fn body_apply_impulse_at_point(
@@ -506,6 +544,7 @@ impl PhysicsEngine {
             local_point += body.center_of_mass().coords;
             body.apply_impulse_at_point(impulse, local_point, true);
         }
+        self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
     }
 
     pub fn body_get_constant_force(
@@ -554,6 +593,7 @@ impl PhysicsEngine {
         {
             body.apply_torque_impulse(torque_impulse, true);
         }
+        self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
     }
 
     pub fn body_reset_torques(&mut self, world_handle: WorldHandle, body_handle: RigidBodyHandle) {
@@ -565,6 +605,7 @@ impl PhysicsEngine {
         {
             body.reset_torques(false);
         }
+        self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
     }
 
     pub fn body_reset_forces(&mut self, world_handle: WorldHandle, body_handle: RigidBodyHandle) {
@@ -576,6 +617,7 @@ impl PhysicsEngine {
         {
             body.reset_forces(false);
         }
+        self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
     }
 
     pub fn body_wake_up(
@@ -593,6 +635,7 @@ impl PhysicsEngine {
         {
             body.wake_up(strong);
         }
+        self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
     }
 
     pub fn body_force_sleep(&mut self, world_handle: WorldHandle, body_handle: RigidBodyHandle) {
