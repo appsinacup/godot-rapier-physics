@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.7.23
+
+- Fix area mask/layer issue by [@Ughuuu](https://github.com/Ughuuu) in [#175](https://github.com/appsinacup/godot-rapier-physics/pull/175)
+- Fix joints not waking up bodies by [@Ughuuu](https://github.com/Ughuuu) in [#176](https://github.com/appsinacup/godot-rapier-physics/pull/176)
+
 ## v0.7.22
 
 - Fix touchscreen issue by [@Ughuuu](https://github.com/Ughuuu) in [#173](https://github.com/appsinacup/godot-rapier-physics/pull/173)
