@@ -131,6 +131,7 @@ pub enum CollisionObjectType {
 )]
 pub struct CollisionObjectShape {
     pub xform: Transform,
+    #[cfg_attr(feature = "serde-serialize", serde(skip), default = "invalid_rid")]
     pub shape: Rid,
     pub disabled: bool,
     pub one_way_collision: bool,
@@ -153,6 +154,7 @@ impl Default for CollisionObjectShape {
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
 pub struct RapierCollisionObject {
     collision_object_type: CollisionObjectType,
+    #[cfg_attr(feature = "serde-serialize", serde(skip), default = "invalid_rid")]
     rid: Rid,
     instance_id: u64,
     canvas_instance_id: u64,
@@ -165,7 +167,7 @@ pub struct RapierCollisionObject {
     collision_layer: u32,
     pub(crate) is_debugging_contacts: bool,
     // TODO serialize this
-    #[cfg_attr(feature = "serde-serialize", serde(skip))]
+    #[cfg_attr(feature = "serde-serialize", serde(skip), default = "invalid_rid")]
     pub(crate) mode: BodyMode,
     body_handle: RigidBodyHandle,
     space_handle: WorldHandle,

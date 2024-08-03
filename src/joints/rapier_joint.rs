@@ -35,6 +35,7 @@ pub struct RapierJointBase {
     max_force: f32,
     handle: JointHandle,
     space_handle: WorldHandle,
+    #[cfg_attr(feature = "serde-serialize", serde(skip), default = "invalid_rid")]
     space_rid: Rid,
     disabled_collisions_between_bodies: bool,
 }

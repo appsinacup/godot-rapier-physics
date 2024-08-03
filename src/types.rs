@@ -148,3 +148,6 @@ pub fn variant_to_float(variant: &Variant) -> real {
         _ => 0.0,
     }
 }
+pub fn invalid_rid() -> Rid {
+    Rid::Invalid
+}

@@ -14,7 +14,7 @@ use crate::types::*;
 )]
 pub struct RapierConvexPolygonShape {
     // TODO serialize this
-    #[cfg_attr(feature = "serde-serialize", serde(skip))]
+    #[cfg_attr(feature = "serde-serialize", serde(skip), default = "invalid_rid")]
     points: PackedVectorArray,
     base: RapierShapeBase,
 }
