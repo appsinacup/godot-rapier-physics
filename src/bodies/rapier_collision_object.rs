@@ -193,10 +193,12 @@ impl RapierCollisionObject {
             .get_setting_with_override(SLEEP_THRESHOLD_ANGULAR.into())
             .try_to()
             .unwrap_or_default();
+        let length_unit = RapierProjectSettings::get_length_unit();
         let activation_linear_threshold = project_settings
             .get_setting_with_override(SLEEP_THRESHOLD_LINEAR.into())
             .try_to()
-            .unwrap_or_default();
+            .unwrap_or_default()
+            * length_unit;
         let activation_time_until_sleep = project_settings
             .get_setting_with_override(TIME_BEFORE_SLEEP.into())
             .try_to()
