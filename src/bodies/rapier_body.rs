@@ -79,6 +79,7 @@ pub struct ForceIntegrationCallbackData {
 #[derive(Clone, Copy)]
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
 pub struct RidWithPriority {
+    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "invalid_rid"))]
     pub rid: Rid,
     pub priority: i32,
 }
@@ -126,6 +127,7 @@ pub struct RapierBody {
     using_area_gravity: bool,
     using_area_linear_damping: bool,
     using_area_angular_damping: bool,
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     exceptions: HashSet<Rid>,
     ccd_enabled: bool,
     omit_force_integration: bool,

@@ -24,11 +24,11 @@ pub trait IRapierShape {
     derive(serde::Serialize, serde::Deserialize)
 )]
 pub struct RapierShapeBase {
-    #[cfg_attr(feature = "serde-serialize", serde(skip), default = "invalid_rid")]
+    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "invalid_rid"))]
     rid: Rid,
     aabb: Rect,
     // TODO serialize this
-    #[cfg_attr(feature = "serde-serialize", serde(skip), default = "invalid_rid")]
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     owners: HashMap<Rid, i32>,
     handle: ShapeHandle,
 }
