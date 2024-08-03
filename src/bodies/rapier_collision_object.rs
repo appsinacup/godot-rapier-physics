@@ -8,6 +8,7 @@ use rapier::dynamics::RigidBodyHandle;
 use rapier::geometry::ColliderHandle;
 use servers::rapier_physics_singleton::PhysicsShapes;
 use servers::rapier_physics_singleton::PhysicsSpaces;
+use servers::rapier_project_settings::RapierProjectSettings;
 
 use super::rapier_area::RapierArea;
 use super::rapier_body::RapierBody;
@@ -194,11 +195,11 @@ impl RapierCollisionObject {
             .try_to()
             .unwrap_or_default();
         let length_unit = RapierProjectSettings::get_length_unit();
-        let activation_linear_threshold = project_settings
+        let mut activation_linear_threshold = project_settings
             .get_setting_with_override(SLEEP_THRESHOLD_LINEAR.into())
             .try_to()
-            .unwrap_or_default()
-            * length_unit;
+            .unwrap_or_default();
+        activation_linear_threshold /= length_unit;
         let activation_time_until_sleep = project_settings
             .get_setting_with_override(TIME_BEFORE_SLEEP.into())
             .try_to()
