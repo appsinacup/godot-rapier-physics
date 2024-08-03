@@ -128,15 +128,15 @@ impl RapierSpace {
                 shape2 = removed_collider_info_2.shape_index;
             }
         } else {
-            if let Some(body) = physics_collision_objects.get(&p_object1) {
-                rid1 = body.get_base().get_rid();
-                instance_id1 = body.get_base().get_instance_id();
-                type1 = body.get_base().get_type();
+            if let Some(body1) = physics_collision_objects.get(&p_object1) {
+                rid1 = body1.get_base().get_rid();
+                instance_id1 = body1.get_base().get_instance_id();
+                type1 = body1.get_base().get_type();
             }
-            if let Some(body) = physics_collision_objects.get(&p_object2) {
-                rid2 = body.get_base().get_rid();
-                instance_id2 = body.get_base().get_instance_id();
-                type2 = body.get_base().get_type();
+            if let Some(body2) = physics_collision_objects.get(&p_object2) {
+                rid2 = body2.get_base().get_rid();
+                instance_id2 = body2.get_base().get_instance_id();
+                type2 = body2.get_base().get_type();
             }
         }
         if event_info.is_sensor {
@@ -322,12 +322,10 @@ impl RapierSpace {
         contact_info: &ContactPointInfo,
         event_info: &ContactForceEventInfo,
         physics_collision_objects: &mut PhysicsCollisionObjects,
-    ) -> bool {
+    ) {
         let pos1 = contact_info.pixel_local_pos_1;
         let pos2 = contact_info.pixel_local_pos_2;
-        let mut keep_sending_contacts = false;
         if self.is_debugging_contacts() {
-            keep_sending_contacts = true;
             self.add_debug_contact(vector_to_godot(pos1));
             self.add_debug_contact(vector_to_godot(pos2));
         }
@@ -363,7 +361,6 @@ impl RapierSpace {
                         body1.to_add_static_constant_angular_velocity(static_angvelocity_2);
                     }
                     if body1.can_report_contacts() {
-                        keep_sending_contacts = true;
                         let instance_id2 = body2.get_base().get_instance_id();
                         body1.add_contact(
                             vector_to_godot(pos1),
@@ -380,8 +377,7 @@ impl RapierSpace {
                         );
                     }
                     if body2.can_report_contacts() {
-                        keep_sending_contacts = true;
-                        let instance_id1 = body2.get_base().get_instance_id();
+                        let instance_id1 = body1.get_base().get_instance_id();
                         body2.add_contact(
                             vector_to_godot(pos2),
                             vector_to_godot(normal),
@@ -399,6 +395,5 @@ impl RapierSpace {
                 }
             }
         }
-        keep_sending_contacts
     }
 }

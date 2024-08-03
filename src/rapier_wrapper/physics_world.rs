@@ -222,7 +222,7 @@ impl PhysicsWorld {
                     user_data1: UserData::new(collider1.user_data),
                     user_data2: UserData::new(collider2.user_data),
                 };
-                let mut send_contact_points =
+                let send_contact_points =
                     space.contact_force_event_callback(&event_info, physics_collision_objects);
                 if send_contact_points
                     && let Some(body1) = self.get_collider_rigid_body(collider1)
@@ -230,16 +230,6 @@ impl PhysicsWorld {
                 {
                     // Find the contact pair, if it exists, between two colliders
                     let mut contact_info = ContactPointInfo::default();
-                    let swap = false;
-                    /*
-                    if contact_force_event.collider1 != contact_pair.collider1 {
-                        assert!(contact_force_event.collider1 == contact_pair.collider2);
-                        assert!(contact_force_event.collider2 == contact_pair.collider1);
-                        swap = true;
-                    } else {
-                        assert!(contact_force_event.collider2 == contact_pair.collider2);
-                    }
-                     */
                     // We may also read the contact manifolds to access the contact geometry.
                     for manifold in &contact_pair.manifolds {
                         let manifold_normal = manifold.data.normal;
@@ -257,31 +247,18 @@ impl PhysicsWorld {
                             let collider_pos_2 = collider2.position() * contact_point.local_p2;
                             let point_velocity_1 = body1.velocity_at_point(&collider_pos_1);
                             let point_velocity_2 = body2.velocity_at_point(&collider_pos_2);
-                            if swap {
-                                contact_info.pixel_local_pos_1 = collider_pos_2.coords;
-                                contact_info.pixel_local_pos_2 = collider_pos_1.coords;
-                                contact_info.pixel_velocity_pos_1 = point_velocity_2;
-                                contact_info.pixel_velocity_pos_2 = point_velocity_1;
-                            } else {
-                                contact_info.pixel_local_pos_1 = collider_pos_1.coords;
-                                contact_info.pixel_local_pos_2 = collider_pos_2.coords;
-                                contact_info.pixel_velocity_pos_1 = point_velocity_1;
-                                contact_info.pixel_velocity_pos_2 = point_velocity_2;
-                            }
+                            contact_info.pixel_local_pos_1 = collider_pos_1.coords;
+                            contact_info.pixel_local_pos_2 = collider_pos_2.coords;
+                            contact_info.pixel_velocity_pos_1 = point_velocity_1;
+                            contact_info.pixel_velocity_pos_2 = point_velocity_2;
                             contact_info.pixel_distance = contact_point.dist;
                             contact_info.pixel_impulse = contact_point.data.impulse;
                             contact_info.pixel_tangent_impulse = contact_point.data.tangent_impulse;
-                            send_contact_points = space.contact_point_callback(
+                            space.contact_point_callback(
                                 &contact_info,
                                 &event_info,
                                 physics_collision_objects,
                             );
-                            if !send_contact_points {
-                                break;
-                            }
-                        }
-                        if !send_contact_points {
-                            break;
                         }
                     }
                 }
