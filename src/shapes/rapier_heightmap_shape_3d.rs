@@ -14,7 +14,7 @@ use crate::types::*;
 )]
 pub struct RapierHeightMapShape3D {
     // TODO serialize this
-    #[cfg_attr(feature = "serde-serialize", serde(skip), default = "invalid_rid")]
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     heights: PackedFloatArray,
     width: i32,
     depth: i32,
