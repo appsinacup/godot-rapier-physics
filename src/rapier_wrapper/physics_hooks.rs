@@ -2,6 +2,7 @@ use rapier::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsCollisionObjects;
+use crate::spaces::rapier_space::RapierSpace;
 #[derive(Default)]
 pub struct OneWayDirection {
     pub body1: bool,
@@ -76,24 +77,52 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
         let mut contact_is_pass_through = false;
         let mut dist: Real = 0.0;
         if let Some(contact) = context.manifold.find_deepest_contact() {
-            dist = contact.dist;
+            dist = -contact.dist;
         }
+        let last_step = RapierSpace::get_last_step();
+        // ghost collisions
+        if body1.is_dynamic() && !body2.is_dynamic() {
+            let normal = *context.normal;
+            let rigid_body_velocity = body1.linvel();
+            if rigid_body_velocity.norm() <= DEFAULT_EPSILON {
+                return;
+            }
+            let normal_dot_velocity = normal.dot(&rigid_body_velocity.normalize());
+            let length_along_normal =
+                rigid_body_velocity.magnitude() * Real::max(normal_dot_velocity, 0.0) * last_step;
+            if normal_dot_velocity >= 0.0 && dist - length_along_normal < 0.000001 {
+                contact_is_pass_through |= true;
+            }
+        } else if body2.is_dynamic() && !body1.is_dynamic() {
+            let normal = -*context.normal;
+            let rigid_body_velocity = body2.linvel();
+            if rigid_body_velocity.norm() <= DEFAULT_EPSILON {
+                return;
+            }
+            let normal_dot_velocity = normal.dot(&rigid_body_velocity.normalize());
+            let length_along_normal =
+                rigid_body_velocity.magnitude() * Real::max(normal_dot_velocity, 0.0) * last_step;
+            if normal_dot_velocity >= 0.0 && dist - length_along_normal < 0.000001 {
+                contact_is_pass_through |= true;
+            }
+        }
+        // one way collision
         if one_way_direction.body1 {
-            let motion_len = body2.linvel().magnitude();
             let body_margin1 = one_way_direction.pixel_body1_margin;
-            let max_allowed = motion_len
-                * Real::max(body2.linvel().normalize().dot(&allowed_local_n1), 0.0)
-                + body_margin1;
-            contact_is_pass_through =
-                body2.linvel().dot(&allowed_local_n1) <= DEFAULT_EPSILON || dist < -max_allowed;
+            let motion_len = body2.linvel().magnitude();
+            let velocity_dot1 = body2.linvel().normalize().dot(&allowed_local_n1);
+            let length_along_normal = motion_len * Real::max(velocity_dot1, 0.0) * last_step;
+            contact_is_pass_through |= velocity_dot1 <= DEFAULT_EPSILON
+                && dist - length_along_normal > body_margin1
+                && length_along_normal > DEFAULT_EPSILON;
         } else if one_way_direction.body2 {
+            let velocity_dot2 = body1.linvel().normalize().dot(&allowed_local_n2);
             let motion_len = body1.linvel().magnitude();
             let body_margin2 = one_way_direction.pixel_body2_margin;
-            let max_allowed = motion_len
-                * Real::max(body1.linvel().normalize().dot(&allowed_local_n2), 0.0)
-                + body_margin2;
-            contact_is_pass_through =
-                body1.linvel().dot(&allowed_local_n2) <= DEFAULT_EPSILON || dist < -max_allowed;
+            let length_along_normal = motion_len * Real::max(velocity_dot2, 0.0) * last_step;
+            contact_is_pass_through |= velocity_dot2 <= DEFAULT_EPSILON
+                && dist - length_along_normal > body_margin2
+                && length_along_normal > DEFAULT_EPSILON;
         }
         if contact_is_pass_through {
             context.solver_contacts.clear();

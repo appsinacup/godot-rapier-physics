@@ -4,11 +4,19 @@ use godot::prelude::*;
 use rapier::dynamics::IntegrationParameters;
 use rapier::math::Real;
 const SOLVER_NUM_ITERATIONS: &str = "physics/rapier/solver/num_iterations";
+const SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS: &str =
+    "physics/rapier/solver/num_internal_stabilization_iterations";
 const SOLVER_NUM_ADDITIONAL_FRICTION_ITERATIONS: &str =
     "physics/rapier/solver/num_additional_friction_iterations";
 const SOLVER_NUM_INTERNAL_PGS_ITERATIONS: &str =
     "physics/rapier/solver/num_internal_pgs_iterations";
 const SOLVER_MAX_CCD_SUBSTEPS: &str = "physics/rapier/solver/max_ccd_substeps";
+const SOLVER_NORMALIZED_ALLOWED_LINEAR_ERROR: &str =
+    "physics/rapier/solver/normalized_allowed_linear_error";
+const SOLVER_NORMALIZED_MAX_CORRECTIVE_VELOCITY: &str =
+    "physics/rapier/solver/normalized_max_corrective_velocity";
+const SOLVER_NORMALIZED_PREDICTION_DISTANCE: &str =
+    "physics/rapier/solver/normalized_prediction_distance";
 const CONTACT_SKIN: &str = "physics/rapier/solver/contact_skin";
 #[cfg(feature = "dim2")]
 const FLUID_PARTICLE_RADIUS: &str = "physics/rapier/fluid/fluid_particle_radius_2d";
@@ -80,6 +88,12 @@ impl RapierProjectSettings {
             false,
         );
         register_setting_ranged(
+            SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS,
+            Variant::from(integration_parameters.num_internal_stabilization_iterations as i32),
+            "1,4,or_greater",
+            false,
+        );
+        register_setting_ranged(
             SOLVER_NUM_ADDITIONAL_FRICTION_ITERATIONS,
             Variant::from(integration_parameters.num_additional_friction_iterations as i32),
             "0,16,or_greater",
@@ -95,6 +109,24 @@ impl RapierProjectSettings {
             SOLVER_MAX_CCD_SUBSTEPS,
             Variant::from(integration_parameters.max_ccd_substeps as i32),
             "0,16,or_greater",
+            false,
+        );
+        register_setting_ranged(
+            SOLVER_NORMALIZED_ALLOWED_LINEAR_ERROR,
+            Variant::from(integration_parameters.normalized_allowed_linear_error),
+            "0,10,0.00001,or_greater",
+            false,
+        );
+        register_setting_ranged(
+            SOLVER_NORMALIZED_MAX_CORRECTIVE_VELOCITY,
+            Variant::from(integration_parameters.normalized_max_corrective_velocity),
+            "0,10,0.00001,or_greater",
+            false,
+        );
+        register_setting_ranged(
+            SOLVER_NORMALIZED_PREDICTION_DISTANCE,
+            Variant::from(integration_parameters.normalized_prediction_distance),
+            "0,10,0.00001,or_greater",
             false,
         );
         register_setting_ranged(
@@ -185,5 +217,21 @@ impl RapierProjectSettings {
 
     pub fn get_joint_natural_frequency() -> Real {
         RapierProjectSettings::get_setting_double(JOINT_NATURAL_FREQUENCY) as Real
+    }
+
+    pub fn get_normalized_allowed_linear_error() -> Real {
+        RapierProjectSettings::get_setting_double(SOLVER_NORMALIZED_ALLOWED_LINEAR_ERROR) as Real
+    }
+
+    pub fn get_normalized_max_corrective_velocity() -> Real {
+        RapierProjectSettings::get_setting_double(SOLVER_NORMALIZED_MAX_CORRECTIVE_VELOCITY) as Real
+    }
+
+    pub fn get_normalized_prediction_distance() -> Real {
+        RapierProjectSettings::get_setting_double(SOLVER_NORMALIZED_PREDICTION_DISTANCE) as Real
+    }
+
+    pub fn get_num_internal_stabilization_iterations() -> i64 {
+        RapierProjectSettings::get_setting_int(SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS)
     }
 }

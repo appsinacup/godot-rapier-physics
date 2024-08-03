@@ -23,4 +23,8 @@ pub struct SimulationSettings {
     pub max_ccd_substeps: usize,
     pub joint_damping_ratio: Real,
     pub joint_natural_frequency: Real,
+    pub normalized_allowed_linear_error: Real,
+    pub normalized_max_corrective_velocity: Real,
+    pub normalized_prediction_distance: Real,
+    pub num_internal_stabilization_iterations: usize,
 }

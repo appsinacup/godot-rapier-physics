@@ -127,6 +127,10 @@ impl PhysicsWorld {
             max_ccd_substeps: settings.max_ccd_substeps,
             joint_damping_ratio: settings.joint_damping_ratio,
             joint_natural_frequency: settings.joint_natural_frequency,
+            normalized_allowed_linear_error: settings.normalized_allowed_linear_error,
+            normalized_max_corrective_velocity: settings.normalized_max_corrective_velocity,
+            normalized_prediction_distance: settings.normalized_prediction_distance,
+            num_internal_stabilization_iterations: settings.num_internal_stabilization_iterations,
             ..Default::default()
         };
         if let Some(iterations) = NonZeroUsize::new(settings.num_solver_iterations) {

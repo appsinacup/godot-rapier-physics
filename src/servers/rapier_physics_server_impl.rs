@@ -55,6 +55,10 @@ pub struct RapierPhysicsServerImpl {
     num_solver_iterations: usize,
     joint_damping_ratio: f32,
     joint_natural_frequency: f32,
+    normalized_allowed_linear_error: real,
+    normalized_max_corrective_velocity: real,
+    normalized_prediction_distance: real,
+    num_internal_stabilization_iterations: usize,
 }
 impl RapierPhysicsServerImpl {
     pub(super) fn default() -> Self {
@@ -75,6 +79,14 @@ impl RapierPhysicsServerImpl {
                 as usize,
             joint_damping_ratio: RapierProjectSettings::get_joint_damping_ratio(),
             joint_natural_frequency: RapierProjectSettings::get_joint_natural_frequency(),
+            normalized_allowed_linear_error:
+                RapierProjectSettings::get_normalized_allowed_linear_error(),
+            normalized_max_corrective_velocity:
+                RapierProjectSettings::get_normalized_max_corrective_velocity(),
+            normalized_prediction_distance:
+                RapierProjectSettings::get_normalized_prediction_distance(),
+            num_internal_stabilization_iterations:
+                RapierProjectSettings::get_num_internal_stabilization_iterations() as usize,
         }
     }
 
@@ -1971,6 +1983,10 @@ impl RapierPhysicsServerImpl {
                 joint_natural_frequency: self.joint_natural_frequency,
                 pixel_gravity: vector_to_rapier(Vector::ZERO),
                 pixel_liquid_gravity: vector_to_rapier(Vector::ZERO),
+                normalized_allowed_linear_error: self.normalized_allowed_linear_error,
+                normalized_max_corrective_velocity: self.normalized_max_corrective_velocity,
+                normalized_prediction_distance: self.normalized_prediction_distance,
+                num_internal_stabilization_iterations: self.num_internal_stabilization_iterations,
             };
             RapierSpace::step(step, space_rid, physics_data, settings);
             if let Some(space) = physics_data.spaces.get(space_rid) {
