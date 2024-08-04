@@ -462,7 +462,7 @@ impl RapierPhysicsServerImpl {
         if let Some(area) = physics_data.collision_objects.get(&area) {
             return area.get_base().get_shape_transform(shape_idx as usize);
         }
-        Transform::default()
+        Transform::IDENTITY
     }
 
     pub(super) fn area_remove_shape(&mut self, area: Rid, shape_idx: i32) {
@@ -587,7 +587,7 @@ impl RapierPhysicsServerImpl {
         if let Some(area) = physics_data.collision_objects.get(&area) {
             return area.get_base().get_transform();
         }
-        Transform::default()
+        Transform::IDENTITY
     }
 
     pub(super) fn area_set_collision_layer(&mut self, area: Rid, layer: u32) {
@@ -806,7 +806,7 @@ impl RapierPhysicsServerImpl {
                 return body.get_base().get_shape_transform(shape_idx as usize);
             }
         }
-        Transform::default()
+        Transform::IDENTITY
     }
 
     pub(super) fn body_set_shape_disabled(&mut self, body: Rid, shape_idx: i32, disabled: bool) {

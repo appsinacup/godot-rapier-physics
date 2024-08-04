@@ -23,6 +23,10 @@ pub struct JointHandle {
 pub struct ActiveBodyInfo {
     pub body_user_data: UserData,
 }
+pub struct BeforeActiveBodyInfo {
+    pub body_user_data: UserData,
+    pub previous_velocity: Vector<Real>,
+}
 #[derive(Default)]
 pub struct ContactPointInfo {
     pub pixel_local_pos_1: Vector<Real>,
@@ -121,6 +125,18 @@ impl PhysicsWorld {
         space: &mut RapierSpace,
         physics_collision_objects: &mut PhysicsCollisionObjects,
     ) {
+        for handle in self.physics_objects.island_manager.active_dynamic_bodies() {
+            if let Some(body) = self.physics_objects.rigid_body_set.get(*handle) {
+                let before_active_body_info = BeforeActiveBodyInfo {
+                    body_user_data: self.get_rigid_body_user_data(*handle),
+                    previous_velocity: *body.linvel(),
+                };
+                space.before_active_body_callback(
+                    &before_active_body_info,
+                    physics_collision_objects,
+                );
+            }
+        }
         let mut integration_parameters = IntegrationParameters {
             length_unit: settings.length_unit,
             dt: settings.dt,
@@ -174,7 +190,6 @@ impl PhysicsWorld {
             );
         }
         for handle in self.physics_objects.island_manager.active_dynamic_bodies() {
-            // Send the active body event.
             let active_body_info = ActiveBodyInfo {
                 body_user_data: self.get_rigid_body_user_data(*handle),
             };
@@ -185,7 +200,6 @@ impl PhysicsWorld {
             .island_manager
             .active_kinematic_bodies()
         {
-            // Send the active body event.
             let active_body_info = ActiveBodyInfo {
                 body_user_data: self.get_rigid_body_user_data(*handle),
             };

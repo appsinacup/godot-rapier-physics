@@ -1,3 +1,4 @@
+use godot::global::godot_print;
 use rapier::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
@@ -9,6 +10,8 @@ pub struct OneWayDirection {
     pub body2: bool,
     pub pixel_body1_margin: Real,
     pub pixel_body2_margin: Real,
+    pub previous_linear_velocity1: Vector<Real>,
+    pub previous_linear_velocity2: Vector<Real>,
 }
 pub type CollisionFilterCallback = fn(
     filter_info: &CollisionFilterInfo,
@@ -80,44 +83,68 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
             dist = -contact.dist;
         }
         let last_step = RapierSpace::get_last_step();
+        let rigid_body_1_linvel = one_way_direction.previous_linear_velocity1;
+        let rigid_body_2_linvel = one_way_direction.previous_linear_velocity2;
         // ghost collisions
         if body1.is_dynamic() && !body2.is_dynamic() {
             let normal = *context.normal;
-            let rigid_body_velocity = body1.linvel();
-            if rigid_body_velocity.norm() <= DEFAULT_EPSILON {
+            if rigid_body_1_linvel.norm() == 0.0 {
                 return;
             }
-            let normal_dot_velocity = normal.dot(&rigid_body_velocity.normalize());
-            let length_along_normal =
-                rigid_body_velocity.magnitude() * Real::max(normal_dot_velocity, 0.0) * last_step;
-            if normal_dot_velocity >= 0.0 && dist - length_along_normal < 0.000001 {
-                contact_is_pass_through |= true;
+            let normal_dot_velocity = normal.dot(&rigid_body_1_linvel.normalize());
+            let velocity_magnitude = rigid_body_1_linvel.magnitude() * last_step;
+            let length_along_normal = velocity_magnitude * Real::max(normal_dot_velocity, 0.0);
+            if normal_dot_velocity >= -DEFAULT_EPSILON {
+                //godot_print!("diff {}", dist - length_along_normal);
+                if dist - length_along_normal < 0.7 {
+                    contact_is_pass_through |= true;
+                }
+                if dist > -2.5 && dist < 1.0 {
+                    //contact_is_pass_through |= true;
+                }
+                if dist < 0.0 && (dist + length_along_normal).abs() < 6.0 {
+                    //contact_is_pass_through |= true;
+                }
+                if dist > 0.0 && (dist - length_along_normal).abs() < 2.0 {
+                    //contact_is_pass_through |= true;
+                }
             }
         } else if body2.is_dynamic() && !body1.is_dynamic() {
             let normal = -*context.normal;
-            let rigid_body_velocity = body2.linvel();
-            if rigid_body_velocity.norm() <= DEFAULT_EPSILON {
+            if rigid_body_2_linvel.norm() == 0.0 {
                 return;
             }
-            let normal_dot_velocity = normal.dot(&rigid_body_velocity.normalize());
-            let length_along_normal =
-                rigid_body_velocity.magnitude() * Real::max(normal_dot_velocity, 0.0) * last_step;
-            if normal_dot_velocity >= 0.0 && dist - length_along_normal < 0.000001 {
-                contact_is_pass_through |= true;
+            let normal_dot_velocity = normal.dot(&rigid_body_2_linvel.normalize());
+            let velocity_magnitude = rigid_body_2_linvel.magnitude() * last_step;
+            let length_along_normal = velocity_magnitude * Real::max(normal_dot_velocity, 0.0);
+            if normal_dot_velocity >= -DEFAULT_EPSILON {
+                //godot_print!("diff {}", dist - length_along_normal);
+                if dist - length_along_normal < 0.7 {
+                    contact_is_pass_through |= true;
+                }
+                if dist > -2.5 && dist < 1.0 {
+                    //contact_is_pass_through |= true;
+                }
+                if dist < 0.0 && (dist + length_along_normal).abs() < 6.0 {
+                    //contact_is_pass_through |= true;
+                }
+                if dist > 0.0 && (dist - length_along_normal).abs() < 2.0 {
+                    //contact_is_pass_through |= true;
+                }
             }
         }
         // one way collision
         if one_way_direction.body1 {
             let body_margin1 = one_way_direction.pixel_body1_margin;
-            let motion_len = body2.linvel().magnitude();
-            let velocity_dot1 = body2.linvel().normalize().dot(&allowed_local_n1);
+            let motion_len = rigid_body_2_linvel.magnitude();
+            let velocity_dot1 = rigid_body_2_linvel.normalize().dot(&allowed_local_n1);
             let length_along_normal = motion_len * Real::max(velocity_dot1, 0.0) * last_step;
             contact_is_pass_through |= velocity_dot1 <= DEFAULT_EPSILON
                 && dist - length_along_normal > body_margin1
                 && length_along_normal > DEFAULT_EPSILON;
         } else if one_way_direction.body2 {
-            let velocity_dot2 = body1.linvel().normalize().dot(&allowed_local_n2);
-            let motion_len = body1.linvel().magnitude();
+            let velocity_dot2 = rigid_body_1_linvel.normalize().dot(&allowed_local_n2);
+            let motion_len = rigid_body_1_linvel.magnitude();
             let body_margin2 = one_way_direction.pixel_body2_margin;
             let length_along_normal = motion_len * Real::max(velocity_dot2, 0.0) * last_step;
             contact_is_pass_through |= velocity_dot2 <= DEFAULT_EPSILON

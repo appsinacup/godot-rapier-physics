@@ -142,7 +142,7 @@ pub struct CollisionObjectShape {
 impl Default for CollisionObjectShape {
     fn default() -> Self {
         Self {
-            xform: Transform::default(),
+            xform: Transform::IDENTITY,
             shape: Rid::Invalid,
             disabled: false,
             one_way_collision: false,
@@ -212,8 +212,8 @@ impl RapierCollisionObject {
             pickable: true,
             shapes: Vec::new(),
             space: Rid::Invalid,
-            transform: Transform::default(),
-            inv_transform: Transform::default(),
+            transform: Transform::IDENTITY,
+            inv_transform: Transform::IDENTITY,
             collision_mask: 1,
             collision_layer: 1,
             is_debugging_contacts: false,
@@ -518,7 +518,7 @@ impl RapierCollisionObject {
         if let Some(shape) = self.shapes.get(idx) {
             return shape.xform;
         }
-        Transform::default()
+        Transform::IDENTITY
     }
 
     pub fn set_transform(
@@ -527,6 +527,7 @@ impl RapierCollisionObject {
         wake_up: bool,
         physics_engine: &mut PhysicsEngine,
     ) {
+        let teleport = self.transform == Transform::IDENTITY;
         self.transform = p_transform;
         self.inv_transform = transform_inverse(&self.transform);
         if !self.is_valid() {
@@ -540,6 +541,7 @@ impl RapierCollisionObject {
             self.body_handle,
             position,
             rotation,
+            teleport,
             wake_up,
         );
     }

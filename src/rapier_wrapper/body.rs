@@ -161,6 +161,7 @@ impl PhysicsEngine {
         body_handle: RigidBodyHandle,
         pixel_pos: Vector<Real>,
         rot: Rotation<Real>,
+        teleport: bool,
         wake_up: bool,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
@@ -173,7 +174,7 @@ impl PhysicsEngine {
                 body,
                 Translation::from(pixel_pos),
                 rot,
-                false,
+                teleport,
                 wake_up,
             );
         }
