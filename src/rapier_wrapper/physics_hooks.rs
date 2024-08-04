@@ -1,4 +1,3 @@
-use godot::global::godot_print;
 use rapier::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
@@ -95,17 +94,13 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
             let velocity_magnitude = rigid_body_1_linvel.magnitude() * last_step;
             let length_along_normal = velocity_magnitude * Real::max(normal_dot_velocity, 0.0);
             if normal_dot_velocity >= -DEFAULT_EPSILON {
-                godot_print!("diff {}", dist - length_along_normal);
-                if dist - length_along_normal < 0.7 {
-                    contact_is_pass_through |= true;
-                }
-                if dist > -2.5 && dist < 1.0 {
+                let diff = dist - length_along_normal;
+                //godot_print!("diff {}", diff);
+                //godot_print!("dist {}", dist);
+                if diff > -2.5 && diff < 0.1 {
                     //contact_is_pass_through |= true;
                 }
-                if dist < 0.0 && (dist + length_along_normal).abs() < 6.0 {
-                    //contact_is_pass_through |= true;
-                }
-                if dist > 0.0 && (dist - length_along_normal).abs() < 2.0 {
+                if dist < 0.1 && dist > -0.1 {
                     //contact_is_pass_through |= true;
                 }
             }
@@ -118,17 +113,13 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
             let velocity_magnitude = rigid_body_2_linvel.magnitude() * last_step;
             let length_along_normal = velocity_magnitude * Real::max(normal_dot_velocity, 0.0);
             if normal_dot_velocity >= -DEFAULT_EPSILON {
-                godot_print!("diff {}", dist - length_along_normal);
-                if dist - length_along_normal < 0.7 {
-                    contact_is_pass_through |= true;
-                }
-                if dist > -2.5 && dist < 1.0 {
+                let diff = dist - length_along_normal;
+                //godot_print!("diff {}", diff);
+                //godot_print!("dist {}", dist);
+                if diff > -2.5 && diff < 0.1 {
                     //contact_is_pass_through |= true;
                 }
-                if dist < 0.0 && (dist + length_along_normal).abs() < 6.0 {
-                    //contact_is_pass_through |= true;
-                }
-                if dist > 0.0 && (dist - length_along_normal).abs() < 2.0 {
+                if dist < 0.1 && dist > -0.1 {
                     //contact_is_pass_through |= true;
                 }
             }
