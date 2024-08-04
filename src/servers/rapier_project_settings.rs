@@ -18,6 +18,8 @@ const SOLVER_NORMALIZED_MAX_CORRECTIVE_VELOCITY: &str =
 const SOLVER_NORMALIZED_PREDICTION_DISTANCE: &str =
     "physics/rapier/solver/normalized_prediction_distance";
 const CONTACT_SKIN: &str = "physics/rapier/solver/contact_skin";
+const CONTACT_DAMPING_RATIO: &str = "physics/rapier/solver/contact_damping_ratio";
+const CONTACT_NATURAL_FREQUENCY: &str = "physics/rapier/solver/contact_natural_frequency";
 #[cfg(feature = "dim2")]
 const FLUID_PARTICLE_RADIUS: &str = "physics/rapier/fluid/fluid_particle_radius_2d";
 #[cfg(feature = "dim3")]
@@ -130,6 +132,18 @@ impl RapierProjectSettings {
             false,
         );
         register_setting_ranged(
+            CONTACT_DAMPING_RATIO,
+            Variant::from(integration_parameters.contact_damping_ratio),
+            "0,10,0.00001,or_greater",
+            false,
+        );
+        register_setting_ranged(
+            CONTACT_NATURAL_FREQUENCY,
+            Variant::from(integration_parameters.contact_natural_frequency),
+            "0,100,0.00001,or_greater",
+            false,
+        );
+        register_setting_ranged(
             CONTACT_SKIN,
             Variant::from(0.0),
             "0,10,0.00001,or_greater",
@@ -233,5 +247,13 @@ impl RapierProjectSettings {
 
     pub fn get_num_internal_stabilization_iterations() -> i64 {
         RapierProjectSettings::get_setting_int(SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS)
+    }
+
+    pub fn get_contact_damping_ratio() -> Real {
+        RapierProjectSettings::get_setting_double(CONTACT_DAMPING_RATIO) as Real
+    }
+
+    pub fn get_contact_natural_frequency() -> Real {
+        RapierProjectSettings::get_setting_double(CONTACT_NATURAL_FREQUENCY) as Real
     }
 }

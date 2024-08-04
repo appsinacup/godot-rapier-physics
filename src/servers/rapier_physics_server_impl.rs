@@ -59,6 +59,8 @@ pub struct RapierPhysicsServerImpl {
     normalized_max_corrective_velocity: real,
     normalized_prediction_distance: real,
     num_internal_stabilization_iterations: usize,
+    contact_damping_ratio: real,
+    contact_natural_frequency: real,
 }
 impl RapierPhysicsServerImpl {
     pub(super) fn default() -> Self {
@@ -87,6 +89,8 @@ impl RapierPhysicsServerImpl {
                 RapierProjectSettings::get_normalized_prediction_distance(),
             num_internal_stabilization_iterations:
                 RapierProjectSettings::get_num_internal_stabilization_iterations() as usize,
+            contact_damping_ratio: RapierProjectSettings::get_contact_damping_ratio(),
+            contact_natural_frequency: RapierProjectSettings::get_contact_natural_frequency(),
         }
     }
 
@@ -1987,6 +1991,8 @@ impl RapierPhysicsServerImpl {
                 normalized_max_corrective_velocity: self.normalized_max_corrective_velocity,
                 normalized_prediction_distance: self.normalized_prediction_distance,
                 num_internal_stabilization_iterations: self.num_internal_stabilization_iterations,
+                contact_damping_ratio: self.contact_damping_ratio,
+                contact_natural_frequency: self.contact_natural_frequency,
             };
             RapierSpace::step(step, space_rid, physics_data, settings);
             if let Some(space) = physics_data.spaces.get(space_rid) {
