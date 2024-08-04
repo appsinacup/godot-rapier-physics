@@ -10,6 +10,7 @@ use super::rapier_revolute_joint::RapierRevoluteJoint;
 #[cfg(feature = "dim3")]
 use super::rapier_spherical_joint_3d::RapierSphericalJoint3D;
 use crate::rapier_wrapper::prelude::*;
+use crate::types::invalid_rid;
 use crate::*;
 #[cfg_attr(feature = "serde-serialize", typetag::serde(tag = "type"))]
 pub trait IRapierJoint {
@@ -35,6 +36,7 @@ pub struct RapierJointBase {
     max_force: f32,
     handle: JointHandle,
     space_handle: WorldHandle,
+    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "invalid_rid"))]
     space_rid: Rid,
     disabled_collisions_between_bodies: bool,
 }

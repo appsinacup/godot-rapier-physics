@@ -23,6 +23,7 @@ use crate::*;
     derive(serde::Serialize, serde::Deserialize)
 )]
 struct MonitorInfo {
+    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "invalid_rid"))]
     pub rid: Rid,
     pub instance_id: u64,
     pub object_shape_index: u32,
@@ -58,6 +59,7 @@ pub struct RapierArea {
     #[cfg_attr(feature = "serde-serialize", serde(skip))]
     area_monitor_callback: Option<Callable>,
     monitored_objects: HashMap<(ColliderHandle, ColliderHandle), MonitorInfo>,
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     detected_bodies: HashMap<Rid, u32>,
     base: RapierCollisionObject,
 }

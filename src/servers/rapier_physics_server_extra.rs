@@ -118,6 +118,7 @@ impl RapierPhysicsServer {
         "{}".to_string()
     }
 
+    #[cfg(feature = "serde-serialize")]
     #[func]
     fn collision_objects_export_json() -> String {
         let physics_data = physics_data();
@@ -136,6 +137,7 @@ impl RapierPhysicsServer {
         "{}".to_string()
     }
 
+    #[cfg(feature = "serde-serialize")]
     #[func]
     fn collision_object_export_json(_collision_object: Rid) -> String {
         "{}".to_string()

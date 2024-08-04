@@ -16,7 +16,7 @@ dim3 = []
 single = []
 double = []
 # TODO add feature for "glam/libm"
-enhanced-determinism = ["rapier2d/enhanced-determinism", "rapier2d-f64/enhanced-determinism", "rapier3d/enhanced-determinism", "rapier3d-f64/enhanced-determinism", "godot/enchanced-determinism"]
+enhanced-determinism = ["rapier2d/enhanced-determinism", "rapier2d-f64/enhanced-determinism", "rapier3d/enhanced-determinism", "rapier3d-f64/enhanced-determinism"]
 serde-serialize = ["serde", "hashbrown/serde", "bincode", "serde_json", "typetag", "godot/serde", "rapier2d/serde-serialize", "rapier2d-f64/serde-serialize", "rapier3d/serde-serialize", "rapier3d-f64/serde-serialize" ]
 simd-stable = ["rapier2d/simd-stable", "rapier2d-f64/simd-stable", "rapier3d/simd-stable", "rapier3d-f64/simd-stable"]
 simd-nightly = ["rapier2d/simd-nightly", "rapier2d-f64/simd-nightly", "rapier3d/simd-nightly", "rapier3d-f64/simd-nightly"]
@@ -33,8 +33,7 @@ double-dim3 = ["double", "dim3", "rapier3d-f64", "salva3d"]
 bincode = { version = "1", optional = true }
 hashbrown = { version = "0.14" }
 
-godot = { git = "https://github.com/ughuuu/gdext", branch = "make-stuff-serializable", features=["api-4-2"] }
-#godot = { git = "https://github.com/godot-rust/gdext", branch = "master", features=["api-4-2"] }
+godot = { git = "https://github.com/godot-rust/gdext", branch = "master", features=["api-4-2"] }
 
 rapier2d = { git = "https://github.com/ughuuu/rapier", branch = "custom-changes", optional = true }
 rapier2d-f64 = { git = "https://github.com/ughuuu/rapier", branch = "custom-changes", optional = true}

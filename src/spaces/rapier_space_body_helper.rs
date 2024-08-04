@@ -275,7 +275,7 @@ impl RapierSpace {
                                     }
                                     if physics_engine.should_skip_collision_one_dir(
                                         &contact,
-                                        body_shape,
+                                        body_shape.deref(),
                                         collision_body,
                                         shape_index,
                                         &col_shape_transform,
@@ -490,7 +490,7 @@ impl RapierSpace {
                                 }
                                 if physics_engine.should_skip_collision_one_dir(
                                     &contact,
-                                    body_shape,
+                                    body_shape.deref(),
                                     collision_body,
                                     shape_index,
                                     &col_shape_transform,
@@ -618,7 +618,7 @@ impl RapierSpace {
                                 }
                                 if physics_engine.should_skip_collision_one_dir(
                                     &contact,
-                                    body_shape_obj,
+                                    body_shape_obj.deref(),
                                     collision_body,
                                     shape_index,
                                     &col_shape_transform,
@@ -720,7 +720,7 @@ impl PhysicsEngine {
     fn should_skip_collision_one_dir(
         &self,
         contact: &ContactResult,
-        body_shape: &Box<dyn IRapierShape>,
+        body_shape: &dyn IRapierShape,
         collision_body: &dyn IRapierCollisionObject,
         shape_index: usize,
         col_shape_transform: &Transform,

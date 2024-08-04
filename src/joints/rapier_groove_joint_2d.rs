@@ -20,8 +20,8 @@ impl RapierGrooveJoint2D {
         p_a_groove1: Vector,
         p_a_groove2: Vector,
         p_b_anchor: Vector,
-        body_a: &Box<dyn IRapierCollisionObject>,
-        body_b: &Box<dyn IRapierCollisionObject>,
+        body_a: &dyn IRapierCollisionObject,
+        body_b: &dyn IRapierCollisionObject,
         physics_engine: &mut PhysicsEngine,
     ) -> Self {
         let invalid_joint = Self {

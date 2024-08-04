@@ -23,6 +23,10 @@ pub struct JointHandle {
 pub struct ActiveBodyInfo {
     pub body_user_data: UserData,
 }
+pub struct BeforeActiveBodyInfo {
+    pub body_user_data: UserData,
+    pub previous_velocity: Vector<Real>,
+}
 #[derive(Default)]
 pub struct ContactPointInfo {
     pub pixel_local_pos_1: Vector<Real>,
@@ -121,12 +125,30 @@ impl PhysicsWorld {
         space: &mut RapierSpace,
         physics_collision_objects: &mut PhysicsCollisionObjects,
     ) {
+        for handle in self.physics_objects.island_manager.active_dynamic_bodies() {
+            if let Some(body) = self.physics_objects.rigid_body_set.get(*handle) {
+                let before_active_body_info = BeforeActiveBodyInfo {
+                    body_user_data: self.get_rigid_body_user_data(*handle),
+                    previous_velocity: *body.linvel(),
+                };
+                space.before_active_body_callback(
+                    &before_active_body_info,
+                    physics_collision_objects,
+                );
+            }
+        }
         let mut integration_parameters = IntegrationParameters {
             length_unit: settings.length_unit,
             dt: settings.dt,
+            contact_damping_ratio: settings.contact_damping_ratio,
+            contact_natural_frequency: settings.contact_natural_frequency,
             max_ccd_substeps: settings.max_ccd_substeps,
             joint_damping_ratio: settings.joint_damping_ratio,
             joint_natural_frequency: settings.joint_natural_frequency,
+            normalized_allowed_linear_error: settings.normalized_allowed_linear_error,
+            normalized_max_corrective_velocity: settings.normalized_max_corrective_velocity,
+            normalized_prediction_distance: settings.normalized_prediction_distance,
+            num_internal_stabilization_iterations: settings.num_internal_stabilization_iterations,
             ..Default::default()
         };
         if let Some(iterations) = NonZeroUsize::new(settings.num_solver_iterations) {
@@ -170,7 +192,6 @@ impl PhysicsWorld {
             );
         }
         for handle in self.physics_objects.island_manager.active_dynamic_bodies() {
-            // Send the active body event.
             let active_body_info = ActiveBodyInfo {
                 body_user_data: self.get_rigid_body_user_data(*handle),
             };
@@ -181,7 +202,6 @@ impl PhysicsWorld {
             .island_manager
             .active_kinematic_bodies()
         {
-            // Send the active body event.
             let active_body_info = ActiveBodyInfo {
                 body_user_data: self.get_rigid_body_user_data(*handle),
             };
@@ -218,7 +238,7 @@ impl PhysicsWorld {
                     user_data1: UserData::new(collider1.user_data),
                     user_data2: UserData::new(collider2.user_data),
                 };
-                let mut send_contact_points =
+                let send_contact_points =
                     space.contact_force_event_callback(&event_info, physics_collision_objects);
                 if send_contact_points
                     && let Some(body1) = self.get_collider_rigid_body(collider1)
@@ -226,16 +246,6 @@ impl PhysicsWorld {
                 {
                     // Find the contact pair, if it exists, between two colliders
                     let mut contact_info = ContactPointInfo::default();
-                    let swap = false;
-                    /*
-                    if contact_force_event.collider1 != contact_pair.collider1 {
-                        assert!(contact_force_event.collider1 == contact_pair.collider2);
-                        assert!(contact_force_event.collider2 == contact_pair.collider1);
-                        swap = true;
-                    } else {
-                        assert!(contact_force_event.collider2 == contact_pair.collider2);
-                    }
-                     */
                     // We may also read the contact manifolds to access the contact geometry.
                     for manifold in &contact_pair.manifolds {
                         let manifold_normal = manifold.data.normal;
@@ -253,31 +263,18 @@ impl PhysicsWorld {
                             let collider_pos_2 = collider2.position() * contact_point.local_p2;
                             let point_velocity_1 = body1.velocity_at_point(&collider_pos_1);
                             let point_velocity_2 = body2.velocity_at_point(&collider_pos_2);
-                            if swap {
-                                contact_info.pixel_local_pos_1 = collider_pos_2.coords;
-                                contact_info.pixel_local_pos_2 = collider_pos_1.coords;
-                                contact_info.pixel_velocity_pos_1 = point_velocity_2;
-                                contact_info.pixel_velocity_pos_2 = point_velocity_1;
-                            } else {
-                                contact_info.pixel_local_pos_1 = collider_pos_1.coords;
-                                contact_info.pixel_local_pos_2 = collider_pos_2.coords;
-                                contact_info.pixel_velocity_pos_1 = point_velocity_1;
-                                contact_info.pixel_velocity_pos_2 = point_velocity_2;
-                            }
+                            contact_info.pixel_local_pos_1 = collider_pos_1.coords;
+                            contact_info.pixel_local_pos_2 = collider_pos_2.coords;
+                            contact_info.pixel_velocity_pos_1 = point_velocity_1;
+                            contact_info.pixel_velocity_pos_2 = point_velocity_2;
                             contact_info.pixel_distance = contact_point.dist;
                             contact_info.pixel_impulse = contact_point.data.impulse;
                             contact_info.pixel_tangent_impulse = contact_point.data.tangent_impulse;
-                            send_contact_points = space.contact_point_callback(
+                            space.contact_point_callback(
                                 &contact_info,
                                 &event_info,
                                 physics_collision_objects,
                             );
-                            if !send_contact_points {
-                                break;
-                            }
-                        }
-                        if !send_contact_points {
-                            break;
                         }
                     }
                 }

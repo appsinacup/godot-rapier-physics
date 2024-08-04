@@ -1,5 +1,6 @@
 #[cfg(feature = "dim2")]
 use std::ffi::c_void;
+use std::ops::Deref;
 
 #[cfg(feature = "dim2")]
 use godot::classes::physics_server_2d::*;
@@ -55,6 +56,12 @@ pub struct RapierPhysicsServerImpl {
     num_solver_iterations: usize,
     joint_damping_ratio: f32,
     joint_natural_frequency: f32,
+    normalized_allowed_linear_error: real,
+    normalized_max_corrective_velocity: real,
+    normalized_prediction_distance: real,
+    num_internal_stabilization_iterations: usize,
+    contact_damping_ratio: real,
+    contact_natural_frequency: real,
 }
 impl RapierPhysicsServerImpl {
     pub(super) fn default() -> Self {
@@ -75,6 +82,16 @@ impl RapierPhysicsServerImpl {
                 as usize,
             joint_damping_ratio: RapierProjectSettings::get_joint_damping_ratio(),
             joint_natural_frequency: RapierProjectSettings::get_joint_natural_frequency(),
+            normalized_allowed_linear_error:
+                RapierProjectSettings::get_normalized_allowed_linear_error(),
+            normalized_max_corrective_velocity:
+                RapierProjectSettings::get_normalized_max_corrective_velocity(),
+            normalized_prediction_distance:
+                RapierProjectSettings::get_normalized_prediction_distance(),
+            num_internal_stabilization_iterations:
+                RapierProjectSettings::get_num_internal_stabilization_iterations() as usize,
+            contact_damping_ratio: RapierProjectSettings::get_contact_damping_ratio(),
+            contact_natural_frequency: RapierProjectSettings::get_contact_natural_frequency(),
         }
     }
 
@@ -450,7 +467,7 @@ impl RapierPhysicsServerImpl {
         if let Some(area) = physics_data.collision_objects.get(&area) {
             return area.get_base().get_shape_transform(shape_idx as usize);
         }
-        Transform::default()
+        Transform::IDENTITY
     }
 
     pub(super) fn area_remove_shape(&mut self, area: Rid, shape_idx: i32) {
@@ -575,7 +592,7 @@ impl RapierPhysicsServerImpl {
         if let Some(area) = physics_data.collision_objects.get(&area) {
             return area.get_base().get_transform();
         }
-        Transform::default()
+        Transform::IDENTITY
     }
 
     pub(super) fn area_set_collision_layer(&mut self, area: Rid, layer: u32) {
@@ -794,7 +811,7 @@ impl RapierPhysicsServerImpl {
                 return body.get_base().get_shape_transform(shape_idx as usize);
             }
         }
-        Transform::default()
+        Transform::IDENTITY
     }
 
     pub(super) fn body_set_shape_disabled(&mut self, body: Rid, shape_idx: i32, disabled: bool) {
@@ -1594,8 +1611,8 @@ impl RapierPhysicsServerImpl {
             joint = Box::new(RapierRevoluteJoint::new(
                 hinge_a.origin,
                 hinge_b.origin,
-                body_a,
-                body_b,
+                body_a.deref(),
+                body_b.deref(),
                 &mut physics_data.physics_engine,
             ));
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
@@ -1632,8 +1649,8 @@ impl RapierPhysicsServerImpl {
             joint = Box::new(RapierRevoluteJoint::new(
                 pivot_a,
                 pivot_b,
-                body_a,
-                body_b,
+                body_a.deref(),
+                body_b.deref(),
                 &mut physics_data.physics_engine,
             ));
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
@@ -1702,8 +1719,8 @@ impl RapierPhysicsServerImpl {
             joint = Box::new(RapierRevoluteJoint::new(
                 anchor,
                 anchor,
-                body_a,
-                body_b,
+                body_a.deref(),
+                body_b.deref(),
                 &mut physics_data.physics_engine,
             ));
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
@@ -1739,8 +1756,8 @@ impl RapierPhysicsServerImpl {
                 a_groove1,
                 a_groove2,
                 b_anchor,
-                body_a,
-                body_b,
+                body_a.deref(),
+                body_b.deref(),
                 &mut physics_data.physics_engine,
             ));
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
@@ -1774,8 +1791,8 @@ impl RapierPhysicsServerImpl {
             joint = Box::new(RapierDampedSpringJoint2D::new(
                 anchor_a,
                 anchor_b,
-                body_a,
-                body_b,
+                body_a.deref(),
+                body_b.deref(),
                 &mut physics_data.physics_engine,
             ));
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
@@ -1971,6 +1988,12 @@ impl RapierPhysicsServerImpl {
                 joint_natural_frequency: self.joint_natural_frequency,
                 pixel_gravity: vector_to_rapier(Vector::ZERO),
                 pixel_liquid_gravity: vector_to_rapier(Vector::ZERO),
+                normalized_allowed_linear_error: self.normalized_allowed_linear_error,
+                normalized_max_corrective_velocity: self.normalized_max_corrective_velocity,
+                normalized_prediction_distance: self.normalized_prediction_distance,
+                num_internal_stabilization_iterations: self.num_internal_stabilization_iterations,
+                contact_damping_ratio: self.contact_damping_ratio,
+                contact_natural_frequency: self.contact_natural_frequency,
             };
             RapierSpace::step(step, space_rid, physics_data, settings);
             if let Some(space) = physics_data.spaces.get(space_rid) {

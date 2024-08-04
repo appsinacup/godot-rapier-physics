@@ -8,6 +8,7 @@ use rapier::dynamics::RigidBodyHandle;
 use rapier::geometry::ColliderHandle;
 use servers::rapier_physics_singleton::PhysicsShapes;
 use servers::rapier_physics_singleton::PhysicsSpaces;
+use servers::rapier_project_settings::RapierProjectSettings;
 
 use super::rapier_area::RapierArea;
 use super::rapier_body::RapierBody;
@@ -131,6 +132,7 @@ pub enum CollisionObjectType {
 )]
 pub struct CollisionObjectShape {
     pub xform: Transform,
+    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "invalid_rid"))]
     pub shape: Rid,
     pub disabled: bool,
     pub one_way_collision: bool,
@@ -140,7 +142,7 @@ pub struct CollisionObjectShape {
 impl Default for CollisionObjectShape {
     fn default() -> Self {
         Self {
-            xform: Transform::default(),
+            xform: Transform::IDENTITY,
             shape: Rid::Invalid,
             disabled: false,
             one_way_collision: false,
@@ -153,11 +155,13 @@ impl Default for CollisionObjectShape {
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
 pub struct RapierCollisionObject {
     collision_object_type: CollisionObjectType,
+    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "invalid_rid"))]
     rid: Rid,
     instance_id: u64,
     canvas_instance_id: u64,
     pickable: bool,
     pub(crate) shapes: Vec<CollisionObjectShape>,
+    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "invalid_rid"))]
     space: Rid,
     transform: Transform,
     inv_transform: Transform,
@@ -190,10 +194,12 @@ impl RapierCollisionObject {
             .get_setting_with_override(SLEEP_THRESHOLD_ANGULAR.into())
             .try_to()
             .unwrap_or_default();
-        let activation_linear_threshold = project_settings
+        let length_unit = RapierProjectSettings::get_length_unit();
+        let mut activation_linear_threshold = project_settings
             .get_setting_with_override(SLEEP_THRESHOLD_LINEAR.into())
             .try_to()
             .unwrap_or_default();
+        activation_linear_threshold /= length_unit;
         let activation_time_until_sleep = project_settings
             .get_setting_with_override(TIME_BEFORE_SLEEP.into())
             .try_to()
@@ -206,8 +212,8 @@ impl RapierCollisionObject {
             pickable: true,
             shapes: Vec::new(),
             space: Rid::Invalid,
-            transform: Transform::default(),
-            inv_transform: Transform::default(),
+            transform: Transform::IDENTITY,
+            inv_transform: Transform::IDENTITY,
             collision_mask: 1,
             collision_layer: 1,
             is_debugging_contacts: false,
@@ -512,7 +518,7 @@ impl RapierCollisionObject {
         if let Some(shape) = self.shapes.get(idx) {
             return shape.xform;
         }
-        Transform::default()
+        Transform::IDENTITY
     }
 
     pub fn set_transform(
@@ -521,6 +527,7 @@ impl RapierCollisionObject {
         wake_up: bool,
         physics_engine: &mut PhysicsEngine,
     ) {
+        let teleport = self.transform == Transform::IDENTITY;
         self.transform = p_transform;
         self.inv_transform = transform_inverse(&self.transform);
         if !self.is_valid() {
@@ -534,6 +541,7 @@ impl RapierCollisionObject {
             self.body_handle,
             position,
             rotation,
+            teleport,
             wake_up,
         );
     }

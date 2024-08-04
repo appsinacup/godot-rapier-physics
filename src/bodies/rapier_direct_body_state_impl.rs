@@ -186,7 +186,7 @@ impl RapierDirectBodyStateImpl {
                 return body.get_base().get_transform();
             }
         }
-        Transform::default()
+        Transform::IDENTITY
     }
 
     pub(super) fn get_velocity_at_local_position(&self, local_position: Vector) -> Vector {

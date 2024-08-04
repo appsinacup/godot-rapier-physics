@@ -24,11 +24,9 @@ pub struct SpaceExport<'a> {
     pub inner: &'a PhysicsObjects,
     pub space: &'a RapierSpace,
 }
-#[cfg_attr(
-    feature = "serde-serialize",
-    derive(serde::Serialize, serde::Deserialize)
-)]
+#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
 pub struct RemovedColliderInfo {
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     pub rid: Rid,
     pub instance_id: u64,
     pub shape_index: usize,
@@ -65,13 +63,21 @@ pub struct RapierSpace {
     #[cfg_attr(feature = "serde-serialize", serde(skip))]
     direct_access: Option<Gd<PhysicsDirectSpaceState>>,
     handle: WorldHandle,
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     removed_colliders: HashMap<ColliderHandle, RemovedColliderInfo>,
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     active_list: HashSet<Rid>,
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     mass_properties_update_list: HashSet<Rid>,
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     gravity_update_list: HashSet<Rid>,
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     state_query_list: HashSet<Rid>,
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     monitor_query_list: HashSet<Rid>,
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     area_update_list: HashSet<Rid>,
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     body_area_update_list: HashSet<Rid>,
     contact_max_allowed_penetration: real,
     default_gravity_dir: Vector,
