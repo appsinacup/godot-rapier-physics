@@ -21,8 +21,8 @@ impl RapierDampedSpringJoint2D {
     pub fn new(
         p_anchor_a: Vector,
         p_anchor_b: Vector,
-        body_a: &Box<dyn IRapierCollisionObject>,
-        body_b: &Box<dyn IRapierCollisionObject>,
+        body_a: &dyn IRapierCollisionObject,
+        body_b: &dyn IRapierCollisionObject,
         physics_engine: &mut PhysicsEngine,
     ) -> Self {
         let invalid_joint = Self {

@@ -39,7 +39,7 @@ impl PhysicsEngine {
         world_handle: WorldHandle,
         fluid_handle: HandleDouble,
         points: &Vec<Vector<Real>>,
-        velocity_points: &Vec<Vector<Real>>,
+        velocity_points: &[Vector<Real>],
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(fluid) = physics_world
@@ -60,7 +60,7 @@ impl PhysicsEngine {
                     accelerations[i] = fluid.accelerations[i];
                 }
             }
-            fluid.velocities = velocity_points.clone();
+            fluid.velocities = velocity_points.to_owned();
             fluid.accelerations = accelerations;
             fluid.volumes = std::iter::repeat(fluid.default_particle_volume())
                 .take(points_len)
@@ -161,7 +161,7 @@ impl PhysicsEngine {
         world_handle: WorldHandle,
         fluid_handle: HandleDouble,
         points: &Vec<Vector<Real>>,
-        velocity_points: &Vec<Vector<Real>>,
+        velocity_points: &[Vector<Real>],
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(fluid) = physics_world

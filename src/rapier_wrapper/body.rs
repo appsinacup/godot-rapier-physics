@@ -43,6 +43,7 @@ impl PhysicsEngine {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn body_create(
         &mut self,
         world_handle: WorldHandle,

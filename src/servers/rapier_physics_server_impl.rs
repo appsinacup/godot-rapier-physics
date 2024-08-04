@@ -1,5 +1,6 @@
 #[cfg(feature = "dim2")]
 use std::ffi::c_void;
+use std::ops::Deref;
 
 #[cfg(feature = "dim2")]
 use godot::classes::physics_server_2d::*;
@@ -1718,8 +1719,8 @@ impl RapierPhysicsServerImpl {
             joint = Box::new(RapierRevoluteJoint::new(
                 anchor,
                 anchor,
-                body_a,
-                body_b,
+                body_a.deref(),
+                body_b.deref(),
                 &mut physics_data.physics_engine,
             ));
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
@@ -1755,8 +1756,8 @@ impl RapierPhysicsServerImpl {
                 a_groove1,
                 a_groove2,
                 b_anchor,
-                body_a,
-                body_b,
+                body_a.deref(),
+                body_b.deref(),
                 &mut physics_data.physics_engine,
             ));
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
@@ -1790,8 +1791,8 @@ impl RapierPhysicsServerImpl {
             joint = Box::new(RapierDampedSpringJoint2D::new(
                 anchor_a,
                 anchor_b,
-                body_a,
-                body_b,
+                body_a.deref(),
+                body_b.deref(),
                 &mut physics_data.physics_engine,
             ));
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {

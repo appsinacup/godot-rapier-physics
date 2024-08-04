@@ -95,7 +95,7 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
             let velocity_magnitude = rigid_body_1_linvel.magnitude() * last_step;
             let length_along_normal = velocity_magnitude * Real::max(normal_dot_velocity, 0.0);
             if normal_dot_velocity >= -DEFAULT_EPSILON {
-                //godot_print!("diff {}", dist - length_along_normal);
+                godot_print!("diff {}", dist - length_along_normal);
                 if dist - length_along_normal < 0.7 {
                     contact_is_pass_through |= true;
                 }
@@ -118,7 +118,7 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
             let velocity_magnitude = rigid_body_2_linvel.magnitude() * last_step;
             let length_along_normal = velocity_magnitude * Real::max(normal_dot_velocity, 0.0);
             if normal_dot_velocity >= -DEFAULT_EPSILON {
-                //godot_print!("diff {}", dist - length_along_normal);
+                godot_print!("diff {}", dist - length_along_normal);
                 if dist - length_along_normal < 0.7 {
                     contact_is_pass_through |= true;
                 }
