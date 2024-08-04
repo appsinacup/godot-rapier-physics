@@ -1611,8 +1611,8 @@ impl RapierPhysicsServerImpl {
             joint = Box::new(RapierRevoluteJoint::new(
                 hinge_a.origin,
                 hinge_b.origin,
-                body_a,
-                body_b,
+                body_a.deref(),
+                body_b.deref(),
                 &mut physics_data.physics_engine,
             ));
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
@@ -1649,8 +1649,8 @@ impl RapierPhysicsServerImpl {
             joint = Box::new(RapierRevoluteJoint::new(
                 pivot_a,
                 pivot_b,
-                body_a,
-                body_b,
+                body_a.deref(),
+                body_b.deref(),
                 &mut physics_data.physics_engine,
             ));
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
