@@ -54,14 +54,13 @@ impl IRapierShape for RapierSegmentShape2D {
         }
         let r: Rect2 = data.try_to().unwrap_or_default();
         self.a = r.position;
-        self.b = r.position + r.size;
+        self.b = r.size;
         let handle = self.create_rapier_shape(physics_engine);
         self.base.set_handle(handle, physics_engine);
     }
 
     fn get_data(&self) -> Variant {
-        let mut r = Rect2::new(self.a, self.b - self.a);
-        r.size = self.b - self.a;
+        let r = Rect2::new(self.a, self.b);
         r.to_variant()
     }
 
