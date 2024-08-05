@@ -29,4 +29,4 @@ A clear and concise description of what you expected to happen.
 
 **Example project(zip)**
 
-Please attach a zip with project where issue occurs.
+Please attach a zip with project where issue occurs. Remove the **addons** folder so that the size is less than 25 mb.
