@@ -1174,17 +1174,11 @@ impl RapierBody {
         space.body_add_to_state_query_list(self.base.get_rid());
         if self.base.mode.ord() >= BodyMode::RIGID.ord() {
             if self.to_add_angular_velocity != ANGLE_ZERO {
-                self.set_angular_velocity(
-                    self.get_angular_velocity(physics_engine) + self.to_add_angular_velocity,
-                    physics_engine,
-                );
+                self.set_angular_velocity(self.to_add_angular_velocity, physics_engine);
                 self.to_add_angular_velocity = ANGLE_ZERO;
             }
             if self.to_add_linear_velocity != Vector::default() {
-                self.set_linear_velocity(
-                    self.get_linear_velocity(physics_engine) + self.to_add_linear_velocity,
-                    physics_engine,
-                );
+                self.set_linear_velocity(self.to_add_linear_velocity, physics_engine);
                 self.to_add_linear_velocity = Vector::default();
             }
         }
