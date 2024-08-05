@@ -2,7 +2,6 @@ use rapier::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsCollisionObjects;
-use crate::spaces::rapier_space::RapierSpace;
 #[derive(Default)]
 pub struct OneWayDirection {
     pub body1: bool,
@@ -28,6 +27,7 @@ pub struct PhysicsHooksCollisionFilter<'a> {
     pub collision_filter_body_callback: &'a CollisionFilterCallback,
     pub collision_modify_contacts_callback: &'a CollisionModifyContactsCallback,
     pub physics_collision_objects: &'a PhysicsCollisionObjects,
+    pub last_step: Real,
 }
 impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
     fn filter_contact_pair(&self, context: &PairFilterContext) -> Option<SolverFlags> {
@@ -81,7 +81,6 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
         if let Some(contact) = context.manifold.find_deepest_contact() {
             dist = -contact.dist;
         }
-        let last_step = RapierSpace::get_last_step();
         let rigid_body_1_linvel = one_way_direction.previous_linear_velocity1;
         let rigid_body_2_linvel = one_way_direction.previous_linear_velocity2;
         // ghost collisions
@@ -91,7 +90,7 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
                 return;
             }
             let normal_dot_velocity = normal.dot(&rigid_body_1_linvel.normalize());
-            let velocity_magnitude = rigid_body_1_linvel.magnitude() * last_step;
+            let velocity_magnitude = rigid_body_1_linvel.magnitude() * self.last_step;
             let length_along_normal = velocity_magnitude * Real::max(normal_dot_velocity, 0.0);
             if normal_dot_velocity >= -DEFAULT_EPSILON {
                 let diff = dist - length_along_normal;
@@ -110,7 +109,7 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
                 return;
             }
             let normal_dot_velocity = normal.dot(&rigid_body_2_linvel.normalize());
-            let velocity_magnitude = rigid_body_2_linvel.magnitude() * last_step;
+            let velocity_magnitude = rigid_body_2_linvel.magnitude() * self.last_step;
             let length_along_normal = velocity_magnitude * Real::max(normal_dot_velocity, 0.0);
             if normal_dot_velocity >= -DEFAULT_EPSILON {
                 let diff = dist - length_along_normal;
@@ -129,7 +128,7 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
             let body_margin1 = one_way_direction.pixel_body1_margin;
             let motion_len = rigid_body_2_linvel.magnitude();
             let velocity_dot1 = rigid_body_2_linvel.normalize().dot(&allowed_local_n1);
-            let length_along_normal = motion_len * Real::max(velocity_dot1, 0.0) * last_step;
+            let length_along_normal = motion_len * Real::max(velocity_dot1, 0.0) * self.last_step;
             contact_is_pass_through |= velocity_dot1 <= DEFAULT_EPSILON
                 && dist - length_along_normal > body_margin1
                 && length_along_normal > DEFAULT_EPSILON;
@@ -137,7 +136,7 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
             let velocity_dot2 = rigid_body_1_linvel.normalize().dot(&allowed_local_n2);
             let motion_len = rigid_body_1_linvel.magnitude();
             let body_margin2 = one_way_direction.pixel_body2_margin;
-            let length_along_normal = motion_len * Real::max(velocity_dot2, 0.0) * last_step;
+            let length_along_normal = motion_len * Real::max(velocity_dot2, 0.0) * self.last_step;
             contact_is_pass_through |= velocity_dot2 <= DEFAULT_EPSILON
                 && dist - length_along_normal > body_margin2
                 && length_along_normal > DEFAULT_EPSILON;

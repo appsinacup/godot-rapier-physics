@@ -163,6 +163,7 @@ impl PhysicsWorld {
             collision_filter_body_callback: &collision_filter_body_callback,
             collision_modify_contacts_callback: &collision_modify_contacts_callback,
             physics_collision_objects,
+            last_step: RapierSpace::get_last_step(),
         };
         // Initialize the event collector.
         let (collision_send, collision_recv) = crossbeam::channel::unbounded();
