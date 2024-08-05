@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.7.24
+
+- Migrate to latest gdext. Also fix body notification issue. by [@Ughuuu](https://github.com/Ughuuu) in [#179](https://github.com/appsinacup/godot-rapier-physics/pull/179)
+- fix segment shape by [@Ughuuu](https://github.com/Ughuuu) in [#182](https://github.com/appsinacup/godot-rapier-physics/pull/182)
+- Fix static body constant velocity to not cumulate by [@Ughuuu](https://github.com/Ughuuu) in [#183](https://github.com/appsinacup/godot-rapier-physics/pull/183)
+
 ## v0.7.23
 
 - Fix area mask/layer issue by [@Ughuuu](https://github.com/Ughuuu) in [#175](https://github.com/appsinacup/godot-rapier-physics/pull/175)
