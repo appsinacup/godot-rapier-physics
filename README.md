@@ -28,15 +28,15 @@ Godot Rapier Physics is a 2D and 3D physics drop-in replacement for the [Godot g
 <div style="display: flex; justify-content: center; align-items: center;">
   <div style="text-align: center; margin: 10px;">
     <p>Stability</p>
-    <img src="docs/rapier-vid.gif" width="512" />
+    <img src="docs/rapier-vid.gif" width="256" />
   </div>
   <div style="text-align: center; margin: 10px;">
     <p>Ghost Collisions</p>
-    <img src="docs/ghost_collisions.gif" width="512" />
+    <img src="docs/ghost_collisions.gif" width="256" />
   </div>
   <div style="text-align: center; margin: 10px;">
     <p>Fluids</p>
-    <img src="docs/fluid_shader.gif" width="512" />
+    <img src="docs/fluid_shader.gif" width="256" />
   </div>
 </div>
 
