@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.25
+
+- Fixed Ghost collision by [@Ughuuu](https://github.com/Ughuuu) in [#184](https://github.com/appsinacup/godot-rapier-physics/pull/184)
+
 ## v0.7.24
 
 - Migrate to latest gdext. Also fix body notification issue. by [@Ughuuu](https://github.com/Ughuuu) in [#179](https://github.com/appsinacup/godot-rapier-physics/pull/179)
