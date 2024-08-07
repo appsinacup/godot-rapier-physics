@@ -20,7 +20,10 @@ const SOLVER_NORMALIZED_PREDICTION_DISTANCE: &str =
 const CONTACT_SKIN: &str = "physics/rapier/solver/contact_skin";
 const CONTACT_DAMPING_RATIO: &str = "physics/rapier/solver/contact_damping_ratio";
 const CONTACT_NATURAL_FREQUENCY: &str = "physics/rapier/solver/contact_natural_frequency";
-const MIN_GHOST_COLLISION_DISTANCE: &str = "physics/rapier/logic/min_ghost_collision_distance";
+#[cfg(feature = "dim2")]
+const GHOST_COLLISION_DISTANCE: &str = "physics/rapier/logic/ghost_collision_distance_2d";
+#[cfg(feature = "dim3")]
+const GHOST_COLLISION_DISTANCE: &str = "physics/rapier/logic/ghost_collision_distance_3d";
 #[cfg(feature = "dim2")]
 const FLUID_PARTICLE_RADIUS: &str = "physics/rapier/fluid/fluid_particle_radius_2d";
 #[cfg(feature = "dim3")]
@@ -31,9 +34,9 @@ const LENGTH_UNIT: &str = "physics/rapier/solver/length_unit_2d";
 #[cfg(feature = "dim2")]
 const LENGTH_UNIT_VALUE: real = 100.0;
 #[cfg(feature = "dim2")]
-const MIN_GHOST_COLLISION_DISTANCE_VALUE: real = 1.0;
+const GHOST_COLLISION_DISTANCE_VALUE: real = 1.0;
 #[cfg(feature = "dim3")]
-const MIN_GHOST_COLLISION_DISTANCE_VALUE: real = 0.1;
+const GHOST_COLLISION_DISTANCE_VALUE: real = 0.1;
 #[cfg(feature = "dim2")]
 const FLUID_PARTICLE_VALUE: real = 20.0;
 #[cfg(feature = "dim3")]
@@ -167,8 +170,8 @@ impl RapierProjectSettings {
             false,
         );
         register_setting_ranged(
-            MIN_GHOST_COLLISION_DISTANCE,
-            Variant::from(MIN_GHOST_COLLISION_DISTANCE_VALUE),
+            GHOST_COLLISION_DISTANCE,
+            Variant::from(GHOST_COLLISION_DISTANCE_VALUE),
             "0,10,0.00001,or_greater",
             false,
         );
@@ -268,7 +271,7 @@ impl RapierProjectSettings {
         RapierProjectSettings::get_setting_double(CONTACT_NATURAL_FREQUENCY) as Real
     }
 
-    pub fn get_min_ghost_collision_distance() -> Real {
-        RapierProjectSettings::get_setting_double(MIN_GHOST_COLLISION_DISTANCE) as Real
+    pub fn get_ghost_collision_distance() -> Real {
+        RapierProjectSettings::get_setting_double(GHOST_COLLISION_DISTANCE) as Real
     }
 }
