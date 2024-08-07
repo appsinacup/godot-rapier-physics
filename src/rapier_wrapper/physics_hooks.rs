@@ -78,10 +78,6 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
         let one_way_direction =
             (self.collision_modify_contacts_callback)(&filter_info, self.physics_collision_objects);
         let mut contact_is_pass_through = false;
-        let mut dist: Real = 0.0;
-        if let Some(contact) = context.manifold.find_deepest_contact() {
-            dist = -contact.dist;
-        }
         let mut rigid_body_1_linvel = one_way_direction.previous_linear_velocity1;
         let mut rigid_body_2_linvel = one_way_direction.previous_linear_velocity2;
         if rigid_body_1_linvel.norm() == 0.0 {
@@ -92,39 +88,46 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
         }
         // ghost collisions
         if body1.is_dynamic() && !body2.is_dynamic() {
-            let normal = context.manifold.local_n1;
+            let normal = *context.normal;
             if rigid_body_1_linvel.norm() == 0.0 {
                 return;
             }
+            godot_print!("normal {}", normal);
             let normal_dot_velocity = normal.dot(&rigid_body_1_linvel.normalize());
             let velocity_magnitude = rigid_body_1_linvel.magnitude() * self.last_step;
             let length_along_normal = velocity_magnitude * Real::max(normal_dot_velocity, 0.0);
-            godot_print!("normal_dot_velocity {}", normal_dot_velocity);
-            if normal_dot_velocity >= -0.5 {
-                let diff = dist - length_along_normal;
-                godot_print!("diff {}", diff);
-                godot_print!("dist {}", dist);
-                if diff < 10.0 && dist < 1.0 {
-                    contact_is_pass_through |= true;
-                }
+            if normal_dot_velocity >= -DEFAULT_EPSILON {
+                context.solver_contacts.retain(|contact| {
+                    let dist = -contact.dist;
+                    let diff = dist - length_along_normal;
+                    if diff < 0.5 && dist.abs() < 1.0 {
+                        return false;
+                    }
+                    true
+                });
             }
         } else if body2.is_dynamic() && !body1.is_dynamic() {
-            let normal = context.manifold.local_n2;
+            let normal = -*context.normal;
             if rigid_body_2_linvel.norm() == 0.0 {
                 return;
             }
             let normal_dot_velocity = normal.dot(&rigid_body_2_linvel.normalize());
             let velocity_magnitude = rigid_body_2_linvel.magnitude() * self.last_step;
             let length_along_normal = velocity_magnitude * Real::max(normal_dot_velocity, 0.0);
-            godot_print!("normal_dot_velocity {}", normal_dot_velocity);
-            if normal_dot_velocity >= -0.5 {
-                let diff = dist - length_along_normal;
-                godot_print!("diff {}", diff);
-                godot_print!("dist {}", dist);
-                if diff < 10.0 && dist < 1.0 {
-                    contact_is_pass_through |= true;
-                }
+            if normal_dot_velocity >= -DEFAULT_EPSILON {
+                context.solver_contacts.retain(|contact| {
+                    let dist = -contact.dist;
+                    let diff = dist - length_along_normal;
+                    if diff < 0.5 && dist.abs() < 1.0 {
+                        return false;
+                    }
+                    true
+                });
             }
+        }
+        let mut dist = 0.0;
+        if let Some(deepest) = context.manifold.find_deepest_contact() {
+            dist = deepest.dist;
         }
         // one way collision
         if one_way_direction.body1 {

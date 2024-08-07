@@ -18,12 +18,33 @@
 
 <p align = "center">
 <b>2D and 3D physics engine</b>
-<i>for the Godot game engine.</i>
+<i>for the Godot 4 game engine.</i>
+with better <b>stability</b>, <b>performance</b>, <b>no ghost collisions</b> and <b>liquids</b>
 </p>
 
 -----
 
 Godot Rapier Physics is a 2D and 3D physics drop-in replacement for the [Godot game engine](https://github.com/godotengine/godot) that adds stability through [rapier](https://github.com/dimforge/rapier) and fluids through [salva](https://github.com/dimforge/salva).
+<div style="display: flex; justify-content: center; align-items: center;">
+  <div style="text-align: center; margin: 10px;">
+    <p>Stability</p>
+    <img src="docs/rapier-vid.gif" width="512" />
+  </div>
+  <div style="text-align: center; margin: 10px;">
+    <p>Ghost Collisions</p>
+    <img src="docs/ghost_collisions.gif" width="512" />
+  </div>
+  <div style="text-align: center; margin: 10px;">
+    <p>Fluids</p>
+    <img src="docs/fluid_shader.gif" width="512" />
+  </div>
+</div>
+
+
+# Features
+
+- Fixes Ghost Collisions
+- Adds Fluids
 
 # Installation
 
@@ -38,10 +59,6 @@ Godot Rapier Physics is a 2D and 3D physics drop-in replacement for the [Godot g
 - Manual: Download the [latest github release](https://github.com/appsinacup/godot-rapier-physics/releases/latest) and move only the `addons` folder into your project `addons` folder.
 
 After installing, go to `Advanced Settings` -> `Physics` -> `2D` or `3D`. Change `Physics Engine` to `Rapier2D` or `Rapier3D`.
-
-<p align="center">
-<img src="docs/rapier-vid.gif"/>
-</p>
 
 # Implementation Progress
 
