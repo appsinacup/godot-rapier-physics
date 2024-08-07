@@ -236,7 +236,7 @@ impl RapierCollisionObject {
         physics_shapes: &mut PhysicsShapes,
     ) -> ColliderHandle {
         if shape.collider_handle != ColliderHandle::invalid() {
-            godot_error!("collider is valid");
+            godot_error!("collider is invalid");
         }
         let mut handle = ColliderHandle::invalid();
         if let Some(shape_object) = physics_shapes.get_mut(&shape.shape) {
