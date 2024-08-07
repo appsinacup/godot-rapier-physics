@@ -33,7 +33,7 @@ Godot Rapier Physics is a 2D and 3D physics drop-in replacement for the [Godot g
     - [Rapier Physics 3D - Fast Version with Parallel SIMD Solver](https://godotengine.org/asset-library/asset/3084)
     - [Rapier Physics 3D - Slower Version with Cross Platform Deterministic](https://godotengine.org/asset-library/asset/3085)
 
-Note: For general use cases, use the **Faster Version**.
+    Note: For general use cases, use the **Faster Version**.
 
 - Manual: Download the [latest github release](https://github.com/appsinacup/godot-rapier-physics/releases/latest) and move only the `addons` folder into your project `addons` folder.
 
