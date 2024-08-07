@@ -493,6 +493,10 @@ impl RapierSpace {
         self.contact_max_allowed_penetration
     }
 
+    pub fn get_active_bodies(&self) -> Vec<Rid> {
+        self.active_list.clone().into_iter().collect()
+    }
+
     #[cfg(feature = "serde-serialize")]
     pub fn export_json(&self, physics_engine: &mut PhysicsEngine) -> String {
         if let Some(inner) = physics_engine.world_export(self.handle) {

@@ -295,4 +295,30 @@ impl RapierPhysicsServer {
             .implementation
             .space_set_debug_contacts(space, max_contacts);
     }
+
+    #[func]
+    fn space_get_active_bodies(space: Rid) -> Array<Rid> {
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return Array::default();
+        };
+        return physics_singleton
+            .bind_mut()
+            .implementation
+            .space_get_active_bodies(space);
+    }
+
+    #[func]
+    fn space_get_bodies_transform(space: Rid, bodies: Array<Rid>) -> Array<Transform> {
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return Array::default();
+        };
+        return physics_singleton
+            .bind_mut()
+            .implementation
+            .space_get_bodies_transform(space, bodies);
+    }
 }
