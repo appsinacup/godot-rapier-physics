@@ -29,6 +29,7 @@ pub struct PhysicsHooksCollisionFilter<'a> {
     pub collision_modify_contacts_callback: &'a CollisionModifyContactsCallback,
     pub physics_collision_objects: &'a PhysicsCollisionObjects,
     pub last_step: Real,
+    pub min_ghost_collision_distance: Real,
 }
 impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
     fn filter_contact_pair(&self, context: &PairFilterContext) -> Option<SolverFlags> {
@@ -100,7 +101,7 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
                 context.solver_contacts.retain(|contact| {
                     let dist = -contact.dist;
                     let diff = dist - length_along_normal;
-                    if diff < 0.5 && dist.abs() < 1.0 {
+                    if diff < 0.5 && dist.abs() < self.min_ghost_collision_distance {
                         return false;
                     }
                     true
@@ -118,7 +119,7 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
                 context.solver_contacts.retain(|contact| {
                     let dist = -contact.dist;
                     let diff = dist - length_along_normal;
-                    if diff < 0.5 && dist.abs() < 1.0 {
+                    if diff < 0.5 && dist.abs() < self.min_ghost_collision_distance {
                         return false;
                     }
                     true

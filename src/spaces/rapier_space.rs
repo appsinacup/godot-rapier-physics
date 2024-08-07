@@ -92,6 +92,7 @@ pub struct RapierSpace {
     #[cfg_attr(feature = "serde-serialize", serde(skip))]
     contact_debug: PackedVectorArray,
     contact_debug_count: usize,
+    min_ghost_collision_distance: real,
 }
 impl RapierSpace {
     pub fn new(rid: Rid, physics_engine: &mut PhysicsEngine) -> Self {
@@ -132,6 +133,7 @@ impl RapierSpace {
             time_stepped: 0.0,
             contact_debug: PackedVectorArray::new(),
             contact_debug_count: 0,
+            min_ghost_collision_distance: RapierProjectSettings::get_min_ghost_collision_distance(),
         }
     }
 
@@ -525,6 +527,10 @@ impl RapierSpace {
             }
         }
         buf
+    }
+
+    pub fn get_min_ghost_collision_distance(&self) -> real {
+        self.min_ghost_collision_distance
     }
 
     pub fn reset_space_if_empty(&mut self, physics_engine: &mut PhysicsEngine) {
