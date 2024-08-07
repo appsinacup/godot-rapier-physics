@@ -25,26 +25,14 @@ with better <b>stability</b>, <b>performance</b>, <b>no ghost collisions</b> and
 -----
 
 Godot Rapier Physics is a 2D and 3D physics drop-in replacement for the [Godot game engine](https://github.com/godotengine/godot) that adds stability through [rapier](https://github.com/dimforge/rapier) and fluids through [salva](https://github.com/dimforge/salva).
-<div style="display: flex; justify-content: center; align-items: center;">
-  <div style="text-align: center; margin: 10px;">
-    <p>Stability</p>
-    <img src="docs/rapier-vid.gif" width="256" />
-  </div>
-  <div style="text-align: center; margin: 10px;">
-    <p>Ghost Collisions</p>
-    <img src="docs/ghost_collisions.gif" width="256" />
-  </div>
-  <div style="text-align: center; margin: 10px;">
-    <p>Fluids</p>
-    <img src="docs/fluid_shader.gif" width="256" />
-  </div>
-</div>
 
 
 # Features
 
-- Fixes Ghost Collisions
-- Adds Fluids
+Stability|Ghost Collisions|Fluids
+-|-|-
+![](docs/rapier-vid.gif)|![](docs/ghost_collisions.gif)|![](docs/fluid_shader.gif)
+
 
 # Installation
 
