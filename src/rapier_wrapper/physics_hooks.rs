@@ -1,4 +1,3 @@
-use godot::global::godot_print;
 use rapier::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
@@ -93,7 +92,6 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
             if rigid_body_1_linvel.norm() == 0.0 {
                 return;
             }
-            godot_print!("normal {}", normal);
             let normal_dot_velocity = normal.dot(&rigid_body_1_linvel.normalize());
             let velocity_magnitude = rigid_body_1_linvel.magnitude() * self.last_step;
             let length_along_normal = velocity_magnitude * Real::max(normal_dot_velocity, 0.0);
