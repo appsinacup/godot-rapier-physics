@@ -24,6 +24,7 @@ pub struct SpaceExport<'a> {
     pub inner: &'a PhysicsObjects,
     pub space: &'a RapierSpace,
 }
+#[derive(Debug, PartialEq, Clone, Copy)]
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
 pub struct RemovedColliderInfo {
     #[cfg_attr(feature = "serde-serialize", serde(skip))]

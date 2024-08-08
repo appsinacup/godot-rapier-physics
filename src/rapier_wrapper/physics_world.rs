@@ -42,6 +42,7 @@ pub struct ContactPointInfo {
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
 )]
+#[derive(PartialEq, Eq, Clone, Copy, Debug, Default)]
 pub struct CollisionEventInfo {
     pub collider1: ColliderHandle,
     pub collider2: ColliderHandle,

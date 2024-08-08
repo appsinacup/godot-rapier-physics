@@ -536,7 +536,6 @@ impl RapierBody {
     }
 
     pub fn add_area(&mut self, p_area: &RapierArea, space: &mut RapierSpace) {
-        self.base.area_detection_counter += 1;
         if p_area.has_any_space_override() {
             let area_rid = p_area.get_base().get_rid();
             let priority = p_area.get_priority();
@@ -550,11 +549,6 @@ impl RapierBody {
         if !self.base.is_space_valid() {
             return;
         }
-        if self.base.area_detection_counter == 0 {
-            godot_error!("Area detection counter is zero");
-            return;
-        }
-        self.base.area_detection_counter -= 1;
         self.areas.retain(|&x| x.rid != area);
         self.on_area_updated(area, space);
     }

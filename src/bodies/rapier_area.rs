@@ -193,7 +193,6 @@ impl RapierArea {
         if self.monitor_callback.is_none() {
             return;
         }
-        self.base.area_detection_counter += 1;
         let handle_pair_hash = (collider_handle, area_collider_handle);
         if let Some(monitored_object) = self.monitored_objects.get(&handle_pair_hash) {
             // in case it already exited this frame and now it enters, cancel out the event
@@ -244,7 +243,6 @@ impl RapierArea {
         if self.monitor_callback.is_none() {
             return;
         }
-        self.base.area_detection_counter -= 1;
         let handle_pair_hash = (collider_handle, area_collider_handle);
         if let Some(monitored_object) = self.monitored_objects.get(&handle_pair_hash) {
             // in case it already entered this frame and now it exits, cancel out the event
@@ -288,7 +286,6 @@ impl RapierArea {
                 if !other_area.is_monitorable() {
                     return;
                 }
-                other_area.base.area_detection_counter += 1;
             }
         } else {
             godot_error!("other area is null");
@@ -336,11 +333,6 @@ impl RapierArea {
                 if !other_area.is_monitorable() {
                     return;
                 }
-                if other_area.base.area_detection_counter == 0 {
-                    godot_error!("Area is not being monitored");
-                    return;
-                }
-                other_area.base.area_detection_counter -= 1;
             }
         }
         let handle_pair_hash = (collider_handle, area_collider_handle);

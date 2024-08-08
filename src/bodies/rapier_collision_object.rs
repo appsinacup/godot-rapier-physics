@@ -176,7 +176,6 @@ pub struct RapierCollisionObject {
     pub(crate) activation_angular_threshold: real,
     pub(crate) activation_linear_threshold: real,
     pub(crate) activation_time_until_sleep: real,
-    pub(crate) area_detection_counter: u32,
 }
 impl Default for RapierCollisionObject {
     fn default() -> Self {
@@ -223,7 +222,6 @@ impl RapierCollisionObject {
             activation_angular_threshold,
             activation_linear_threshold,
             activation_time_until_sleep,
-            area_detection_counter: 0,
         }
     }
 
@@ -290,22 +288,21 @@ impl RapierCollisionObject {
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
     ) {
+        let rid = self.get_rid();
         if let Some(space) = physics_spaces.get_mut(&self.space) {
             for (i, shape) in self.shapes.iter_mut().enumerate() {
                 if shape.collider_handle == ColliderHandle::invalid() {
                     // skip
                     continue;
                 }
-                if self.area_detection_counter > 0 {
-                    // Keep track of body information for delayed removal
-                    space.add_removed_collider(
-                        shape.collider_handle,
-                        self.rid,
-                        self.instance_id,
-                        i,
-                        self.collision_object_type,
-                    );
-                }
+                // Keep track of body information for delayed removal
+                space.add_removed_collider(
+                    shape.collider_handle,
+                    self.rid,
+                    self.instance_id,
+                    i,
+                    self.collision_object_type,
+                );
                 physics_engine.collider_destroy(self.space_handle, shape.collider_handle);
                 shape.collider_handle = ColliderHandle::invalid();
             }
@@ -320,17 +317,15 @@ impl RapierCollisionObject {
         physics_engine: &mut PhysicsEngine,
     ) -> ColliderHandle {
         if shape.collider_handle != ColliderHandle::invalid() {
-            if self.area_detection_counter > 0 {
-                if let Some(space) = physics_spaces.get_mut(&self.space) {
-                    // Keep track of body information for delayed removal
-                    space.add_removed_collider(
-                        shape.collider_handle,
-                        self.rid,
-                        self.instance_id,
-                        p_shape_index,
-                        self.get_type(),
-                    );
-                }
+            if let Some(space) = physics_spaces.get_mut(&self.space) {
+                // Keep track of body information for delayed removal
+                space.add_removed_collider(
+                    shape.collider_handle,
+                    self.rid,
+                    self.instance_id,
+                    p_shape_index,
+                    self.get_type(),
+                );
             }
             physics_engine.collider_destroy(self.space_handle, shape.collider_handle);
         }
@@ -394,7 +389,6 @@ impl RapierCollisionObject {
             }
             self.destroy_shapes(physics_engine, physics_spaces);
             // Reset area detection counter to keep it consistent for new detections
-            self.area_detection_counter = 0;
             if let Some(space) = physics_spaces.get_mut(&self.space) {
                 space.reset_space_if_empty(physics_engine);
             }
