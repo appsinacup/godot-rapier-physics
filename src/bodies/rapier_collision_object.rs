@@ -116,7 +116,7 @@ pub trait IRapierCollisionObject: Sync {
         physics_spaces: &mut PhysicsSpaces,
     );
 }
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
 #[cfg_attr(
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
@@ -234,7 +234,7 @@ impl RapierCollisionObject {
         physics_shapes: &mut PhysicsShapes,
     ) -> ColliderHandle {
         if shape.collider_handle != ColliderHandle::invalid() {
-            godot_error!("collider is invalid");
+            godot_error!("collider is valid");
         }
         let mut handle = ColliderHandle::invalid();
         if let Some(shape_object) = physics_shapes.get_mut(&shape.shape) {
@@ -288,7 +288,6 @@ impl RapierCollisionObject {
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
     ) {
-        let rid = self.get_rid();
         if let Some(space) = physics_spaces.get_mut(&self.space) {
             for (i, shape) in self.shapes.iter_mut().enumerate() {
                 if shape.collider_handle == ColliderHandle::invalid() {

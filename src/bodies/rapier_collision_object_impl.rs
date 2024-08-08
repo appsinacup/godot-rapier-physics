@@ -184,13 +184,14 @@ impl RapierCollisionObject {
                 .add_owner(collision_object.get_base().get_rid());
         }
         if !shape.disabled {
-            collision_object.get_base().create_shape(
-                shape,
-                p_index,
-                collision_object.init_material(),
-                physics_engine,
-                physics_shapes,
-            );
+            collision_object.get_mut_base().shapes[p_index].collider_handle =
+                collision_object.get_base().create_shape(
+                    shape,
+                    p_index,
+                    collision_object.init_material(),
+                    physics_engine,
+                    physics_shapes,
+                );
             collision_object.get_base().update_shape_transform(
                 &shape,
                 physics_engine,
@@ -234,24 +235,26 @@ impl RapierCollisionObject {
         if p_index >= collision_object.get_base().shapes.len() {
             return;
         }
-        collision_object.get_mut_base().shapes[p_index].disabled = p_disabled;
         let shape = collision_object.get_base().shapes[p_index];
         if shape.disabled == p_disabled {
             return;
         }
+        collision_object.get_mut_base().shapes[p_index].disabled = p_disabled;
+        let shape = collision_object.get_base().shapes[p_index];
         if shape.disabled {
             collision_object.get_mut_base().shapes[p_index].collider_handle = collision_object
                 .get_base()
                 .destroy_shape(shape, p_index, physics_spaces, physics_engine);
         }
         if !shape.disabled {
-            collision_object.get_base().create_shape(
-                shape,
-                p_index,
-                collision_object.init_material(),
-                physics_engine,
-                physics_shapes,
-            );
+            collision_object.get_mut_base().shapes[p_index].collider_handle =
+                collision_object.get_base().create_shape(
+                    shape,
+                    p_index,
+                    collision_object.init_material(),
+                    physics_engine,
+                    physics_shapes,
+                );
             collision_object.get_base().update_shape_transform(
                 &shape,
                 physics_engine,

@@ -22,6 +22,7 @@ use crate::*;
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
 )]
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
 struct MonitorInfo {
     #[cfg_attr(feature = "serde-serialize", serde(skip, default = "invalid_rid"))]
     pub rid: Rid,

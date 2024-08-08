@@ -126,6 +126,7 @@ impl RapierSpace {
         let (mut type1, mut type2) = (CollisionObjectType::Area, CollisionObjectType::Area);
         if let Some(removed_collider_info_1) = self.get_removed_collider_info(&collider_handle1) {
             rid1 = removed_collider_info_1.rid;
+            p_object1 = rid1;
             instance_id1 = removed_collider_info_1.instance_id;
             type1 = removed_collider_info_1.collision_object_type;
             shape1 = removed_collider_info_1.shape_index;
@@ -136,6 +137,7 @@ impl RapierSpace {
         }
         if let Some(removed_collider_info_2) = self.get_removed_collider_info(&collider_handle2) {
             rid2 = removed_collider_info_2.rid;
+            p_object2 = rid2;
             instance_id2 = removed_collider_info_2.instance_id;
             type2 = removed_collider_info_2.collision_object_type;
             shape2 = removed_collider_info_2.shape_index;
@@ -232,7 +234,7 @@ impl RapierSpace {
                 }
             }
             // collision object 2 area
-            if let Some(p_collision_object2) = p_collision_object2 {
+            if let Some(ref mut p_collision_object2) = p_collision_object2 {
                 if let Some(p_area2) = p_collision_object2.get_mut_area() {
                     if type1 == CollisionObjectType::Area {
                         if event_info.is_started {
