@@ -21,6 +21,10 @@ const CONTACT_SKIN: &str = "physics/rapier/solver/contact_skin";
 const CONTACT_DAMPING_RATIO: &str = "physics/rapier/solver/contact_damping_ratio";
 const CONTACT_NATURAL_FREQUENCY: &str = "physics/rapier/solver/contact_natural_frequency";
 #[cfg(feature = "dim2")]
+const GHOST_COLLISION_DISTANCE: &str = "physics/rapier/logic/ghost_collision_distance_2d";
+#[cfg(feature = "dim3")]
+const GHOST_COLLISION_DISTANCE: &str = "physics/rapier/logic/ghost_collision_distance_3d";
+#[cfg(feature = "dim2")]
 const FLUID_PARTICLE_RADIUS: &str = "physics/rapier/fluid/fluid_particle_radius_2d";
 #[cfg(feature = "dim3")]
 const FLUID_PARTICLE_RADIUS: &str = "physics/rapier/fluid/fluid_particle_radius_3d";
@@ -29,6 +33,10 @@ const FLUID_SMOOTHING_FACTOR: &str = "physics/rapier/fluid/fluid_smoothing_facto
 const LENGTH_UNIT: &str = "physics/rapier/solver/length_unit_2d";
 #[cfg(feature = "dim2")]
 const LENGTH_UNIT_VALUE: real = 100.0;
+#[cfg(feature = "dim2")]
+const GHOST_COLLISION_DISTANCE_VALUE: real = 1.0;
+#[cfg(feature = "dim3")]
+const GHOST_COLLISION_DISTANCE_VALUE: real = 0.1;
 #[cfg(feature = "dim2")]
 const FLUID_PARTICLE_VALUE: real = 20.0;
 #[cfg(feature = "dim3")]
@@ -162,6 +170,12 @@ impl RapierProjectSettings {
             false,
         );
         register_setting_ranged(
+            GHOST_COLLISION_DISTANCE,
+            Variant::from(GHOST_COLLISION_DISTANCE_VALUE),
+            "0,10,0.00001,or_greater",
+            false,
+        );
+        register_setting_ranged(
             FLUID_PARTICLE_RADIUS,
             Variant::from(FLUID_PARTICLE_VALUE),
             "0,100,0.00001",
@@ -255,5 +269,9 @@ impl RapierProjectSettings {
 
     pub fn get_contact_natural_frequency() -> Real {
         RapierProjectSettings::get_setting_double(CONTACT_NATURAL_FREQUENCY) as Real
+    }
+
+    pub fn get_ghost_collision_distance() -> Real {
+        RapierProjectSettings::get_setting_double(GHOST_COLLISION_DISTANCE) as Real
     }
 }

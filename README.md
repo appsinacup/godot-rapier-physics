@@ -9,7 +9,7 @@
 
 <p align = "center">
     <strong>
-        <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/CONTRIBUTING.md">Contributing</a> | <a href="https://godot.rapier.rs">Documentation</a> | <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/CHANGELOG.md">Changelog</a> | <a href="https://discord.gg/56dMud8HYn">Discord</a>
+        <a href="https://godot.rapier.rs">Documentation</a> | <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/CHANGELOG.md">Changelog</a> | <a href="https://discord.gg/56dMud8HYn">Discord</a> | <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/CONTRIBUTING.md">Contributing</a>
     </strong>
 </p>
 
@@ -18,12 +18,21 @@
 
 <p align = "center">
 <b>2D and 3D physics engine</b>
-<i>for the Godot game engine.</i>
+<i>for the Godot 4 game engine.</i>
+with better <b>stability</b>, <b>performance</b>, <b>no ghost collisions</b> and <b>liquids</b>
 </p>
 
 -----
 
-Godot Rapier Physics is a 2D and 3D physics drop-in replacement for the [Godot game engine](https://github.com/godotengine/godot) that adds stability through [rapier](https://github.com/dimforge/rapier) and fluids through [salva](https://github.com/dimforge/salva).
+Godot Rapier Physics is a **2D and 3D** physics drop-in replacement for the [Godot game engine](https://github.com/godotengine/godot) through [rapier](https://github.com/dimforge/rapier) physics engine [salva](https://github.com/dimforge/salva) fluids simulation library.
+
+
+# Features
+
+Stability|Ghost Collisions|Fluids
+-|-|-
+![](docs/rapier-vid.gif)|![](docs/ghost_collisions.gif)|![](docs/fluid_shader.gif)
+
 
 # Installation
 
@@ -38,10 +47,6 @@ Godot Rapier Physics is a 2D and 3D physics drop-in replacement for the [Godot g
 - Manual: Download the [latest github release](https://github.com/appsinacup/godot-rapier-physics/releases/latest) and move only the `addons` folder into your project `addons` folder.
 
 After installing, go to `Advanced Settings` -> `Physics` -> `2D` or `3D`. Change `Physics Engine` to `Rapier2D` or `Rapier3D`.
-
-<p align="center">
-<img src="docs/rapier-vid.gif"/>
-</p>
 
 # Implementation Progress
 

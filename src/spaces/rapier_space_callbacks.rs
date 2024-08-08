@@ -162,12 +162,8 @@ impl RapierSpace {
             }
         }
         if event_info.is_sensor {
-            if instance_id1 == 0 {
+            if rid1.is_invalid() || rid2.is_invalid() {
                 godot_error!("Should be able to get info about a removed object if the other one is still valid.");
-                return;
-            }
-            if instance_id2 == 0 {
-                godot_error!( "Should be able to get info about a removed object if the other one is still valid.");
                 return;
             }
             if type1 != CollisionObjectType::Area {
