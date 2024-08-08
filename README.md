@@ -29,9 +29,9 @@ Godot Rapier Physics is a **2D and 3D** physics drop-in replacement for the [God
 
 # Features
 
-Stability|Ghost Collisions|Fluids
--|-|-
-![](docs/rapier-vid.gif)|![](docs/ghost_collisions.gif)|![](docs/fluid_shader.gif)
+Stability|Ghost Collisions|Fluids 2D| Fluids 3D|
+-|-|-|-
+![](docs/rapier-vid.gif)|![](docs/ghost_collisions.gif)|![](docs/fluid_shader.gif)|![](docs/water_3d.gif)
 
 
 # Installation
