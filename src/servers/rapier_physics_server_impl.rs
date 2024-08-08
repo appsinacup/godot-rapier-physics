@@ -349,6 +349,37 @@ impl RapierPhysicsServerImpl {
         0
     }
 
+    pub(super) fn space_get_active_bodies(&mut self, space: Rid) -> Array<Rid> {
+        let physics_data = physics_data();
+        if let Some(space) = physics_data.spaces.get_mut(&space) {
+            let bodies = space.get_active_bodies();
+            let mut array: Array<Rid> = Array::new();
+            for body in bodies {
+                array.push(body);
+            }
+            return array;
+        }
+        Array::default()
+    }
+
+    pub(super) fn space_get_bodies_transform(
+        &mut self,
+        space: Rid,
+        bodies: Array<Rid>,
+    ) -> Array<Transform> {
+        let physics_data = physics_data();
+        let mut array = Array::default();
+        if let Some(space) = physics_data.spaces.get_mut(&space) {
+            for body in bodies.iter_shared() {
+                if let Some(body) = physics_data.collision_objects.get_mut(&body) {
+                    let transform = body.get_base().get_transform();
+                    array.push(transform);
+                }
+            }
+        }
+        array
+    }
+
     pub(super) fn area_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
