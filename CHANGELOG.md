@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.26
+
+- Fix areas removed issue by [@Ughuuu](https://github.com/Ughuuu) in [#187](https://github.com/appsinacup/godot-rapier-physics/pull/187)
+
 ## v0.7.25
 
 - Fixed Ghost collision by [@Ughuuu](https://github.com/Ughuuu) in [#184](https://github.com/appsinacup/godot-rapier-physics/pull/184)
