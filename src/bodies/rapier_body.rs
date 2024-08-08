@@ -1535,6 +1535,8 @@ impl RapierBody {
                 if old_scale != new_scale {
                     self.recreate_shapes(physics_engine, physics_shapes, physics_spaces);
                 }
+                // set_transform updates mass properties
+                self.mass_properties_changed(physics_engine, physics_spaces);
             }
             BodyState::LINEAR_VELOCITY => {
                 #[cfg(feature = "dim2")]
