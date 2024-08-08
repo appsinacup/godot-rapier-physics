@@ -1,4 +1,4 @@
-#[derive(Copy, Clone, Eq, Hash, PartialEq, Default)]
+#[derive(Copy, Clone, Eq, Hash, PartialEq, Default, Debug)]
 #[cfg_attr(
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
