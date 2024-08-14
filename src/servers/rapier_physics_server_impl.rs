@@ -369,7 +369,7 @@ impl RapierPhysicsServerImpl {
     ) -> Array<Transform> {
         let physics_data = physics_data();
         let mut array = Array::default();
-        if let Some(space) = physics_data.spaces.get_mut(&space) {
+        if let Some(_space) = physics_data.spaces.get_mut(&space) {
             for body in bodies.iter_shared() {
                 if let Some(body) = physics_data.collision_objects.get_mut(&body) {
                     let transform = body.get_base().get_transform();

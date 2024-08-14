@@ -35,23 +35,23 @@ pub struct Fluid3D {
 #[godot_api]
 impl Fluid3D {
     #[func]
-    fn set_points(&mut self, p_points: PackedVectorArray) {
-        FluidImpl::set_points(self, p_points);
+    fn set_points(&mut self, points: PackedVectorArray) {
+        FluidImpl::set_points(self, points);
     }
 
     #[func]
-    fn set_density(&mut self, p_density: real) {
-        FluidImpl::set_density(self, p_density);
+    fn set_density(&mut self, density: real) {
+        FluidImpl::set_density(self, density);
     }
 
     #[func]
-    fn set_lifetime(&mut self, p_lifetime: real) {
-        FluidImpl::set_lifetime(self, p_lifetime);
+    fn set_lifetime(&mut self, lifetime: real) {
+        FluidImpl::set_lifetime(self, lifetime);
     }
 
     #[func]
-    fn set_debug_draw(&mut self, p_debug_draw: bool) {
-        FluidImpl::set_debug_draw(self, p_debug_draw);
+    fn set_debug_draw(&mut self, debug_draw: bool) {
+        FluidImpl::set_debug_draw(self, debug_draw);
     }
 
     #[func]
@@ -88,15 +88,15 @@ impl Fluid3D {
     }
 
     #[func]
-    fn create_sphere_points(&self, p_radius: i32) -> PackedVectorArray {
+    fn create_sphere_points(&self, radius: i32) -> PackedVectorArray {
         let mut new_points = PackedVectorArray::default();
-        for i in -p_radius..p_radius {
-            for j in -p_radius..p_radius {
-                for k in -p_radius..p_radius {
+        for i in -radius..radius {
+            for j in -radius..radius {
+                for k in -radius..radius {
                     let x = i as f32 * self.radius * 2.0;
                     let y = j as f32 * self.radius * 2.0;
                     let z = k as f32 * self.radius * 2.0;
-                    if i * i + j * j * k * k <= p_radius * p_radius {
+                    if i * i + j * j * k * k <= radius * radius {
                         new_points.push(Vector::new(x, y, z));
                     }
                 }
@@ -108,29 +108,29 @@ impl Fluid3D {
     #[func]
     fn add_points_and_velocities(
         &mut self,
-        p_points: PackedVectorArray,
-        p_velocities: PackedVectorArray,
+        points: PackedVectorArray,
+        velocities: PackedVectorArray,
     ) {
-        FluidImpl::add_points_and_velocities(self, p_points, p_velocities);
+        FluidImpl::add_points_and_velocities(self, points, velocities);
     }
 
     #[func]
     fn set_points_and_velocities(
         &mut self,
-        p_points: PackedVectorArray,
-        p_velocities: PackedVectorArray,
+        points: PackedVectorArray,
+        velocities: PackedVectorArray,
     ) {
-        FluidImpl::set_points_and_velocities(self, p_points, p_velocities);
+        FluidImpl::set_points_and_velocities(self, points, velocities);
     }
 
     #[func]
-    fn delete_points(&mut self, p_indices: PackedInt32Array) {
-        FluidImpl::delete_points(self, p_indices);
+    fn delete_points(&mut self, indices: PackedInt32Array) {
+        FluidImpl::delete_points(self, indices);
     }
 
     #[func]
-    fn set_effects(&mut self, p_effects: Array<Option<Gd<Resource>>>) {
-        FluidImpl::set_effects(self, p_effects);
+    fn set_effects(&mut self, effects: Array<Option<Gd<Resource>>>) {
+        FluidImpl::set_effects(self, effects);
     }
 }
 #[godot_api]
