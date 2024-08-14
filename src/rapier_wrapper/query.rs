@@ -186,25 +186,25 @@ impl PhysicsEngine {
                     hit_info_length,
                 ));
             }
-            assert!(hit_info_slice_opt.is_some());
-            let hit_info_slice = hit_info_slice_opt.unwrap();
-            physics_world
-                .physics_objects
-                .query_pipeline
-                .intersections_with_point(
-                    &physics_world.physics_objects.rigid_body_set,
-                    &physics_world.physics_objects.collider_set,
-                    &point,
-                    filter,
-                    |handle| {
-                        // Callback called on each collider hit by the ray.
-                        hit_info_slice[cpt_hit].collider = handle;
-                        hit_info_slice[cpt_hit].user_data =
-                            physics_world.get_collider_user_data(handle);
-                        cpt_hit += 1;
-                        cpt_hit < hit_info_length // Continue to search collisions if we still have space for results.
-                    },
-                );
+            if let Some(hit_info_slice) = hit_info_slice_opt {
+                physics_world
+                    .physics_objects
+                    .query_pipeline
+                    .intersections_with_point(
+                        &physics_world.physics_objects.rigid_body_set,
+                        &physics_world.physics_objects.collider_set,
+                        &point,
+                        filter,
+                        |handle| {
+                            // Callback called on each collider hit by the ray.
+                            hit_info_slice[cpt_hit].collider = handle;
+                            hit_info_slice[cpt_hit].user_data =
+                                physics_world.get_collider_user_data(handle);
+                            cpt_hit += 1;
+                            cpt_hit < hit_info_length // Continue to search collisions if we still have space for results.
+                        },
+                    );
+            }
         }
         cpt_hit
     }
