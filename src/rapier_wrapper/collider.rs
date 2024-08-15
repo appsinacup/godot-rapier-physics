@@ -93,7 +93,7 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
     match shape.shape_type() {
         ShapeType::Ball => {
             if let Some(new_shape) = shape.as_ball() {
-                if let Some(new_shape) = new_shape.scaled(&scale, SUBDIVISIONS) {
+                if let Some(new_shape) = new_shape.scaled(&scale.abs(), SUBDIVISIONS) {
                     match new_shape {
                         Left(shape) => return SharedShape::new(shape),
                         Right(shape) => return SharedShape::new(shape),
@@ -103,12 +103,12 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
         }
         ShapeType::Cuboid => {
             if let Some(new_shape) = shape.as_cuboid() {
-                return SharedShape::new(new_shape.scaled(&scale));
+                return SharedShape::new(new_shape.scaled(&scale.abs()));
             }
         }
         ShapeType::HalfSpace => {
             if let Some(new_shape) = shape.as_halfspace() {
-                if let Some(new_shape) = new_shape.scaled(&scale) {
+                if let Some(new_shape) = new_shape.scaled(&scale.abs()) {
                     return SharedShape::new(new_shape);
                 }
             }

@@ -697,7 +697,7 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.22.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#c2da9f27d92b9a530cf4ba3a7dcb354f91d16daa"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#6ce87851591ce8a3a22998a5cef830c366915b1b"
 dependencies = [
  "approx",
  "arrayvec",
@@ -723,7 +723,7 @@ dependencies = [
 [[package]]
 name = "rapier2d-f64"
 version = "0.22.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#c2da9f27d92b9a530cf4ba3a7dcb354f91d16daa"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#6ce87851591ce8a3a22998a5cef830c366915b1b"
 dependencies = [
  "approx",
  "arrayvec",
@@ -749,7 +749,7 @@ dependencies = [
 [[package]]
 name = "rapier3d"
 version = "0.22.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#c2da9f27d92b9a530cf4ba3a7dcb354f91d16daa"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#6ce87851591ce8a3a22998a5cef830c366915b1b"
 dependencies = [
  "approx",
  "arrayvec",
@@ -775,7 +775,7 @@ dependencies = [
 [[package]]
 name = "rapier3d-f64"
 version = "0.22.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#c2da9f27d92b9a530cf4ba3a7dcb354f91d16daa"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#6ce87851591ce8a3a22998a5cef830c366915b1b"
 dependencies = [
  "approx",
  "arrayvec",
@@ -945,9 +945,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.124"
+version = "1.0.125"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "66ad62847a56b3dba58cc891acd13884b9c61138d330c0d7b6181713d4fce38d"
+checksum = "83c8e735a073ccf5be70aa8066aa984eaf2fa000db6c8d0100ae605b366d31ed"
 dependencies = [
  "itoa",
  "memchr",
