@@ -154,6 +154,7 @@ impl Default for CollisionObjectShape {
 // TODO deserialize
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
 pub struct RapierCollisionObject {
+    user_flags: u32,
     collision_object_type: CollisionObjectType,
     #[cfg_attr(feature = "serde-serialize", serde(skip, default = "invalid_rid"))]
     rid: Rid,
@@ -204,6 +205,7 @@ impl RapierCollisionObject {
             .try_to()
             .unwrap_or_default();
         Self {
+            user_flags: 0,
             collision_object_type,
             rid,
             instance_id: 0,
@@ -621,6 +623,14 @@ impl RapierCollisionObject {
             physics_engine.body_destroy(self.space_handle, self.body_handle);
             self.body_handle = RigidBodyHandle::invalid();
         }
+    }
+
+    pub fn set_user_flags(&mut self, p_flags: u32) {
+        self.user_flags = p_flags;
+    }
+
+    pub fn get_user_flags(&self) -> u32 {
+        self.user_flags
     }
 }
 impl Drop for RapierCollisionObject {

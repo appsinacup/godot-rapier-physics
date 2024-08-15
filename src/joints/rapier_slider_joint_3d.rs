@@ -4,7 +4,7 @@ use godot::prelude::*;
 use super::rapier_cone_twist_joint_3d::RapierConeTwistJoint3D;
 use super::rapier_generic_6dof_joint_3d::RapierGeneric6DOFJoint3D;
 use super::rapier_revolute_joint::RapierRevoluteJoint;
-use super::rapier_slider_joint_3d::RapierSliderJoint3D;
+use super::rapier_spherical_joint_3d::RapierSphericalJoint3D;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::joints::rapier_joint::RapierJointBase;
@@ -13,22 +13,22 @@ use crate::rapier_wrapper::prelude::*;
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
 )]
-pub struct RapierSphericalJoint3D {
+pub struct RapierSliderJoint3D {
     anchor_a: Vector3,
     anchor_b: Vector3,
     base: RapierJointBase,
 }
-impl RapierSphericalJoint3D {
+impl RapierSliderJoint3D {
     pub fn new(
-        anchor_a: Vector3,
-        anchor_b: Vector3,
+        anchor_a: Transform3D,
+        anchor_b: Transform3D,
         body_a: &Box<dyn IRapierCollisionObject>,
         body_b: &Box<dyn IRapierCollisionObject>,
         physics_engine: &mut PhysicsEngine,
     ) -> Self {
         let invalid_joint = Self {
-            anchor_a,
-            anchor_b,
+            anchor_a: anchor_a.origin,
+            anchor_b: anchor_b.origin,
             base: RapierJointBase::default(),
         };
         let body_a_rid = body_a.get_base().get_rid();
@@ -42,11 +42,11 @@ impl RapierSphericalJoint3D {
         {
             return invalid_joint;
         }
-        let rapier_anchor_a = vector_to_rapier(anchor_a);
-        let rapier_anchor_b = vector_to_rapier(anchor_b);
+        let rapier_anchor_a = vector_to_rapier(anchor_a.origin);
+        let rapier_anchor_b = vector_to_rapier(anchor_b.origin);
         let space_handle = body_a.get_base().get_space_handle();
         let space_rid = body_a.get_base().get_space();
-        let handle = physics_engine.joint_create_spherical(
+        let handle = physics_engine.joint_create_slider(
             space_handle,
             body_a.get_base().get_body_handle(),
             body_b.get_base().get_body_handle(),
@@ -57,52 +57,14 @@ impl RapierSphericalJoint3D {
             true,
         );
         Self {
-            anchor_a,
-            anchor_b,
+            anchor_a: anchor_a.origin,
+            anchor_b: anchor_b.origin,
             base: RapierJointBase::new(space_handle, space_rid, handle),
         }
     }
-
-    pub fn set_anchor_a(&mut self, anchor_a: Vector3, physics_engine: &mut PhysicsEngine) {
-        self.anchor_a = anchor_a;
-        if !self.base.is_valid() {
-            return;
-        }
-        let anchor_a = vector_to_rapier(self.anchor_a);
-        let anchor_b = vector_to_rapier(self.anchor_a);
-        physics_engine.join_change_sperical_anchors(
-            self.base.get_space_handle(),
-            self.base.get_handle(),
-            anchor_a,
-            anchor_b,
-        );
-    }
-
-    pub fn set_anchor_b(&mut self, anchor_b: Vector3, physics_engine: &mut PhysicsEngine) {
-        self.anchor_b = anchor_b;
-        if !self.base.is_valid() {
-            return;
-        }
-        let anchor_a = vector_to_rapier(self.anchor_a);
-        let anchor_b = vector_to_rapier(self.anchor_a);
-        physics_engine.join_change_sperical_anchors(
-            self.base.get_space_handle(),
-            self.base.get_handle(),
-            anchor_a,
-            anchor_b,
-        );
-    }
-
-    pub fn get_anchor_a(&self) -> Vector3 {
-        self.anchor_a
-    }
-
-    pub fn get_anchor_b(&self) -> Vector3 {
-        self.anchor_b
-    }
 }
 #[cfg_attr(feature = "serde-serialize", typetag::serde)]
-impl IRapierJoint for RapierSphericalJoint3D {
+impl IRapierJoint for RapierSliderJoint3D {
     fn get_base(&self) -> &RapierJointBase {
         &self.base
     }
@@ -112,14 +74,10 @@ impl IRapierJoint for RapierSphericalJoint3D {
     }
 
     fn get_type(&self) -> physics_server_3d::JointType {
-        physics_server_3d::JointType::PIN
+        physics_server_3d::JointType::TYPE_6DOF
     }
 
     fn get_spherical(&self) -> Option<&RapierSphericalJoint3D> {
-        Some(self)
-    }
-
-    fn get_revolute(&self) -> Option<&RapierRevoluteJoint> {
         None
     }
 
@@ -132,11 +90,15 @@ impl IRapierJoint for RapierSphericalJoint3D {
     }
 
     fn get_slider(&self) -> Option<&RapierSliderJoint3D> {
+        Some(self)
+    }
+
+    fn get_revolute(&self) -> Option<&RapierRevoluteJoint> {
         None
     }
 
     fn get_mut_spherical(&mut self) -> Option<&mut RapierSphericalJoint3D> {
-        Some(self)
+        None
     }
 
     fn get_mut_revolute(&mut self) -> Option<&mut RapierRevoluteJoint> {
@@ -152,6 +114,6 @@ impl IRapierJoint for RapierSphericalJoint3D {
     }
 
     fn get_mut_slider(&mut self) -> Option<&mut RapierSliderJoint3D> {
-        None
+        Some(self)
     }
 }

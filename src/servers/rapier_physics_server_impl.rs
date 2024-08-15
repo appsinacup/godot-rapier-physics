@@ -5,6 +5,8 @@ use std::ops::Deref;
 #[cfg(feature = "dim2")]
 use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
+use godot::classes::physics_server_3d;
+#[cfg(feature = "dim3")]
 use godot::classes::physics_server_3d::*;
 use godot::global::rid_allocate_id;
 use godot::global::rid_from_int64;
@@ -1029,6 +1031,23 @@ impl RapierPhysicsServerImpl {
         0.0
     }
 
+    #[cfg(feature = "dim3")]
+    pub(super) fn body_set_user_flags(&mut self, body: Rid, flags: u32) {
+        let physics_data = physics_data();
+        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
+            body.get_mut_base().set_user_flags(flags);
+        }
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn body_get_user_flags(&self, body: Rid) -> u32 {
+        let physics_data = physics_data();
+        if let Some(body) = physics_data.collision_objects.get(&body) {
+            return body.get_base().get_user_flags();
+        }
+        0
+    }
+
     pub(super) fn body_set_param(&mut self, body: Rid, param: BodyParameter, value: Variant) {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
@@ -1737,6 +1756,190 @@ impl RapierPhysicsServerImpl {
                 return joint.get_flag(flag);
             }
         }
+        false
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn joint_make_slider(
+        &mut self,
+        rid: Rid,
+        body_a: Rid,
+        local_ref_a: Transform3D,
+        body_b: Rid,
+        local_ref_b: Transform3D,
+    ) {
+        use crate::joints::rapier_slider_joint_3d::RapierSliderJoint3D;
+        let physics_data = physics_data();
+        let mut joint: Box<dyn IRapierJoint>;
+        if let Some(body_a) = physics_data.collision_objects.get(&body_a)
+            && let Some(body_b) = physics_data.collision_objects.get(&body_b)
+        {
+            joint = Box::new(RapierSliderJoint3D::new(
+                local_ref_a,
+                local_ref_b,
+                body_a,
+                body_b,
+                &mut physics_data.physics_engine,
+            ));
+            if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
+                joint
+                    .get_mut_base()
+                    .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
+                prev_joint
+                    .get_mut_base()
+                    .destroy_joint(&mut physics_data.physics_engine);
+            }
+        } else {
+            joint = Box::new(RapierEmptyJoint::new());
+        }
+        physics_data.joints.insert(rid, joint);
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn slider_joint_set_param(
+        &mut self,
+        _joint: Rid,
+        _param: physics_server_3d::SliderJointParam,
+        _value: f32,
+    ) {
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn slider_joint_get_param(
+        &self,
+        _joint: Rid,
+        _param: physics_server_3d::SliderJointParam,
+    ) -> f32 {
+        0.0
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn joint_make_cone_twist(
+        &mut self,
+        rid: Rid,
+        body_a: Rid,
+        local_ref_a: Transform3D,
+        body_b: Rid,
+        local_ref_b: Transform3D,
+    ) {
+        use crate::joints::rapier_cone_twist_joint_3d::RapierConeTwistJoint3D;
+        let physics_data = physics_data();
+        let mut joint: Box<dyn IRapierJoint>;
+        if let Some(body_a) = physics_data.collision_objects.get(&body_a)
+            && let Some(body_b) = physics_data.collision_objects.get(&body_b)
+        {
+            joint = Box::new(RapierConeTwistJoint3D::new(
+                local_ref_a.origin,
+                local_ref_b.origin,
+                body_a,
+                body_b,
+                &mut physics_data.physics_engine,
+            ));
+            if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
+                joint
+                    .get_mut_base()
+                    .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
+                prev_joint
+                    .get_mut_base()
+                    .destroy_joint(&mut physics_data.physics_engine);
+            }
+        } else {
+            joint = Box::new(RapierEmptyJoint::new());
+        }
+        physics_data.joints.insert(rid, joint);
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn cone_twist_joint_set_param(
+        &mut self,
+        _joint: Rid,
+        _param: physics_server_3d::ConeTwistJointParam,
+        _value: f32,
+    ) {
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn cone_twist_joint_get_param(
+        &self,
+        _joint: Rid,
+        _param: physics_server_3d::ConeTwistJointParam,
+    ) -> f32 {
+        0.0
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn joint_make_generic_6dof(
+        &mut self,
+        rid: Rid,
+        body_a: Rid,
+        local_ref_a: Transform3D,
+        body_b: Rid,
+        local_ref_b: Transform3D,
+    ) {
+        use crate::joints::rapier_cone_twist_joint_3d::RapierConeTwistJoint3D;
+        let physics_data = physics_data();
+        let mut joint: Box<dyn IRapierJoint>;
+        if let Some(body_a) = physics_data.collision_objects.get(&body_a)
+            && let Some(body_b) = physics_data.collision_objects.get(&body_b)
+        {
+            joint = Box::new(RapierConeTwistJoint3D::new(
+                local_ref_a.origin,
+                local_ref_b.origin,
+                body_a,
+                body_b,
+                &mut physics_data.physics_engine,
+            ));
+            if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
+                joint
+                    .get_mut_base()
+                    .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
+                prev_joint
+                    .get_mut_base()
+                    .destroy_joint(&mut physics_data.physics_engine);
+            }
+        } else {
+            joint = Box::new(RapierEmptyJoint::new());
+        }
+        physics_data.joints.insert(rid, joint);
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn generic_6dof_joint_set_param(
+        &mut self,
+        _joint: Rid,
+        _axis: Vector3Axis,
+        _param: physics_server_3d::G6dofJointAxisParam,
+        _value: f32,
+    ) {
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn generic_6dof_joint_get_param(
+        &self,
+        _joint: Rid,
+        _axis: Vector3Axis,
+        _param: physics_server_3d::G6dofJointAxisParam,
+    ) -> f32 {
+        0.0
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn generic_6dof_joint_set_flag(
+        &mut self,
+        _joint: Rid,
+        _axis: Vector3Axis,
+        _flag: physics_server_3d::G6dofJointAxisFlag,
+        _enable: bool,
+    ) {
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn generic_6dof_joint_get_flag(
+        &self,
+        _joint: Rid,
+        _axis: Vector3Axis,
+        _flag: physics_server_3d::G6dofJointAxisFlag,
+    ) -> bool {
         false
     }
 
