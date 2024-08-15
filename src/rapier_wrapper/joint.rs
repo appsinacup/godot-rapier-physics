@@ -141,6 +141,23 @@ impl PhysicsEngine {
     }
 
     #[cfg(feature = "dim3")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn joint_create_slider(
+        &mut self,
+        _world_handle: WorldHandle,
+        _body_handle_1: RigidBodyHandle,
+        _body_handle_2: RigidBodyHandle,
+        _anchor_1: Vector<Real>,
+        _anchor_2: Vector<Real>,
+        _multibody: bool,
+        _kinematic: bool,
+        _disable_collision: bool,
+    ) -> JointHandle {
+        // TODO
+        JointHandle::default()
+    }
+
+    #[cfg(feature = "dim3")]
     pub fn join_change_sperical_anchors(
         &mut self,
         world_handle: WorldHandle,

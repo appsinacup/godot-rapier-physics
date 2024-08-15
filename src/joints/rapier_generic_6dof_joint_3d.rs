@@ -2,9 +2,9 @@ use godot::classes::*;
 use godot::prelude::*;
 
 use super::rapier_cone_twist_joint_3d::RapierConeTwistJoint3D;
-use super::rapier_generic_6dof_joint_3d::RapierGeneric6DOFJoint3D;
 use super::rapier_revolute_joint::RapierRevoluteJoint;
 use super::rapier_slider_joint_3d::RapierSliderJoint3D;
+use super::rapier_spherical_joint_3d::RapierSphericalJoint3D;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::joints::rapier_joint::RapierJointBase;
@@ -13,12 +13,12 @@ use crate::rapier_wrapper::prelude::*;
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
 )]
-pub struct RapierSphericalJoint3D {
+pub struct RapierGeneric6DOFJoint3D {
     anchor_a: Vector3,
     anchor_b: Vector3,
     base: RapierJointBase,
 }
-impl RapierSphericalJoint3D {
+impl RapierGeneric6DOFJoint3D {
     pub fn new(
         anchor_a: Vector3,
         anchor_b: Vector3,
@@ -102,7 +102,7 @@ impl RapierSphericalJoint3D {
     }
 }
 #[cfg_attr(feature = "serde-serialize", typetag::serde)]
-impl IRapierJoint for RapierSphericalJoint3D {
+impl IRapierJoint for RapierGeneric6DOFJoint3D {
     fn get_base(&self) -> &RapierJointBase {
         &self.base
     }
@@ -112,14 +112,10 @@ impl IRapierJoint for RapierSphericalJoint3D {
     }
 
     fn get_type(&self) -> physics_server_3d::JointType {
-        physics_server_3d::JointType::PIN
+        physics_server_3d::JointType::TYPE_6DOF
     }
 
     fn get_spherical(&self) -> Option<&RapierSphericalJoint3D> {
-        Some(self)
-    }
-
-    fn get_revolute(&self) -> Option<&RapierRevoluteJoint> {
         None
     }
 
@@ -128,15 +124,19 @@ impl IRapierJoint for RapierSphericalJoint3D {
     }
 
     fn get_generic_6dof(&self) -> Option<&RapierGeneric6DOFJoint3D> {
-        None
+        Some(self)
     }
 
     fn get_slider(&self) -> Option<&RapierSliderJoint3D> {
         None
     }
 
+    fn get_revolute(&self) -> Option<&RapierRevoluteJoint> {
+        None
+    }
+
     fn get_mut_spherical(&mut self) -> Option<&mut RapierSphericalJoint3D> {
-        Some(self)
+        None
     }
 
     fn get_mut_revolute(&mut self) -> Option<&mut RapierRevoluteJoint> {
@@ -148,7 +148,7 @@ impl IRapierJoint for RapierSphericalJoint3D {
     }
 
     fn get_mut_generic_6dof(&mut self) -> Option<&mut RapierGeneric6DOFJoint3D> {
-        None
+        Some(self)
     }
 
     fn get_mut_slider(&mut self) -> Option<&mut RapierSliderJoint3D> {

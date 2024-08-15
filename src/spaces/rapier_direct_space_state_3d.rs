@@ -195,4 +195,9 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
             physics_data,
         )
     }
+
+    fn get_closest_point_to_object_volume(&self, _object: Rid, _point: Vector3) -> Vector3 {
+        godot_print!("Not implemented");
+        Vector::ZERO
+    }
 }

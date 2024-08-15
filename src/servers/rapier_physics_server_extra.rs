@@ -284,19 +284,6 @@ impl RapierPhysicsServer {
     }
 
     #[func]
-    fn space_set_debug_contacts(space: Rid, max_contacts: i32) {
-        let Ok(mut physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
-        else {
-            return;
-        };
-        physics_singleton
-            .bind_mut()
-            .implementation
-            .space_set_debug_contacts(space, max_contacts);
-    }
-
-    #[func]
     fn space_get_active_bodies(space: Rid) -> Array<Rid> {
         let Ok(mut physics_singleton) =
             PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
