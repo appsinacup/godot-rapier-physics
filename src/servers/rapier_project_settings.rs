@@ -34,10 +34,6 @@ const LENGTH_UNIT: &str = "physics/rapier/solver/length_unit_2d";
 #[cfg(feature = "dim2")]
 const LENGTH_UNIT_VALUE: real = 100.0;
 #[cfg(feature = "dim2")]
-const GHOST_COLLISION_DISTANCE_VALUE: real = 1.0;
-#[cfg(feature = "dim3")]
-const GHOST_COLLISION_DISTANCE_VALUE: real = 0.1;
-#[cfg(feature = "dim2")]
 const FLUID_PARTICLE_VALUE: real = 20.0;
 #[cfg(feature = "dim3")]
 const FLUID_PARTICLE_VALUE: real = 0.5;
@@ -171,7 +167,7 @@ impl RapierProjectSettings {
         );
         register_setting_ranged(
             GHOST_COLLISION_DISTANCE,
-            Variant::from(GHOST_COLLISION_DISTANCE_VALUE),
+            Variant::from(0.0),
             "0,10,0.00001,or_greater",
             false,
         );
