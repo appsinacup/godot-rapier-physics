@@ -11,7 +11,7 @@ jobs:
       matrix:
         arch: ["wasm32-unknown-emscripten"]
         precision: [single]
-        build_param: ["experimental-wasm", "experimental-wasm-nothreads"]
+        build_param: ["experimental-wasm", "experimental-wasm,experimental-wasm-nothreads"]
         dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
         features: [{"feature":"serde-serialize", "name": "simd-parallel"}, {"feature":"enhanced-determinism,serde-serialize", "name": "enhanced-determinism"}]
 
@@ -35,7 +35,7 @@ jobs:
         run: |
           rm .cargo/config.toml
           cp .cargo/config.nothreads.toml .cargo/config.toml
-        if: "${{ matrix.build_param == 'experimental-wasm-nothreads' }}"
+        if: "${{ matrix.build_param == 'experimental-wasm,experimental-wasm-nothreads' }}"
 
       - name: Build
         uses: ./.github/actions/build
