@@ -4,7 +4,7 @@
 <p align="center">
         <img src="https://github.com/appsinacup/godot-rapier-physics/actions/workflows/runner.yml/badge.svg?branch=main"
             alt="Godot Rapier Build"></a>
-        <img src="https://img.shields.io/badge/Godot-4.2-%23478cbf?logo=godot-engine&logoColor=white" />
+        <img src="https://img.shields.io/badge/Godot-4.3-%23478cbf?logo=godot-engine&logoColor=white" />
 </p>
 
 <p align = "center">
@@ -18,7 +18,7 @@
 
 <p align = "center">
 <b>2D and 3D physics engine</b>
-<i>for the Godot 4 game engine.</i>
+<i>for the Godot 4.3 game engine.</i>
 with better <b>stability</b>, <b>performance</b>, <b>no ghost collisions</b> and <b>liquids</b>
 </p>
 
