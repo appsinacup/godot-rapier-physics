@@ -52,7 +52,7 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch }}
+          name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch }}-${{ matrix.build_param.extension }}
           path: |
             bin${{ matrix.dimensions.short }}/**/*.wasm
           if-no-files-found: error
