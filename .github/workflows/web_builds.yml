@@ -44,7 +44,7 @@ jobs:
         with:
           arch: ${{ matrix.arch }}
           extra_flags: "-Z build-std=std"
-          features: ${{ matrix.features.feature }},${{ matrix.precision }}-${{ matrix.dimensions.feature }},${{ matrix.build_param }},wasm-bindgen
+          features: ${{ matrix.features.feature }},${{ matrix.precision }}-${{ matrix.dimensions.feature }},${{ matrix.build_param.feature }},wasm-bindgen
       - name: Copy to bin
         shell: sh
         run: |
