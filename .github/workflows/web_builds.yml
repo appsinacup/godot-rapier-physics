@@ -37,6 +37,8 @@ jobs:
         run: |
           rm .cargo/config.toml
           cp .cargo/config.nothreads.toml .cargo/config.toml
+          mkdir -p bin2d/addons/godot-rapier/bin/wasm-nothreads
+          mkdir -p bin3d/addons/godot-rapier/bin/wasm-nothreads
         if: "${{ matrix.build_param.feature == 'wasm.nothreads' }}"
 
       - name: Build
