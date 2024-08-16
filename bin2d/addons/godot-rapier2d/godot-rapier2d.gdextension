@@ -26,8 +26,8 @@ ios.debug = "bin/libgodot_rapier.ios.framework"
 ios.release = "bin/libgodot_rapier.ios.framework"
 web.debug.wasm32 = "bin/godot_rapier.wasm"
 web.release.wasm32 = "bin/godot_rapier.wasm"
-web.debug.wasm32.nothreads = "bin/godot_rapier.nothreads.wasm"
-web.release.wasm32.nothreads = "bin/godot_rapier.nothreads.wasm"
+web.debug.wasm32.nothreads = "bin/wasm-nothreads/godot_rapier.wasm"
+web.release.wasm32.nothreads = "bin/wasm-nothreads/godot_rapier.wasm"
 
 [icons]
 

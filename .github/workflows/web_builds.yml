@@ -12,8 +12,8 @@ jobs:
         arch: ["wasm32-unknown-emscripten"]
         precision: [single]
         build_param: [
-          { "feature": "experimental-wasm", "extension": "wasm" },
-          { "feature": "experimental-wasm,experimental-wasm-nothreads", "extension": "nothreads.wasm" } ]
+          { "feature": "experimental-wasm", "folder": "" },
+          { "feature": "experimental-wasm,experimental-wasm-nothreads", "folder": "wasm-nothreads" } ]
         dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
         features: [{"feature":"serde-serialize", "name": "simd-parallel"}, {"feature":"enhanced-determinism,serde-serialize", "name": "enhanced-determinism"}]
 
@@ -48,11 +48,11 @@ jobs:
       - name: Copy to bin
         shell: sh
         run: |
-          mv target/release/godot_rapier.wasm bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/godot_rapier.${{ matrix.build_param.extension }}
+          mv target/release/godot_rapier.wasm bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/${{ matrix.build_param.folder }}/godot_rapier.wasm
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch }}-${{ matrix.build_param.extension }}
+          name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch }}-${{ matrix.build_param.folder }}
           path: |
             bin${{ matrix.dimensions.short }}/**/*.wasm
           if-no-files-found: error
