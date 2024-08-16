@@ -11,6 +11,9 @@ jobs:
       matrix:
         arch: ["wasm32-unknown-emscripten"]
         precision: [single]
+        build_param: [
+          { "feature": "experimental-wasm", "folder": "" },
+          { "feature": "experimental-wasm,experimental-wasm-nothreads", "folder": "wasm-nothreads" } ]
         dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
         features: [{"feature":"serde-serialize", "name": "simd-parallel"}, {"feature":"enhanced-determinism,serde-serialize", "name": "enhanced-determinism"}]
 
@@ -29,21 +32,29 @@ jobs:
       - name: Rust Install Nightly
         run: |
           rustup component add rust-src
+      - name: Replace .cargo/config.toml with .cargo/config.nothreads.toml
+        shell: sh
+        run: |
+          rm .cargo/config.toml
+          cp .cargo/config.nothreads.toml .cargo/config.toml
+          mkdir -p bin2d/addons/godot-rapier2d/bin/wasm-nothreads
+          mkdir -p bin3d/addons/godot-rapier3d/bin/wasm-nothreads
+        if: "${{ matrix.build_param.folder == 'wasm-nothreads' }}"
 
       - name: Build
         uses: ./.github/actions/build
         with:
           arch: ${{ matrix.arch }}
           extra_flags: "-Z build-std=std"
-          features: ${{ matrix.features.feature }},${{ matrix.precision }}-${{ matrix.dimensions.feature }},experimental-wasm,wasm-bindgen
+          features: ${{ matrix.features.feature }},${{ matrix.precision }}-${{ matrix.dimensions.feature }},${{ matrix.build_param.feature }},wasm-bindgen
       - name: Copy to bin
         shell: sh
         run: |
-          mv target/release/godot_rapier.wasm bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/godot_rapier.wasm
+          mv target/release/godot_rapier.wasm bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/${{ matrix.build_param.folder }}/godot_rapier.wasm
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch }}
+          name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch }}-${{ matrix.build_param.folder }}
           path: |
             bin${{ matrix.dimensions.short }}/**/*.wasm
           if-no-files-found: error

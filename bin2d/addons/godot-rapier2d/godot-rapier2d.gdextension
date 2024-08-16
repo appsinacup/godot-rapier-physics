@@ -1,7 +1,7 @@
 [configuration]
 
 entry_symbol = "gdext_rust_init"
-compatibility_minimum = 4.2
+compatibility_minimum = 4.3
 
 
 [libraries]
@@ -26,6 +26,8 @@ ios.debug = "bin/libgodot_rapier.ios.framework"
 ios.release = "bin/libgodot_rapier.ios.framework"
 web.debug.wasm32 = "bin/godot_rapier.wasm"
 web.release.wasm32 = "bin/godot_rapier.wasm"
+web.debug.wasm32.nothreads = "bin/wasm-nothreads/godot_rapier.wasm"
+web.release.wasm32.nothreads = "bin/wasm-nothreads/godot_rapier.wasm"
 
 [icons]
 

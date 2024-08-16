@@ -1,6 +1,5 @@
 cargo fmt -- --config-path rustfmt.toml
 cargo clippy --fix --allow-dirty
-#cargo build --features="single-dim2,parallel,simd-stable,serde-serialize" --no-default-features
 cargo build --features="single-dim2,parallel,simd-stable,serde-serialize" --no-default-features
 rm bin2d/addons/godot-rapier2d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
 rm /Users/dragosdaian/Documents/Godot-Physics-Tests/addons/godot-rapier2d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib

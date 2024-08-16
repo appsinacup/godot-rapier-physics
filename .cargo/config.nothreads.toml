@@ -3,8 +3,6 @@ rustflags = [
   "-C",
   "link-args=-sSIDE_MODULE=2",
   "-C",
-  "link-args=-pthread",
-  "-C",
   "target-feature=+atomics,+bulk-memory,+mutable-globals",
   "-Clink-args=-sEXPORT_ALL=1",
   "-Clink-arg=-fwasm-exceptions",
