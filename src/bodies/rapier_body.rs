@@ -365,9 +365,7 @@ impl RapierBody {
         );
         // if we are a conveyer belt, we need to modify contacts
         // also if any shape is one-way
-        let modify_contacts_enabled = self.base.mode == BodyMode::STATIC
-            || self.base.mode == BodyMode::KINEMATIC
-            || override_modify_contacts;
+        let modify_contacts_enabled = override_modify_contacts;
         physics_engine.collider_set_modify_contacts_enabled(
             space_handle,
             collider_handle,
