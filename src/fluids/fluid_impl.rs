@@ -62,6 +62,17 @@ impl FluidImpl {
         accelerations
     }
 
+    pub fn get_remaining_times(fluid: &Fluid) -> PackedFloat32Array {
+        let ticks = Time::singleton().get_ticks_msec() as f32;
+        let mut remaining_times = PackedFloat32Array::default();
+        remaining_times.resize(fluid.create_times.len());
+        let div_1000 = 1.0 / 1000.0;
+        for i in 0..fluid.create_times.len() {
+            remaining_times[i] = (ticks - fluid.create_times[i]) * div_1000;
+        }
+        remaining_times
+    }
+
     pub fn get_velocities(fluid: &Fluid) -> PackedVectorArray {
         let rid = fluid.rid;
         let guard = fluid.base();

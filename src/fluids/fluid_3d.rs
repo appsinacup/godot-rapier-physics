@@ -60,6 +60,11 @@ impl Fluid3D {
     }
 
     #[func]
+    fn get_remaining_times(&self) -> PackedFloat32Array {
+        FluidImpl::get_remaining_times(self)
+    }
+
+    #[func]
     fn get_velocities(&self) -> PackedVectorArray {
         FluidImpl::get_velocities(self)
     }
