@@ -136,7 +136,6 @@ pub struct RapierBody {
     can_sleep: bool,
     constant_force: Vector,
     linear_velocity: Vector,
-    previous_linear_velocity: Vector,
     impulse: Vector,
     torque: Angle,
     angular_velocity: Angle,
@@ -192,7 +191,6 @@ impl RapierBody {
             can_sleep: true,
             constant_force: Vector::default(),
             linear_velocity: Vector::default(),
-            previous_linear_velocity: Vector::default(),
             impulse: Vector::default(),
             torque: ANGLE_ZERO,
             angular_velocity: ANGLE_ZERO,
@@ -1142,14 +1140,6 @@ impl RapierBody {
             self.active = true;
             space.body_add_to_active_list(self.base.get_rid());
         }
-    }
-
-    pub fn set_previous_linear_velocity(&mut self, p_velocity: Vector) {
-        self.previous_linear_velocity = p_velocity;
-    }
-
-    pub fn get_previous_linear_velocity(&self) -> Vector {
-        self.previous_linear_velocity
     }
 
     pub fn on_update_active(
