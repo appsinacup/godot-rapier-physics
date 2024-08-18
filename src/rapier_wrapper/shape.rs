@@ -115,8 +115,11 @@ impl PhysicsEngine {
         let width = width as usize;
         let depth = depth as usize;
         let heights = DMatrix::from_fn(width, depth, |i, j| heights[j * (width) + i]);
-        let shape =
-            SharedShape::heightfield(heights, Vector3::new(depth as Real, 1.0, width as Real));
+        let shape = SharedShape::heightfield_with_flags(
+            heights,
+            Vector3::new(depth as Real, 1.0, width as Real),
+            HeightFieldFlags::FIX_INTERNAL_EDGES,
+        );
         self.insert_shape(shape)
     }
 
@@ -138,7 +141,11 @@ impl PhysicsEngine {
         indices: Option<Vec<[u32; 3]>>,
     ) -> ShapeHandle {
         let points_vec = point_array_to_vec(points);
-        let shape = SharedShape::trimesh(points_vec, indices.unwrap());
+        let shape = SharedShape::trimesh_with_flags(
+            points_vec,
+            indices.unwrap(),
+            TriMeshFlags::FIX_INTERNAL_EDGES,
+        );
         self.insert_shape(shape)
     }
 
