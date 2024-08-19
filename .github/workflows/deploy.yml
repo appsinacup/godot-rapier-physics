@@ -1,0 +1,32 @@
+name: Deploy
+on:
+  workflow_call:
+
+jobs:
+  release:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Write file
+        shell: sh
+        run: |
+          echo "
+          {
+            "title": "Snake",
+            "description": "Lorem ipsum…",
+            "category_id": "1",
+            "godot_version": "2.1",
+            "version_string": "{{ context.release.tag_name }}",
+            "cost": "GPLv3",
+            "download_provider": "GitHub",
+            "download_commit": "{{ env.GITHUB_SHA }}",
+            "browse_url": "{{ context.repository.html_url }}",
+            "issues_url": "{{ context.repository.html_url }}/issues",
+            "icon_url": "https://raw.githubusercontent.com/..."
+          }" >> .asset-template.json.hb
+      - name: Deploying ${{ github.ref_name }}
+        uses: deep-entertainment/godot-asset-lib-action@v0.4.0
+        with:
+          username: example
+          password: ${{ secrets.ASSET_STORE_PASSWORD }}
+          assetId: 12345

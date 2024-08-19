@@ -74,3 +74,9 @@ jobs:
       contents: write
     needs: [merge]
     uses: ./.github/workflows/release.yml
+    if: github.ref == 'refs/heads/master'
+  
+  deploy:
+    name: Deploy Release to Godot Asset Library
+    uses: ./.github/workflows/deploy.yml
+    if: startsWith(github.event.ref, 'refs/tags/v')

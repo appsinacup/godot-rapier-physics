@@ -176,7 +176,7 @@ impl RapierBody {
             inv_inertia: ANGLE_ZERO,
             #[cfg(feature = "dim3")]
             inv_inertia_tensor: Basis::IDENTITY,
-            contact_skin: RapierProjectSettings::get_contact_skin(),
+            contact_skin: 0.0,
             center_of_mass: Vector::default(),
             calculate_inertia: true,
             calculate_center_of_mass: true,
