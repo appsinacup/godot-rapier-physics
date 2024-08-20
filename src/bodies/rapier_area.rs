@@ -285,12 +285,14 @@ impl RapierArea {
         if let Some(other_area) = other_area {
             if let Some(other_area) = other_area.get_mut_area() {
                 if !other_area.is_monitorable() {
+                    godot_print!("other area not monitorable");
                     return;
                 }
             }
         } else {
             godot_error!("other area is null");
         }
+        godot_print!("adding area");
         let handle_pair_hash = (collider_handle, area_collider_handle);
         if let Some(monitored_object) = self.monitored_objects.get(&handle_pair_hash) {
             // in case it already exited this frame and now it enters, cancel out the event
@@ -391,12 +393,26 @@ impl RapierArea {
             || self.angular_damping_override_mode != AreaSpaceOverrideMode::DISABLED
     }
 
-    pub fn set_monitor_callback(&mut self, callback: Callable) {
+    pub fn set_monitor_callback(
+        &mut self,
+        callback: Callable,
+        physics_engine: &mut PhysicsEngine,
+        physics_shapes: &mut PhysicsShapes,
+        physics_spaces: &mut PhysicsSpaces,
+    ) {
         self.monitor_callback = Some(callback);
+        self.recreate_shapes(physics_engine, physics_shapes, physics_spaces);
     }
 
-    pub fn set_area_monitor_callback(&mut self, callback: Callable) {
+    pub fn set_area_monitor_callback(
+        &mut self,
+        callback: Callable,
+        physics_engine: &mut PhysicsEngine,
+        physics_shapes: &mut PhysicsShapes,
+        physics_spaces: &mut PhysicsSpaces,
+    ) {
         self.area_monitor_callback = Some(callback);
+        self.recreate_shapes(physics_engine, physics_shapes, physics_spaces);
     }
 
     pub fn set_param(
@@ -566,8 +582,15 @@ impl RapierArea {
         self.angular_damp
     }
 
-    pub fn set_monitorable(&mut self, monitorable: bool) {
+    pub fn set_monitorable(
+        &mut self,
+        monitorable: bool,
+        physics_engine: &mut PhysicsEngine,
+        physics_shapes: &mut PhysicsShapes,
+        physics_spaces: &mut PhysicsSpaces,
+    ) {
         self.monitorable = monitorable;
+        self.recreate_shapes(physics_engine, physics_shapes, physics_spaces);
     }
 
     pub fn is_monitorable(&self) -> bool {
@@ -610,6 +633,7 @@ impl RapierArea {
                     queries.push((monitor_callback.clone(), arg_array));
                 }
             } else if let Some(ref area_monitor_callback) = self.area_monitor_callback {
+                godot_print!("calling query");
                 queries.push((area_monitor_callback.clone(), arg_array));
             }
         }

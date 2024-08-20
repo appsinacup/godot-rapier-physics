@@ -664,7 +664,12 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(area) = physics_data.collision_objects.get_mut(&area) {
             if let Some(area) = area.get_mut_area() {
-                area.set_monitorable(monitorable);
+                area.set_monitorable(
+                    monitorable,
+                    &mut physics_data.physics_engine,
+                    &mut physics_data.shapes,
+                    &mut physics_data.spaces,
+                );
             }
         }
     }
@@ -689,7 +694,12 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(area) = physics_data.collision_objects.get_mut(&area) {
             if let Some(area) = area.get_mut_area() {
-                area.set_monitor_callback(callback);
+                area.set_monitor_callback(
+                    callback,
+                    &mut physics_data.physics_engine,
+                    &mut physics_data.shapes,
+                    &mut physics_data.spaces,
+                );
             }
         }
     }
@@ -698,7 +708,12 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(area) = physics_data.collision_objects.get_mut(&area) {
             if let Some(area) = area.get_mut_area() {
-                area.set_area_monitor_callback(callback);
+                area.set_area_monitor_callback(
+                    callback,
+                    &mut physics_data.physics_engine,
+                    &mut physics_data.shapes,
+                    &mut physics_data.spaces,
+                );
             }
         }
     }
