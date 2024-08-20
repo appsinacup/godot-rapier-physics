@@ -17,7 +17,6 @@ use super::rapier_area::RapierArea;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_server_extra::RapierBodyParam;
-use crate::servers::rapier_project_settings::*;
 use crate::spaces::rapier_space::RapierSpace;
 use crate::types::*;
 use crate::*;
@@ -1773,21 +1772,26 @@ impl RapierBody {
                 continue;
             }
             if let Some(shape) = physics_shapes.get(&self.base.get_shape(i)) {
+                let mut shape_transform = self.base.get_shape_transform(i);
                 if !shapes_found {
-                    // TODO not 100% correct, we don't take into consideration rotation here.
-                    body_aabb = shape
-                        .get_base()
-                        .get_aabb(self.base.get_shape_transform(i).origin);
+                    body_aabb = shape.get_base().get_aabb(shape_transform.origin);
+                    shape_transform.origin = Vector::default();
+                    body_aabb.size = transform_scale(&shape_transform) * body_aabb.size;
                     shapes_found = true;
                 } else {
-                    // TODO not 100% correct, we don't take into consideration rotation here.
-                    body_aabb = body_aabb.merge(
-                        shape
-                            .get_base()
-                            .get_aabb(self.base.get_shape_transform(i).origin),
-                    );
+                    let mut shape_aabb = shape.get_base().get_aabb(shape_transform.origin);
+                    shape_transform.origin = Vector::default();
+                    shape_aabb.size = transform_scale(&shape_transform) * shape_aabb.size;
+                    body_aabb = body_aabb.merge(shape_aabb);
                 }
             }
+        }
+        // TODO Rotation fix hack, do different
+        body_aabb.size.x = body_aabb.size.x.max(body_aabb.size.y);
+        body_aabb.size.y = body_aabb.size.x;
+        #[cfg(feature = "dim3")]
+        if crate::rapier::prelude::DIM == 3 {
+            body_aabb.size.z = body_aabb.size.x;
         }
         body_aabb
     }

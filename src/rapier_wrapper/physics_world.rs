@@ -23,10 +23,6 @@ pub struct JointHandle {
 pub struct ActiveBodyInfo {
     pub body_user_data: UserData,
 }
-pub struct BeforeActiveBodyInfo {
-    pub body_user_data: UserData,
-    pub previous_velocity: Vector<Real>,
-}
 #[derive(Default)]
 pub struct ContactPointInfo {
     pub pixel_local_pos_1: Vector<Real>,

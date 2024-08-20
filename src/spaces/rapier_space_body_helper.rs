@@ -162,7 +162,7 @@ impl RapierSpace {
         if max_results < 1 {
             return 0;
         }
-        let rect_begin = aabb.position;
+        let rect_begin = aabb.position - aabb.size;
         let rect_end = aabb.end();
         let mut handle_excluded_info = QueryExcludedInfo::default();
         let mut query_exclude = Vec::new();
