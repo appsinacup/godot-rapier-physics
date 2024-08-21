@@ -42,7 +42,7 @@ func _ready():
 func _check_for_updater():
 	var response = await _http_client.request_latest_version()
 	if response.code() != 200:
-		push_warning("Update information cannot be retrieved from GitHub! \n %s" % response.response())
+		push_warning("Update information cannot be retrieved from GitHub! \n %s %s" % [response.response(), response.code()])
 		return
 	_latest_version = extract_latest_version(response)
 	var current_version := extract_current_version()
@@ -112,7 +112,6 @@ func extract_releases(response: HttpClient.HttpResponse, current_version) -> Str
 		if SemVer.parse(release["tag_name"]).equals(current_version):
 			break
 		var release_description :String = release["body"]
-		print(release_description)
 		result += await _md_reader.to_bbcode(release_description)
 	return result
 
