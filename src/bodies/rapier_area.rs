@@ -62,6 +62,8 @@ pub struct RapierArea {
     monitored_objects: HashMap<(ColliderHandle, ColliderHandle), MonitorInfo>,
     #[cfg_attr(feature = "serde-serialize", serde(skip))]
     detected_bodies: HashMap<Rid, u32>,
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
+    detected_areas: HashMap<Rid, u32>,
     base: RapierCollisionObject,
 }
 impl RapierArea {
@@ -82,6 +84,7 @@ impl RapierArea {
             area_monitor_callback: None,
             monitored_objects: HashMap::default(),
             detected_bodies: HashMap::default(),
+            detected_areas: HashMap::default(),
             base: RapierCollisionObject::new(rid, CollisionObjectType::Area),
         }
     }
@@ -285,14 +288,18 @@ impl RapierArea {
         if let Some(other_area) = other_area {
             if let Some(other_area) = other_area.get_mut_area() {
                 if !other_area.is_monitorable() {
-                    godot_print!("other area not monitorable");
                     return;
                 }
             }
         } else {
             godot_error!("other area is null");
         }
-        godot_print!("adding area");
+        // Add to keep track of currently detected areas
+        if let Some(detected_area) = self.detected_areas.get_mut(&other_area_rid) {
+            *detected_area += 1;
+        } else {
+            self.detected_areas.insert(other_area_rid, 1);
+        }
         let handle_pair_hash = (collider_handle, area_collider_handle);
         if let Some(monitored_object) = self.monitored_objects.get(&handle_pair_hash) {
             // in case it already exited this frame and now it enters, cancel out the event
@@ -337,6 +344,15 @@ impl RapierArea {
                     return;
                 }
             }
+        }
+        // Remove from currently detected areas
+        if let Some(detected_area) = self.detected_areas.get_mut(&other_area_rid) {
+            *detected_area -= 1;
+            if *detected_area == 0 {
+                self.detected_areas.remove(&other_area_rid);
+            }
+        } else {
+            return;
         }
         let handle_pair_hash = (collider_handle, area_collider_handle);
         if let Some(monitored_object) = self.monitored_objects.get(&handle_pair_hash) {
@@ -400,7 +416,11 @@ impl RapierArea {
         physics_shapes: &mut PhysicsShapes,
         physics_spaces: &mut PhysicsSpaces,
     ) {
-        self.monitor_callback = Some(callback);
+        if callback.is_valid() {
+            self.monitor_callback = Some(callback);
+        } else {
+            self.monitor_callback = None;
+        }
         self.recreate_shapes(physics_engine, physics_shapes, physics_spaces);
     }
 
@@ -411,7 +431,11 @@ impl RapierArea {
         physics_shapes: &mut PhysicsShapes,
         physics_spaces: &mut PhysicsSpaces,
     ) {
-        self.area_monitor_callback = Some(callback);
+        if callback.is_valid() {
+            self.area_monitor_callback = Some(callback);
+        } else {
+            self.area_monitor_callback = None;
+        }
         self.recreate_shapes(physics_engine, physics_shapes, physics_spaces);
     }
 
@@ -633,7 +657,6 @@ impl RapierArea {
                     queries.push((monitor_callback.clone(), arg_array));
                 }
             } else if let Some(ref area_monitor_callback) = self.area_monitor_callback {
-                godot_print!("calling query");
                 queries.push((area_monitor_callback.clone(), arg_array));
             }
         }
