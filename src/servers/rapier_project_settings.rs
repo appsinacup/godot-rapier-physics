@@ -157,19 +157,19 @@ impl RapierProjectSettings {
         register_setting_ranged(
             FLUID_PARTICLE_RADIUS,
             Variant::from(FLUID_PARTICLE_VALUE),
-            "0,100,0.00001",
+            "0,100,0.00001,or_greater",
             true,
         );
         register_setting_ranged(
             FLUID_SMOOTHING_FACTOR,
             Variant::from(2.0),
-            "0,10,0.00001,suffix:%",
+            "0,10,0.00001,suffix:%,or_greater",
             false,
         );
         register_setting_ranged(
             LENGTH_UNIT,
             Variant::from(LENGTH_UNIT_VALUE),
-            "1,100,1,suffix:length_unit",
+            "1,100,1,suffix:length_unit,or_greater",
             false,
         );
     }
