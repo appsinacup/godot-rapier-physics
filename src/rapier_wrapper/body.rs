@@ -1,3 +1,4 @@
+use godot::global::godot_print;
 use nalgebra::Point;
 use rapier::prelude::*;
 
@@ -547,6 +548,7 @@ impl PhysicsEngine {
         {
             let mut local_point = Point { coords: point };
             local_point += body.center_of_mass().coords;
+            godot_print!("applying impulse {}", impulse);
             body.apply_impulse_at_point(impulse, local_point, true);
         }
         self.body_wake_up_connected_rigidbodies(world_handle, body_handle);

@@ -4,7 +4,7 @@ use physics_server_2d::JointType;
 #[cfg(feature = "dim3")]
 use physics_server_3d::JointType;
 
-use crate::bodies::rapier_collision_object::IRapierCollisionObject;
+use crate::bodies::rapier_collision_object::IRapierCollisionObjectBase;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::joints::rapier_joint::RapierJointBase;
 use crate::rapier_wrapper::prelude::*;
@@ -25,8 +25,8 @@ impl RapierRevoluteJoint {
     pub fn new(
         anchor_a: Vector,
         anchor_b: Vector,
-        body_a: &dyn IRapierCollisionObject,
-        body_b: &dyn IRapierCollisionObject,
+        body_a: &dyn IRapierCollisionObjectBase,
+        body_b: &dyn IRapierCollisionObjectBase,
         physics_engine: &mut PhysicsEngine,
     ) -> Self {
         let invalid_joint = Self {

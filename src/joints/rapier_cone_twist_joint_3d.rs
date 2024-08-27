@@ -1,7 +1,7 @@
 use godot::classes::*;
 use godot::prelude::*;
 
-use crate::bodies::rapier_collision_object::IRapierCollisionObject;
+use crate::bodies::rapier_collision_object::IRapierCollisionObjectBase;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::joints::rapier_joint::RapierJointBase;
 use crate::rapier_wrapper::prelude::*;
@@ -18,8 +18,8 @@ impl RapierConeTwistJoint3D {
     pub fn new(
         anchor_a: Vector3,
         anchor_b: Vector3,
-        body_a: &Box<dyn IRapierCollisionObject>,
-        body_b: &Box<dyn IRapierCollisionObject>,
+        body_a: &Box<dyn IRapierCollisionObjectBase>,
+        body_b: &Box<dyn IRapierCollisionObjectBase>,
         physics_engine: &mut PhysicsEngine,
     ) -> Self {
         let invalid_joint = Self {

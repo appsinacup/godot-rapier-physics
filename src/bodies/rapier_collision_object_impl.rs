@@ -2,15 +2,15 @@ use godot::builtin::Rid;
 use rapier::geometry::ColliderHandle;
 
 use super::rapier_collision_object::CollisionObjectShape;
-use super::rapier_collision_object::IRapierCollisionObject;
-use super::rapier_collision_object::RapierCollisionObject;
+use super::rapier_collision_object::IRapierCollisionObjectBase;
+use super::rapier_collision_object::RapierCollisionObjectBase;
 use crate::rapier_wrapper::prelude::PhysicsEngine;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::servers::rapier_physics_singleton::PhysicsSpaces;
 use crate::types::Transform;
-impl RapierCollisionObject {
+impl RapierCollisionObjectBase {
     pub(super) fn recreate_shapes(
-        collision_object: &mut dyn IRapierCollisionObject,
+        collision_object: &mut dyn IRapierCollisionObjectBase,
         physics_engine: &mut PhysicsEngine,
         physics_shapes: &mut PhysicsShapes,
         physics_spaces: &mut PhysicsSpaces,
@@ -44,7 +44,7 @@ impl RapierCollisionObject {
     }
 
     pub(super) fn add_shape(
-        collision_object: &mut dyn IRapierCollisionObject,
+        collision_object: &mut dyn IRapierCollisionObjectBase,
         p_shape: godot::prelude::Rid,
         p_transform: Transform,
         p_disabled: bool,
@@ -85,7 +85,7 @@ impl RapierCollisionObject {
     }
 
     pub(super) fn shape_changed(
-        collision_object: &mut dyn IRapierCollisionObject,
+        collision_object: &mut dyn IRapierCollisionObjectBase,
         p_shape: Rid,
         physics_engine: &mut PhysicsEngine,
         physics_shapes: &mut PhysicsShapes,
@@ -119,7 +119,7 @@ impl RapierCollisionObject {
     }
 
     pub(super) fn remove_shape_idx(
-        collision_object: &mut dyn IRapierCollisionObject,
+        collision_object: &mut dyn IRapierCollisionObjectBase,
         p_index: usize,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
@@ -154,7 +154,7 @@ impl RapierCollisionObject {
     }
 
     pub(super) fn set_shape(
-        collision_object: &mut dyn IRapierCollisionObject,
+        collision_object: &mut dyn IRapierCollisionObjectBase,
         p_index: usize,
         p_shape: Rid,
         physics_engine: &mut PhysicsEngine,
@@ -204,7 +204,7 @@ impl RapierCollisionObject {
     }
 
     pub(super) fn set_shape_transform(
-        collision_object: &mut dyn IRapierCollisionObject,
+        collision_object: &mut dyn IRapierCollisionObjectBase,
         p_index: usize,
         p_transform: Transform,
         physics_engine: &mut PhysicsEngine,
@@ -225,7 +225,7 @@ impl RapierCollisionObject {
     }
 
     pub(super) fn set_shape_disabled(
-        collision_object: &mut dyn IRapierCollisionObject,
+        collision_object: &mut dyn IRapierCollisionObjectBase,
         p_index: usize,
         p_disabled: bool,
         physics_engine: &mut PhysicsEngine,

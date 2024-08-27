@@ -8,6 +8,9 @@ use hashbrown::HashMap;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsData;
 use crate::types::*;
+
+use super::rapier_separation_ray_shape::RapierSeparationRayShape;
+use super::rapier_world_boundary_shape::RapierWorldBoundaryShape;
 #[cfg_attr(feature = "serde-serialize", typetag::serde(tag = "type"))]
 pub trait IRapierShape {
     fn get_base(&self) -> &RapierShapeBase;
@@ -18,6 +21,10 @@ pub trait IRapierShape {
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine);
     fn get_data(&self) -> Variant;
     fn get_handle(&self) -> ShapeHandle;
+}
+pub enum RapierShape {
+    RapierSeparationRayShape(RapierSeparationRayShape),
+    RapierWorldBoundaryShape(RapierWorldBoundaryShape),
 }
 #[cfg_attr(
     feature = "serde-serialize",

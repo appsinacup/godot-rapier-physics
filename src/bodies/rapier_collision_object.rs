@@ -28,9 +28,9 @@ const TIME_BEFORE_SLEEP: &str = "physics/2d/time_before_sleep";
 #[cfg(feature = "dim3")]
 const TIME_BEFORE_SLEEP: &str = "physics/3d/time_before_sleep";
 //#[cfg_attr(feature = "serde-serialize", typetag::serde(tag = "type"))]
-pub trait IRapierCollisionObject: Sync {
-    fn get_base(&self) -> &RapierCollisionObject;
-    fn get_mut_base(&mut self) -> &mut RapierCollisionObject;
+pub trait IRapierCollisionObjectBase: Sync {
+    fn get_base(&self) -> &RapierCollisionObjectBase;
+    fn get_mut_base(&mut self) -> &mut RapierCollisionObjectBase;
     fn get_body(&self) -> Option<&RapierBody>;
     fn get_area(&self) -> Option<&RapierArea>;
     fn get_mut_body(&mut self) -> Option<&mut RapierBody>;
@@ -116,6 +116,10 @@ pub trait IRapierCollisionObject: Sync {
         physics_spaces: &mut PhysicsSpaces,
     );
 }
+pub enum RapierCollisionObject {
+    RapierArea(RapierArea),
+    RapierBody(RapierBody),
+}
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 #[cfg_attr(
     feature = "serde-serialize",
@@ -153,7 +157,7 @@ impl Default for CollisionObjectShape {
 }
 // TODO deserialize
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
-pub struct RapierCollisionObject {
+pub struct RapierCollisionObjectBase {
     user_flags: u32,
     collision_object_type: CollisionObjectType,
     #[cfg_attr(feature = "serde-serialize", serde(skip, default = "invalid_rid"))]
@@ -178,12 +182,12 @@ pub struct RapierCollisionObject {
     pub(crate) activation_linear_threshold: real,
     pub(crate) activation_time_until_sleep: real,
 }
-impl Default for RapierCollisionObject {
+impl Default for RapierCollisionObjectBase {
     fn default() -> Self {
         Self::new(Rid::Invalid, CollisionObjectType::Body)
     }
 }
-impl RapierCollisionObject {
+impl RapierCollisionObjectBase {
     pub fn new(rid: Rid, collision_object_type: CollisionObjectType) -> Self {
         let mut mode = BodyMode::RIGID;
         if collision_object_type == CollisionObjectType::Area {
@@ -633,7 +637,7 @@ impl RapierCollisionObject {
         self.user_flags
     }
 }
-impl Drop for RapierCollisionObject {
+impl Drop for RapierCollisionObjectBase {
     fn drop(&mut self) {
         if self.body_handle != RigidBodyHandle::invalid() {
             godot_error!("Body leaked");

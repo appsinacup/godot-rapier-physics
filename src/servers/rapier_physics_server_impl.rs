@@ -17,7 +17,7 @@ use super::rapier_project_settings::RapierProjectSettings;
 use crate::bodies::rapier_area::AreaUpdateMode;
 use crate::bodies::rapier_area::RapierArea;
 use crate::bodies::rapier_body::RapierBody;
-use crate::bodies::rapier_collision_object::IRapierCollisionObject;
+use crate::bodies::rapier_collision_object::IRapierCollisionObjectBase;
 #[cfg(feature = "dim2")]
 use crate::joints::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 #[cfg(feature = "dim2")]

@@ -8,6 +8,7 @@ use rapier::math::Real;
 use rapier::math::DEFAULT_EPSILON;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsShapes;
+use shapes::rapier_shape::RapierShape;
 
 use super::rapier_space::RapierSpace;
 use super::RapierDirectSpaceState;
@@ -34,7 +35,7 @@ impl RapierSpace {
                 return true;
             }
         }
-        let (collision_object_2d, _) = RapierCollisionObject::get_collider_user_data(user_data);
+        let (collision_object_2d, _) = RapierCollisionObjectBase::get_collider_user_data(user_data);
         let Some(collision_object_2d) = physics_collision_objects.get(&collision_object_2d) else {
             return false;
         };
@@ -245,7 +246,7 @@ impl RapierSpace {
                             continue;
                         }
                         let (shape_col_object, shape_index) =
-                            RapierCollisionObject::get_collider_user_data(&result.user_data);
+                            RapierCollisionObjectBase::get_collider_user_data(&result.user_data);
                         if let Some(shape_col_object) =
                             physics_collision_objects.get(&shape_col_object)
                         {
@@ -393,7 +394,7 @@ impl RapierSpace {
                         continue;
                     }
                     let (shape_col_object, shape_index) =
-                        RapierCollisionObject::get_collider_user_data(&result.user_data);
+                        RapierCollisionObjectBase::get_collider_user_data(&result.user_data);
                     if let Some(shape_col_object) = physics_collision_objects.get(&shape_col_object)
                     {
                         if let Some(collision_body) = shape_col_object.get_body() {
@@ -592,7 +593,7 @@ impl RapierSpace {
                         continue;
                     }
                     let (shape_col_object, shape_index) =
-                        RapierCollisionObject::get_collider_user_data(&result.user_data);
+                        RapierCollisionObjectBase::get_collider_user_data(&result.user_data);
                     if let Some(shape_col_object) = physics_collision_objects.get(&shape_col_object)
                     {
                         if let Some(collision_body) = shape_col_object.get_body() {
@@ -719,8 +720,8 @@ impl PhysicsEngine {
     fn should_skip_collision_one_dir(
         &self,
         contact: &ContactResult,
-        body_shape: &dyn IRapierShape,
-        collision_body: &dyn IRapierCollisionObject,
+        body_shape: &RapierShape,
+        collision_body: &dyn IRapierCollisionObjectBase,
         shape_index: usize,
         col_shape_transform: &Transform,
         p_margin: f32,

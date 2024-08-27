@@ -2,7 +2,7 @@ use godot::classes::*;
 use godot::prelude::*;
 
 use super::rapier_joint::RapierJointBase;
-use crate::bodies::rapier_collision_object::IRapierCollisionObject;
+use crate::bodies::rapier_collision_object::IRapierCollisionObjectBase;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
 use crate::types::*;
@@ -20,8 +20,8 @@ impl RapierDampedSpringJoint2D {
     pub fn new(
         p_anchor_a: Vector,
         p_anchor_b: Vector,
-        body_a: &dyn IRapierCollisionObject,
-        body_b: &dyn IRapierCollisionObject,
+        body_a: &dyn IRapierCollisionObjectBase,
+        body_b: &dyn IRapierCollisionObjectBase,
         physics_engine: &mut PhysicsEngine,
     ) -> Self {
         let invalid_joint = Self {

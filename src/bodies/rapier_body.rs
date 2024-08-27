@@ -153,7 +153,7 @@ pub struct RapierBody {
     fi_callback_data: Option<ForceIntegrationCallbackData>,
     #[cfg_attr(feature = "serde-serialize", serde(skip))]
     direct_state: Option<Gd<PhysicsDirectBodyState>>,
-    base: RapierCollisionObject,
+    base: RapierCollisionObjectBase,
 }
 impl RapierBody {
     pub fn new(rid: Rid) -> Self {
@@ -207,7 +207,7 @@ impl RapierBody {
             body_state_callback: None,
             fi_callback_data: None,
             direct_state: None,
-            base: RapierCollisionObject::new(rid, CollisionObjectType::Body),
+            base: RapierCollisionObjectBase::new(rid, CollisionObjectType::Body),
         }
     }
 
@@ -1938,12 +1938,12 @@ impl RapierBody {
 // We won't use the pointers between threads, so it should be safe.
 unsafe impl Sync for RapierBody {}
 //#[cfg_attr(feature = "serde-serialize", typetag::serde)]
-impl IRapierCollisionObject for RapierBody {
-    fn get_base(&self) -> &RapierCollisionObject {
+impl IRapierCollisionObjectBase for RapierBody {
+    fn get_base(&self) -> &RapierCollisionObjectBase {
         &self.base
     }
 
-    fn get_mut_base(&mut self) -> &mut RapierCollisionObject {
+    fn get_mut_base(&mut self) -> &mut RapierCollisionObjectBase {
         &mut self.base
     }
 
@@ -1988,7 +1988,7 @@ impl IRapierCollisionObject for RapierBody {
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
     ) {
-        RapierCollisionObject::add_shape(
+        RapierCollisionObjectBase::add_shape(
             self,
             p_shape,
             p_transform,
@@ -2007,7 +2007,7 @@ impl IRapierCollisionObject for RapierBody {
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
     ) {
-        RapierCollisionObject::set_shape(
+        RapierCollisionObjectBase::set_shape(
             self,
             p_index,
             p_shape,
@@ -2025,7 +2025,7 @@ impl IRapierCollisionObject for RapierBody {
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
     ) {
-        RapierCollisionObject::set_shape_transform(
+        RapierCollisionObjectBase::set_shape_transform(
             self,
             p_index,
             p_transform,
@@ -2043,7 +2043,7 @@ impl IRapierCollisionObject for RapierBody {
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
     ) {
-        RapierCollisionObject::set_shape_disabled(
+        RapierCollisionObjectBase::set_shape_disabled(
             self,
             p_index,
             p_disabled,
@@ -2078,7 +2078,7 @@ impl IRapierCollisionObject for RapierBody {
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
     ) {
-        RapierCollisionObject::remove_shape_idx(
+        RapierCollisionObjectBase::remove_shape_idx(
             self,
             p_index,
             physics_engine,
@@ -2114,7 +2114,7 @@ impl IRapierCollisionObject for RapierBody {
         if !self.base.is_valid() {
             return;
         }
-        RapierCollisionObject::recreate_shapes(
+        RapierCollisionObjectBase::recreate_shapes(
             self,
             physics_engine,
             physics_shapes,
@@ -2150,7 +2150,7 @@ impl IRapierCollisionObject for RapierBody {
         physics_shapes: &mut PhysicsShapes,
         physics_spaces: &mut PhysicsSpaces,
     ) {
-        RapierCollisionObject::shape_changed(
+        RapierCollisionObjectBase::shape_changed(
             self,
             p_shape,
             physics_engine,
