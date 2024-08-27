@@ -1,12 +1,12 @@
 [gd_scene load_steps=3 format=3 uid="uid://br17ciqiitq6s"]
 
-[ext_resource type="Script" path="res://addons/godot-rapier2d/generated/updater/download_update_panel.gd" id="1_uai4s"]
-[ext_resource type="Script" path="res://addons/godot-rapier2d/generated/updater/updater_http_client.gd" id="2_qpn7s"]
+[ext_resource type="Script" path="res://addons/godot-rapier3d/generated/updater/download_update_panel.gd" id="1_uai4s"]
+[ext_resource type="Script" path="res://addons/godot-rapier3d/generated/updater/updater_http_client.gd" id="2_qpn7s"]
 
 [node name="Window" type="Window"]
 disable_3d = true
 gui_embed_subwindows = true
-title = "godot-rapier2d Plugin Update"
+title = "godot-rapier3d Plugin Update"
 initial_position = 1
 size = Vector2i(800, 400)
 wrap_controls = true
