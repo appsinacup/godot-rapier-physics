@@ -101,9 +101,14 @@ static func extract_latest_version(response: HttpClient.HttpResponse) -> SemVer:
 	var body :Array = response.response()
 	return SemVer.parse(body[0]["name"])
 
-static func extract_zip_url(response: HttpClient.HttpResponse) -> String:
-	var body :Array = response.response()
-	return body[0]["zipball_url"]
+func extract_current_flavour() -> String:
+	var config_file = ConfigFile.new()
+	config_file.load('addons/%s/plugin.cfg' % config.plugin_name)
+	return config_file.get_value('plugin', 'flavour')
+
+func extract_zip_url(response: HttpClient.HttpResponse) -> String:
+	var flavour := extract_current_flavour()
+	return 'https://github.com/%s/releases/download/%s/%s.zip' % [config.github_repo, _latest_version, flavour]
 
 func extract_releases(response: HttpClient.HttpResponse, current_version) -> String:
 	await get_tree().process_frame
@@ -142,7 +147,6 @@ func _skip_update():
 	UpdaterConfig.save_skip_config(skip_config)
 
 func _on_update_pressed():
-	hide()
 	_update_button.set_disabled(true)
 	
 	#TODO: How do I give the plugins a hook to perform actions before updating?
@@ -151,6 +155,7 @@ func _on_update_pressed():
 	var updater_http_request = HTTPRequest.new()
 	updater_http_request.accept_gzip = true
 	add_child(updater_http_request)
+	message_h4("\n\n\nStaring download %s ... [img=24x24]%s[/img]" % [_download_zip_url, spinner_icon], Color.SNOW)
 
 	updater_http_request.request_completed.connect(_on_http_request_request_completed)
 	updater_http_request.request(_download_zip_url)
@@ -159,6 +164,7 @@ func _on_http_request_request_completed(result: int, response_code: int, headers
 	if result != HTTPRequest.RESULT_SUCCESS:
 		message_h4("\n\n\nError downloading update!", Color.RED)
 		return
+	message_h4("\n\n\nSuccesfuly downloaded release. Saving file to user://temp.zip", Color.SNOW)
 
 	# Save the downloaded zip
 	var zip_file: FileAccess = FileAccess.open(TEMP_FILE_NAME, FileAccess.WRITE)
@@ -176,7 +182,7 @@ func _on_http_request_request_completed(result: int, response_code: int, headers
 	files.remove_at(0)
 	# Remove assets folder
 	files.remove_at(0)
-
+	
 	for path in files:
 		var new_file_path: String = path.replace(base_path, "")
 		if path.ends_with("/"):
@@ -189,8 +195,8 @@ func _on_http_request_request_completed(result: int, response_code: int, headers
 	DirAccess.remove_absolute(TEMP_FILE_NAME)
 
 	updated.emit()
-
-	#TODO: Show that we successfully updated
+	message_h4("\n\n\nDone.", Color.SNOW)
+	hide()
 
 func _on_close_pressed():
 	hide()
