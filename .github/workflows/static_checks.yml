@@ -10,4 +10,13 @@ jobs:
       - uses: actions/checkout@v4
       - name: Format
         shell: sh
-        run: cargo fmt --all -- --config-path ./rustfmt.toml
+        run: |
+          cargo fmt --all -- --config-path ./rustfmt.toml
+      - name: Clippy 2D
+        shell: sh
+        run: |
+          cargo clippy --all-targets --features="build2d" -- -D warnings
+      - name: Clippy 3D
+        shell: sh
+        run: |
+          cargo clippy --all-targets --features="build3d" --no-default-features -- -D warnings
