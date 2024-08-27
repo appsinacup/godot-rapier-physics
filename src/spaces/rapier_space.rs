@@ -1,5 +1,6 @@
 use bodies::rapier_area::RapierArea;
 use bodies::rapier_body::RapierBody;
+use bodies::rapier_collision_object_base::CollisionObjectType;
 #[cfg(feature = "dim2")]
 use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]

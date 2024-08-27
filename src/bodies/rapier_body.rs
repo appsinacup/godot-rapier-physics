@@ -1,3 +1,6 @@
+use bodies::rapier_collision_object_base::CollisionObjectShape;
+use bodies::rapier_collision_object_base::CollisionObjectType;
+use bodies::rapier_collision_object_base::RapierCollisionObjectBase;
 #[cfg(feature = "dim2")]
 use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
@@ -12,6 +15,7 @@ use rapier::math::DEFAULT_EPSILON;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsShapes;
 use servers::rapier_physics_singleton::PhysicsSpaces;
+use shapes::rapier_shape::IRapierShape;
 
 use super::rapier_area::RapierArea;
 use crate::bodies::rapier_collision_object::*;
@@ -1938,7 +1942,7 @@ impl RapierBody {
 // We won't use the pointers between threads, so it should be safe.
 unsafe impl Sync for RapierBody {}
 //#[cfg_attr(feature = "serde-serialize", typetag::serde)]
-impl IRapierCollisionObjectBase for RapierBody {
+impl IRapierCollisionObject for RapierBody {
     fn get_base(&self) -> &RapierCollisionObjectBase {
         &self.base
     }

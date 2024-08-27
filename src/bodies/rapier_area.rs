@@ -1,3 +1,6 @@
+use bodies::rapier_collision_object_base::CollisionObjectShape;
+use bodies::rapier_collision_object_base::CollisionObjectType;
+use bodies::rapier_collision_object_base::RapierCollisionObjectBase;
 #[cfg(feature = "dim2")]
 use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
@@ -173,7 +176,7 @@ impl RapierArea {
     pub fn on_body_enter(
         &mut self,
         collider_handle: ColliderHandle,
-        body: &mut Option<&mut Box<dyn IRapierCollisionObjectBase>>,
+        body: &mut Option<&mut RapierCollisionObject>,
         body_shape: usize,
         body_rid: Rid,
         body_instance_id: u64,
@@ -224,7 +227,7 @@ impl RapierArea {
     pub fn on_body_exit(
         &mut self,
         collider_handle: ColliderHandle,
-        body: &mut Option<&mut Box<dyn IRapierCollisionObjectBase>>,
+        body: &mut Option<&mut RapierCollisionObject>,
         body_shape: usize,
         body_rid: Rid,
         body_instance_id: u64,
@@ -274,7 +277,7 @@ impl RapierArea {
     pub fn on_area_enter(
         &mut self,
         collider_handle: ColliderHandle,
-        other_area: &mut Option<&mut Box<dyn IRapierCollisionObjectBase>>,
+        other_area: &mut Option<&mut RapierCollisionObject>,
         other_area_shape: usize,
         other_area_rid: Rid,
         other_area_instance_id: u64,
@@ -327,7 +330,7 @@ impl RapierArea {
     pub fn on_area_exit(
         &mut self,
         collider_handle: ColliderHandle,
-        other_area: &mut Option<&mut Box<dyn IRapierCollisionObjectBase>>,
+        other_area: &mut Option<&mut RapierCollisionObject>,
         other_area_shape: usize,
         other_area_rid: Rid,
         other_area_instance_id: u64,
@@ -720,7 +723,7 @@ impl RapierArea {
 // We won't use the pointers between threads, so it should be safe.
 unsafe impl Sync for RapierArea {}
 //#[cfg_attr(feature = "serde-serialize", typetag::serde)]
-impl IRapierCollisionObjectBase for RapierArea {
+impl IRapierCollisionObject for RapierArea {
     fn get_base(&self) -> &RapierCollisionObjectBase {
         &self.base
     }

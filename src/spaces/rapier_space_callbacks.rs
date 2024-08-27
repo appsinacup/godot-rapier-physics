@@ -1,5 +1,7 @@
 use std::mem::swap;
 
+use bodies::rapier_collision_object_base::CollisionObjectType;
+use bodies::rapier_collision_object_base::RapierCollisionObjectBase;
 use godot::prelude::*;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 
@@ -279,8 +281,10 @@ impl RapierSpace {
         physics_collision_objects: &mut PhysicsCollisionObjects,
     ) -> bool {
         let mut send_contacts = self.is_debugging_contacts();
-        let (p_object1, _) = RapierCollisionObjectBase::get_collider_user_data(&event_info.user_data1);
-        let (p_object2, _) = RapierCollisionObjectBase::get_collider_user_data(&event_info.user_data2);
+        let (p_object1, _) =
+            RapierCollisionObjectBase::get_collider_user_data(&event_info.user_data1);
+        let (p_object2, _) =
+            RapierCollisionObjectBase::get_collider_user_data(&event_info.user_data2);
         if let Some(body1) = physics_collision_objects.get(&p_object1) {
             if let Some(body1) = body1.get_body() {
                 if body1.can_report_contacts() {

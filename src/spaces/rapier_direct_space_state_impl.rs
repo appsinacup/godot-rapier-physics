@@ -3,8 +3,10 @@ use godot::classes::native::*;
 use godot::prelude::*;
 
 use crate::bodies::rapier_collision_object::*;
+use crate::bodies::rapier_collision_object_base::RapierCollisionObjectBase;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsData;
+use crate::shapes::rapier_shape::IRapierShape;
 use crate::types::*;
 pub struct RapierDirectSpaceStateImpl {
     pub space: Rid,
@@ -396,7 +398,8 @@ impl RapierDirectSpaceStateImpl {
         if !result.collided {
             return false;
         }
-        let (rid, shape_index) = RapierCollisionObjectBase::get_collider_user_data(&result.user_data);
+        let (rid, shape_index) =
+            RapierCollisionObjectBase::get_collider_user_data(&result.user_data);
         let r_info = &mut *rest_info;
         if let Some(collision_object_2d) = physics_data.collision_objects.get(&rid) {
             let instance_id = collision_object_2d.get_base().get_instance_id();

@@ -1,10 +1,10 @@
 use godot::classes::*;
 use godot::prelude::*;
 
-use crate::bodies::rapier_collision_object::IRapierCollisionObjectBase;
+use super::rapier_joint_base::RapierJointBase;
+use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::bodies::rapier_collision_object::RapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
-use crate::joints::rapier_joint::RapierJointBase;
 use crate::rapier_wrapper::prelude::*;
 #[cfg_attr(
     feature = "serde-serialize",

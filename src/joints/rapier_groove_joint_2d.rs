@@ -1,8 +1,8 @@
 use godot::classes::*;
 use godot::prelude::*;
 
-use super::rapier_joint::RapierJointBase;
-use crate::bodies::rapier_collision_object::IRapierCollisionObjectBase;
+use super::rapier_joint_base::RapierJointBase;
+use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
 use crate::types::*;
@@ -18,8 +18,8 @@ impl RapierGrooveJoint2D {
         p_a_groove1: Vector,
         p_a_groove2: Vector,
         p_b_anchor: Vector,
-        body_a: &dyn IRapierCollisionObjectBase,
-        body_b: &dyn IRapierCollisionObjectBase,
+        body_a: &dyn IRapierCollisionObject,
+        body_b: &dyn IRapierCollisionObject,
         physics_engine: &mut PhysicsEngine,
     ) -> Self {
         let invalid_joint = Self {

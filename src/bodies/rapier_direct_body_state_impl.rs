@@ -5,7 +5,7 @@ use physics_server_2d::*;
 #[cfg(feature = "dim3")]
 use physics_server_3d::*;
 
-use crate::bodies::rapier_collision_object::IRapierCollisionObjectBase;
+use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::servers::rapier_physics_singleton::physics_data;
 use crate::types::*;
 pub struct RapierDirectBodyStateImpl {

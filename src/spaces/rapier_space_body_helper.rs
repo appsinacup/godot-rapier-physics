@@ -1,5 +1,6 @@
 use std::ops::Deref;
 
+use bodies::rapier_collision_object_base::RapierCollisionObjectBase;
 use godot::classes::native::ObjectId;
 use godot::classes::physics_server_2d::BodyMode;
 use godot::prelude::*;
@@ -8,6 +9,7 @@ use rapier::math::Real;
 use rapier::math::DEFAULT_EPSILON;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsShapes;
+use shapes::rapier_shape::IRapierShape;
 use shapes::rapier_shape::RapierShape;
 
 use super::rapier_space::RapierSpace;
@@ -15,7 +17,6 @@ use super::RapierDirectSpaceState;
 use crate::bodies::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
-use crate::shapes::rapier_shape::IRapierShape;
 use crate::types::*;
 use crate::*;
 const TEST_MOTION_MARGIN: Real = 1e-4;
@@ -276,7 +277,7 @@ impl RapierSpace {
                                     }
                                     if physics_engine.should_skip_collision_one_dir(
                                         &contact,
-                                        body_shape.deref(),
+                                        body_shape,
                                         collision_body,
                                         shape_index,
                                         &col_shape_transform,
@@ -490,7 +491,7 @@ impl RapierSpace {
                                 }
                                 if physics_engine.should_skip_collision_one_dir(
                                     &contact,
-                                    body_shape.deref(),
+                                    body_shape,
                                     collision_body,
                                     shape_index,
                                     &col_shape_transform,
@@ -618,7 +619,7 @@ impl RapierSpace {
                                 }
                                 if physics_engine.should_skip_collision_one_dir(
                                     &contact,
-                                    body_shape_obj.deref(),
+                                    body_shape_obj,
                                     collision_body,
                                     shape_index,
                                     &col_shape_transform,
@@ -721,7 +722,7 @@ impl PhysicsEngine {
         &self,
         contact: &ContactResult,
         body_shape: &RapierShape,
-        collision_body: &dyn IRapierCollisionObjectBase,
+        collision_body: &dyn IRapierCollisionObject,
         shape_index: usize,
         col_shape_transform: &Transform,
         p_margin: f32,

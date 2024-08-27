@@ -1,6 +1,7 @@
 use godot::classes::*;
 use godot::prelude::*;
 
+use super::rapier_collision_object::IRapierCollisionObject;
 use super::rapier_direct_body_state_impl::RapierDirectBodyStateImpl;
 use crate::servers::rapier_physics_singleton::physics_data;
 use crate::spaces::rapier_space::RapierSpace;
