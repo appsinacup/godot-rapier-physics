@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.7.27
+
+* Add functions to get objects positions in bulk by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/188
+* Fix teleport ruining mass properties by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/190
+* fix set_pos_and_velocity of fluid by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/196
+* Fix area not detected issue by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/197
+* add experimental threads for now to fix wrong thread access by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/198
+* add stub functions by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/199
+
 ## v0.7.26
 
 - Fix areas removed issue by [@Ughuuu](https://github.com/Ughuuu) in [#187](https://github.com/appsinacup/godot-rapier-physics/pull/187)
