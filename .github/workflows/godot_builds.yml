@@ -15,6 +15,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - name: Update plugin.cfg
+        shell: sh
+        run: |
+          sed -i "s/<flavour>/godot-rapier-2d-${{ matrix.precision }}-${{ matrix.features }}/g" bin2d/addons/godot-rapier2d/plugin.cfg
+          sed -i "s/<flavour>/godot-rapier-3d-${{ matrix.precision }}-${{ matrix.features }}/g" bin3d/addons/godot-rapier3d/plugin.cfg
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
