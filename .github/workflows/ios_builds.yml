@@ -24,12 +24,12 @@ jobs:
       - name: Copy to bin
         shell: sh
         run: |
-          mv target/release/libgodot_rapier.dylib bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.ios.framework/libgodot_rapier.ios.dylib
+          mv target/release/libgodot_rapier.dylib bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.ios.framework/libgodot_rapier.ios
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch}}
           path: |
-            bin${{ matrix.dimensions.short }}/**/*.dylib
+            bin${{ matrix.dimensions.short }}/**/*.ios
           if-no-files-found: error
