@@ -1,5 +1,7 @@
 use godot::classes::*;
 #[cfg(feature = "dim2")]
+use joints::rapier_groove_joint_2d::RapierGrooveJoint2D;
+#[cfg(feature = "dim2")]
 use physics_server_2d::JointType;
 #[cfg(feature = "dim3")]
 use physics_server_3d::JointType;
@@ -18,33 +20,90 @@ use super::rapier_spherical_joint_3d::RapierSphericalJoint3D;
 use crate::rapier_wrapper::prelude::*;
 use crate::types::invalid_rid;
 use crate::*;
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
+pub enum RapierJoint {
+    #[cfg(feature = "dim2")]
+    RapierDampedSpringJoint2D(RapierDampedSpringJoint2D),
+    #[cfg(feature = "dim2")]
+    RapierGrooveJoint2D(RapierGrooveJoint2D),
+    RapierEmptyJoint(RapierEmptyJoint),
+    RapierRevoluteJoint(RapierRevoluteJoint),
+    #[cfg(feature = "dim3")]
+    RapierSliderJoint3D(RapierSliderJoint3D),
+    #[cfg(feature = "dim3")]
+    RapierConeTwistJoint3D(RapierConeTwistJoint3D),
+    #[cfg(feature = "dim3")]
+    RapierSphericalJoint3D(RapierSphericalJoint3D),
+    #[cfg(feature = "dim3")]
+    RapierGeneric6DOFJoint3D(RapierGeneric6DOFJoint3D),
+}
+#[cfg_attr(feature = "serde-serialize", typetag::serde)]
+impl IRapierJoint for RapierJoint {
+    fn get_base(&self) -> &RapierJointBase {
+        match self {
+            #[cfg(feature = "dim2")]
+            RapierJoint::RapierDampedSpringJoint2D(joint) => joint.get_base(),
+            #[cfg(feature = "dim2")]
+            RapierJoint::RapierGrooveJoint2D(joint) => joint.get_base(),
+            RapierJoint::RapierEmptyJoint(joint) => joint.get_base(),
+            RapierJoint::RapierRevoluteJoint(joint) => joint.get_base(),
+            #[cfg(feature = "dim3")]
+            RapierJoint::RapierSliderJoint3D(joint) => joint.get_base(),
+            #[cfg(feature = "dim3")]
+            RapierJoint::RapierConeTwistJoint3D(joint) => joint.get_base(),
+            #[cfg(feature = "dim3")]
+            RapierJoint::RapierSphericalJoint3D(joint) => joint.get_base(),
+            #[cfg(feature = "dim3")]
+            RapierJoint::RapierGeneric6DOFJoint3D(joint) => joint.get_base(),
+        }
+    }
+
+    fn get_mut_base(&mut self) -> &mut RapierJointBase {
+        match self {
+            #[cfg(feature = "dim2")]
+            RapierJoint::RapierDampedSpringJoint2D(joint) => joint.get_mut_base(),
+            #[cfg(feature = "dim2")]
+            RapierJoint::RapierGrooveJoint2D(joint) => joint.get_mut_base(),
+            RapierJoint::RapierEmptyJoint(joint) => joint.get_mut_base(),
+            RapierJoint::RapierRevoluteJoint(joint) => joint.get_mut_base(),
+            #[cfg(feature = "dim3")]
+            RapierJoint::RapierSliderJoint3D(joint) => joint.get_mut_base(),
+            #[cfg(feature = "dim3")]
+            RapierJoint::RapierConeTwistJoint3D(joint) => joint.get_mut_base(),
+            #[cfg(feature = "dim3")]
+            RapierJoint::RapierSphericalJoint3D(joint) => joint.get_mut_base(),
+            #[cfg(feature = "dim3")]
+            RapierJoint::RapierGeneric6DOFJoint3D(joint) => joint.get_mut_base(),
+        }
+    }
+
+    fn get_type(&self) -> JointType {
+        match self {
+            #[cfg(feature = "dim2")]
+            RapierJoint::RapierDampedSpringJoint2D(joint) => joint.get_type(),
+            #[cfg(feature = "dim2")]
+            RapierJoint::RapierGrooveJoint2D(joint) => joint.get_type(),
+            RapierJoint::RapierEmptyJoint(joint) => joint.get_type(),
+            RapierJoint::RapierRevoluteJoint(joint) => joint.get_type(),
+            #[cfg(feature = "dim3")]
+            RapierJoint::RapierSliderJoint3D(joint) => joint.get_type(),
+            #[cfg(feature = "dim3")]
+            RapierJoint::RapierConeTwistJoint3D(joint) => joint.get_type(),
+            #[cfg(feature = "dim3")]
+            RapierJoint::RapierSphericalJoint3D(joint) => joint.get_type(),
+            #[cfg(feature = "dim3")]
+            RapierJoint::RapierGeneric6DOFJoint3D(joint) => joint.get_type(),
+        }
+    }
+}
 #[cfg_attr(feature = "serde-serialize", typetag::serde(tag = "type"))]
 pub trait IRapierJoint {
     fn get_base(&self) -> &RapierJointBase;
     fn get_mut_base(&mut self) -> &mut RapierJointBase;
     fn get_type(&self) -> JointType;
-    #[cfg(feature = "dim2")]
-    fn get_damped_spring(&self) -> Option<&RapierDampedSpringJoint2D>;
-    fn get_revolute(&self) -> Option<&RapierRevoluteJoint>;
-    #[cfg(feature = "dim3")]
-    fn get_spherical(&self) -> Option<&RapierSphericalJoint3D>;
-    #[cfg(feature = "dim3")]
-    fn get_cone_twist(&self) -> Option<&RapierConeTwistJoint3D>;
-    #[cfg(feature = "dim3")]
-    fn get_generic_6dof(&self) -> Option<&RapierGeneric6DOFJoint3D>;
-    #[cfg(feature = "dim3")]
-    fn get_slider(&self) -> Option<&RapierSliderJoint3D>;
-    #[cfg(feature = "dim2")]
-    fn get_mut_damped_spring(&mut self) -> Option<&mut RapierDampedSpringJoint2D>;
-    fn get_mut_revolute(&mut self) -> Option<&mut RapierRevoluteJoint>;
-    #[cfg(feature = "dim3")]
-    fn get_mut_spherical(&mut self) -> Option<&mut RapierSphericalJoint3D>;
-    #[cfg(feature = "dim3")]
-    fn get_mut_cone_twist(&mut self) -> Option<&mut RapierConeTwistJoint3D>;
-    #[cfg(feature = "dim3")]
-    fn get_mut_generic_6dof(&mut self) -> Option<&mut RapierGeneric6DOFJoint3D>;
-    #[cfg(feature = "dim3")]
-    fn get_mut_slider(&mut self) -> Option<&mut RapierSliderJoint3D>;
 }
 #[cfg_attr(
     feature = "serde-serialize",
@@ -141,6 +200,11 @@ impl RapierJointBase {
 pub struct RapierEmptyJoint {
     base: RapierJointBase,
 }
+impl Default for RapierEmptyJoint {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 impl RapierEmptyJoint {
     pub fn new() -> Self {
         Self {
@@ -164,64 +228,6 @@ impl IRapierJoint for RapierEmptyJoint {
 
     fn get_mut_base(&mut self) -> &mut RapierJointBase {
         &mut self.base
-    }
-
-    #[cfg(feature = "dim2")]
-    fn get_damped_spring(&self) -> Option<&RapierDampedSpringJoint2D> {
-        None
-    }
-
-    fn get_revolute(&self) -> Option<&RapierRevoluteJoint> {
-        None
-    }
-
-    #[cfg(feature = "dim3")]
-    fn get_spherical(&self) -> Option<&RapierSphericalJoint3D> {
-        None
-    }
-
-    #[cfg(feature = "dim3")]
-    fn get_cone_twist(&self) -> Option<&RapierConeTwistJoint3D> {
-        None
-    }
-
-    #[cfg(feature = "dim3")]
-    fn get_generic_6dof(&self) -> Option<&RapierGeneric6DOFJoint3D> {
-        None
-    }
-
-    #[cfg(feature = "dim3")]
-    fn get_slider(&self) -> Option<&RapierSliderJoint3D> {
-        None
-    }
-
-    #[cfg(feature = "dim2")]
-    fn get_mut_damped_spring(&mut self) -> Option<&mut RapierDampedSpringJoint2D> {
-        None
-    }
-
-    fn get_mut_revolute(&mut self) -> Option<&mut RapierRevoluteJoint> {
-        None
-    }
-
-    #[cfg(feature = "dim3")]
-    fn get_mut_spherical(&mut self) -> Option<&mut RapierSphericalJoint3D> {
-        None
-    }
-
-    #[cfg(feature = "dim3")]
-    fn get_mut_cone_twist(&mut self) -> Option<&mut RapierConeTwistJoint3D> {
-        None
-    }
-
-    #[cfg(feature = "dim3")]
-    fn get_mut_generic_6dof(&mut self) -> Option<&mut RapierGeneric6DOFJoint3D> {
-        None
-    }
-
-    #[cfg(feature = "dim3")]
-    fn get_mut_slider(&mut self) -> Option<&mut RapierSliderJoint3D> {
-        None
     }
 }
 impl Drop for RapierJointBase {

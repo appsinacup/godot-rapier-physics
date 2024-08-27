@@ -10,7 +10,9 @@ publish = false
 crate-type = ["cdylib"]
 
 [features]
-default = ["single-dim2", "serde-serialize", "parallel", "simd-stable"]
+default = ["build3d"]
+build2d = ["single-dim2", "serde-serialize", "parallel", "simd-stable"]
+build3d = ["single-dim3", "serde-serialize", "parallel", "simd-stable"]
 dim2 = []
 dim3 = []
 single = []

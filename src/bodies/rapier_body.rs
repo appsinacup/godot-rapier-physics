@@ -116,6 +116,8 @@ pub struct RapierBody {
     inv_mass: real,
     mass_properties_update_pending: bool,
     inertia: Angle,
+    #[cfg(feature = "dim3")]
+    principal_inertia_axes: Basis,
     inv_inertia: Angle,
     #[cfg(feature = "dim3")]
     inv_inertia_tensor: Basis,
@@ -172,6 +174,8 @@ impl RapierBody {
             inv_mass: 1.0,
             mass_properties_update_pending: false,
             inertia: ANGLE_ZERO,
+            #[cfg(feature = "dim3")]
+            principal_inertia_axes: Basis::IDENTITY,
             inv_inertia: ANGLE_ZERO,
             #[cfg(feature = "dim3")]
             inv_inertia_tensor: Basis::IDENTITY,
@@ -1697,6 +1701,26 @@ impl RapierBody {
                 .column(2)
                 .pseudo_inverse(DEFAULT_EPSILON)
                 .unwrap_or_default();
+            self.principal_inertia_axes = Basis::from_cols(
+                Vector3::new(column_0.x, column_0.y, column_0.z),
+                Vector3::new(column_1.x, column_1.y, column_1.z),
+                Vector3::new(column_2.x, column_2.y, column_2.z),
+            );
+            let vector = rigid_body_mass_properties
+                .local_mprops
+                .inv_principal_inertia_sqrt;
+            let column_0 = vector
+                .column(0)
+                .pseudo_inverse(DEFAULT_EPSILON)
+                .unwrap_or_default();
+            let column_1 = vector
+                .column(1)
+                .pseudo_inverse(DEFAULT_EPSILON)
+                .unwrap_or_default();
+            let column_2 = vector
+                .column(2)
+                .pseudo_inverse(DEFAULT_EPSILON)
+                .unwrap_or_default();
             self.inv_inertia_tensor = Basis::from_cols(
                 Vector3::new(column_0.x, column_0.y, column_0.z),
                 Vector3::new(column_1.x, column_1.y, column_1.z),
@@ -1735,6 +1759,11 @@ impl RapierBody {
     #[cfg(feature = "dim3")]
     pub fn get_inv_inertia_tensor(&self) -> Basis {
         self.inv_inertia_tensor
+    }
+
+    #[cfg(feature = "dim3")]
+    pub fn get_principal_inertia_axes(&self) -> Basis {
+        self.principal_inertia_axes
     }
 
     #[cfg(feature = "dim2")]
@@ -1786,7 +1815,7 @@ impl RapierBody {
                 }
             }
         }
-        // TODO Rotation fix hack, do different
+        // HACK Rotation fix hack, do different
         body_aabb.size.x = body_aabb.size.x.max(body_aabb.size.y);
         body_aabb.size.y = body_aabb.size.x;
         #[cfg(feature = "dim3")]
