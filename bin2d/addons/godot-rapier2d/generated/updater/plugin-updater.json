@@ -1,0 +1,6 @@
+{
+	"plugin_name": "godot-rapier2d",
+	"secs_before_check_for_update": 2,
+	"github_repo": "appsinacup/godot-rapier-physics",
+	"editor_plugin_meta": "Rapier2DEditorPlugin"
+}

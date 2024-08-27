@@ -1,9 +1,7 @@
 use godot::classes::*;
 use godot::prelude::*;
 
-use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 use super::rapier_joint::RapierJointBase;
-use super::rapier_revolute_joint::RapierRevoluteJoint;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
@@ -80,21 +78,5 @@ impl IRapierJoint for RapierGrooveJoint2D {
 
     fn get_mut_base(&mut self) -> &mut RapierJointBase {
         &mut self.base
-    }
-
-    fn get_damped_spring(&self) -> Option<&RapierDampedSpringJoint2D> {
-        None
-    }
-
-    fn get_revolute(&self) -> Option<&RapierRevoluteJoint> {
-        None
-    }
-
-    fn get_mut_damped_spring(&mut self) -> Option<&mut RapierDampedSpringJoint2D> {
-        None
-    }
-
-    fn get_mut_revolute(&mut self) -> Option<&mut RapierRevoluteJoint> {
-        None
     }
 }

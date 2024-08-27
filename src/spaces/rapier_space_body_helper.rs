@@ -162,7 +162,7 @@ impl RapierSpace {
         if max_results < 1 {
             return 0;
         }
-        let rect_begin = aabb.position;
+        let rect_begin = aabb.position - aabb.size;
         let rect_end = aabb.end();
         let mut handle_excluded_info = QueryExcludedInfo::default();
         let mut query_exclude = Vec::new();
@@ -424,7 +424,6 @@ impl RapierSpace {
                                             .is_shape_set_as_one_way_collision(shape_index)
                                         && !p_motion.is_zero_approx()
                                     {
-                                        // TODO re-enable this
                                         //let direction = col_shape_transform.b.normalized();
                                         //if p_motion.normalized().dot(direction) <= 0.0 {
                                         //    continue;

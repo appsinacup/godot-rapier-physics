@@ -1,10 +1,6 @@
 use godot::classes::*;
 use godot::prelude::*;
 
-use super::rapier_cone_twist_joint_3d::RapierConeTwistJoint3D;
-use super::rapier_revolute_joint::RapierRevoluteJoint;
-use super::rapier_slider_joint_3d::RapierSliderJoint3D;
-use super::rapier_spherical_joint_3d::RapierSphericalJoint3D;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::joints::rapier_joint::RapierJointBase;
@@ -113,45 +109,5 @@ impl IRapierJoint for RapierGeneric6DOFJoint3D {
 
     fn get_type(&self) -> physics_server_3d::JointType {
         physics_server_3d::JointType::TYPE_6DOF
-    }
-
-    fn get_spherical(&self) -> Option<&RapierSphericalJoint3D> {
-        None
-    }
-
-    fn get_cone_twist(&self) -> Option<&RapierConeTwistJoint3D> {
-        None
-    }
-
-    fn get_generic_6dof(&self) -> Option<&RapierGeneric6DOFJoint3D> {
-        Some(self)
-    }
-
-    fn get_slider(&self) -> Option<&RapierSliderJoint3D> {
-        None
-    }
-
-    fn get_revolute(&self) -> Option<&RapierRevoluteJoint> {
-        None
-    }
-
-    fn get_mut_spherical(&mut self) -> Option<&mut RapierSphericalJoint3D> {
-        None
-    }
-
-    fn get_mut_revolute(&mut self) -> Option<&mut RapierRevoluteJoint> {
-        None
-    }
-
-    fn get_mut_cone_twist(&mut self) -> Option<&mut RapierConeTwistJoint3D> {
-        None
-    }
-
-    fn get_mut_generic_6dof(&mut self) -> Option<&mut RapierGeneric6DOFJoint3D> {
-        Some(self)
-    }
-
-    fn get_mut_slider(&mut self) -> Option<&mut RapierSliderJoint3D> {
-        None
     }
 }

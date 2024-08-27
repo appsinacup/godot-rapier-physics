@@ -4,10 +4,6 @@ use physics_server_2d::JointType;
 #[cfg(feature = "dim3")]
 use physics_server_3d::JointType;
 
-#[cfg(feature = "dim2")]
-use super::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
-#[cfg(feature = "dim3")]
-use super::rapier_spherical_joint_3d::RapierSphericalJoint3D;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::joints::rapier_joint::RapierJointBase;
@@ -265,71 +261,5 @@ impl IRapierJoint for RapierRevoluteJoint {
     #[cfg(feature = "dim3")]
     fn get_type(&self) -> JointType {
         JointType::HINGE
-    }
-
-    #[cfg(feature = "dim2")]
-    fn get_damped_spring(&self) -> Option<&RapierDampedSpringJoint2D> {
-        None
-    }
-
-    fn get_revolute(&self) -> Option<&RapierRevoluteJoint> {
-        Some(self)
-    }
-
-    #[cfg(feature = "dim3")]
-    fn get_spherical(&self) -> Option<&RapierSphericalJoint3D> {
-        None
-    }
-
-    #[cfg(feature = "dim3")]
-    fn get_cone_twist(&self) -> Option<&super::rapier_cone_twist_joint_3d::RapierConeTwistJoint3D> {
-        None
-    }
-
-    #[cfg(feature = "dim3")]
-    fn get_generic_6dof(
-        &self,
-    ) -> Option<&super::rapier_generic_6dof_joint_3d::RapierGeneric6DOFJoint3D> {
-        None
-    }
-
-    #[cfg(feature = "dim3")]
-    fn get_slider(&self) -> Option<&super::rapier_slider_joint_3d::RapierSliderJoint3D> {
-        None
-    }
-
-    #[cfg(feature = "dim2")]
-    fn get_mut_damped_spring(&mut self) -> Option<&mut RapierDampedSpringJoint2D> {
-        None
-    }
-
-    fn get_mut_revolute(&mut self) -> Option<&mut RapierRevoluteJoint> {
-        Some(self)
-    }
-
-    #[cfg(feature = "dim3")]
-    fn get_mut_spherical(&mut self) -> Option<&mut RapierSphericalJoint3D> {
-        None
-    }
-
-    #[cfg(feature = "dim3")]
-    fn get_mut_cone_twist(
-        &mut self,
-    ) -> Option<&mut super::rapier_cone_twist_joint_3d::RapierConeTwistJoint3D> {
-        None
-    }
-
-    #[cfg(feature = "dim3")]
-    fn get_mut_generic_6dof(
-        &mut self,
-    ) -> Option<&mut super::rapier_generic_6dof_joint_3d::RapierGeneric6DOFJoint3D> {
-        None
-    }
-
-    #[cfg(feature = "dim3")]
-    fn get_mut_slider(
-        &mut self,
-    ) -> Option<&mut super::rapier_slider_joint_3d::RapierSliderJoint3D> {
-        None
     }
 }

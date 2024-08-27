@@ -124,7 +124,12 @@ impl RapierDirectBodyStateImpl {
 
     #[cfg(feature = "dim3")]
     pub(super) fn get_principal_inertia_axes(&self) -> Basis {
-        // TODO
+        let physics_data = physics_data();
+        if let Some(body) = physics_data.collision_objects.get(&self.body) {
+            if let Some(body) = body.get_body() {
+                return body.get_principal_inertia_axes();
+            }
+        }
         Basis::IDENTITY
     }
 

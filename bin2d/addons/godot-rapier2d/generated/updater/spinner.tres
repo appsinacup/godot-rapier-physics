@@ -1,0 +1,30 @@
+[gd_resource type="AnimatedTexture" load_steps=9 format=3 uid="uid://dljx0fmjlrbuh"]
+
+[ext_resource type="Texture2D" uid="uid://ddxpytkht0m5p" path="res://addons/godot-rapier2d/generated/updater/assets/Progress1.svg" id="1_ctgew"]
+[ext_resource type="Texture2D" uid="uid://dowca7ike2thl" path="res://addons/godot-rapier2d/generated/updater/assets/Progress2.svg" id="2_xwye8"]
+[ext_resource type="Texture2D" uid="uid://cwh8md6qipmdw" path="res://addons/godot-rapier2d/generated/updater/assets/Progress3.svg" id="3_53vx7"]
+[ext_resource type="Texture2D" uid="uid://dm0jpqdjetv2c" path="res://addons/godot-rapier2d/generated/updater/assets/Progress4.svg" id="4_eecnj"]
+[ext_resource type="Texture2D" uid="uid://bkj6kjyjyi7cd" path="res://addons/godot-rapier2d/generated/updater/assets/Progress5.svg" id="5_auay0"]
+[ext_resource type="Texture2D" uid="uid://bsljbs1aiyels" path="res://addons/godot-rapier2d/generated/updater/assets/Progress6.svg" id="6_fx28b"]
+[ext_resource type="Texture2D" uid="uid://cct6crbhix7u8" path="res://addons/godot-rapier2d/generated/updater/assets/Progress7.svg" id="7_giugp"]
+[ext_resource type="Texture2D" uid="uid://dqc521iq12a7l" path="res://addons/godot-rapier2d/generated/updater/assets/Progress8.svg" id="8_yppa0"]
+
+[resource]
+frames = 8
+speed_scale = 2.5
+frame_0/texture = ExtResource("1_ctgew")
+frame_0/duration = 0.2
+frame_1/texture = ExtResource("2_xwye8")
+frame_1/duration = 0.2
+frame_2/texture = ExtResource("3_53vx7")
+frame_2/duration = 0.2
+frame_3/texture = ExtResource("4_eecnj")
+frame_3/duration = 0.2
+frame_4/texture = ExtResource("5_auay0")
+frame_4/duration = 0.2
+frame_5/texture = ExtResource("6_fx28b")
+frame_5/duration = 0.2
+frame_6/texture = ExtResource("7_giugp")
+frame_6/duration = 0.2
+frame_7/texture = ExtResource("8_yppa0")
+frame_7/duration = 0.2

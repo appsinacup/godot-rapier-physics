@@ -72,19 +72,19 @@ pub fn transform_scale(transform: &Transform) -> Vector {
 pub fn transform_scale(transform: &Transform) -> Vector {
     transform.scale()
 }
-#[cfg(feature = "dim3")]
+#[cfg(feature = "dim2")]
 pub fn transform_inverse(transform: &Transform) -> Transform {
-    let determnant = transform.basis.determinant();
+    let determnant = transform.determinant();
     if determnant == 0.0 {
         *transform
     } else {
         transform.affine_inverse()
     }
 }
-#[cfg(feature = "dim2")]
+#[cfg(feature = "dim3")]
 pub fn transform_inverse(transform: &Transform) -> Transform {
-    // todo use determinant
-    if transform.a == Vector::ZERO && transform.b == Vector::ZERO {
+    let determnant = transform.basis.determinant();
+    if determnant == 0.0 {
         *transform
     } else {
         transform.affine_inverse()

@@ -3,7 +3,7 @@ use hashbrown::HashMap;
 
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::fluids::rapier_fluid::RapierFluid;
-use crate::joints::rapier_joint::IRapierJoint;
+use crate::joints::rapier_joint::RapierJoint;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::spaces::rapier_space::RapierSpace;
@@ -11,7 +11,7 @@ pub type PhysicsShapes = HashMap<Rid, Box<dyn IRapierShape>>;
 pub type PhysicsSpaces = HashMap<Rid, RapierSpace>;
 pub type PhysicsActiveSpaces = HashMap<WorldHandle, Rid>;
 pub type PhysicsCollisionObjects = HashMap<Rid, Box<dyn IRapierCollisionObject>>;
-pub type PhysicsJoints = HashMap<Rid, Box<dyn IRapierJoint>>;
+pub type PhysicsJoints = HashMap<Rid, RapierJoint>;
 pub type PhysicsFluids = HashMap<Rid, RapierFluid>;
 #[derive(Default)]
 pub struct PhysicsData {

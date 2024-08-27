@@ -17,13 +17,8 @@ const SOLVER_NORMALIZED_MAX_CORRECTIVE_VELOCITY: &str =
     "physics/rapier/solver/normalized_max_corrective_velocity";
 const SOLVER_NORMALIZED_PREDICTION_DISTANCE: &str =
     "physics/rapier/solver/normalized_prediction_distance";
-const CONTACT_SKIN: &str = "physics/rapier/solver/contact_skin";
 const CONTACT_DAMPING_RATIO: &str = "physics/rapier/solver/contact_damping_ratio";
 const CONTACT_NATURAL_FREQUENCY: &str = "physics/rapier/solver/contact_natural_frequency";
-#[cfg(feature = "dim2")]
-const GHOST_COLLISION_DISTANCE: &str = "physics/rapier/logic/ghost_collision_distance_2d";
-#[cfg(feature = "dim3")]
-const GHOST_COLLISION_DISTANCE: &str = "physics/rapier/logic/ghost_collision_distance_3d";
 #[cfg(feature = "dim2")]
 const FLUID_PARTICLE_RADIUS: &str = "physics/rapier/fluid/fluid_particle_radius_2d";
 #[cfg(feature = "dim3")]
@@ -148,12 +143,6 @@ impl RapierProjectSettings {
             false,
         );
         register_setting_ranged(
-            CONTACT_SKIN,
-            Variant::from(0.0),
-            "0,10,0.00001,or_greater",
-            false,
-        );
-        register_setting_ranged(
             JOINT_DAMPING_RATIO,
             Variant::from(integration_parameters.joint_damping_ratio),
             "0,10,0.00001,or_greater",
@@ -166,27 +155,21 @@ impl RapierProjectSettings {
             false,
         );
         register_setting_ranged(
-            GHOST_COLLISION_DISTANCE,
-            Variant::from(0.0),
-            "0,10,0.00001,or_greater",
-            false,
-        );
-        register_setting_ranged(
             FLUID_PARTICLE_RADIUS,
             Variant::from(FLUID_PARTICLE_VALUE),
-            "0,100,0.00001",
+            "0,100,0.00001,or_greater",
             true,
         );
         register_setting_ranged(
             FLUID_SMOOTHING_FACTOR,
             Variant::from(2.0),
-            "0,10,0.00001,suffix:%",
+            "0,10,0.00001,suffix:%,or_greater",
             false,
         );
         register_setting_ranged(
             LENGTH_UNIT,
             Variant::from(LENGTH_UNIT_VALUE),
-            "1,100,1,suffix:length_unit",
+            "1,100,1,suffix:length_unit,or_greater",
             false,
         );
     }
@@ -227,10 +210,6 @@ impl RapierProjectSettings {
         RapierProjectSettings::get_setting_double(FLUID_SMOOTHING_FACTOR) as Real
     }
 
-    pub fn get_contact_skin() -> Real {
-        RapierProjectSettings::get_setting_double(CONTACT_SKIN) as Real
-    }
-
     pub fn get_length_unit() -> Real {
         RapierProjectSettings::get_setting_double(LENGTH_UNIT) as Real
     }
@@ -265,9 +244,5 @@ impl RapierProjectSettings {
 
     pub fn get_contact_natural_frequency() -> Real {
         RapierProjectSettings::get_setting_double(CONTACT_NATURAL_FREQUENCY) as Real
-    }
-
-    pub fn get_ghost_collision_distance() -> Real {
-        RapierProjectSettings::get_setting_double(GHOST_COLLISION_DISTANCE) as Real
     }
 }

@@ -17,7 +17,6 @@ use super::rapier_area::RapierArea;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_server_extra::RapierBodyParam;
-use crate::servers::rapier_project_settings::*;
 use crate::spaces::rapier_space::RapierSpace;
 use crate::types::*;
 use crate::*;
@@ -117,6 +116,8 @@ pub struct RapierBody {
     inv_mass: real,
     mass_properties_update_pending: bool,
     inertia: Angle,
+    #[cfg(feature = "dim3")]
+    principal_inertia_axes: Basis,
     inv_inertia: Angle,
     #[cfg(feature = "dim3")]
     inv_inertia_tensor: Basis,
@@ -136,7 +137,6 @@ pub struct RapierBody {
     can_sleep: bool,
     constant_force: Vector,
     linear_velocity: Vector,
-    previous_linear_velocity: Vector,
     impulse: Vector,
     torque: Angle,
     angular_velocity: Angle,
@@ -174,10 +174,12 @@ impl RapierBody {
             inv_mass: 1.0,
             mass_properties_update_pending: false,
             inertia: ANGLE_ZERO,
+            #[cfg(feature = "dim3")]
+            principal_inertia_axes: Basis::IDENTITY,
             inv_inertia: ANGLE_ZERO,
             #[cfg(feature = "dim3")]
             inv_inertia_tensor: Basis::IDENTITY,
-            contact_skin: RapierProjectSettings::get_contact_skin(),
+            contact_skin: 0.0,
             center_of_mass: Vector::default(),
             calculate_inertia: true,
             calculate_center_of_mass: true,
@@ -192,7 +194,6 @@ impl RapierBody {
             can_sleep: true,
             constant_force: Vector::default(),
             linear_velocity: Vector::default(),
-            previous_linear_velocity: Vector::default(),
             impulse: Vector::default(),
             torque: ANGLE_ZERO,
             angular_velocity: ANGLE_ZERO,
@@ -365,9 +366,7 @@ impl RapierBody {
         );
         // if we are a conveyer belt, we need to modify contacts
         // also if any shape is one-way
-        let modify_contacts_enabled = self.base.mode == BodyMode::STATIC
-            || self.base.mode == BodyMode::KINEMATIC
-            || override_modify_contacts;
+        let modify_contacts_enabled = override_modify_contacts;
         physics_engine.collider_set_modify_contacts_enabled(
             space_handle,
             collider_handle,
@@ -1146,14 +1145,6 @@ impl RapierBody {
         }
     }
 
-    pub fn set_previous_linear_velocity(&mut self, p_velocity: Vector) {
-        self.previous_linear_velocity = p_velocity;
-    }
-
-    pub fn get_previous_linear_velocity(&self) -> Vector {
-        self.previous_linear_velocity
-    }
-
     pub fn on_update_active(
         &mut self,
         space: &mut RapierSpace,
@@ -1710,6 +1701,26 @@ impl RapierBody {
                 .column(2)
                 .pseudo_inverse(DEFAULT_EPSILON)
                 .unwrap_or_default();
+            self.principal_inertia_axes = Basis::from_cols(
+                Vector3::new(column_0.x, column_0.y, column_0.z),
+                Vector3::new(column_1.x, column_1.y, column_1.z),
+                Vector3::new(column_2.x, column_2.y, column_2.z),
+            );
+            let vector = rigid_body_mass_properties
+                .local_mprops
+                .inv_principal_inertia_sqrt;
+            let column_0 = vector
+                .column(0)
+                .pseudo_inverse(DEFAULT_EPSILON)
+                .unwrap_or_default();
+            let column_1 = vector
+                .column(1)
+                .pseudo_inverse(DEFAULT_EPSILON)
+                .unwrap_or_default();
+            let column_2 = vector
+                .column(2)
+                .pseudo_inverse(DEFAULT_EPSILON)
+                .unwrap_or_default();
             self.inv_inertia_tensor = Basis::from_cols(
                 Vector3::new(column_0.x, column_0.y, column_0.z),
                 Vector3::new(column_1.x, column_1.y, column_1.z),
@@ -1750,6 +1761,11 @@ impl RapierBody {
         self.inv_inertia_tensor
     }
 
+    #[cfg(feature = "dim3")]
+    pub fn get_principal_inertia_axes(&self) -> Basis {
+        self.principal_inertia_axes
+    }
+
     #[cfg(feature = "dim2")]
     pub fn get_velocity_at_local_point(
         &self,
@@ -1785,21 +1801,26 @@ impl RapierBody {
                 continue;
             }
             if let Some(shape) = physics_shapes.get(&self.base.get_shape(i)) {
+                let mut shape_transform = self.base.get_shape_transform(i);
                 if !shapes_found {
-                    // TODO not 100% correct, we don't take into consideration rotation here.
-                    body_aabb = shape
-                        .get_base()
-                        .get_aabb(self.base.get_shape_transform(i).origin);
+                    body_aabb = shape.get_base().get_aabb(shape_transform.origin);
+                    shape_transform.origin = Vector::default();
+                    body_aabb.size = transform_scale(&shape_transform) * body_aabb.size;
                     shapes_found = true;
                 } else {
-                    // TODO not 100% correct, we don't take into consideration rotation here.
-                    body_aabb = body_aabb.merge(
-                        shape
-                            .get_base()
-                            .get_aabb(self.base.get_shape_transform(i).origin),
-                    );
+                    let mut shape_aabb = shape.get_base().get_aabb(shape_transform.origin);
+                    shape_transform.origin = Vector::default();
+                    shape_aabb.size = transform_scale(&shape_transform) * shape_aabb.size;
+                    body_aabb = body_aabb.merge(shape_aabb);
                 }
             }
+        }
+        // HACK Rotation fix hack, do different
+        body_aabb.size.x = body_aabb.size.x.max(body_aabb.size.y);
+        body_aabb.size.y = body_aabb.size.x;
+        #[cfg(feature = "dim3")]
+        if crate::rapier::prelude::DIM == 3 {
+            body_aabb.size.z = body_aabb.size.x;
         }
         body_aabb
     }

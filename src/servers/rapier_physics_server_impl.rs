@@ -24,6 +24,7 @@ use crate::joints::rapier_damped_spring_joint_2d::RapierDampedSpringJoint2D;
 use crate::joints::rapier_groove_joint_2d::RapierGrooveJoint2D;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::joints::rapier_joint::RapierEmptyJoint;
+use crate::joints::rapier_joint::RapierJoint;
 use crate::joints::rapier_revolute_joint::RapierRevoluteJoint;
 #[cfg(feature = "dim3")]
 use crate::joints::rapier_spherical_joint_3d::RapierSphericalJoint3D;
@@ -664,7 +665,12 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(area) = physics_data.collision_objects.get_mut(&area) {
             if let Some(area) = area.get_mut_area() {
-                area.set_monitorable(monitorable);
+                area.set_monitorable(
+                    monitorable,
+                    &mut physics_data.physics_engine,
+                    &mut physics_data.shapes,
+                    &mut physics_data.spaces,
+                );
             }
         }
     }
@@ -689,7 +695,12 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(area) = physics_data.collision_objects.get_mut(&area) {
             if let Some(area) = area.get_mut_area() {
-                area.set_monitor_callback(callback);
+                area.set_monitor_callback(
+                    callback,
+                    &mut physics_data.physics_engine,
+                    &mut physics_data.shapes,
+                    &mut physics_data.spaces,
+                );
             }
         }
     }
@@ -698,7 +709,12 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(area) = physics_data.collision_objects.get_mut(&area) {
             if let Some(area) = area.get_mut_area() {
-                area.set_area_monitor_callback(callback);
+                area.set_area_monitor_callback(
+                    callback,
+                    &mut physics_data.physics_engine,
+                    &mut physics_data.shapes,
+                    &mut physics_data.spaces,
+                );
             }
         }
     }
@@ -1495,7 +1511,7 @@ impl RapierPhysicsServerImpl {
         let rid = rid_from_int64(rid_allocate_id());
         physics_data
             .joints
-            .insert(rid, Box::new(RapierEmptyJoint::new()));
+            .insert(rid, RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new()));
         rid
     }
 
@@ -1509,7 +1525,9 @@ impl RapierPhysicsServerImpl {
             prev_joint
                 .get_mut_base()
                 .destroy_joint(&mut physics_data.physics_engine);
-            physics_data.joints.insert(rid, Box::new(joint));
+            physics_data
+                .joints
+                .insert(rid, RapierJoint::RapierEmptyJoint(joint));
         }
     }
 
@@ -1569,11 +1587,11 @@ impl RapierPhysicsServerImpl {
         local_b: Vector3,
     ) {
         let physics_data = physics_data();
-        let mut joint: Box<dyn IRapierJoint>;
+        let mut joint: RapierJoint;
         if let Some(body_a) = physics_data.collision_objects.get(&body_a)
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
-            joint = Box::new(RapierSphericalJoint3D::new(
+            joint = RapierJoint::RapierSphericalJoint3D(RapierSphericalJoint3D::new(
                 local_a,
                 local_b,
                 body_a,
@@ -1589,7 +1607,7 @@ impl RapierPhysicsServerImpl {
                     .destroy_joint(&mut physics_data.physics_engine);
             }
         } else {
-            joint = Box::new(RapierEmptyJoint::new());
+            joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
         physics_data.joints.insert(rid, joint);
     }
@@ -1606,7 +1624,7 @@ impl RapierPhysicsServerImpl {
     pub(super) fn pin_joint_set_local_a(&mut self, joint: Rid, local_a: Vector3) {
         let physics_data = physics_data();
         if let Some(joint) = physics_data.joints.get_mut(&joint) {
-            if let Some(joint) = joint.get_mut_spherical() {
+            if let RapierJoint::RapierSphericalJoint3D(joint) = joint {
                 joint.set_anchor_a(local_a, &mut physics_data.physics_engine);
             }
         }
@@ -1616,7 +1634,7 @@ impl RapierPhysicsServerImpl {
     pub(super) fn pin_joint_get_local_a(&self, joint: Rid) -> Vector3 {
         let physics_data = physics_data();
         if let Some(joint) = physics_data.joints.get(&joint) {
-            if let Some(joint) = joint.get_spherical() {
+            if let RapierJoint::RapierSphericalJoint3D(joint) = joint {
                 return joint.get_anchor_a();
             }
         }
@@ -1627,7 +1645,7 @@ impl RapierPhysicsServerImpl {
     pub(super) fn pin_joint_set_local_b(&mut self, joint: Rid, local_b: Vector3) {
         let physics_data = physics_data();
         if let Some(joint) = physics_data.joints.get_mut(&joint) {
-            if let Some(joint) = joint.get_mut_spherical() {
+            if let RapierJoint::RapierSphericalJoint3D(joint) = joint {
                 joint.set_anchor_b(local_b, &mut physics_data.physics_engine);
             }
         }
@@ -1637,7 +1655,7 @@ impl RapierPhysicsServerImpl {
     pub(super) fn pin_joint_get_local_b(&self, joint: Rid) -> Vector3 {
         let physics_data = physics_data();
         if let Some(joint) = physics_data.joints.get(&joint) {
-            if let Some(joint) = joint.get_spherical() {
+            if let RapierJoint::RapierSphericalJoint3D(joint) = joint {
                 return joint.get_anchor_b();
             }
         }
@@ -1654,11 +1672,11 @@ impl RapierPhysicsServerImpl {
         hinge_b: Transform3D,
     ) {
         let physics_data = physics_data();
-        let mut joint: Box<dyn IRapierJoint>;
+        let mut joint: RapierJoint;
         if let Some(body_a) = physics_data.collision_objects.get(&body_a)
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
-            joint = Box::new(RapierRevoluteJoint::new(
+            joint = RapierJoint::RapierRevoluteJoint(RapierRevoluteJoint::new(
                 hinge_a.origin,
                 hinge_b.origin,
                 body_a.deref(),
@@ -1674,7 +1692,7 @@ impl RapierPhysicsServerImpl {
                     .destroy_joint(&mut physics_data.physics_engine);
             }
         } else {
-            joint = Box::new(RapierEmptyJoint::new());
+            joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
         physics_data.joints.insert(rid, joint);
     }
@@ -1692,11 +1710,11 @@ impl RapierPhysicsServerImpl {
         _axis_b: Vector3,
     ) {
         let physics_data = physics_data();
-        let mut joint: Box<dyn IRapierJoint>;
+        let mut joint: RapierJoint;
         if let Some(body_a) = physics_data.collision_objects.get(&body_a)
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
-            joint = Box::new(RapierRevoluteJoint::new(
+            joint = RapierJoint::RapierRevoluteJoint(RapierRevoluteJoint::new(
                 pivot_a,
                 pivot_b,
                 body_a.deref(),
@@ -1712,7 +1730,7 @@ impl RapierPhysicsServerImpl {
                     .destroy_joint(&mut physics_data.physics_engine);
             }
         } else {
-            joint = Box::new(RapierEmptyJoint::new());
+            joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
         physics_data.joints.insert(rid, joint);
     }
@@ -1721,7 +1739,7 @@ impl RapierPhysicsServerImpl {
     pub(super) fn hinge_joint_set_param(&mut self, joint: Rid, param: HingeJointParam, value: f32) {
         let physics_data = physics_data();
         if let Some(joint) = physics_data.joints.get_mut(&joint) {
-            if let Some(joint) = joint.get_mut_revolute() {
+            if let RapierJoint::RapierRevoluteJoint(joint) = joint {
                 joint.set_param(param, value, &mut physics_data.physics_engine);
             }
         }
@@ -1731,7 +1749,7 @@ impl RapierPhysicsServerImpl {
     pub(super) fn hinge_joint_get_param(&self, joint: Rid, param: HingeJointParam) -> f32 {
         let physics_data = physics_data();
         if let Some(joint) = physics_data.joints.get(&joint) {
-            if let Some(joint) = joint.get_revolute() {
+            if let RapierJoint::RapierRevoluteJoint(joint) = joint {
                 return joint.get_param(param);
             }
         }
@@ -1742,7 +1760,7 @@ impl RapierPhysicsServerImpl {
     pub(super) fn hinge_joint_set_flag(&mut self, joint: Rid, flag: HingeJointFlag, enabled: bool) {
         let physics_data = physics_data();
         if let Some(joint) = physics_data.joints.get_mut(&joint) {
-            if let Some(joint) = joint.get_mut_revolute() {
+            if let RapierJoint::RapierRevoluteJoint(joint) = joint {
                 joint.set_flag(flag, enabled, &mut physics_data.physics_engine);
             }
         }
@@ -1752,7 +1770,7 @@ impl RapierPhysicsServerImpl {
     pub(super) fn hinge_joint_get_flag(&self, joint: Rid, flag: HingeJointFlag) -> bool {
         let physics_data = physics_data();
         if let Some(joint) = physics_data.joints.get(&joint) {
-            if let Some(joint) = joint.get_revolute() {
+            if let RapierJoint::RapierRevoluteJoint(joint) = joint {
                 return joint.get_flag(flag);
             }
         }
@@ -1770,11 +1788,11 @@ impl RapierPhysicsServerImpl {
     ) {
         use crate::joints::rapier_slider_joint_3d::RapierSliderJoint3D;
         let physics_data = physics_data();
-        let mut joint: Box<dyn IRapierJoint>;
+        let mut joint: RapierJoint;
         if let Some(body_a) = physics_data.collision_objects.get(&body_a)
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
-            joint = Box::new(RapierSliderJoint3D::new(
+            joint = RapierJoint::RapierSliderJoint3D(RapierSliderJoint3D::new(
                 local_ref_a,
                 local_ref_b,
                 body_a,
@@ -1790,7 +1808,7 @@ impl RapierPhysicsServerImpl {
                     .destroy_joint(&mut physics_data.physics_engine);
             }
         } else {
-            joint = Box::new(RapierEmptyJoint::new());
+            joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
         physics_data.joints.insert(rid, joint);
     }
@@ -1824,11 +1842,11 @@ impl RapierPhysicsServerImpl {
     ) {
         use crate::joints::rapier_cone_twist_joint_3d::RapierConeTwistJoint3D;
         let physics_data = physics_data();
-        let mut joint: Box<dyn IRapierJoint>;
+        let mut joint: RapierJoint;
         if let Some(body_a) = physics_data.collision_objects.get(&body_a)
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
-            joint = Box::new(RapierConeTwistJoint3D::new(
+            joint = RapierJoint::RapierConeTwistJoint3D(RapierConeTwistJoint3D::new(
                 local_ref_a.origin,
                 local_ref_b.origin,
                 body_a,
@@ -1844,7 +1862,7 @@ impl RapierPhysicsServerImpl {
                     .destroy_joint(&mut physics_data.physics_engine);
             }
         } else {
-            joint = Box::new(RapierEmptyJoint::new());
+            joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
         physics_data.joints.insert(rid, joint);
     }
@@ -1878,11 +1896,11 @@ impl RapierPhysicsServerImpl {
     ) {
         use crate::joints::rapier_cone_twist_joint_3d::RapierConeTwistJoint3D;
         let physics_data = physics_data();
-        let mut joint: Box<dyn IRapierJoint>;
+        let mut joint: RapierJoint;
         if let Some(body_a) = physics_data.collision_objects.get(&body_a)
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
-            joint = Box::new(RapierConeTwistJoint3D::new(
+            joint = RapierJoint::RapierConeTwistJoint3D(RapierConeTwistJoint3D::new(
                 local_ref_a.origin,
                 local_ref_b.origin,
                 body_a,
@@ -1898,7 +1916,7 @@ impl RapierPhysicsServerImpl {
                     .destroy_joint(&mut physics_data.physics_engine);
             }
         } else {
-            joint = Box::new(RapierEmptyJoint::new());
+            joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
         physics_data.joints.insert(rid, joint);
     }
@@ -1946,11 +1964,11 @@ impl RapierPhysicsServerImpl {
     #[cfg(feature = "dim2")]
     pub(super) fn joint_make_pin(&mut self, rid: Rid, anchor: Vector, body_a: Rid, body_b: Rid) {
         let physics_data = physics_data();
-        let mut joint: Box<dyn IRapierJoint>;
+        let mut joint: RapierJoint;
         if let Some(body_a) = physics_data.collision_objects.get(&body_a)
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
-            joint = Box::new(RapierRevoluteJoint::new(
+            joint = RapierJoint::RapierRevoluteJoint(RapierRevoluteJoint::new(
                 anchor,
                 anchor,
                 body_a.deref(),
@@ -1966,7 +1984,7 @@ impl RapierPhysicsServerImpl {
                     .destroy_joint(&mut physics_data.physics_engine);
             }
         } else {
-            joint = Box::new(RapierEmptyJoint::new());
+            joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
         physics_data.joints.insert(rid, joint);
     }
@@ -1981,12 +1999,12 @@ impl RapierPhysicsServerImpl {
         body_a: Rid,
         body_b: Rid,
     ) {
-        let physics_data = physics_data();
-        let mut joint: Box<dyn IRapierJoint>;
+        let physics_data: &mut super::rapier_physics_singleton::PhysicsData = physics_data();
+        let mut joint: RapierJoint;
         if let Some(body_a) = physics_data.collision_objects.get(&body_a)
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
-            joint = Box::new(RapierGrooveJoint2D::new(
+            joint = RapierJoint::RapierGrooveJoint2D(RapierGrooveJoint2D::new(
                 a_groove1,
                 a_groove2,
                 b_anchor,
@@ -2003,7 +2021,7 @@ impl RapierPhysicsServerImpl {
                     .destroy_joint(&mut physics_data.physics_engine);
             }
         } else {
-            joint = Box::new(RapierEmptyJoint::new());
+            joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
         physics_data.joints.insert(rid, joint);
     }
@@ -2018,11 +2036,11 @@ impl RapierPhysicsServerImpl {
         body_b: Rid,
     ) {
         let physics_data = physics_data();
-        let mut joint: Box<dyn IRapierJoint>;
+        let mut joint: RapierJoint;
         if let Some(body_a) = physics_data.collision_objects.get(&body_a)
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
-            joint = Box::new(RapierDampedSpringJoint2D::new(
+            joint = RapierJoint::RapierDampedSpringJoint2D(RapierDampedSpringJoint2D::new(
                 anchor_a,
                 anchor_b,
                 body_a.deref(),
@@ -2038,7 +2056,7 @@ impl RapierPhysicsServerImpl {
                     .destroy_joint(&mut physics_data.physics_engine);
             }
         } else {
-            joint = Box::new(RapierEmptyJoint::new());
+            joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
         physics_data.joints.insert(rid, joint);
     }
@@ -2047,7 +2065,7 @@ impl RapierPhysicsServerImpl {
     pub(super) fn pin_joint_set_flag(&mut self, joint: Rid, flag: PinJointFlag, enabled: bool) {
         let physics_data = physics_data();
         if let Some(joint) = physics_data.joints.get_mut(&joint) {
-            if let Some(joint) = joint.get_mut_revolute() {
+            if let RapierJoint::RapierRevoluteJoint(joint) = joint {
                 joint.set_flag(flag, enabled, &mut physics_data.physics_engine);
             }
         }
@@ -2057,7 +2075,7 @@ impl RapierPhysicsServerImpl {
     pub(super) fn pin_joint_get_flag(&self, joint: Rid, flag: PinJointFlag) -> bool {
         let physics_data = physics_data();
         if let Some(joint) = physics_data.joints.get(&joint) {
-            if let Some(joint) = joint.get_revolute() {
+            if let RapierJoint::RapierRevoluteJoint(joint) = joint {
                 return joint.get_flag(flag);
             }
         }
@@ -2068,7 +2086,7 @@ impl RapierPhysicsServerImpl {
     pub(super) fn pin_joint_set_param(&mut self, joint: Rid, param: PinJointParam, value: f32) {
         let physics_data = physics_data();
         if let Some(joint) = physics_data.joints.get_mut(&joint) {
-            if let Some(joint) = joint.get_mut_revolute() {
+            if let RapierJoint::RapierRevoluteJoint(joint) = joint {
                 joint.set_param(param, value, &mut physics_data.physics_engine);
             }
         }
@@ -2078,7 +2096,7 @@ impl RapierPhysicsServerImpl {
     pub(super) fn pin_joint_get_param(&self, joint: Rid, param: PinJointParam) -> f32 {
         let physics_data = physics_data();
         if let Some(joint) = physics_data.joints.get(&joint) {
-            if let Some(joint) = joint.get_revolute() {
+            if let RapierJoint::RapierRevoluteJoint(joint) = joint {
                 return joint.get_param(param);
             }
         }
@@ -2094,7 +2112,7 @@ impl RapierPhysicsServerImpl {
     ) {
         let physics_data = physics_data();
         if let Some(joint) = physics_data.joints.get_mut(&joint) {
-            if let Some(joint) = joint.get_mut_damped_spring() {
+            if let RapierJoint::RapierDampedSpringJoint2D(joint) = joint {
                 joint.set_param(param, value, &mut physics_data.physics_engine);
             }
         }
@@ -2108,7 +2126,7 @@ impl RapierPhysicsServerImpl {
     ) -> f32 {
         let physics_data = physics_data();
         if let Some(joint) = physics_data.joints.get(&joint) {
-            if let Some(joint) = joint.get_damped_spring() {
+            if let RapierJoint::RapierDampedSpringJoint2D(joint) = joint {
                 return joint.get_param(param);
             }
         }

@@ -271,19 +271,6 @@ impl RapierPhysicsServer {
     }
 
     #[func]
-    fn body_set_state_sync_callback(body: Rid, callable: Callable) {
-        let Ok(mut physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
-        else {
-            return;
-        };
-        physics_singleton
-            .bind_mut()
-            .implementation
-            .body_set_state_sync_callback(body, callable);
-    }
-
-    #[func]
     fn space_get_active_bodies(space: Rid) -> Array<Rid> {
         let Ok(mut physics_singleton) =
             PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
