@@ -1,3 +1,6 @@
+use bodies::rapier_collision_object_base::CollisionObjectShape;
+use bodies::rapier_collision_object_base::CollisionObjectType;
+use bodies::rapier_collision_object_base::RapierCollisionObjectBase;
 #[cfg(feature = "dim2")]
 use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
@@ -12,6 +15,7 @@ use rapier::math::DEFAULT_EPSILON;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsShapes;
 use servers::rapier_physics_singleton::PhysicsSpaces;
+use shapes::rapier_shape::IRapierShape;
 
 use super::rapier_area::RapierArea;
 use crate::bodies::rapier_collision_object::*;
@@ -153,7 +157,7 @@ pub struct RapierBody {
     fi_callback_data: Option<ForceIntegrationCallbackData>,
     #[cfg_attr(feature = "serde-serialize", serde(skip))]
     direct_state: Option<Gd<PhysicsDirectBodyState>>,
-    base: RapierCollisionObject,
+    base: RapierCollisionObjectBase,
 }
 impl RapierBody {
     pub fn new(rid: Rid) -> Self {
@@ -207,7 +211,7 @@ impl RapierBody {
             body_state_callback: None,
             fi_callback_data: None,
             direct_state: None,
-            base: RapierCollisionObject::new(rid, CollisionObjectType::Body),
+            base: RapierCollisionObjectBase::new(rid, CollisionObjectType::Body),
         }
     }
 
@@ -495,11 +499,21 @@ impl RapierBody {
         ANGLE_ZERO
     }
 
-    pub fn set_state_sync_callback(&mut self, p_callable: Callable) {
+    pub fn set_state_sync_callback(
+        &mut self,
+        p_callable: Callable,
+        physics_spaces: &mut PhysicsSpaces,
+    ) {
         if !p_callable.is_valid() {
             self.body_state_callback = None;
+            if let Some(space) = physics_spaces.get_mut(&self.base.get_space()) {
+                space.body_remove_from_state_query_list(self.base.get_rid());
+            }
         } else {
             self.body_state_callback = Some(p_callable);
+            if let Some(space) = physics_spaces.get_mut(&self.base.get_space()) {
+                space.body_add_to_state_query_list(self.base.get_rid());
+            }
         }
     }
 
@@ -507,11 +521,22 @@ impl RapierBody {
         self.body_state_callback.as_ref()
     }
 
-    pub fn set_force_integration_callback(&mut self, callable: Callable, udata: Variant) {
+    pub fn set_force_integration_callback(
+        &mut self,
+        callable: Callable,
+        udata: Variant,
+        physics_spaces: &mut PhysicsSpaces,
+    ) {
         if callable.is_valid() {
             self.fi_callback_data = Some(ForceIntegrationCallbackData { callable, udata });
+            if let Some(space) = physics_spaces.get_mut(&self.base.get_space()) {
+                space.body_add_to_force_integrate_list(self.base.get_rid());
+            }
         } else {
             self.fi_callback_data = None;
+            if let Some(space) = physics_spaces.get_mut(&self.base.get_space()) {
+                space.body_remove_from_force_integrate_list(self.base.get_rid());
+            }
         }
     }
 
@@ -1156,7 +1181,6 @@ impl RapierBody {
         }
         self.marked_active = false;
         self.base.update_transform(physics_engine);
-        space.body_add_to_state_query_list(self.base.get_rid());
         if self.base.mode.ord() >= BodyMode::RIGID.ord() {
             if self.to_add_angular_velocity != ANGLE_ZERO {
                 self.set_angular_velocity(self.to_add_angular_velocity, physics_engine);
@@ -1864,6 +1888,7 @@ impl RapierBody {
             space.body_remove_from_active_list(self.base.get_rid());
             space.body_remove_from_state_query_list(self.base.get_rid());
             space.body_remove_from_area_update_list(self.base.get_rid());
+            space.body_remove_from_force_integrate_list(self.base.get_rid());
         }
     }
 
@@ -1873,6 +1898,16 @@ impl RapierBody {
         physics_spaces: &mut PhysicsSpaces,
     ) {
         if self.base.is_space_valid() && self.base.mode.ord() >= BodyMode::KINEMATIC.ord() {
+            if self.get_force_integration_callback().is_some() {
+                if let Some(space) = physics_spaces.get_mut(&self.base.get_space()) {
+                    space.body_add_to_force_integrate_list(self.base.get_rid());
+                }
+            }
+            if self.get_state_sync_callback().is_some() {
+                if let Some(space) = physics_spaces.get_mut(&self.base.get_space()) {
+                    space.body_add_to_state_query_list(self.base.get_rid());
+                }
+            }
             if !self.can_sleep {
                 self.set_can_sleep(false, physics_engine);
             }
@@ -1939,11 +1974,11 @@ impl RapierBody {
 unsafe impl Sync for RapierBody {}
 //#[cfg_attr(feature = "serde-serialize", typetag::serde)]
 impl IRapierCollisionObject for RapierBody {
-    fn get_base(&self) -> &RapierCollisionObject {
+    fn get_base(&self) -> &RapierCollisionObjectBase {
         &self.base
     }
 
-    fn get_mut_base(&mut self) -> &mut RapierCollisionObject {
+    fn get_mut_base(&mut self) -> &mut RapierCollisionObjectBase {
         &mut self.base
     }
 
@@ -1988,7 +2023,7 @@ impl IRapierCollisionObject for RapierBody {
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
     ) {
-        RapierCollisionObject::add_shape(
+        RapierCollisionObjectBase::add_shape(
             self,
             p_shape,
             p_transform,
@@ -2007,7 +2042,7 @@ impl IRapierCollisionObject for RapierBody {
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
     ) {
-        RapierCollisionObject::set_shape(
+        RapierCollisionObjectBase::set_shape(
             self,
             p_index,
             p_shape,
@@ -2025,7 +2060,7 @@ impl IRapierCollisionObject for RapierBody {
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
     ) {
-        RapierCollisionObject::set_shape_transform(
+        RapierCollisionObjectBase::set_shape_transform(
             self,
             p_index,
             p_transform,
@@ -2043,7 +2078,7 @@ impl IRapierCollisionObject for RapierBody {
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
     ) {
-        RapierCollisionObject::set_shape_disabled(
+        RapierCollisionObjectBase::set_shape_disabled(
             self,
             p_index,
             p_disabled,
@@ -2078,7 +2113,7 @@ impl IRapierCollisionObject for RapierBody {
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
     ) {
-        RapierCollisionObject::remove_shape_idx(
+        RapierCollisionObjectBase::remove_shape_idx(
             self,
             p_index,
             physics_engine,
@@ -2114,7 +2149,7 @@ impl IRapierCollisionObject for RapierBody {
         if !self.base.is_valid() {
             return;
         }
-        RapierCollisionObject::recreate_shapes(
+        RapierCollisionObjectBase::recreate_shapes(
             self,
             physics_engine,
             physics_shapes,
@@ -2150,7 +2185,7 @@ impl IRapierCollisionObject for RapierBody {
         physics_shapes: &mut PhysicsShapes,
         physics_spaces: &mut PhysicsSpaces,
     ) {
-        RapierCollisionObject::shape_changed(
+        RapierCollisionObjectBase::shape_changed(
             self,
             p_shape,
             physics_engine,

@@ -1,14 +1,15 @@
 use godot::builtin::Rid;
 use rapier::geometry::ColliderHandle;
 
-use super::rapier_collision_object::CollisionObjectShape;
 use super::rapier_collision_object::IRapierCollisionObject;
-use super::rapier_collision_object::RapierCollisionObject;
+use super::rapier_collision_object_base::CollisionObjectShape;
+use super::rapier_collision_object_base::RapierCollisionObjectBase;
 use crate::rapier_wrapper::prelude::PhysicsEngine;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::servers::rapier_physics_singleton::PhysicsSpaces;
+use crate::shapes::rapier_shape::IRapierShape;
 use crate::types::Transform;
-impl RapierCollisionObject {
+impl RapierCollisionObjectBase {
     pub(super) fn recreate_shapes(
         collision_object: &mut dyn IRapierCollisionObject,
         physics_engine: &mut PhysicsEngine,

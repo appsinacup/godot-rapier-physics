@@ -1,5 +1,7 @@
 use std::mem::swap;
 
+use bodies::rapier_collision_object_base::CollisionObjectType;
+use bodies::rapier_collision_object_base::RapierCollisionObjectBase;
 use godot::prelude::*;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 
@@ -31,7 +33,7 @@ impl RapierSpace {
         physics_collision_objects: &mut PhysicsCollisionObjects,
     ) {
         let (rid, _) =
-            RapierCollisionObject::get_collider_user_data(&active_body_info.body_user_data);
+            RapierCollisionObjectBase::get_collider_user_data(&active_body_info.body_user_data);
         if let Some(body) = physics_collision_objects.get_mut(&rid)
             && let Some(body) = body.get_mut_body()
         {
@@ -45,9 +47,9 @@ impl RapierSpace {
     ) -> bool {
         let mut colliders_info = CollidersInfo::default();
         (colliders_info.object1, colliders_info.shape1) =
-            RapierCollisionObject::get_collider_user_data(&filter_info.user_data1);
+            RapierCollisionObjectBase::get_collider_user_data(&filter_info.user_data1);
         (colliders_info.object2, colliders_info.shape2) =
-            RapierCollisionObject::get_collider_user_data(&filter_info.user_data2);
+            RapierCollisionObjectBase::get_collider_user_data(&filter_info.user_data2);
         if let Some(body1) = physics_collision_objects.get(&colliders_info.object1)
             && let Some(body1) = body1.get_body()
             && let Some(body2) = physics_collision_objects.get(&colliders_info.object2)
@@ -66,9 +68,9 @@ impl RapierSpace {
     ) -> OneWayDirection {
         let mut result = OneWayDirection::default();
         let (object1, shape1) =
-            RapierCollisionObject::get_collider_user_data(&filter_info.user_data1);
+            RapierCollisionObjectBase::get_collider_user_data(&filter_info.user_data1);
         let (object2, shape2) =
-            RapierCollisionObject::get_collider_user_data(&filter_info.user_data2);
+            RapierCollisionObjectBase::get_collider_user_data(&filter_info.user_data2);
         if let Some(collision_object_1) = physics_collision_objects.get(&object1)
             && let Some(collision_object_2) = physics_collision_objects.get(&object2)
         {
@@ -94,9 +96,9 @@ impl RapierSpace {
         physics_collision_objects: &mut PhysicsCollisionObjects,
     ) {
         let (mut p_object1, mut shape1) =
-            RapierCollisionObject::get_collider_user_data(&event_info.user_data1);
+            RapierCollisionObjectBase::get_collider_user_data(&event_info.user_data1);
         let (mut p_object2, mut shape2) =
-            RapierCollisionObject::get_collider_user_data(&event_info.user_data2);
+            RapierCollisionObjectBase::get_collider_user_data(&event_info.user_data2);
         let mut collider_handle1 = event_info.collider1;
         let mut collider_handle2 = event_info.collider2;
         let (mut rid1, mut rid2) = (Rid::Invalid, Rid::Invalid);
@@ -279,8 +281,10 @@ impl RapierSpace {
         physics_collision_objects: &mut PhysicsCollisionObjects,
     ) -> bool {
         let mut send_contacts = self.is_debugging_contacts();
-        let (p_object1, _) = RapierCollisionObject::get_collider_user_data(&event_info.user_data1);
-        let (p_object2, _) = RapierCollisionObject::get_collider_user_data(&event_info.user_data2);
+        let (p_object1, _) =
+            RapierCollisionObjectBase::get_collider_user_data(&event_info.user_data1);
+        let (p_object2, _) =
+            RapierCollisionObjectBase::get_collider_user_data(&event_info.user_data2);
         if let Some(body1) = physics_collision_objects.get(&p_object1) {
             if let Some(body1) = body1.get_body() {
                 if body1.can_report_contacts() {
@@ -311,9 +315,9 @@ impl RapierSpace {
             self.add_debug_contact(vector_to_godot(pos2));
         }
         let (p_object1, shape1) =
-            RapierCollisionObject::get_collider_user_data(&event_info.user_data1);
+            RapierCollisionObjectBase::get_collider_user_data(&event_info.user_data1);
         let (p_object2, shape2) =
-            RapierCollisionObject::get_collider_user_data(&event_info.user_data2);
+            RapierCollisionObjectBase::get_collider_user_data(&event_info.user_data2);
         if let Some([p_object1, p_object2]) =
             physics_collision_objects.get_many_mut([&p_object1, &p_object2])
         {

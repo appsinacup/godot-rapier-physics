@@ -1,16 +1,16 @@
 use godot::prelude::*;
 use hashbrown::HashMap;
 
-use crate::bodies::rapier_collision_object::IRapierCollisionObject;
+use crate::bodies::rapier_collision_object::RapierCollisionObject;
 use crate::fluids::rapier_fluid::RapierFluid;
 use crate::joints::rapier_joint::RapierJoint;
 use crate::rapier_wrapper::prelude::*;
-use crate::shapes::rapier_shape::IRapierShape;
+use crate::shapes::rapier_shape::RapierShape;
 use crate::spaces::rapier_space::RapierSpace;
-pub type PhysicsShapes = HashMap<Rid, Box<dyn IRapierShape>>;
+pub type PhysicsShapes = HashMap<Rid, RapierShape>;
 pub type PhysicsSpaces = HashMap<Rid, RapierSpace>;
 pub type PhysicsActiveSpaces = HashMap<WorldHandle, Rid>;
-pub type PhysicsCollisionObjects = HashMap<Rid, Box<dyn IRapierCollisionObject>>;
+pub type PhysicsCollisionObjects = HashMap<Rid, RapierCollisionObject>;
 pub type PhysicsJoints = HashMap<Rid, RapierJoint>;
 pub type PhysicsFluids = HashMap<Rid, RapierFluid>;
 #[derive(Default)]

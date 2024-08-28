@@ -4,9 +4,9 @@ use physics_server_2d::JointType;
 #[cfg(feature = "dim3")]
 use physics_server_3d::JointType;
 
+use super::rapier_joint_base::RapierJointBase;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
-use crate::joints::rapier_joint::RapierJointBase;
 use crate::rapier_wrapper::prelude::*;
 use crate::types::Vector;
 #[cfg_attr(

@@ -1,3 +1,6 @@
+use bodies::rapier_collision_object_base::CollisionObjectShape;
+use bodies::rapier_collision_object_base::CollisionObjectType;
+use bodies::rapier_collision_object_base::RapierCollisionObjectBase;
 #[cfg(feature = "dim2")]
 use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
@@ -64,7 +67,7 @@ pub struct RapierArea {
     detected_bodies: HashMap<Rid, u32>,
     #[cfg_attr(feature = "serde-serialize", serde(skip))]
     detected_areas: HashMap<Rid, u32>,
-    base: RapierCollisionObject,
+    base: RapierCollisionObjectBase,
 }
 impl RapierArea {
     pub fn new(rid: Rid) -> Self {
@@ -85,7 +88,7 @@ impl RapierArea {
             monitored_objects: HashMap::default(),
             detected_bodies: HashMap::default(),
             detected_areas: HashMap::default(),
-            base: RapierCollisionObject::new(rid, CollisionObjectType::Area),
+            base: RapierCollisionObjectBase::new(rid, CollisionObjectType::Area),
         }
     }
 
@@ -173,7 +176,7 @@ impl RapierArea {
     pub fn on_body_enter(
         &mut self,
         collider_handle: ColliderHandle,
-        body: &mut Option<&mut Box<dyn IRapierCollisionObject>>,
+        body: &mut Option<&mut RapierCollisionObject>,
         body_shape: usize,
         body_rid: Rid,
         body_instance_id: u64,
@@ -224,7 +227,7 @@ impl RapierArea {
     pub fn on_body_exit(
         &mut self,
         collider_handle: ColliderHandle,
-        body: &mut Option<&mut Box<dyn IRapierCollisionObject>>,
+        body: &mut Option<&mut RapierCollisionObject>,
         body_shape: usize,
         body_rid: Rid,
         body_instance_id: u64,
@@ -274,7 +277,7 @@ impl RapierArea {
     pub fn on_area_enter(
         &mut self,
         collider_handle: ColliderHandle,
-        other_area: &mut Option<&mut Box<dyn IRapierCollisionObject>>,
+        other_area: &mut Option<&mut RapierCollisionObject>,
         other_area_shape: usize,
         other_area_rid: Rid,
         other_area_instance_id: u64,
@@ -327,7 +330,7 @@ impl RapierArea {
     pub fn on_area_exit(
         &mut self,
         collider_handle: ColliderHandle,
-        other_area: &mut Option<&mut Box<dyn IRapierCollisionObject>>,
+        other_area: &mut Option<&mut RapierCollisionObject>,
         other_area_shape: usize,
         other_area_rid: Rid,
         other_area_instance_id: u64,
@@ -721,11 +724,11 @@ impl RapierArea {
 unsafe impl Sync for RapierArea {}
 //#[cfg_attr(feature = "serde-serialize", typetag::serde)]
 impl IRapierCollisionObject for RapierArea {
-    fn get_base(&self) -> &RapierCollisionObject {
+    fn get_base(&self) -> &RapierCollisionObjectBase {
         &self.base
     }
 
-    fn get_mut_base(&mut self) -> &mut RapierCollisionObject {
+    fn get_mut_base(&mut self) -> &mut RapierCollisionObjectBase {
         &mut self.base
     }
 
@@ -768,7 +771,7 @@ impl IRapierCollisionObject for RapierArea {
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
     ) {
-        RapierCollisionObject::add_shape(
+        RapierCollisionObjectBase::add_shape(
             self,
             p_shape,
             p_transform,
@@ -787,7 +790,7 @@ impl IRapierCollisionObject for RapierArea {
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
     ) {
-        RapierCollisionObject::set_shape(
+        RapierCollisionObjectBase::set_shape(
             self,
             p_index,
             p_shape,
@@ -805,7 +808,7 @@ impl IRapierCollisionObject for RapierArea {
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
     ) {
-        RapierCollisionObject::set_shape_transform(
+        RapierCollisionObjectBase::set_shape_transform(
             self,
             p_index,
             p_transform,
@@ -823,7 +826,7 @@ impl IRapierCollisionObject for RapierArea {
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
     ) {
-        RapierCollisionObject::set_shape_disabled(
+        RapierCollisionObjectBase::set_shape_disabled(
             self,
             p_index,
             p_disabled,
@@ -858,7 +861,7 @@ impl IRapierCollisionObject for RapierArea {
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
     ) {
-        RapierCollisionObject::remove_shape_idx(
+        RapierCollisionObjectBase::remove_shape_idx(
             self,
             p_index,
             physics_engine,
@@ -895,7 +898,7 @@ impl IRapierCollisionObject for RapierArea {
         physics_shapes: &mut PhysicsShapes,
         physics_spaces: &mut PhysicsSpaces,
     ) {
-        RapierCollisionObject::recreate_shapes(
+        RapierCollisionObjectBase::recreate_shapes(
             self,
             physics_engine,
             physics_shapes,
@@ -910,7 +913,7 @@ impl IRapierCollisionObject for RapierArea {
         physics_shapes: &mut PhysicsShapes,
         physics_spaces: &mut PhysicsSpaces,
     ) {
-        RapierCollisionObject::shape_changed(
+        RapierCollisionObjectBase::shape_changed(
             self,
             p_shape,
             physics_engine,

@@ -1,7 +1,7 @@
 use godot::classes::*;
 use godot::prelude::*;
 
-use super::rapier_joint::RapierJointBase;
+use super::rapier_joint_base::RapierJointBase;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;

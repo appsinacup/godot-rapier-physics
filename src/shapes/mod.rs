@@ -11,4 +11,5 @@ pub mod rapier_rectangle_shape;
 pub mod rapier_segment_shape_2d;
 pub mod rapier_separation_ray_shape;
 pub mod rapier_shape;
+pub mod rapier_shape_base;
 pub mod rapier_world_boundary_shape;

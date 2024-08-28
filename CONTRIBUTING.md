@@ -62,7 +62,7 @@ These functions send a `Callable` to the `Physics Server` that it uses to call b
 The `Rapier Physics Server`, which is our custom implementation of `Physics Server`, hands out `RID`'s for objects it has internally, similar to how `Godot Physics Server` does. The classes are named similar to how Godot naming works, but with Rapier instead of Godot, eg.:
 - `RapierArea`
 - `RapierBody`
-- `RapierCollisionObject`
+- `RapierCollisionObjectBase`
 - ...
 
 The difference from `Godot Physics Server` is that resources are not using pointers, and as such are safe to be serialized.

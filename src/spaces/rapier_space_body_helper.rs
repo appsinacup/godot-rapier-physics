@@ -1,5 +1,6 @@
 use std::ops::Deref;
 
+use bodies::rapier_collision_object_base::RapierCollisionObjectBase;
 use godot::classes::native::ObjectId;
 use godot::classes::physics_server_2d::BodyMode;
 use godot::prelude::*;
@@ -8,13 +9,14 @@ use rapier::math::Real;
 use rapier::math::DEFAULT_EPSILON;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsShapes;
+use shapes::rapier_shape::IRapierShape;
+use shapes::rapier_shape::RapierShape;
 
 use super::rapier_space::RapierSpace;
 use super::RapierDirectSpaceState;
 use crate::bodies::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
-use crate::shapes::rapier_shape::IRapierShape;
 use crate::types::*;
 use crate::*;
 const TEST_MOTION_MARGIN: Real = 1e-4;
@@ -34,7 +36,7 @@ impl RapierSpace {
                 return true;
             }
         }
-        let (collision_object_2d, _) = RapierCollisionObject::get_collider_user_data(user_data);
+        let (collision_object_2d, _) = RapierCollisionObjectBase::get_collider_user_data(user_data);
         let Some(collision_object_2d) = physics_collision_objects.get(&collision_object_2d) else {
             return false;
         };
@@ -245,7 +247,7 @@ impl RapierSpace {
                             continue;
                         }
                         let (shape_col_object, shape_index) =
-                            RapierCollisionObject::get_collider_user_data(&result.user_data);
+                            RapierCollisionObjectBase::get_collider_user_data(&result.user_data);
                         if let Some(shape_col_object) =
                             physics_collision_objects.get(&shape_col_object)
                         {
@@ -275,7 +277,7 @@ impl RapierSpace {
                                     }
                                     if physics_engine.should_skip_collision_one_dir(
                                         &contact,
-                                        body_shape.deref(),
+                                        body_shape,
                                         collision_body,
                                         shape_index,
                                         &col_shape_transform,
@@ -393,7 +395,7 @@ impl RapierSpace {
                         continue;
                     }
                     let (shape_col_object, shape_index) =
-                        RapierCollisionObject::get_collider_user_data(&result.user_data);
+                        RapierCollisionObjectBase::get_collider_user_data(&result.user_data);
                     if let Some(shape_col_object) = physics_collision_objects.get(&shape_col_object)
                     {
                         if let Some(collision_body) = shape_col_object.get_body() {
@@ -489,7 +491,7 @@ impl RapierSpace {
                                 }
                                 if physics_engine.should_skip_collision_one_dir(
                                     &contact,
-                                    body_shape.deref(),
+                                    body_shape,
                                     collision_body,
                                     shape_index,
                                     &col_shape_transform,
@@ -592,7 +594,7 @@ impl RapierSpace {
                         continue;
                     }
                     let (shape_col_object, shape_index) =
-                        RapierCollisionObject::get_collider_user_data(&result.user_data);
+                        RapierCollisionObjectBase::get_collider_user_data(&result.user_data);
                     if let Some(shape_col_object) = physics_collision_objects.get(&shape_col_object)
                     {
                         if let Some(collision_body) = shape_col_object.get_body() {
@@ -617,7 +619,7 @@ impl RapierSpace {
                                 }
                                 if physics_engine.should_skip_collision_one_dir(
                                     &contact,
-                                    body_shape_obj.deref(),
+                                    body_shape_obj,
                                     collision_body,
                                     shape_index,
                                     &col_shape_transform,
@@ -719,7 +721,7 @@ impl PhysicsEngine {
     fn should_skip_collision_one_dir(
         &self,
         contact: &ContactResult,
-        body_shape: &dyn IRapierShape,
+        body_shape: &RapierShape,
         collision_body: &dyn IRapierCollisionObject,
         shape_index: usize,
         col_shape_transform: &Transform,
