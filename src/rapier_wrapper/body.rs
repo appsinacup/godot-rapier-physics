@@ -658,7 +658,6 @@ impl PhysicsEngine {
         &mut self,
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
-        mass: Real,
     ) -> RigidBodyMassProps {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(body) = physics_world
@@ -672,9 +671,10 @@ impl PhysicsEngine {
                     .collider_set
                     .get_mut(*collider)
                 {
-                    collider.set_mass(mass);
+                    collider.set_mass(1.0);
                 }
             }
+            body.set_additional_mass(0.0, false);
             body.recompute_mass_properties_from_colliders(
                 &physics_world.physics_objects.collider_set,
             );

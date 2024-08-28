@@ -1667,11 +1667,8 @@ impl RapierBody {
             return;
         }
         // compute rigidbody mass properties by changing collider mass. Will get overriden later
-        let rigid_body_mass_properties = physics_engine.body_get_mass_properties(
-            self.base.get_space_handle(),
-            self.base.get_body_handle(),
-            self.mass,
-        );
+        let rigid_body_mass_properties = physics_engine
+            .body_get_mass_properties(self.base.get_space_handle(), self.base.get_body_handle());
         if self.calculate_center_of_mass || self.calculate_inertia {
             if self.calculate_center_of_mass {
                 self.center_of_mass =
