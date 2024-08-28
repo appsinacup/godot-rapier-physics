@@ -499,11 +499,21 @@ impl RapierBody {
         ANGLE_ZERO
     }
 
-    pub fn set_state_sync_callback(&mut self, p_callable: Callable) {
+    pub fn set_state_sync_callback(
+        &mut self,
+        p_callable: Callable,
+        physics_spaces: &mut PhysicsSpaces,
+    ) {
         if !p_callable.is_valid() {
             self.body_state_callback = None;
+            if let Some(space) = physics_spaces.get_mut(&self.base.get_space()) {
+                space.body_remove_from_state_query_list(self.base.get_rid());
+            }
         } else {
             self.body_state_callback = Some(p_callable);
+            if let Some(space) = physics_spaces.get_mut(&self.base.get_space()) {
+                space.body_add_to_state_query_list(self.base.get_rid());
+            }
         }
     }
 
@@ -511,11 +521,22 @@ impl RapierBody {
         self.body_state_callback.as_ref()
     }
 
-    pub fn set_force_integration_callback(&mut self, callable: Callable, udata: Variant) {
+    pub fn set_force_integration_callback(
+        &mut self,
+        callable: Callable,
+        udata: Variant,
+        physics_spaces: &mut PhysicsSpaces,
+    ) {
         if callable.is_valid() {
             self.fi_callback_data = Some(ForceIntegrationCallbackData { callable, udata });
+            if let Some(space) = physics_spaces.get_mut(&self.base.get_space()) {
+                space.body_add_to_force_integrate_list(self.base.get_rid());
+            }
         } else {
             self.fi_callback_data = None;
+            if let Some(space) = physics_spaces.get_mut(&self.base.get_space()) {
+                space.body_remove_from_force_integrate_list(self.base.get_rid());
+            }
         }
     }
 
@@ -1160,7 +1181,6 @@ impl RapierBody {
         }
         self.marked_active = false;
         self.base.update_transform(physics_engine);
-        space.body_add_to_state_query_list(self.base.get_rid());
         if self.base.mode.ord() >= BodyMode::RIGID.ord() {
             if self.to_add_angular_velocity != ANGLE_ZERO {
                 self.set_angular_velocity(self.to_add_angular_velocity, physics_engine);
@@ -1868,6 +1888,7 @@ impl RapierBody {
             space.body_remove_from_active_list(self.base.get_rid());
             space.body_remove_from_state_query_list(self.base.get_rid());
             space.body_remove_from_area_update_list(self.base.get_rid());
+            space.body_remove_from_force_integrate_list(self.base.get_rid());
         }
     }
 
@@ -1877,6 +1898,16 @@ impl RapierBody {
         physics_spaces: &mut PhysicsSpaces,
     ) {
         if self.base.is_space_valid() && self.base.mode.ord() >= BodyMode::KINEMATIC.ord() {
+            if self.get_force_integration_callback().is_some() {
+                if let Some(space) = physics_spaces.get_mut(&self.base.get_space()) {
+                    space.body_add_to_force_integrate_list(self.base.get_rid());
+                }
+            }
+            if self.get_state_sync_callback().is_some() {
+                if let Some(space) = physics_spaces.get_mut(&self.base.get_space()) {
+                    space.body_add_to_state_query_list(self.base.get_rid());
+                }
+            }
             if !self.can_sleep {
                 self.set_can_sleep(false, physics_engine);
             }

@@ -206,7 +206,9 @@ impl IPhysicsDirectBodyState3DExtension for RapierDirectBodyState3D {
         RapierSpace::get_last_step()
     }
 
-    fn integrate_forces(&mut self) {}
+    fn integrate_forces(&mut self) {
+        self.implementation.integrate_forces();
+    }
 
     fn get_space_state(&mut self) -> Option<Gd<PhysicsDirectSpaceState3D>> {
         let physics_data = physics_data();

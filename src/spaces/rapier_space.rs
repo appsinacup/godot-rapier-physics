@@ -76,6 +76,8 @@ pub struct RapierSpace {
     #[cfg_attr(feature = "serde-serialize", serde(skip))]
     state_query_list: HashSet<Rid>,
     #[cfg_attr(feature = "serde-serialize", serde(skip))]
+    force_integrate_query_list: HashSet<Rid>,
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     monitor_query_list: HashSet<Rid>,
     #[cfg_attr(feature = "serde-serialize", serde(skip))]
     area_update_list: HashSet<Rid>,
@@ -120,6 +122,7 @@ impl RapierSpace {
             mass_properties_update_list: HashSet::default(),
             gravity_update_list: HashSet::default(),
             state_query_list: HashSet::default(),
+            force_integrate_query_list: HashSet::default(),
             monitor_query_list: HashSet::default(),
             area_update_list: HashSet::default(),
             body_area_update_list: HashSet::default(),
@@ -177,6 +180,14 @@ impl RapierSpace {
         self.state_query_list.remove(&body);
     }
 
+    pub fn body_add_to_force_integrate_list(&mut self, body: Rid) {
+        self.force_integrate_query_list.insert(body);
+    }
+
+    pub fn body_remove_from_force_integrate_list(&mut self, body: Rid) {
+        self.force_integrate_query_list.remove(&body);
+    }
+
     pub fn area_add_to_monitor_query_list(&mut self, area: Rid) {
         self.monitor_query_list.insert(area);
     }
@@ -223,29 +234,41 @@ impl RapierSpace {
         physics_data_collision_objects: &mut PhysicsCollisionObjects,
     ) -> Vec<(Callable, Vec<Variant>)> {
         let mut queries = Vec::default();
-        for body_rid in self.state_query_list.clone() {
-            if let Some(body) = physics_data_collision_objects.get_mut(&body_rid) {
+        for body_rid in self
+            .state_query_list
+            .union(&self.force_integrate_query_list)
+        {
+            if let Some(body) = physics_data_collision_objects.get_mut(body_rid) {
                 if let Some(body) = body.get_mut_body() {
                     body.create_direct_state();
                 }
             }
-        }
-        for body_rid in self.state_query_list.clone() {
-            if let Some(body) = physics_data_collision_objects.get(&body_rid) {
+            if let Some(body) = physics_data_collision_objects.get(body_rid) {
                 if let Some(body) = body.get_body() {
                     if let Some(direct_state) = body.get_direct_state() {
-                        if let Some(fi_callback_data) = body.get_force_integration_callback() {
-                            queries.push((
-                                fi_callback_data.callable.clone(),
-                                vec![direct_state.to_variant(), fi_callback_data.udata.clone()],
-                            ));
-                        }
-                        //  Sync body server with Godot by sending body direct state
                         if let Some(state_sync_callback) = body.get_state_sync_callback() {
                             queries.push((
                                 state_sync_callback.clone(),
                                 vec![direct_state.to_variant()],
                             ));
+                        }
+                        if let Some(direct_state) = body.get_direct_state() {
+                            if let Some(fi_callback_data) = body.get_force_integration_callback() {
+                                if fi_callback_data.udata.is_nil() {
+                                    queries.push((
+                                        fi_callback_data.callable.clone(),
+                                        vec![direct_state.to_variant()],
+                                    ));
+                                } else {
+                                    queries.push((
+                                        fi_callback_data.callable.clone(),
+                                        vec![
+                                            direct_state.to_variant(),
+                                            fi_callback_data.udata.clone(),
+                                        ],
+                                    ));
+                                }
+                            }
                         }
                     }
                 }
@@ -266,15 +289,6 @@ impl RapierSpace {
         &mut self,
         physics_data_collision_objects: &mut PhysicsCollisionObjects,
     ) {
-        for body_rid in self.state_query_list.clone() {
-            if let Some(body) = physics_data_collision_objects.get(&body_rid) {
-                if let Some(body) = body.get_body() {
-                    if !body.is_active() {
-                        self.body_remove_from_state_query_list(body.get_base().get_rid());
-                    }
-                }
-            }
-        }
         for area_rid in self.monitor_query_list.clone() {
             if let Some(area) = physics_data_collision_objects.get_mut(&area_rid) {
                 if let Some(area) = area.get_mut_area() {

@@ -9,6 +9,7 @@ gui_embed_subwindows = true
 title = "godot-rapier2d Plugin Update"
 initial_position = 1
 size = Vector2i(800, 400)
+visible = false
 wrap_controls = true
 transient = true
 min_size = Vector2i(800, 400)

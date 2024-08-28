@@ -1411,7 +1411,7 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_state_sync_callback(callable);
+                body.set_state_sync_callback(callable, &mut physics_data.spaces);
             }
         }
     }
@@ -1425,7 +1425,7 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_force_integration_callback(callable, userdata);
+                body.set_force_integration_callback(callable, userdata, &mut physics_data.spaces);
             }
         }
     }

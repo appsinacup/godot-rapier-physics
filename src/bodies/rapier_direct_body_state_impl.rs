@@ -499,4 +499,15 @@ impl RapierDirectBodyStateImpl {
         }
         Vector::default()
     }
+
+    pub(super) fn integrate_forces(&mut self) {
+        let physics_data = physics_data();
+        if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
+            if let Some(body) = body.get_mut_body() {
+                if let Some(space) = physics_data.spaces.get_mut(&body.get_base().get_space()) {
+                    body.on_marked_active(space);
+                }
+            }
+        }
+    }
 }
