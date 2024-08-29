@@ -426,10 +426,10 @@ impl RapierSpace {
                                             .is_shape_set_as_one_way_collision(shape_index)
                                         && !p_motion.is_zero_approx()
                                     {
-                                        //let direction = col_shape_transform.b.normalized();
-                                        //if p_motion.normalized().dot(direction) <= 0.0 {
-                                        //    continue;
-                                        //}
+                                        let direction = col_shape_transform.b.normalized();
+                                        if p_motion.normalized().dot(direction) <= 0.0 {
+                                            continue;
+                                        }
                                     }
                                     *p_closest_safe = 0.0;
                                     *p_closest_unsafe = 0.0;
