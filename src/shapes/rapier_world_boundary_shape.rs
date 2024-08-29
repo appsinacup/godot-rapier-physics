@@ -46,7 +46,7 @@ impl IRapierShape for RapierWorldBoundaryShape {
     }
 
     fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
-        physics_engine.shape_create_halfspace(vector_to_rapier(self.normal), -self.d)
+        physics_engine.shape_create_halfspace(vector_to_rapier(self.normal), self.d)
     }
 
     #[cfg(feature = "dim2")]
