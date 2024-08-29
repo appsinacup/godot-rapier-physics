@@ -8,6 +8,8 @@ pub struct OneWayDirection {
     pub body2: bool,
     pub pixel_body1_margin: Real,
     pub pixel_body2_margin: Real,
+    pub previous_linear_velocity1: Vector<Real>,
+    pub previous_linear_velocity2: Vector<Real>,
 }
 pub type CollisionFilterCallback = fn(
     filter_info: &CollisionFilterInfo,
@@ -25,6 +27,8 @@ pub struct PhysicsHooksCollisionFilter<'a> {
     pub collision_filter_body_callback: &'a CollisionFilterCallback,
     pub collision_modify_contacts_callback: &'a CollisionModifyContactsCallback,
     pub physics_collision_objects: &'a PhysicsCollisionObjects,
+    pub last_step: Real,
+    pub ghost_collision_distance: Real,
 }
 pub fn update_as_oneway_platform(
     context: &mut ContactModificationContext,
@@ -106,6 +110,18 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
         let Some(collider2) = context.colliders.get(context.collider2) else {
             return;
         };
+        let Some(rididbody1_handle) = context.rigid_body1 else {
+            return;
+        };
+        let Some(rididbody2_handle) = context.rigid_body2 else {
+            return;
+        };
+        let Some(body1) = context.bodies.get(rididbody1_handle) else {
+            return;
+        };
+        let Some(body2) = context.bodies.get(rididbody2_handle) else {
+            return;
+        };
         let filter_info = CollisionFilterInfo {
             user_data1: UserData::new(collider1.user_data),
             user_data2: UserData::new(collider2.user_data),
@@ -119,6 +135,56 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
         }
         if one_way_direction.body2 {
             update_as_oneway_platform(context, &-*context.normal, &allowed_local_n2);
+        }
+        let contact_is_pass_through = false;
+        let mut rigid_body_1_linvel = one_way_direction.previous_linear_velocity1;
+        let mut rigid_body_2_linvel = one_way_direction.previous_linear_velocity2;
+        if rigid_body_1_linvel.norm() == 0.0 {
+            rigid_body_1_linvel = *body1.linvel();
+        }
+        if rigid_body_2_linvel.norm() == 0.0 {
+            rigid_body_2_linvel = *body2.linvel();
+        }
+        // ghost collisions
+        if body1.is_dynamic() && !body2.is_dynamic() {
+            let normal = *context.normal;
+            if rigid_body_1_linvel.norm() == 0.0 {
+                return;
+            }
+            let normal_dot_velocity = normal.dot(&rigid_body_1_linvel.normalize());
+            let velocity_magnitude = rigid_body_1_linvel.magnitude() * self.last_step;
+            let length_along_normal = velocity_magnitude * Real::max(normal_dot_velocity, 0.0);
+            if normal_dot_velocity >= -DEFAULT_EPSILON {
+                context.solver_contacts.retain(|contact| {
+                    let dist = -contact.dist;
+                    let diff = dist - length_along_normal;
+                    if diff < 0.5 && dist.abs() < self.ghost_collision_distance {
+                        return false;
+                    }
+                    true
+                });
+            }
+        } else if body2.is_dynamic() && !body1.is_dynamic() {
+            let normal = -*context.normal;
+            if rigid_body_2_linvel.norm() == 0.0 {
+                return;
+            }
+            let normal_dot_velocity = normal.dot(&rigid_body_2_linvel.normalize());
+            let velocity_magnitude = rigid_body_2_linvel.magnitude() * self.last_step;
+            let length_along_normal = velocity_magnitude * Real::max(normal_dot_velocity, 0.0);
+            if normal_dot_velocity >= -DEFAULT_EPSILON {
+                context.solver_contacts.retain(|contact| {
+                    let dist = -contact.dist;
+                    let diff = dist - length_along_normal;
+                    if diff < 0.5 && dist.abs() < self.ghost_collision_distance {
+                        return false;
+                    }
+                    true
+                });
+            }
+        }
+        if contact_is_pass_through {
+            context.solver_contacts.clear();
         }
     }
 }
