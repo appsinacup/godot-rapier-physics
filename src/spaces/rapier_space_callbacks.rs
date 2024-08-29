@@ -27,6 +27,20 @@ impl Default for CollidersInfo {
     }
 }
 impl RapierSpace {
+    pub fn before_active_body_callback(
+        &mut self,
+        active_body_info: &BeforeActiveBodyInfo,
+        physics_collision_objects: &mut PhysicsCollisionObjects,
+    ) {
+        let (rid, _) =
+            RapierCollisionObjectBase::get_collider_user_data(&active_body_info.body_user_data);
+        if let Some(body) = physics_collision_objects.get_mut(&rid)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.set_previous_linear_velocity(vector_to_godot(active_body_info.previous_velocity));
+        }
+    }
+
     pub fn active_body_callback(
         &mut self,
         active_body_info: &ActiveBodyInfo,
@@ -82,9 +96,17 @@ impl RapierSpace {
                 result.body1 = collision_base_1.is_shape_set_as_one_way_collision(shape1);
                 result.pixel_body1_margin =
                     collision_base_1.get_shape_one_way_collision_margin(shape1);
+                if let Some(body1) = collision_object_1.get_body() {
+                    result.previous_linear_velocity1 =
+                        vector_to_rapier(body1.get_previous_linear_velocity());
+                }
                 result.body2 = collision_base_2.is_shape_set_as_one_way_collision(shape2);
                 result.pixel_body2_margin =
                     collision_base_2.get_shape_one_way_collision_margin(shape2);
+                if let Some(body2) = collision_object_2.get_body() {
+                    result.previous_linear_velocity2 =
+                        vector_to_rapier(body2.get_previous_linear_velocity());
+                }
             }
         }
         result

@@ -141,6 +141,7 @@ pub struct RapierBody {
     can_sleep: bool,
     constant_force: Vector,
     linear_velocity: Vector,
+    previous_linear_velocity: Vector,
     impulse: Vector,
     torque: Angle,
     angular_velocity: Angle,
@@ -198,6 +199,7 @@ impl RapierBody {
             can_sleep: true,
             constant_force: Vector::default(),
             linear_velocity: Vector::default(),
+            previous_linear_velocity: Vector::default(),
             impulse: Vector::default(),
             torque: ANGLE_ZERO,
             angular_velocity: ANGLE_ZERO,
@@ -370,7 +372,9 @@ impl RapierBody {
         );
         // if we are a conveyer belt, we need to modify contacts
         // also if any shape is one-way
-        let modify_contacts_enabled = override_modify_contacts;
+        let modify_contacts_enabled = self.base.mode == BodyMode::STATIC
+            || self.base.mode == BodyMode::KINEMATIC
+            || override_modify_contacts;
         physics_engine.collider_set_modify_contacts_enabled(
             space_handle,
             collider_handle,
@@ -1168,6 +1172,14 @@ impl RapierBody {
             self.active = true;
             space.body_add_to_active_list(self.base.get_rid());
         }
+    }
+
+    pub fn set_previous_linear_velocity(&mut self, p_velocity: Vector) {
+        self.previous_linear_velocity = p_velocity;
+    }
+
+    pub fn get_previous_linear_velocity(&self) -> Vector {
+        self.previous_linear_velocity
     }
 
     pub fn on_update_active(

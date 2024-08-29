@@ -27,6 +27,10 @@ const FLUID_SMOOTHING_FACTOR: &str = "physics/rapier/fluid/fluid_smoothing_facto
 #[cfg(feature = "dim2")]
 const LENGTH_UNIT: &str = "physics/rapier/solver/length_unit_2d";
 #[cfg(feature = "dim2")]
+const GHOST_COLLISION_DISTANCE: &str = "physics/rapier/logic/ghost_collision_distance_2d";
+#[cfg(feature = "dim3")]
+const GHOST_COLLISION_DISTANCE: &str = "physics/rapier/logic/ghost_collision_distance_3d";
+#[cfg(feature = "dim2")]
 const LENGTH_UNIT_VALUE: real = 100.0;
 #[cfg(feature = "dim2")]
 const FLUID_PARTICLE_VALUE: real = 20.0;
@@ -85,13 +89,13 @@ impl RapierProjectSettings {
         register_setting_ranged(
             SOLVER_NUM_INTERNAL_PGS_ITERATIONS,
             Variant::from(integration_parameters.num_internal_pgs_iterations as i32),
-            "1,4,or_greater",
+            "1,8,or_greater",
             false,
         );
         register_setting_ranged(
             SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS,
             Variant::from(integration_parameters.num_internal_stabilization_iterations as i32),
-            "1,4,or_greater",
+            "1,8,or_greater",
             false,
         );
         register_setting_ranged(
@@ -133,7 +137,7 @@ impl RapierProjectSettings {
         register_setting_ranged(
             CONTACT_DAMPING_RATIO,
             Variant::from(integration_parameters.contact_damping_ratio),
-            "0,10,0.00001,or_greater",
+            "0,100,0.00001,or_greater",
             false,
         );
         register_setting_ranged(
@@ -151,6 +155,12 @@ impl RapierProjectSettings {
         register_setting_ranged(
             JOINT_NATURAL_FREQUENCY,
             Variant::from(integration_parameters.joint_natural_frequency),
+            "0,1000000,0.00001,or_greater",
+            false,
+        );
+        register_setting_ranged(
+            GHOST_COLLISION_DISTANCE,
+            Variant::from(0.0),
             "0,10,0.00001,or_greater",
             false,
         );
@@ -244,5 +254,9 @@ impl RapierProjectSettings {
 
     pub fn get_contact_natural_frequency() -> Real {
         RapierProjectSettings::get_setting_double(CONTACT_NATURAL_FREQUENCY) as Real
+    }
+
+    pub fn get_ghost_collision_distance() -> Real {
+        RapierProjectSettings::get_setting_double(GHOST_COLLISION_DISTANCE) as Real
     }
 }
