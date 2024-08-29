@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.8.2
+
+* Update README.md with limitations by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/229
+* Fix apply impulse not waking up body. Also remove dynamic dispatch. by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/233
+* fix inertia not being calculated correctly. by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/235
+* fix character body one way direction by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/237
+* BREAKING: Removing 2d ghost collision fix until new one is implemented in parry. The current one was causing too much instability.
+
+## v0.8.1
+
+* add get remaining times for fluid by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/204
+* Remove ghost collision from modify collision. Try to fix web builds. Fix one way direction for rigidbodies. by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/208
+* Automatic updates. Fix ios binary name. by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/228
+
+## v0.8.0
+
+* Enable no threads builds by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/202
+* BREAKING: Only supports 4.3 moving on.
+
 ## v0.7.27
 
 * Add functions to get objects positions in bulk by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/188
