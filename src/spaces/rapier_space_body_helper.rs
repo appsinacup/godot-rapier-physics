@@ -419,22 +419,17 @@ impl RapierSpace {
                                     col_shape_info,
                                     0.0,
                                 );
-                                if step_contact.collided && !step_contact.within_margin {
-                                    if body_shape.allows_one_way_collision()
-                                        && collision_body
-                                            .get_base()
-                                            .is_shape_set_as_one_way_collision(shape_index)
-                                        && !p_motion.is_zero_approx()
-                                    {
-                                        //let direction = col_shape_transform.b.normalized();
-                                        //if p_motion.normalized().dot(direction) <= 0.0 {
-                                        //    continue;
-                                        //}
-                                    }
-                                    *p_closest_safe = 0.0;
-                                    *p_closest_unsafe = 0.0;
-                                    *p_best_body_shape = body_shape_idx as i32; //sadly it's the best
-                                    break;
+                                if physics_engine.should_skip_collision_one_dir(
+                                    &step_contact,
+                                    body_shape,
+                                    collision_body,
+                                    shape_index,
+                                    &col_shape_transform,
+                                    p_margin,
+                                    RapierSpace::get_last_step(),
+                                    p_motion,
+                                ) {
+                                    continue;
                                 }
                                 //just do kinematic solving
                                 let mut low = 0.0;
@@ -716,6 +711,14 @@ fn set_collision_info(
     });
     p_result.collision_count = 1;
 }
+#[cfg(feature = "dim2")]
+fn get_transform_forward(transform: &Transform2D) -> Vector {
+    -Vector2::new(transform.a.y, transform.b.y)
+}
+#[cfg(feature = "dim3")]
+fn get_transform_forward(transform: &Transform3D) -> Vector {
+    -transform.basis.col_c()
+}
 impl PhysicsEngine {
     #[allow(clippy::too_many_arguments)]
     fn should_skip_collision_one_dir(
@@ -736,7 +739,7 @@ impl PhysicsEngine {
                 .get_base()
                 .is_shape_set_as_one_way_collision(shape_index)
         {
-            let valid_dir = vector_normalized(col_shape_transform.origin);
+            let valid_dir = vector_normalized(get_transform_forward(col_shape_transform));
             let owc_margin = collision_body
                 .get_base()
                 .get_shape_one_way_collision_margin(shape_index);

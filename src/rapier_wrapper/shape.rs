@@ -114,10 +114,17 @@ impl PhysicsEngine {
         use nalgebra::Vector3;
         let width = width as usize;
         let depth = depth as usize;
-        let heights = DMatrix::from_fn(width, depth, |i, j| heights[j * (width) + i]);
+        // Create the height matrix from the input heights
+        let original_heights = DMatrix::from_fn(width, depth, |i, j| heights[j * width + i]);
+        // Transpose the matrix to swap width and depth
+        let rotated_heights = original_heights.transpose();
+        // The new dimensions after rotating the heightmap
+        let new_width = depth;
+        let new_depth = width;
+        // Create the shape with the rotated dimensions
         let shape = SharedShape::heightfield_with_flags(
-            heights,
-            Vector3::new(depth as Real, 1.0, width as Real),
+            rotated_heights,
+            Vector3::new(new_depth as Real, 1.0, new_width as Real),
             HeightFieldFlags::FIX_INTERNAL_EDGES,
         );
         self.insert_shape(shape)

@@ -63,11 +63,11 @@ opt-level = 3
 debug = 2
 strip = "debuginfo"
 lto = "fat"
-panic = 'unwind'
+#panic = 'unwind'
 codegen-units = 1
 
-#[profile.dev]
-#opt-level = 1
+[profile.dev]
+opt-level = 1
 #panic = 'unwind'
 
 [package.metadata.docs.rs]

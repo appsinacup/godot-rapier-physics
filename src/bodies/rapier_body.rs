@@ -1727,26 +1727,14 @@ impl RapierBody {
                 Vector3::new(column_1.x, column_1.y, column_1.z),
                 Vector3::new(column_2.x, column_2.y, column_2.z),
             );
-            let vector = rigid_body_mass_properties
+            let inv_inertia = rigid_body_mass_properties
                 .local_mprops
                 .inv_principal_inertia_sqrt;
-            let column_0 = vector
-                .column(0)
-                .pseudo_inverse(DEFAULT_EPSILON)
-                .unwrap_or_default();
-            let column_1 = vector
-                .column(1)
-                .pseudo_inverse(DEFAULT_EPSILON)
-                .unwrap_or_default();
-            let column_2 = vector
-                .column(2)
-                .pseudo_inverse(DEFAULT_EPSILON)
-                .unwrap_or_default();
-            self.inv_inertia_tensor = Basis::from_cols(
-                Vector3::new(column_0.x, column_0.y, column_0.z),
-                Vector3::new(column_1.x, column_1.y, column_1.z),
-                Vector3::new(column_2.x, column_2.y, column_2.z),
-            );
+            let tb = self.principal_inertia_axes;
+            let tbt = tb.transposed();
+            let diag =
+                Basis::IDENTITY.scaled(Vector3::new(inv_inertia.x, inv_inertia.y, inv_inertia.z));
+            self.inv_inertia_tensor = tb * diag * tbt;
         }
         self.apply_mass_properties(force_update, physics_engine);
     }

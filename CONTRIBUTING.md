@@ -94,26 +94,21 @@ cargo update
 
 3. Build the project
 ```bash
-cargo build --release
+# for 2d
+cargo build --release --features="build2d" --no-default-features
+# for 3d
+cargo build --release --features="build3d" --no-default-features
 ```
-
-By default it builds for 2d, if you want to specify additional build features, you can do so with the `--features` flag:
-
-```bash
-cargo build --release --features="single-dim3,parallel,simd-stable,serde-serialize" --no-default-features
-```
-
-Note the `--no-default-features`, because by default it has the `single-dim2` feature
 
 4. Copy the output to bin folder of the addon:
 
 Eg. macOS
 ```bash
-cp target/release/libgodot_rapier.dylib bin2/addons/godot-rapier2d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
+cp target/release/libgodot_rapier.dylib bin2d/addons/godot-rapier2d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
 ```
 Eg. Windows
 ```bash
-cp target/release/godot_rapier.dll bin2/addons/godot-rapier2d/bin/godot_rapier.windows.x86_64-pc-windows-msvc.dll
+cp target/release/godot_rapier.dll bin2d/addons/godot-rapier2d/bin/godot_rapier.windows.x86_64-pc-windows-msvc.dll
 ```
 
 For the correct path to use inside the bin folder, look inside the `bin2d/addons/godot-rapier2d.gdextension` or the `bin3d/addons/godot-rapier3d.gdextension`.
