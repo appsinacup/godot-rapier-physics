@@ -296,4 +296,30 @@ impl RapierPhysicsServer {
             .implementation
             .space_get_bodies_transform(space, bodies);
     }
+
+    #[func]
+    fn space_step(space: Rid, delta: f32) {
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return;
+        };
+        physics_singleton
+            .bind_mut()
+            .implementation
+            .space_step(&space, delta);
+    }
+
+    #[func]
+    fn space_flush_queries(space: Rid) {
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return;
+        };
+        physics_singleton
+            .bind_mut()
+            .implementation
+            .space_flush_queries(&space);
+    }
 }
