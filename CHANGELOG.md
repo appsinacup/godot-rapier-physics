@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.8.3
+
+- re-add ghost collision but disabled by default
+- fix world boundary shape distance
+
 ## v0.8.2
 
 * Update README.md with limitations by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/229
