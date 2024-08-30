@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.8.4
+
+- add space_step and space_flush_queries by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/241
+
 ## v0.8.3
 
 - re-add ghost collision but disabled by default
