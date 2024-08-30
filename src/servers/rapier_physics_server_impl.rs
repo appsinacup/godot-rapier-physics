@@ -2236,25 +2236,7 @@ impl RapierPhysicsServerImpl {
         self.collision_pairs = 0;
         let active_spaces = physics_data.active_spaces.clone();
         for space_rid in active_spaces.values() {
-            let settings = SimulationSettings {
-                dt: step,
-                length_unit: self.length_unit,
-                max_ccd_substeps: self.max_ccd_substeps,
-                num_additional_friction_iterations: self.num_additional_friction_iterations,
-                num_internal_pgs_iterations: self.num_internal_pgs_iterations,
-                num_solver_iterations: self.num_solver_iterations,
-                joint_damping_ratio: self.joint_damping_ratio,
-                joint_natural_frequency: self.joint_natural_frequency,
-                pixel_gravity: vector_to_rapier(Vector::ZERO),
-                pixel_liquid_gravity: vector_to_rapier(Vector::ZERO),
-                normalized_allowed_linear_error: self.normalized_allowed_linear_error,
-                normalized_max_corrective_velocity: self.normalized_max_corrective_velocity,
-                normalized_prediction_distance: self.normalized_prediction_distance,
-                num_internal_stabilization_iterations: self.num_internal_stabilization_iterations,
-                contact_damping_ratio: self.contact_damping_ratio,
-                contact_natural_frequency: self.contact_natural_frequency,
-            };
-            RapierSpace::step(step, space_rid, physics_data, settings);
+            self.space_step(space_rid, step);
             if let Some(space) = physics_data.spaces.get(space_rid) {
                 self.island_count += space.get_island_count();
                 self.active_objects += space.get_active_objects();
@@ -2283,6 +2265,51 @@ impl RapierPhysicsServerImpl {
             ProcessInfo::COLLISION_PAIRS => self.collision_pairs,
             ProcessInfo::ISLAND_COUNT => self.island_count,
             _ => 0,
+        }
+    }
+
+    pub(super) fn space_step(&mut self, space_rid: &Rid, step: f32) {
+        let physics_data = physics_data();
+        if !self.active {
+            return;
+        }
+        let settings = SimulationSettings {
+            dt: step,
+            length_unit: self.length_unit,
+            max_ccd_substeps: self.max_ccd_substeps,
+            num_additional_friction_iterations: self.num_additional_friction_iterations,
+            num_internal_pgs_iterations: self.num_internal_pgs_iterations,
+            num_solver_iterations: self.num_solver_iterations,
+            joint_damping_ratio: self.joint_damping_ratio,
+            joint_natural_frequency: self.joint_natural_frequency,
+            pixel_gravity: vector_to_rapier(Vector::ZERO),
+            pixel_liquid_gravity: vector_to_rapier(Vector::ZERO),
+            normalized_allowed_linear_error: self.normalized_allowed_linear_error,
+            normalized_max_corrective_velocity: self.normalized_max_corrective_velocity,
+            normalized_prediction_distance: self.normalized_prediction_distance,
+            num_internal_stabilization_iterations: self.num_internal_stabilization_iterations,
+            contact_damping_ratio: self.contact_damping_ratio,
+            contact_natural_frequency: self.contact_natural_frequency,
+        };
+        RapierSpace::step(step, space_rid, physics_data, settings);
+    }
+
+    pub(super) fn space_flush_queries(&mut self, space: &Rid) {
+        let physics_data = physics_data();
+        self.flushing_queries = true;
+        let mut queries = Vec::default();
+        if let Some(space) = physics_data.spaces.get_mut(space) {
+            let query = space.get_queries(&mut physics_data.collision_objects);
+            queries.extend(query);
+        }
+        for query in queries {
+            // TODO optimize function calls copying data.
+            // TODO optimize after these are called, the callbacks into direct state objects.
+            query.0.callv(Array::from(query.1.as_slice()));
+        }
+        self.flushing_queries = false;
+        if let Some(space) = physics_data.spaces.get_mut(space) {
+            space.update_after_queries(&mut physics_data.collision_objects);
         }
     }
 }
