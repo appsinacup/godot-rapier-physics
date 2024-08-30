@@ -22,7 +22,6 @@ impl RapierSegmentShape2D {
         }
     }
 }
-#[cfg_attr(feature = "serde-serialize", typetag::serde)]
 impl IRapierShape for RapierSegmentShape2D {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base

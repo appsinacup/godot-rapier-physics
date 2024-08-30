@@ -61,8 +61,13 @@ impl Default for CollisionObjectShape {
         }
     }
 }
-// TODO deserialize
-#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
+fn default_body_mode() -> BodyMode {
+    BodyMode::RIGID
+}
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct RapierCollisionObjectBase {
     user_flags: u32,
     collision_object_type: CollisionObjectType,
@@ -80,7 +85,10 @@ pub struct RapierCollisionObjectBase {
     collision_layer: u32,
     pub(crate) is_debugging_contacts: bool,
     // TODO serialize this
-    #[cfg_attr(feature = "serde-serialize", serde(skip))]
+    #[cfg_attr(
+        feature = "serde-serialize",
+        serde(skip, default = "default_body_mode")
+    )]
     pub(crate) mode: BodyMode,
     body_handle: RigidBodyHandle,
     space_handle: WorldHandle,

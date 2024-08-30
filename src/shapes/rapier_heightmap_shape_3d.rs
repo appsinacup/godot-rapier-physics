@@ -30,7 +30,6 @@ impl RapierHeightMapShape3D {
         }
     }
 }
-#[cfg_attr(feature = "serde-serialize", typetag::serde)]
 impl IRapierShape for RapierHeightMapShape3D {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base

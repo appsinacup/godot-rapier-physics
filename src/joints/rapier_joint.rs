@@ -42,7 +42,6 @@ pub enum RapierJoint {
 }
 macro_rules! impl_rapier_joint_trait {
     ($enum_name:ident, $($variant:ident),*) => {
-        #[cfg_attr(feature = "serde-serialize", typetag::serde)]
         impl IRapierJoint for $enum_name {
             fn get_base(&self) -> &RapierJointBase {
                 match self {
@@ -82,7 +81,6 @@ impl_rapier_joint_trait!(
     RapierEmptyJoint,
     RapierRevoluteJoint
 );
-#[cfg_attr(feature = "serde-serialize", typetag::serde(tag = "type"))]
 pub trait IRapierJoint {
     fn get_base(&self) -> &RapierJointBase;
     fn get_mut_base(&mut self) -> &mut RapierJointBase;

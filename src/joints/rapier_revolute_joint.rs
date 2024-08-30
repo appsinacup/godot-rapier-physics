@@ -243,7 +243,6 @@ impl RapierRevoluteJoint {
         }
     }
 }
-#[cfg_attr(feature = "serde-serialize", typetag::serde)]
 impl IRapierJoint for RapierRevoluteJoint {
     fn get_base(&self) -> &RapierJointBase {
         &self.base

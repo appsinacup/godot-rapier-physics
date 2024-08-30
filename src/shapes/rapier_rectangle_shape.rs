@@ -24,7 +24,6 @@ impl RapierRectangleShape {
         }
     }
 }
-#[cfg_attr(feature = "serde-serialize", typetag::serde)]
 impl IRapierShape for RapierRectangleShape {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base

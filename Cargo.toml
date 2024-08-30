@@ -19,7 +19,7 @@ single = []
 double = []
 # TODO add feature for "glam/libm"
 enhanced-determinism = ["rapier2d/enhanced-determinism", "rapier2d-f64/enhanced-determinism", "rapier3d/enhanced-determinism", "rapier3d-f64/enhanced-determinism"]
-serde-serialize = ["serde", "hashbrown/serde", "bincode", "serde_json", "typetag", "godot/serde", "rapier2d/serde-serialize", "rapier2d-f64/serde-serialize", "rapier3d/serde-serialize", "rapier3d-f64/serde-serialize" ]
+serde-serialize = ["serde", "hashbrown/serde", "bincode", "serde_json", "godot/serde", "rapier2d/serde-serialize", "rapier2d-f64/serde-serialize", "rapier3d/serde-serialize", "rapier3d-f64/serde-serialize" ]
 simd-stable = ["rapier2d/simd-stable", "rapier2d-f64/simd-stable", "rapier3d/simd-stable", "rapier3d-f64/simd-stable"]
 simd-nightly = ["rapier2d/simd-nightly", "rapier2d-f64/simd-nightly", "rapier3d/simd-nightly", "rapier3d-f64/simd-nightly"]
 wasm-bindgen = ["rapier2d/wasm-bindgen", "rapier2d-f64/wasm-bindgen", "rapier3d/wasm-bindgen", "rapier3d-f64/wasm-bindgen"]
@@ -45,7 +45,6 @@ salva2d = { git = "https://github.com/ughuuu/salva", branch = "use-rapier-master
 salva3d = { git = "https://github.com/ughuuu/salva", branch = "use-rapier-master", features = ["rapier"], optional = true }
 serde = { version = "1.0", features = ["derive"], optional = true }
 serde_json = { version = "1.0", optional = true }
-typetag = { version = "0.2", optional = true }
 
 [patch.crates-io]
 rapier2d = {git = "https://github.com/ughuuu/rapier", branch = "custom-changes"}

@@ -26,7 +26,6 @@ impl RapierConvexPolygonShape {
         }
     }
 }
-#[cfg_attr(feature = "serde-serialize", typetag::serde)]
 impl IRapierShape for RapierConvexPolygonShape {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base

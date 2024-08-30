@@ -25,7 +25,6 @@ impl RapierSeparationRayShape {
         }
     }
 }
-#[cfg_attr(feature = "serde-serialize", typetag::serde)]
 impl IRapierShape for RapierSeparationRayShape {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base

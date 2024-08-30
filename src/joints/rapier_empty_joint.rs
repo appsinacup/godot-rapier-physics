@@ -31,7 +31,6 @@ impl RapierEmptyJoint {
         }
     }
 }
-#[cfg_attr(feature = "serde-serialize", typetag::serde)]
 impl IRapierJoint for RapierEmptyJoint {
     fn get_type(&self) -> JointType {
         JointType::MAX

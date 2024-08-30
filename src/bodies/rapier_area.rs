@@ -41,14 +41,28 @@ pub enum AreaUpdateMode {
     ResetSpaceOverride,
     None,
 }
-// TODO deserialize
-#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
+fn default_area_space_override_mode() -> AreaSpaceOverrideMode {
+    AreaSpaceOverrideMode::DISABLED
+}
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct RapierArea {
-    #[cfg_attr(feature = "serde-serialize", serde(skip))]
+    #[cfg_attr(
+        feature = "serde-serialize",
+        serde(skip, default = "default_area_space_override_mode")
+    )]
     gravity_override_mode: AreaSpaceOverrideMode,
-    #[cfg_attr(feature = "serde-serialize", serde(skip))]
+    #[cfg_attr(
+        feature = "serde-serialize",
+        serde(skip, default = "default_area_space_override_mode")
+    )]
     linear_damping_override_mode: AreaSpaceOverrideMode,
-    #[cfg_attr(feature = "serde-serialize", serde(skip))]
+    #[cfg_attr(
+        feature = "serde-serialize",
+        serde(skip, default = "default_area_space_override_mode")
+    )]
     angular_damping_override_mode: AreaSpaceOverrideMode,
     gravity: real,
     gravity_vector: Vector,
@@ -722,7 +736,6 @@ impl RapierArea {
 }
 // We won't use the pointers between threads, so it should be safe.
 unsafe impl Sync for RapierArea {}
-//#[cfg_attr(feature = "serde-serialize", typetag::serde)]
 impl IRapierCollisionObject for RapierArea {
     fn get_base(&self) -> &RapierCollisionObjectBase {
         &self.base

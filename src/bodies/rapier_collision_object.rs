@@ -10,7 +10,6 @@ use super::rapier_body::RapierBody;
 use crate::rapier_wrapper::prelude::*;
 use crate::types::*;
 use crate::*;
-//#[cfg_attr(feature = "serde-serialize", typetag::serde(tag = "type"))]
 pub trait IRapierCollisionObject: Sync {
     fn get_base(&self) -> &RapierCollisionObjectBase;
     fn get_mut_base(&mut self) -> &mut RapierCollisionObjectBase;

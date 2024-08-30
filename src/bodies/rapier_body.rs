@@ -80,7 +80,10 @@ pub struct ForceIntegrationCallbackData {
     pub udata: Variant,
 }
 #[derive(Clone, Copy)]
-#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct RidWithPriority {
     #[cfg_attr(feature = "serde-serialize", serde(skip, default = "invalid_rid"))]
     pub rid: Rid,
@@ -99,12 +102,23 @@ impl Default for RidWithPriority {
         }
     }
 }
-#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
+fn default_body_damp_mode() -> BodyDampMode {
+    BodyDampMode::COMBINE
+}
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct RapierBody {
-    // TODO
-    #[cfg_attr(feature = "serde-serialize", serde(skip))]
+    #[cfg_attr(
+        feature = "serde-serialize",
+        serde(skip, default = "default_body_damp_mode")
+    )]
     linear_damping_mode: BodyDampMode,
-    #[cfg_attr(feature = "serde-serialize", serde(skip))]
+    #[cfg_attr(
+        feature = "serde-serialize",
+        serde(skip, default = "default_body_damp_mode")
+    )]
     angular_damping_mode: BodyDampMode,
     linear_damping: real,
     angular_damping: real,
@@ -1969,7 +1983,6 @@ impl RapierBody {
 }
 // We won't use the pointers between threads, so it should be safe.
 unsafe impl Sync for RapierBody {}
-//#[cfg_attr(feature = "serde-serialize", typetag::serde)]
 impl IRapierCollisionObject for RapierBody {
     fn get_base(&self) -> &RapierCollisionObjectBase {
         &self.base

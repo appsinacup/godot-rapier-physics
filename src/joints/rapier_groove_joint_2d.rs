@@ -66,7 +66,6 @@ impl RapierGrooveJoint2D {
         }
     }
 }
-#[cfg_attr(feature = "serde-serialize", typetag::serde)]
 impl IRapierJoint for RapierGrooveJoint2D {
     fn get_type(&self) -> physics_server_2d::JointType {
         physics_server_2d::JointType::GROOVE

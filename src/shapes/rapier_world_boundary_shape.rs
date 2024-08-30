@@ -27,7 +27,6 @@ impl RapierWorldBoundaryShape {
         }
     }
 }
-#[cfg_attr(feature = "serde-serialize", typetag::serde)]
 impl IRapierShape for RapierWorldBoundaryShape {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base

@@ -19,7 +19,6 @@ use super::rapier_separation_ray_shape::RapierSeparationRayShape;
 use super::rapier_world_boundary_shape::RapierWorldBoundaryShape;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
-#[cfg_attr(feature = "serde-serialize", typetag::serde(tag = "type"))]
 pub trait IRapierShape {
     fn get_base(&self) -> &RapierShapeBase;
     fn get_mut_base(&mut self) -> &mut RapierShapeBase;
@@ -51,7 +50,6 @@ pub enum RapierShape {
 }
 macro_rules! impl_rapier_shape_trait {
     ($enum_name:ident, $($variant:ident),*) => {
-        #[cfg_attr(feature = "serde-serialize", typetag::serde)]
         impl IRapierShape for $enum_name {
             fn get_base(&self) -> &RapierShapeBase {
                 match self {

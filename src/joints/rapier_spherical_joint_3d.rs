@@ -98,7 +98,6 @@ impl RapierSphericalJoint3D {
         self.anchor_b
     }
 }
-#[cfg_attr(feature = "serde-serialize", typetag::serde)]
 impl IRapierJoint for RapierSphericalJoint3D {
     fn get_base(&self) -> &RapierJointBase {
         &self.base
