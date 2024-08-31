@@ -45,17 +45,37 @@ impl RapierPhysicsServer {
         0.0.to_variant()
     }
 
+    fn joint_export_json(joints: Array<Rid>) -> Array<GString> {
+        let physics_data = physics_data();
+        // take values where Rid matches joints rid
+        let values = physics_data.joints.values().clone().filter(|joint| joints.contains(&joint.rid())).collect::<Vec<_>>();
+        let values = physics_data.joints.values().clone().collect::<Vec<_>>();
+        match serde_json::to_string_pretty(&values) {
+            Ok(s) => s,
+            Err(err) => {
+                godot_error!("{}", err);
+                "{}".to_string()
+            }
+        }
+        let physics_data = physics_data();
+        let mut result = Array::new();
+        if let Some(joint) = physics_data.joints.get(&joint) {
+            result.push(joint.export_json().to_godot());
+        }
+        result
+    }
+
     #[cfg(feature = "serde-serialize")]
     #[func]
-    fn space_export_json(space: Rid) -> Array<Variant> {
+    fn space_export_json(space: Rid) -> Array<GString> {
         let physics_data = physics_data();
         let mut result = Array::new();
         if let Some(space) = physics_data.spaces.get(&space) {
-            result.push(space.export_space_json().to_variant());
+            result.push(space.export_space_json().to_godot());
             result.push(
                 space
                     .export_world_json(&mut physics_data.physics_engine)
-                    .to_variant(),
+                    .to_godot(),
             );
         }
         result
@@ -63,12 +83,14 @@ impl RapierPhysicsServer {
 
     #[cfg(feature = "serde-serialize")]
     #[func]
-    fn space_export_binary(space: Rid) -> PackedByteArray {
+    fn space_export_binary(space: Rid) -> Array<PackedByteArray> {
         let physics_data = physics_data();
+        let mut result = Array::new();
         if let Some(space) = physics_data.spaces.get(&space) {
-            return space.export_space_binary();
+            result.push(space.export_space_binary());
+            result.push(space.export_world_binary(&mut physics_data.physics_engine));
         }
-        PackedByteArray::default()
+        result
     }
 
     #[func]
