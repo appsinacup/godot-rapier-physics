@@ -4,6 +4,7 @@ use joints::rapier_joint::IRapierJoint;
 use physics_server_2d::JointType;
 #[cfg(feature = "dim3")]
 use physics_server_3d::JointType;
+use unique_id::invalid_uid;
 
 use super::rapier_joint_base::RapierJointBase;
 use crate::rapier_wrapper::prelude::*;
@@ -25,7 +26,7 @@ impl RapierEmptyJoint {
         Self {
             base: RapierJointBase::new(
                 WorldHandle::default(),
-                Rid::Invalid,
+                invalid_uid(),
                 JointHandle::default(),
             ),
         }

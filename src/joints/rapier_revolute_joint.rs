@@ -53,7 +53,7 @@ impl RapierRevoluteJoint {
         let rapier_anchor_a = vector_to_rapier(anchor_a);
         let rapier_anchor_b = vector_to_rapier(anchor_b);
         let space_handle = body_a.get_base().get_space_handle();
-        let space_rid = body_a.get_base().get_space();
+        let space_uid = body_a.get_base().get_space_uid();
         let handle = physics_engine.joint_create_revolute(
             space_handle,
             body_a.get_base().get_body_handle(),
@@ -75,7 +75,7 @@ impl RapierRevoluteJoint {
             motor_target_velocity: 0.0,
             motor_enabled: false,
             angular_limit_enabled: false,
-            base: RapierJointBase::new(space_handle, space_rid, handle),
+            base: RapierJointBase::new(space_handle, space_uid, handle),
         }
     }
 

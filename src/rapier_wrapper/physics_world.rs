@@ -1,6 +1,5 @@
 use std::num::NonZeroUsize;
 
-use godot::global::godot_print;
 use rapier::crossbeam;
 use rapier::data::Arena;
 use rapier::data::Index;

@@ -45,7 +45,7 @@ impl RapierDampedSpringJoint2D {
         let rapier_anchor_b = body_b.get_base().get_inv_transform() * p_anchor_b;
         let rest_length = (p_anchor_a - p_anchor_b).length();
         let space_handle = body_a.get_base().get_space_handle();
-        let space_rid = body_a.get_base().get_space();
+        let space_uid = body_a.get_base().get_space_uid();
         let handle = physics_engine.joint_create_spring(
             space_handle,
             body_a.get_base().get_body_handle(),
@@ -63,7 +63,7 @@ impl RapierDampedSpringJoint2D {
             rest_length,
             stiffness: 20.0,
             damping: 1.0,
-            base: RapierJointBase::new(space_handle, space_rid, handle),
+            base: RapierJointBase::new(space_handle, space_uid, handle),
         }
     }
 

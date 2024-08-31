@@ -26,7 +26,7 @@ mod servers;
 mod shapes;
 mod spaces;
 mod types;
-mod rapier_id;
+mod unique_id;
 use godot::prelude::*;
 #[cfg(feature = "dim2")]
 #[derive(GodotClass)]

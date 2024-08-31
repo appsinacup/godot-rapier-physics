@@ -3,9 +3,9 @@ use hashbrown::HashMap;
 
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::rapier_wrapper::prelude::*;
-use crate::rapier_id::RapierID;
 use crate::servers::rapier_physics_singleton::PhysicsData;
 use crate::types::*;
+use crate::unique_id::get_rid;
 #[cfg_attr(
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
@@ -14,7 +14,7 @@ pub struct RapierShapeBase {
     #[cfg_attr(feature = "serde-serialize", serde(skip, default = "default_rid"))]
     rid: Rid,
     aabb: Rect,
-    owners: HashMap<RapierID, i32>,
+    owners: HashMap<usize, i32>,
     handle: ShapeHandle,
 }
 impl Default for RapierShapeBase {
@@ -59,20 +59,18 @@ impl RapierShapeBase {
     }
 
     pub fn call_shape_changed(
-        owners: HashMap<RapierID, i32>,
+        owners: HashMap<usize, i32>,
         shape_rid: Rid,
         physics_data: &mut PhysicsData,
     ) {
         for (owner, _) in owners {
-            if let Some(rid) = physics_data.rids.get(&owner) {
-                if let Some(owner) = physics_data.collision_objects.get_mut(rid) {
-                    owner.shape_changed(
-                        shape_rid,
-                        &mut physics_data.physics_engine,
-                        &mut physics_data.shapes,
-                        &mut physics_data.spaces,
-                    );
-                }
+            if let Some(owner) = physics_data.collision_objects.get_mut(get_rid(owner)) {
+                owner.shape_changed(
+                    shape_rid,
+                    &mut physics_data.physics_engine,
+                    &mut physics_data.shapes,
+                    &mut physics_data.spaces,
+                );
             }
         }
     }
@@ -83,11 +81,11 @@ impl RapierShapeBase {
         aabb_clone
     }
 
-    pub fn add_owner(&mut self, owner: RapierID) {
+    pub fn add_owner(&mut self, owner: usize) {
         *self.owners.entry(owner).or_insert(0) += 1;
     }
 
-    pub fn remove_owner(&mut self, owner: RapierID) {
+    pub fn remove_owner(&mut self, owner: usize) {
         if let Some(count) = self.owners.get_mut(&owner) {
             *count -= 1;
             if *count == 0 {
@@ -96,7 +94,7 @@ impl RapierShapeBase {
         }
     }
 
-    pub fn get_owners(&self) -> &HashMap<RapierID, i32> {
+    pub fn get_owners(&self) -> &HashMap<usize, i32> {
         &self.owners
     }
 

@@ -4,6 +4,7 @@ use bodies::rapier_collision_object_base::CollisionObjectType;
 use bodies::rapier_collision_object_base::RapierCollisionObjectBase;
 use godot::prelude::*;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
+use unique_id::invalid_uid;
 
 use super::rapier_space::RapierSpace;
 use crate::bodies::rapier_collision_object::*;
@@ -124,27 +125,32 @@ impl RapierSpace {
         let mut collider_handle1 = event_info.collider1;
         let mut collider_handle2 = event_info.collider2;
         let (mut rid1, mut rid2) = (Rid::Invalid, Rid::Invalid);
+        let (mut uid1, mut uid2) = (invalid_uid(), invalid_uid());
         let (mut instance_id1, mut instance_id2) = (0, 0);
         let (mut type1, mut type2) = (CollisionObjectType::Area, CollisionObjectType::Area);
         if let Some(removed_collider_info_1) = self.get_removed_collider_info(&collider_handle1) {
             rid1 = removed_collider_info_1.rid;
+            uid1 = removed_collider_info_1.uid;
             p_object1 = rid1;
             instance_id1 = removed_collider_info_1.instance_id;
             type1 = removed_collider_info_1.collision_object_type;
             shape1 = removed_collider_info_1.shape_index;
         } else if let Some(body) = physics_collision_objects.get(&p_object1) {
             rid1 = body.get_base().get_rid();
+            uid1 = body.get_base().get_uid();
             instance_id1 = body.get_base().get_instance_id();
             type1 = body.get_base().get_type();
         }
         if let Some(removed_collider_info_2) = self.get_removed_collider_info(&collider_handle2) {
             rid2 = removed_collider_info_2.rid;
+            uid2 = removed_collider_info_2.uid;
             p_object2 = rid2;
             instance_id2 = removed_collider_info_2.instance_id;
             type2 = removed_collider_info_2.collision_object_type;
             shape2 = removed_collider_info_2.shape_index;
         } else if let Some(body) = physics_collision_objects.get(&p_object2) {
             rid2 = body.get_base().get_rid();
+            uid2 = body.get_base().get_uid();
             instance_id2 = body.get_base().get_instance_id();
             type2 = body.get_base().get_type();
         }
@@ -163,6 +169,7 @@ impl RapierSpace {
                 swap(&mut shape1, &mut shape2);
                 swap(&mut collider_handle1, &mut collider_handle2);
                 swap(&mut rid1, &mut rid2);
+                swap(&mut uid1, &mut uid2);
                 swap(&mut instance_id1, &mut instance_id2);
             }
             let mut p_collision_object1 = None;
@@ -193,6 +200,7 @@ impl RapierSpace {
                                 &mut p_collision_object2,
                                 shape2,
                                 rid2,
+                                uid2,
                                 instance_id2,
                                 collider_handle1,
                                 shape1,
@@ -204,6 +212,7 @@ impl RapierSpace {
                                 &mut p_collision_object2,
                                 shape2,
                                 rid2,
+                                uid2,
                                 instance_id2,
                                 collider_handle1,
                                 shape1,
@@ -216,6 +225,7 @@ impl RapierSpace {
                             &mut p_collision_object2,
                             shape2,
                             rid2,
+                            uid2,
                             instance_id2,
                             collider_handle1,
                             shape1,
@@ -227,6 +237,7 @@ impl RapierSpace {
                             &mut p_collision_object2,
                             shape2,
                             rid2,
+                            uid2,
                             instance_id2,
                             collider_handle1,
                             shape1,
@@ -245,6 +256,7 @@ impl RapierSpace {
                                 &mut p_collision_object1,
                                 shape1,
                                 rid1,
+                                uid1,
                                 instance_id1,
                                 collider_handle2,
                                 shape2,
@@ -257,6 +269,7 @@ impl RapierSpace {
                                 &mut p_collision_object1,
                                 shape1,
                                 rid1,
+                                uid1,
                                 instance_id1,
                                 collider_handle2,
                                 shape2,
@@ -270,6 +283,7 @@ impl RapierSpace {
                                 &mut p_collision_object1,
                                 shape1,
                                 rid1,
+                                uid1,
                                 instance_id1,
                                 collider_handle2,
                                 shape2,
@@ -282,6 +296,7 @@ impl RapierSpace {
                                 &mut p_collision_object1,
                                 shape1,
                                 rid1,
+                                uid1,
                                 instance_id1,
                                 collider_handle2,
                                 shape2,

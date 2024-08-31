@@ -48,7 +48,7 @@ impl RapierGrooveJoint2D {
         let anchor_b = base_b.get_inv_transform() * p_b_anchor;
         let rapier_anchor_b = vector_to_rapier(anchor_b);
         let space_handle = body_a.get_base().get_space_handle();
-        let space_rid = body_a.get_base().get_space();
+        let space_uid = body_a.get_base().get_space_uid();
         let handle = physics_engine.joint_create_prismatic(
             space_handle,
             body_a.get_base().get_body_handle(),
@@ -62,7 +62,7 @@ impl RapierGrooveJoint2D {
             true,
         );
         Self {
-            base: RapierJointBase::new(space_handle, space_rid, handle),
+            base: RapierJointBase::new(space_handle, space_uid, handle),
         }
     }
 }

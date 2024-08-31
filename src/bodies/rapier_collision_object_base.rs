@@ -6,11 +6,13 @@ use godot::classes::ProjectSettings;
 use godot::prelude::*;
 use rapier::dynamics::RigidBodyHandle;
 use rapier::geometry::ColliderHandle;
-use rapier_id::RapierID;
 use servers::rapier_physics_singleton::PhysicsShapes;
 use servers::rapier_physics_singleton::PhysicsSpaces;
 use servers::rapier_project_settings::RapierProjectSettings;
 use shapes::rapier_shape::IRapierShape;
+use unique_id::get_rid;
+use unique_id::invalid_uid;
+use unique_id::new_uid;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::types::*;
@@ -74,13 +76,12 @@ pub struct RapierCollisionObjectBase {
     collision_object_type: CollisionObjectType,
     #[cfg_attr(feature = "serde-serialize", serde(skip, default = "default_rid"))]
     rid: Rid,
-    rrid: RapierID,
+    uid: usize,
     instance_id: u64,
     canvas_instance_id: u64,
     pickable: bool,
     pub(crate) shapes: Vec<CollisionObjectShape>,
-    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "default_rid"))]
-    space: Rid,
+    space: usize,
     transform: Transform,
     inv_transform: Transform,
     collision_mask: u32,
@@ -128,11 +129,12 @@ impl RapierCollisionObjectBase {
             user_flags: 0,
             collision_object_type,
             rid,
+            uid: new_uid(),
             instance_id: 0,
             canvas_instance_id: 0,
             pickable: true,
             shapes: Vec::new(),
-            space: Rid::Invalid,
+            space: 0,
             transform: Transform::IDENTITY,
             inv_transform: Transform::IDENTITY,
             collision_mask: 1,
@@ -210,7 +212,7 @@ impl RapierCollisionObjectBase {
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
     ) {
-        if let Some(space) = physics_spaces.get_mut(&self.space) {
+        if let Some(space) = physics_spaces.get_mut(&self.get_space()) {
             for (i, shape) in self.shapes.iter_mut().enumerate() {
                 if shape.collider_handle == ColliderHandle::invalid() {
                     // skip
@@ -220,6 +222,7 @@ impl RapierCollisionObjectBase {
                 space.add_removed_collider(
                     shape.collider_handle,
                     self.rid,
+                    self.uid,
                     self.instance_id,
                     i,
                     self.collision_object_type,
@@ -238,11 +241,12 @@ impl RapierCollisionObjectBase {
         physics_engine: &mut PhysicsEngine,
     ) -> ColliderHandle {
         if shape.collider_handle != ColliderHandle::invalid() {
-            if let Some(space) = physics_spaces.get_mut(&self.space) {
+            if let Some(space) = physics_spaces.get_mut(&self.get_space()) {
                 // Keep track of body information for delayed removal
                 space.add_removed_collider(
                     shape.collider_handle,
                     self.rid,
+                    self.uid,
                     self.instance_id,
                     p_shape_index,
                     self.get_type(),
@@ -310,17 +314,17 @@ impl RapierCollisionObjectBase {
             }
             self.destroy_shapes(physics_engine, physics_spaces);
             // Reset area detection counter to keep it consistent for new detections
-            if let Some(space) = physics_spaces.get_mut(&self.space) {
+            if let Some(space) = physics_spaces.get_mut(&self.get_space()) {
                 space.reset_space_if_empty(physics_engine);
             }
         }
-        self.space = p_space;
-        if let Some(space) = physics_spaces.get_mut(&self.space) {
+        if let Some(space) = physics_spaces.get_mut(&p_space) {
             self.space_handle = space.get_handle();
             self.is_debugging_contacts = space.is_debugging_contacts();
+            self.space = space.get_uid();
         } else {
             self.space_handle = WorldHandle::default();
-            self.space = Rid::Invalid;
+            self.space = invalid_uid();
             return;
         }
         let user_data = UserData {
@@ -385,8 +389,8 @@ impl RapierCollisionObjectBase {
         self.rid
     }
 
-    pub fn get_rrid(&self) -> RapierID {
-        self.rrid
+    pub fn get_uid(&self) -> usize {
+        self.uid
     }
 
     pub fn set_instance_id(&mut self, p_instance_id: u64) {
@@ -474,6 +478,10 @@ impl RapierCollisionObjectBase {
     }
 
     pub fn get_space(&self) -> Rid {
+        *get_rid(self.space)
+    }
+
+    pub fn get_space_uid(&self) -> usize {
         self.space
     }
 

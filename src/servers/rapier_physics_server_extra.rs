@@ -52,7 +52,11 @@ impl RapierPhysicsServer {
         let mut result = Array::new();
         if let Some(space) = physics_data.spaces.get(&space) {
             result.push(space.export_space_json().to_variant());
-            result.push(space.export_world_json(&mut physics_data.physics_engine).to_variant());
+            result.push(
+                space
+                    .export_world_json(&mut physics_data.physics_engine)
+                    .to_variant(),
+            );
         }
         result
     }
