@@ -1,5 +1,5 @@
 use crate::rapier_wrapper::prelude::*;
-use crate::types::invalid_rid;
+use crate::types::default_rid;
 use crate::*;
 #[cfg_attr(
     feature = "serde-serialize",
@@ -9,7 +9,7 @@ pub struct RapierJointBase {
     max_force: f32,
     handle: JointHandle,
     space_handle: WorldHandle,
-    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "invalid_rid"))]
+    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "default_rid"))]
     space_rid: Rid,
     disabled_collisions_between_bodies: bool,
 }

@@ -47,101 +47,24 @@ impl RapierPhysicsServer {
 
     #[cfg(feature = "serde-serialize")]
     #[func]
-    fn joints_export_json() -> String {
+    fn space_export_json(space: Rid) -> Array<Variant> {
         let physics_data = physics_data();
-        let values = physics_data.joints.values().clone().collect::<Vec<_>>();
-        match serde_json::to_string_pretty(&values) {
-            Ok(s) => s,
-            Err(err) => {
-                godot_error!("{}", err);
-                "{}".to_string()
-            }
+        let mut result = Array::new();
+        if let Some(space) = physics_data.spaces.get(&space) {
+            result.push(space.export_space_json().to_variant());
+            result.push(space.export_world_json(&mut physics_data.physics_engine).to_variant());
         }
+        result
     }
 
     #[cfg(feature = "serde-serialize")]
     #[func]
-    fn joint_export_json(joint: Rid) -> String {
-        let physics_data = physics_data();
-        if let Some(joint) = physics_data.joints.get(&joint) {
-            match serde_json::to_string_pretty(&joint) {
-                Ok(s) => {
-                    return s;
-                }
-                Err(err) => {
-                    godot_error!("{}", err);
-                    return "{}".to_string();
-                }
-            }
-        }
-        "{}".to_string()
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    #[func]
-    fn shapes_export_json() -> String {
-        let physics_data = physics_data();
-        let values = physics_data.shapes.values().clone().collect::<Vec<_>>();
-        match serde_json::to_string_pretty(&values) {
-            Ok(s) => s,
-            Err(err) => {
-                godot_error!("{}", err);
-                "{}".to_string()
-            }
-        }
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    #[func]
-    fn shape_export_json(shape: Rid) -> String {
-        let physics_data = physics_data();
-        if let Some(shape) = physics_data.shapes.get(&shape) {
-            match serde_json::to_string_pretty(&shape) {
-                Ok(s) => {
-                    return s;
-                }
-                Err(err) => {
-                    godot_error!("{}", err);
-                    return "{}".to_string();
-                }
-            }
-        }
-        "{}".to_string()
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    #[func]
-    fn space_export_json(space: Rid) -> String {
+    fn space_export_binary(space: Rid) -> PackedByteArray {
         let physics_data = physics_data();
         if let Some(space) = physics_data.spaces.get(&space) {
-            return space.export_json(&mut physics_data.physics_engine);
+            return space.export_space_binary();
         }
-        "{}".to_string()
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    #[func]
-    fn collision_objects_export_json() -> String {
-        let physics_data = physics_data();
-        let _values = physics_data
-            .collision_objects
-            .values()
-            .clone()
-            .collect::<Vec<_>>();
-        //match serde_json::to_string_pretty(&values) {
-        //    Ok(s) => s,
-        //    Err(err) => {
-        //        godot_error!("{}", err);
-        //        "{}".to_string()
-        //    }
-        //}
-        "{}".to_string()
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    #[func]
-    fn collision_object_export_json(_collision_object: Rid) -> String {
-        "{}".to_string()
+        PackedByteArray::default()
     }
 
     #[func]

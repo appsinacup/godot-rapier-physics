@@ -18,18 +18,6 @@ impl RapierDirectSpaceState2D {
     }
 }
 #[godot_api]
-impl RapierDirectSpaceState2D {
-    #[cfg(feature = "serde-serialize")]
-    #[func]
-    pub fn export_json(&mut self) -> String {
-        let physics_data = physics_data();
-        let Some(space) = physics_data.spaces.get(&self.space) else {
-            return "{}".to_string();
-        };
-        space.export_json(&mut physics_data.physics_engine)
-    }
-}
-#[godot_api]
 impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
     #[no_mangle]
     fn init(base: Base<PhysicsDirectSpaceState2DExtension>) -> Self {

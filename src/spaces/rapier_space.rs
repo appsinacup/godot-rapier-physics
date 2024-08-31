@@ -20,15 +20,18 @@ use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_project_settings::*;
 use crate::types::*;
 use crate::*;
-#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
-pub struct SpaceExport<'a> {
-    pub inner: &'a PhysicsObjects,
-    pub space: &'a RapierSpace,
+#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize, serde::Deserialize))]
+pub struct SpaceExport {
+    pub inner: PhysicsObjects,
+    pub space: RapierSpace,
 }
 #[derive(Debug, PartialEq, Clone, Copy)]
-#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct RemovedColliderInfo {
-    #[cfg_attr(feature = "serde-serialize", serde(skip))]
+    #[cfg_attr(feature = "serde-serialize", serde(skip, default="default_rid"))]
     pub rid: Rid,
     pub instance_id: u64,
     pub shape_index: usize,
@@ -516,10 +519,20 @@ impl RapierSpace {
     }
 
     #[cfg(feature = "serde-serialize")]
-    pub fn export_json(&self, physics_engine: &mut PhysicsEngine) -> String {
+    pub fn export_space_json(&self) -> String {
+        match serde_json::to_string_pretty(self) {
+            Ok(s) => return s,
+            Err(e) => {
+                godot_error!("Failed to serialize space: {}", e);
+            }
+        }
+        "{}".to_string()
+    }
+
+    #[cfg(feature = "serde-serialize")]
+    pub fn export_world_json(&self, physics_engine: &mut PhysicsEngine) -> String {
         if let Some(inner) = physics_engine.world_export(self.handle) {
-            let space_export = SpaceExport { inner, space: self };
-            match serde_json::to_string_pretty(&space_export) {
+            match serde_json::to_string_pretty(inner) {
                 Ok(s) => return s,
                 Err(e) => {
                     godot_error!("Failed to serialize space: {}", e);
@@ -530,11 +543,27 @@ impl RapierSpace {
     }
 
     #[cfg(feature = "serde-serialize")]
-    pub fn export_binary(&self, physics_engine: &mut PhysicsEngine) -> PackedByteArray {
+    pub fn export_space_binary(&self) -> PackedByteArray {
+        let mut buf = PackedByteArray::new();
+        match bincode::serialize(self) {
+            Ok(binary_data) => {
+                buf.resize(binary_data.len());
+                for i in 0..binary_data.len() {
+                    buf[i] = binary_data[i];
+                }
+            }
+            Err(e) => {
+                godot_error!("Failed to serialize space: {}", e);
+            }
+        }
+        buf
+    }
+
+    #[cfg(feature = "serde-serialize")]
+    pub fn export_world_binary(&self, physics_engine: &mut PhysicsEngine) -> PackedByteArray {
         let mut buf = PackedByteArray::new();
         if let Some(inner) = physics_engine.world_export(self.handle) {
-            let space_export = SpaceExport { inner, space: self };
-            match bincode::serialize(&space_export) {
+            match bincode::serialize(inner) {
                 Ok(binary_data) => {
                     buf.resize(binary_data.len());
                     for i in 0..binary_data.len() {
@@ -542,7 +571,7 @@ impl RapierSpace {
                     }
                 }
                 Err(e) => {
-                    godot_error!("Failed to serialize space: {}", e);
+                    godot_error!("Failed to serialize world: {}", e);
                 }
             }
         }

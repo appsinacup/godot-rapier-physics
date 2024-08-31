@@ -27,7 +27,7 @@ use crate::*;
 )]
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 struct MonitorInfo {
-    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "invalid_rid"))]
+    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "default_rid"))]
     pub rid: Rid,
     pub instance_id: u64,
     pub object_shape_index: u32,

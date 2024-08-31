@@ -37,7 +37,7 @@ pub struct Contact {
     pub collider_pos: Vector,
     pub collider_shape: i32,
     pub collider_instance_id: u64,
-    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "invalid_rid"))]
+    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "default_rid"))]
     pub collider: Rid,
     pub local_velocity_at_pos: Vector,
     pub collider_velocity_at_pos: Vector,
@@ -85,7 +85,7 @@ pub struct ForceIntegrationCallbackData {
     derive(serde::Serialize, serde::Deserialize)
 )]
 pub struct RidWithPriority {
-    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "invalid_rid"))]
+    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "default_rid"))]
     pub rid: Rid,
     pub priority: i32,
 }

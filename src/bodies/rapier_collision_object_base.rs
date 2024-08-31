@@ -6,6 +6,7 @@ use godot::classes::ProjectSettings;
 use godot::prelude::*;
 use rapier::dynamics::RigidBodyHandle;
 use rapier::geometry::ColliderHandle;
+use rapier_id::RapierID;
 use servers::rapier_physics_singleton::PhysicsShapes;
 use servers::rapier_physics_singleton::PhysicsSpaces;
 use servers::rapier_project_settings::RapierProjectSettings;
@@ -42,7 +43,7 @@ pub enum CollisionObjectType {
 )]
 pub struct CollisionObjectShape {
     pub xform: Transform,
-    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "invalid_rid"))]
+    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "default_rid"))]
     pub shape: Rid,
     pub disabled: bool,
     pub one_way_collision: bool,
@@ -71,13 +72,14 @@ fn default_body_mode() -> BodyMode {
 pub struct RapierCollisionObjectBase {
     user_flags: u32,
     collision_object_type: CollisionObjectType,
-    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "invalid_rid"))]
+    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "default_rid"))]
     rid: Rid,
+    rrid: RapierID,
     instance_id: u64,
     canvas_instance_id: u64,
     pickable: bool,
     pub(crate) shapes: Vec<CollisionObjectShape>,
-    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "invalid_rid"))]
+    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "default_rid"))]
     space: Rid,
     transform: Transform,
     inv_transform: Transform,
@@ -381,6 +383,10 @@ impl RapierCollisionObjectBase {
 
     pub fn get_rid(&self) -> Rid {
         self.rid
+    }
+
+    pub fn get_rrid(&self) -> RapierID {
+        self.rrid
     }
 
     pub fn set_instance_id(&mut self, p_instance_id: u64) {

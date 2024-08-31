@@ -4,12 +4,14 @@ use hashbrown::HashMap;
 use crate::bodies::rapier_collision_object::RapierCollisionObject;
 use crate::fluids::rapier_fluid::RapierFluid;
 use crate::joints::rapier_joint::RapierJoint;
+use crate::rapier_id::RapierID;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::RapierShape;
 use crate::spaces::rapier_space::RapierSpace;
 pub type PhysicsShapes = HashMap<Rid, RapierShape>;
 pub type PhysicsSpaces = HashMap<Rid, RapierSpace>;
 pub type PhysicsActiveSpaces = HashMap<WorldHandle, Rid>;
+pub type PhysicsRids = HashMap<RapierID, Rid>;
 pub type PhysicsCollisionObjects = HashMap<Rid, RapierCollisionObject>;
 pub type PhysicsJoints = HashMap<Rid, RapierJoint>;
 pub type PhysicsFluids = HashMap<Rid, RapierFluid>;
@@ -22,6 +24,7 @@ pub struct PhysicsData {
     pub joints: PhysicsJoints,
     pub fluids: PhysicsFluids,
     pub physics_engine: PhysicsEngine,
+    pub rids: PhysicsRids,
 }
 pub fn physics_data() -> &'static mut PhysicsData {
     static mut SINGLETON: Option<PhysicsData> = None;
@@ -35,6 +38,7 @@ pub fn physics_data() -> &'static mut PhysicsData {
                 joints: HashMap::default(),
                 fluids: HashMap::default(),
                 physics_engine: PhysicsEngine::default(),
+                rids: HashMap::default(),
             });
         }
         SINGLETON.as_mut().unwrap()

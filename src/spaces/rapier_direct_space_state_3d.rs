@@ -18,19 +18,6 @@ impl RapierDirectSpaceState3D {
     }
 }
 #[godot_api]
-impl RapierDirectSpaceState3D {
-    #[cfg(feature = "serde-serialize")]
-    #[func]
-    pub fn export_json(&mut self) -> String {
-        use crate::servers::rapier_physics_singleton::physics_data;
-        let physics_data = physics_data();
-        let Some(space) = physics_data.spaces.get(&self.space) else {
-            return "{}".to_string();
-        };
-        space.export_json(&mut physics_data.physics_engine)
-    }
-}
-#[godot_api]
 impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
     fn init(base: Base<PhysicsDirectSpaceState3DExtension>) -> Self {
         Self {

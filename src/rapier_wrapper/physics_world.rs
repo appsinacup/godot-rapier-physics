@@ -495,6 +495,10 @@ impl PhysicsEngine {
         self.physics_worlds.get_mut(world_handle)
     }
 
+    pub fn set_world(&mut self, world_handle: WorldHandle, world: PhysicsWorld) {
+        self.physics_worlds[world_handle] = world;
+    }
+
     pub fn get_world(&self, world_handle: WorldHandle) -> Option<&PhysicsWorld> {
         self.physics_worlds.get(world_handle)
     }
@@ -548,17 +552,6 @@ impl PhysicsEngine {
         }
     }
 
-    pub fn print_stats(&mut self, world_handle: WorldHandle) {
-        if let Some(physics_world) = self.get_mut_world(world_handle) {
-            godot_print!(
-                "{} {} {}",
-                physics_world.physics_objects.collider_set.len(),
-                physics_world.physics_objects.rigid_body_set.len(),
-                self.shapes.len(),
-            );
-        }
-    }
-
     pub fn world_get_active_objects_count(&mut self, world_handle: WorldHandle) -> usize {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             return physics_world
@@ -571,6 +564,13 @@ impl PhysicsEngine {
     }
 
     pub fn world_export(&mut self, world_handle: WorldHandle) -> Option<&PhysicsObjects> {
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
+            return Some(&physics_world.physics_objects);
+        }
+        None
+    }
+
+    pub fn world_import(&mut self, world_handle: WorldHandle) -> Option<&PhysicsObjects> {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             return Some(&physics_world.physics_objects);
         }

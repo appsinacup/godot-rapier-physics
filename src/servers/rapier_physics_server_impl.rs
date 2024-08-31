@@ -2159,13 +2159,15 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(mut shape) = physics_data.shapes.remove(&rid) {
             for (owner, _) in shape.get_base().get_owners() {
-                if let Some(body) = physics_data.collision_objects.get_mut(owner) {
-                    body.remove_shape_rid(
-                        shape.get_base().get_rid(),
-                        &mut physics_data.physics_engine,
-                        &mut physics_data.spaces,
-                        &mut physics_data.shapes,
-                    );
+                if let Some(rid) = physics_data.rids.get(owner) {
+                    if let Some(body) = physics_data.collision_objects.get_mut(rid) {
+                        body.remove_shape_rid(
+                            shape.get_base().get_rid(),
+                            &mut physics_data.physics_engine,
+                            &mut physics_data.spaces,
+                            &mut physics_data.shapes,
+                        );
+                    }
                 }
             }
             shape
