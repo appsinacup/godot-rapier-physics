@@ -95,7 +95,6 @@ pub struct RapierSpace {
     active_objects: i32,
     collision_pairs: i32,
     time_stepped: f32,
-    // todo when serialize is impl for this
     #[cfg_attr(feature = "serde-serialize", serde(skip))]
     contact_debug: PackedVectorArray,
     contact_debug_count: usize,
