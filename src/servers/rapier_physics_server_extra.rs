@@ -45,26 +45,6 @@ impl RapierPhysicsServer {
         0.0.to_variant()
     }
 
-    fn joint_export_json(joints: Array<Rid>) -> Array<GString> {
-        let physics_data = physics_data();
-        // take values where Rid matches joints rid
-        let values = physics_data.joints.values().clone().filter(|joint| joints.contains(&joint.rid())).collect::<Vec<_>>();
-        let values = physics_data.joints.values().clone().collect::<Vec<_>>();
-        match serde_json::to_string_pretty(&values) {
-            Ok(s) => s,
-            Err(err) => {
-                godot_error!("{}", err);
-                "{}".to_string()
-            }
-        }
-        let physics_data = physics_data();
-        let mut result = Array::new();
-        if let Some(joint) = physics_data.joints.get(&joint) {
-            result.push(joint.export_json().to_godot());
-        }
-        result
-    }
-
     #[cfg(feature = "serde-serialize")]
     #[func]
     fn space_export_json(space: Rid) -> Array<GString> {
