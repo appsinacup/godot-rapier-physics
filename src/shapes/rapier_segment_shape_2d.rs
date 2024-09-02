@@ -4,10 +4,6 @@ use godot::prelude::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
-#[cfg_attr(
-    feature = "serde-serialize",
-    derive(serde::Serialize, serde::Deserialize)
-)]
 pub struct RapierSegmentShape2D {
     a: Vector2,
     b: Vector2,

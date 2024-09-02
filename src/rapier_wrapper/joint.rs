@@ -206,6 +206,7 @@ impl PhysicsEngine {
     }
 
     #[allow(clippy::too_many_arguments)]
+    #[cfg(feature = "dim2")]
     pub fn joint_create_prismatic(
         &mut self,
         world_handle: WorldHandle,
@@ -239,6 +240,7 @@ impl PhysicsEngine {
     }
 
     #[allow(clippy::too_many_arguments)]
+    #[cfg(feature = "dim2")]
     pub fn joint_create_spring(
         &mut self,
         world_handle: WorldHandle,
@@ -271,6 +273,7 @@ impl PhysicsEngine {
         JointHandle::default()
     }
 
+    #[cfg(feature = "dim2")]
     pub fn joint_change_spring_params(
         &mut self,
         world_handle: WorldHandle,

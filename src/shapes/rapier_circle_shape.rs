@@ -8,10 +8,6 @@ use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::*;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 use crate::types::*;
-#[cfg_attr(
-    feature = "serde-serialize",
-    derive(serde::Serialize, serde::Deserialize)
-)]
 pub struct RapierCircleShape {
     radius: real,
     base: RapierShapeBase,

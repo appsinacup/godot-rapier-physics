@@ -7,10 +7,6 @@ use godot::prelude::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::*;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
-#[cfg_attr(
-    feature = "serde-serialize",
-    derive(serde::Serialize, serde::Deserialize)
-)]
 pub struct RapierCapsuleShape {
     height: f32,
     radius: f32,

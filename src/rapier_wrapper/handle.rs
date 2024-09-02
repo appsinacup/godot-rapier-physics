@@ -7,8 +7,8 @@ use salva::object::FluidHandle;
     derive(serde::Serialize, serde::Deserialize)
 )]
 pub struct HandleDouble {
-    id: usize,
-    generation: u64,
+    pub id: usize,
+    pub generation: u64,
 }
 impl Default for HandleDouble {
     fn default() -> HandleDouble {

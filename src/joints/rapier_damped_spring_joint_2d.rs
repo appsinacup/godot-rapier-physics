@@ -3,13 +3,10 @@ use godot::prelude::*;
 
 use super::rapier_joint_base::RapierJointBase;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
+use crate::bodies::rapier_collision_object::RapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
 use crate::types::*;
-#[cfg_attr(
-    feature = "serde-serialize",
-    derive(serde::Serialize, serde::Deserialize)
-)]
 pub struct RapierDampedSpringJoint2D {
     rest_length: real,
     stiffness: real,
@@ -20,8 +17,8 @@ impl RapierDampedSpringJoint2D {
     pub fn new(
         p_anchor_a: Vector,
         p_anchor_b: Vector,
-        body_a: &dyn IRapierCollisionObject,
-        body_b: &dyn IRapierCollisionObject,
+        body_a: &RapierCollisionObject,
+        body_b: &RapierCollisionObject,
         physics_engine: &mut PhysicsEngine,
     ) -> Self {
         let invalid_joint = Self {
@@ -45,7 +42,6 @@ impl RapierDampedSpringJoint2D {
         let rapier_anchor_b = body_b.get_base().get_inv_transform() * p_anchor_b;
         let rest_length = (p_anchor_a - p_anchor_b).length();
         let space_handle = body_a.get_base().get_space_handle();
-        let space_uid = body_a.get_base().get_space_uid();
         let handle = physics_engine.joint_create_spring(
             space_handle,
             body_a.get_base().get_body_handle(),
@@ -63,7 +59,7 @@ impl RapierDampedSpringJoint2D {
             rest_length,
             stiffness: 20.0,
             damping: 1.0,
-            base: RapierJointBase::new(space_handle, space_uid, handle),
+            base: RapierJointBase::new(space_handle, handle),
         }
     }
 

@@ -20,10 +20,6 @@ use super::rapier_slider_joint_3d::RapierSliderJoint3D;
 #[cfg(feature = "dim3")]
 use super::rapier_spherical_joint_3d::RapierSphericalJoint3D;
 use crate::*;
-#[cfg_attr(
-    feature = "serde-serialize",
-    derive(serde::Serialize, serde::Deserialize)
-)]
 pub enum RapierJoint {
     #[cfg(feature = "dim2")]
     RapierDampedSpringJoint2D(RapierDampedSpringJoint2D),

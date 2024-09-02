@@ -29,10 +29,6 @@ pub trait IRapierShape {
     fn get_data(&self) -> Variant;
     fn get_handle(&self) -> ShapeHandle;
 }
-#[cfg_attr(
-    feature = "serde-serialize",
-    derive(serde::Serialize, serde::Deserialize)
-)]
 pub enum RapierShape {
     RapierCapsuleShape(RapierCapsuleShape),
     RapierCircleShape(RapierCircleShape),

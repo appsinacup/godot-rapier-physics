@@ -251,4 +251,35 @@ impl RapierPhysicsServer {
             .implementation
             .space_flush_queries(&space);
     }
+
+    #[func]
+    fn get_handle(rid: Rid) -> Array<i64> {
+        let mut array = Array::new();
+        array.resize(2, &0);
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return array;
+        };
+        let handle = physics_singleton
+            .bind_mut()
+            .implementation
+            .get_handle(rid);
+        array.set(0, handle.0 as i64);
+        array.set(1, handle.1 as i64);
+        return array;
+    }
+
+    #[func]
+    fn set_handle(rid: Rid, handle: i64) {
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return;
+        };
+        return physics_singleton
+            .bind_mut()
+            .implementation
+            .set_handle(rid, handle);
+    }
 }

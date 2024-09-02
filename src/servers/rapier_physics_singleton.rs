@@ -1,5 +1,7 @@
 use godot::prelude::*;
 use hashbrown::HashMap;
+use rapier::data::Index;
+use rapier::prelude::RigidBodyHandle;
 
 use crate::bodies::rapier_collision_object::RapierCollisionObject;
 use crate::fluids::rapier_fluid::RapierFluid;
@@ -10,7 +12,7 @@ use crate::spaces::rapier_space::RapierSpace;
 pub type PhysicsShapes = HashMap<Rid, RapierShape>;
 pub type PhysicsSpaces = HashMap<Rid, RapierSpace>;
 pub type PhysicsActiveSpaces = HashMap<WorldHandle, Rid>;
-pub type PhysicsRids = HashMap<usize, Rid>;
+pub type PhysicsRids = HashMap<Index, Rid>;
 pub type PhysicsCollisionObjects = HashMap<Rid, RapierCollisionObject>;
 pub type PhysicsJoints = HashMap<Rid, RapierJoint>;
 pub type PhysicsFluids = HashMap<Rid, RapierFluid>;
@@ -42,4 +44,8 @@ pub fn physics_data() -> &'static mut PhysicsData {
         }
         SINGLETON.as_mut().unwrap()
     }
+}
+pub fn get_rid(handle: Index) -> &'static Rid {
+    let physics_data = physics_data();
+    return physics_data.rids.get(&handle).unwrap_or(&Rid::Invalid);
 }

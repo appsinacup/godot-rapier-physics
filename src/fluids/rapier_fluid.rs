@@ -1,6 +1,7 @@
 use std::collections::VecDeque;
 
 use godot::prelude::*;
+use salva::object::FluidHandle;
 
 use super::types::*;
 use crate::rapier_wrapper::prelude::*;
@@ -275,5 +276,9 @@ impl RapierFluid {
             self.fluid_handle = invalid_handle_double();
             self.space_handle = WorldHandle::default()
         }
+    }
+
+    pub fn get_handle(&self) -> HandleDouble {
+        self.fluid_handle
     }
 }

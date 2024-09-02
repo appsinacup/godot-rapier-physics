@@ -8,13 +8,7 @@ use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 use crate::types::*;
-#[cfg_attr(
-    feature = "serde-serialize",
-    derive(serde::Serialize, serde::Deserialize)
-)]
 pub struct RapierHeightMapShape3D {
-    // TODO serialize this
-    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     heights: PackedFloatArray,
     width: i32,
     depth: i32,

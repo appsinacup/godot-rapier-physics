@@ -1,30 +1,24 @@
-use unique_id::get_rid;
+use servers::rapier_physics_singleton::get_rid;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::*;
-#[cfg_attr(
-    feature = "serde-serialize",
-    derive(serde::Serialize, serde::Deserialize)
-)]
 pub struct RapierJointBase {
     max_force: f32,
     handle: JointHandle,
     space_handle: WorldHandle,
-    space_uid: usize,
     disabled_collisions_between_bodies: bool,
 }
 impl Default for RapierJointBase {
     fn default() -> Self {
-        Self::new(WorldHandle::default(), 0, JointHandle::default())
+        Self::new(WorldHandle::default(), JointHandle::default())
     }
 }
 impl RapierJointBase {
-    pub fn new(space_handle: WorldHandle, space_uid: usize, handle: JointHandle) -> Self {
+    pub fn new(space_handle: WorldHandle, handle: JointHandle) -> Self {
         Self {
             max_force: f32::MAX,
             handle,
             space_handle,
-            space_uid,
             disabled_collisions_between_bodies: true,
         }
     }
@@ -38,7 +32,7 @@ impl RapierJointBase {
     }
 
     pub fn get_space(&self) -> Rid {
-        *get_rid(self.space_uid)
+        *get_rid(self.space_handle)
     }
 
     pub fn set_max_force(&mut self, force: f32) {

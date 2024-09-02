@@ -278,7 +278,7 @@ impl RapierSpace {
                                     if physics_engine.should_skip_collision_one_dir(
                                         &contact,
                                         body_shape,
-                                        collision_body,
+                                        shape_col_object,
                                         shape_index,
                                         &col_shape_transform,
                                         p_margin,
@@ -422,7 +422,7 @@ impl RapierSpace {
                                 if physics_engine.should_skip_collision_one_dir(
                                     &step_contact,
                                     body_shape,
-                                    collision_body,
+                                    shape_col_object,
                                     shape_index,
                                     &col_shape_transform,
                                     p_margin,
@@ -487,7 +487,7 @@ impl RapierSpace {
                                 if physics_engine.should_skip_collision_one_dir(
                                     &contact,
                                     body_shape,
-                                    collision_body,
+                                    shape_col_object,
                                     shape_index,
                                     &col_shape_transform,
                                     p_margin,
@@ -615,7 +615,7 @@ impl RapierSpace {
                                 if physics_engine.should_skip_collision_one_dir(
                                     &contact,
                                     body_shape_obj,
-                                    collision_body,
+                                    shape_col_object,
                                     shape_index,
                                     &col_shape_transform,
                                     p_margin,
@@ -725,7 +725,7 @@ impl PhysicsEngine {
         &self,
         contact: &ContactResult,
         body_shape: &RapierShape,
-        collision_body: &dyn IRapierCollisionObject,
+        collision_body: &RapierCollisionObject,
         shape_index: usize,
         col_shape_transform: &Transform,
         p_margin: f32,

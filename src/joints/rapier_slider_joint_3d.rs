@@ -6,10 +6,6 @@ use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::bodies::rapier_collision_object::RapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
-#[cfg_attr(
-    feature = "serde-serialize",
-    derive(serde::Serialize, serde::Deserialize)
-)]
 pub struct RapierSliderJoint3D {
     anchor_a: Vector3,
     anchor_b: Vector3,
@@ -42,7 +38,6 @@ impl RapierSliderJoint3D {
         let rapier_anchor_a = vector_to_rapier(anchor_a.origin);
         let rapier_anchor_b = vector_to_rapier(anchor_b.origin);
         let space_handle = body_a.get_base().get_space_handle();
-        let space_rid = body_a.get_base().get_space();
         let handle = physics_engine.joint_create_slider(
             space_handle,
             body_a.get_base().get_body_handle(),
@@ -56,7 +51,7 @@ impl RapierSliderJoint3D {
         Self {
             anchor_a: anchor_a.origin,
             anchor_b: anchor_b.origin,
-            base: RapierJointBase::new(space_handle, space_rid, handle),
+            base: RapierJointBase::new(space_handle, handle),
         }
     }
 }

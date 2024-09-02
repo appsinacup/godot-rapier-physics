@@ -6,13 +6,11 @@ use godot::classes::ProjectSettings;
 use godot::prelude::*;
 use rapier::dynamics::RigidBodyHandle;
 use rapier::geometry::ColliderHandle;
+use servers::rapier_physics_singleton::get_rid;
 use servers::rapier_physics_singleton::PhysicsShapes;
 use servers::rapier_physics_singleton::PhysicsSpaces;
 use servers::rapier_project_settings::RapierProjectSettings;
 use shapes::rapier_shape::IRapierShape;
-use unique_id::get_rid;
-use unique_id::invalid_uid;
-use unique_id::new_uid;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::types::*;
@@ -67,31 +65,20 @@ impl Default for CollisionObjectShape {
 fn default_body_mode() -> BodyMode {
     BodyMode::RIGID
 }
-#[cfg_attr(
-    feature = "serde-serialize",
-    derive(serde::Serialize, serde::Deserialize)
-)]
 pub struct RapierCollisionObjectBase {
+    #[cfg(feature = "dim3")]
     user_flags: u32,
     collision_object_type: CollisionObjectType,
-    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "default_rid"))]
     rid: Rid,
-    uid: usize,
     instance_id: u64,
     canvas_instance_id: u64,
     pickable: bool,
     pub(crate) shapes: Vec<CollisionObjectShape>,
-    space: usize,
     transform: Transform,
     inv_transform: Transform,
     collision_mask: u32,
     collision_layer: u32,
     pub(crate) is_debugging_contacts: bool,
-    // TODO serialize this
-    #[cfg_attr(
-        feature = "serde-serialize",
-        serde(skip, default = "default_body_mode")
-    )]
     pub(crate) mode: BodyMode,
     body_handle: RigidBodyHandle,
     space_handle: WorldHandle,
@@ -126,15 +113,14 @@ impl RapierCollisionObjectBase {
             .try_to()
             .unwrap_or_default();
         Self {
+            #[cfg(feature = "dim3")]
             user_flags: 0,
             collision_object_type,
             rid,
-            uid: new_uid(),
             instance_id: 0,
             canvas_instance_id: 0,
             pickable: true,
             shapes: Vec::new(),
-            space: 0,
             transform: Transform::IDENTITY,
             inv_transform: Transform::IDENTITY,
             collision_mask: 1,
@@ -222,7 +208,7 @@ impl RapierCollisionObjectBase {
                 space.add_removed_collider(
                     shape.collider_handle,
                     self.rid,
-                    self.uid,
+                    self.body_handle,
                     self.instance_id,
                     i,
                     self.collision_object_type,
@@ -246,7 +232,7 @@ impl RapierCollisionObjectBase {
                 space.add_removed_collider(
                     shape.collider_handle,
                     self.rid,
-                    self.uid,
+                    self.body_handle,
                     self.instance_id,
                     p_shape_index,
                     self.get_type(),
@@ -321,10 +307,8 @@ impl RapierCollisionObjectBase {
         if let Some(space) = physics_spaces.get_mut(&p_space) {
             self.space_handle = space.get_handle();
             self.is_debugging_contacts = space.is_debugging_contacts();
-            self.space = space.get_uid();
         } else {
             self.space_handle = WorldHandle::default();
-            self.space = invalid_uid();
             return;
         }
         let user_data = UserData {
@@ -387,10 +371,6 @@ impl RapierCollisionObjectBase {
 
     pub fn get_rid(&self) -> Rid {
         self.rid
-    }
-
-    pub fn get_uid(&self) -> usize {
-        self.uid
     }
 
     pub fn set_instance_id(&mut self, p_instance_id: u64) {
@@ -478,11 +458,7 @@ impl RapierCollisionObjectBase {
     }
 
     pub fn get_space(&self) -> Rid {
-        *get_rid(self.space)
-    }
-
-    pub fn get_space_uid(&self) -> usize {
-        self.space
+        *get_rid(self.space_handle)
     }
 
     pub fn is_shape_disabled(&self, idx: usize) -> bool {
@@ -557,10 +533,12 @@ impl RapierCollisionObjectBase {
         }
     }
 
+    #[cfg(feature = "dim3")]
     pub fn set_user_flags(&mut self, p_flags: u32) {
         self.user_flags = p_flags;
     }
 
+    #[cfg(feature = "dim3")]
     pub fn get_user_flags(&self) -> u32 {
         self.user_flags
     }
