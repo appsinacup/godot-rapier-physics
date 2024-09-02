@@ -30,6 +30,7 @@ use godot::prelude::*;
 #[cfg(feature = "dim2")]
 #[derive(GodotClass)]
 #[class(base=Object, init)]
+/// Used to register the Rapier 2D extension library.
 pub struct RapierPhysics2DExtensionLibrary {}
 #[cfg(feature = "dim2")]
 #[gdextension]
@@ -55,6 +56,7 @@ unsafe impl ExtensionLibrary for RapierPhysics2DExtensionLibrary {
 #[cfg(feature = "dim3")]
 #[derive(GodotClass)]
 #[class(base=Object, init)]
+/// Used to register the Rapier 3D extension library.
 pub struct RapierPhysics3DExtensionLibrary {}
 #[cfg(feature = "dim3")]
 #[gdextension]

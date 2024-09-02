@@ -21,6 +21,8 @@ impl From<i32> for RapierBodyParam {
 #[godot_api]
 impl RapierPhysicsServer {
     #[func]
+    /// Set an extra parameter for a body.
+    /// Right now only parameter available is 0, which is the contact skin.
     fn body_set_extra_param(body: Rid, param: i32, value: Variant) {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
@@ -35,6 +37,8 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Get an extra parameter for a body.
+    /// Right now only parameter available is 0, which is the contact skin.
     fn body_get_extra_param(body: Rid, param: i32) -> Variant {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get(&body) {
@@ -47,6 +51,7 @@ impl RapierPhysicsServer {
 
     #[cfg(feature = "serde-serialize")]
     #[func]
+    /// Exports the space to a JSON string. This is slower than the binary export.
     fn space_export_json(space: Rid) -> Array<GString> {
         let physics_data = physics_data();
         let mut result = Array::new();
@@ -63,6 +68,7 @@ impl RapierPhysicsServer {
 
     #[cfg(feature = "serde-serialize")]
     #[func]
+    /// Exports the space to a binary format.
     fn space_export_binary(space: Rid) -> Array<PackedByteArray> {
         let physics_data = physics_data();
         let mut result = Array::new();
@@ -74,6 +80,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Create a new fluid.
     pub(crate) fn fluid_create() -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
@@ -83,6 +90,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Set the space of the fluid.
     pub(crate) fn fluid_set_space(fluid_rid: Rid, space_rid: Rid) {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
@@ -95,6 +103,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Set the density of the fluid.
     pub(crate) fn fluid_set_density(fluid_rid: Rid, density: real) {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
@@ -103,6 +112,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Set the effects of the fluid.
     pub(crate) fn fluid_set_effects(fluid_rid: Rid, effects: Array<Option<Gd<Resource>>>) {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
@@ -111,6 +121,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Get the points of the fluid particles.
     pub(crate) fn fluid_get_points(fluid_rid: Rid) -> PackedVectorArray {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
@@ -124,6 +135,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Get the velocities of the fluid particles.
     pub(crate) fn fluid_get_velocities(fluid_rid: Rid) -> PackedVectorArray {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
@@ -137,6 +149,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Get the accelerations of the fluid particles.
     pub(crate) fn fluid_get_accelerations(fluid_rid: Rid) -> PackedVectorArray {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
@@ -150,6 +163,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Set the points of the fluid particles.
     pub(crate) fn fluid_set_points(fluid_rid: Rid, points: PackedVectorArray) {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
@@ -158,6 +172,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Set the velocities of the fluid particles.
     pub(crate) fn fluid_set_points_and_velocities(
         fluid_rid: Rid,
         points: PackedVectorArray,
@@ -174,6 +189,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Add the points to the fluid particles.
     pub(crate) fn fluid_add_points_and_velocities(
         fluid_rid: Rid,
         points: PackedVectorArray,
@@ -190,6 +206,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Delete the points of the fluid particles.
     pub(crate) fn fluid_delete_points(fluid_rid: Rid, indices: PackedInt32Array) {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
@@ -201,6 +218,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Get the active bodies in the space.
     fn space_get_active_bodies(space: Rid) -> Array<Rid> {
         let Ok(mut physics_singleton) =
             PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
@@ -214,6 +232,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Get the bodies transform in the space.
     fn space_get_bodies_transform(space: Rid, bodies: Array<Rid>) -> Array<Transform> {
         let Ok(mut physics_singleton) =
             PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
@@ -227,6 +246,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Step the space forward.
     fn space_step(space: Rid, delta: f32) {
         let Ok(mut physics_singleton) =
             PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
@@ -240,6 +260,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Flush the space queries. Used after space_step.
     fn space_flush_queries(space: Rid) {
         let Ok(mut physics_singleton) =
             PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
@@ -253,6 +274,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Get the handle of the object by rid. The handle can be saved and used when reloading the scene.
     fn get_handle(rid: Rid) -> Array<i64> {
         let mut array = Array::new();
         array.resize(2, &0);
@@ -261,16 +283,14 @@ impl RapierPhysicsServer {
         else {
             return array;
         };
-        let handle = physics_singleton
-            .bind_mut()
-            .implementation
-            .get_handle(rid);
+        let handle = physics_singleton.bind_mut().implementation.get_handle(rid);
         array.set(0, handle.0 as i64);
         array.set(1, handle.1 as i64);
-        return array;
+        array
     }
 
     #[func]
+    /// Set the handle of the object by rid.
     fn set_handle(rid: Rid, handle: i64) {
         let Ok(mut physics_singleton) =
             PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()

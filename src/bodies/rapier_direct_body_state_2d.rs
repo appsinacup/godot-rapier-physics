@@ -8,6 +8,8 @@ use crate::spaces::rapier_space::RapierSpace;
 use crate::types::*;
 #[derive(GodotClass)]
 #[class(base=PhysicsDirectBodyState2DExtension,tool)]
+/// The direct body state singleton implemented for Rapier Physics.
+/// For methods exposed see [PhysicsDirectBodyState2D].
 pub struct RapierDirectBodyState2D {
     implementation: RapierDirectBodyStateImpl,
     base: Base<PhysicsDirectBodyState2DExtension>,

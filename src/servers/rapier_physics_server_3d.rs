@@ -11,16 +11,20 @@ use super::rapier_physics_singleton::physics_data;
 use crate::types::*;
 #[derive(GodotClass, Default)]
 #[class(base=Object,init,tool)]
+/// Used to create the [RapierPhysicsServer3D] singleton. Do not use directly.
 pub struct RapierPhysicsServerFactory3D;
 #[godot_api]
 impl RapierPhysicsServerFactory3D {
     #[func]
+    /// Creates a new [RapierPhysicsServer3D] singleton. Do not use directly.
     fn create_server() -> Gd<RapierPhysicsServer3D> {
         RapierPhysicsServer3D::new_alloc()
     }
 }
 #[derive(GodotClass)]
 #[class(base=PhysicsServer3DExtension, tool)]
+/// The physics server singleton implemented for Rapier Physics. Adds new methods exposed by rapier.
+/// For documentation about the methods implemented from Godot, see [PhysicsServer3D].
 pub struct RapierPhysicsServer3D {
     pub implementation: RapierPhysicsServerImpl,
     base: Base<PhysicsServer3DExtension>,

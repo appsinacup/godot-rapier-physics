@@ -12,6 +12,6 @@ pub type RapierDirectSpaceState = rapier_direct_space_state_3d::RapierDirectSpac
 pub type PhysicsDirectSpaceState = godot::classes::PhysicsDirectSpaceState3D;
 pub mod rapier_direct_space_state_impl;
 pub mod rapier_space;
-pub mod rapier_space_state;
 pub mod rapier_space_body_helper;
 pub mod rapier_space_callbacks;
+pub mod rapier_space_state;

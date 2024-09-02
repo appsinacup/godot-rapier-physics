@@ -2324,27 +2324,26 @@ impl RapierPhysicsServerImpl {
 
     pub(super) fn get_handle(&self, rid: Rid) -> (u64, u64) {
         let physics_data = physics_data();
-        if let Some(mut shape) = physics_data.shapes.get_mut(&rid) {
+        if let Some(shape) = physics_data.shapes.get(&rid) {
             let parts = shape.get_base().get_handle().into_raw_parts();
             return (parts.0 as u64, parts.1 as u64);
-        } else if let Some(mut body) = physics_data.collision_objects.get_mut(&rid) {
+        } else if let Some(body) = physics_data.collision_objects.get(&rid) {
             let parts = body.get_base().get_body_handle().into_raw_parts();
             return (parts.0 as u64, parts.1 as u64);
-        } else if let Some(mut space) = physics_data.spaces.get_mut(&rid) {
+        } else if let Some(space) = physics_data.spaces.get(&rid) {
             let parts = space.get_handle().into_raw_parts();
             return (parts.0 as u64, parts.1 as u64);
-        } else if let Some(mut joint) = physics_data.joints.get_mut(&rid) {
+        } else if let Some(joint) = physics_data.joints.get(&rid) {
             let parts = joint.get_base().get_handle().index.into_raw_parts();
             return (parts.0 as u64, parts.1 as u64);
-        } else if let Some(mut fluid) = physics_data.fluids.get_mut(&rid) {
+        } else if let Some(fluid) = physics_data.fluids.get(&rid) {
             let parts = fluid.get_handle();
-            return (parts.generation, );
+            return (parts.id as u64, parts.generation);
         }
-        return 0;
+        (0, 0)
     }
 
-    pub(super) fn set_handle(&mut self, rid: Rid, handle: i64) {
-    }
+    pub(super) fn set_handle(&mut self, rid: Rid, handle: i64) {}
 }
 impl Drop for RapierPhysicsServerImpl {
     fn drop(&mut self) {

@@ -1,10 +1,11 @@
 use godot::builtin::Rid;
-use hashbrown::{HashMap, HashSet};
-use rapier::prelude::{ColliderHandle, RigidBodyHandle};
+use hashbrown::HashMap;
+use hashbrown::HashSet;
+use rapier::prelude::ColliderHandle;
+use rapier::prelude::RigidBodyHandle;
 
-use crate::types::*;
 use crate::bodies::rapier_collision_object_base::CollisionObjectType;
-
+use crate::types::*;
 impl RemovedColliderInfo {
     pub fn new(
         rid: Rid,

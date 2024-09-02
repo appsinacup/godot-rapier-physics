@@ -6,6 +6,8 @@ use crate::servers::rapier_physics_singleton::physics_data;
 use crate::types::*;
 #[derive(GodotClass)]
 #[class(base=PhysicsDirectSpaceState3DExtension,tool)]
+/// The physics direct space state singleton implemented for Rapier Physics.
+/// For methods exposed see [PhysicsDirectSpaceState3D].
 pub struct RapierDirectSpaceState3D {
     inner: RapierDirectSpaceStateImpl,
     space: Rid,

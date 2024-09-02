@@ -4,7 +4,8 @@ use rapier::prelude::RigidBodyHandle;
 
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::{get_rid, PhysicsData};
+use crate::servers::rapier_physics_singleton::get_rid;
+use crate::servers::rapier_physics_singleton::PhysicsData;
 use crate::types::*;
 pub struct RapierShapeBase {
     rid: Rid,

@@ -11,7 +11,6 @@ use godot::obj::EngineEnum;
 use godot::prelude::*;
 use hashbrown::HashMap;
 use rapier::geometry::ColliderHandle;
-use rapier::prelude::RigidBody;
 use rapier::prelude::RigidBodyHandle;
 use servers::rapier_physics_singleton::get_rid;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;

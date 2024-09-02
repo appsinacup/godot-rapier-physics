@@ -1,7 +1,6 @@
 use godot::prelude::*;
 use hashbrown::HashMap;
 use rapier::data::Index;
-use rapier::prelude::RigidBodyHandle;
 
 use crate::bodies::rapier_collision_object::RapierCollisionObject;
 use crate::fluids::rapier_fluid::RapierFluid;

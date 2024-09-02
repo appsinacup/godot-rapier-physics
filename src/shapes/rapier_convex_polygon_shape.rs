@@ -7,7 +7,9 @@ use godot::prelude::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
-use crate::types::{PackedFloatArray, PackedVectorArray};
+#[cfg(feature = "dim2")]
+use crate::types::PackedFloatArray;
+use crate::types::PackedVectorArray;
 pub struct RapierConvexPolygonShape {
     points: PackedVectorArray,
     base: RapierShapeBase,

@@ -155,7 +155,13 @@ impl RapierSpace {
     ) {
         self.state.removed_colliders.insert(
             handle,
-            RemovedColliderInfo::new(rid, rb_handle, instance_id, shape_index, collision_object_type),
+            RemovedColliderInfo::new(
+                rid,
+                rb_handle,
+                instance_id,
+                shape_index,
+                collision_object_type,
+            ),
         );
     }
 
@@ -172,7 +178,8 @@ impl RapierSpace {
     ) -> Vec<(Callable, Vec<Variant>)> {
         let mut queries = Vec::default();
         for body_handle in self
-            .state.state_query_list
+            .state
+            .state_query_list
             .union(&self.state.force_integrate_query_list)
         {
             if let Some(body) = physics_data_collision_objects.get_mut(get_rid(body_handle.0)) {
@@ -404,7 +411,8 @@ impl RapierSpace {
     ) {
         // Needed only for one physics step to retrieve lost info
         self.state.removed_colliders.clear();
-        self.state.active_objects = physics_engine.world_get_active_objects_count(self.handle) as i32;
+        self.state.active_objects =
+            physics_engine.world_get_active_objects_count(self.handle) as i32;
         for body in self.state.active_list.clone() {
             if let Some(body) = physics_collision_objects.get_mut(get_rid(body.0)) {
                 if let Some(body) = body.get_mut_body() {

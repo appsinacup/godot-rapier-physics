@@ -19,10 +19,7 @@ impl Default for RapierEmptyJoint {
 impl RapierEmptyJoint {
     pub fn new() -> Self {
         Self {
-            base: RapierJointBase::new(
-                WorldHandle::default(),
-                JointHandle::default(),
-            ),
+            base: RapierJointBase::new(WorldHandle::default(), JointHandle::default()),
         }
     }
 }

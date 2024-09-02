@@ -230,7 +230,7 @@ checksum = "779ae4bf7e8421cf91c0b3b64e7e8b40b862fba4d393f59150042de7c4965a94"
 [[package]]
 name = "godot"
 version = "0.1.3"
-source = "git+https://github.com/godot-rust/gdext?branch=master#7634fe769d1fcb66209586f0b6c06aac40978253"
+source = "git+https://github.com/godot-rust/gdext?branch=master#32fb7f348329949a7064434e6e19c86b2619e99e"
 dependencies = [
  "godot-core",
  "godot-macros",
@@ -239,7 +239,7 @@ dependencies = [
 [[package]]
 name = "godot-bindings"
 version = "0.1.3"
-source = "git+https://github.com/godot-rust/gdext?branch=master#7634fe769d1fcb66209586f0b6c06aac40978253"
+source = "git+https://github.com/godot-rust/gdext?branch=master#32fb7f348329949a7064434e6e19c86b2619e99e"
 dependencies = [
  "gdextension-api",
 ]
@@ -247,12 +247,12 @@ dependencies = [
 [[package]]
 name = "godot-cell"
 version = "0.1.3"
-source = "git+https://github.com/godot-rust/gdext?branch=master#7634fe769d1fcb66209586f0b6c06aac40978253"
+source = "git+https://github.com/godot-rust/gdext?branch=master#32fb7f348329949a7064434e6e19c86b2619e99e"
 
 [[package]]
 name = "godot-codegen"
 version = "0.1.3"
-source = "git+https://github.com/godot-rust/gdext?branch=master#7634fe769d1fcb66209586f0b6c06aac40978253"
+source = "git+https://github.com/godot-rust/gdext?branch=master#32fb7f348329949a7064434e6e19c86b2619e99e"
 dependencies = [
  "godot-bindings",
  "heck",
@@ -265,7 +265,7 @@ dependencies = [
 [[package]]
 name = "godot-core"
 version = "0.1.3"
-source = "git+https://github.com/godot-rust/gdext?branch=master#7634fe769d1fcb66209586f0b6c06aac40978253"
+source = "git+https://github.com/godot-rust/gdext?branch=master#32fb7f348329949a7064434e6e19c86b2619e99e"
 dependencies = [
  "glam",
  "godot-bindings",
@@ -278,7 +278,7 @@ dependencies = [
 [[package]]
 name = "godot-ffi"
 version = "0.1.3"
-source = "git+https://github.com/godot-rust/gdext?branch=master#7634fe769d1fcb66209586f0b6c06aac40978253"
+source = "git+https://github.com/godot-rust/gdext?branch=master#32fb7f348329949a7064434e6e19c86b2619e99e"
 dependencies = [
  "gensym",
  "godot-bindings",
@@ -290,9 +290,10 @@ dependencies = [
 [[package]]
 name = "godot-macros"
 version = "0.1.3"
-source = "git+https://github.com/godot-rust/gdext?branch=master#7634fe769d1fcb66209586f0b6c06aac40978253"
+source = "git+https://github.com/godot-rust/gdext?branch=master#32fb7f348329949a7064434e6e19c86b2619e99e"
 dependencies = [
  "godot-bindings",
+ "markdown",
  "proc-macro2",
  "quote",
  "venial",
@@ -300,7 +301,7 @@ dependencies = [
 
 [[package]]
 name = "godot-rapier"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "bincode",
  "godot",
@@ -353,9 +354,9 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
 name = "indexmap"
-version = "2.4.0"
+version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "93ead53efc7ea8ed3cfb0c79fc8023fbb782a5432b52830b6518941cebe6505c"
+checksum = "68b900aa2f7301e21c36462b170ee99994de34dff39a4a6a528e80e7376d07e5"
 dependencies = [
  "equivalent",
  "hashbrown",
@@ -415,6 +416,15 @@ name = "log"
 version = "0.4.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a7a70ba024b9dc04c27ea2f0c0548feb474ec5c54bba33a7f72f873a39d07b24"
+
+[[package]]
+name = "markdown"
+version = "1.0.0-alpha.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "911a8325e6fb87b89890cd4529a2ab34c2669c026279e61c26b7140a3d821ccb"
+dependencies = [
+ "unicode-id",
+]
 
 [[package]]
 name = "matrixmultiply"
@@ -987,9 +997,9 @@ checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
 
 [[package]]
 name = "syn"
-version = "2.0.76"
+version = "2.0.77"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "578e081a14e0cefc3279b0472138c513f37b41a08d5a3cca9b6e4e8ceb6cd525"
+checksum = "9f35bcdf61fd8e7be6caf75f429fdca8beb3ed76584befb503b1569faee373ed"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1021,6 +1031,12 @@ name = "typenum"
 version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42ff0bf0c66b8238c6f3b578df37d0b7848e55df8577b3f74f92a69acceeb825"
+
+[[package]]
+name = "unicode-id"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1b6def86329695390197b82c1e244a54a131ceb66c996f2088a3876e2ae083f"
 
 [[package]]
 name = "unicode-ident"

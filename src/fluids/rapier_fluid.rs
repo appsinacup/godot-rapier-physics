@@ -1,7 +1,6 @@
 use std::collections::VecDeque;
 
 use godot::prelude::*;
-use salva::object::FluidHandle;
 
 use super::types::*;
 use crate::rapier_wrapper::prelude::*;

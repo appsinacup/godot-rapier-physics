@@ -5,7 +5,8 @@ use physics_server_2d::JointType;
 use physics_server_3d::JointType;
 
 use super::rapier_joint_base::RapierJointBase;
-use crate::bodies::rapier_collision_object::{IRapierCollisionObject, RapierCollisionObject};
+use crate::bodies::rapier_collision_object::IRapierCollisionObject;
+use crate::bodies::rapier_collision_object::RapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
 use crate::types::Vector;

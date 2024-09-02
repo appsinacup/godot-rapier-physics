@@ -7,7 +7,6 @@ use godot::classes::physics_server_2d::*;
 use godot::classes::physics_server_3d::*;
 use godot::prelude::*;
 use hashbrown::hash_set::HashSet;
-use rapier::data::Index;
 #[cfg(feature = "dim3")]
 use rapier::dynamics::LockedAxes;
 use rapier::geometry::ColliderHandle;
@@ -543,7 +542,8 @@ impl RapierBody {
         if p_area.has_any_space_override() {
             let area_handle = p_area.get_base().get_body_handle();
             let priority = p_area.get_priority();
-            self.areas.push(HandleWithPriority::new(area_handle, priority));
+            self.areas
+                .push(HandleWithPriority::new(area_handle, priority));
             self.areas.sort_by(|a, b| a.priority.cmp(&b.priority));
             self.on_area_updated(space);
         }
