@@ -65,7 +65,7 @@ impl IRapierShape for RapierWorldBoundaryShape {
         self.normal = arr.at(0).try_to().unwrap_or_default();
         self.d = variant_to_float(&arr.at(1));
         let handle = self.create_rapier_shape(physics_engine);
-        self.base.set_handle(handle, physics_engine);
+        self.base.set_handle_and_reset_aabb(handle, physics_engine);
     }
 
     #[cfg(feature = "dim3")]
@@ -78,7 +78,7 @@ impl IRapierShape for RapierWorldBoundaryShape {
         self.normal = plane.normal;
         self.d = plane.d;
         let handle = self.create_rapier_shape(physics_engine);
-        self.base.set_handle(handle, physics_engine);
+        self.base.set_handle_and_reset_aabb(handle, physics_engine);
     }
 
     #[cfg(feature = "dim2")]

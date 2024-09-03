@@ -5,6 +5,7 @@ use rapier::prelude::ColliderHandle;
 use rapier::prelude::RigidBodyHandle;
 
 use crate::bodies::rapier_collision_object_base::CollisionObjectType;
+use crate::rapier_wrapper::handle::WorldHandle;
 use crate::types::*;
 impl RemovedColliderInfo {
     pub fn new(
@@ -57,4 +58,5 @@ pub struct RapierSpaceState {
     pub(crate) island_count: i32,
     pub(crate) active_objects: i32,
     pub(crate) collision_pairs: i32,
+    pub(crate) handle: WorldHandle,
 }

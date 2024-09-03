@@ -52,7 +52,7 @@ impl IRapierShape for RapierRectangleShape {
         if let Ok(v) = data.try_to() {
             self.half_extents = v;
             let handle = self.create_rapier_shape(physics_engine);
-            self.base.set_handle(handle, physics_engine);
+            self.base.set_handle_and_reset_aabb(handle, physics_engine);
         } else {
             godot_error!("Invalid data type for RapierRectangleShape");
         }

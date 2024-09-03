@@ -59,4 +59,4 @@ This plugin is still being developed. See the [Implementation Progress](https://
 
 - Pin Softness is not supported
 - Double builds are disabled for now (until salva supports double builds)
-- No support for asymetric collisions (eg. object 1 hitting object 2 but object 2 not hitting object 1). This is the exact check rapier does: `(A.layer & B.mask) != 0 || (B.layer & A.mask) != 0`
+- No support for asymmetric collisions (eg. object 1 hitting object 2 but object 2 not hitting object 1). This is the exact check rapier does: `(A.layer & B.mask) != 0 || (B.layer & A.mask) != 0`

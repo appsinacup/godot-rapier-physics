@@ -51,7 +51,7 @@ impl IRapierShape for RapierSegmentShape2D {
         self.a = r.position;
         self.b = r.size;
         let handle = self.create_rapier_shape(physics_engine);
-        self.base.set_handle(handle, physics_engine);
+        self.base.set_handle_and_reset_aabb(handle, physics_engine);
     }
 
     fn get_data(&self) -> Variant {

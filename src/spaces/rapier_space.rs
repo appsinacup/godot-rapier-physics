@@ -43,7 +43,6 @@ pub struct SpaceImport {
 }
 pub struct RapierSpace {
     direct_access: Option<Gd<PhysicsDirectSpaceState>>,
-    handle: WorldHandle,
     state: RapierSpaceState,
     contact_max_allowed_penetration: real,
     default_gravity_dir: Vector,
@@ -71,10 +70,13 @@ impl RapierSpace {
             .unwrap_or_default();
         let default_gravity_value =
             variant_to_float(&project_settings.get_setting_with_override(DEFAULT_GRAVITY.into()));
+        let state = RapierSpaceState {
+            handle,
+            ..Default::default()
+        };
         Self {
             direct_access: Some(direct_access.upcast()),
-            handle,
-            state: RapierSpaceState::default(),
+            state,
             contact_max_allowed_penetration: 0.0,
             default_gravity_dir,
             default_gravity_value,
@@ -87,11 +89,11 @@ impl RapierSpace {
     }
 
     pub fn get_handle(&self) -> WorldHandle {
-        self.handle
+        self.state.handle
     }
 
     pub fn is_valid(&self) -> bool {
-        self.handle != WorldHandle::default()
+        self.state.handle != WorldHandle::default()
     }
 
     pub fn body_add_to_mass_properties_update_list(&mut self, body: RigidBodyHandle) {
@@ -422,7 +424,7 @@ impl RapierSpace {
         // Needed only for one physics step to retrieve lost info
         self.state.removed_colliders.clear();
         self.state.active_objects =
-            physics_engine.world_get_active_objects_count(self.handle) as i32;
+            physics_engine.world_get_active_objects_count(self.state.handle) as i32;
         for body in self.state.active_list.clone() {
             if let Some(body) = physics_collision_objects.get_mut(get_rid(body.0)) {
                 if let Some(body) = body.get_mut_body() {
@@ -469,8 +471,8 @@ impl RapierSpace {
     }
 
     #[cfg(feature = "serde-serialize")]
-    pub fn export_space_json(&self, physics_engine: &mut PhysicsEngine) -> String {
-        if let Some(inner) = physics_engine.world_export(self.handle) {
+    pub fn export_json(&self, physics_engine: &mut PhysicsEngine) -> String {
+        if let Some(inner) = physics_engine.world_export(self.state.handle) {
             let export = SpaceExport {
                 space: &self.state,
                 world: inner,
@@ -486,9 +488,9 @@ impl RapierSpace {
     }
 
     #[cfg(feature = "serde-serialize")]
-    pub fn export_space_binary(&self, physics_engine: &mut PhysicsEngine) -> PackedByteArray {
+    pub fn export_binary(&self, physics_engine: &mut PhysicsEngine) -> PackedByteArray {
         let mut buf = PackedByteArray::new();
-        if let Some(inner) = physics_engine.world_export(self.handle) {
+        if let Some(inner) = physics_engine.world_export(self.state.handle) {
             let export = SpaceExport {
                 space: &self.state,
                 world: inner,
@@ -509,11 +511,7 @@ impl RapierSpace {
     }
 
     #[cfg(feature = "serde-serialize")]
-    pub fn import_space_binary(
-        &mut self,
-        physics_engine: &mut PhysicsEngine,
-        data: PackedByteArray,
-    ) {
+    pub fn import_binary(&mut self, physics_engine: &mut PhysicsEngine, data: PackedByteArray) {
         match bincode::deserialize::<SpaceImport>(data.as_slice()) {
             Ok(import) => {
                 self.state = import.space;
@@ -526,7 +524,7 @@ impl RapierSpace {
                 physics_engine.world_import(self.get_handle(), &world_settings, physics_objects);
             }
             Err(e) => {
-                godot_error!("Failed to deserialize space to json: {}", e);
+                godot_error!("Failed to deserialize space from binary: {}", e);
             }
         }
     }
@@ -542,14 +540,14 @@ impl RapierSpace {
                 smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
                 counters_enabled: false,
             };
-            physics_engine.world_reset_if_empty(self.handle, &world_settings);
+            physics_engine.world_reset_if_empty(self.state.handle, &world_settings);
         }
     }
 
     pub fn destroy_space(&mut self, physics_engine: &mut PhysicsEngine) {
         if self.is_valid() {
-            physics_engine.world_destroy(self.handle);
-            self.handle = WorldHandle::default();
+            physics_engine.world_destroy(self.state.handle);
+            self.state.handle = WorldHandle::default();
         }
     }
 }

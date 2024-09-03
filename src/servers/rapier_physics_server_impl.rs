@@ -1919,13 +1919,13 @@ impl RapierPhysicsServerImpl {
         body_b: Rid,
         local_ref_b: Transform3D,
     ) {
-        use crate::joints::rapier_cone_twist_joint_3d::RapierConeTwistJoint3D;
+        use crate::joints::rapier_generic_6dof_joint_3d::RapierGeneric6DOFJoint3D;
         let physics_data = physics_data();
         let mut joint: RapierJoint;
         if let Some(body_a) = physics_data.collision_objects.get(&body_a)
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
-            joint = RapierJoint::RapierConeTwistJoint3D(RapierConeTwistJoint3D::new(
+            joint = RapierJoint::RapierGeneric6DOFJoint3D(RapierGeneric6DOFJoint3D::new(
                 local_ref_a.origin,
                 local_ref_b.origin,
                 body_a,
@@ -2342,6 +2342,4 @@ impl RapierPhysicsServerImpl {
         }
         (0, 0)
     }
-
-    pub(super) fn set_handle(&mut self, rid: Rid, handle: i64) {}
 }

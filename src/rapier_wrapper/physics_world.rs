@@ -428,6 +428,8 @@ impl PhysicsWorld {
         None
     }
 
+    // TODO multibody joints
+    /*
     pub fn get_joint(&self, handle: JointHandle) -> Option<&GenericJoint> {
         match handle.multibody {
             false => {
@@ -452,8 +454,7 @@ impl PhysicsWorld {
             }
         }
         None
-    }
-
+    } */
     pub fn get_impulse_joint(&self, handle: JointHandle) -> Option<&ImpulseJoint> {
         match handle.multibody {
             false => {

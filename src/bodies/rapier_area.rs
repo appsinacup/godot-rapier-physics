@@ -1,6 +1,7 @@
 use bodies::rapier_collision_object_base::CollisionObjectShape;
 use bodies::rapier_collision_object_base::CollisionObjectType;
 use bodies::rapier_collision_object_base::RapierCollisionObjectBase;
+use bodies::rapier_collision_object_base::RapierCollisionObjectBaseState;
 #[cfg(feature = "dim2")]
 use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
@@ -29,6 +30,7 @@ use crate::*;
 )]
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 struct MonitorInfo {
+    // TODO set this correct after import
     #[cfg_attr(feature = "serde-serialize", serde(skip, default = "default_rid"))]
     pub rid: Rid,
     pub instance_id: u64,
@@ -42,6 +44,26 @@ pub enum AreaUpdateMode {
     DisableSpaceOverride,
     ResetSpaceOverride,
     None,
+}
+#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
+pub struct AreaExport<'a> {
+    area_state: &'a RapierAreaState,
+    base_state: &'a RapierCollisionObjectBaseState,
+}
+#[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize))]
+pub struct AreaImport {
+    area_state: RapierAreaState,
+    base_state: RapierCollisionObjectBaseState,
+}
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
+pub struct RapierAreaState {
+    monitored_objects: HashMap<(ColliderHandle, ColliderHandle), MonitorInfo>,
+    detected_bodies: HashMap<RigidBodyHandle, u32>,
+    detected_areas: HashMap<RigidBodyHandle, u32>,
 }
 pub struct RapierArea {
     gravity_override_mode: AreaSpaceOverrideMode,
@@ -57,11 +79,7 @@ pub struct RapierArea {
     monitorable: bool,
     monitor_callback: Option<Callable>,
     area_monitor_callback: Option<Callable>,
-
-    monitored_objects: HashMap<(ColliderHandle, ColliderHandle), MonitorInfo>,
-    detected_bodies: HashMap<RigidBodyHandle, u32>,
-    detected_areas: HashMap<RigidBodyHandle, u32>,
-
+    state: RapierAreaState,
     base: RapierCollisionObjectBase,
 }
 impl RapierArea {
@@ -80,9 +98,7 @@ impl RapierArea {
             monitorable: false,
             monitor_callback: None,
             area_monitor_callback: None,
-            monitored_objects: HashMap::default(),
-            detected_bodies: HashMap::default(),
-            detected_areas: HashMap::default(),
+            state: RapierAreaState::default(),
             base: RapierCollisionObjectBase::new(rid, CollisionObjectType::Area),
         }
     }
@@ -97,7 +113,7 @@ impl RapierArea {
         let mut space_rid = Rid::Invalid;
         if let Some(area_rid) = physics_collision_objects.get(area_rid) {
             if let Some(area) = area_rid.get_area() {
-                detected_bodies = area.detected_bodies.clone();
+                detected_bodies = area.state.detected_bodies.clone();
                 space_rid = area.get_base().get_space();
             }
         }
@@ -126,7 +142,7 @@ impl RapierArea {
         let mut space_rid = Rid::Invalid;
         if let Some(area_rid) = physics_collision_objects.get(area_rid) {
             if let Some(area) = area_rid.get_area() {
-                detected_bodies = area.detected_bodies.clone();
+                detected_bodies = area.state.detected_bodies.clone();
                 space_rid = area.get_base().get_space();
             }
         }
@@ -153,7 +169,7 @@ impl RapierArea {
         let mut space_rid: Rid = Rid::Invalid;
         if let Some(area_rid) = physics_collision_objects.get(area_rid) {
             if let Some(area) = area_rid.get_area() {
-                detected_bodies = area.detected_bodies.clone();
+                detected_bodies = area.state.detected_bodies.clone();
                 space_rid = area.get_base().get_space();
             }
         }
@@ -186,10 +202,10 @@ impl RapierArea {
         space: &mut RapierSpace,
     ) {
         // Add to keep track of currently detected bodies
-        if let Some(detected_body) = self.detected_bodies.get_mut(&body_handle) {
+        if let Some(detected_body) = self.state.detected_bodies.get_mut(&body_handle) {
             *detected_body += 1;
         } else {
-            self.detected_bodies.insert(body_handle, 1);
+            self.state.detected_bodies.insert(body_handle, 1);
             if let Some(body) = body {
                 if let Some(body) = body.get_mut_body() {
                     body.add_area(self, space);
@@ -202,14 +218,14 @@ impl RapierArea {
             return;
         }
         let handle_pair_hash = (collider_handle, area_collider_handle);
-        if let Some(monitored_object) = self.monitored_objects.get(&handle_pair_hash) {
+        if let Some(monitored_object) = self.state.monitored_objects.get(&handle_pair_hash) {
             // in case it already exited this frame and now it enters, cancel out the event
             if monitored_object.state != -1 {
                 godot_error!("Body has not exited the area");
             }
-            self.monitored_objects.remove(&handle_pair_hash);
+            self.state.monitored_objects.remove(&handle_pair_hash);
         } else {
-            self.monitored_objects.insert(
+            self.state.monitored_objects.insert(
                 handle_pair_hash,
                 MonitorInfo {
                     rid: body_rid,
@@ -238,10 +254,10 @@ impl RapierArea {
         space: &mut RapierSpace,
     ) {
         // Remove from currently detected bodies
-        if let Some(detected_body) = self.detected_bodies.get_mut(&body_handle) {
+        if let Some(detected_body) = self.state.detected_bodies.get_mut(&body_handle) {
             *detected_body -= 1;
             if *detected_body == 0 {
-                self.detected_bodies.remove(&body_handle);
+                self.state.detected_bodies.remove(&body_handle);
                 if let Some(body) = body {
                     if let Some(body) = body.get_mut_body() {
                         body.remove_area(self.base.get_body_handle(), space);
@@ -253,14 +269,14 @@ impl RapierArea {
             return;
         }
         let handle_pair_hash = (collider_handle, area_collider_handle);
-        if let Some(monitored_object) = self.monitored_objects.get(&handle_pair_hash) {
+        if let Some(monitored_object) = self.state.monitored_objects.get(&handle_pair_hash) {
             // in case it already entered this frame and now it exits, cancel out the event
             if monitored_object.state != 1 {
                 godot_error!("Body has not entered the area");
             }
-            self.monitored_objects.remove(&handle_pair_hash);
+            self.state.monitored_objects.remove(&handle_pair_hash);
         } else {
-            self.monitored_objects.insert(
+            self.state.monitored_objects.insert(
                 handle_pair_hash,
                 MonitorInfo {
                     rid: body_rid,
@@ -301,20 +317,20 @@ impl RapierArea {
             godot_error!("other area is null");
         }
         // Add to keep track of currently detected areas
-        if let Some(detected_area) = self.detected_areas.get_mut(&other_area_handle) {
+        if let Some(detected_area) = self.state.detected_areas.get_mut(&other_area_handle) {
             *detected_area += 1;
         } else {
-            self.detected_areas.insert(other_area_handle, 1);
+            self.state.detected_areas.insert(other_area_handle, 1);
         }
         let handle_pair_hash = (collider_handle, area_collider_handle);
-        if let Some(monitored_object) = self.monitored_objects.get(&handle_pair_hash) {
+        if let Some(monitored_object) = self.state.monitored_objects.get(&handle_pair_hash) {
             // in case it already exited this frame and now it enters, cancel out the event
             if monitored_object.state != -1 {
                 godot_error!("Area is already being monitored");
             }
-            self.monitored_objects.remove(&handle_pair_hash);
+            self.state.monitored_objects.remove(&handle_pair_hash);
         } else {
-            self.monitored_objects.insert(
+            self.state.monitored_objects.insert(
                 handle_pair_hash,
                 MonitorInfo {
                     rid: other_area_rid,
@@ -353,22 +369,22 @@ impl RapierArea {
             }
         }
         // Remove from currently detected areas
-        if let Some(detected_area) = self.detected_areas.get_mut(&other_area_handle) {
+        if let Some(detected_area) = self.state.detected_areas.get_mut(&other_area_handle) {
             *detected_area -= 1;
             if *detected_area == 0 {
-                self.detected_areas.remove(&other_area_handle);
+                self.state.detected_areas.remove(&other_area_handle);
             }
         } else {
             return;
         }
         let handle_pair_hash = (collider_handle, area_collider_handle);
-        if let Some(monitored_object) = self.monitored_objects.get(&handle_pair_hash) {
+        if let Some(monitored_object) = self.state.monitored_objects.get(&handle_pair_hash) {
             if monitored_object.state != 1 {
                 godot_error!("Area is not being monitored");
             }
-            self.monitored_objects.remove(&handle_pair_hash);
+            self.state.monitored_objects.remove(&handle_pair_hash);
         } else {
-            self.monitored_objects.insert(
+            self.state.monitored_objects.insert(
                 handle_pair_hash,
                 MonitorInfo {
                     rid: other_area_rid,
@@ -394,7 +410,7 @@ impl RapierArea {
         let area_rid = get_rid(area_handle.0);
         if let Some(area_rid) = physics_collision_objects.get(area_rid) {
             if let Some(area) = area_rid.get_area() {
-                detected_bodies = area.detected_bodies.clone();
+                detected_bodies = area.state.detected_bodies.clone();
                 space_rid = area.get_base().get_space();
             }
         }
@@ -635,10 +651,10 @@ impl RapierArea {
 
     pub fn get_queries(&self) -> Vec<(Callable, Vec<Variant>)> {
         let mut queries = Vec::default();
-        if self.monitored_objects.is_empty() {
+        if self.state.monitored_objects.is_empty() {
             return queries;
         }
-        for (_, monitor_info) in &self.monitored_objects {
+        for (_, monitor_info) in &self.state.monitored_objects {
             if monitor_info.state == 0 {
                 godot_error!("Invalid monitor state");
                 continue;
@@ -672,7 +688,7 @@ impl RapierArea {
     }
 
     pub fn clear_monitored_objects(&mut self) {
-        self.monitored_objects.clear();
+        self.state.monitored_objects.clear();
     }
 
     pub fn compute_gravity(&self, position: Vector) -> Vector {
@@ -707,9 +723,9 @@ impl RapierArea {
             && let Some(area) = area.get_mut_area()
         {
             previous_space_rid = area.get_base().get_space();
-            detected_bodies = area.detected_bodies.clone();
-            area.detected_bodies.clear();
-            area.monitored_objects.clear();
+            detected_bodies = area.state.detected_bodies.clone();
+            area.state.detected_bodies.clear();
+            area.state.monitored_objects.clear();
             area_handle = area.get_base().get_body_handle();
         }
         if let Some(space) = physics_spaces.get_mut(&previous_space_rid) {
@@ -851,8 +867,8 @@ impl IRapierCollisionObject for RapierArea {
     ) {
         // remove a shape, all the times it appears
         let mut i = 0;
-        while i < self.base.shapes.len() {
-            if self.base.shapes[i].shape == shape {
+        while i < self.base.state.shapes.len() {
+            if self.base.state.shapes[i].shape == shape {
                 self.remove_shape_idx(i, physics_engine, physics_spaces, physics_shapes);
             } else {
                 i += 1;
@@ -933,5 +949,56 @@ impl IRapierCollisionObject for RapierArea {
         _physics_engine: &mut PhysicsEngine,
         _physics_spaces: &mut PhysicsSpaces,
     ) {
+    }
+
+    #[cfg(feature = "serde-serialize")]
+    fn export_json(&self) -> String {
+        let state = AreaExport {
+            area_state: &self.state,
+            base_state: &self.base.state,
+        };
+        match serde_json::to_string_pretty(&state) {
+            Ok(s) => {
+                return s;
+            }
+            Err(e) => {
+                godot_error!("Failed to serialize area to json: {}", e);
+            }
+        }
+        "{}".to_string()
+    }
+
+    #[cfg(feature = "serde-serialize")]
+    fn export_binary(&self) -> PackedByteArray {
+        let mut buf = PackedByteArray::new();
+        let state = AreaExport {
+            area_state: &self.state,
+            base_state: &self.base.state,
+        };
+        match bincode::serialize(&state) {
+            Ok(binary_data) => {
+                buf.resize(binary_data.len());
+                for i in 0..binary_data.len() {
+                    buf[i] = binary_data[i];
+                }
+            }
+            Err(e) => {
+                godot_error!("Failed to serialize area to binary: {}", e);
+            }
+        }
+        buf
+    }
+
+    #[cfg(feature = "serde-serialize")]
+    fn import_binary(&mut self, data: PackedByteArray) {
+        match bincode::deserialize::<AreaImport>(data.as_slice()) {
+            Ok(import) => {
+                self.state = import.area_state;
+                self.base.state = import.base_state;
+            }
+            Err(e) => {
+                godot_error!("Failed to deserialize area from binary: {}", e);
+            }
+        }
     }
 }

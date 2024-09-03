@@ -97,6 +97,12 @@ pub trait IRapierCollisionObject: Sync {
         physics_shapes: &mut PhysicsShapes,
         physics_spaces: &mut PhysicsSpaces,
     );
+    #[cfg(feature = "serde-serialize")]
+    fn export_json(&self) -> String;
+    #[cfg(feature = "serde-serialize")]
+    fn export_binary(&self) -> PackedByteArray;
+    #[cfg(feature = "serde-serialize")]
+    fn import_binary(&mut self, data: PackedByteArray);
 }
 // TODO investigate large enum variant
 #[allow(clippy::large_enum_variant)]
@@ -280,6 +286,30 @@ macro_rules! impl_rapier_collision_object_trait {
             ) {
                 match self {
                     $(Self::$variant(co) => co.shape_changed(p_shape, physics_engine, physics_shapes, physics_spaces),)*
+                }
+            }
+
+            #[cfg(feature = "serde-serialize")]
+            fn export_json(&self) -> String {
+                match self {
+                    $(Self::$variant(co) => co.export_json(),)*
+                }
+            }
+
+            #[cfg(feature = "serde-serialize")]
+            fn export_binary(&self) -> PackedByteArray {
+                match self {
+                    $(Self::$variant(co) => co.export_binary(),)*
+                }
+            }
+
+            #[cfg(feature = "serde-serialize")]
+            fn import_binary(
+                &mut self,
+                data: PackedByteArray,
+            ) {
+                match self {
+                    $(Self::$variant(co) => co.import_binary(data),)*
                 }
             }
         }

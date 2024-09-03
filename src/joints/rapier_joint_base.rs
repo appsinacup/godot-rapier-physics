@@ -2,11 +2,19 @@ use servers::rapier_physics_singleton::get_rid;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::*;
-pub struct RapierJointBase {
-    max_force: f32,
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
+#[derive(Default, Debug, PartialEq, Clone, Copy)]
+pub struct RapierJointBaseState {
     handle: JointHandle,
     space_handle: WorldHandle,
+}
+pub struct RapierJointBase {
+    max_force: f32,
     disabled_collisions_between_bodies: bool,
+    state: RapierJointBaseState,
 }
 impl Default for RapierJointBase {
     fn default() -> Self {
@@ -17,22 +25,24 @@ impl RapierJointBase {
     pub fn new(space_handle: WorldHandle, handle: JointHandle) -> Self {
         Self {
             max_force: f32::MAX,
-            handle,
-            space_handle,
             disabled_collisions_between_bodies: true,
+            state: RapierJointBaseState {
+                handle,
+                space_handle,
+            },
         }
     }
 
     pub fn get_handle(&self) -> JointHandle {
-        self.handle
+        self.state.handle
     }
 
     pub fn get_space_handle(&self) -> WorldHandle {
-        self.space_handle
+        self.state.space_handle
     }
 
     pub fn get_space(&self) -> Rid {
-        *get_rid(self.space_handle)
+        *get_rid(self.state.space_handle)
     }
 
     pub fn set_max_force(&mut self, force: f32) {
@@ -44,7 +54,8 @@ impl RapierJointBase {
     }
 
     pub fn is_valid(&self) -> bool {
-        self.space_handle != WorldHandle::default() && self.handle != JointHandle::default()
+        self.state.space_handle != WorldHandle::default()
+            && self.state.handle != JointHandle::default()
     }
 
     pub fn disable_collisions_between_bodies(
@@ -55,8 +66,8 @@ impl RapierJointBase {
         self.disabled_collisions_between_bodies = disabled;
         if self.is_valid() {
             physics_engine.joint_change_disable_collision(
-                self.space_handle,
-                self.handle,
+                self.state.space_handle,
+                self.state.handle,
                 self.disabled_collisions_between_bodies,
             );
         }
@@ -79,7 +90,47 @@ impl RapierJointBase {
     }
 
     pub fn destroy_joint(&mut self, physics_engine: &mut PhysicsEngine) {
-        physics_engine.destroy_joint(self.space_handle, self.handle);
-        self.handle = JointHandle::default();
+        physics_engine.destroy_joint(self.state.space_handle, self.state.handle);
+        self.state.handle = JointHandle::default();
+    }
+
+    #[cfg(feature = "serde-serialize")]
+    pub fn export_json(&self) -> String {
+        match serde_json::to_string_pretty(&self.state) {
+            Ok(s) => return s,
+            Err(e) => {
+                godot_error!("Failed to serialize joint to json: {}", e);
+            }
+        }
+        "{}".to_string()
+    }
+
+    #[cfg(feature = "serde-serialize")]
+    pub fn export_binary(&self) -> PackedByteArray {
+        let mut buf = PackedByteArray::new();
+        match bincode::serialize(&self.state) {
+            Ok(binary_data) => {
+                buf.resize(binary_data.len());
+                for i in 0..binary_data.len() {
+                    buf[i] = binary_data[i];
+                }
+            }
+            Err(e) => {
+                godot_error!("Failed to serialize joint to binary: {}", e);
+            }
+        }
+        buf
+    }
+
+    #[cfg(feature = "serde-serialize")]
+    pub fn import_binary(&mut self, data: PackedByteArray) {
+        match bincode::deserialize::<RapierJointBaseState>(data.as_slice()) {
+            Ok(import) => {
+                self.state = import;
+            }
+            Err(e) => {
+                godot_error!("Failed to deserialize joint from binary: {}", e);
+            }
+        }
     }
 }

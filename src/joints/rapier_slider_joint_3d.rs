@@ -7,8 +7,6 @@ use crate::bodies::rapier_collision_object::RapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
 pub struct RapierSliderJoint3D {
-    anchor_a: Vector3,
-    anchor_b: Vector3,
     base: RapierJointBase,
 }
 impl RapierSliderJoint3D {
@@ -20,8 +18,6 @@ impl RapierSliderJoint3D {
         physics_engine: &mut PhysicsEngine,
     ) -> Self {
         let invalid_joint = Self {
-            anchor_a: anchor_a.origin,
-            anchor_b: anchor_b.origin,
             base: RapierJointBase::default(),
         };
         let body_a_rid = body_a.get_base().get_rid();
@@ -49,8 +45,6 @@ impl RapierSliderJoint3D {
             true,
         );
         Self {
-            anchor_a: anchor_a.origin,
-            anchor_b: anchor_b.origin,
             base: RapierJointBase::new(space_handle, handle),
         }
     }
