@@ -52,31 +52,43 @@ impl RapierPhysicsServer {
     #[cfg(feature = "serde-serialize")]
     #[func]
     /// Exports the space to a JSON string. This is slower than the binary export.
-    fn space_export_json(space: Rid) -> Array<GString> {
+    fn space_export_json(space: Rid) -> String {
         let physics_data = physics_data();
-        let mut result = Array::new();
         if let Some(space) = physics_data.spaces.get(&space) {
-            result.push(space.export_space_json().to_godot());
-            result.push(
-                space
-                    .export_world_json(&mut physics_data.physics_engine)
-                    .to_godot(),
-            );
+            return space.export_space_json(&mut physics_data.physics_engine);
         }
-        result
+        "".to_string()
     }
 
     #[cfg(feature = "serde-serialize")]
     #[func]
     /// Exports the space to a binary format.
-    fn space_export_binary(space: Rid) -> Array<PackedByteArray> {
+    fn space_export_binary(space: Rid) -> PackedByteArray {
         let physics_data = physics_data();
-        let mut result = Array::new();
         if let Some(space) = physics_data.spaces.get(&space) {
-            result.push(space.export_space_binary());
-            result.push(space.export_world_binary(&mut physics_data.physics_engine));
+            return space.export_space_binary(&mut physics_data.physics_engine);
         }
-        result
+        PackedByteArray::default()
+    }
+
+    #[cfg(feature = "serde-serialize")]
+    #[func]
+    /// Imports the space from a JSON string. This is slower than the binary export.
+    fn space_import_json(space: Rid, data: String) {
+        let physics_data = physics_data();
+        if let Some(space) = physics_data.spaces.get_mut(&space) {
+            space.import_space_json(&mut physics_data.physics_engine, data);
+        }
+    }
+
+    #[cfg(feature = "serde-serialize")]
+    #[func]
+    /// Imports the space from a binary format.
+    fn space_import_binary(space: Rid, data: PackedByteArray) {
+        let physics_data = physics_data();
+        if let Some(space) = physics_data.spaces.get_mut(&space) {
+            space.import_space_binary(&mut physics_data.physics_engine, data);
+        }
     }
 
     #[func]

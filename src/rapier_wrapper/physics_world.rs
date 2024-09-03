@@ -569,11 +569,15 @@ impl PhysicsEngine {
         None
     }
 
-    pub fn world_import(&mut self, world_handle: WorldHandle) -> Option<&PhysicsObjects> {
-        if let Some(physics_world) = self.get_mut_world(world_handle) {
-            return Some(&physics_world.physics_objects);
-        }
-        None
+    pub fn world_import(
+        &mut self,
+        world_handle: WorldHandle,
+        settings: &WorldSettings,
+        physics_objects: PhysicsObjects,
+    ) {
+        let mut physics_world = PhysicsWorld::new(settings);
+        physics_world.physics_objects = physics_objects;
+        self.physics_worlds[world_handle] = physics_world;
     }
 
     pub fn world_step(

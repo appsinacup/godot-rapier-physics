@@ -31,6 +31,16 @@ const DEFAULT_GRAVITY_VECTOR: &str = "physics/3d/default_gravity_vector";
 const DEFAULT_GRAVITY: &str = "physics/2d/default_gravity";
 #[cfg(feature = "dim3")]
 const DEFAULT_GRAVITY: &str = "physics/3d/default_gravity";
+#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
+pub struct SpaceExport<'a> {
+    space: &'a RapierSpaceState,
+    world: &'a PhysicsObjects,
+}
+#[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize))]
+pub struct SpaceImport {
+    space: RapierSpaceState,
+    world: PhysicsObjects,
+}
 pub struct RapierSpace {
     direct_access: Option<Gd<PhysicsDirectSpaceState>>,
     handle: WorldHandle,
@@ -459,23 +469,16 @@ impl RapierSpace {
     }
 
     #[cfg(feature = "serde-serialize")]
-    pub fn export_space_json(&self) -> String {
-        match serde_json::to_string_pretty(&self.state) {
-            Ok(s) => return s,
-            Err(e) => {
-                godot_error!("Failed to serialize space: {}", e);
-            }
-        }
-        "{}".to_string()
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    pub fn export_world_json(&self, physics_engine: &mut PhysicsEngine) -> String {
+    pub fn export_space_json(&self, physics_engine: &mut PhysicsEngine) -> String {
         if let Some(inner) = physics_engine.world_export(self.handle) {
-            match serde_json::to_string_pretty(inner) {
+            let export = SpaceExport {
+                space: &self.state,
+                world: inner,
+            };
+            match serde_json::to_string_pretty(&export) {
                 Ok(s) => return s,
                 Err(e) => {
-                    godot_error!("Failed to serialize space: {}", e);
+                    godot_error!("Failed to serialize space to json: {}", e);
                 }
             }
         }
@@ -483,27 +486,14 @@ impl RapierSpace {
     }
 
     #[cfg(feature = "serde-serialize")]
-    pub fn export_space_binary(&self) -> PackedByteArray {
-        let mut buf = PackedByteArray::new();
-        match bincode::serialize(&self.state) {
-            Ok(binary_data) => {
-                buf.resize(binary_data.len());
-                for i in 0..binary_data.len() {
-                    buf[i] = binary_data[i];
-                }
-            }
-            Err(e) => {
-                godot_error!("Failed to serialize space: {}", e);
-            }
-        }
-        buf
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    pub fn export_world_binary(&self, physics_engine: &mut PhysicsEngine) -> PackedByteArray {
+    pub fn export_space_binary(&self, physics_engine: &mut PhysicsEngine) -> PackedByteArray {
         let mut buf = PackedByteArray::new();
         if let Some(inner) = physics_engine.world_export(self.handle) {
-            match bincode::serialize(inner) {
+            let export = SpaceExport {
+                space: &self.state,
+                world: inner,
+            };
+            match bincode::serialize(&export) {
                 Ok(binary_data) => {
                     buf.resize(binary_data.len());
                     for i in 0..binary_data.len() {
@@ -511,11 +501,53 @@ impl RapierSpace {
                     }
                 }
                 Err(e) => {
-                    godot_error!("Failed to serialize world: {}", e);
+                    godot_error!("Failed to serialize space to binary: {}", e);
                 }
             }
         }
         buf
+    }
+
+    #[cfg(feature = "serde-serialize")]
+    pub fn import_space_json(&mut self, physics_engine: &mut PhysicsEngine, data: String) {
+        match serde_json::from_str::<SpaceImport>(&data) {
+            Ok(import) => {
+                self.state = import.space;
+                let physics_objects = import.world;
+                let world_settings = WorldSettings {
+                    particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
+                    smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
+                    counters_enabled: false,
+                };
+                physics_engine.world_import(self.get_handle(), &world_settings, physics_objects);
+            }
+            Err(e) => {
+                godot_error!("Failed to serialize space to json: {}", e);
+            }
+        }
+    }
+
+    #[cfg(feature = "serde-serialize")]
+    pub fn import_space_binary(
+        &mut self,
+        physics_engine: &mut PhysicsEngine,
+        data: PackedByteArray,
+    ) {
+        match bincode::deserialize::<SpaceImport>(data.as_slice()) {
+            Ok(import) => {
+                self.state = import.space;
+                let physics_objects = import.world;
+                let world_settings = WorldSettings {
+                    particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
+                    smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
+                    counters_enabled: false,
+                };
+                physics_engine.world_import(self.get_handle(), &world_settings, physics_objects);
+            }
+            Err(e) => {
+                godot_error!("Failed to serialize space to json: {}", e);
+            }
+        }
     }
 
     pub fn get_ghost_collision_distance(&self) -> real {
