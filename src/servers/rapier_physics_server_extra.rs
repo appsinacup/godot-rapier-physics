@@ -73,16 +73,6 @@ impl RapierPhysicsServer {
 
     #[cfg(feature = "serde-serialize")]
     #[func]
-    /// Imports the space from a JSON string. This is slower than the binary export.
-    fn space_import_json(space: Rid, data: String) {
-        let physics_data = physics_data();
-        if let Some(space) = physics_data.spaces.get_mut(&space) {
-            space.import_space_json(&mut physics_data.physics_engine, data);
-        }
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    #[func]
     /// Imports the space from a binary format.
     fn space_import_binary(space: Rid, data: PackedByteArray) {
         let physics_data = physics_data();
@@ -96,7 +86,7 @@ impl RapierPhysicsServer {
     pub(crate) fn fluid_create() -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let fluid = RapierFluid::new(rid);
+        let fluid = RapierFluid::new();
         physics_data.fluids.insert(rid, fluid);
         rid
     }

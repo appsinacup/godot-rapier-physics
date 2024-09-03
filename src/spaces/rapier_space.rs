@@ -509,25 +509,6 @@ impl RapierSpace {
     }
 
     #[cfg(feature = "serde-serialize")]
-    pub fn import_space_json(&mut self, physics_engine: &mut PhysicsEngine, data: String) {
-        match serde_json::from_str::<SpaceImport>(&data) {
-            Ok(import) => {
-                self.state = import.space;
-                let physics_objects = import.world;
-                let world_settings = WorldSettings {
-                    particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
-                    smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
-                    counters_enabled: false,
-                };
-                physics_engine.world_import(self.get_handle(), &world_settings, physics_objects);
-            }
-            Err(e) => {
-                godot_error!("Failed to serialize space to json: {}", e);
-            }
-        }
-    }
-
-    #[cfg(feature = "serde-serialize")]
     pub fn import_space_binary(
         &mut self,
         physics_engine: &mut PhysicsEngine,
@@ -545,7 +526,7 @@ impl RapierSpace {
                 physics_engine.world_import(self.get_handle(), &world_settings, physics_objects);
             }
             Err(e) => {
-                godot_error!("Failed to serialize space to json: {}", e);
+                godot_error!("Failed to deserialize space to json: {}", e);
             }
         }
     }

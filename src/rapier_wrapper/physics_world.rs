@@ -494,10 +494,6 @@ impl PhysicsEngine {
         self.physics_worlds.get_mut(world_handle)
     }
 
-    pub fn set_world(&mut self, world_handle: WorldHandle, world: PhysicsWorld) {
-        self.physics_worlds[world_handle] = world;
-    }
-
     pub fn get_world(&self, world_handle: WorldHandle) -> Option<&PhysicsWorld> {
         self.physics_worlds.get(world_handle)
     }

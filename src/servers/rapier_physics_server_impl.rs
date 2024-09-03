@@ -614,14 +614,14 @@ impl RapierPhysicsServerImpl {
                 );
             }
             AreaUpdateMode::DisableSpaceOverride => {
-                RapierArea::enable_space_override(
+                RapierArea::disable_space_override(
                     &area_handle,
                     &mut physics_data.spaces,
                     &mut physics_data.collision_objects,
                 );
             }
             AreaUpdateMode::ResetSpaceOverride => {
-                RapierArea::enable_space_override(
+                RapierArea::reset_space_override(
                     &area_handle,
                     &mut physics_data.spaces,
                     &mut physics_data.collision_objects,
@@ -2344,9 +2344,4 @@ impl RapierPhysicsServerImpl {
     }
 
     pub(super) fn set_handle(&mut self, rid: Rid, handle: i64) {}
-}
-impl Drop for RapierPhysicsServerImpl {
-    fn drop(&mut self) {
-        godot_error!("RapierPhysicsServer dropped");
-    }
 }

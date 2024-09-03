@@ -8,7 +8,6 @@ use crate::servers::rapier_physics_singleton::PhysicsSpaces;
 use crate::types::Vector;
 //#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierFluid {
-    rid: Rid,
     density: real,
     space: Rid,
     space_handle: WorldHandle,
@@ -19,9 +18,8 @@ pub struct RapierFluid {
     accelerations: Vec<Vector>,
 }
 impl RapierFluid {
-    pub fn new(rid: Rid) -> Self {
+    pub fn new() -> Self {
         Self {
-            rid,
             density: 1.0,
             space: Rid::Invalid,
             space_handle: WorldHandle::default(),
@@ -224,19 +222,11 @@ impl RapierFluid {
         }
     }
 
-    pub fn get_density(&self) -> real {
-        self.density
-    }
-
     pub fn set_density(&mut self, density: f32, physics_engine: &mut PhysicsEngine) {
         self.density = density;
         if self.is_valid() {
             physics_engine.fluid_change_density(self.space_handle, self.fluid_handle, density);
         }
-    }
-
-    pub fn get_rid(&self) -> Rid {
-        self.rid
     }
 
     pub fn set_space(
@@ -263,10 +253,6 @@ impl RapierFluid {
             self.set_points(self.points.clone(), physics_engine);
             self.set_effects(self.effects.clone(), physics_engine);
         }
-    }
-
-    pub fn get_space(&self) -> Rid {
-        self.space
     }
 
     pub fn destroy_fluid(&mut self, physics_engine: &mut PhysicsEngine) {
