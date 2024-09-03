@@ -23,11 +23,11 @@ impl RemovedColliderInfo {
         }
     }
 }
-#[derive(Debug, PartialEq, Clone, Copy)]
 #[cfg_attr(
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
 )]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct RemovedColliderInfo {
     #[cfg_attr(feature = "serde-serialize", serde(skip, default = "default_rid"))]
     pub rid: Rid,
@@ -40,6 +40,7 @@ pub struct RemovedColliderInfo {
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
 )]
+#[serde(default)]
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct RapierSpaceState {
     #[cfg_attr(feature = "serde-serialize", serde(skip))]

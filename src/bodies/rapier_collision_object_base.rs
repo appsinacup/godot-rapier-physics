@@ -62,9 +62,6 @@ impl Default for CollisionObjectShape {
         }
     }
 }
-fn default_body_mode() -> BodyMode {
-    BodyMode::RIGID
-}
 pub struct RapierCollisionObjectBase {
     #[cfg(feature = "dim3")]
     user_flags: u32,
