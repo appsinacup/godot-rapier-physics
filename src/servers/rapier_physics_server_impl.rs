@@ -2109,10 +2109,9 @@ impl RapierPhysicsServerImpl {
         } else {
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
+        let joint_index = joint.get_base().get_handle().index;
         physics_data.joints.insert(rid, joint);
-        physics_data
-            .rids
-            .insert(joint.get_base().get_handle().index, rid);
+        physics_data.rids.insert(joint_index, rid);
     }
 
     #[cfg(feature = "dim2")]
