@@ -5,6 +5,7 @@ use godot::classes::physics_server_3d::ShapeType;
 use godot::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::PhysicsRids;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 pub struct RapierSeparationRayShape {
@@ -42,7 +43,12 @@ impl IRapierShape for RapierSeparationRayShape {
         ShapeHandle::default()
     }
 
-    fn set_data(&mut self, data: Variant, _physics_engine: &mut PhysicsEngine) {
+    fn set_data(
+        &mut self,
+        data: Variant,
+        _physics_engine: &mut PhysicsEngine,
+        _physics_rids: &mut PhysicsRids,
+    ) {
         if data.get_type() != VariantType::DICTIONARY {
             godot_error!("Invalid shape data.");
             return;

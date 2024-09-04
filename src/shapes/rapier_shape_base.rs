@@ -6,6 +6,7 @@ use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::get_rid;
 use crate::servers::rapier_physics_singleton::PhysicsData;
+use crate::servers::rapier_physics_singleton::PhysicsRids;
 use crate::types::*;
 #[cfg_attr(
     feature = "serde-serialize",
@@ -41,9 +42,10 @@ impl RapierShapeBase {
         &mut self,
         handle: ShapeHandle,
         physics_engine: &mut PhysicsEngine,
+        physics_rids: &mut PhysicsRids,
     ) {
         if self.state.handle != ShapeHandle::default() {
-            self.destroy_shape(physics_engine);
+            self.destroy_shape(physics_engine, physics_rids);
         }
         let rapier_aabb = physics_engine.shape_get_aabb(handle);
         let vertices = rapier_aabb.vertices();
@@ -52,6 +54,7 @@ impl RapierShapeBase {
             vector_to_godot(rapier_aabb.extents()),
         );
         self.state.handle = handle;
+        physics_rids.insert(handle, self.rid);
     }
 
     pub fn get_handle(&self) -> ShapeHandle {
@@ -106,8 +109,13 @@ impl RapierShapeBase {
         self.rid
     }
 
-    pub fn destroy_shape(&mut self, physics_engine: &mut PhysicsEngine) {
+    pub fn destroy_shape(
+        &mut self,
+        physics_engine: &mut PhysicsEngine,
+        physics_rids: &mut PhysicsRids,
+    ) {
         if self.state.handle != ShapeHandle::default() {
+            physics_rids.remove(&self.state.handle);
             physics_engine.shape_destroy(self.state.handle);
             self.state.handle = ShapeHandle::default();
         }

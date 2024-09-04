@@ -7,6 +7,7 @@ use godot::prelude::*;
 use rapier::dynamics::RigidBodyHandle;
 use rapier::geometry::ColliderHandle;
 use servers::rapier_physics_singleton::get_rid;
+use servers::rapier_physics_singleton::PhysicsRids;
 use servers::rapier_physics_singleton::PhysicsShapes;
 use servers::rapier_physics_singleton::PhysicsSpaces;
 use servers::rapier_project_settings::RapierProjectSettings;
@@ -36,7 +37,7 @@ pub enum CollisionObjectType {
     Area,
     Body,
 }
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy)]
 #[cfg_attr(
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
@@ -63,7 +64,7 @@ impl Default for CollisionObjectShape {
         }
     }
 }
-#[derive(Default, Debug, Clone, PartialEq)]
+#[derive(Default, Debug, Clone)]
 #[cfg_attr(
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
@@ -295,14 +296,11 @@ impl RapierCollisionObjectBase {
         p_space: Rid,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
+        physics_rids: &mut PhysicsRids,
     ) {
         // previous space
         if self.is_space_valid() {
-            if self.is_body_valid() {
-                // This call also destroys the colliders
-                physics_engine.body_destroy(self.state.space_handle, self.state.body_handle);
-                self.state.body_handle = RigidBodyHandle::invalid();
-            }
+            self.destroy_body(physics_engine, physics_rids);
             self.destroy_shapes(physics_engine, physics_spaces);
             // Reset area detection counter to keep it consistent for new detections
             if let Some(space) = physics_spaces.get_mut(&self.get_space()) {
@@ -356,6 +354,7 @@ impl RapierCollisionObjectBase {
                 self.activation_time_until_sleep,
             );
         }
+        physics_rids.insert(self.state.body_handle.0, self.rid);
     }
 
     pub fn get_space_handle(&self) -> WorldHandle {
@@ -541,8 +540,13 @@ impl RapierCollisionObjectBase {
         self.pickable = p_pickable;
     }
 
-    pub fn destroy_body(&mut self, physics_engine: &mut PhysicsEngine) {
+    pub fn destroy_body(
+        &mut self,
+        physics_engine: &mut PhysicsEngine,
+        physics_rids: &mut PhysicsRids,
+    ) {
         if self.state.body_handle != RigidBodyHandle::invalid() {
+            physics_rids.remove(&self.state.body_handle.0);
             physics_engine.body_destroy(self.state.space_handle, self.state.body_handle);
             self.state.body_handle = RigidBodyHandle::invalid();
         }

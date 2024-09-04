@@ -5,6 +5,7 @@ use godot::classes::physics_server_3d::ShapeType;
 use godot::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::PhysicsRids;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 use crate::types::*;
@@ -45,7 +46,12 @@ impl IRapierShape for RapierWorldBoundaryShape {
     }
 
     #[cfg(feature = "dim2")]
-    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
+    fn set_data(
+        &mut self,
+        data: Variant,
+        physics_engine: &mut PhysicsEngine,
+        physics_rids: &mut PhysicsRids,
+    ) {
         if data.get_type() != VariantType::ARRAY {
             godot_error!("Invalid shape data");
             return;
@@ -65,11 +71,17 @@ impl IRapierShape for RapierWorldBoundaryShape {
         self.normal = arr.at(0).try_to().unwrap_or_default();
         self.d = variant_to_float(&arr.at(1));
         let handle = self.create_rapier_shape(physics_engine);
-        self.base.set_handle_and_reset_aabb(handle, physics_engine);
+        self.base
+            .set_handle_and_reset_aabb(handle, physics_engine, physics_rids);
     }
 
     #[cfg(feature = "dim3")]
-    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
+    fn set_data(
+        &mut self,
+        data: Variant,
+        physics_engine: &mut PhysicsEngine,
+        physics_rids: &mut PhysicsRids,
+    ) {
         if data.get_type() != VariantType::PLANE {
             godot_error!("Invalid shape data");
             return;
@@ -78,7 +90,8 @@ impl IRapierShape for RapierWorldBoundaryShape {
         self.normal = plane.normal;
         self.d = plane.d;
         let handle = self.create_rapier_shape(physics_engine);
-        self.base.set_handle_and_reset_aabb(handle, physics_engine);
+        self.base
+            .set_handle_and_reset_aabb(handle, physics_engine, physics_rids);
     }
 
     #[cfg(feature = "dim2")]

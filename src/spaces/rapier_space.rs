@@ -13,6 +13,7 @@ use rapier::prelude::RigidBodyHandle;
 use servers::rapier_physics_singleton::get_rid;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsData;
+use servers::rapier_physics_singleton::PhysicsRids;
 use spaces::rapier_space_state::RapierSpaceState;
 use spaces::rapier_space_state::RemovedColliderInfo;
 
@@ -54,7 +55,11 @@ pub struct RapierSpace {
     ghost_collision_distance: real,
 }
 impl RapierSpace {
-    pub fn new(rid: Rid, physics_engine: &mut PhysicsEngine) -> Self {
+    pub fn new(
+        rid: Rid,
+        physics_engine: &mut PhysicsEngine,
+        physics_rids: &mut PhysicsRids,
+    ) -> Self {
         let mut direct_access = RapierDirectSpaceState::new_alloc();
         direct_access.bind_mut().set_space(rid);
         let world_settings = WorldSettings {
@@ -63,6 +68,7 @@ impl RapierSpace {
             counters_enabled: false,
         };
         let handle = physics_engine.world_create(&world_settings);
+        physics_rids.insert(handle, rid);
         let project_settings = ProjectSettings::singleton();
         let default_gravity_dir: Vector = project_settings
             .get_setting_with_override(DEFAULT_GRAVITY_VECTOR.into())
@@ -425,6 +431,7 @@ impl RapierSpace {
         self.state.removed_colliders.clear();
         self.state.active_objects =
             physics_engine.world_get_active_objects_count(self.state.handle) as i32;
+        godot_print!("active {:?}", self.state.active_list);
         for body in self.state.active_list.clone() {
             if let Some(body) = physics_collision_objects.get_mut(get_rid(body.0)) {
                 if let Some(body) = body.get_mut_body() {
@@ -544,9 +551,14 @@ impl RapierSpace {
         }
     }
 
-    pub fn destroy_space(&mut self, physics_engine: &mut PhysicsEngine) {
+    pub fn destroy_space(
+        &mut self,
+        physics_engine: &mut PhysicsEngine,
+        physics_rids: &mut PhysicsRids,
+    ) {
         if self.is_valid() {
             physics_engine.world_destroy(self.state.handle);
+            physics_rids.remove(&self.state.handle);
             self.state.handle = WorldHandle::default();
         }
     }

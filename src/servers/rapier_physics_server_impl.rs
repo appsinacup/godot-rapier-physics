@@ -221,7 +221,11 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         let mut owners = None;
         if let Some(shape) = physics_data.shapes.get_mut(&shape) {
-            shape.set_data(data, &mut physics_data.physics_engine);
+            shape.set_data(
+                data,
+                &mut physics_data.physics_engine,
+                &mut physics_data.rids,
+            );
             if shape.get_base().is_valid() {
                 owners = Some(shape.get_base().get_owners().clone());
             }
@@ -312,7 +316,11 @@ impl RapierPhysicsServerImpl {
     pub(super) fn space_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let space = RapierSpace::new(rid, &mut physics_data.physics_engine);
+        let space = RapierSpace::new(
+            rid,
+            &mut physics_data.physics_engine,
+            &mut physics_data.rids,
+        );
         physics_data.spaces.insert(rid, space);
         rid
     }
@@ -433,6 +441,7 @@ impl RapierPhysicsServerImpl {
                 &mut physics_data.physics_engine,
                 &mut physics_data.spaces,
                 &mut physics_data.shapes,
+                &mut physics_data.rids,
             );
         }
     }
@@ -768,6 +777,7 @@ impl RapierPhysicsServerImpl {
                 &mut physics_data.physics_engine,
                 &mut physics_data.spaces,
                 &mut physics_data.shapes,
+                &mut physics_data.rids,
             );
         }
     }
@@ -1561,7 +1571,7 @@ impl RapierPhysicsServerImpl {
                 .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
             prev_joint
                 .get_mut_base()
-                .destroy_joint(&mut physics_data.physics_engine);
+                .destroy_joint(&mut physics_data.physics_engine, &mut physics_data.rids);
             physics_data
                 .joints
                 .insert(rid, RapierJoint::RapierEmptyJoint(joint));
@@ -1641,12 +1651,14 @@ impl RapierPhysicsServerImpl {
                     .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
                 prev_joint
                     .get_mut_base()
-                    .destroy_joint(&mut physics_data.physics_engine);
+                    .destroy_joint(&mut physics_data.physics_engine, &mut physics_data.rids);
             }
         } else {
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
+        let joint_index = joint.get_base().get_handle().index;
         physics_data.joints.insert(rid, joint);
+        physics_data.rids.insert(joint_index, rid);
     }
 
     #[cfg(feature = "dim3")]
@@ -1722,12 +1734,14 @@ impl RapierPhysicsServerImpl {
                     .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
                 prev_joint
                     .get_mut_base()
-                    .destroy_joint(&mut physics_data.physics_engine);
+                    .destroy_joint(&mut physics_data.physics_engine, &mut physics_data.rids);
             }
         } else {
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
+        let joint_index = joint.get_base().get_handle().index;
         physics_data.joints.insert(rid, joint);
+        physics_data.rids.insert(joint_index, rid);
     }
 
     #[cfg(feature = "dim3")]
@@ -1760,12 +1774,14 @@ impl RapierPhysicsServerImpl {
                     .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
                 prev_joint
                     .get_mut_base()
-                    .destroy_joint(&mut physics_data.physics_engine);
+                    .destroy_joint(&mut physics_data.physics_engine, &mut physics_data.rids);
             }
         } else {
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
+        let joint_index = joint.get_base().get_handle().index;
         physics_data.joints.insert(rid, joint);
+        physics_data.rids.insert(joint_index, rid);
     }
 
     #[cfg(feature = "dim3")]
@@ -1830,12 +1846,14 @@ impl RapierPhysicsServerImpl {
                     .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
                 prev_joint
                     .get_mut_base()
-                    .destroy_joint(&mut physics_data.physics_engine);
+                    .destroy_joint(&mut physics_data.physics_engine, &mut physics_data.rids);
             }
         } else {
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
+        let joint_index = joint.get_base().get_handle().index;
         physics_data.joints.insert(rid, joint);
+        physics_data.rids.insert(joint_index, rid);
     }
 
     #[cfg(feature = "dim3")]
@@ -1884,12 +1902,14 @@ impl RapierPhysicsServerImpl {
                     .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
                 prev_joint
                     .get_mut_base()
-                    .destroy_joint(&mut physics_data.physics_engine);
+                    .destroy_joint(&mut physics_data.physics_engine, &mut physics_data.rids);
             }
         } else {
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
+        let joint_index = joint.get_base().get_handle().index;
         physics_data.joints.insert(rid, joint);
+        physics_data.rids.insert(joint_index, rid);
     }
 
     #[cfg(feature = "dim3")]
@@ -1938,12 +1958,14 @@ impl RapierPhysicsServerImpl {
                     .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
                 prev_joint
                     .get_mut_base()
-                    .destroy_joint(&mut physics_data.physics_engine);
+                    .destroy_joint(&mut physics_data.physics_engine, &mut physics_data.rids);
             }
         } else {
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
+        let joint_index = joint.get_base().get_handle().index;
         physics_data.joints.insert(rid, joint);
+        physics_data.rids.insert(joint_index, rid);
     }
 
     #[cfg(feature = "dim3")]
@@ -2006,12 +2028,14 @@ impl RapierPhysicsServerImpl {
                     .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
                 prev_joint
                     .get_mut_base()
-                    .destroy_joint(&mut physics_data.physics_engine);
+                    .destroy_joint(&mut physics_data.physics_engine, &mut physics_data.rids);
             }
         } else {
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
+        let joint_index = joint.get_base().get_handle().index;
         physics_data.joints.insert(rid, joint);
+        physics_data.rids.insert(joint_index, rid);
     }
 
     #[cfg(feature = "dim2")]
@@ -2043,12 +2067,14 @@ impl RapierPhysicsServerImpl {
                     .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
                 prev_joint
                     .get_mut_base()
-                    .destroy_joint(&mut physics_data.physics_engine);
+                    .destroy_joint(&mut physics_data.physics_engine, &mut physics_data.rids);
             }
         } else {
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
+        let joint_index = joint.get_base().get_handle().index;
         physics_data.joints.insert(rid, joint);
+        physics_data.rids.insert(joint_index, rid);
     }
 
     #[cfg(feature = "dim2")]
@@ -2078,12 +2104,15 @@ impl RapierPhysicsServerImpl {
                     .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
                 prev_joint
                     .get_mut_base()
-                    .destroy_joint(&mut physics_data.physics_engine);
+                    .destroy_joint(&mut physics_data.physics_engine, &mut physics_data.rids);
             }
         } else {
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
         physics_data.joints.insert(rid, joint);
+        physics_data
+            .rids
+            .insert(joint.get_base().get_handle().index, rid);
     }
 
     #[cfg(feature = "dim2")]
@@ -2179,7 +2208,7 @@ impl RapierPhysicsServerImpl {
             }
             shape
                 .get_mut_base()
-                .destroy_shape(&mut physics_data.physics_engine);
+                .destroy_shape(&mut physics_data.physics_engine, &mut physics_data.rids);
             return;
         }
         if let Some(mut body) = physics_data.collision_objects.remove(&rid) {
@@ -2189,6 +2218,7 @@ impl RapierPhysicsServerImpl {
                 &mut physics_data.physics_engine,
                 &mut physics_data.spaces,
                 &mut physics_data.shapes,
+                &mut physics_data.rids,
             );
             while body.get_base().get_shape_count() > 0 {
                 body.remove_shape_idx(
@@ -2199,13 +2229,13 @@ impl RapierPhysicsServerImpl {
                 );
             }
             body.get_mut_base()
-                .destroy_body(&mut physics_data.physics_engine);
+                .destroy_body(&mut physics_data.physics_engine, &mut physics_data.rids);
             self.reset_space_if_empty(space);
             return;
         }
         if let Some(mut space) = physics_data.spaces.remove(&rid) {
             let space_handle = space.get_handle();
-            space.destroy_space(&mut physics_data.physics_engine);
+            space.destroy_space(&mut physics_data.physics_engine, &mut physics_data.rids);
             if physics_data.active_spaces.remove(&space_handle).is_some() {
                 return;
             }
@@ -2213,7 +2243,7 @@ impl RapierPhysicsServerImpl {
         if let Some(mut joint) = physics_data.joints.remove(&rid) {
             joint
                 .get_mut_base()
-                .destroy_joint(&mut physics_data.physics_engine);
+                .destroy_joint(&mut physics_data.physics_engine, &mut physics_data.rids);
             self.reset_space_if_empty(joint.get_base().get_space());
             return;
         }

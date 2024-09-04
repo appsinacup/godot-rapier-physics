@@ -16,6 +16,7 @@ use rapier::math::DEFAULT_EPSILON;
 use rapier::prelude::RigidBodyHandle;
 use servers::rapier_physics_singleton::get_rid;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
+use servers::rapier_physics_singleton::PhysicsRids;
 use servers::rapier_physics_singleton::PhysicsShapes;
 use servers::rapier_physics_singleton::PhysicsSpaces;
 use shapes::rapier_shape::IRapierShape;
@@ -1989,12 +1990,14 @@ impl IRapierCollisionObject for RapierBody {
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
+        physics_rids: &mut PhysicsRids,
     ) {
         if space == self.base.get_space() {
             return;
         }
         self.set_space_before(physics_spaces);
-        self.base.set_space(space, physics_engine, physics_spaces);
+        self.base
+            .set_space(space, physics_engine, physics_spaces, physics_rids);
         self.recreate_shapes(physics_engine, physics_shapes, physics_spaces);
         self.set_space_after(physics_engine, physics_spaces);
     }

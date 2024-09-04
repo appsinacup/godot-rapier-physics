@@ -2,6 +2,7 @@ use bodies::rapier_collision_object_base::CollisionObjectShape;
 use bodies::rapier_collision_object_base::RapierCollisionObjectBase;
 use godot::prelude::*;
 use rapier::geometry::ColliderHandle;
+use servers::rapier_physics_singleton::PhysicsRids;
 use servers::rapier_physics_singleton::PhysicsShapes;
 use servers::rapier_physics_singleton::PhysicsSpaces;
 
@@ -23,6 +24,7 @@ pub trait IRapierCollisionObject: Sync {
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
+        physics_rids: &mut PhysicsRids,
     );
     fn recreate_shapes(
         &mut self,
@@ -155,9 +157,10 @@ macro_rules! impl_rapier_collision_object_trait {
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
                 physics_shapes: &mut PhysicsShapes,
+                physics_rids: &mut PhysicsRids,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.set_space(space, physics_engine, physics_spaces, physics_shapes),)*
+                    $(Self::$variant(co) => co.set_space(space, physics_engine, physics_spaces, physics_shapes, physics_rids),)*
                 }
             }
 
