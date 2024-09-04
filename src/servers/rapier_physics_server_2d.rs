@@ -696,7 +696,8 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         let mut queries = Vec::default();
         for space in physics_data.active_spaces.values() {
             if let Some(space) = physics_data.spaces.get_mut(space) {
-                let query = space.get_queries(&mut physics_data.collision_objects);
+                let query =
+                    space.get_queries(&mut physics_data.collision_objects, &physics_data.rids);
                 queries.extend(query);
             }
         }
@@ -710,7 +711,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         self.implementation.flushing_queries = false;
         for space in physics_data.active_spaces.values() {
             if let Some(space) = physics_data.spaces.get_mut(space) {
-                space.update_after_queries(&mut physics_data.collision_objects);
+                space.update_after_queries(&mut physics_data.collision_objects, &physics_data.rids);
             }
         }
     }

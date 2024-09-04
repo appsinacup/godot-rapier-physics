@@ -44,7 +44,6 @@ pub fn physics_data() -> &'static mut PhysicsData {
         SINGLETON.as_mut().unwrap()
     }
 }
-pub fn get_rid(handle: Index) -> &'static Rid {
-    let physics_data = physics_data();
-    return physics_data.rids.get(&handle).unwrap_or(&Rid::Invalid);
+pub fn get_rid(handle: Index, physics_rids: &PhysicsRids) -> Rid {
+    return *physics_rids.get(&handle).unwrap_or(&Rid::Invalid);
 }

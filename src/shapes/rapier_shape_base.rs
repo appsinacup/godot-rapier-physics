@@ -71,12 +71,16 @@ impl RapierShapeBase {
         physics_data: &mut PhysicsData,
     ) {
         for (owner, _) in owners {
-            if let Some(owner) = physics_data.collision_objects.get_mut(get_rid(owner.0)) {
+            if let Some(owner) = physics_data
+                .collision_objects
+                .get_mut(&get_rid(owner.0, &physics_data.rids))
+            {
                 owner.shape_changed(
                     shape_rid,
                     &mut physics_data.physics_engine,
                     &mut physics_data.shapes,
                     &mut physics_data.spaces,
+                    &physics_data.rids,
                 );
             }
         }

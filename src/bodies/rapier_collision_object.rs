@@ -31,7 +31,9 @@ pub trait IRapierCollisionObject: Sync {
         physics_engine: &mut PhysicsEngine,
         physics_shapes: &mut PhysicsShapes,
         physics_spaces: &mut PhysicsSpaces,
+        physics_rids: &PhysicsRids,
     );
+    #[allow(clippy::too_many_arguments)]
     fn add_shape(
         &mut self,
         p_shape: Rid,
@@ -40,6 +42,7 @@ pub trait IRapierCollisionObject: Sync {
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
+        physics_rids: &PhysicsRids,
     );
     fn set_shape(
         &mut self,
@@ -48,6 +51,7 @@ pub trait IRapierCollisionObject: Sync {
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
+        physics_rids: &PhysicsRids,
     );
     fn set_shape_transform(
         &mut self,
@@ -56,6 +60,7 @@ pub trait IRapierCollisionObject: Sync {
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
+        physics_rids: &PhysicsRids,
     );
     fn set_shape_disabled(
         &mut self,
@@ -64,6 +69,7 @@ pub trait IRapierCollisionObject: Sync {
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
+        physics_rids: &PhysicsRids,
     );
     fn remove_shape_idx(
         &mut self,
@@ -71,6 +77,7 @@ pub trait IRapierCollisionObject: Sync {
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
+        physics_rids: &PhysicsRids,
     );
     fn remove_shape_rid(
         &mut self,
@@ -78,6 +85,7 @@ pub trait IRapierCollisionObject: Sync {
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
+        physics_rids: &PhysicsRids,
     );
     fn create_shape(
         &mut self,
@@ -91,6 +99,7 @@ pub trait IRapierCollisionObject: Sync {
         &mut self,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
+        physics_rids: &PhysicsRids,
     );
     fn shape_changed(
         &mut self,
@@ -98,6 +107,7 @@ pub trait IRapierCollisionObject: Sync {
         physics_engine: &mut PhysicsEngine,
         physics_shapes: &mut PhysicsShapes,
         physics_spaces: &mut PhysicsSpaces,
+        physics_rids: &PhysicsRids,
     );
     #[cfg(feature = "serde-serialize")]
     fn export_json(&self) -> String;
@@ -169,9 +179,10 @@ macro_rules! impl_rapier_collision_object_trait {
                 physics_engine: &mut PhysicsEngine,
                 physics_shapes: &mut PhysicsShapes,
                 physics_spaces: &mut PhysicsSpaces,
+                physics_rids: &PhysicsRids,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.recreate_shapes(physics_engine, physics_shapes, physics_spaces),)*
+                    $(Self::$variant(co) => co.recreate_shapes(physics_engine, physics_shapes, physics_spaces, physics_rids),)*
                 }
             }
 
@@ -183,9 +194,10 @@ macro_rules! impl_rapier_collision_object_trait {
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
                 physics_shapes: &mut PhysicsShapes,
+                physics_rids: &PhysicsRids,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.add_shape(p_shape, p_transform, p_disabled, physics_engine, physics_spaces, physics_shapes),)*
+                    $(Self::$variant(co) => co.add_shape(p_shape, p_transform, p_disabled, physics_engine, physics_spaces, physics_shapes, physics_rids),)*
                 }
             }
 
@@ -196,9 +208,10 @@ macro_rules! impl_rapier_collision_object_trait {
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
                 physics_shapes: &mut PhysicsShapes,
+                physics_rids: &PhysicsRids,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.set_shape(shape_idx, p_shape, physics_engine, physics_spaces, physics_shapes),)*
+                    $(Self::$variant(co) => co.set_shape(shape_idx, p_shape, physics_engine, physics_spaces, physics_shapes, physics_rids),)*
                 }
             }
 
@@ -209,9 +222,10 @@ macro_rules! impl_rapier_collision_object_trait {
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
                 physics_shapes: &mut PhysicsShapes,
+                physics_rids: &PhysicsRids,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.set_shape_transform(shape_idx, transform, physics_engine, physics_spaces, physics_shapes),)*
+                    $(Self::$variant(co) => co.set_shape_transform(shape_idx, transform, physics_engine, physics_spaces, physics_shapes, physics_rids),)*
                 }
             }
 
@@ -222,9 +236,10 @@ macro_rules! impl_rapier_collision_object_trait {
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
                 physics_shapes: &mut PhysicsShapes,
+                physics_rids: &PhysicsRids,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.set_shape_disabled(shape_idx, disabled, physics_engine, physics_spaces, physics_shapes),)*
+                    $(Self::$variant(co) => co.set_shape_disabled(shape_idx, disabled, physics_engine, physics_spaces, physics_shapes, physics_rids),)*
                 }
             }
 
@@ -234,9 +249,10 @@ macro_rules! impl_rapier_collision_object_trait {
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
                 physics_shapes: &mut PhysicsShapes,
+                physics_rids: &PhysicsRids,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.remove_shape_idx(p_index, physics_engine, physics_spaces, physics_shapes),)*
+                    $(Self::$variant(co) => co.remove_shape_idx(p_index, physics_engine, physics_spaces, physics_shapes, physics_rids),)*
                 }
             }
 
@@ -246,9 +262,10 @@ macro_rules! impl_rapier_collision_object_trait {
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
                 physics_shapes: &mut PhysicsShapes,
+                physics_rids: &PhysicsRids,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.remove_shape_rid(shape_rid, physics_engine, physics_spaces, physics_shapes),)*
+                    $(Self::$variant(co) => co.remove_shape_rid(shape_rid, physics_engine, physics_spaces, physics_shapes, physics_rids),)*
                 }
             }
 
@@ -274,9 +291,10 @@ macro_rules! impl_rapier_collision_object_trait {
                 &mut self,
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
+                physics_rids: &PhysicsRids,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.shapes_changed(physics_engine, physics_spaces),)*
+                    $(Self::$variant(co) => co.shapes_changed(physics_engine, physics_spaces, physics_rids),)*
                 }
             }
 
@@ -286,9 +304,10 @@ macro_rules! impl_rapier_collision_object_trait {
                 physics_engine: &mut PhysicsEngine,
                 physics_shapes: &mut PhysicsShapes,
                 physics_spaces: &mut PhysicsSpaces,
+                physics_rids: &PhysicsRids,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.shape_changed(p_shape, physics_engine, physics_shapes, physics_spaces),)*
+                    $(Self::$variant(co) => co.shape_changed(p_shape, physics_engine, physics_shapes, physics_spaces, physics_rids),)*
                 }
             }
 

@@ -42,8 +42,8 @@ impl RapierJointBase {
         self.state.space_handle
     }
 
-    pub fn get_space(&self) -> Rid {
-        *get_rid(self.state.space_handle)
+    pub fn get_space(&self, physics_rids: &PhysicsRids) -> Rid {
+        get_rid(self.state.space_handle, physics_rids)
     }
 
     pub fn set_max_force(&mut self, force: f32) {

@@ -200,8 +200,9 @@ impl RapierCollisionObjectBase {
         &mut self,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
+        physics_rids: &PhysicsRids,
     ) {
-        if let Some(space) = physics_spaces.get_mut(&self.get_space()) {
+        if let Some(space) = physics_spaces.get_mut(&self.get_space(physics_rids)) {
             for (i, shape) in self.state.shapes.iter_mut().enumerate() {
                 if shape.collider_handle == ColliderHandle::invalid() {
                     // skip
@@ -228,9 +229,10 @@ impl RapierCollisionObjectBase {
         p_shape_index: usize,
         physics_spaces: &mut PhysicsSpaces,
         physics_engine: &mut PhysicsEngine,
+        physics_rids: &PhysicsRids,
     ) -> ColliderHandle {
         if shape.collider_handle != ColliderHandle::invalid() {
-            if let Some(space) = physics_spaces.get_mut(&self.get_space()) {
+            if let Some(space) = physics_spaces.get_mut(&self.get_space(physics_rids)) {
                 // Keep track of body information for delayed removal
                 space.add_removed_collider(
                     shape.collider_handle,
@@ -301,9 +303,9 @@ impl RapierCollisionObjectBase {
         // previous space
         if self.is_space_valid() {
             self.destroy_body(physics_engine, physics_rids);
-            self.destroy_shapes(physics_engine, physics_spaces);
+            self.destroy_shapes(physics_engine, physics_spaces, physics_rids);
             // Reset area detection counter to keep it consistent for new detections
-            if let Some(space) = physics_spaces.get_mut(&self.get_space()) {
+            if let Some(space) = physics_spaces.get_mut(&self.get_space(physics_rids)) {
                 space.reset_space_if_empty(physics_engine);
             }
         }
@@ -462,8 +464,8 @@ impl RapierCollisionObjectBase {
         self.state.inv_transform
     }
 
-    pub fn get_space(&self) -> Rid {
-        *get_rid(self.state.space_handle)
+    pub fn get_space(&self, physics_rids: &PhysicsRids) -> Rid {
+        get_rid(self.state.space_handle, physics_rids)
     }
 
     pub fn is_shape_disabled(&self, idx: usize) -> bool {
