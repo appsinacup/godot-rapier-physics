@@ -4,7 +4,9 @@ use rapier::prelude::RigidBodyHandle;
 
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::get_rid;
+use crate::servers::rapier_physics_singleton::get_body_rid;
+use crate::servers::rapier_physics_singleton::insert_shape_rid;
+use crate::servers::rapier_physics_singleton::remove_shape_rid;
 use crate::servers::rapier_physics_singleton::PhysicsData;
 use crate::servers::rapier_physics_singleton::PhysicsRids;
 use crate::types::*;
@@ -54,7 +56,7 @@ impl RapierShapeBase {
             vector_to_godot(rapier_aabb.extents()),
         );
         self.state.handle = handle;
-        physics_rids.insert(handle, self.rid);
+        insert_shape_rid(handle, self.rid, physics_rids);
     }
 
     pub fn get_handle(&self) -> ShapeHandle {
@@ -73,7 +75,7 @@ impl RapierShapeBase {
         for (owner, _) in owners {
             if let Some(owner) = physics_data
                 .collision_objects
-                .get_mut(&get_rid(owner.0, &physics_data.rids))
+                .get_mut(&get_body_rid(owner, &physics_data.rids))
             {
                 owner.shape_changed(
                     shape_rid,
@@ -119,7 +121,7 @@ impl RapierShapeBase {
         physics_rids: &mut PhysicsRids,
     ) {
         if self.state.handle != ShapeHandle::default() {
-            physics_rids.remove(&self.state.handle);
+            remove_shape_rid(self.state.handle, physics_rids);
             physics_engine.shape_destroy(self.state.handle);
             self.state.handle = ShapeHandle::default();
         }

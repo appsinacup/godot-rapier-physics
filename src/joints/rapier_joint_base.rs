@@ -1,4 +1,5 @@
-use servers::rapier_physics_singleton::get_rid;
+use servers::rapier_physics_singleton::get_space_rid;
+use servers::rapier_physics_singleton::remove_joint_rid;
 use servers::rapier_physics_singleton::PhysicsRids;
 
 use crate::rapier_wrapper::prelude::*;
@@ -43,7 +44,7 @@ impl RapierJointBase {
     }
 
     pub fn get_space(&self, physics_rids: &PhysicsRids) -> Rid {
-        get_rid(self.state.space_handle, physics_rids)
+        get_space_rid(self.state.space_handle, physics_rids)
     }
 
     pub fn set_max_force(&mut self, force: f32) {
@@ -96,7 +97,7 @@ impl RapierJointBase {
         physics_rids: &mut PhysicsRids,
     ) {
         physics_engine.destroy_joint(self.state.space_handle, self.state.handle);
-        physics_rids.remove(&self.state.handle.index);
+        remove_joint_rid(self.state.handle, physics_rids);
         self.state.handle = JointHandle::default();
     }
 

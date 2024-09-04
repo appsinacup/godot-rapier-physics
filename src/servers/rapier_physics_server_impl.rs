@@ -12,7 +12,8 @@ use godot::global::rid_from_int64;
 use godot::prelude::*;
 use rapier::prelude::RigidBodyHandle;
 
-use super::rapier_physics_singleton::get_rid;
+use super::rapier_physics_singleton::get_body_rid;
+use super::rapier_physics_singleton::insert_joint_rid;
 use super::rapier_physics_singleton::physics_data;
 use super::rapier_project_settings::RapierProjectSettings;
 use crate::bodies::rapier_area::AreaUpdateMode;
@@ -392,7 +393,7 @@ impl RapierPhysicsServerImpl {
             let bodies = space.get_active_bodies();
             let mut array: Array<Rid> = Array::new();
             for body in bodies {
-                let rid = get_rid(body.0, &physics_data.rids);
+                let rid = get_body_rid(body, &physics_data.rids);
                 array.push(rid);
             }
             return array;
@@ -1737,9 +1738,8 @@ impl RapierPhysicsServerImpl {
         } else {
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
-        let joint_index = joint.get_base().get_handle().index;
+        insert_joint_rid(joint.get_base().get_handle(), rid, &mut physics_data.rids);
         physics_data.joints.insert(rid, joint);
-        physics_data.rids.insert(joint_index, rid);
     }
 
     #[cfg(feature = "dim3")]
@@ -1820,9 +1820,8 @@ impl RapierPhysicsServerImpl {
         } else {
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
-        let joint_index = joint.get_base().get_handle().index;
+        insert_joint_rid(joint.get_base().get_handle(), rid, &mut physics_data.rids);
         physics_data.joints.insert(rid, joint);
-        physics_data.rids.insert(joint_index, rid);
     }
 
     #[cfg(feature = "dim3")]
@@ -1860,9 +1859,8 @@ impl RapierPhysicsServerImpl {
         } else {
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
-        let joint_index = joint.get_base().get_handle().index;
+        insert_joint_rid(joint.get_base().get_handle(), rid, &mut physics_data.rids);
         physics_data.joints.insert(rid, joint);
-        physics_data.rids.insert(joint_index, rid);
     }
 
     #[cfg(feature = "dim3")]
@@ -1932,9 +1930,8 @@ impl RapierPhysicsServerImpl {
         } else {
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
-        let joint_index = joint.get_base().get_handle().index;
+        insert_joint_rid(joint.get_base().get_handle(), rid, &mut physics_data.rids);
         physics_data.joints.insert(rid, joint);
-        physics_data.rids.insert(joint_index, rid);
     }
 
     #[cfg(feature = "dim3")]
@@ -1988,9 +1985,8 @@ impl RapierPhysicsServerImpl {
         } else {
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
-        let joint_index = joint.get_base().get_handle().index;
+        insert_joint_rid(joint.get_base().get_handle(), rid, &mut physics_data.rids);
         physics_data.joints.insert(rid, joint);
-        physics_data.rids.insert(joint_index, rid);
     }
 
     #[cfg(feature = "dim3")]
@@ -2044,9 +2040,8 @@ impl RapierPhysicsServerImpl {
         } else {
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
-        let joint_index = joint.get_base().get_handle().index;
+        insert_joint_rid(joint.get_base().get_handle(), rid, &mut physics_data.rids);
         physics_data.joints.insert(rid, joint);
-        physics_data.rids.insert(joint_index, rid);
     }
 
     #[cfg(feature = "dim3")]
@@ -2114,9 +2109,8 @@ impl RapierPhysicsServerImpl {
         } else {
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
-        let joint_index = joint.get_base().get_handle().index;
+        insert_joint_rid(joint.get_base().get_handle(), rid, &mut physics_data.rids);
         physics_data.joints.insert(rid, joint);
-        physics_data.rids.insert(joint_index, rid);
     }
 
     #[cfg(feature = "dim2")]
@@ -2153,9 +2147,8 @@ impl RapierPhysicsServerImpl {
         } else {
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
-        let joint_index = joint.get_base().get_handle().index;
+        insert_joint_rid(joint.get_base().get_handle(), rid, &mut physics_data.rids);
         physics_data.joints.insert(rid, joint);
-        physics_data.rids.insert(joint_index, rid);
     }
 
     #[cfg(feature = "dim2")]
@@ -2190,9 +2183,8 @@ impl RapierPhysicsServerImpl {
         } else {
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
-        let joint_index = joint.get_base().get_handle().index;
+        insert_joint_rid(joint.get_base().get_handle(), rid, &mut physics_data.rids);
         physics_data.joints.insert(rid, joint);
-        physics_data.rids.insert(joint_index, rid);
     }
 
     #[cfg(feature = "dim2")]
@@ -2279,7 +2271,7 @@ impl RapierPhysicsServerImpl {
             for (owner, _) in shape.get_base().get_owners() {
                 if let Some(body) = physics_data
                     .collision_objects
-                    .get_mut(&get_rid(owner.0, &physics_data.rids))
+                    .get_mut(&get_body_rid(*owner, &physics_data.rids))
                 {
                     body.remove_shape_rid(
                         shape.get_base().get_rid(),

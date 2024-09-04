@@ -6,7 +6,9 @@ use godot::classes::ProjectSettings;
 use godot::prelude::*;
 use rapier::dynamics::RigidBodyHandle;
 use rapier::geometry::ColliderHandle;
-use servers::rapier_physics_singleton::get_rid;
+use servers::rapier_physics_singleton::get_space_rid;
+use servers::rapier_physics_singleton::insert_body_rid;
+use servers::rapier_physics_singleton::remove_body_rid;
 use servers::rapier_physics_singleton::PhysicsRids;
 use servers::rapier_physics_singleton::PhysicsShapes;
 use servers::rapier_physics_singleton::PhysicsSpaces;
@@ -356,7 +358,7 @@ impl RapierCollisionObjectBase {
                 self.activation_time_until_sleep,
             );
         }
-        physics_rids.insert(self.state.body_handle.0, self.rid);
+        insert_body_rid(self.state.body_handle, self.rid, physics_rids);
     }
 
     pub fn get_space_handle(&self) -> WorldHandle {
@@ -465,7 +467,7 @@ impl RapierCollisionObjectBase {
     }
 
     pub fn get_space(&self, physics_rids: &PhysicsRids) -> Rid {
-        get_rid(self.state.space_handle, physics_rids)
+        get_space_rid(self.state.space_handle, physics_rids)
     }
 
     pub fn is_shape_disabled(&self, idx: usize) -> bool {
@@ -548,7 +550,7 @@ impl RapierCollisionObjectBase {
         physics_rids: &mut PhysicsRids,
     ) {
         if self.state.body_handle != RigidBodyHandle::invalid() {
-            physics_rids.remove(&self.state.body_handle.0);
+            remove_body_rid(self.state.body_handle, physics_rids);
             physics_engine.body_destroy(self.state.space_handle, self.state.body_handle);
             self.state.body_handle = RigidBodyHandle::invalid();
         }

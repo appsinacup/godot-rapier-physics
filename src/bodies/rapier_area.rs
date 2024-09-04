@@ -13,7 +13,7 @@ use godot::prelude::*;
 use hashbrown::HashMap;
 use rapier::geometry::ColliderHandle;
 use rapier::prelude::RigidBodyHandle;
-use servers::rapier_physics_singleton::get_rid;
+use servers::rapier_physics_singleton::get_body_rid;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsRids;
 use servers::rapier_physics_singleton::PhysicsShapes;
@@ -110,7 +110,7 @@ impl RapierArea {
         physics_collision_objects: &mut PhysicsCollisionObjects,
         physics_rids: &PhysicsRids,
     ) {
-        let area_rid = get_rid(area_handle.0, physics_rids);
+        let area_rid = get_body_rid(*area_handle, physics_rids);
         let mut detected_bodies = HashMap::default();
         let mut space_rid = Rid::Invalid;
         if let Some(area_rid) = physics_collision_objects.get(&area_rid) {
@@ -122,7 +122,7 @@ impl RapierArea {
         if let Some(space) = physics_spaces.get_mut(&space_rid) {
             for (key, _) in detected_bodies.iter() {
                 if let Some([body, area]) = physics_collision_objects
-                    .get_many_mut([&get_rid(key.0, physics_rids), &area_rid])
+                    .get_many_mut([&get_body_rid(*key, physics_rids), &area_rid])
                     && let Some(body) = body.get_mut_body()
                     && let Some(area) = area.get_mut_area()
                 {
@@ -140,7 +140,7 @@ impl RapierArea {
         physics_collision_objects: &mut PhysicsCollisionObjects,
         physics_rids: &PhysicsRids,
     ) {
-        let area_rid = get_rid(area_handle.0, physics_rids);
+        let area_rid = get_body_rid(*area_handle, physics_rids);
         let mut detected_bodies = HashMap::default();
         let mut space_rid = Rid::Invalid;
         if let Some(area_rid) = physics_collision_objects.get(&area_rid) {
@@ -151,7 +151,8 @@ impl RapierArea {
         }
         if let Some(space) = physics_spaces.get_mut(&space_rid) {
             for (key, _) in detected_bodies.iter() {
-                if let Some(body) = physics_collision_objects.get_mut(&get_rid(key.0, physics_rids))
+                if let Some(body) =
+                    physics_collision_objects.get_mut(&get_body_rid(*key, physics_rids))
                     && let Some(body) = body.get_mut_body()
                 {
                     body.remove_area(*area_handle, space);
@@ -168,7 +169,7 @@ impl RapierArea {
         physics_collision_objects: &mut PhysicsCollisionObjects,
         physics_rids: &PhysicsRids,
     ) {
-        let area_rid = get_rid(area_handle.0, physics_rids);
+        let area_rid = get_body_rid(*area_handle, physics_rids);
         let mut detected_bodies = HashMap::default();
         let mut space_rid: Rid = Rid::Invalid;
         if let Some(area_rid) = physics_collision_objects.get(&area_rid) {
@@ -180,7 +181,7 @@ impl RapierArea {
         if let Some(space) = physics_spaces.get_mut(&space_rid) {
             for (key, _) in detected_bodies {
                 if let Some([body, area]) = physics_collision_objects
-                    .get_many_mut([&get_rid(key.0, physics_rids), &area_rid])
+                    .get_many_mut([&get_body_rid(key, physics_rids), &area_rid])
                     && let Some(body) = body.get_mut_body()
                     && let Some(area) = area.get_mut_area()
                 {
@@ -412,7 +413,7 @@ impl RapierArea {
     ) {
         let mut detected_bodies = HashMap::default();
         let mut space_rid = Rid::Invalid;
-        let area_rid = get_rid(area_handle.0, physics_rids);
+        let area_rid = get_body_rid(*area_handle, physics_rids);
         if let Some(area_rid) = physics_collision_objects.get(&area_rid) {
             if let Some(area) = area_rid.get_area() {
                 detected_bodies = area.state.detected_bodies.clone();
@@ -758,7 +759,7 @@ impl RapierArea {
             space.area_remove_from_area_update_list(area_handle);
             for (detected_body, _) in detected_bodies {
                 if let Some(body) =
-                    physics_collision_objects.get_mut(&get_rid(detected_body.0, physics_rids))
+                    physics_collision_objects.get_mut(&get_body_rid(detected_body, physics_rids))
                 {
                     if let Some(body) = body.get_mut_body() {
                         body.remove_area(area_handle, space);

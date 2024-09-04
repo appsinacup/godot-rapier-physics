@@ -10,7 +10,9 @@ use godot::prelude::*;
 use hashbrown::HashSet;
 use rapier::geometry::ColliderHandle;
 use rapier::prelude::RigidBodyHandle;
-use servers::rapier_physics_singleton::get_rid;
+use servers::rapier_physics_singleton::get_body_rid;
+use servers::rapier_physics_singleton::insert_space_rid;
+use servers::rapier_physics_singleton::remove_space_rid;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsData;
 use servers::rapier_physics_singleton::PhysicsRids;
@@ -68,7 +70,7 @@ impl RapierSpace {
             counters_enabled: false,
         };
         let handle = physics_engine.world_create(&world_settings);
-        physics_rids.insert(handle, rid);
+        insert_space_rid(handle, rid, physics_rids);
         let project_settings = ProjectSettings::singleton();
         let default_gravity_dir: Vector = project_settings
             .get_setting_with_override(DEFAULT_GRAVITY_VECTOR.into())
@@ -202,13 +204,14 @@ impl RapierSpace {
             .union(&self.state.force_integrate_query_list)
         {
             if let Some(body) =
-                physics_collision_objects.get_mut(&get_rid(body_handle.0, physics_rids))
+                physics_collision_objects.get_mut(&get_body_rid(*body_handle, physics_rids))
             {
                 if let Some(body) = body.get_mut_body() {
                     body.create_direct_state();
                 }
             }
-            if let Some(body) = physics_collision_objects.get(&get_rid(body_handle.0, physics_rids))
+            if let Some(body) =
+                physics_collision_objects.get(&get_body_rid(*body_handle, physics_rids))
             {
                 if let Some(body) = body.get_body() {
                     if let Some(direct_state) = body.get_direct_state() {
@@ -241,7 +244,8 @@ impl RapierSpace {
             }
         }
         for area_handle in self.state.monitor_query_list.clone() {
-            if let Some(area) = physics_collision_objects.get(&get_rid(area_handle.0, physics_rids))
+            if let Some(area) =
+                physics_collision_objects.get(&get_body_rid(area_handle, physics_rids))
             {
                 if let Some(area) = area.get_area() {
                     let area_queries = &mut area.get_queries();
@@ -259,7 +263,7 @@ impl RapierSpace {
     ) {
         for area_handle in self.state.monitor_query_list.clone() {
             if let Some(area) =
-                physics_collision_objects.get_mut(&get_rid(area_handle.0, physics_rids))
+                physics_collision_objects.get_mut(&get_body_rid(area_handle, physics_rids))
             {
                 if let Some(area) = area.get_mut_area() {
                     area.clear_monitored_objects();
@@ -304,7 +308,7 @@ impl RapierSpace {
         for body in space.get_active_list() {
             if let Some(body) = physics_data
                 .collision_objects
-                .get_mut(&get_rid(body.0, &physics_data.rids))
+                .get_mut(&get_body_rid(*body, &physics_data.rids))
                 && let Some(body) = body.get_mut_body()
             {
                 body.reset_contact_count();
@@ -313,7 +317,7 @@ impl RapierSpace {
         for body in space.get_mass_properties_update_list() {
             if let Some(body) = physics_data
                 .collision_objects
-                .get_mut(&get_rid(body.0, &physics_data.rids))
+                .get_mut(&get_body_rid(*body, &physics_data.rids))
                 && let Some(body) = body.get_mut_body()
             {
                 body.update_mass_properties(false, &mut physics_data.physics_engine);
@@ -340,7 +344,7 @@ impl RapierSpace {
             );
             if let Some(body) = physics_data
                 .collision_objects
-                .get_mut(&get_rid(body.0, &physics_data.rids))
+                .get_mut(&get_body_rid(body, &physics_data.rids))
                 && let Some(body) = body.get_mut_body()
             {
                 body.update_gravity(step, &mut physics_data.physics_engine);
@@ -450,10 +454,9 @@ impl RapierSpace {
         self.state.removed_colliders.clear();
         self.state.active_objects =
             physics_engine.world_get_active_objects_count(self.state.handle) as i32;
-        godot_print!("active {:?}", self.state.active_list);
-        godot_print!("active {:?}", self.state.active_list);
         for body in self.state.active_list.clone() {
-            if let Some(body) = physics_collision_objects.get_mut(&get_rid(body.0, physics_rids)) {
+            if let Some(body) = physics_collision_objects.get_mut(&get_body_rid(body, physics_rids))
+            {
                 if let Some(body) = body.get_mut_body() {
                     body.on_update_active(self, physics_engine);
                 }
@@ -578,7 +581,7 @@ impl RapierSpace {
     ) {
         if self.is_valid() {
             physics_engine.world_destroy(self.state.handle);
-            physics_rids.remove(&self.state.handle);
+            remove_space_rid(self.state.handle, physics_rids);
             self.state.handle = WorldHandle::default();
         }
     }

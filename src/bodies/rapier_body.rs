@@ -14,7 +14,7 @@ use rapier::geometry::ColliderHandle;
 #[cfg(feature = "dim3")]
 use rapier::math::DEFAULT_EPSILON;
 use rapier::prelude::RigidBodyHandle;
-use servers::rapier_physics_singleton::get_rid;
+use servers::rapier_physics_singleton::get_body_rid;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsRids;
 use servers::rapier_physics_singleton::PhysicsShapes;
@@ -584,7 +584,7 @@ impl RapierBody {
         physics_rids: &PhysicsRids,
     ) {
         let mut area_override_settings = None;
-        if let Some(body) = physics_collision_objects.get(&get_rid(body.0, physics_rids)) {
+        if let Some(body) = physics_collision_objects.get(&get_body_rid(*body, physics_rids)) {
             if let Some(body) = body.get_body() {
                 area_override_settings = Some(body.get_area_override_settings(
                     physics_spaces,
@@ -594,7 +594,9 @@ impl RapierBody {
             }
         }
         if let Some(area_override_settings) = area_override_settings {
-            if let Some(body) = physics_collision_objects.get_mut(&get_rid(body.0, physics_rids)) {
+            if let Some(body) =
+                physics_collision_objects.get_mut(&get_body_rid(*body, physics_rids))
+            {
                 if let Some(body) = body.get_mut_body() {
                     body.apply_area_override(
                         area_override_settings,
@@ -636,7 +638,7 @@ impl RapierBody {
             areas.reverse();
             for area_handle in areas.iter() {
                 if let Some(area) =
-                    physics_collision_objects.get(&get_rid(area_handle.handle.0, physics_rids))
+                    physics_collision_objects.get(&get_body_rid(area_handle.handle, physics_rids))
                 {
                     if let Some(aa) = area.get_area() {
                         if !gravity_done {
