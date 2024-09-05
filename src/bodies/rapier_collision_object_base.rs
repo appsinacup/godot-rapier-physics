@@ -306,9 +306,8 @@ impl RapierCollisionObjectBase {
         if self.is_space_valid() {
             self.destroy_body(physics_engine, physics_rids);
             self.destroy_shapes(physics_engine, physics_spaces, physics_rids);
-            // Reset area detection counter to keep it consistent for new detections
             if let Some(space) = physics_spaces.get_mut(&self.get_space(physics_rids)) {
-                space.reset_space_if_empty(physics_engine);
+                space.get_mut_state().reset_space_if_empty(physics_engine);
             }
         }
         if let Some(space) = physics_spaces.get_mut(&p_space) {

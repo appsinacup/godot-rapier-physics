@@ -7,7 +7,6 @@ use godot::classes::physics_server_3d::*;
 use godot::classes::ProjectSettings;
 use godot::prelude::*;
 use hashbrown::HashSet;
-use rapier::prelude::RigidBodyHandle;
 use servers::rapier_physics_singleton::get_body_rid;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsData;
@@ -55,12 +54,6 @@ impl RapierSpace {
     pub fn new(rid: Rid, physics_engine: &mut PhysicsEngine) -> Self {
         let mut direct_access = RapierDirectSpaceState::new_alloc();
         direct_access.bind_mut().set_space(rid);
-        let world_settings = WorldSettings {
-            particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
-            smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
-            counters_enabled: false,
-        };
-        let handle = physics_engine.world_create(&world_settings);
         let project_settings = ProjectSettings::singleton();
         let default_gravity_dir: Vector = project_settings
             .get_setting_with_override(DEFAULT_GRAVITY_VECTOR.into())
@@ -68,10 +61,6 @@ impl RapierSpace {
             .unwrap_or_default();
         let default_gravity_value =
             variant_to_float(&project_settings.get_setting_with_override(DEFAULT_GRAVITY.into()));
-        let state = RapierSpaceState {
-            handle,
-            ..Default::default()
-        };
         Self {
             direct_access: Some(direct_access.upcast()),
             contact_max_allowed_penetration: 0.0,
@@ -82,7 +71,7 @@ impl RapierSpace {
             contact_debug: PackedVectorArray::new(),
             contact_debug_count: 0,
             ghost_collision_distance: RapierProjectSettings::get_ghost_collision_distance(),
-            state,
+            state: RapierSpaceState::new(physics_engine),
         }
     }
 
@@ -102,8 +91,8 @@ impl RapierSpace {
         let mut queries = Vec::default();
         for body_handle in self
             .state
-            .state_query_list
-            .union(&self.state.force_integrate_query_list)
+            .get_state_query_list()
+            .union(self.state.get_force_integrate_query_list())
         {
             if let Some(body) =
                 physics_collision_objects.get_mut(&get_body_rid(*body_handle, physics_rids))
@@ -145,7 +134,7 @@ impl RapierSpace {
                 }
             }
         }
-        for area_handle in self.state.monitor_query_list.clone() {
+        for area_handle in self.state.get_monitor_query_list().clone() {
             if let Some(area) =
                 physics_collision_objects.get(&get_body_rid(area_handle, physics_rids))
             {
@@ -163,7 +152,7 @@ impl RapierSpace {
         physics_collision_objects: &mut PhysicsCollisionObjects,
         physics_rids: &PhysicsRids,
     ) {
-        for area_handle in self.state.monitor_query_list.clone() {
+        for area_handle in self.state.get_monitor_query_list().clone() {
             if let Some(area) =
                 physics_collision_objects.get_mut(&get_body_rid(area_handle, physics_rids))
             {
@@ -172,6 +161,7 @@ impl RapierSpace {
                 }
             }
         }
+        self.state.reset_monitor_query_list();
     }
 
     pub fn step(
@@ -182,7 +172,9 @@ impl RapierSpace {
     ) {
         let mut area_update_list = HashSet::default();
         if let Some(space) = physics_data.spaces.get_mut(space_rid) {
-            space.state.time_stepped += step;
+            space
+                .state
+                .set_time_stepped(space.state.get_time_stepped() + step);
             area_update_list = space.get_state().get_area_update_list().clone();
         }
         for area in area_update_list {
@@ -341,10 +333,11 @@ impl RapierSpace {
         physics_rids: &PhysicsRids,
     ) {
         // Needed only for one physics step to retrieve lost info
-        self.state.removed_colliders.clear();
-        self.state.active_objects =
-            physics_engine.world_get_active_objects_count(self.state.handle) as i32;
-        for body in self.state.active_list.clone() {
+        self.state.reset_removed_colliders();
+        self.state.set_active_objects(
+            physics_engine.world_get_active_objects_count(self.state.get_handle()) as i32,
+        );
+        for body in self.state.get_active_list().clone() {
             if let Some(body) = physics_collision_objects.get_mut(&get_body_rid(body, physics_rids))
             {
                 if let Some(body) = body.get_mut_body() {
@@ -362,13 +355,9 @@ impl RapierSpace {
         self.contact_max_allowed_penetration
     }
 
-    pub fn get_active_bodies(&self) -> Vec<RigidBodyHandle> {
-        self.state.active_list.clone().into_iter().collect()
-    }
-
     #[cfg(feature = "serde-serialize")]
     pub fn export_json(&self, physics_engine: &mut PhysicsEngine) -> String {
-        if let Some(inner) = physics_engine.world_export(self.state.handle) {
+        if let Some(inner) = physics_engine.world_export(self.state.get_handle()) {
             let export = SpaceExport {
                 space: &self.state,
                 world: inner,
@@ -386,7 +375,7 @@ impl RapierSpace {
     #[cfg(feature = "serde-serialize")]
     pub fn export_binary(&self, physics_engine: &mut PhysicsEngine) -> PackedByteArray {
         let mut buf = PackedByteArray::new();
-        if let Some(inner) = physics_engine.world_export(self.state.handle) {
+        if let Some(inner) = physics_engine.world_export(self.state.get_handle()) {
             let export = SpaceExport {
                 space: &self.state,
                 world: inner,
@@ -431,17 +420,6 @@ impl RapierSpace {
 
     pub fn get_ghost_collision_distance(&self) -> real {
         self.ghost_collision_distance
-    }
-
-    pub fn reset_space_if_empty(&mut self, physics_engine: &mut PhysicsEngine) {
-        if self.get_state().is_valid() {
-            let world_settings = WorldSettings {
-                particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
-                smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
-                counters_enabled: false,
-            };
-            physics_engine.world_reset_if_empty(self.state.handle, &world_settings);
-        }
     }
 }
 impl Drop for RapierSpace {

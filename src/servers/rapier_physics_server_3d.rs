@@ -526,7 +526,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
     fn soft_body_update_rendering_server(
         &mut self,
         _body: Rid,
-        _rendering_server_handler: Gd<PhysicsServer3DRenderingServerHandler>,
+        _rendering_server_handler: Option<Gd<PhysicsServer3DRenderingServerHandler>>,
     ) {
     }
 

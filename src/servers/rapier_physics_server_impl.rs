@@ -56,9 +56,7 @@ pub struct RapierPhysicsServerImpl {
     active: bool,
     pub flushing_queries: bool,
     doing_sync: bool,
-    island_count: i32,
     active_objects: i32,
-    collision_pairs: i32,
     length_unit: real,
     max_ccd_substeps: usize,
     num_additional_friction_iterations: usize,
@@ -79,9 +77,7 @@ impl RapierPhysicsServerImpl {
             active: true,
             flushing_queries: false,
             doing_sync: false,
-            island_count: 0,
             active_objects: 0,
-            collision_pairs: 0,
             length_unit: RapierProjectSettings::get_length_unit(),
             max_ccd_substeps: RapierProjectSettings::get_solver_max_ccd_substeps() as usize,
             num_additional_friction_iterations:
@@ -393,7 +389,7 @@ impl RapierPhysicsServerImpl {
     pub(super) fn space_get_active_bodies(&mut self, space: Rid) -> Array<Rid> {
         let physics_data = physics_data();
         if let Some(space) = physics_data.spaces.get_mut(&space) {
-            let bodies = space.get_active_bodies();
+            let bodies = space.get_state().get_active_bodies();
             let mut array: Array<Rid> = Array::new();
             for body in bodies {
                 let rid = get_body_rid(body, &physics_data.rids);
@@ -2264,7 +2260,9 @@ impl RapierPhysicsServerImpl {
     fn reset_space_if_empty(&mut self, space: Rid) {
         let physics_data = physics_data();
         if let Some(space) = physics_data.spaces.get_mut(&space) {
-            space.reset_space_if_empty(&mut physics_data.physics_engine);
+            space
+                .get_mut_state()
+                .reset_space_if_empty(&mut physics_data.physics_engine);
         }
     }
 
@@ -2343,9 +2341,7 @@ impl RapierPhysicsServerImpl {
         self.active = true;
         self.flushing_queries = false;
         self.doing_sync = false;
-        self.island_count = 0;
         self.active_objects = 0;
-        self.collision_pairs = 0;
     }
 
     pub(super) fn step(&mut self, step: f32) {
@@ -2353,16 +2349,12 @@ impl RapierPhysicsServerImpl {
         if !self.active {
             return;
         }
-        self.island_count = 0;
         self.active_objects = 0;
-        self.collision_pairs = 0;
         let active_spaces = physics_data.active_spaces.clone();
         for space_rid in active_spaces.values() {
             self.space_step(space_rid, step);
             if let Some(space) = physics_data.spaces.get(space_rid) {
-                self.island_count += space.get_state().get_island_count();
                 self.active_objects += space.get_state().get_active_objects();
-                self.collision_pairs += space.get_state().get_collision_pairs();
             }
         }
     }
@@ -2384,8 +2376,6 @@ impl RapierPhysicsServerImpl {
     pub(super) fn get_process_info(&mut self, process_info: ProcessInfo) -> i32 {
         match process_info {
             ProcessInfo::ACTIVE_OBJECTS => self.active_objects,
-            ProcessInfo::COLLISION_PAIRS => self.collision_pairs,
-            ProcessInfo::ISLAND_COUNT => self.island_count,
             _ => 0,
         }
     }
