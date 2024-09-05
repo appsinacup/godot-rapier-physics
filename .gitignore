@@ -31,3 +31,4 @@ target
 *~
 
 *.code-workspace
+build_rs_cov.profraw

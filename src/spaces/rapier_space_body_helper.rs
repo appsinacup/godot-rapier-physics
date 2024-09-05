@@ -174,7 +174,7 @@ impl RapierSpace {
         handle_excluded_info.query_exclude_size = 0;
         handle_excluded_info.query_exclude_body = exclude_body.to_u64() as i64;
         physics_engine.intersect_aabb(
-            self.get_handle(),
+            self.get_state().get_handle(),
             vector_to_rapier(rect_begin),
             vector_to_rapier(rect_end),
             collide_with_bodies,

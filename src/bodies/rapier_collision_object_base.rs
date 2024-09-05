@@ -211,7 +211,7 @@ impl RapierCollisionObjectBase {
                     continue;
                 }
                 // Keep track of body information for delayed removal
-                space.add_removed_collider(
+                space.get_mut_state().add_removed_collider(
                     shape.collider_handle,
                     self.rid,
                     self.state.body_handle,
@@ -236,7 +236,7 @@ impl RapierCollisionObjectBase {
         if shape.collider_handle != ColliderHandle::invalid() {
             if let Some(space) = physics_spaces.get_mut(&self.get_space(physics_rids)) {
                 // Keep track of body information for delayed removal
-                space.add_removed_collider(
+                space.get_mut_state().add_removed_collider(
                     shape.collider_handle,
                     self.rid,
                     self.state.body_handle,
@@ -312,7 +312,7 @@ impl RapierCollisionObjectBase {
             }
         }
         if let Some(space) = physics_spaces.get_mut(&p_space) {
-            self.state.space_handle = space.get_handle();
+            self.state.space_handle = space.get_state().get_handle();
             self.is_debugging_contacts = space.is_debugging_contacts();
         } else {
             self.state.space_handle = WorldHandle::default();

@@ -129,7 +129,10 @@ impl RapierSpace {
             (RigidBodyHandle::invalid(), RigidBodyHandle::invalid());
         let (mut instance_id1, mut instance_id2) = (0, 0);
         let (mut type1, mut type2) = (CollisionObjectType::Area, CollisionObjectType::Area);
-        if let Some(removed_collider_info_1) = self.get_removed_collider_info(&collider_handle1) {
+        if let Some(removed_collider_info_1) = self
+            .get_mut_state()
+            .get_removed_collider_info(&collider_handle1)
+        {
             rid1 = removed_collider_info_1.rid;
             body_handle1 = removed_collider_info_1.rb_handle;
             p_object1 = rid1;
@@ -142,7 +145,10 @@ impl RapierSpace {
             instance_id1 = body.get_base().get_instance_id();
             type1 = body.get_base().get_type();
         }
-        if let Some(removed_collider_info_2) = self.get_removed_collider_info(&collider_handle2) {
+        if let Some(removed_collider_info_2) = self
+            .get_mut_state()
+            .get_removed_collider_info(&collider_handle2)
+        {
             rid2 = removed_collider_info_2.rid;
             body_handle2 = removed_collider_info_2.rb_handle;
             p_object2 = rid2;

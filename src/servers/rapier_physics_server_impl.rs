@@ -14,7 +14,9 @@ use rapier::prelude::RigidBodyHandle;
 
 use super::rapier_physics_singleton::get_body_rid;
 use super::rapier_physics_singleton::insert_joint_rid;
+use super::rapier_physics_singleton::insert_space_rid;
 use super::rapier_physics_singleton::physics_data;
+use super::rapier_physics_singleton::remove_space_rid;
 use super::rapier_project_settings::RapierProjectSettings;
 use crate::bodies::rapier_area::AreaUpdateMode;
 use crate::bodies::rapier_area::RapierArea;
@@ -317,11 +319,8 @@ impl RapierPhysicsServerImpl {
     pub(super) fn space_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let space = RapierSpace::new(
-            rid,
-            &mut physics_data.physics_engine,
-            &mut physics_data.rids,
-        );
+        let space = RapierSpace::new(rid, &mut physics_data.physics_engine);
+        insert_space_rid(space.get_state().get_handle(), rid, &mut physics_data.rids);
         physics_data.spaces.insert(rid, space);
         rid
     }
@@ -332,9 +331,11 @@ impl RapierPhysicsServerImpl {
             if active {
                 physics_data
                     .active_spaces
-                    .insert(space.get_handle(), space_rid);
+                    .insert(space.get_state().get_handle(), space_rid);
             } else {
-                physics_data.active_spaces.remove(&space.get_handle());
+                physics_data
+                    .active_spaces
+                    .remove(&space.get_state().get_handle());
             }
         }
     }
@@ -342,7 +343,9 @@ impl RapierPhysicsServerImpl {
     pub(super) fn space_is_active(&self, space: Rid) -> bool {
         let physics_data = physics_data();
         if let Some(space) = physics_data.spaces.get(&space) {
-            return physics_data.active_spaces.contains_key(&space.get_handle());
+            return physics_data
+                .active_spaces
+                .contains_key(&space.get_state().get_handle());
         }
         false
     }
@@ -2311,8 +2314,11 @@ impl RapierPhysicsServerImpl {
             return;
         }
         if let Some(mut space) = physics_data.spaces.remove(&rid) {
-            let space_handle = space.get_handle();
-            space.destroy_space(&mut physics_data.physics_engine, &mut physics_data.rids);
+            let space_handle = space.get_state().get_handle();
+            remove_space_rid(space.get_state().get_handle(), &mut physics_data.rids);
+            space
+                .get_mut_state()
+                .destroy(&mut physics_data.physics_engine);
             if physics_data.active_spaces.remove(&space_handle).is_some() {
                 return;
             }
@@ -2354,9 +2360,9 @@ impl RapierPhysicsServerImpl {
         for space_rid in active_spaces.values() {
             self.space_step(space_rid, step);
             if let Some(space) = physics_data.spaces.get(space_rid) {
-                self.island_count += space.get_island_count();
-                self.active_objects += space.get_active_objects();
-                self.collision_pairs += space.get_collision_pairs();
+                self.island_count += space.get_state().get_island_count();
+                self.active_objects += space.get_state().get_active_objects();
+                self.collision_pairs += space.get_state().get_collision_pairs();
             }
         }
     }
@@ -2438,7 +2444,7 @@ impl RapierPhysicsServerImpl {
             let parts = body.get_base().get_body_handle().into_raw_parts();
             return (parts.0 as u64, parts.1 as u64);
         } else if let Some(space) = physics_data.spaces.get(&rid) {
-            let parts = space.get_handle().into_raw_parts();
+            let parts = space.get_state().get_handle().into_raw_parts();
             return (parts.0 as u64, parts.1 as u64);
         } else if let Some(joint) = physics_data.joints.get(&rid) {
             let parts = joint.get_base().get_handle().index.into_raw_parts();

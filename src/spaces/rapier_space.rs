@@ -1,6 +1,5 @@
 use bodies::rapier_area::RapierArea;
 use bodies::rapier_body::RapierBody;
-use bodies::rapier_collision_object_base::CollisionObjectType;
 #[cfg(feature = "dim2")]
 use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
@@ -8,16 +7,12 @@ use godot::classes::physics_server_3d::*;
 use godot::classes::ProjectSettings;
 use godot::prelude::*;
 use hashbrown::HashSet;
-use rapier::geometry::ColliderHandle;
 use rapier::prelude::RigidBodyHandle;
 use servers::rapier_physics_singleton::get_body_rid;
-use servers::rapier_physics_singleton::insert_space_rid;
-use servers::rapier_physics_singleton::remove_space_rid;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsData;
 use servers::rapier_physics_singleton::PhysicsRids;
 use spaces::rapier_space_state::RapierSpaceState;
-use spaces::rapier_space_state::RemovedColliderInfo;
 
 use super::PhysicsDirectSpaceState;
 use super::RapierDirectSpaceState;
@@ -46,7 +41,6 @@ pub struct SpaceImport {
 }
 pub struct RapierSpace {
     direct_access: Option<Gd<PhysicsDirectSpaceState>>,
-    state: RapierSpaceState,
     contact_max_allowed_penetration: real,
     default_gravity_dir: Vector,
     default_gravity_value: real,
@@ -55,13 +49,10 @@ pub struct RapierSpace {
     contact_debug: PackedVectorArray,
     contact_debug_count: usize,
     ghost_collision_distance: real,
+    state: RapierSpaceState,
 }
 impl RapierSpace {
-    pub fn new(
-        rid: Rid,
-        physics_engine: &mut PhysicsEngine,
-        physics_rids: &mut PhysicsRids,
-    ) -> Self {
+    pub fn new(rid: Rid, physics_engine: &mut PhysicsEngine) -> Self {
         let mut direct_access = RapierDirectSpaceState::new_alloc();
         direct_access.bind_mut().set_space(rid);
         let world_settings = WorldSettings {
@@ -70,7 +61,6 @@ impl RapierSpace {
             counters_enabled: false,
         };
         let handle = physics_engine.world_create(&world_settings);
-        insert_space_rid(handle, rid, physics_rids);
         let project_settings = ProjectSettings::singleton();
         let default_gravity_dir: Vector = project_settings
             .get_setting_with_override(DEFAULT_GRAVITY_VECTOR.into())
@@ -84,7 +74,6 @@ impl RapierSpace {
         };
         Self {
             direct_access: Some(direct_access.upcast()),
-            state,
             contact_max_allowed_penetration: 0.0,
             default_gravity_dir,
             default_gravity_value,
@@ -93,103 +82,16 @@ impl RapierSpace {
             contact_debug: PackedVectorArray::new(),
             contact_debug_count: 0,
             ghost_collision_distance: RapierProjectSettings::get_ghost_collision_distance(),
+            state,
         }
     }
 
-    pub fn get_handle(&self) -> WorldHandle {
-        self.state.handle
+    pub fn get_state(&self) -> &RapierSpaceState {
+        &self.state
     }
 
-    pub fn is_valid(&self) -> bool {
-        self.state.handle != WorldHandle::default()
-    }
-
-    pub fn body_add_to_mass_properties_update_list(&mut self, body: RigidBodyHandle) {
-        self.state.mass_properties_update_list.insert(body);
-    }
-
-    pub fn body_remove_from_mass_properties_update_list(&mut self, body: RigidBodyHandle) {
-        self.state.mass_properties_update_list.remove(&body);
-    }
-
-    pub fn body_add_to_gravity_update_list(&mut self, body: RigidBodyHandle) {
-        self.state.gravity_update_list.insert(body);
-    }
-
-    pub fn body_remove_from_gravity_update_list(&mut self, body: RigidBodyHandle) {
-        self.state.gravity_update_list.remove(&body);
-    }
-
-    pub fn body_add_to_active_list(&mut self, body: RigidBodyHandle) {
-        self.state.active_list.insert(body);
-    }
-
-    pub fn body_remove_from_active_list(&mut self, body: RigidBodyHandle) {
-        self.state.active_list.remove(&body);
-    }
-
-    pub fn body_add_to_state_query_list(&mut self, body: RigidBodyHandle) {
-        self.state.state_query_list.insert(body);
-    }
-
-    pub fn body_remove_from_state_query_list(&mut self, body: RigidBodyHandle) {
-        self.state.state_query_list.remove(&body);
-    }
-
-    pub fn body_add_to_force_integrate_list(&mut self, body: RigidBodyHandle) {
-        self.state.force_integrate_query_list.insert(body);
-    }
-
-    pub fn body_remove_from_force_integrate_list(&mut self, body: RigidBodyHandle) {
-        self.state.force_integrate_query_list.remove(&body);
-    }
-
-    pub fn area_add_to_monitor_query_list(&mut self, area: RigidBodyHandle) {
-        self.state.monitor_query_list.insert(area);
-    }
-
-    pub fn area_add_to_area_update_list(&mut self, area: RigidBodyHandle) {
-        self.state.area_update_list.insert(area);
-    }
-
-    pub fn area_remove_from_area_update_list(&mut self, area: RigidBodyHandle) {
-        self.state.area_update_list.remove(&area);
-    }
-
-    pub fn body_add_to_area_update_list(&mut self, body: RigidBodyHandle) {
-        self.state.body_area_update_list.insert(body);
-    }
-
-    pub fn body_remove_from_area_update_list(&mut self, body: RigidBodyHandle) {
-        self.state.body_area_update_list.remove(&body);
-    }
-
-    pub fn add_removed_collider(
-        &mut self,
-        handle: ColliderHandle,
-        rid: Rid,
-        rb_handle: RigidBodyHandle,
-        instance_id: u64,
-        shape_index: usize,
-        collision_object_type: CollisionObjectType,
-    ) {
-        self.state.removed_colliders.insert(
-            handle,
-            RemovedColliderInfo::new(
-                rid,
-                rb_handle,
-                instance_id,
-                shape_index,
-                collision_object_type,
-            ),
-        );
-    }
-
-    pub fn get_removed_collider_info(
-        &mut self,
-        handle: &ColliderHandle,
-    ) -> Option<&RemovedColliderInfo> {
-        self.state.removed_colliders.get(handle)
+    pub fn get_mut_state(&mut self) -> &mut RapierSpaceState {
+        &mut self.state
     }
 
     pub fn get_queries(
@@ -281,7 +183,7 @@ impl RapierSpace {
         let mut area_update_list = HashSet::default();
         if let Some(space) = physics_data.spaces.get_mut(space_rid) {
             space.state.time_stepped += step;
-            area_update_list = space.get_area_update_list().clone();
+            area_update_list = space.get_state().get_area_update_list().clone();
         }
         for area in area_update_list {
             RapierArea::update_area_override(
@@ -295,17 +197,17 @@ impl RapierSpace {
         let Some(space) = physics_data.spaces.get_mut(space_rid) else {
             return;
         };
-        let body_area_update_list = space.get_body_area_update_list().clone();
-        let gravity_update_list = space.get_gravity_update_list().clone();
+        let body_area_update_list = space.get_state().get_body_area_update_list().clone();
+        let gravity_update_list = space.get_state().get_gravity_update_list().clone();
         let default_gravity_value: real =
             variant_to_float(&space.get_default_area_param(AreaParameter::GRAVITY));
         let default_gravity_dir = space
             .get_default_area_param(AreaParameter::GRAVITY_VECTOR)
             .try_to()
             .unwrap_or_default();
-        let space_handle = space.get_handle();
+        let space_handle = space.get_state().get_handle();
         space.before_step();
-        for body in space.get_active_list() {
+        for body in space.get_state().get_active_list() {
             if let Some(body) = physics_data
                 .collision_objects
                 .get_mut(&get_body_rid(*body, &physics_data.rids))
@@ -314,7 +216,7 @@ impl RapierSpace {
                 body.reset_contact_count();
             }
         }
-        for body in space.get_mass_properties_update_list() {
+        for body in space.get_state().get_mass_properties_update_list() {
             if let Some(body) = physics_data
                 .collision_objects
                 .get_mut(&get_body_rid(*body, &physics_data.rids))
@@ -323,7 +225,7 @@ impl RapierSpace {
                 body.update_mass_properties(false, &mut physics_data.physics_engine);
             }
         }
-        space.reset_mass_properties_update_list();
+        space.get_mut_state().reset_mass_properties_update_list();
         for body in &body_area_update_list {
             RapierBody::apply_area_override_to_body(
                 body,
@@ -405,18 +307,6 @@ impl RapierSpace {
         }
     }
 
-    pub fn get_island_count(&self) -> i32 {
-        self.state.island_count
-    }
-
-    pub fn get_active_objects(&self) -> i32 {
-        self.state.active_objects
-    }
-
-    pub fn get_collision_pairs(&self) -> i32 {
-        self.state.collision_pairs
-    }
-
     pub fn set_debug_contacts(&mut self, max_contacts: i32) {
         self.contact_debug.resize(max_contacts as usize);
     }
@@ -466,30 +356,6 @@ impl RapierSpace {
 
     pub fn get_direct_state(&self) -> &Option<Gd<PhysicsDirectSpaceState>> {
         &self.direct_access
-    }
-
-    pub fn get_active_list(&self) -> &HashSet<RigidBodyHandle> {
-        &self.state.active_list
-    }
-
-    pub fn get_mass_properties_update_list(&self) -> &HashSet<RigidBodyHandle> {
-        &self.state.mass_properties_update_list
-    }
-
-    pub fn reset_mass_properties_update_list(&mut self) {
-        self.state.mass_properties_update_list.clear();
-    }
-
-    pub fn get_area_update_list(&self) -> &HashSet<RigidBodyHandle> {
-        &self.state.area_update_list
-    }
-
-    pub fn get_body_area_update_list(&self) -> &HashSet<RigidBodyHandle> {
-        &self.state.body_area_update_list
-    }
-
-    pub fn get_gravity_update_list(&self) -> &HashSet<RigidBodyHandle> {
-        &self.state.gravity_update_list
     }
 
     pub fn get_contact_max_allowed_penetration(&self) -> real {
@@ -551,7 +417,11 @@ impl RapierSpace {
                     smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
                     counters_enabled: false,
                 };
-                physics_engine.world_import(self.get_handle(), &world_settings, physics_objects);
+                physics_engine.world_import(
+                    self.get_state().get_handle(),
+                    &world_settings,
+                    physics_objects,
+                );
             }
             Err(e) => {
                 godot_error!("Failed to deserialize space from binary: {}", e);
@@ -564,7 +434,7 @@ impl RapierSpace {
     }
 
     pub fn reset_space_if_empty(&mut self, physics_engine: &mut PhysicsEngine) {
-        if self.is_valid() {
+        if self.get_state().is_valid() {
             let world_settings = WorldSettings {
                 particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
                 smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
@@ -573,22 +443,10 @@ impl RapierSpace {
             physics_engine.world_reset_if_empty(self.state.handle, &world_settings);
         }
     }
-
-    pub fn destroy_space(
-        &mut self,
-        physics_engine: &mut PhysicsEngine,
-        physics_rids: &mut PhysicsRids,
-    ) {
-        if self.is_valid() {
-            physics_engine.world_destroy(self.state.handle);
-            remove_space_rid(self.state.handle, physics_rids);
-            self.state.handle = WorldHandle::default();
-        }
-    }
 }
 impl Drop for RapierSpace {
     fn drop(&mut self) {
-        if self.is_valid() {
+        if self.get_state().is_valid() {
             godot_error!("RapierSpace leaked");
         }
     }

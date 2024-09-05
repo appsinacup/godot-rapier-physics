@@ -212,7 +212,9 @@ impl RapierBody {
         }
         if self.calculate_inertia || self.calculate_center_of_mass {
             if let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_rids)) {
-                space.body_add_to_mass_properties_update_list(self.base.get_body_handle());
+                space
+                    .get_mut_state()
+                    .body_add_to_mass_properties_update_list(self.base.get_body_handle());
                 self.state.mass_properties_update_pending = true;
             }
         } else {
@@ -499,12 +501,16 @@ impl RapierBody {
         if !p_callable.is_valid() {
             self.body_state_callback = None;
             if let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_rids)) {
-                space.body_remove_from_state_query_list(self.base.get_body_handle());
+                space
+                    .get_mut_state()
+                    .body_remove_from_state_query_list(self.base.get_body_handle());
             }
         } else {
             self.body_state_callback = Some(p_callable);
             if let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_rids)) {
-                space.body_add_to_state_query_list(self.base.get_body_handle());
+                space
+                    .get_mut_state()
+                    .body_add_to_state_query_list(self.base.get_body_handle());
             }
         }
     }
@@ -523,12 +529,16 @@ impl RapierBody {
         if callable.is_valid() {
             self.fi_callback_data = Some(ForceIntegrationCallbackData { callable, udata });
             if let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_rids)) {
-                space.body_add_to_force_integrate_list(self.base.get_body_handle());
+                space
+                    .get_mut_state()
+                    .body_add_to_force_integrate_list(self.base.get_body_handle());
             }
         } else {
             self.fi_callback_data = None;
             if let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_rids)) {
-                space.body_remove_from_force_integrate_list(self.base.get_body_handle());
+                space
+                    .get_mut_state()
+                    .body_remove_from_force_integrate_list(self.base.get_body_handle());
             }
         }
     }
@@ -573,7 +583,9 @@ impl RapierBody {
     }
 
     pub fn on_area_updated(&mut self, space: &mut RapierSpace) {
-        space.body_add_to_area_update_list(self.base.get_body_handle());
+        space
+            .get_mut_state()
+            .body_add_to_area_update_list(self.base.get_body_handle());
     }
 
     pub fn apply_area_override_to_body(
@@ -616,7 +628,9 @@ impl RapierBody {
         physics_rids: &PhysicsRids,
     ) -> AreaOverrideSettings {
         if let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_rids)) {
-            space.body_remove_from_area_update_list(self.base.get_body_handle());
+            space
+                .get_mut_state()
+                .body_remove_from_area_update_list(self.base.get_body_handle());
         }
         // Reset area override flags.
         let mut using_area_gravity = false;
@@ -807,9 +821,13 @@ impl RapierBody {
         if let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_rids)) {
             if self.using_area_gravity && !self.omit_force_integration {
                 // Disable simulation gravity and apply it manually instead.
-                space.body_add_to_gravity_update_list(self.base.get_body_handle());
+                space
+                    .get_mut_state()
+                    .body_add_to_gravity_update_list(self.base.get_body_handle());
             } else {
-                space.body_remove_from_gravity_update_list(self.base.get_body_handle());
+                space
+                    .get_mut_state()
+                    .body_remove_from_gravity_update_list(self.base.get_body_handle());
             }
         }
     }
@@ -933,7 +951,9 @@ impl RapierBody {
         if self.state.mass_properties_update_pending {
             // Force update internal mass properties to calculate proper impulse
             if let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_rids)) {
-                space.body_remove_from_mass_properties_update_list(self.base.get_body_handle());
+                space
+                    .get_mut_state()
+                    .body_remove_from_mass_properties_update_list(self.base.get_body_handle());
             }
             self.update_mass_properties(true, physics_engine);
         }
@@ -1145,10 +1165,14 @@ impl RapierBody {
                 // Static bodies can't be active.
                 self.state.active = false;
             } else {
-                space.body_add_to_active_list(self.base.get_body_handle());
+                space
+                    .get_mut_state()
+                    .body_add_to_active_list(self.base.get_body_handle());
             }
         } else {
-            space.body_remove_from_active_list(self.base.get_body_handle());
+            space
+                .get_mut_state()
+                .body_remove_from_active_list(self.base.get_body_handle());
         }
     }
 
@@ -1177,7 +1201,9 @@ impl RapierBody {
         self.state.marked_active = true;
         if !self.state.active {
             self.state.active = true;
-            space.body_add_to_active_list(self.base.get_body_handle());
+            space
+                .get_mut_state()
+                .body_add_to_active_list(self.base.get_body_handle());
         }
     }
 
@@ -1503,7 +1529,7 @@ impl RapierBody {
             match p_mode {
                 BodyMode::KINEMATIC => {
                     physics_engine.body_change_mode(
-                        space.get_handle(),
+                        space.get_state().get_handle(),
                         self.base.get_body_handle(),
                         BodyType::Kinematic,
                         true,
@@ -1511,7 +1537,7 @@ impl RapierBody {
                 }
                 BodyMode::STATIC => {
                     physics_engine.body_change_mode(
-                        space.get_handle(),
+                        space.get_state().get_handle(),
                         self.base.get_body_handle(),
                         BodyType::Static,
                         true,
@@ -1519,7 +1545,7 @@ impl RapierBody {
                 }
                 BodyMode::RIGID | BodyMode::RIGID_LINEAR => {
                     physics_engine.body_change_mode(
-                        space.get_handle(),
+                        space.get_state().get_handle(),
                         self.base.get_body_handle(),
                         BodyType::Dynamic,
                         true,
@@ -1532,14 +1558,18 @@ impl RapierBody {
                 if self.state.marked_active {
                     return;
                 }
-                space.body_remove_from_active_list(rid);
-                space.body_remove_from_mass_properties_update_list(rid);
-                space.body_remove_from_gravity_update_list(rid);
-                space.body_remove_from_area_update_list(rid);
+                space.get_mut_state().body_remove_from_active_list(rid);
+                space
+                    .get_mut_state()
+                    .body_remove_from_mass_properties_update_list(rid);
+                space
+                    .get_mut_state()
+                    .body_remove_from_gravity_update_list(rid);
+                space.get_mut_state().body_remove_from_area_update_list(rid);
                 return;
             }
             if self.state.active && prev_mode == BodyMode::STATIC {
-                space.body_add_to_active_list(rid);
+                space.get_mut_state().body_add_to_active_list(rid);
             }
         }
         self.update_colliders_filters(physics_engine);
@@ -1903,12 +1933,24 @@ impl RapierBody {
     fn set_space_before(&mut self, physics_spaces: &mut PhysicsSpaces, physics_rids: &PhysicsRids) {
         // remove body from previous space
         if let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_rids)) {
-            space.body_remove_from_mass_properties_update_list(self.base.get_body_handle());
-            space.body_remove_from_gravity_update_list(self.base.get_body_handle());
-            space.body_remove_from_active_list(self.base.get_body_handle());
-            space.body_remove_from_state_query_list(self.base.get_body_handle());
-            space.body_remove_from_area_update_list(self.base.get_body_handle());
-            space.body_remove_from_force_integrate_list(self.base.get_body_handle());
+            space
+                .get_mut_state()
+                .body_remove_from_mass_properties_update_list(self.base.get_body_handle());
+            space
+                .get_mut_state()
+                .body_remove_from_gravity_update_list(self.base.get_body_handle());
+            space
+                .get_mut_state()
+                .body_remove_from_active_list(self.base.get_body_handle());
+            space
+                .get_mut_state()
+                .body_remove_from_state_query_list(self.base.get_body_handle());
+            space
+                .get_mut_state()
+                .body_remove_from_area_update_list(self.base.get_body_handle());
+            space
+                .get_mut_state()
+                .body_remove_from_force_integrate_list(self.base.get_body_handle());
         }
     }
 
@@ -1921,12 +1963,16 @@ impl RapierBody {
         if self.base.is_space_valid() && self.base.mode.ord() >= BodyMode::KINEMATIC.ord() {
             if self.get_force_integration_callback().is_some() {
                 if let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_rids)) {
-                    space.body_add_to_force_integrate_list(self.base.get_body_handle());
+                    space
+                        .get_mut_state()
+                        .body_add_to_force_integrate_list(self.base.get_body_handle());
                 }
             }
             if self.get_state_sync_callback().is_some() {
                 if let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_rids)) {
-                    space.body_add_to_state_query_list(self.base.get_body_handle());
+                    space
+                        .get_mut_state()
+                        .body_add_to_state_query_list(self.base.get_body_handle());
                 }
             }
             if !self.can_sleep {
@@ -1935,7 +1981,9 @@ impl RapierBody {
             if self.state.active || !self.sleep {
                 self.wakeup(physics_engine);
                 if let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_rids)) {
-                    space.body_add_to_active_list(self.base.get_body_handle());
+                    space
+                        .get_mut_state()
+                        .body_add_to_active_list(self.base.get_body_handle());
                 }
             } else if self.can_sleep && self.sleep {
                 self.force_sleep(physics_engine);

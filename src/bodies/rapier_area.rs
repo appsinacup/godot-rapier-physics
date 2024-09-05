@@ -130,7 +130,9 @@ impl RapierArea {
                 }
             }
             // No need to update anymore if it was scheduled before
-            space.area_remove_from_area_update_list(*area_handle);
+            space
+                .get_mut_state()
+                .area_remove_from_area_update_list(*area_handle);
         }
     }
 
@@ -159,7 +161,9 @@ impl RapierArea {
                 }
             }
             // No need to update anymore if it was scheduled before
-            space.area_remove_from_area_update_list(*area_handle);
+            space
+                .get_mut_state()
+                .area_remove_from_area_update_list(*area_handle);
         }
     }
 
@@ -189,7 +193,9 @@ impl RapierArea {
                     body.add_area(area, space);
                 }
             }
-            space.area_remove_from_area_update_list(*area_handle);
+            space
+                .get_mut_state()
+                .area_remove_from_area_update_list(*area_handle);
         }
     }
 
@@ -241,7 +247,9 @@ impl RapierArea {
                     state: 1,
                 },
             );
-            space.area_add_to_monitor_query_list(self.base.get_body_handle());
+            space
+                .get_mut_state()
+                .area_add_to_monitor_query_list(self.base.get_body_handle());
         }
     }
 
@@ -292,7 +300,9 @@ impl RapierArea {
                     state: -1,
                 },
             );
-            space.area_add_to_monitor_query_list(self.base.get_body_handle());
+            space
+                .get_mut_state()
+                .area_add_to_monitor_query_list(self.base.get_body_handle());
         }
     }
 
@@ -346,7 +356,9 @@ impl RapierArea {
                     state: 1,
                 },
             );
-            space.area_add_to_monitor_query_list(self.base.get_body_handle());
+            space
+                .get_mut_state()
+                .area_add_to_monitor_query_list(self.base.get_body_handle());
         }
     }
 
@@ -400,7 +412,9 @@ impl RapierArea {
                     state: -1,
                 },
             );
-            space.area_add_to_monitor_query_list(self.base.get_body_handle());
+            space
+                .get_mut_state()
+                .area_add_to_monitor_query_list(self.base.get_body_handle());
         }
     }
 
@@ -421,7 +435,9 @@ impl RapierArea {
             }
         }
         if let Some(space) = physics_spaces.get_mut(&space_rid) {
-            space.area_remove_from_area_update_list(*area_handle);
+            space
+                .get_mut_state()
+                .area_remove_from_area_update_list(*area_handle);
         }
         for (detected_body, _) in &detected_bodies {
             RapierBody::apply_area_override_to_body(
@@ -503,7 +519,9 @@ impl RapierArea {
                         if let Some(space) =
                             physics_spaces.get_mut(&self.base.get_space(physics_rids))
                         {
-                            space.area_add_to_area_update_list(self.base.get_body_handle());
+                            space
+                                .get_mut_state()
+                                .area_add_to_area_update_list(self.base.get_body_handle());
                         }
                     }
                 }
@@ -517,7 +535,9 @@ impl RapierArea {
                         if let Some(space) =
                             physics_spaces.get_mut(&self.base.get_space(physics_rids))
                         {
-                            space.area_add_to_area_update_list(self.base.get_body_handle());
+                            space
+                                .get_mut_state()
+                                .area_add_to_area_update_list(self.base.get_body_handle());
                         }
                     }
                 }
@@ -531,7 +551,9 @@ impl RapierArea {
                         if let Some(space) =
                             physics_spaces.get_mut(&self.base.get_space(physics_rids))
                         {
-                            space.area_add_to_area_update_list(self.base.get_body_handle());
+                            space
+                                .get_mut_state()
+                                .area_add_to_area_update_list(self.base.get_body_handle());
                         }
                     }
                 }
@@ -545,7 +567,9 @@ impl RapierArea {
                         if let Some(space) =
                             physics_spaces.get_mut(&self.base.get_space(physics_rids))
                         {
-                            space.area_add_to_area_update_list(self.base.get_body_handle());
+                            space
+                                .get_mut_state()
+                                .area_add_to_area_update_list(self.base.get_body_handle());
                         }
                     }
                 }
@@ -572,7 +596,9 @@ impl RapierArea {
                         if let Some(space) =
                             physics_spaces.get_mut(&self.base.get_space(physics_rids))
                         {
-                            space.area_add_to_area_update_list(self.base.get_body_handle());
+                            space
+                                .get_mut_state()
+                                .area_add_to_area_update_list(self.base.get_body_handle());
                         }
                     }
                 }
@@ -599,7 +625,9 @@ impl RapierArea {
                         if let Some(space) =
                             physics_spaces.get_mut(&self.base.get_space(physics_rids))
                         {
-                            space.area_add_to_area_update_list(self.base.get_body_handle());
+                            space
+                                .get_mut_state()
+                                .area_add_to_area_update_list(self.base.get_body_handle());
                         }
                     }
                 }
@@ -754,9 +782,13 @@ impl RapierArea {
         }
         if let Some(space) = physics_spaces.get_mut(&previous_space_rid) {
             if !detected_bodies.is_empty() {
-                space.area_add_to_monitor_query_list(area_handle);
+                space
+                    .get_mut_state()
+                    .area_add_to_monitor_query_list(area_handle);
             }
-            space.area_remove_from_area_update_list(area_handle);
+            space
+                .get_mut_state()
+                .area_remove_from_area_update_list(area_handle);
             for (detected_body, _) in detected_bodies {
                 if let Some(body) =
                     physics_collision_objects.get_mut(&get_body_rid(detected_body, physics_rids))
