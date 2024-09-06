@@ -2262,7 +2262,7 @@ impl RapierPhysicsServerImpl {
         if let Some(space) = physics_data.spaces.get_mut(&space) {
             space
                 .get_mut_state()
-                .reset_space_if_empty(&mut physics_data.physics_engine);
+                .reset_space_if_empty(&mut physics_data.physics_engine, &RapierSpace::get_world_settings());
         }
     }
 

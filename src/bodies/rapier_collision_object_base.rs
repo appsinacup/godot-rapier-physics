@@ -14,6 +14,7 @@ use servers::rapier_physics_singleton::PhysicsShapes;
 use servers::rapier_physics_singleton::PhysicsSpaces;
 use servers::rapier_project_settings::RapierProjectSettings;
 use shapes::rapier_shape::IRapierShape;
+use spaces::rapier_space::RapierSpace;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::types::*;
@@ -307,7 +308,7 @@ impl RapierCollisionObjectBase {
             self.destroy_body(physics_engine, physics_rids);
             self.destroy_shapes(physics_engine, physics_spaces, physics_rids);
             if let Some(space) = physics_spaces.get_mut(&self.get_space(physics_rids)) {
-                space.get_mut_state().reset_space_if_empty(physics_engine);
+                space.get_mut_state().reset_space_if_empty(physics_engine, &RapierSpace::get_world_settings());
             }
         }
         if let Some(space) = physics_spaces.get_mut(&p_space) {

@@ -71,7 +71,7 @@ impl RapierSpace {
             contact_debug: PackedVectorArray::new(),
             contact_debug_count: 0,
             ghost_collision_distance: RapierProjectSettings::get_ghost_collision_distance(),
-            state: RapierSpaceState::new(physics_engine),
+            state: RapierSpaceState::new(physics_engine, &Self::get_world_settings()),
         }
     }
 
@@ -353,6 +353,14 @@ impl RapierSpace {
 
     pub fn get_contact_max_allowed_penetration(&self) -> real {
         self.contact_max_allowed_penetration
+    }
+
+    pub fn get_world_settings() -> WorldSettings {
+        return WorldSettings {
+            particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
+            smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
+            counters_enabled: false,
+        };
     }
 
     #[cfg(feature = "serde-serialize")]

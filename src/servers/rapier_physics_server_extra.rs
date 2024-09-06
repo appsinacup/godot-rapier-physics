@@ -7,28 +7,21 @@ use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::fluids::rapier_fluid::RapierFluid;
 use crate::servers::RapierPhysicsServer;
 use crate::types::*;
+#[derive(GodotConvert, Var, Export, Debug)]
+#[godot(via = GString)]
 pub enum RapierBodyParam {
-    ContactSkin = 0,
-}
-impl From<i32> for RapierBodyParam {
-    fn from(i: i32) -> Self {
-        match i {
-            0 => RapierBodyParam::ContactSkin,
-            _ => RapierBodyParam::ContactSkin,
-        }
-    }
+    ContactSkin,
 }
 #[godot_api]
 impl RapierPhysicsServer {
     #[func]
-    /// Set an extra parameter for a body.
-    /// Right now only parameter available is 0, which is the contact skin.
-    fn body_set_extra_param(body: Rid, param: i32, value: Variant) {
+    /// Set an extra parameter for a body. See [RapierBodyParam] for available params.
+    fn body_set_extra_param(body: Rid, param: RapierBodyParam, value: Variant) {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.set_extra_param(
-                    RapierBodyParam::from(param),
+                    param,
                     value,
                     &mut physics_data.physics_engine,
                 );
@@ -37,13 +30,12 @@ impl RapierPhysicsServer {
     }
 
     #[func]
-    /// Get an extra parameter for a body.
-    /// Right now only parameter available is 0, which is the contact skin.
-    fn body_get_extra_param(body: Rid, param: i32) -> Variant {
+    /// Get an extra parameter for a body. See [RapierBodyParam] for available params.
+    fn body_get_extra_param(body: Rid, param: RapierBodyParam) -> Variant {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get(&body) {
             if let Some(body) = body.get_body() {
-                return body.get_extra_param(RapierBodyParam::from(param));
+                return body.get_extra_param(param);
             }
         }
         0.0.to_variant()

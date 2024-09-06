@@ -62,12 +62,7 @@ pub struct RapierSpaceState {
     handle: WorldHandle,
 }
 impl RapierSpaceState {
-    pub fn new(physics_engine: &mut PhysicsEngine) -> Self {
-        let world_settings = WorldSettings {
-            particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
-            smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
-            counters_enabled: false,
-        };
+    pub fn new(physics_engine: &mut PhysicsEngine, world_settings: &WorldSettings) -> Self {
         let handle = physics_engine.world_create(&world_settings);
         Self {
             handle,
@@ -243,13 +238,8 @@ impl RapierSpaceState {
     }
 
     // Reset the rapier world if it is empty. Helps maintain determinism when deleting all things but not reloading.
-    pub fn reset_space_if_empty(&mut self, physics_engine: &mut PhysicsEngine) {
+    pub fn reset_space_if_empty(&mut self, physics_engine: &mut PhysicsEngine, world_settings: &WorldSettings) {
         if self.is_valid() {
-            let world_settings = WorldSettings {
-                particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
-                smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
-                counters_enabled: false,
-            };
             physics_engine.world_reset_if_empty(self.handle, &world_settings);
         }
     }
@@ -287,10 +277,18 @@ mod tests {
         assert_eq!(removed_info.collision_object_type, collision_object_type);
     }
 
+    fn create_world_settings() -> WorldSettings {
+        WorldSettings {
+            particle_radius: 1.0,
+            smoothing_factor: 1.0,
+            counters_enabled: true,
+        }
+    }
+
     #[test]
     fn test_rapier_space_state_new() {
         let mut physics_engine = PhysicsEngine::default();
-        let state = RapierSpaceState::new(&mut physics_engine);
+        let state = RapierSpaceState::new(&mut physics_engine, &create_world_settings());
 
         assert!(state.is_valid());
         assert_eq!(state.get_active_objects(), 0);
@@ -302,7 +300,7 @@ mod tests {
     #[test]
     fn test_body_add_and_remove_from_active_list() {
         let mut physics_engine = PhysicsEngine::default();
-        let mut state = RapierSpaceState::new(&mut physics_engine);
+        let mut state = RapierSpaceState::new(&mut physics_engine, &create_world_settings());
         let rb_handle = create_test_rigid_body_handle();
 
         state.body_add_to_active_list(rb_handle);
@@ -315,7 +313,7 @@ mod tests {
     #[test]
     fn test_body_add_and_remove_from_mass_properties_update_list() {
         let mut physics_engine = PhysicsEngine::default();
-        let mut state = RapierSpaceState::new(&mut physics_engine);
+        let mut state = RapierSpaceState::new(&mut physics_engine, &create_world_settings());
         let rb_handle = create_test_rigid_body_handle();
 
         state.body_add_to_mass_properties_update_list(rb_handle);
@@ -328,7 +326,7 @@ mod tests {
     #[test]
     fn test_add_removed_collider() {
         let mut physics_engine = PhysicsEngine::default();
-        let mut state = RapierSpaceState::new(&mut physics_engine);
+        let mut state = RapierSpaceState::new(&mut physics_engine, &create_world_settings());
 
         let collider_handle = create_test_collider_handle();
         let rid = Rid::new(1234);
@@ -349,7 +347,7 @@ mod tests {
     #[test]
     fn test_set_and_get_active_objects() {
         let mut physics_engine = PhysicsEngine::default();
-        let mut state = RapierSpaceState::new(&mut physics_engine);
+        let mut state = RapierSpaceState::new(&mut physics_engine, &create_world_settings());
 
         state.set_active_objects(10);
         assert_eq!(state.get_active_objects(), 10);
@@ -358,7 +356,7 @@ mod tests {
     #[test]
     fn test_destroy() {
         let mut physics_engine = PhysicsEngine::default();
-        let mut state = RapierSpaceState::new(&mut physics_engine);
+        let mut state = RapierSpaceState::new(&mut physics_engine, &create_world_settings());
 
         state.destroy(&mut physics_engine);
         assert!(!state.is_valid());
@@ -367,7 +365,7 @@ mod tests {
     #[test]
     fn test_reset_mass_properties_update_list() {
         let mut physics_engine = PhysicsEngine::default();
-        let mut state = RapierSpaceState::new(&mut physics_engine);
+        let mut state = RapierSpaceState::new(&mut physics_engine, &create_world_settings());
         let rb_handle = create_test_rigid_body_handle();
 
         state.body_add_to_mass_properties_update_list(rb_handle);
@@ -380,9 +378,9 @@ mod tests {
     #[test]
     fn test_reset_space_if_empty() {
         let mut physics_engine = PhysicsEngine::default();
-        let mut state = RapierSpaceState::new(&mut physics_engine);
+        let mut state = RapierSpaceState::new(&mut physics_engine, &create_world_settings());
 
-        state.reset_space_if_empty(&mut physics_engine);
+        state.reset_space_if_empty(&mut physics_engine, &create_world_settings());
         assert!(state.is_valid());
     }
 }
