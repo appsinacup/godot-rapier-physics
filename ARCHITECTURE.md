@@ -8,7 +8,6 @@ This data is held in a **Singleton** for performance reasons.
 
 ```mermaid
 classDiagram
-direction LR
 namespace Godot Data Layer {
     class RapierSpace {
         stateless_data: Data
