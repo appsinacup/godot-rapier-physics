@@ -356,11 +356,11 @@ impl RapierSpace {
     }
 
     pub fn get_world_settings() -> WorldSettings {
-        return WorldSettings {
+        WorldSettings {
             particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
             smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
             counters_enabled: false,
-        };
+        }
     }
 
     #[cfg(feature = "serde-serialize")]

@@ -20,11 +20,7 @@ impl RapierPhysicsServer {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_extra_param(
-                    param,
-                    value,
-                    &mut physics_data.physics_engine,
-                );
+                body.set_extra_param(param, value, &mut physics_data.physics_engine);
             }
         }
     }
