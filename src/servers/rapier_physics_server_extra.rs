@@ -380,4 +380,10 @@ impl RapierPhysicsServer {
         array.set(1, handle.1 as i64);
         array
     }
+
+    #[func]
+    fn noop() {}
+
+    #[func]
+    fn noop_binded(&self) {}
 }

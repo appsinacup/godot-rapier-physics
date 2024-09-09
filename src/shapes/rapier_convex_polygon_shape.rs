@@ -4,8 +4,10 @@ use godot::classes::physics_server_2d::*;
 use godot::classes::physics_server_3d::*;
 use godot::prelude::*;
 
+use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsRids;
+use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 #[cfg(feature = "dim2")]
@@ -16,11 +18,12 @@ pub struct RapierConvexPolygonShape {
     base: RapierShapeBase,
 }
 impl RapierConvexPolygonShape {
-    pub fn new(rid: Rid) -> Self {
-        Self {
+    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) {
+        let shape = Self {
             points: PackedVectorArray::new(),
             base: RapierShapeBase::new(rid),
-        }
+        };
+        physics_shapes.insert(rid, RapierShape::RapierConvexPolygonShape(shape));
     }
 }
 impl IRapierShape for RapierConvexPolygonShape {

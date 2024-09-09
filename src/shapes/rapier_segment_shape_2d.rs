@@ -1,8 +1,10 @@
 use godot::classes::physics_server_2d::ShapeType;
 use godot::prelude::*;
 
+use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsRids;
+use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 pub struct RapierSegmentShape2D {
@@ -11,12 +13,13 @@ pub struct RapierSegmentShape2D {
     base: RapierShapeBase,
 }
 impl RapierSegmentShape2D {
-    pub fn new(rid: Rid) -> Self {
-        Self {
+    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) {
+        let shape = Self {
             a: Vector2::ZERO,
             b: Vector2::ZERO,
             base: RapierShapeBase::new(rid),
-        }
+        };
+        physics_shapes.insert(rid, RapierShape::RapierSegmentShape2D(shape));
     }
 }
 impl IRapierShape for RapierSegmentShape2D {

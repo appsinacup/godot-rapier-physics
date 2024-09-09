@@ -8,9 +8,11 @@ use godot::classes::ProjectSettings;
 use godot::prelude::*;
 use hashbrown::HashSet;
 use servers::rapier_physics_singleton::get_body_rid;
+use servers::rapier_physics_singleton::insert_space_rid;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsData;
 use servers::rapier_physics_singleton::PhysicsRids;
+use servers::rapier_physics_singleton::PhysicsSpaces;
 use spaces::rapier_space_state::RapierSpaceState;
 
 use super::PhysicsDirectSpaceState;
@@ -51,7 +53,12 @@ pub struct RapierSpace {
     state: RapierSpaceState,
 }
 impl RapierSpace {
-    pub fn new(rid: Rid, physics_engine: &mut PhysicsEngine) -> Self {
+    pub fn create(
+        rid: Rid,
+        physics_engine: &mut PhysicsEngine,
+        physics_spaces: &mut PhysicsSpaces,
+        physics_rids: &mut PhysicsRids,
+    ) -> WorldHandle {
         let mut direct_access = RapierDirectSpaceState::new_alloc();
         direct_access.bind_mut().set_space(rid);
         let project_settings = ProjectSettings::singleton();
@@ -61,7 +68,7 @@ impl RapierSpace {
             .unwrap_or_default();
         let default_gravity_value =
             variant_to_float(&project_settings.get_setting_with_override(DEFAULT_GRAVITY.into()));
-        Self {
+        let space = Self {
             direct_access: Some(direct_access.upcast()),
             contact_max_allowed_penetration: 0.0,
             default_gravity_dir,
@@ -72,7 +79,11 @@ impl RapierSpace {
             contact_debug_count: 0,
             ghost_collision_distance: RapierProjectSettings::get_ghost_collision_distance(),
             state: RapierSpaceState::new(physics_engine, &Self::get_world_settings()),
-        }
+        };
+        let handle = space.get_state().get_handle();
+        physics_spaces.insert(rid, space);
+        insert_space_rid(handle, rid, physics_rids);
+        handle
     }
 
     pub fn get_state(&self) -> &RapierSpaceState {

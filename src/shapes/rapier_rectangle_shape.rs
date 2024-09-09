@@ -4,8 +4,10 @@ use godot::classes::physics_server_2d::ShapeType;
 use godot::classes::physics_server_3d::ShapeType;
 use godot::prelude::*;
 
+use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsRids;
+use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 use crate::types::Vector;
@@ -14,11 +16,12 @@ pub struct RapierRectangleShape {
     base: RapierShapeBase,
 }
 impl RapierRectangleShape {
-    pub fn new(rid: Rid) -> Self {
-        Self {
+    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) {
+        let shape = Self {
             half_extents: Vector::ZERO,
             base: RapierShapeBase::new(rid),
-        }
+        };
+        physics_shapes.insert(rid, RapierShape::RapierRectangleShape(shape));
     }
 }
 impl IRapierShape for RapierRectangleShape {

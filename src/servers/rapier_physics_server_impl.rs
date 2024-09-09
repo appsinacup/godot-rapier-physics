@@ -14,7 +14,6 @@ use rapier::prelude::RigidBodyHandle;
 
 use super::rapier_physics_singleton::get_body_rid;
 use super::rapier_physics_singleton::insert_joint_rid;
-use super::rapier_physics_singleton::insert_space_rid;
 use super::rapier_physics_singleton::physics_data;
 use super::rapier_physics_singleton::remove_space_rid;
 use super::rapier_project_settings::RapierProjectSettings;
@@ -47,7 +46,6 @@ use crate::shapes::rapier_rectangle_shape::RapierRectangleShape;
 use crate::shapes::rapier_segment_shape_2d::RapierSegmentShape2D;
 use crate::shapes::rapier_separation_ray_shape::RapierSeparationRayShape;
 use crate::shapes::rapier_shape::IRapierShape;
-use crate::shapes::rapier_shape::RapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 use crate::shapes::rapier_world_boundary_shape::RapierWorldBoundaryShape;
 use crate::spaces::rapier_space::RapierSpace;
@@ -104,20 +102,14 @@ impl RapierPhysicsServerImpl {
     pub(super) fn world_boundary_shape_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierWorldBoundaryShape::new(rid);
-        physics_data
-            .shapes
-            .insert(rid, RapierShape::RapierWorldBoundaryShape(shape));
+        RapierWorldBoundaryShape::create(rid, &mut physics_data.shapes);
         rid
     }
 
     pub(super) fn separation_ray_shape_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierSeparationRayShape::new(rid);
-        physics_data
-            .shapes
-            .insert(rid, RapierShape::RapierSeparationRayShape(shape));
+        RapierSeparationRayShape::create(rid, &mut physics_data.shapes);
         rid
     }
 
@@ -125,40 +117,28 @@ impl RapierPhysicsServerImpl {
     pub(super) fn segment_shape_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierSegmentShape2D::new(rid);
-        physics_data
-            .shapes
-            .insert(rid, RapierShape::RapierSegmentShape2D(shape));
+        RapierSegmentShape2D::create(rid, &mut physics_data.shapes);
         rid
     }
 
     pub(super) fn circle_shape_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierCircleShape::new(rid);
-        physics_data
-            .shapes
-            .insert(rid, RapierShape::RapierCircleShape(shape));
+        RapierCircleShape::create(rid, &mut physics_data.shapes);
         rid
     }
 
     pub(super) fn rectangle_shape_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierRectangleShape::new(rid);
-        physics_data
-            .shapes
-            .insert(rid, RapierShape::RapierRectangleShape(shape));
+        RapierRectangleShape::create(rid, &mut physics_data.shapes);
         rid
     }
 
     pub(super) fn capsule_shape_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierCapsuleShape::new(rid);
-        physics_data
-            .shapes
-            .insert(rid, RapierShape::RapierCapsuleShape(shape));
+        RapierCapsuleShape::create(rid, &mut physics_data.shapes);
         rid
     }
 
@@ -166,20 +146,14 @@ impl RapierPhysicsServerImpl {
     pub(super) fn cylinder_shape_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierCylinderShape3D::new(rid);
-        physics_data
-            .shapes
-            .insert(rid, RapierShape::RapierCylinderShape3D(shape));
+        RapierCylinderShape3D::create(rid, &mut physics_data.shapes);
         rid
     }
 
     pub(super) fn convex_polygon_shape_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierConvexPolygonShape::new(rid);
-        physics_data
-            .shapes
-            .insert(rid, RapierShape::RapierConvexPolygonShape(shape));
+        RapierConvexPolygonShape::create(rid, &mut physics_data.shapes);
         rid
     }
 
@@ -187,10 +161,7 @@ impl RapierPhysicsServerImpl {
     pub(super) fn concave_polygon_shape_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierConcavePolygonShape::new(rid);
-        physics_data
-            .shapes
-            .insert(rid, RapierShape::RapierConcavePolygonShape(shape));
+        RapierConcavePolygonShape::create(rid, &mut physics_data.shapes);
         rid
     }
 
@@ -198,10 +169,7 @@ impl RapierPhysicsServerImpl {
     pub(super) fn concave_polygon_shape_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierConcavePolygonShape::new(rid);
-        physics_data
-            .shapes
-            .insert(rid, RapierShape::RapierConcavePolygonShape(shape));
+        RapierConcavePolygonShape::create(rid, &mut physics_data.shapes);
         rid
     }
 
@@ -209,10 +177,7 @@ impl RapierPhysicsServerImpl {
     pub(super) fn heightmap_shape_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierHeightMapShape3D::new(rid);
-        physics_data
-            .shapes
-            .insert(rid, RapierShape::RapierHeightMapShape3D(shape));
+        RapierHeightMapShape3D::create(rid, &mut physics_data.shapes);
         rid
     }
 
@@ -315,9 +280,12 @@ impl RapierPhysicsServerImpl {
     pub(super) fn space_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let space = RapierSpace::new(rid, &mut physics_data.physics_engine);
-        insert_space_rid(space.get_state().get_handle(), rid, &mut physics_data.rids);
-        physics_data.spaces.insert(rid, space);
+        RapierSpace::create(
+            rid,
+            &mut physics_data.physics_engine,
+            &mut physics_data.spaces,
+            &mut physics_data.rids,
+        );
         rid
     }
 

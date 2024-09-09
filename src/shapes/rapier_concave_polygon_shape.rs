@@ -4,8 +4,10 @@ use godot::classes::physics_server_2d::*;
 use godot::classes::physics_server_3d::*;
 use godot::prelude::*;
 
+use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsRids;
+use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::shapes::rapier_shape::*;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 use crate::types::PackedVectorArray;
@@ -14,11 +16,12 @@ pub struct RapierConcavePolygonShape {
     base: RapierShapeBase,
 }
 impl RapierConcavePolygonShape {
-    pub fn new(rid: Rid) -> Self {
-        Self {
+    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) {
+        let shape = Self {
             points: PackedVectorArray::default(),
             base: RapierShapeBase::new(rid),
-        }
+        };
+        physics_shapes.insert(rid, RapierShape::RapierConcavePolygonShape(shape));
     }
 }
 impl IRapierShape for RapierConcavePolygonShape {

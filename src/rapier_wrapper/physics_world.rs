@@ -507,6 +507,11 @@ impl PhysicsEngine {
         self.shapes.remove(shape_handle);
     }
 
+    pub fn set_shape(&mut self, shape_handle: ShapeHandle, shape: SharedShape) {
+        //self.shapes.set(shape_handle, shape);
+        self.shapes[shape_handle] = shape;
+    }
+
     pub fn get_shape(&self, shape_handle: ShapeHandle) -> Option<&SharedShape> {
         self.shapes.get(shape_handle)
     }

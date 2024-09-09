@@ -4,8 +4,10 @@ use godot::classes::physics_server_2d::*;
 use godot::classes::physics_server_3d::*;
 use godot::prelude::*;
 
+use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsRids;
+use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 use crate::types::*;
@@ -16,13 +18,14 @@ pub struct RapierHeightMapShape3D {
     base: RapierShapeBase,
 }
 impl RapierHeightMapShape3D {
-    pub fn new(rid: Rid) -> Self {
-        Self {
+    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) {
+        let shape = Self {
             heights: PackedFloatArray::new(),
             width: 0,
             depth: 0,
             base: RapierShapeBase::new(rid),
-        }
+        };
+        physics_shapes.insert(rid, RapierShape::RapierHeightMapShape3D(shape));
     }
 }
 impl IRapierShape for RapierHeightMapShape3D {

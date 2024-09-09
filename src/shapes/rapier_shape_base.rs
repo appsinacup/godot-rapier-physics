@@ -46,6 +46,7 @@ impl RapierShapeBase {
         physics_engine: &mut PhysicsEngine,
         physics_rids: &mut PhysicsRids,
     ) {
+        // destroy previous shape
         if self.state.handle != ShapeHandle::default() {
             self.destroy_shape(physics_engine, physics_rids);
         }
@@ -175,5 +176,62 @@ impl Drop for RapierShapeBase {
         if self.is_valid() {
             godot_error!("RapierShapeBase leaked");
         }
+    }
+}
+#[cfg(test)]
+mod tests {
+    use rapier::prelude::*;
+
+    use super::*;
+    fn create_test_rigid_body_handle() -> RigidBodyHandle {
+        RigidBodyHandle::from_raw_parts(1, 0)
+    }
+    fn create_test_shape_handle() -> ShapeHandle {
+        ShapeHandle::from_raw_parts(1, 0)
+    }
+    #[test]
+    fn test_new_rapier_shape_base() {
+        let rid = Rid::new(123);
+        let shape_base = RapierShapeBase::new(rid);
+        assert_eq!(shape_base.get_rid(), rid);
+        assert!(!shape_base.is_valid());
+        assert!(shape_base.get_owners().is_empty());
+    }
+    #[test]
+    fn test_set_handle_and_reset_aabb() {
+        let rid = Rid::new(123);
+        let mut shape_base = RapierShapeBase::new(rid);
+        let mut physics_engine = PhysicsEngine::default();
+        let mut physics_rids = PhysicsRids::default();
+        let handle = create_test_shape_handle();
+        shape_base.set_handle_and_reset_aabb(handle, &mut physics_engine, &mut physics_rids);
+        assert_eq!(shape_base.get_handle(), handle);
+        assert!(shape_base.is_valid());
+    }
+    #[test]
+    fn test_add_and_remove_owner() {
+        let rid = Rid::new(123);
+        let mut shape_base = RapierShapeBase::new(rid);
+        let rb_handle = create_test_rigid_body_handle();
+        shape_base.add_owner(rb_handle);
+        assert_eq!(shape_base.get_owners().get(&rb_handle), Some(&1));
+        shape_base.add_owner(rb_handle);
+        assert_eq!(shape_base.get_owners().get(&rb_handle), Some(&2));
+        shape_base.remove_owner(rb_handle);
+        assert_eq!(shape_base.get_owners().get(&rb_handle), Some(&1));
+        shape_base.remove_owner(rb_handle);
+        assert!(shape_base.get_owners().get(&rb_handle).is_none());
+    }
+    #[test]
+    fn test_destroy_shape() {
+        let rid = Rid::new(123);
+        let mut shape_base = RapierShapeBase::new(rid);
+        let mut physics_engine = PhysicsEngine::default();
+        let mut physics_rids = PhysicsRids::default();
+        let handle = create_test_shape_handle();
+        shape_base.set_handle_and_reset_aabb(handle, &mut physics_engine, &mut physics_rids);
+        assert!(shape_base.is_valid());
+        shape_base.destroy_shape(&mut physics_engine, &mut physics_rids);
+        assert!(!shape_base.is_valid());
     }
 }
