@@ -5,10 +5,7 @@ use rapier::prelude::RigidBodyHandle;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::get_body_rid;
-use crate::servers::rapier_physics_singleton::insert_shape_rid;
-use crate::servers::rapier_physics_singleton::remove_shape_rid;
 use crate::servers::rapier_physics_singleton::PhysicsData;
-use crate::servers::rapier_physics_singleton::PhysicsRids;
 use crate::types::*;
 #[cfg_attr(
     feature = "serde-serialize",
@@ -44,11 +41,10 @@ impl RapierShapeBase {
         &mut self,
         handle: ShapeHandle,
         physics_engine: &mut PhysicsEngine,
-        physics_rids: &mut PhysicsRids,
     ) {
         // destroy previous shape
         if self.state.handle != ShapeHandle::default() {
-            self.destroy_shape(physics_engine, physics_rids);
+            self.destroy_shape(physics_engine);
         }
         let rapier_aabb = physics_engine.shape_get_aabb(handle);
         let vertices = rapier_aabb.vertices();
@@ -57,7 +53,6 @@ impl RapierShapeBase {
             vector_to_godot(rapier_aabb.extents()),
         );
         self.state.handle = handle;
-        insert_shape_rid(handle, self.rid, physics_rids);
     }
 
     pub fn get_handle(&self) -> ShapeHandle {
@@ -116,13 +111,8 @@ impl RapierShapeBase {
         self.rid
     }
 
-    pub fn destroy_shape(
-        &mut self,
-        physics_engine: &mut PhysicsEngine,
-        physics_rids: &mut PhysicsRids,
-    ) {
+    pub fn destroy_shape(&mut self, physics_engine: &mut PhysicsEngine) {
         if self.state.handle != ShapeHandle::default() {
-            remove_shape_rid(self.state.handle, physics_rids);
             physics_engine.shape_destroy(self.state.handle);
             self.state.handle = ShapeHandle::default();
         }
@@ -202,9 +192,8 @@ mod tests {
         let rid = Rid::new(123);
         let mut shape_base = RapierShapeBase::new(rid);
         let mut physics_engine = PhysicsEngine::default();
-        let mut physics_rids = PhysicsRids::default();
         let handle = create_test_shape_handle();
-        shape_base.set_handle_and_reset_aabb(handle, &mut physics_engine, &mut physics_rids);
+        shape_base.set_handle_and_reset_aabb(handle, &mut physics_engine);
         assert_eq!(shape_base.get_handle(), handle);
         assert!(shape_base.is_valid());
     }
@@ -227,11 +216,10 @@ mod tests {
         let rid = Rid::new(123);
         let mut shape_base = RapierShapeBase::new(rid);
         let mut physics_engine = PhysicsEngine::default();
-        let mut physics_rids = PhysicsRids::default();
         let handle = create_test_shape_handle();
-        shape_base.set_handle_and_reset_aabb(handle, &mut physics_engine, &mut physics_rids);
+        shape_base.set_handle_and_reset_aabb(handle, &mut physics_engine);
         assert!(shape_base.is_valid());
-        shape_base.destroy_shape(&mut physics_engine, &mut physics_rids);
+        shape_base.destroy_shape(&mut physics_engine);
         assert!(!shape_base.is_valid());
     }
 }

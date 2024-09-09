@@ -46,12 +46,7 @@ impl IRapierShape for RapierSegmentShape2D {
         physics_engine.shape_create_concave_polyline(&rapier_points.to_vec(), None)
     }
 
-    fn set_data(
-        &mut self,
-        data: Variant,
-        physics_engine: &mut PhysicsEngine,
-        physics_rids: &mut PhysicsRids,
-    ) {
+    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         if data.get_type() != VariantType::RECT2 {
             godot_error!("Invalid shape data");
             return;
@@ -60,8 +55,7 @@ impl IRapierShape for RapierSegmentShape2D {
         self.a = r.position;
         self.b = r.size;
         let handle = self.create_rapier_shape(physics_engine);
-        self.base
-            .set_handle_and_reset_aabb(handle, physics_engine, physics_rids);
+        self.base.set_handle_and_reset_aabb(handle, physics_engine);
     }
 
     fn get_data(&self) -> Variant {

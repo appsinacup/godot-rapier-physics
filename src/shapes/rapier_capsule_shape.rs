@@ -6,7 +6,6 @@ use godot::prelude::*;
 
 use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::PhysicsRids;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::shapes::rapier_shape::*;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
@@ -46,12 +45,7 @@ impl IRapierShape for RapierCapsuleShape {
         physics_engine.shape_create_capsule((self.height / 2.0) - self.radius, self.radius)
     }
 
-    fn set_data(
-        &mut self,
-        data: Variant,
-        physics_engine: &mut PhysicsEngine,
-        physics_rids: &mut PhysicsRids,
-    ) {
+    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         match data.get_type() {
             VariantType::ARRAY => {
                 let arr: Array<f32> = data.try_to().unwrap_or_default();
@@ -89,8 +83,7 @@ impl IRapierShape for RapierCapsuleShape {
             }
         }
         let handle = self.create_rapier_shape(physics_engine);
-        self.base
-            .set_handle_and_reset_aabb(handle, physics_engine, physics_rids);
+        self.base.set_handle_and_reset_aabb(handle, physics_engine);
     }
 
     fn get_data(&self) -> Variant {
@@ -107,7 +100,6 @@ mod tests {
 
     use super::*;
     use crate::servers::rapier_physics_singleton::physics_data;
-    use crate::servers::rapier_physics_singleton::PhysicsRids;
     use crate::servers::rapier_physics_singleton::PhysicsShapes;
     use crate::shapes::rapier_shape::IRapierShape;
     #[test]
@@ -117,7 +109,7 @@ mod tests {
         RapierCapsuleShape::create(rid, &mut physics_shapes);
         assert!(physics_shapes.contains_key(&rid));
         match physics_shapes.get(&rid) {
-            Some(RapierShape::RapierCapsuleShape(_)) => assert!(true),
+            Some(RapierShape::RapierCapsuleShape(_)) => {}
             _ => panic!("Shape was not inserted correctly"),
         }
     }
@@ -149,13 +141,8 @@ mod tests {
             radius: 0.0,
             base: RapierShapeBase::new(rid),
         };
-        let mut physics_rids = PhysicsRids::new();
         let arr = array![Variant::from(2.0), Variant::from(1.0)];
-        capsule_shape.set_data(
-            arr.to_variant(),
-            &mut physics_data().physics_engine,
-            &mut physics_rids,
-        );
+        capsule_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
         assert_eq!(capsule_shape.height, 2.0);
         assert_eq!(capsule_shape.radius, 1.0);
     }
@@ -167,12 +154,10 @@ mod tests {
             radius: 0.0,
             base: RapierShapeBase::new(rid),
         };
-        let mut physics_rids = PhysicsRids::new();
         let vector2_data = Vector2::new(1.0, 2.0);
         capsule_shape.set_data(
             vector2_data.to_variant(),
             &mut physics_data().physics_engine,
-            &mut physics_rids,
         );
         assert_eq!(capsule_shape.height, 2.0);
         assert_eq!(capsule_shape.radius, 1.0);
@@ -185,15 +170,10 @@ mod tests {
             radius: 0.0,
             base: RapierShapeBase::new(rid),
         };
-        let mut physics_rids = PhysicsRids::new();
         let mut dict = Dictionary::new();
-        dict.insert("height", 2.0);
-        dict.insert("radius", 1.0);
-        capsule_shape.set_data(
-            dict.to_variant(),
-            &mut physics_data().physics_engine,
-            &mut physics_rids,
-        );
+        let _ = dict.insert("height", 2.0);
+        let _ = dict.insert("radius", 1.0);
+        capsule_shape.set_data(dict.to_variant(), &mut physics_data().physics_engine);
         assert_eq!(capsule_shape.height, 2.0);
         assert_eq!(capsule_shape.radius, 1.0);
     }

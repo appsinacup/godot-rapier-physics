@@ -18,7 +18,6 @@ use super::rapier_segment_shape_2d::RapierSegmentShape2D;
 use super::rapier_separation_ray_shape::RapierSeparationRayShape;
 use super::rapier_world_boundary_shape::RapierWorldBoundaryShape;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::PhysicsRids;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 pub trait IRapierShape {
     fn get_base(&self) -> &RapierShapeBase;
@@ -26,12 +25,7 @@ pub trait IRapierShape {
     fn get_type(&self) -> ShapeType;
     fn allows_one_way_collision(&self) -> bool;
     fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle;
-    fn set_data(
-        &mut self,
-        data: Variant,
-        physics_engine: &mut PhysicsEngine,
-        physics_rids: &mut PhysicsRids,
-    );
+    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine);
     fn get_data(&self) -> Variant;
     fn get_handle(&self) -> ShapeHandle;
 }
@@ -83,9 +77,9 @@ macro_rules! impl_rapier_shape_trait {
                 }
             }
 
-            fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine, physics_rids: &mut PhysicsRids) {
+            fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
                 match self {
-                    $(Self::$variant(s) => s.set_data(data, physics_engine, physics_rids),)*
+                    $(Self::$variant(s) => s.set_data(data, physics_engine),)*
                 }
             }
 

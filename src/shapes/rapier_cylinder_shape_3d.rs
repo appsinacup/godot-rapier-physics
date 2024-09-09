@@ -3,7 +3,6 @@ use godot::prelude::*;
 
 use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::PhysicsRids;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::shapes::rapier_shape::*;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
@@ -43,12 +42,7 @@ impl IRapierShape for RapierCylinderShape3D {
         physics_engine.shape_create_cylinder((self.height / 2.0) - self.radius, self.radius)
     }
 
-    fn set_data(
-        &mut self,
-        data: Variant,
-        physics_engine: &mut PhysicsEngine,
-        physics_rids: &mut PhysicsRids,
-    ) {
+    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         match data.get_type() {
             VariantType::ARRAY => {
                 let arr: Array<f32> = data.try_to().unwrap_or_default();
@@ -85,8 +79,7 @@ impl IRapierShape for RapierCylinderShape3D {
             self.radius = self.height * 0.5;
         }
         let handle = self.create_rapier_shape(physics_engine);
-        self.base
-            .set_handle_and_reset_aabb(handle, physics_engine, physics_rids);
+        self.base.set_handle_and_reset_aabb(handle, physics_engine);
     }
 
     fn get_data(&self) -> Variant {
