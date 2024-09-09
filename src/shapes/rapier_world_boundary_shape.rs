@@ -48,12 +48,7 @@ impl IRapierShape for RapierWorldBoundaryShape {
     }
 
     #[cfg(feature = "dim2")]
-    fn set_data(
-        &mut self,
-        data: Variant,
-        physics_engine: &mut PhysicsEngine,
-        physics_rids: &mut PhysicsRids,
-    ) {
+    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         if data.get_type() != VariantType::ARRAY {
             godot_error!("Invalid shape data");
             return;

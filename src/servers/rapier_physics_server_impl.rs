@@ -2065,7 +2065,6 @@ impl RapierPhysicsServerImpl {
         } else {
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
-        insert_joint_rid(joint.get_base().get_handle(), rid, &mut physics_data.rids);
         physics_data.joints.insert(rid, joint);
     }
 
@@ -2103,7 +2102,6 @@ impl RapierPhysicsServerImpl {
         } else {
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
-        insert_joint_rid(joint.get_base().get_handle(), rid, &mut physics_data.rids);
         physics_data.joints.insert(rid, joint);
     }
 
@@ -2139,7 +2137,6 @@ impl RapierPhysicsServerImpl {
         } else {
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new());
         }
-        insert_joint_rid(joint.get_base().get_handle(), rid, &mut physics_data.rids);
         physics_data.joints.insert(rid, joint);
     }
 
