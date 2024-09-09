@@ -15,7 +15,7 @@ jobs:
       - name: Clippy 2D
         shell: sh
         run: |
-          cargo clippy --all-targets --features="build2d" -- -D warnings
+          cargo clippy --all-targets --features="build2d" --no-default-features -- -D warnings
       - name: Clippy 3D
         shell: sh
         run: |
