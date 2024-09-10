@@ -12,7 +12,7 @@ jobs:
     uses: ./.github/workflows/static_checks.yml
 
   test-checks:
-    name: 📊 Static checks
+    name: 🧪 Run Tests
     uses: ./.github/workflows/test_checks.yml
 
   android-build:
