@@ -1,0 +1,25 @@
+name: 🧪 Run Tests
+on:
+  workflow_call:
+
+jobs:
+  run-tests:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Format Code
+        shell: sh
+        run: |
+          cargo fmt --all -- --config-path ./rustfmt.toml
+
+      - name: Run Tests for 2D Build
+        shell: sh
+        run: |
+          cargo test --all-targets --features="build2d" --no-default-features
+
+      - name: Run Tests for 3D Build
+        shell: sh
+        run: |
+          cargo test --all-targets --features="build3d" --no-default-features
