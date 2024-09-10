@@ -3,8 +3,8 @@ on:
   workflow_call:
 
 jobs:
-  static-checks:
-    name: Code style
+  format-code:
+    name: Format Code
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -12,10 +12,22 @@ jobs:
         shell: sh
         run: |
           cargo fmt --all -- --config-path ./rustfmt.toml
+
+  clippy-2d:
+    name: Clippy 2D
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
       - name: Clippy 2D
         shell: sh
         run: |
           cargo clippy --all-targets --features="build2d" --no-default-features -- -D warnings
+
+  clippy-3d:
+    name: Clippy 3D
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
       - name: Clippy 3D
         shell: sh
         run: |

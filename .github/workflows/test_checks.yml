@@ -3,17 +3,21 @@ on:
   workflow_call:
 
 jobs:
-  run-tests:
+  run-tests-2d:
     name: Run Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Run Tests for 2D Build
         shell: sh
         run: |
           cargo test --all-targets --features="build2d" --no-default-features
 
+  run-tests-3d:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
       - name: Run Tests for 3D Build
         shell: sh
         run: |
