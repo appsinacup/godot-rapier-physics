@@ -185,6 +185,42 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
 
 [[package]]
+name = "gd-rehearse"
+version = "0.1.0"
+source = "git+https://github.com/StatisMike/gd-rehearse#bff2f4edddfad420257157d3893c12ddc6adb7c8"
+dependencies = [
+ "gd-rehearse-defs",
+ "gd-rehearse-macros",
+ "godot 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "gd-rehearse-defs"
+version = "0.1.0"
+source = "git+https://github.com/StatisMike/gd-rehearse#bff2f4edddfad420257157d3893c12ddc6adb7c8"
+dependencies = [
+ "godot 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "paste",
+]
+
+[[package]]
+name = "gd-rehearse-macros"
+version = "0.1.0"
+source = "git+https://github.com/StatisMike/gd-rehearse#bff2f4edddfad420257157d3893c12ddc6adb7c8"
+dependencies = [
+ "gd-rehearse-defs",
+ "proc-macro2",
+ "quote",
+ "venial 0.5.0",
+]
+
+[[package]]
+name = "gdextension-api"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c3f2fc05d781fbc1da92d13480d464b2bf66b2e8cf230746f3a9ded3eb9bf6de"
+
+[[package]]
 name = "gdextension-api"
 version = "0.2.0"
 source = "git+https://github.com/godot-rust/godot4-prebuilt?branch=releases#6d902e8a6060007f4ab94cd78882247ae2558d96"
@@ -223,6 +259,12 @@ dependencies = [
 
 [[package]]
 name = "glam"
+version = "0.27.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9e05e7e6723e3455f4818c7b26e855439f7546cf617ef669d1adedb8669e5cb9"
+
+[[package]]
+name = "glam"
 version = "0.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "779ae4bf7e8421cf91c0b3b64e7e8b40b862fba4d393f59150042de7c4965a94"
@@ -230,10 +272,29 @@ checksum = "779ae4bf7e8421cf91c0b3b64e7e8b40b862fba4d393f59150042de7c4965a94"
 [[package]]
 name = "godot"
 version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "246203d267e0523aa8877e7d5145fa34a5bbdb1a5c8e135f4dacbdeb074c1fc9"
+dependencies = [
+ "godot-core 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "godot-macros 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "godot"
+version = "0.1.3"
 source = "git+https://github.com/Ughuuu/gdext?branch=remove-hook#a1fbb9b3b202c15cc2bd1c33ce6f2759cc5d4bcf"
 dependencies = [
- "godot-core",
- "godot-macros",
+ "godot-core 0.1.3 (git+https://github.com/Ughuuu/gdext?branch=remove-hook)",
+ "godot-macros 0.1.3 (git+https://github.com/Ughuuu/gdext?branch=remove-hook)",
+]
+
+[[package]]
+name = "godot-bindings"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b664d294f99139f828b76b6e9955aa1b7455cc03fac08917b57a4578d22489e7"
+dependencies = [
+ "gdextension-api 0.1.0",
 ]
 
 [[package]]
@@ -241,8 +302,14 @@ name = "godot-bindings"
 version = "0.1.3"
 source = "git+https://github.com/Ughuuu/gdext?branch=remove-hook#a1fbb9b3b202c15cc2bd1c33ce6f2759cc5d4bcf"
 dependencies = [
- "gdextension-api",
+ "gdextension-api 0.2.0",
 ]
+
+[[package]]
+name = "godot-cell"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "28ee918b831ef1c455283b96d8527d0ddee556363c757fc18e01c75935bf7fb8"
 
 [[package]]
 name = "godot-cell"
@@ -252,10 +319,24 @@ source = "git+https://github.com/Ughuuu/gdext?branch=remove-hook#a1fbb9b3b202c15
 [[package]]
 name = "godot-codegen"
 version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "51e6d5d3f836cdc4487de17f3422f7b25c3f95a11472132f8e8ef698dd907cd4"
+dependencies = [
+ "godot-bindings 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "heck 0.4.1",
+ "nanoserde",
+ "proc-macro2",
+ "quote",
+ "regex",
+]
+
+[[package]]
+name = "godot-codegen"
+version = "0.1.3"
 source = "git+https://github.com/Ughuuu/gdext?branch=remove-hook#a1fbb9b3b202c15cc2bd1c33ce6f2759cc5d4bcf"
 dependencies = [
- "godot-bindings",
- "heck",
+ "godot-bindings 0.1.3 (git+https://github.com/Ughuuu/gdext?branch=remove-hook)",
+ "heck 0.5.0",
  "nanoserde",
  "proc-macro2",
  "quote",
@@ -265,14 +346,40 @@ dependencies = [
 [[package]]
 name = "godot-core"
 version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "96dbdc7c65fb4a2dc58b66c2bb91f2b092f55afa42d2ffd509fa454f123f3e51"
+dependencies = [
+ "glam 0.27.0",
+ "godot-bindings 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "godot-cell 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "godot-codegen 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "godot-ffi 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "godot-core"
+version = "0.1.3"
 source = "git+https://github.com/Ughuuu/gdext?branch=remove-hook#a1fbb9b3b202c15cc2bd1c33ce6f2759cc5d4bcf"
 dependencies = [
- "glam",
- "godot-bindings",
- "godot-cell",
- "godot-codegen",
- "godot-ffi",
+ "glam 0.28.0",
+ "godot-bindings 0.1.3 (git+https://github.com/Ughuuu/gdext?branch=remove-hook)",
+ "godot-cell 0.1.3 (git+https://github.com/Ughuuu/gdext?branch=remove-hook)",
+ "godot-codegen 0.1.3 (git+https://github.com/Ughuuu/gdext?branch=remove-hook)",
+ "godot-ffi 0.1.3 (git+https://github.com/Ughuuu/gdext?branch=remove-hook)",
  "serde",
+]
+
+[[package]]
+name = "godot-ffi"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "da4a1f0d0c8c1443ba8732f011a532ae35793e276567e2fcd90a8ef9c09d90c9"
+dependencies = [
+ "gensym",
+ "godot-bindings 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "godot-codegen 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc",
+ "paste",
 ]
 
 [[package]]
@@ -281,8 +388,8 @@ version = "0.1.3"
 source = "git+https://github.com/Ughuuu/gdext?branch=remove-hook#a1fbb9b3b202c15cc2bd1c33ce6f2759cc5d4bcf"
 dependencies = [
  "gensym",
- "godot-bindings",
- "godot-codegen",
+ "godot-bindings 0.1.3 (git+https://github.com/Ughuuu/gdext?branch=remove-hook)",
+ "godot-codegen 0.1.3 (git+https://github.com/Ughuuu/gdext?branch=remove-hook)",
  "libc",
  "paste",
 ]
@@ -290,13 +397,25 @@ dependencies = [
 [[package]]
 name = "godot-macros"
 version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ff936aabcda6b8bcba69a4367938369e41bcdf17601f07ddda153947a481a0f0"
+dependencies = [
+ "godot-bindings 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "proc-macro2",
+ "quote",
+ "venial 0.6.0",
+]
+
+[[package]]
+name = "godot-macros"
+version = "0.1.3"
 source = "git+https://github.com/Ughuuu/gdext?branch=remove-hook#a1fbb9b3b202c15cc2bd1c33ce6f2759cc5d4bcf"
 dependencies = [
- "godot-bindings",
+ "godot-bindings 0.1.3 (git+https://github.com/Ughuuu/gdext?branch=remove-hook)",
  "markdown",
  "proc-macro2",
  "quote",
- "venial",
+ "venial 0.6.0",
 ]
 
 [[package]]
@@ -304,7 +423,8 @@ name = "godot-rapier"
 version = "0.8.0"
 dependencies = [
  "bincode",
- "godot",
+ "gd-rehearse",
+ "godot 0.1.3 (git+https://github.com/Ughuuu/gdext?branch=remove-hook)",
  "hashbrown",
  "rapier2d",
  "rapier2d-f64",
@@ -345,6 +465,12 @@ dependencies = [
  "hash32",
  "stable_deref_trait",
 ]
+
+[[package]]
+name = "heck"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "95505c38b4572b2d910cecb0281560f54b440a19336cbbcb27bf6ce6adc6f5a8"
 
 [[package]]
 name = "heck"
@@ -979,9 +1105,9 @@ checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
 
 [[package]]
 name = "spade"
-version = "2.12.0"
+version = "2.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9bd14cf9e23b5241e1b1289ed3b9afc7746c95ead8df52d9254f5ed2d40c561b"
+checksum = "93f5ef1f863aca7d1d7dda7ccfc36a0a4279bd6d3c375176e5e0712e25cb4889"
 dependencies = [
  "hashbrown",
  "num-traits",
@@ -1040,9 +1166,9 @@ checksum = "b1b6def86329695390197b82c1e244a54a131ceb66c996f2088a3876e2ae083f"
 
 [[package]]
 name = "unicode-ident"
-version = "1.0.12"
+version = "1.0.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3354b9ac3fae1ff6755cb6db53683adb661634f67557942dea4facebec0fee4b"
+checksum = "e91b56cd4cadaeb79bbf1a5645f6b4f8dc5bde8834ad5894a8db35fda9efa1fe"
 
 [[package]]
 name = "uuid"
@@ -1058,6 +1184,16 @@ name = "vec_map"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f1bddf1187be692e79c5ffeab891132dfb0f236ed36a43c7ed39f1165ee20191"
+
+[[package]]
+name = "venial"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "61584a325b16f97b5b25fcc852eb9550843a251057a5e3e5992d2376f3df4bb2"
+dependencies = [
+ "proc-macro2",
+ "quote",
+]
 
 [[package]]
 name = "venial"

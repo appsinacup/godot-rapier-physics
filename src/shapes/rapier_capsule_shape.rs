@@ -96,13 +96,14 @@ impl IRapierShape for RapierCapsuleShape {
 }
 #[cfg(test)]
 mod tests {
+    use gd_rehearse::itest::*;
     use godot::prelude::*;
 
     use super::*;
     use crate::servers::rapier_physics_singleton::physics_data;
     use crate::servers::rapier_physics_singleton::PhysicsShapes;
     use crate::shapes::rapier_shape::IRapierShape;
-    #[test]
+    #[gditest]
     fn test_create_capsule_shape() {
         let mut physics_shapes = PhysicsShapes::new();
         let rid = Rid::new(123);
@@ -113,7 +114,7 @@ mod tests {
             _ => panic!("Shape was not inserted correctly"),
         }
     }
-    #[test]
+    #[gditest]
     fn test_get_type() {
         let rid = Rid::new(123);
         let capsule_shape = RapierCapsuleShape {
@@ -123,7 +124,7 @@ mod tests {
         };
         assert_eq!(capsule_shape.get_type(), ShapeType::CAPSULE);
     }
-    #[test]
+    #[gditest]
     fn test_allows_one_way_collision() {
         let rid = Rid::new(123);
         let capsule_shape = RapierCapsuleShape {
@@ -133,7 +134,7 @@ mod tests {
         };
         assert!(capsule_shape.allows_one_way_collision());
     }
-    #[test]
+    #[gditest]
     fn test_set_data_from_array() {
         let rid = Rid::new(123);
         let mut capsule_shape = RapierCapsuleShape {
@@ -146,7 +147,7 @@ mod tests {
         assert_eq!(capsule_shape.height, 2.0);
         assert_eq!(capsule_shape.radius, 1.0);
     }
-    #[test]
+    #[gditest]
     fn test_set_data_from_vector2() {
         let rid = Rid::new(123);
         let mut capsule_shape = RapierCapsuleShape {
@@ -162,7 +163,7 @@ mod tests {
         assert_eq!(capsule_shape.height, 2.0);
         assert_eq!(capsule_shape.radius, 1.0);
     }
-    #[test]
+    #[gditest]
     fn test_set_data_from_dictionary() {
         let rid = Rid::new(123);
         let mut capsule_shape = RapierCapsuleShape {
@@ -177,7 +178,7 @@ mod tests {
         assert_eq!(capsule_shape.height, 2.0);
         assert_eq!(capsule_shape.radius, 1.0);
     }
-    #[test]
+    #[gditest]
     fn test_get_data() {
         let rid = Rid::new(123);
         let capsule_shape = RapierCapsuleShape {
