@@ -27,7 +27,6 @@ pub trait IRapierShape {
     fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle;
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine);
     fn get_data(&self) -> Variant;
-    fn get_handle(&self) -> ShapeHandle;
 }
 pub enum RapierShape {
     RapierCapsuleShape(RapierCapsuleShape),
@@ -86,12 +85,6 @@ macro_rules! impl_rapier_shape_trait {
             fn get_data(&self) -> Variant {
                 match self {
                     $(Self::$variant(s) => s.get_data(),)*
-                }
-            }
-
-            fn get_handle(&self) -> ShapeHandle {
-                match self {
-                    $(Self::$variant(s) => s.get_handle(),)*
                 }
             }
         }

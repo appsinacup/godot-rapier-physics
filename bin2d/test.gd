@@ -6,10 +6,16 @@ func _ready() -> void:
 	var file = FileAccess.open("user://space.json", FileAccess.WRITE)
 	var space_state = RapierPhysicsServer2D.space_export_json(get_viewport().world_2d.space)
 	file.store_string(space_state)
-	pass # Replace with function body.
-
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(_delta: float) -> void:
-	if Input.is_key_pressed(KEY_B):
-		get_tree().reload_current_scene()
+	RapierCapsuleShapeTests.test_allows_one_way_collision()
+	RapierCapsuleShapeTests.test_create()
+	RapierCapsuleShapeTests.test_get_data()
+	RapierCapsuleShapeTests.test_get_type()
+	RapierCapsuleShapeTests.test_set_data_from_array()
+	RapierCapsuleShapeTests.test_set_data_from_dictionary()
+	RapierCapsuleShapeTests.test_set_data_from_vector2()
+	
+	RapierCircleShapeTests.test_allows_one_way_collision()
+	RapierCircleShapeTests.test_create()
+	RapierCircleShapeTests.test_get_data()
+	RapierCircleShapeTests.test_get_type()
+	RapierCircleShapeTests.test_set_data()

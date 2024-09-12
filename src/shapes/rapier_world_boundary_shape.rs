@@ -97,8 +97,4 @@ impl IRapierShape for RapierWorldBoundaryShape {
         let plane = Plane::new(self.normal, self.d);
         plane.to_variant()
     }
-
-    fn get_handle(&self) -> ShapeHandle {
-        self.base.get_handle()
-    }
 }

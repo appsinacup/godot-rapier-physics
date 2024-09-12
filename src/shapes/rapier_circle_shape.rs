@@ -67,8 +67,81 @@ impl IRapierShape for RapierCircleShape {
     fn get_data(&self) -> Variant {
         self.radius.to_variant()
     }
+}
+#[cfg(feature = "test")]
+mod tests {
+    use godot::prelude::*;
 
-    fn get_handle(&self) -> ShapeHandle {
-        self.base.get_handle()
+    use super::*;
+    use crate::servers::rapier_physics_singleton::physics_data;
+    use crate::servers::rapier_physics_singleton::PhysicsShapes;
+    use crate::shapes::rapier_shape::IRapierShape;
+    #[derive(GodotClass)]
+    #[class(base = Object, init)]
+    pub struct RapierCircleShapeTests {}
+    #[godot_api]
+    impl RapierCircleShapeTests {
+        #[func]
+        fn test_create() {
+            let mut physics_shapes = PhysicsShapes::new();
+            let rid = Rid::new(123);
+            RapierCircleShape::create(rid, &mut physics_shapes);
+            assert!(physics_shapes.contains_key(&rid));
+            match physics_shapes.get(&rid) {
+                Some(RapierShape::RapierCircleShape(_)) => {}
+                _ => panic!("Shape was not inserted correctly"),
+            }
+        }
+
+        #[func]
+        fn test_get_type() {
+            let rid = Rid::new(123);
+            let circle_shape = RapierCircleShape {
+                radius: 1.0,
+                base: RapierShapeBase::new(rid),
+            };
+            #[cfg(feature = "dim2")]
+            assert_eq!(circle_shape.get_type(), ShapeType::CIRCLE);
+            #[cfg(feature = "dim3")]
+            assert_eq!(circle_shape.get_type(), ShapeType::SPHERE);
+        }
+
+        #[func]
+        fn test_allows_one_way_collision() {
+            let rid = Rid::new(123);
+            let circle_shape = RapierCircleShape {
+                radius: 1.0,
+                base: RapierShapeBase::new(rid),
+            };
+            assert!(circle_shape.allows_one_way_collision());
+        }
+
+        #[func]
+        fn test_set_data() {
+            let rid = Rid::new(123);
+            let mut circle_shape = RapierCircleShape {
+                radius: 0.0,
+                base: RapierShapeBase::new(rid),
+            };
+            let data = Variant::from(1.5);
+            circle_shape.set_data(data, &mut physics_data().physics_engine);
+            assert_eq!(circle_shape.radius, 1.5);
+            assert!(circle_shape.get_base().is_valid());
+            circle_shape
+                .get_mut_base()
+                .destroy_shape(&mut physics_data().physics_engine);
+            assert!(!circle_shape.get_base().is_valid());
+        }
+
+        #[func]
+        fn test_get_data() {
+            let rid = Rid::new(123);
+            let circle_shape = RapierCircleShape {
+                radius: 1.5,
+                base: RapierShapeBase::new(rid),
+            };
+            let data: real = circle_shape.get_data().try_to().unwrap();
+            assert_eq!(data, 1.5);
+        }
     }
 }

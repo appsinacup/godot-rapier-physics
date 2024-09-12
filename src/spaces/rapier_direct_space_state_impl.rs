@@ -190,7 +190,7 @@ impl RapierDirectSpaceStateImpl {
         if !space.get_state().is_valid() {
             return 0;
         }
-        let shape_info = shape_info_from_body_shape(shape.get_handle(), transform);
+        let shape_info = shape_info_from_body_shape(shape.get_base().get_handle(), transform);
         let mut query_excluded_info = QueryExcludedInfo {
             query_collision_layer_mask: collision_mask,
             ..Default::default()
@@ -266,7 +266,7 @@ impl RapierDirectSpaceStateImpl {
             return false;
         }
         let rapier_motion = vector_to_rapier(motion);
-        let shape_info = shape_info_from_body_shape(shape.get_handle(), transform);
+        let shape_info = shape_info_from_body_shape(shape.get_base().get_handle(), transform);
         let query_excluded_info = QueryExcludedInfo {
             query_collision_layer_mask: collision_mask,
             ..Default::default()
@@ -318,7 +318,7 @@ impl RapierDirectSpaceStateImpl {
             return false;
         }
         let results_out = results as *mut Vector;
-        let shape_info = shape_info_from_body_shape(shape.get_handle(), transform);
+        let shape_info = shape_info_from_body_shape(shape.get_base().get_handle(), transform);
         let mut query_excluded_info = QueryExcludedInfo {
             query_collision_layer_mask: collision_mask,
             ..Default::default()
@@ -380,7 +380,7 @@ impl RapierDirectSpaceStateImpl {
             return false;
         }
         let rapier_motion = vector_to_rapier(motion);
-        let shape_info = shape_info_from_body_shape(shape.get_handle(), transform);
+        let shape_info = shape_info_from_body_shape(shape.get_base().get_handle(), transform);
         let query_excluded_info = QueryExcludedInfo {
             query_collision_layer_mask: collision_mask,
             ..Default::default()

@@ -98,8 +98,4 @@ impl IRapierShape for RapierConvexPolygonShape {
     fn get_data(&self) -> Variant {
         self.points.to_variant()
     }
-
-    fn get_handle(&self) -> ShapeHandle {
-        self.base.get_handle()
-    }
 }

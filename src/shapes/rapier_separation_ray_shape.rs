@@ -68,8 +68,4 @@ impl IRapierShape for RapierSeparationRayShape {
         dictionary.set("slide_on_slope", self.slide_on_slope);
         dictionary.to_variant()
     }
-
-    fn get_handle(&self) -> ShapeHandle {
-        self.base.get_handle()
-    }
 }

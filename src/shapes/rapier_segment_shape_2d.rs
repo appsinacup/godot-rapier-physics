@@ -61,8 +61,4 @@ impl IRapierShape for RapierSegmentShape2D {
         let r = Rect2::new(self.a, self.b);
         r.to_variant()
     }
-
-    fn get_handle(&self) -> ShapeHandle {
-        self.base.get_handle()
-    }
 }

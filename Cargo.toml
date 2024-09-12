@@ -10,7 +10,8 @@ publish = false
 crate-type = ["cdylib"]
 
 [features]
-default = ["build3d"]
+default = ["build2d", "test"]
+test = []
 build2d = ["single-dim2", "serde-serialize", "parallel", "simd-stable"]
 build3d = ["single-dim3", "serde-serialize", "parallel", "simd-stable"]
 dim2 = []
@@ -46,9 +47,6 @@ salva2d = { git = "https://github.com/ughuuu/salva", branch = "use-rapier-master
 salva3d = { git = "https://github.com/ughuuu/salva", branch = "use-rapier-master", features = ["rapier"], optional = true }
 serde = { version = "1.0", features = ["derive"], optional = true }
 serde_json = { version = "1.0", optional = true }
-
-[dev-dependencies]
-gd-rehearse = { git = "https://github.com/StatisMike/gd-rehearse" }
 
 [patch.crates-io]
 rapier2d = {git = "https://github.com/ughuuu/rapier", branch = "custom-changes"}

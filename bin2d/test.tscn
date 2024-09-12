@@ -13,7 +13,6 @@ script = ExtResource("1_fs1uw")
 
 [node name="RigidBody2D4" type="RigidBody2D" parent="."]
 position = Vector2(-290, -687)
-mass = 100.0
 max_contacts_reported = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D4"]
@@ -22,8 +21,6 @@ shape = SubResource("RectangleShape2D_r4e3q")
 
 [node name="RigidBody2D5" type="RigidBody2D" parent="."]
 position = Vector2(-288, -830)
-mass = 100.0
-sleeping = true
 max_contacts_reported = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D5"]
@@ -32,8 +29,6 @@ shape = SubResource("RectangleShape2D_r4e3q")
 
 [node name="RigidBody2D6" type="RigidBody2D" parent="."]
 position = Vector2(-288, -979)
-mass = 100.0
-sleeping = true
 max_contacts_reported = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D6"]

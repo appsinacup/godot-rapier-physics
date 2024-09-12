@@ -125,8 +125,4 @@ impl IRapierShape for RapierHeightMapShape3D {
         let _ = dictionary.insert("heights", self.heights.clone());
         dictionary.to_variant()
     }
-
-    fn get_handle(&self) -> ShapeHandle {
-        self.base.get_handle()
-    }
 }

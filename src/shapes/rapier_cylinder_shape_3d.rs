@@ -85,8 +85,4 @@ impl IRapierShape for RapierCylinderShape3D {
     fn get_data(&self) -> Variant {
         Vector2::new(self.radius, self.height).to_variant()
     }
-
-    fn get_handle(&self) -> ShapeHandle {
-        self.base.get_handle()
-    }
 }

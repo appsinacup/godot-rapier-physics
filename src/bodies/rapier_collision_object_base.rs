@@ -154,7 +154,7 @@ impl RapierCollisionObjectBase {
         }
         let mut handle = ColliderHandle::invalid();
         if let Some(shape_object) = physics_shapes.get_mut(&shape.shape) {
-            let shape_handle = shape_object.get_handle();
+            let shape_handle = shape_object.get_base().get_handle();
             if shape_handle == ShapeHandle::default() {
                 return handle;
             }
@@ -261,7 +261,7 @@ impl RapierCollisionObjectBase {
             return;
         }
         if let Some(rapier_shape) = physics_shapes.get_mut(&shape.shape) {
-            let shape_handle = rapier_shape.get_handle();
+            let shape_handle = rapier_shape.get_base().get_handle();
             if shape_handle == ShapeHandle::default() {
                 godot_error!("Rapier shape is invalid");
                 return;

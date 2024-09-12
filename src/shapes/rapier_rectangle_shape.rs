@@ -64,8 +64,4 @@ impl IRapierShape for RapierRectangleShape {
     fn get_data(&self) -> Variant {
         self.half_extents.to_variant()
     }
-
-    fn get_handle(&self) -> ShapeHandle {
-        self.base.get_handle()
-    }
 }
