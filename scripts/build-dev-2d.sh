@@ -6,12 +6,9 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     echo "Running on macOS"
     rm bin2d/addons/godot-rapier2d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
     cp target/debug/libgodot_rapier.dylib bin2d/addons/godot-rapier2d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
-elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+else
     # Linux
     echo "Running on Linux"
     rm bin2d/addons/godot-rapier2d/bin/libgodot_rapier.linux.so
     cp target/debug/libgodot_rapier.so bin2d/addons/godot-rapier2d/bin/libgodot_rapier.linux.so
-else
-    echo "Unsupported OS: $OSTYPE"
-    exit 1
 fi
