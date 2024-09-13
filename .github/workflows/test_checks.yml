@@ -18,7 +18,8 @@ jobs:
         shell: sh
         run: |
           cargo test --all-targets --features="build2d,test" --no-default-features
-          godot --version
+          ./scripts/build-dev-2d.sh
+          godot --headless --path ./bin2d
 
   run-tests-3d:
     name: Run Tests

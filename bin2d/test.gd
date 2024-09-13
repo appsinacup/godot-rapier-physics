@@ -3,8 +3,12 @@ extends Node2D
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	print("Start")
 	test_capsule_shape()
 	test_circle_shape()
+	print("Success")
+	get_tree().quit()
+	print("Quit")
 
 func test_capsule_shape():
 	RapierCapsuleShapeTests.test_allows_one_way_collision()
