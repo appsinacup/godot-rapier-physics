@@ -156,8 +156,9 @@ mod tests {
             assert!(concave_shape.allows_one_way_collision());
         }
 
+        #[cfg(feature = "dim2")]
         #[func]
-        fn test_set_data_from_array() {
+        fn test_set_data() {
             let rid = Rid::new(123);
             let mut concave_shape = RapierConcavePolygonShape {
                 points: PackedVectorArray::default(),
@@ -167,9 +168,18 @@ mod tests {
                 Vector::splat(0.0),
                 Vector::splat(1.0),
                 Vector::splat(2.0),
+                Vector::splat(4.0),
+                Vector::splat(5.0),
+                Vector::splat(6.0),
             ]);
             concave_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
-            assert_eq!(concave_shape.points.len(), 3);
+            assert_eq!(concave_shape.points.len(), 6);
+            assert_eq!(concave_shape.points[0], Vector::splat(0.0));
+            assert_eq!(concave_shape.points[1], Vector::splat(1.0));
+            assert_eq!(concave_shape.points[2], Vector::splat(2.0));
+            assert_eq!(concave_shape.points[3], Vector::splat(4.0));
+            assert_eq!(concave_shape.points[4], Vector::splat(5.0));
+            assert_eq!(concave_shape.points[5], Vector::splat(6.0));
             assert!(concave_shape.get_base().is_valid());
             concave_shape
                 .get_mut_base()
@@ -177,8 +187,9 @@ mod tests {
             assert!(!concave_shape.get_base().is_valid());
         }
 
+        #[cfg(feature = "dim3")]
         #[func]
-        fn test_set_data_from_dictionary() {
+        fn test_set_data() {
             let rid = Rid::new(123);
             let mut concave_shape = RapierConcavePolygonShape {
                 points: PackedVectorArray::default(),
@@ -189,10 +200,19 @@ mod tests {
                 Vector::splat(0.0),
                 Vector::splat(1.0),
                 Vector::splat(2.0),
+                Vector::splat(3.0),
+                Vector::splat(4.0),
+                Vector::splat(5.0),
             ]);
             let _ = dict.insert("faces", arr);
             concave_shape.set_data(dict.to_variant(), &mut physics_data().physics_engine);
-            assert_eq!(concave_shape.points.len(), 3);
+            assert_eq!(concave_shape.points.len(), 6);
+            assert_eq!(concave_shape.points[0], Vector::splat(0.0));
+            assert_eq!(concave_shape.points[1], Vector::splat(1.0));
+            assert_eq!(concave_shape.points[2], Vector::splat(2.0));
+            assert_eq!(concave_shape.points[3], Vector::splat(3.0));
+            assert_eq!(concave_shape.points[4], Vector::splat(4.0));
+            assert_eq!(concave_shape.points[5], Vector::splat(5.0));
             assert!(concave_shape.get_base().is_valid());
             concave_shape
                 .get_mut_base()

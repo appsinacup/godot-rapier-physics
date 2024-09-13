@@ -6,9 +6,11 @@ func _ready() -> void:
 	print("Start")
 	test_capsule_shape()
 	test_circle_shape()
+	test_concave_polygon_shape()
 	print("Success")
-	get_tree().quit()
 	print("Quit")
+	await get_tree().create_timer(1.0).timeout
+	get_tree().quit()
 
 func test_capsule_shape():
 	RapierCapsuleShapeTests.test_allows_one_way_collision()
@@ -25,3 +27,10 @@ func test_circle_shape():
 	RapierCircleShapeTests.test_get_data()
 	RapierCircleShapeTests.test_get_type()
 	RapierCircleShapeTests.test_set_data()
+
+func test_concave_polygon_shape():
+	RapierConcavePolygonShapeTests.test_allows_one_way_collision()
+	RapierConcavePolygonShapeTests.test_create()
+	RapierConcavePolygonShapeTests.test_get_data()
+	RapierConcavePolygonShapeTests.test_get_type()
+	RapierConcavePolygonShapeTests.test_set_data()
