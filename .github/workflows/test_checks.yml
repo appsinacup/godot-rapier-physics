@@ -23,8 +23,11 @@ jobs:
           if grep -q "ERROR:" output.log; then
             echo "Error found in output"
             exit 1
+          elif grep -q "Success" output.log; then
+            echo "Test completed successfully"
           else
-            echo "No errors found"
+            echo "No success message found"
+            exit 1
           fi
 
   run-tests-3d:
@@ -47,6 +50,9 @@ jobs:
           if grep -q "ERROR:" output.log; then
             echo "Error found in output"
             exit 1
+          elif grep -q "Success" output.log; then
+            echo "Test completed successfully"
           else
-            echo "No errors found"
+            echo "No success message found"
+            exit 1
           fi
