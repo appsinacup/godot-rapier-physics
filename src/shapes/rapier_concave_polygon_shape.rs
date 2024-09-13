@@ -173,13 +173,14 @@ mod tests {
                 Vector::splat(6.0),
             ]);
             concave_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
-            assert_eq!(concave_shape.points.len(), 6);
-            assert_eq!(concave_shape.points[0], Vector::splat(0.0));
-            assert_eq!(concave_shape.points[1], Vector::splat(1.0));
-            assert_eq!(concave_shape.points[2], Vector::splat(2.0));
-            assert_eq!(concave_shape.points[3], Vector::splat(4.0));
-            assert_eq!(concave_shape.points[4], Vector::splat(5.0));
-            assert_eq!(concave_shape.points[5], Vector::splat(6.0));
+            let data: PackedVectorArray = concave_shape.get_data().try_to().unwrap();
+            assert_eq!(data.len(), 6);
+            assert_eq!(data[0], Vector::splat(0.0));
+            assert_eq!(data[1], Vector::splat(1.0));
+            assert_eq!(data[2], Vector::splat(2.0));
+            assert_eq!(data[3], Vector::splat(4.0));
+            assert_eq!(data[4], Vector::splat(5.0));
+            assert_eq!(data[5], Vector::splat(6.0));
             assert!(concave_shape.get_base().is_valid());
             concave_shape
                 .get_mut_base()
@@ -206,13 +207,14 @@ mod tests {
             ]);
             let _ = dict.insert("faces", arr);
             concave_shape.set_data(dict.to_variant(), &mut physics_data().physics_engine);
-            assert_eq!(concave_shape.points.len(), 6);
-            assert_eq!(concave_shape.points[0], Vector::splat(0.0));
-            assert_eq!(concave_shape.points[1], Vector::splat(1.0));
-            assert_eq!(concave_shape.points[2], Vector::splat(2.0));
-            assert_eq!(concave_shape.points[3], Vector::splat(3.0));
-            assert_eq!(concave_shape.points[4], Vector::splat(4.0));
-            assert_eq!(concave_shape.points[5], Vector::splat(5.0));
+            let data: PackedVectorArray = concave_shape.get_data().try_to().unwrap();
+            assert_eq!(data.len(), 6);
+            assert_eq!(data[0], Vector::splat(0.0));
+            assert_eq!(data[1], Vector::splat(1.0));
+            assert_eq!(data[2], Vector::splat(2.0));
+            assert_eq!(data[3], Vector::splat(3.0));
+            assert_eq!(data[4], Vector::splat(4.0));
+            assert_eq!(data[5], Vector::splat(5.0));
             assert!(concave_shape.get_base().is_valid());
             concave_shape
                 .get_mut_base()
@@ -227,7 +229,7 @@ mod tests {
                 points: PackedVectorArray::default(),
                 base: RapierShapeBase::new(rid),
             };
-            let data: PackedVector2Array = concave_shape.get_data().try_to().unwrap();
+            let data: PackedVectorArray = concave_shape.get_data().try_to().unwrap();
             assert_eq!(data.len(), 0);
         }
     }
