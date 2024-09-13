@@ -118,6 +118,7 @@ mod tests {
     use crate::servers::rapier_physics_singleton::physics_data;
     use crate::servers::rapier_physics_singleton::PhysicsShapes;
     use crate::shapes::rapier_shape::IRapierShape;
+    use crate::types::*;
     #[derive(GodotClass)]
     #[class(base=Object, init)]
     pub struct RapierConcavePolygonShapeTests {}
@@ -163,9 +164,9 @@ mod tests {
                 base: RapierShapeBase::new(rid),
             };
             let arr: PackedVector2Array = PackedVector2Array::from(vec![
-                Vector2::new(0.0, 0.0),
-                Vector2::new(1.0, 1.0),
-                Vector2::new(2.0, 2.0),
+                Vector::splat(0.0),
+                Vector::splat(1.0),
+                Vector::splat(2.0),
             ]);
             concave_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
             assert_eq!(concave_shape.points.len(), 3);
@@ -185,9 +186,9 @@ mod tests {
             };
             let mut dict = Dictionary::new();
             let arr = PackedVector3Array::from(vec![
-                Vector3::new(0.0, 0.0, 0.0),
-                Vector3::new(1.0, 1.0, 1.0),
-                Vector3::new(2.0, 2.0, 2.0),
+                Vector::splat(0.0),
+                Vector::splat(1.0),
+                Vector::splat(2.0),
             ]);
             let _ = dict.insert("faces", arr);
             concave_shape.set_data(dict.to_variant(), &mut physics_data().physics_engine);
