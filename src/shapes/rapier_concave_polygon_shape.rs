@@ -163,7 +163,7 @@ mod tests {
                 points: PackedVectorArray::default(),
                 base: RapierShapeBase::new(rid),
             };
-            let arr: PackedVector2Array = PackedVector2Array::from(vec![
+            let arr = PackedVectorArray::from(vec![
                 Vector::splat(0.0),
                 Vector::splat(1.0),
                 Vector::splat(2.0),
@@ -185,7 +185,7 @@ mod tests {
                 base: RapierShapeBase::new(rid),
             };
             let mut dict = Dictionary::new();
-            let arr = PackedVector3Array::from(vec![
+            let arr = PackedVectorArray::from(vec![
                 Vector::splat(0.0),
                 Vector::splat(1.0),
                 Vector::splat(2.0),
