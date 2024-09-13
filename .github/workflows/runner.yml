@@ -17,28 +17,23 @@ jobs:
 
   android-build:
     name: 🤖 Android
-    needs: [static-checks, test-checks]
     uses: ./.github/workflows/android_builds.yml
 
   ios-build:
     name: 🍏 iOS
-    needs: [static-checks, test-checks]
     uses: ./.github/workflows/ios_builds.yml
 
   linux-build:
     name: 🐧 Linux
-    needs: [static-checks, test-checks]
     uses: ./.github/workflows/linux_builds.yml
 
   macos-build:
     name: 🍎 macOS
-    needs: [static-checks, test-checks]
     uses: ./.github/workflows/macos_builds.yml
     secrets: inherit
 
   windows-build:
     name: 🏁 Windows
-    needs: [static-checks, test-checks]
     uses: ./.github/workflows/windows_builds.yml
 
   godot-build:
@@ -47,7 +42,6 @@ jobs:
 
   web-build:
     name: 🌐 Web Builds
-    needs: [static-checks, test-checks]
     uses: ./.github/workflows/web_builds.yml
 
   merge:
