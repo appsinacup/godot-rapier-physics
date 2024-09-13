@@ -3,9 +3,10 @@ extends Node2D
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	var file = FileAccess.open("user://space.json", FileAccess.WRITE)
-	var space_state = RapierPhysicsServer2D.space_export_json(get_viewport().world_2d.space)
-	file.store_string(space_state)
+	test_capsule_shape()
+	test_circle_shape()
+
+func test_capsule_shape():
 	RapierCapsuleShapeTests.test_allows_one_way_collision()
 	RapierCapsuleShapeTests.test_create()
 	RapierCapsuleShapeTests.test_get_data()
@@ -14,6 +15,7 @@ func _ready() -> void:
 	RapierCapsuleShapeTests.test_set_data_from_dictionary()
 	RapierCapsuleShapeTests.test_set_data_from_vector2()
 	
+func test_circle_shape():
 	RapierCircleShapeTests.test_allows_one_way_collision()
 	RapierCircleShapeTests.test_create()
 	RapierCircleShapeTests.test_get_data()

@@ -8,10 +8,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: chickensoft-games/setup-godot@v1
+        name: 🤖 Setup Godot
+        with:
+          version: 4.3.0
+          use-dotnet: false
+          include-templates: true
       - name: Run Tests for 2D Build
         shell: sh
         run: |
-          cargo test --all-targets --features="build2d" --no-default-features
+          cargo test --all-targets --features="build2d,test" --no-default-features
+          godot --version
 
   run-tests-3d:
     name: Run Tests
@@ -21,4 +28,4 @@ jobs:
       - name: Run Tests for 3D Build
         shell: sh
         run: |
-          cargo test --all-targets --features="build3d" --no-default-features
+          cargo test --all-targets --features="build3d,test" --no-default-features
