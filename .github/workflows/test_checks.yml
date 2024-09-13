@@ -19,7 +19,13 @@ jobs:
         run: |
           cargo test --all-targets --features="build2d,test" --no-default-features
           ./scripts/build-dev-2d.sh
-          godot --headless --path ./bin2d
+          godot --headless --path ./bin2d test.tscn --quit-after 1000 > output.log 2>&1
+          if grep -q "ERROR:" output.log; then
+            echo "Error found in output"
+            exit 1
+          else
+            echo "No errors found"
+          fi
 
   run-tests-3d:
     name: Run Tests
