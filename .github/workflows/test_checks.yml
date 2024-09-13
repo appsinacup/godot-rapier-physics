@@ -17,7 +17,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}-test2d
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}-test2d
 
       - uses: chickensoft-games/setup-godot@v1
         name: 🤖 Setup Godot
@@ -54,7 +54,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}-test3d
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}-test3d
       - uses: chickensoft-games/setup-godot@v1
         name: 🤖 Setup Godot
         with:
