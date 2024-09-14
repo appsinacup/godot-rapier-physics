@@ -18,6 +18,7 @@ runs:
   using: composite
   steps:
     - name: Set up environment variables for cache
+      shell: sh
       run: echo "MODIFIED_FEATURES=${{ inputs.features || 'default' }}" | sed 's/,/-/g' >> $GITHUB_ENV
 
     - name: Cache Cargo build
