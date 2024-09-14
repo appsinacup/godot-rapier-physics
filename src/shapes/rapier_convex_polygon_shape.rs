@@ -65,6 +65,9 @@ impl IRapierShape for RapierConvexPolygonShape {
                         return;
                     }
                     self.points = arr;
+                } else {
+                    godot_error!("Invalid shape data");
+                    return;
                 }
             }
             #[cfg(feature = "dim2")]
@@ -82,6 +85,9 @@ impl IRapierShape for RapierConvexPolygonShape {
                         self.points
                             .push(Vector2::new(arr[idx] as real, arr[idx + 1] as real));
                     }
+                } else {
+                    godot_error!("Invalid shape data");
+                    return;
                 }
             }
             _ => {
@@ -159,13 +165,20 @@ mod tests {
                 Vector::splat(0.0),
                 Vector::splat(1.0),
                 Vector::splat(2.0),
+                Vector::splat(3.0),
             ]);
             convex_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
             let data: PackedVectorArray = convex_shape.get_data().try_to().unwrap();
-            assert_eq!(data.len(), 3);
+            assert_eq!(data.len(), 4);
             assert_eq!(data[0], Vector::splat(0.0));
             assert_eq!(data[1], Vector::splat(1.0));
             assert_eq!(data[2], Vector::splat(2.0));
+            assert_eq!(data[3], Vector::splat(3.0));
+            assert!(convex_shape.get_base().is_valid());
+            convex_shape
+                .get_mut_base()
+                .destroy_shape(&mut physics_data().physics_engine);
+            assert!(!convex_shape.get_base().is_valid());
         }
 
         #[cfg(feature = "dim3")]
@@ -180,15 +193,18 @@ mod tests {
                 Vector::splat(0.0),
                 Vector::splat(1.0),
                 Vector::splat(2.0),
-                Vector::splat(3.0),
             ]);
             convex_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
             let data: PackedVectorArray = convex_shape.get_data().try_to().unwrap();
-            assert_eq!(data.len(), 4);
+            assert_eq!(data.len(), 3);
             assert_eq!(data[0], Vector::splat(0.0));
             assert_eq!(data[1], Vector::splat(1.0));
             assert_eq!(data[2], Vector::splat(2.0));
-            assert_eq!(data[3], Vector::splat(3.0));
+            assert!(convex_shape.get_base().is_valid());
+            convex_shape
+                .get_mut_base()
+                .destroy_shape(&mut physics_data().physics_engine);
+            assert!(!convex_shape.get_base().is_valid());
         }
 
         #[func]

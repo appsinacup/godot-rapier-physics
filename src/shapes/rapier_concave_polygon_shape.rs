@@ -64,23 +64,23 @@ impl IRapierShape for RapierConcavePolygonShape {
         match data.get_type() {
             #[cfg(feature = "dim3")]
             VariantType::DICTIONARY => {
-                if let Ok(dictionary) = data.try_to::<Dictionary>() {
-                    if let Some(points) = dictionary.get("faces")
-                        && let Ok(arr) = points.try_to::<PackedVector3Array>()
-                    {
-                        let len = arr.len();
-                        if len == 0 {
-                            godot_error!("ConcavePolygon3D must have at least one face");
-                            return;
-                        }
-                        if len % 3 != 0 {
-                            godot_error!(
-                                "ConcavePolygon3D must have a multiple of 3 number of points"
-                            );
-                            return;
-                        }
-                        self.points = arr;
+                if let Ok(dictionary) = data.try_to::<Dictionary>()
+                    && let Some(points) = dictionary.get("faces")
+                    && let Ok(arr) = points.try_to::<PackedVector3Array>()
+                {
+                    let len = arr.len();
+                    if len == 0 {
+                        godot_error!("ConcavePolygon3D must have at least one face");
+                        return;
                     }
+                    if len % 3 != 0 {
+                        godot_error!("ConcavePolygon3D must have a multiple of 3 number of points");
+                        return;
+                    }
+                    self.points = arr;
+                } else {
+                    godot_error!("Invalid shape data");
+                    return;
                 }
             }
             #[cfg(feature = "dim2")]
@@ -96,6 +96,9 @@ impl IRapierShape for RapierConcavePolygonShape {
                         return;
                     }
                     self.points = arr;
+                } else {
+                    godot_error!("Invalid shape data");
+                    return;
                 }
             }
             _ => {
@@ -171,18 +174,14 @@ mod tests {
                 Vector::splat(1.0),
                 Vector::splat(2.0),
                 Vector::splat(4.0),
-                Vector::splat(5.0),
-                Vector::splat(6.0),
             ]);
             concave_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
             let data: PackedVectorArray = concave_shape.get_data().try_to().unwrap();
-            assert_eq!(data.len(), 6);
+            assert_eq!(data.len(), 4);
             assert_eq!(data[0], Vector::splat(0.0));
             assert_eq!(data[1], Vector::splat(1.0));
             assert_eq!(data[2], Vector::splat(2.0));
             assert_eq!(data[3], Vector::splat(4.0));
-            assert_eq!(data[4], Vector::splat(5.0));
-            assert_eq!(data[5], Vector::splat(6.0));
             assert!(concave_shape.get_base().is_valid());
             concave_shape
                 .get_mut_base()

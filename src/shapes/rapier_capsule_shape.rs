@@ -67,15 +67,21 @@ impl IRapierShape for RapierCapsuleShape {
                     godot_error!("Invalid shape data. Got {}", data);
                     return;
                 }
-                if let Some(height) = dictionary.get("height") {
-                    if let Ok(height) = height.try_to::<real>() {
-                        self.height = height;
-                    }
+                if let Some(height) = dictionary.get("height")
+                    && let Ok(height) = height.try_to::<real>()
+                {
+                    self.height = height;
+                } else {
+                    godot_error!("Invalid shape data");
+                    return;
                 }
-                if let Some(radius) = dictionary.get("radius") {
-                    if let Ok(radius) = radius.try_to::<real>() {
-                        self.radius = radius;
-                    }
+                if let Some(radius) = dictionary.get("radius")
+                    && let Ok(radius) = radius.try_to::<real>()
+                {
+                    self.radius = radius;
+                } else {
+                    godot_error!("Invalid shape data");
+                    return;
                 }
             }
             _ => {

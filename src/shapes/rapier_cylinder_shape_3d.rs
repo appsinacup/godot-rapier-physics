@@ -64,10 +64,19 @@ impl IRapierShape for RapierCylinderShape3D {
                 {
                     if let Ok(height) = height.try_to::<real>() {
                         self.height = height;
+                    } else {
+                        godot_error!("Invalid shape data");
+                        return;
                     }
                     if let Ok(radius) = radius.try_to::<real>() {
                         self.radius = radius;
+                    } else {
+                        godot_error!("Invalid shape data");
+                        return;
                     }
+                } else {
+                    godot_error!("Invalid shape data");
+                    return;
                 }
             }
             _ => {
@@ -149,6 +158,11 @@ mod tests {
             let data: Vector2 = cylinder_shape.get_data().try_to().unwrap();
             assert_eq!(data.x, 0.5); // radius
             assert_eq!(data.y, 1.0); // height
+            assert!(cylinder_shape.get_base().is_valid());
+            cylinder_shape
+                .get_mut_base()
+                .destroy_shape(&mut physics_data().physics_engine);
+            assert!(!cylinder_shape.get_base().is_valid());
         }
 
         #[func]
@@ -165,6 +179,11 @@ mod tests {
             let data: Vector2 = cylinder_shape.get_data().try_to().unwrap();
             assert_eq!(data.x, 0.5); // radius
             assert_eq!(data.y, 1.0); // height
+            assert!(cylinder_shape.get_base().is_valid());
+            cylinder_shape
+                .get_mut_base()
+                .destroy_shape(&mut physics_data().physics_engine);
+            assert!(!cylinder_shape.get_base().is_valid());
         }
 
         #[func]
@@ -183,6 +202,11 @@ mod tests {
             let data: Vector2 = cylinder_shape.get_data().try_to().unwrap();
             assert_eq!(data.x, 0.5); // radius
             assert_eq!(data.y, 1.0); // height
+            assert!(cylinder_shape.get_base().is_valid());
+            cylinder_shape
+                .get_mut_base()
+                .destroy_shape(&mut physics_data().physics_engine);
+            assert!(!cylinder_shape.get_base().is_valid());
         }
 
         #[func]
