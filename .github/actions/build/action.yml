@@ -25,7 +25,7 @@ runs:
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
           target/
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}-build-${{ inputs.arch }}-${{ inputs.features }}-${{ inputs.extra_flags }}
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}-build-${{ inputs.arch }}-${{ inputs.features || 'default' | replace(',', '-') }}-${{ inputs.extra_flags || 'default' }}
     - name: Rust Add target
       shell: sh
       run: |
