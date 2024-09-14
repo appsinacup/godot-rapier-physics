@@ -56,6 +56,7 @@ impl PhysicsEngine {
         if let Some(shape_data) = SharedShape::convex_polyline(points_vec) {
             return self.insert_shape(shape_data);
         }
+        godot_error!("Invalid shape data");
         ShapeHandle::default()
     }
 
@@ -65,6 +66,7 @@ impl PhysicsEngine {
         if let Some(shape_data) = SharedShape::convex_hull(&points_vec) {
             return self.insert_shape(shape_data);
         }
+        godot_error!("Invalid shape data");
         ShapeHandle::default()
     }
 
