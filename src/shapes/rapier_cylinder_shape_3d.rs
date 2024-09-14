@@ -65,22 +65,22 @@ impl IRapierShape for RapierCylinderShape3D {
                     if let Ok(height) = height.try_to::<real>() {
                         self.height = height;
                     } else {
-                        godot_error!("Invalid shape data");
+                        godot_error!("RapierCylinderShape data must be a dictionary with 'height' and 'radius' keys. Got {}", data);
                         return;
                     }
                     if let Ok(radius) = radius.try_to::<real>() {
                         self.radius = radius;
                     } else {
-                        godot_error!("Invalid shape data");
+                        godot_error!("RapierCylinderShape data must be a dictionary with 'height' and 'radius' keys. Got {}", data);
                         return;
                     }
                 } else {
-                    godot_error!("Invalid shape data");
+                    godot_error!("RapierCylinderShape data must be a dictionary with 'height' and 'radius' keys. Got {}", data);
                     return;
                 }
             }
             _ => {
-                godot_error!("Invalid shape data");
+                godot_error!("RapierCylinderShape data must be a dictionary with 'height' and 'radius' keys. Got {}", data);
                 return;
             }
         }

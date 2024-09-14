@@ -50,19 +50,22 @@ impl IRapierShape for RapierWorldBoundaryShape {
     #[cfg(feature = "dim2")]
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         if data.get_type() != VariantType::ARRAY {
-            godot_error!("Invalid shape data");
+            godot_error!("RapierWorldBoundaryShape data must be an array.");
             return;
         }
         let arr: Array<Variant> = data.try_to().unwrap_or_default();
         if arr.len() != 2 {
-            godot_error!("Invalid data size for WorldBoundaryShape2D.");
+            godot_error!("RapierWorldBoundaryShape data must be an array of 2 elements.");
             return;
         }
         if arr.at(0).get_type() != VariantType::VECTOR2
             || (arr.at(1).get_type() != VariantType::FLOAT
                 && arr.at(1).get_type() != VariantType::INT)
         {
-            godot_error!("Invalid data type for WorldBoundaryShape2D.");
+            godot_error!(
+                "RapierWorldBoundaryShape data must be an array of 2 elements. Got {}",
+                data
+            );
             return;
         }
         self.normal = arr.at(0).try_to().unwrap_or_default();
@@ -74,7 +77,7 @@ impl IRapierShape for RapierWorldBoundaryShape {
     #[cfg(feature = "dim3")]
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         if data.get_type() != VariantType::PLANE {
-            godot_error!("Invalid shape data");
+            godot_error!("RapierWorldBoundaryShape data must be a plane.");
             return;
         }
         let plane: Plane = data.try_to().unwrap_or(Plane::invalid());

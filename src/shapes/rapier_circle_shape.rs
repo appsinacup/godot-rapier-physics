@@ -56,7 +56,10 @@ impl IRapierShape for RapierCircleShape {
                 self.radius = variant_to_float(&data);
             }
             _ => {
-                godot_error!("Invalid shape data");
+                godot_error!(
+                    "RapierCircleShape data must be a float or int. Got {}",
+                    data
+                );
                 return;
             }
         }

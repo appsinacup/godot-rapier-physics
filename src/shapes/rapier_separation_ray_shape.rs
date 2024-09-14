@@ -47,12 +47,15 @@ impl IRapierShape for RapierSeparationRayShape {
 
     fn set_data(&mut self, data: Variant, _physics_engine: &mut PhysicsEngine) {
         if data.get_type() != VariantType::DICTIONARY {
-            godot_error!("Invalid shape data.");
+            godot_error!(
+                "RapierSeparationRayShape data must be a dictionary. Got {}",
+                data
+            );
             return;
         }
         let dictionary: Dictionary = data.try_to().unwrap_or_default();
         if !dictionary.contains_key("length") && !dictionary.contains_key("slide_on_slope") {
-            godot_error!("Invalid shape data.");
+            godot_error!("RapierSeparationRayShape data must contain 'length' and 'slide_on_slope' keys. Got {}", data);
             return;
         }
         self.length = dictionary.get_or_nil("length").try_to().unwrap_or_default();

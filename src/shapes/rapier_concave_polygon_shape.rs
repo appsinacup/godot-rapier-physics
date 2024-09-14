@@ -79,7 +79,7 @@ impl IRapierShape for RapierConcavePolygonShape {
                     }
                     self.points = arr;
                 } else {
-                    godot_error!("Invalid shape data");
+                    godot_error!("ConcavePolygon3D data must be a PackedVector3Array");
                     return;
                 }
             }
@@ -97,13 +97,15 @@ impl IRapierShape for RapierConcavePolygonShape {
                     }
                     self.points = arr;
                 } else {
-                    godot_error!("Invalid shape data");
+                    godot_error!("ConcavePolygon2D data must be a PackedVector2Array");
                     return;
                 }
             }
             _ => {
                 // Handle dictionary with arrays
-                godot_error!("Invalid shape data");
+                godot_error!(
+                    "ConcavePolygon data must be a PackedVector3Array or a PackedVector2Array"
+                );
                 return;
             }
         }

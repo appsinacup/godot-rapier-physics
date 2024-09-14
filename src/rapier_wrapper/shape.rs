@@ -11,6 +11,13 @@ pub fn point_array_to_vec(pixel_data: &Vec<Vector<Real>>) -> Vec<Point<Real>> {
     }
     vec
 }
+pub fn vec_to_point_array(pixel_data: &[Point<Real>]) -> Vec<Vector<Real>> {
+    let mut vec = Vec::<Vector<Real>>::with_capacity(pixel_data.len());
+    for point in pixel_data {
+        vec.push(Vector::<Real>::from(point.coords));
+    }
+    vec
+}
 #[derive(Copy, Clone, Debug)]
 pub struct ShapeInfo {
     pub handle: ShapeHandle,
@@ -56,8 +63,31 @@ impl PhysicsEngine {
         if let Some(shape_data) = SharedShape::convex_polyline(points_vec) {
             return self.insert_shape(shape_data);
         }
-        godot_error!("Invalid shape data");
         ShapeHandle::default()
+    }
+
+    #[cfg(feature = "dim2")]
+    pub fn shape_get_convex_polyline_points(&mut self, handle: ShapeHandle) -> Vec<Vector<Real>> {
+        if let Some(shape) = self.get_shape(handle) {
+            if let Some(shape) = shape.as_convex_polygon() {
+                let points = shape.points();
+                let points_vec = vec_to_point_array(points);
+                return points_vec;
+            }
+        }
+        vec![]
+    }
+
+    #[cfg(feature = "dim3")]
+    pub fn shape_get_convex_polyline_points(&mut self, handle: ShapeHandle) -> Vec<Vector<Real>> {
+        if let Some(shape) = self.get_shape(handle) {
+            if let Some(shape) = shape.as_convex_polyhedron() {
+                let points = shape.points();
+                let points_vec = vec_to_point_array(points);
+                return points_vec;
+            }
+        }
+        vec![]
     }
 
     #[cfg(feature = "dim3")]
@@ -66,7 +96,6 @@ impl PhysicsEngine {
         if let Some(shape_data) = SharedShape::convex_hull(&points_vec) {
             return self.insert_shape(shape_data);
         }
-        godot_error!("Invalid shape data");
         ShapeHandle::default()
     }
 
@@ -162,6 +191,7 @@ impl PhysicsEngine {
         if let Some(shape) = self.get_shape(handle) {
             return shape.compute_local_aabb();
         }
+        godot_error!("Shape not found");
         rapier::prelude::Aabb::new_invalid()
     }
 

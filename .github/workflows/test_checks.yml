@@ -31,6 +31,9 @@ jobs:
           cargo test --all-targets --features="build2d,test" --no-default-features
           ./scripts/build-dev-2d.sh
           godot --headless --path ./bin2d test.tscn --quit-after 1000 > output.log 2>&1
+          echo "---------------------"
+          grep "ERROR:" output.log
+          echo "---------------------"
           if grep -q "ERROR:" output.log; then
             echo "Error found in output"
             exit 1
@@ -67,6 +70,9 @@ jobs:
           cargo test --all-targets --features="build3d,test" --no-default-features
           ./scripts/build-dev-3d.sh
           godot --headless --path ./bin3d test.tscn --quit-after 1000 > output.log 2>&1
+          echo "---------------------"
+          grep "ERROR:" output.log
+          echo "---------------------"
           if grep -q "ERROR:" output.log; then
             echo "Error found in output"
             exit 1

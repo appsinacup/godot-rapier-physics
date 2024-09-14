@@ -47,7 +47,7 @@ impl IRapierShape for RapierSegmentShape2D {
 
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         if data.get_type() != VariantType::RECT2 {
-            godot_error!("Invalid shape data");
+            godot_error!("RapierSegmentShape data must be a Rect2. Got {}", data);
             return;
         }
         let r: Rect2 = data.try_to().unwrap_or_default();

@@ -50,7 +50,10 @@ impl IRapierShape for RapierCapsuleShape {
             VariantType::ARRAY => {
                 let arr: Array<real> = data.try_to().unwrap_or_default();
                 if arr.len() != 2 {
-                    godot_error!("Invalid shape data. Got {}", data);
+                    godot_error!(
+                        "RapierCapsuleShape data must be an array of 2 elements. Got {}",
+                        data
+                    );
                     return;
                 }
                 self.height = arr.at(0);
@@ -64,7 +67,7 @@ impl IRapierShape for RapierCapsuleShape {
             VariantType::DICTIONARY => {
                 let dictionary: Dictionary = data.try_to().unwrap_or_default();
                 if !dictionary.contains_key("length") && !dictionary.contains_key("height") {
-                    godot_error!("Invalid shape data. Got {}", data);
+                    godot_error!("RapierCapsuleShape data must be a dictionary with 'length' and 'height' keys. Got {}", data);
                     return;
                 }
                 if let Some(height) = dictionary.get("height")
@@ -72,7 +75,7 @@ impl IRapierShape for RapierCapsuleShape {
                 {
                     self.height = height;
                 } else {
-                    godot_error!("Invalid shape data");
+                    godot_error!("RapierCapsuleShape data must be a dictionary with 'length' and 'height' keys. Got {}", data);
                     return;
                 }
                 if let Some(radius) = dictionary.get("radius")
@@ -80,12 +83,15 @@ impl IRapierShape for RapierCapsuleShape {
                 {
                     self.radius = radius;
                 } else {
-                    godot_error!("Invalid shape data");
+                    godot_error!("RapierCapsuleShape data must be a dictionary with 'length' and 'height' keys. Got {}", data);
                     return;
                 }
             }
             _ => {
-                godot_error!("Invalid shape data");
+                godot_error!(
+                    "RapierCapsuleShape data must be an array or a dictionary. Got {}",
+                    data
+                );
                 return;
             }
         }
