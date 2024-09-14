@@ -1,7 +1,7 @@
 cargo fmt -- --config-path rustfmt.toml
 cargo clippy --fix --allow-dirty
 cargo build --features="build3d,test" --no-default-features
-if [[ "$OSTYPE" == "darwin"* ]]; then
+if [ "${OSTYPE#darwin}" != "$OSTYPE" ]; then
     # macOS
     echo "Running on macOS"
     rm -f bin3d/addons/godot-rapier3d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib

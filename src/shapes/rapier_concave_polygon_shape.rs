@@ -70,6 +70,7 @@ impl IRapierShape for RapierConcavePolygonShape {
                     {
                         let len = arr.len();
                         if len == 0 {
+                            godot_error!("ConcavePolygon3D must have at least one face");
                             return;
                         }
                         if len % 3 != 0 {
@@ -87,6 +88,7 @@ impl IRapierShape for RapierConcavePolygonShape {
                 if let Ok(arr) = data.try_to::<PackedVector2Array>() {
                     let len = arr.len();
                     if len == 0 {
+                        godot_error!("ConcavePolygon2D must have at least two points");
                         return;
                     }
                     if len % 2 != 0 {

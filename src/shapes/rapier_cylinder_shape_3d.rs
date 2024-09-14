@@ -86,3 +86,116 @@ impl IRapierShape for RapierCylinderShape3D {
         Vector2::new(self.radius, self.height).to_variant()
     }
 }
+#[cfg(feature = "test")]
+mod tests {
+    use godot::prelude::*;
+
+    use super::*;
+    use crate::servers::rapier_physics_singleton::physics_data;
+    use crate::servers::rapier_physics_singleton::PhysicsShapes;
+    use crate::shapes::rapier_shape::IRapierShape;
+    #[derive(GodotClass)]
+    #[class(base=Object, init)]
+    pub struct RapierCylinderShape3DTests {}
+    #[godot_api]
+    impl RapierCylinderShape3DTests {
+        #[func]
+        fn test_create() {
+            let mut physics_shapes = PhysicsShapes::new();
+            let rid = Rid::new(123);
+            RapierCylinderShape3D::create(rid, &mut physics_shapes);
+            assert!(physics_shapes.contains_key(&rid));
+            match physics_shapes.get(&rid) {
+                Some(RapierShape::RapierCylinderShape3D(_)) => {}
+                _ => panic!("Shape was not inserted correctly"),
+            }
+        }
+
+        #[func]
+        fn test_get_type() {
+            let rid = Rid::new(123);
+            let cylinder_shape = RapierCylinderShape3D {
+                height: 0.0,
+                radius: 0.0,
+                base: RapierShapeBase::new(rid),
+            };
+            assert_eq!(cylinder_shape.get_type(), ShapeType::CYLINDER);
+        }
+
+        #[func]
+        fn test_allows_one_way_collision() {
+            let rid = Rid::new(123);
+            let cylinder_shape = RapierCylinderShape3D {
+                height: 0.0,
+                radius: 0.0,
+                base: RapierShapeBase::new(rid),
+            };
+            assert!(cylinder_shape.allows_one_way_collision());
+        }
+
+        #[func]
+        fn test_set_data_array() {
+            let rid = Rid::new(123);
+            let mut cylinder_shape = RapierCylinderShape3D {
+                height: 0.0,
+                radius: 0.0,
+                base: RapierShapeBase::new(rid),
+            };
+            let mut arr = Array::default();
+            arr.push(1.0);
+            arr.push(0.5);
+            cylinder_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
+            // Now use get_data to verify the set values
+            let data: Vector2 = cylinder_shape.get_data().try_to().unwrap();
+            assert_eq!(data.x, 0.5); // radius
+            assert_eq!(data.y, 1.0); // height
+        }
+
+        #[func]
+        fn test_set_data_vector2() {
+            let rid = Rid::new(123);
+            let mut cylinder_shape = RapierCylinderShape3D {
+                height: 0.0,
+                radius: 0.0,
+                base: RapierShapeBase::new(rid),
+            };
+            let vec = Vector2::new(0.5, 1.0);
+            cylinder_shape.set_data(vec.to_variant(), &mut physics_data().physics_engine);
+            // Now use get_data to verify the set values
+            let data: Vector2 = cylinder_shape.get_data().try_to().unwrap();
+            assert_eq!(data.x, 0.5); // radius
+            assert_eq!(data.y, 1.0); // height
+        }
+
+        #[func]
+        fn test_set_data_dictionary() {
+            let rid = Rid::new(123);
+            let mut cylinder_shape = RapierCylinderShape3D {
+                height: 0.0,
+                radius: 0.0,
+                base: RapierShapeBase::new(rid),
+            };
+            let mut dict = Dictionary::new();
+            let _ = dict.insert("height", 1.0);
+            let _ = dict.insert("radius", 0.5);
+            cylinder_shape.set_data(dict.to_variant(), &mut physics_data().physics_engine);
+            // Now use get_data to verify the set values
+            let data: Vector2 = cylinder_shape.get_data().try_to().unwrap();
+            assert_eq!(data.x, 0.5); // radius
+            assert_eq!(data.y, 1.0); // height
+        }
+
+        #[func]
+        fn test_get_data() {
+            let rid = Rid::new(123);
+            let cylinder_shape = RapierCylinderShape3D {
+                height: 1.0,
+                radius: 0.5,
+                base: RapierShapeBase::new(rid),
+            };
+            let data: Vector2 = cylinder_shape.get_data().try_to().unwrap();
+            assert_eq!(data.x, 0.5);
+            assert_eq!(data.y, 1.0);
+        }
+    }
+}

@@ -6,7 +6,8 @@ func _ready() -> void:
 	test_capsule_shape()
 	test_circle_shape()
 	test_concave_polygon_shape()
-	test_convex_polygon_shape()  # Add this function
+	test_convex_polygon_shape()
+	test_cylinder_shape()
 	print("Success")
 	print("Quit")
 	await get_tree().create_timer(1.0).timeout
@@ -41,3 +42,12 @@ func test_convex_polygon_shape():  # New function for convex polygon shape
 	RapierConvexPolygonShapeTests.test_get_data()
 	RapierConvexPolygonShapeTests.test_get_type()
 	RapierConvexPolygonShapeTests.test_set_data()
+
+func test_cylinder_shape():
+	RapierCylinderShape3DTests.test_create()
+	RapierCylinderShape3DTests.test_get_type()
+	RapierCylinderShape3DTests.test_allows_one_way_collision()
+	RapierCylinderShape3DTests.test_set_data_array()
+	RapierCylinderShape3DTests.test_set_data_vector2()
+	RapierCylinderShape3DTests.test_set_data_dictionary()
+	RapierCylinderShape3DTests.test_get_data()
