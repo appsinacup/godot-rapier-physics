@@ -1,12 +1,12 @@
 extends Node
 
-
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	print("Start")
 	test_capsule_shape()
 	test_circle_shape()
 	test_concave_polygon_shape()
+	test_convex_polygon_shape()  # Add this function
 	print("Success")
 	print("Quit")
 	await get_tree().create_timer(1.0).timeout
@@ -20,7 +20,7 @@ func test_capsule_shape():
 	RapierCapsuleShapeTests.test_set_data_from_array()
 	RapierCapsuleShapeTests.test_set_data_from_dictionary()
 	RapierCapsuleShapeTests.test_set_data_from_vector2()
-	
+
 func test_circle_shape():
 	RapierCircleShapeTests.test_allows_one_way_collision()
 	RapierCircleShapeTests.test_create()
@@ -34,3 +34,10 @@ func test_concave_polygon_shape():
 	RapierConcavePolygonShapeTests.test_get_data()
 	RapierConcavePolygonShapeTests.test_get_type()
 	RapierConcavePolygonShapeTests.test_set_data()
+
+func test_convex_polygon_shape():  # New function for convex polygon shape
+	RapierConvexPolygonShapeTests.test_allows_one_way_collision()
+	RapierConvexPolygonShapeTests.test_create()
+	RapierConvexPolygonShapeTests.test_get_data()
+	RapierConvexPolygonShapeTests.test_get_type()
+	RapierConvexPolygonShapeTests.test_set_data()

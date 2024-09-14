@@ -99,3 +99,105 @@ impl IRapierShape for RapierConvexPolygonShape {
         self.points.to_variant()
     }
 }
+#[cfg(feature = "test")]
+mod tests {
+    use godot::prelude::*;
+
+    use super::*;
+    use crate::servers::rapier_physics_singleton::physics_data;
+    use crate::servers::rapier_physics_singleton::PhysicsShapes;
+    use crate::shapes::rapier_shape::IRapierShape;
+    use crate::types::*;
+    #[derive(GodotClass)]
+    #[class(base=Object, init)]
+    pub struct RapierConvexPolygonShapeTests {}
+    #[godot_api]
+    impl RapierConvexPolygonShapeTests {
+        #[func]
+        fn test_create() {
+            let mut physics_shapes = PhysicsShapes::new();
+            let rid = Rid::new(123);
+            RapierConvexPolygonShape::create(rid, &mut physics_shapes);
+            assert!(physics_shapes.contains_key(&rid));
+            match physics_shapes.get(&rid) {
+                Some(RapierShape::RapierConvexPolygonShape(_)) => {}
+                _ => panic!("Shape was not inserted correctly"),
+            }
+        }
+
+        #[func]
+        fn test_get_type() {
+            let rid = Rid::new(123);
+            let convex_shape = RapierConvexPolygonShape {
+                points: PackedVectorArray::default(),
+                base: RapierShapeBase::new(rid),
+            };
+            assert_eq!(convex_shape.get_type(), ShapeType::CONVEX_POLYGON);
+        }
+
+        #[func]
+        fn test_allows_one_way_collision() {
+            let rid = Rid::new(123);
+            let convex_shape = RapierConvexPolygonShape {
+                points: PackedVectorArray::default(),
+                base: RapierShapeBase::new(rid),
+            };
+            assert!(convex_shape.allows_one_way_collision());
+        }
+
+        #[cfg(feature = "dim2")]
+        #[func]
+        fn test_set_data() {
+            let rid = Rid::new(123);
+            let mut convex_shape = RapierConvexPolygonShape {
+                points: PackedVectorArray::default(),
+                base: RapierShapeBase::new(rid),
+            };
+            let arr = PackedVectorArray::from(vec![
+                Vector::splat(0.0),
+                Vector::splat(1.0),
+                Vector::splat(2.0),
+            ]);
+            convex_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
+            let data: PackedVectorArray = convex_shape.get_data().try_to().unwrap();
+            assert_eq!(data.len(), 3);
+            assert_eq!(data[0], Vector::splat(0.0));
+            assert_eq!(data[1], Vector::splat(1.0));
+            assert_eq!(data[2], Vector::splat(2.0));
+        }
+
+        #[cfg(feature = "dim3")]
+        #[func]
+        fn test_set_data() {
+            let rid = Rid::new(123);
+            let mut convex_shape = RapierConvexPolygonShape {
+                points: PackedVectorArray::default(),
+                base: RapierShapeBase::new(rid),
+            };
+            let arr = PackedVectorArray::from(vec![
+                Vector::splat(0.0),
+                Vector::splat(1.0),
+                Vector::splat(2.0),
+                Vector::splat(3.0),
+            ]);
+            convex_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
+            let data: PackedVectorArray = convex_shape.get_data().try_to().unwrap();
+            assert_eq!(data.len(), 4);
+            assert_eq!(data[0], Vector::splat(0.0));
+            assert_eq!(data[1], Vector::splat(1.0));
+            assert_eq!(data[2], Vector::splat(2.0));
+            assert_eq!(data[3], Vector::splat(3.0));
+        }
+
+        #[func]
+        fn test_get_data() {
+            let rid = Rid::new(123);
+            let convex_shape = RapierConvexPolygonShape {
+                points: PackedVectorArray::default(),
+                base: RapierShapeBase::new(rid),
+            };
+            let data: PackedVectorArray = convex_shape.get_data().try_to().unwrap();
+            assert_eq!(data.len(), 0);
+        }
+    }
+}
