@@ -21,11 +21,17 @@ runs:
       shell: sh
       run: echo "MODIFIED_FEATURES=${{ inputs.features || 'default' }}" | sed 's/,/-/g' >> $GITHUB_ENV
 
-    - name: Cache Cargo build
+    - name: Cache Cargo registry
       uses: actions/cache@v3
       with:
-        path: target
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}-build-${{ inputs.arch }}-${{ env.MODIFIED_FEATURES }}-${{ inputs.extra_flags || 'default' }}
+        path: ~/.cargo/registry
+        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Cache Cargo build artifacts
+      uses: actions/cache@v3
+      with:
+        path: target/release
+        key: ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}-${{ inputs.arch }}
 
     - name: Rust Add target
       shell: sh
