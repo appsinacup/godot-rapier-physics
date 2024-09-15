@@ -39,7 +39,7 @@ impl IRapierShape for RapierCylinderShape3D {
     }
 
     fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
-        physics_engine.shape_create_cylinder((self.height / 2.0) - self.radius, self.radius)
+        physics_engine.shape_create_cylinder(self.height / 2.0, self.radius)
     }
 
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
@@ -83,9 +83,6 @@ impl IRapierShape for RapierCylinderShape3D {
                 godot_error!("RapierCylinderShape data must be a dictionary with 'height' and 'radius' keys. Got {}", data);
                 return;
             }
-        }
-        if self.radius >= self.height * 0.5 {
-            self.radius = self.height * 0.5;
         }
         let handle = self.create_rapier_shape(physics_engine);
         self.base.set_handle_and_reset_aabb(handle, physics_engine);
