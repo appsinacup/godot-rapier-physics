@@ -15,10 +15,13 @@ jobs:
           version: 4.3.0
           use-dotnet: false
           include-templates: true
-      - name: Run Tests for 2D Build
+      - name: Run Unit Tests for 2D Build
         shell: sh
         run: |
           cargo test --all-targets --features="build2d,test" --no-default-features
+      - name: Run Integration Tests for 2D Build
+        shell: sh
+        run: |
           ./scripts/build-dev-2d.sh
           godot --headless --path ./bin2d test.tscn --quit-after 1000 > output.log 2>&1
           echo "---------------------"
@@ -45,10 +48,13 @@ jobs:
           version: 4.3.0
           use-dotnet: false
           include-templates: true
-      - name: Run Tests for 3D Build
+      - name: Run Unit Tests for 3D Build
         shell: sh
         run: |
           cargo test --all-targets --features="build3d,test" --no-default-features
+      - name: Run Integration Tests for 3D Build
+        shell: sh
+        run: |
           ./scripts/build-dev-3d.sh
           godot --headless --path ./bin3d test.tscn --quit-after 1000 > output.log 2>&1
           echo "---------------------"
