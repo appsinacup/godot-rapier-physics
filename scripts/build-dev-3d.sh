@@ -9,6 +9,5 @@ if [ "${OSTYPE#darwin}" != "$OSTYPE" ]; then
 else
     # Linux
     echo "Running on Linux"
-    rm -f bin3d/addons/godot-rapier3d/bin/libgodot_rapier.linux.so
-    cp target/debug/libgodot_rapier.so bin3d/addons/godot-rapier3d/bin/libgodot_rapier.linux.so
+    cp target/debug/libgodot_rapier.so bin3d/addons/godot-rapier3d/bin/libgodot_rapier.linux.x86_64-unknown-linux-gnu.so
 fi
