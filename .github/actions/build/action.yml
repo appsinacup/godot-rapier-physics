@@ -17,22 +17,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Set up environment variables for cache
-      shell: sh
-      run: echo "MODIFIED_FEATURES=${{ inputs.features || 'default' }}" | sed 's/,/-/g' >> $GITHUB_ENV
-
-    - name: Cache Cargo registry
-      uses: actions/cache@v3
-      with:
-        path: ~/.cargo/registry
-        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}-build-${{ inputs.arch }}-${{ env.MODIFIED_FEATURES }}-${{ inputs.extra_flags || 'default' }}
-
-    - name: Cache Cargo build artifacts
-      uses: actions/cache@v3
-      with:
-        path: target/release
-        key: ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}-build-${{ inputs.arch }}-${{ env.MODIFIED_FEATURES }}-${{ inputs.extra_flags || 'default' }}
-
     - name: Rust Add target
       shell: sh
       run: |
