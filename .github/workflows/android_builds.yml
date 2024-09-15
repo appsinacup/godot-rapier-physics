@@ -25,7 +25,6 @@ jobs:
       - uses: nttld/setup-ndk@v1
         id: setup-ndk
         with:
-          local-cache: true
           ndk-version: r23c
       - name: Print paths
         shell: sh
