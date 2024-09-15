@@ -106,7 +106,7 @@ impl IRapierShape for RapierConvexPolygonShape {
             godot_error!("ConvexPolygon failed to create shape");
             return;
         }
-        let points = physics_engine.shape_get_convex_polyline_points(self.get_base().get_handle());
+        let points = physics_engine.shape_get_convex_polyline_points(handle);
         if points.len() != self.points.len() {
             godot_warn!(
                 "ConvexPolygon shape points changed from size {} to {}",
@@ -184,18 +184,18 @@ mod tests {
                 base: RapierShapeBase::new(rid),
             };
             let arr = PackedVectorArray::from(vec![
-                Vector::new(0.0, 0.0),
-                Vector::new(1.0, 0.0),
-                Vector::new(2.0, 2.0),
-                Vector::new(3.0, 0.0),
+                Vector::new(1.0, 1.0),
+                Vector::new(4.0, 1.0),
+                Vector::new(5.0, 3.0),
+                Vector::new(3.0, 5.0),
             ]);
             convex_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
             let data: PackedVectorArray = convex_shape.get_data().try_to().unwrap();
             assert_eq!(data.len(), 4);
-            assert_eq!(data[0], Vector::new(0.0, 0.0));
-            assert_eq!(data[1], Vector::new(1.0, 0.0));
-            assert_eq!(data[2], Vector::new(2.0, 2.0));
-            assert_eq!(data[3], Vector::new(3.0, 0.0));
+            assert_eq!(data[0], Vector::new(1.0, 1.0));
+            assert_eq!(data[1], Vector::new(4.0, 1.0));
+            assert_eq!(data[2], Vector::new(5.0, 3.0));
+            assert_eq!(data[3], Vector::new(3.0, 5.0));
             assert!(convex_shape.get_base().is_valid());
             convex_shape
                 .get_mut_base()
