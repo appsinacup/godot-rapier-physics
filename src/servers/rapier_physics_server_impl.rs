@@ -214,7 +214,7 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(shape) = physics_data.shapes.get(&shape) {
             if shape.get_base().is_valid() {
-                return shape.get_data();
+                return shape.get_data(&physics_data.physics_engine);
             }
         }
         Variant::nil()

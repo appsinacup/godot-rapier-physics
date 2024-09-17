@@ -11,13 +11,11 @@ use crate::shapes::rapier_shape::*;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 use crate::types::*;
 pub struct RapierCircleShape {
-    radius: real,
     base: RapierShapeBase,
 }
 impl RapierCircleShape {
     pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) {
         let shape = Self {
-            radius: 0.0,
             base: RapierShapeBase::new(rid),
         };
         physics_shapes.insert(rid, RapierShape::RapierCircleShape(shape));
@@ -46,14 +44,11 @@ impl IRapierShape for RapierCircleShape {
         true
     }
 
-    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
-        physics_engine.shape_create_circle(self.radius)
-    }
-
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
+        let radius;
         match data.get_type() {
             VariantType::FLOAT | VariantType::INT => {
-                self.radius = variant_to_float(&data);
+                radius = variant_to_float(&data);
             }
             _ => {
                 godot_error!(
@@ -63,12 +58,16 @@ impl IRapierShape for RapierCircleShape {
                 return;
             }
         }
-        let handle = self.create_rapier_shape(physics_engine);
+        if radius <= 0.0 {
+            godot_error!("RapierCircleShape radius must be positive. Got {}", radius);
+            return;
+        }
+        let handle = physics_engine.shape_create_circle(radius);
         self.base.set_handle_and_reset_aabb(handle, physics_engine);
     }
 
-    fn get_data(&self) -> Variant {
-        self.radius.to_variant()
+    fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
+        physics_engine.shape_circle_get_radius(self.base.get_handle()).to_variant()
     }
 }
 #[cfg(feature = "test")]
@@ -94,57 +93,27 @@ mod tests {
                 Some(RapierShape::RapierCircleShape(_)) => {}
                 _ => panic!("Shape was not inserted correctly"),
             }
-        }
-
-        #[func]
-        fn test_get_type() {
-            let rid = Rid::new(123);
-            let circle_shape = RapierCircleShape {
-                radius: 1.0,
-                base: RapierShapeBase::new(rid),
-            };
+            let circle_shape = physics_shapes.get(&rid).unwrap();
             #[cfg(feature = "dim2")]
             assert_eq!(circle_shape.get_type(), ShapeType::CIRCLE);
             #[cfg(feature = "dim3")]
             assert_eq!(circle_shape.get_type(), ShapeType::SPHERE);
-        }
-
-        #[func]
-        fn test_allows_one_way_collision() {
-            let rid = Rid::new(123);
-            let circle_shape = RapierCircleShape {
-                radius: 1.0,
-                base: RapierShapeBase::new(rid),
-            };
             assert!(circle_shape.allows_one_way_collision());
         }
 
         #[func]
         fn test_set_data() {
-            let rid = Rid::new(123);
             let mut circle_shape = RapierCircleShape {
-                radius: 0.0,
-                base: RapierShapeBase::new(rid),
+                base: RapierShapeBase::new(Rid::Invalid),
             };
             let data = Variant::from(1.5);
             circle_shape.set_data(data, &mut physics_data().physics_engine);
-            assert_eq!(circle_shape.radius, 1.5);
+            assert_eq!(circle_shape.get_data(&mut physics_data().physics_engine), 1.5.to_variant());
             assert!(circle_shape.get_base().is_valid());
             circle_shape
                 .get_mut_base()
                 .destroy_shape(&mut physics_data().physics_engine);
             assert!(!circle_shape.get_base().is_valid());
-        }
-
-        #[func]
-        fn test_get_data() {
-            let rid = Rid::new(123);
-            let circle_shape = RapierCircleShape {
-                radius: 1.5,
-                base: RapierShapeBase::new(rid),
-            };
-            let data: real = circle_shape.get_data().try_to().unwrap();
-            assert_eq!(data, 1.5);
         }
     }
 }

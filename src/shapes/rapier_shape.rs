@@ -24,9 +24,8 @@ pub trait IRapierShape {
     fn get_mut_base(&mut self) -> &mut RapierShapeBase;
     fn get_type(&self) -> ShapeType;
     fn allows_one_way_collision(&self) -> bool;
-    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle;
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine);
-    fn get_data(&self) -> Variant;
+    fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant;
 }
 pub enum RapierShape {
     RapierCapsuleShape(RapierCapsuleShape),
@@ -70,21 +69,15 @@ macro_rules! impl_rapier_shape_trait {
                 }
             }
 
-            fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
-                match self {
-                    $(Self::$variant(s) => s.create_rapier_shape(physics_engine),)*
-                }
-            }
-
             fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
                 match self {
                     $(Self::$variant(s) => s.set_data(data, physics_engine),)*
                 }
             }
 
-            fn get_data(&self) -> Variant {
+            fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
                 match self {
-                    $(Self::$variant(s) => s.get_data(),)*
+                    $(Self::$variant(s) => s.get_data(physics_engine),)*
                 }
             }
         }

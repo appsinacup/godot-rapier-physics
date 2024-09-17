@@ -79,7 +79,7 @@ impl PhysicsEngine {
     }
 
     #[cfg(feature = "dim3")]
-    pub fn shape_get_convex_polyline_points(&mut self, handle: ShapeHandle) -> Vec<Vector<Real>> {
+    pub fn shape_get_convex_polyline_points(&self, handle: ShapeHandle) -> Vec<Vector<Real>> {
         if let Some(shape) = self.get_shape(handle) {
             if let Some(shape) = shape.as_convex_polyhedron() {
                 let points = shape.points();
@@ -111,6 +111,15 @@ impl PhysicsEngine {
         self.insert_shape(shape)
     }
 
+    pub fn shape_get_box_size(&self, shape_handle: ShapeHandle) -> Vector<Real> {
+        if let Some(shape) = self.get_shape(shape_handle) {
+            if let Some(shape) = shape.as_cuboid() {
+                return shape.half_extents;
+            }
+        }
+        Vector::zeros()
+    }
+
     pub fn shape_create_halfspace(&mut self, normal: Vector<Real>, distance: Real) -> ShapeHandle {
         let shape = SharedShape::halfspace(UnitVector::new_normalize(normal));
         let shape_position = Isometry::new(normal * distance, ANG_ZERO);
@@ -124,15 +133,43 @@ impl PhysicsEngine {
         self.insert_shape(shape)
     }
 
+    pub fn shape_circle_get_radius(&self, shape_handle: ShapeHandle) -> Real {
+        if let Some(shape) = self.get_shape(shape_handle) {
+            if let Some(shape) = shape.as_ball() {
+                return shape.radius
+            }
+        }
+        0.0
+    }
+
     pub fn shape_create_capsule(&mut self, half_height: Real, radius: Real) -> ShapeHandle {
         let shape = SharedShape::capsule_y(half_height, radius);
         self.insert_shape(shape)
+    }
+
+    pub fn shape_get_capsule(&self, shape_handle: ShapeHandle) -> (Real, Real) {
+        if let Some(shape) = self.get_shape(shape_handle) {
+            if let Some(shape) = shape.as_capsule() {
+                return (shape.half_height(), shape.radius)
+            }
+        }
+        (0.0, 0.0)
     }
 
     #[cfg(feature = "dim3")]
     pub fn shape_create_cylinder(&mut self, half_height: Real, radius: Real) -> ShapeHandle {
         let shape = SharedShape::cylinder(half_height, radius);
         self.insert_shape(shape)
+    }
+
+    #[cfg(feature = "dim3")]
+    pub fn shape_get_cylinder(&self, shape_handle: ShapeHandle) -> (Real, Real) {
+        if let Some(shape) = self.get_shape(shape_handle) {
+            if let Some(shape) = shape.as_cylinder() {
+                return (shape.half_height, shape.radius)
+            }
+        }
+        (0.0, 0.0)
     }
 
     #[cfg(feature = "dim3")]
@@ -185,6 +222,26 @@ impl PhysicsEngine {
             TriMeshFlags::FIX_INTERNAL_EDGES,
         );
         self.insert_shape(shape)
+    }
+
+    #[cfg(feature = "dim2")]
+    pub fn shape_get_concave_polyline(&self, shape_handle: ShapeHandle) -> (&[Point<Real>], &[[u32; 2]]) {
+        if let Some(shape) = self.get_shape(shape_handle) {
+            if let Some(shape) = shape.as_polyline() {
+                return (shape.vertices(), shape.indices())
+            }
+        }
+        return (&[], &[]);
+    }
+
+    #[cfg(feature = "dim3")]
+    pub fn shape_get_concave_polyline(&self, shape_handle: ShapeHandle) -> (&[Point<Real>], &[[u32; 3]]) {
+        if let Some(shape) = self.get_shape(shape_handle) {
+            if let Some(shape) = shape.as_trimesh() {
+                return (shape.vertices(), shape.indices())
+            }
+        }
+        return (&[], &[]);
     }
 
     pub fn shape_get_aabb(&self, handle: ShapeHandle) -> rapier::prelude::Aabb {

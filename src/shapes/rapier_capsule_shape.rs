@@ -10,15 +10,11 @@ use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::shapes::rapier_shape::*;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 pub struct RapierCapsuleShape {
-    height: f32,
-    radius: f32,
     base: RapierShapeBase,
 }
 impl RapierCapsuleShape {
     pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) {
         let shape = Self {
-            height: 0.0,
-            radius: 0.0,
             base: RapierShapeBase::new(rid),
         };
         physics_shapes.insert(rid, RapierShape::RapierCapsuleShape(shape));
@@ -41,11 +37,9 @@ impl IRapierShape for RapierCapsuleShape {
         true
     }
 
-    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
-        physics_engine.shape_create_capsule((self.height / 2.0) - self.radius, self.radius)
-    }
-
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
+        let height;
+        let radius;
         match data.get_type() {
             VariantType::ARRAY => {
                 let arr: Array<real> = data.try_to().unwrap_or_default();
@@ -56,13 +50,13 @@ impl IRapierShape for RapierCapsuleShape {
                     );
                     return;
                 }
-                self.height = arr.at(0);
-                self.radius = arr.at(1);
+                height = arr.at(0);
+                radius = arr.at(1);
             }
             VariantType::VECTOR2 => {
                 let vector_data: Vector2 = data.try_to().unwrap_or_default();
-                self.height = vector_data.y;
-                self.radius = vector_data.x;
+                height = vector_data.y;
+                radius = vector_data.x;
             }
             VariantType::DICTIONARY => {
                 let dictionary: Dictionary = data.try_to().unwrap_or_default();
@@ -70,18 +64,18 @@ impl IRapierShape for RapierCapsuleShape {
                     godot_error!("RapierCapsuleShape data must be a dictionary with 'length' and 'height' keys. Got {}", data);
                     return;
                 }
-                if let Some(height) = dictionary.get("height")
-                    && let Ok(height) = height.try_to::<real>()
+                if let Some(in_height) = dictionary.get("height")
+                    && let Ok(in_height) = in_height.try_to()
                 {
-                    self.height = height;
+                    height = in_height;
                 } else {
                     godot_error!("RapierCapsuleShape data must be a dictionary with 'length' and 'height' keys. Got {}", data);
                     return;
                 }
-                if let Some(radius) = dictionary.get("radius")
-                    && let Ok(radius) = radius.try_to::<real>()
+                if let Some(in_radius) = dictionary.get("radius")
+                    && let Ok(in_radius) = in_radius.try_to()
                 {
-                    self.radius = radius;
+                    radius = in_radius;
                 } else {
                     godot_error!("RapierCapsuleShape data must be a dictionary with 'length' and 'height' keys. Got {}", data);
                     return;
@@ -95,12 +89,21 @@ impl IRapierShape for RapierCapsuleShape {
                 return;
             }
         }
-        let handle = self.create_rapier_shape(physics_engine);
+        if height <= 0.0 {
+            godot_error!("RapierCapsuleShape height must be positive. Got {}", height);
+            return;
+        }
+        if radius <= 0.0 {
+            godot_error!("RapierCapsuleShape radius must be positive. Got {}", radius);
+            return;
+        }
+        let handle = physics_engine.shape_create_capsule((height / 2.0) - radius, radius);
         self.base.set_handle_and_reset_aabb(handle, physics_engine);
     }
 
-    fn get_data(&self) -> Variant {
-        Vector2::new(self.radius, self.height).to_variant()
+    fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
+        let (half_height, radius) = physics_engine.shape_get_capsule(self.base.get_handle());
+        Vector2::new(radius, half_height * 2.0).to_variant()
     }
 }
 #[cfg(feature = "test")]
@@ -126,42 +129,22 @@ mod tests {
                 Some(RapierShape::RapierCapsuleShape(_)) => {}
                 _ => panic!("Shape was not inserted correctly"),
             }
-        }
-
-        #[func]
-        fn test_get_type() {
-            let rid = Rid::new(123);
-            let capsule_shape = RapierCapsuleShape {
-                height: 2.0,
-                radius: 1.0,
-                base: RapierShapeBase::new(rid),
-            };
+            let capsule_shape = physics_shapes.get(&rid).unwrap();
             assert_eq!(capsule_shape.get_type(), ShapeType::CAPSULE);
-        }
-
-        #[func]
-        fn test_allows_one_way_collision() {
-            let rid = Rid::new(123);
-            let capsule_shape = RapierCapsuleShape {
-                height: 2.0,
-                radius: 1.0,
-                base: RapierShapeBase::new(rid),
-            };
             assert!(capsule_shape.allows_one_way_collision());
         }
 
         #[func]
         fn test_set_data_from_array() {
-            let rid = Rid::new(123);
             let mut capsule_shape = RapierCapsuleShape {
-                height: 0.0,
-                radius: 0.0,
-                base: RapierShapeBase::new(rid),
+                base: RapierShapeBase::new(Rid::Invalid),
             };
             let arr: Array<real> = array![2.0, 1.0];
             capsule_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
-            assert_eq!(capsule_shape.height, 2.0);
-            assert_eq!(capsule_shape.radius, 1.0);
+            let data = capsule_shape.get_data(&physics_data().physics_engine);
+            let data_vector = data.try_to::<Vector2>().unwrap();
+            assert_eq!(data_vector.x, 2.0);
+            assert_eq!(data_vector.y, 1.0);
             assert!(capsule_shape.get_base().is_valid());
             capsule_shape
                 .get_mut_base()
@@ -171,19 +154,18 @@ mod tests {
 
         #[func]
         fn test_set_data_from_vector2() {
-            let rid = Rid::new(123);
             let mut capsule_shape = RapierCapsuleShape {
-                height: 0.0,
-                radius: 0.0,
-                base: RapierShapeBase::new(rid),
+                base: RapierShapeBase::new(Rid::Invalid),
             };
             let vector2_data = Vector2::new(1.0, 2.0);
             capsule_shape.set_data(
                 vector2_data.to_variant(),
                 &mut physics_data().physics_engine,
             );
-            assert_eq!(capsule_shape.height, 2.0);
-            assert_eq!(capsule_shape.radius, 1.0);
+            let data = capsule_shape.get_data(&physics_data().physics_engine);
+            let data_vector = data.try_to::<Vector2>().unwrap();
+            assert_eq!(data_vector.x, 1.0);
+            assert_eq!(data_vector.y, 2.0);
             assert!(capsule_shape.get_base().is_valid());
             capsule_shape
                 .get_mut_base()
@@ -193,36 +175,22 @@ mod tests {
 
         #[func]
         fn test_set_data_from_dictionary() {
-            let rid = Rid::new(123);
             let mut capsule_shape = RapierCapsuleShape {
-                height: 0.0,
-                radius: 0.0,
-                base: RapierShapeBase::new(rid),
+                base: RapierShapeBase::new(Rid::Invalid),
             };
             let mut dict = Dictionary::new();
-            let _ = dict.insert("height", 2.0);
             let _ = dict.insert("radius", 1.0);
+            let _ = dict.insert("height", 2.0);
             capsule_shape.set_data(dict.to_variant(), &mut physics_data().physics_engine);
-            assert_eq!(capsule_shape.height, 2.0);
-            assert_eq!(capsule_shape.radius, 1.0);
+            let data = capsule_shape.get_data(&physics_data().physics_engine);
+            let data_vector = data.try_to::<Vector2>().unwrap();
+            assert_eq!(data_vector.x, 1.0);
+            assert_eq!(data_vector.y, 2.0);
             assert!(capsule_shape.get_base().is_valid());
             capsule_shape
                 .get_mut_base()
                 .destroy_shape(&mut physics_data().physics_engine);
             assert!(!capsule_shape.get_base().is_valid());
-        }
-
-        #[func]
-        fn test_get_data() {
-            let rid = Rid::new(123);
-            let capsule_shape = RapierCapsuleShape {
-                height: 2.0,
-                radius: 1.0,
-                base: RapierShapeBase::new(rid),
-            };
-            let data: Vector2 = capsule_shape.get_data().try_to().unwrap();
-            assert_eq!(data.x, 1.0);
-            assert_eq!(data.y, 2.0);
         }
     }
 }
