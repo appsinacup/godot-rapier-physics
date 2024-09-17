@@ -198,6 +198,19 @@ impl PhysicsEngine {
         self.insert_shape(shape)
     }
 
+    #[cfg(feature = "dim3")]
+    pub fn shape_get_heightmap(&self, shape_handle: ShapeHandle) -> (DMatrix<Real>, i32, i32) {
+        if let Some(shape) = self.get_shape(shape_handle) {
+            if let Some(shape) = shape.as_heightfield() {
+                let scale = shape.scale();
+                let depth = scale.x as i32;
+                let width = scale.z as i32;
+                return (shape.heights().clone(), depth, width)
+            }
+        }
+        (DMatrix::default(), 0, 0)
+    }
+
     #[cfg(feature = "dim2")]
     pub fn shape_create_concave_polyline(
         &mut self,

@@ -11,17 +11,11 @@ use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 use crate::types::*;
 pub struct RapierHeightMapShape3D {
-    heights: PackedFloatArray,
-    width: i32,
-    depth: i32,
     base: RapierShapeBase,
 }
 impl RapierHeightMapShape3D {
     pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) {
         let shape = Self {
-            heights: PackedFloatArray::new(),
-            width: 0,
-            depth: 0,
             base: RapierShapeBase::new(rid),
         };
         physics_shapes.insert(rid, RapierShape::RapierHeightMapShape3D(shape));
@@ -44,85 +38,78 @@ impl IRapierShape for RapierHeightMapShape3D {
         true
     }
 
-    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
-        physics_engine.shape_create_heightmap(self.heights.as_slice(), self.width, self.depth)
-    }
-
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
-        match data.get_type() {
-            VariantType::DICTIONARY => {
-                if let Ok(dictionary) = data.try_to::<Dictionary>() {
-                    let width = dictionary.get_or_nil("width");
-                    let depth = dictionary.get_or_nil("depth");
-                    let new_heights = dictionary.get_or_nil("heights");
-                    if let Ok(width) = width.try_to::<i32>()
-                        && let Ok(depth) = depth.try_to::<i32>()
-                    {
-                        if width <= 1 || depth <= 1 {
-                            godot_error!("Heightmap must have width and depth at least 2");
-                            return;
+        let width;
+        let depth;
+        let heights;
+        if let Ok(dictionary) = data.try_to::<Dictionary>() {
+            let in_width = dictionary.get_or_nil("width");
+            let in_depth = dictionary.get_or_nil("depth");
+            let new_heights = dictionary.get_or_nil("heights");
+            if let Ok(in_width) = in_width.try_to::<i32>()
+                && let Ok(in_depth) = in_depth.try_to::<i32>()
+                && let Ok(in_heights) = new_heights.try_to::<PackedFloatArray>() {
+                    width = in_width;
+                    depth = in_depth;
+                    heights = in_heights;
+                // else if let Ok(image) = heights.try_to::<Object>() {
+                // TODO image support
+                //}
+                // Compute min and max heights or use precomputed values.
+                let mut min_height: real = 0.0;
+                let mut max_height: real = 0.0;
+                if let Some(new_min_height) = dictionary.get("min_height")
+                    && let Some(new_max_height) = dictionary.get("max_height")
+                {
+                    let new_min_height = variant_to_float(&new_min_height);
+                    let new_max_height = variant_to_float(&new_max_height);
+                    min_height = new_min_height;
+                    max_height = new_max_height;
+                } else {
+                    let heights_size = heights.len();
+                    for i in 0..heights_size {
+                        let h = heights[i];
+                        if h < min_height {
+                            min_height = h;
+                        } else if h > max_height {
+                            max_height = h;
                         }
-                        let heights: PackedFloatArray;
-                        if let Ok(new_heights) = new_heights.try_to::<PackedFloatArray>() {
-                            heights = new_heights;
-                        }
-                        // else if let Ok(image) = heights.try_to::<Object>() {
-                        // TODO image support
-                        //}
-                        else {
-                            godot_error!("Invalid heightmap shape data");
-                            return;
-                        }
-                        // Compute min and max heights or use precomputed values.
-                        let mut min_height: real = 0.0;
-                        let mut max_height: real = 0.0;
-                        if let Some(new_min_height) = dictionary.get("min_height")
-                            && let Some(new_max_height) = dictionary.get("max_height")
-                        {
-                            let new_min_height = variant_to_float(&new_min_height);
-                            let new_max_height = variant_to_float(&new_max_height);
-                            min_height = new_min_height;
-                            max_height = new_max_height;
-                        } else {
-                            let heights_size = heights.len();
-                            for i in 0..heights_size {
-                                let h = heights[i];
-                                if h < min_height {
-                                    min_height = h;
-                                } else if h > max_height {
-                                    max_height = h;
-                                }
-                            }
-                        }
-                        if min_height > max_height {
-                            godot_error!("Invalid heightmap shape data");
-                            return;
-                        }
-                        self.heights = heights;
-                        self.width = width;
-                        self.depth = depth;
                     }
                 }
+                if min_height > max_height {
+                    godot_error!("Invalid heightmap shape data");
+                    return;
+                }
+            } else {
+                godot_error!("Invalid heightmap dictionary data. Got {}", data);
+                return;
             }
-            _ => godot_error!("Invalid heightmap shape data"),
+        } else {
+            godot_error!("Invalid heightmap shape data type. Got {}", data);
+            return;
         }
-        if self.heights.len() != (self.width * self.depth) as usize {
+        if heights.len() != (width * depth) as usize {
             godot_error!("Invalid heightmap shape data");
             return;
         }
-        if self.width <= 1 || self.depth <= 1 {
+        if width <= 1 || depth <= 1 {
             godot_error!("Heightmap must have width and depth at least 2");
             return;
         }
-        let handle = self.create_rapier_shape(physics_engine);
+        let handle = physics_engine.shape_create_heightmap(heights.as_slice(), width, depth);
         self.base.set_handle_and_reset_aabb(handle, physics_engine);
     }
 
-    fn get_data(&self) -> Variant {
+    fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
         let mut dictionary = Dictionary::new();
-        let _ = dictionary.insert("width", self.width);
-        let _ = dictionary.insert("depth", self.depth);
-        let _ = dictionary.insert("heights", self.heights.clone());
+        let (heights, depth, width) = physics_engine.shape_get_heightmap(self.base.get_handle());
+        let _ = dictionary.insert("width", width);
+        let _ = dictionary.insert("depth", depth);
+        let mut packed_heights = PackedFloatArray::default();
+        for h in heights.iter() {
+            packed_heights.push(*h)
+        }
+        let _ = dictionary.insert("heights", packed_heights);
         dictionary.to_variant()
     }
 }
