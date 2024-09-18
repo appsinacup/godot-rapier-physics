@@ -7,15 +7,11 @@ use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 pub struct RapierSegmentShape2D {
-    a: Vector2,
-    b: Vector2,
     base: RapierShapeBase,
 }
 impl RapierSegmentShape2D {
     pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) {
         let shape = Self {
-            a: Vector2::ZERO,
-            b: Vector2::ZERO,
             base: RapierShapeBase::new(rid),
         };
         physics_shapes.insert(rid, RapierShape::RapierSegmentShape2D(shape));
@@ -38,27 +34,32 @@ impl IRapierShape for RapierSegmentShape2D {
         true
     }
 
-    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
-        let p1 = self.a;
-        let p2 = self.b;
-        let rapier_points = [vector_to_rapier(p1), vector_to_rapier(p2)];
-        physics_engine.shape_create_concave_polyline(&rapier_points.to_vec(), None)
-    }
-
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         if data.get_type() != VariantType::RECT2 {
             godot_error!("RapierSegmentShape data must be a Rect2. Got {}", data);
             return;
         }
         let r: Rect2 = data.try_to().unwrap_or_default();
-        self.a = r.position;
-        self.b = r.size;
-        let handle = self.create_rapier_shape(physics_engine);
+        let p1 = r.position;
+        let p2 = r.size;
+        let rapier_points = [vector_to_rapier(p1), vector_to_rapier(p2)];
+        let handle = physics_engine.shape_create_concave_polyline(&rapier_points.to_vec(), None);
         self.base.set_handle_and_reset_aabb(handle, physics_engine);
     }
 
-    fn get_data(&self) -> Variant {
-        let r = Rect2::new(self.a, self.b);
+    fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
+        let (points, _) = physics_engine.shape_get_concave_polyline(self.base.get_handle());
+        if points.len() != 2 {
+            godot_error!(
+                "RapierSegmentShape data must be a Rect2. Got length {}",
+                points.len()
+            );
+            return Rect2::default().to_variant();
+        }
+        let r = Rect2::new(
+            vector_to_godot(points[0].coords),
+            vector_to_godot(points[1].coords),
+        );
         r.to_variant()
     }
 }

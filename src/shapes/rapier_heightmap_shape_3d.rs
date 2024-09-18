@@ -48,10 +48,11 @@ impl IRapierShape for RapierHeightMapShape3D {
             let new_heights = dictionary.get_or_nil("heights");
             if let Ok(in_width) = in_width.try_to::<i32>()
                 && let Ok(in_depth) = in_depth.try_to::<i32>()
-                && let Ok(in_heights) = new_heights.try_to::<PackedFloatArray>() {
-                    width = in_width;
-                    depth = in_depth;
-                    heights = in_heights;
+                && let Ok(in_heights) = new_heights.try_to::<PackedFloatArray>()
+            {
+                width = in_width;
+                depth = in_depth;
+                heights = in_heights;
                 // else if let Ok(image) = heights.try_to::<Object>() {
                 // TODO image support
                 //}

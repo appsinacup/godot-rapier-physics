@@ -9,7 +9,6 @@ use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
-use crate::types::Vector;
 pub struct RapierRectangleShape {
     base: RapierShapeBase,
 }

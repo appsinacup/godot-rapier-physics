@@ -24,7 +24,11 @@ impl RapierConvexPolygonShape {
     }
 }
 impl RapierConvexPolygonShape {
-    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine, points: &PackedVectorArray) -> ShapeHandle {
+    fn create_rapier_shape(
+        &mut self,
+        physics_engine: &mut PhysicsEngine,
+        points: &PackedVectorArray,
+    ) -> ShapeHandle {
         if points.len() >= 3 {
             let mut rapier_points = Vec::with_capacity(points.len());
             for point in points.as_slice() {
@@ -78,13 +82,13 @@ impl IRapierShape for RapierConvexPolygonShape {
                         godot_error!("ConvexPolygon must have at least three point");
                         return;
                     }
-                    points = PackedVectorArray::new();
+                    let mut new_points = PackedVectorArray::new();
                     for i in 0..size {
                         let idx = i << 2;
                         // skip normals
-                        points
-                            .push(Vector2::new(arr[idx] as real, arr[idx + 1] as real));
+                        new_points.push(Vector2::new(arr[idx] as real, arr[idx + 1] as real));
                     }
+                    points = new_points;
                 } else {
                     godot_error!("ConvexPolygon data must be a PackedFloatArray");
                     return;
@@ -123,7 +127,7 @@ impl IRapierShape for RapierConvexPolygonShape {
         for point in points.iter() {
             result_points.push(vector_to_godot(*point));
         }
-        return result_points.to_variant();
+        result_points.to_variant()
     }
 }
 #[cfg(feature = "test")]
@@ -169,7 +173,10 @@ mod tests {
                 Vector::new(3.0, 5.0),
             ]);
             convex_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
-            let data: PackedVectorArray = convex_shape.get_data(&physics_data().physics_engine).try_to().unwrap();
+            let data: PackedVectorArray = convex_shape
+                .get_data(&physics_data().physics_engine)
+                .try_to()
+                .unwrap();
             assert_eq!(data.len(), 4);
             assert_eq!(data[0], Vector::new(1.0, 1.0));
             assert_eq!(data[1], Vector::new(4.0, 1.0));
@@ -195,7 +202,10 @@ mod tests {
                 Vector3::new(2.0, 2.0, 2.0),
             ]);
             convex_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
-            let data: PackedVectorArray = convex_shape.get_data(&physics_data().physics_engine).try_to().unwrap();
+            let data: PackedVectorArray = convex_shape
+                .get_data(&physics_data().physics_engine)
+                .try_to()
+                .unwrap();
             assert_eq!(data.len(), 3);
             assert_eq!(data[0], Vector::splat(0.0));
             assert_eq!(data[1], Vector3::new(1.0, 0.0, 0.0));

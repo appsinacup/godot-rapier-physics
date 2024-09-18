@@ -45,19 +45,7 @@ impl IRapierShape for RapierCircleShape {
     }
 
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
-        let radius;
-        match data.get_type() {
-            VariantType::FLOAT | VariantType::INT => {
-                radius = variant_to_float(&data);
-            }
-            _ => {
-                godot_error!(
-                    "RapierCircleShape data must be a float or int. Got {}",
-                    data
-                );
-                return;
-            }
-        }
+        let radius = variant_to_float(&data);
         if radius <= 0.0 {
             godot_error!("RapierCircleShape radius must be positive. Got {}", radius);
             return;
@@ -67,7 +55,9 @@ impl IRapierShape for RapierCircleShape {
     }
 
     fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
-        physics_engine.shape_circle_get_radius(self.base.get_handle()).to_variant()
+        physics_engine
+            .shape_circle_get_radius(self.base.get_handle())
+            .to_variant()
     }
 }
 #[cfg(feature = "test")]
@@ -108,7 +98,10 @@ mod tests {
             };
             let data = Variant::from(1.5);
             circle_shape.set_data(data, &mut physics_data().physics_engine);
-            assert_eq!(circle_shape.get_data(&mut physics_data().physics_engine), 1.5.to_variant());
+            assert_eq!(
+                circle_shape.get_data(&physics_data().physics_engine),
+                1.5.to_variant()
+            );
             assert!(circle_shape.get_base().is_valid());
             circle_shape
                 .get_mut_base()

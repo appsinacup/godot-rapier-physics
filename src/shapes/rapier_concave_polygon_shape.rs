@@ -22,7 +22,11 @@ impl RapierConcavePolygonShape {
     }
 }
 impl RapierConcavePolygonShape {
-    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine, points: &PackedVectorArray) -> ShapeHandle {
+    fn create_rapier_shape(
+        &mut self,
+        physics_engine: &mut PhysicsEngine,
+        points: &PackedVectorArray,
+    ) -> ShapeHandle {
         let point_count = points.len();
         let mut rapier_points = Vec::with_capacity(point_count);
         for i in 0..point_count {
@@ -133,8 +137,9 @@ impl IRapierShape for RapierConcavePolygonShape {
                 break;
             }
         }
-        return arr.to_variant();
+        arr.to_variant()
     }
+
     #[cfg(feature = "dim3")]
     fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
         let (points, indices) = physics_engine.shape_get_concave_polyline(self.base.get_handle());
@@ -162,7 +167,7 @@ impl IRapierShape for RapierConcavePolygonShape {
                 break;
             }
         }
-        return arr.to_variant();
+        arr.to_variant()
     }
 }
 #[cfg(feature = "test")]
@@ -207,7 +212,10 @@ mod tests {
                 Vector::splat(4.0),
             ]);
             concave_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
-            let data: PackedVectorArray = concave_shape.get_data(&physics_data().physics_engine).try_to().unwrap();
+            let data: PackedVectorArray = concave_shape
+                .get_data(&physics_data().physics_engine)
+                .try_to()
+                .unwrap();
             assert_eq!(data.len(), 4);
             assert_eq!(data[0], Vector::splat(0.0));
             assert_eq!(data[1], Vector::splat(1.0));
@@ -237,7 +245,10 @@ mod tests {
             ]);
             let _ = dict.insert("faces", arr);
             concave_shape.set_data(dict.to_variant(), &mut physics_data().physics_engine);
-            let data: PackedVectorArray = concave_shape.get_data(&physics_data().physics_engine).try_to().unwrap();
+            let data: PackedVectorArray = concave_shape
+                .get_data(&physics_data().physics_engine)
+                .try_to()
+                .unwrap();
             assert_eq!(data.len(), 6);
             assert_eq!(data[0], Vector::splat(0.0));
             assert_eq!(data[1], Vector::splat(1.0));

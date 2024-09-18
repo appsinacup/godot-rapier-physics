@@ -10,7 +10,7 @@ publish = false
 crate-type = ["cdylib"]
 
 [features]
-default = ["build3d", "test"]
+default = ["build2d", "test"]
 test = []
 build2d = ["single-dim2", "serde-serialize", "parallel", "simd-stable"]
 build3d = ["single-dim3", "serde-serialize", "parallel", "simd-stable"]

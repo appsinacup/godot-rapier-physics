@@ -41,10 +41,6 @@ impl IRapierShape for RapierSeparationRayShape {
         false
     }
 
-    fn create_rapier_shape(&mut self, _physics_engine: &mut PhysicsEngine) -> ShapeHandle {
-        ShapeHandle::default()
-    }
-
     fn set_data(&mut self, data: Variant, _physics_engine: &mut PhysicsEngine) {
         if data.get_type() != VariantType::DICTIONARY {
             godot_error!(
@@ -65,7 +61,7 @@ impl IRapierShape for RapierSeparationRayShape {
             .unwrap_or_default();
     }
 
-    fn get_data(&self) -> Variant {
+    fn get_data(&self, _physics_engine: &PhysicsEngine) -> Variant {
         let mut dictionary = Dictionary::new();
         dictionary.set("length", self.length);
         dictionary.set("slide_on_slope", self.slide_on_slope);
