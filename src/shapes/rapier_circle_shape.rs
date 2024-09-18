@@ -98,11 +98,11 @@ mod tests {
             };
             let data = Variant::from(1.5);
             circle_shape.set_data(data, &mut physics_data().physics_engine);
+            assert!(circle_shape.get_base().is_valid());
             assert_eq!(
                 circle_shape.get_data(&physics_data().physics_engine),
                 1.5.to_variant()
             );
-            assert!(circle_shape.get_base().is_valid());
             circle_shape
                 .get_mut_base()
                 .destroy_shape(&mut physics_data().physics_engine);

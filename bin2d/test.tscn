@@ -1,6 +1,27 @@
-[gd_scene load_steps=2 format=3 uid="uid://cn4jscixu2bmf"]
+[gd_scene load_steps=4 format=3 uid="uid://cn4jscixu2bmf"]
 
 [ext_resource type="Script" path="res://test.gd" id="1_fs1uw"]
 
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_hgibn"]
+radius = 1.0
+height = 3.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_aosdc"]
+size = Vector2(20, 8)
+
 [node name="SceneRayOnSwitch" type="Node2D"]
 script = ExtResource("1_fs1uw")
+
+[node name="RigidBody2D" type="RigidBody2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D"]
+shape = SubResource("CapsuleShape2D_hgibn")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(100, 100)
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(0, 6)
+shape = SubResource("RectangleShape2D_aosdc")

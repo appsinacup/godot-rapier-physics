@@ -212,6 +212,7 @@ mod tests {
                 Vector::splat(4.0),
             ]);
             concave_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
+            assert!(concave_shape.get_base().is_valid());
             let data: PackedVectorArray = concave_shape
                 .get_data(&physics_data().physics_engine)
                 .try_to()
@@ -221,7 +222,6 @@ mod tests {
             assert_eq!(data[1], Vector::splat(1.0));
             assert_eq!(data[2], Vector::splat(2.0));
             assert_eq!(data[3], Vector::splat(4.0));
-            assert!(concave_shape.get_base().is_valid());
             concave_shape
                 .get_mut_base()
                 .destroy_shape(&mut physics_data().physics_engine);

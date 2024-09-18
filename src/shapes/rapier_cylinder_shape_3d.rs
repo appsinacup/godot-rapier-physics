@@ -124,14 +124,13 @@ mod tests {
             arr.push(1.0);
             arr.push(0.5);
             cylinder_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
-            // Now use get_data to verify the set values
+            assert!(cylinder_shape.get_base().is_valid());
             let data: Vector2 = cylinder_shape
                 .get_data(&physics_data().physics_engine)
                 .try_to()
                 .unwrap();
             assert_eq!(data.x, 0.5); // radius
             assert_eq!(data.y, 1.0); // height
-            assert!(cylinder_shape.get_base().is_valid());
             cylinder_shape
                 .get_mut_base()
                 .destroy_shape(&mut physics_data().physics_engine);
@@ -145,14 +144,13 @@ mod tests {
             };
             let vec = Vector2::new(0.5, 1.0);
             cylinder_shape.set_data(vec.to_variant(), &mut physics_data().physics_engine);
-            // Now use get_data to verify the set values
+            assert!(cylinder_shape.get_base().is_valid());
             let data: Vector2 = cylinder_shape
                 .get_data(&physics_data().physics_engine)
                 .try_to()
                 .unwrap();
             assert_eq!(data.x, 0.5); // radius
             assert_eq!(data.y, 1.0); // height
-            assert!(cylinder_shape.get_base().is_valid());
             cylinder_shape
                 .get_mut_base()
                 .destroy_shape(&mut physics_data().physics_engine);
@@ -169,14 +167,13 @@ mod tests {
             let _ = dict.insert("height", 1.0);
             let _ = dict.insert("radius", 0.5);
             cylinder_shape.set_data(dict.to_variant(), &mut physics_data().physics_engine);
-            // Now use get_data to verify the set values
+            assert!(cylinder_shape.get_base().is_valid());
             let data: Vector2 = cylinder_shape
                 .get_data(&physics_data().physics_engine)
                 .try_to()
                 .unwrap();
             assert_eq!(data.x, 0.5); // radius
             assert_eq!(data.y, 1.0); // height
-            assert!(cylinder_shape.get_base().is_valid());
             cylinder_shape
                 .get_mut_base()
                 .destroy_shape(&mut physics_data().physics_engine);

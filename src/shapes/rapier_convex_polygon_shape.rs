@@ -173,6 +173,7 @@ mod tests {
                 Vector::new(3.0, 5.0),
             ]);
             convex_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
+            assert!(convex_shape.get_base().is_valid());
             let data: PackedVectorArray = convex_shape
                 .get_data(&physics_data().physics_engine)
                 .try_to()
@@ -182,7 +183,6 @@ mod tests {
             assert_eq!(data[1], Vector::new(4.0, 1.0));
             assert_eq!(data[2], Vector::new(5.0, 3.0));
             assert_eq!(data[3], Vector::new(3.0, 5.0));
-            assert!(convex_shape.get_base().is_valid());
             convex_shape
                 .get_mut_base()
                 .destroy_shape(&mut physics_data().physics_engine);

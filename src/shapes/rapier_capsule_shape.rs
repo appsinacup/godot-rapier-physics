@@ -102,8 +102,8 @@ impl IRapierShape for RapierCapsuleShape {
     }
 
     fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
-        let (half_height, radius) = physics_engine.shape_get_capsule(self.base.get_handle());
-        Vector2::new(radius, half_height * 2.0).to_variant()
+        let (height, radius) = physics_engine.shape_get_capsule(self.base.get_handle());
+        Vector2::new((height + radius) * 2.0, radius).to_variant()
     }
 }
 #[cfg(feature = "test")]
@@ -139,11 +139,11 @@ mod tests {
             let mut capsule_shape = RapierCapsuleShape {
                 base: RapierShapeBase::new(Rid::Invalid),
             };
-            let arr: Array<real> = array![2.0, 1.0];
+            let arr: Array<real> = array![3.0, 1.0];
             capsule_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
             let data = capsule_shape.get_data(&physics_data().physics_engine);
             let data_vector = data.try_to::<Vector2>().unwrap();
-            assert_eq!(data_vector.x, 2.0);
+            assert_eq!(data_vector.x, 3.0);
             assert_eq!(data_vector.y, 1.0);
             assert!(capsule_shape.get_base().is_valid());
             capsule_shape
@@ -162,11 +162,11 @@ mod tests {
                 vector2_data.to_variant(),
                 &mut physics_data().physics_engine,
             );
+            assert!(capsule_shape.get_base().is_valid());
             let data = capsule_shape.get_data(&physics_data().physics_engine);
             let data_vector = data.try_to::<Vector2>().unwrap();
-            assert_eq!(data_vector.x, 1.0);
-            assert_eq!(data_vector.y, 2.0);
-            assert!(capsule_shape.get_base().is_valid());
+            assert_eq!(data_vector.x, 2.0);
+            assert_eq!(data_vector.y, 1.0);
             capsule_shape
                 .get_mut_base()
                 .destroy_shape(&mut physics_data().physics_engine);
@@ -182,11 +182,11 @@ mod tests {
             let _ = dict.insert("radius", 1.0);
             let _ = dict.insert("height", 2.0);
             capsule_shape.set_data(dict.to_variant(), &mut physics_data().physics_engine);
+            assert!(capsule_shape.get_base().is_valid());
             let data = capsule_shape.get_data(&physics_data().physics_engine);
             let data_vector = data.try_to::<Vector2>().unwrap();
-            assert_eq!(data_vector.x, 1.0);
-            assert_eq!(data_vector.y, 2.0);
-            assert!(capsule_shape.get_base().is_valid());
+            assert_eq!(data_vector.x, 2.0);
+            assert_eq!(data_vector.y, 1.0);
             capsule_shape
                 .get_mut_base()
                 .destroy_shape(&mut physics_data().physics_engine);
