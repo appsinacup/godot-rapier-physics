@@ -31,4 +31,4 @@ enabled=PackedStringArray("res://addons/godot-rapier3d/plugin.cfg")
 [physics]
 
 2d/physics_engine="Rapier2D"
-3d/physics_engine="Rapier3D"
+3d/physics_engine="JoltPhysics3D"
