@@ -50,7 +50,7 @@ use crate::shapes::rapier_world_boundary_shape::RapierWorldBoundaryShape;
 use crate::spaces::rapier_space::RapierSpace;
 use crate::types::*;
 pub struct RapierPhysicsServerImpl {
-    active: bool,
+    pub active: bool,
     pub flushing_queries: bool,
     doing_sync: bool,
     active_objects: i32,

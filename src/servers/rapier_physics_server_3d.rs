@@ -902,6 +902,9 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
     }
 
     fn flush_queries(&mut self) {
+        if !self.implementation.active {
+            return;
+        }
         let physics_data = physics_data();
         self.implementation.flushing_queries = true;
         let guard = self.base_mut();

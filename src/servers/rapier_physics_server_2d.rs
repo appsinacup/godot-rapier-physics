@@ -691,6 +691,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     }
 
     fn flush_queries(&mut self) {
+        if !self.implementation.active {
+            return;
+        }
         self.implementation.flushing_queries = true;
         let physics_data = physics_data();
         let mut queries = Vec::default();
