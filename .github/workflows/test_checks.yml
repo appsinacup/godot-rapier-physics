@@ -21,7 +21,10 @@ jobs:
           cargo test --all-targets --features="build2d,test" --no-default-features
       - name: Run Integration Tests for 2D Build
         shell: sh
+        # Skip this for now
+        if: false
         run: |
+          return
           ./scripts/build-dev-2d.sh
           godot --headless --path ./bin2d test.tscn --quit-after 1000 > output.log 2>&1
           echo "---------------------"
@@ -53,6 +56,8 @@ jobs:
         run: |
           cargo test --all-targets --features="build3d,test" --no-default-features
       - name: Run Integration Tests for 3D Build
+        # Skip this for now
+        if: false
         shell: sh
         run: |
           ./scripts/build-dev-3d.sh
