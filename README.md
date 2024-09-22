@@ -2,12 +2,12 @@
 <img src="https://github.com/appsinacup/godot-rapier-physics/blob/main/logo.jpg?raw=true"/>
 </p>
 <p align="center">
+    Supports all Platforms: Desktop, Mobile and Web
         <img src="https://github.com/appsinacup/godot-rapier-physics/actions/workflows/runner.yml/badge.svg?branch=main"
             alt="Godot Rapier Build"></a>
         <img src="https://img.shields.io/badge/Godot-4.3-%23478cbf?logo=godot-engine&logoColor=white" />
 </p>
 
-Supports all Platforms: Desktop, Mobile and Web
 
 <p align = "center">
     <strong>
