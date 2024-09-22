@@ -1,7 +1,7 @@
 <p align="center">
 <img src="https://github.com/appsinacup/godot-rapier-physics/blob/main/logo.jpg?raw=true"/>
 </p>
-<p align="center">Supports all Platforms: Desktop, Mobile and Web</p>
+<p align="center">Works on: Desktop, Mobile and Web</p>
 <p align="center">
         <img src="https://github.com/appsinacup/godot-rapier-physics/actions/workflows/runner.yml/badge.svg?branch=main"
             alt="Godot Rapier Build"></a>
