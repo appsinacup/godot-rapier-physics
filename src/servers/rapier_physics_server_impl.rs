@@ -2372,7 +2372,7 @@ impl RapierPhysicsServerImpl {
         for query in queries {
             // TODO optimize function calls copying data.
             // TODO optimize after these are called, the callbacks into direct state objects.
-            query.0.callv(Array::from(query.1.as_slice()));
+            query.0.callv(&Array::from(query.1.as_slice()));
         }
         self.flushing_queries = false;
         if let Some(space) = physics_data.spaces.get_mut(space) {
