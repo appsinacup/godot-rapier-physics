@@ -408,7 +408,7 @@ impl PhysicsWorld {
                 let joint = self
                     .physics_objects
                     .impulse_joint_set
-                    .get_mut(ImpulseJointHandle(handle.index));
+                    .get_mut(ImpulseJointHandle(handle.index), true);
                 if let Some(joint) = joint {
                     return Some(&mut joint.data);
                 }
