@@ -50,7 +50,7 @@ pub fn register_setting(
     p_hint_string: &str,
 ) {
     let mut project_settings = ProjectSettings::singleton();
-    if !project_settings.has_setting(p_name.into_godot()) {
+    if !project_settings.has_setting(p_name.to_godot()) {
         project_settings.set(p_name.into(), &p_value.clone());
     }
     let mut property_info = Dictionary::new();
