@@ -15,6 +15,8 @@
 
 
 -----
+Supports all Platforms: Desktop, Mobile and Web
+-----
 
 <p align = "center">
 <b>2D and 3D physics engine</b>
