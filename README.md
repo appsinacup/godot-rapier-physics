@@ -14,7 +14,6 @@
 </p>
 
 
------
 Supports all Platforms: Desktop, Mobile and Web
 -----
 
