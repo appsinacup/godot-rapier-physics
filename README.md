@@ -7,6 +7,8 @@
         <img src="https://img.shields.io/badge/Godot-4.3-%23478cbf?logo=godot-engine&logoColor=white" />
 </p>
 
+Supports all Platforms: Desktop, Mobile and Web
+
 <p align = "center">
     <strong>
         <a href="https://godot.rapier.rs">Documentation</a> | <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/CHANGELOG.md">Changelog</a> | <a href="https://discord.gg/56dMud8HYn">Discord</a> | <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/CONTRIBUTING.md">Contributing</a> | <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/ARCHITECTURE.md">Architecture</a>
@@ -14,7 +16,6 @@
 </p>
 
 
-Supports all Platforms: Desktop, Mobile and Web
 -----
 
 <p align = "center">
