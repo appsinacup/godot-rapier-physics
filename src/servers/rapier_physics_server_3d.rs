@@ -526,7 +526,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
     fn soft_body_update_rendering_server(
         &mut self,
         _body: Rid,
-        _rendering_server_handler: Gd<PhysicsServer3DRenderingServerHandler>,
+        _rendering_server_handler: Option<Gd<PhysicsServer3DRenderingServerHandler>>,
     ) {
     }
 
@@ -919,7 +919,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         for query in queries {
             // TODO optimize function calls copying data.
             // TODO optimize after these are called, the callbacks into direct state objects.
-            query.0.callv(Array::from(query.1.as_slice()));
+            query.0.callv(&Array::from(query.1.as_slice()));
         }
         drop(guard);
         self.implementation.flushing_queries = false;
