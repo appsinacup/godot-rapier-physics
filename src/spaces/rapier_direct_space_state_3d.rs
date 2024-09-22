@@ -6,6 +6,8 @@ use crate::servers::rapier_physics_singleton::physics_data;
 use crate::types::*;
 #[derive(GodotClass)]
 #[class(base=PhysicsDirectSpaceState3DExtension,tool)]
+/// The physics direct space state singleton implemented for Rapier Physics.
+/// For methods exposed see [PhysicsDirectSpaceState3D].
 pub struct RapierDirectSpaceState3D {
     inner: RapierDirectSpaceStateImpl,
     space: Rid,
@@ -15,19 +17,6 @@ impl RapierDirectSpaceState3D {
     pub fn set_space(&mut self, space: Rid) {
         self.space = space;
         self.inner.space = space;
-    }
-}
-#[godot_api]
-impl RapierDirectSpaceState3D {
-    #[cfg(feature = "serde-serialize")]
-    #[func]
-    pub fn export_json(&mut self) -> String {
-        use crate::servers::rapier_physics_singleton::physics_data;
-        let physics_data = physics_data();
-        let Some(space) = physics_data.spaces.get(&self.space) else {
-            return "{}".to_string();
-        };
-        space.export_json(&mut physics_data.physics_engine)
     }
 }
 #[godot_api]

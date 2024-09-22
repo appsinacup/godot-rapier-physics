@@ -8,6 +8,8 @@ use crate::spaces::rapier_space::RapierSpace;
 use crate::types::*;
 #[derive(GodotClass)]
 #[class(base=PhysicsDirectBodyState3DExtension,tool)]
+/// The direct body state singleton implemented for Rapier Physics.
+/// For methods exposed see [PhysicsDirectBodyState3D].
 pub struct RapierDirectBodyState3D {
     implementation: RapierDirectBodyStateImpl,
     base: Base<PhysicsDirectBodyState3DExtension>,
@@ -216,7 +218,10 @@ impl IPhysicsDirectBodyState3DExtension for RapierDirectBodyState3D {
             .collision_objects
             .get(self.implementation.get_body())
         {
-            if let Some(space) = physics_data.spaces.get(&body.get_base().get_space()) {
+            if let Some(space) = physics_data
+                .spaces
+                .get(&body.get_base().get_space(&physics_data.rids))
+            {
                 return space.get_direct_state().clone();
             }
         }

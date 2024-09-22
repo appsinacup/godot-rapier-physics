@@ -1,6 +1,5 @@
 use std::num::NonZeroUsize;
 
-use godot::global::godot_print;
 use rapier::crossbeam;
 use rapier::data::Arena;
 use rapier::data::Index;
@@ -409,7 +408,7 @@ impl PhysicsWorld {
                 let joint = self
                     .physics_objects
                     .impulse_joint_set
-                    .get_mut(ImpulseJointHandle(handle.index));
+                    .get_mut(ImpulseJointHandle(handle.index), true);
                 if let Some(joint) = joint {
                     return Some(&mut joint.data);
                 }
@@ -429,6 +428,8 @@ impl PhysicsWorld {
         None
     }
 
+    // TODO multibody joints
+    /*
     pub fn get_joint(&self, handle: JointHandle) -> Option<&GenericJoint> {
         match handle.multibody {
             false => {
@@ -453,8 +454,7 @@ impl PhysicsWorld {
             }
         }
         None
-    }
-
+    } */
     pub fn get_impulse_joint(&self, handle: JointHandle) -> Option<&ImpulseJoint> {
         match handle.multibody {
             false => {
@@ -536,7 +536,7 @@ impl PhysicsEngine {
                     .multibodies()
                     .peekable()
                     .peek()
-                    .is_some()
+                    .is_none()
                 && physics_world.physics_objects.rigid_body_set.is_empty()
                 && physics_world.physics_objects.collider_set.is_empty()
             {
@@ -545,17 +545,6 @@ impl PhysicsEngine {
                 physics_world.physics_pipeline = new_physics_world.physics_pipeline;
                 physics_world.physics_objects = new_physics_world.physics_objects;
             }
-        }
-    }
-
-    pub fn print_stats(&mut self, world_handle: WorldHandle) {
-        if let Some(physics_world) = self.get_mut_world(world_handle) {
-            godot_print!(
-                "{} {} {}",
-                physics_world.physics_objects.collider_set.len(),
-                physics_world.physics_objects.rigid_body_set.len(),
-                self.shapes.len(),
-            );
         }
     }
 
@@ -575,6 +564,17 @@ impl PhysicsEngine {
             return Some(&physics_world.physics_objects);
         }
         None
+    }
+
+    pub fn world_import(
+        &mut self,
+        world_handle: WorldHandle,
+        settings: &WorldSettings,
+        physics_objects: PhysicsObjects,
+    ) {
+        let mut physics_world = PhysicsWorld::new(settings);
+        physics_world.physics_objects = physics_objects;
+        self.physics_worlds[world_handle] = physics_world;
     }
 
     pub fn world_step(

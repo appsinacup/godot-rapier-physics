@@ -209,6 +209,7 @@ impl PhysicsEngine {
         cpt_hit
     }
 
+    #[cfg(feature = "dim2")]
     pub fn shape_collide(
         &self,
         shape_vel1: Vector<Real>,

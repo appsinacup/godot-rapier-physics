@@ -8,10 +8,6 @@ use physics_server_3d::JointType;
 use super::rapier_joint_base::RapierJointBase;
 use crate::rapier_wrapper::prelude::*;
 use crate::*;
-#[cfg_attr(
-    feature = "serde-serialize",
-    derive(serde::Serialize, serde::Deserialize)
-)]
 pub struct RapierEmptyJoint {
     base: RapierJointBase,
 }
@@ -23,15 +19,10 @@ impl Default for RapierEmptyJoint {
 impl RapierEmptyJoint {
     pub fn new() -> Self {
         Self {
-            base: RapierJointBase::new(
-                WorldHandle::default(),
-                Rid::Invalid,
-                JointHandle::default(),
-            ),
+            base: RapierJointBase::new(WorldHandle::default(), JointHandle::default()),
         }
     }
 }
-#[cfg_attr(feature = "serde-serialize", typetag::serde)]
 impl IRapierJoint for RapierEmptyJoint {
     fn get_type(&self) -> JointType {
         JointType::MAX

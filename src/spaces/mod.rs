@@ -14,3 +14,4 @@ pub mod rapier_direct_space_state_impl;
 pub mod rapier_space;
 pub mod rapier_space_body_helper;
 pub mod rapier_space_callbacks;
+pub mod rapier_space_state;

@@ -1,7 +1,6 @@
 #![feature(map_many_mut)]
 #![feature(let_chains)]
 #![feature(try_blocks)]
-#![feature(trait_alias)]
 #[cfg(all(feature = "single", feature = "dim2"))]
 extern crate rapier2d as rapier;
 #[cfg(all(feature = "double", feature = "dim2"))]
@@ -30,6 +29,7 @@ use godot::prelude::*;
 #[cfg(feature = "dim2")]
 #[derive(GodotClass)]
 #[class(base=Object, init)]
+/// Used to register the Rapier 2D extension library.
 pub struct RapierPhysics2DExtensionLibrary {}
 #[cfg(feature = "dim2")]
 #[gdextension]
@@ -55,6 +55,7 @@ unsafe impl ExtensionLibrary for RapierPhysics2DExtensionLibrary {
 #[cfg(feature = "dim3")]
 #[derive(GodotClass)]
 #[class(base=Object, init)]
+/// Used to register the Rapier 3D extension library.
 pub struct RapierPhysics3DExtensionLibrary {}
 #[cfg(feature = "dim3")]
 #[gdextension]

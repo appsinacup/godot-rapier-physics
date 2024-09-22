@@ -11,16 +11,20 @@ use super::rapier_physics_singleton::physics_data;
 use crate::types::*;
 #[derive(GodotClass, Default)]
 #[class(base=Object,init,tool)]
+/// Used to create the [RapierPhysicsServer2D] singleton. Do not use directly.
 pub struct RapierPhysicsServerFactory2D;
 #[godot_api]
 impl RapierPhysicsServerFactory2D {
     #[func]
+    /// Creates a new [RapierPhysicsServer2D] singleton. Do not use directly.
     fn create_server() -> Gd<RapierPhysicsServer2D> {
         RapierPhysicsServer2D::new_alloc()
     }
 }
 #[derive(GodotClass)]
 #[class(base=PhysicsServer2DExtension, tool)]
+/// The physics server singleton implemented for Rapier Physics. Adds new methods exposed by rapier.
+/// For documentation about the methods implemented from Godot, see [PhysicsServer2D].
 pub struct RapierPhysicsServer2D {
     pub implementation: RapierPhysicsServerImpl,
     base: Base<PhysicsServer2DExtension>,
@@ -687,12 +691,16 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     }
 
     fn flush_queries(&mut self) {
-        let physics_data = physics_data();
+        if !self.implementation.active {
+            return;
+        }
         self.implementation.flushing_queries = true;
+        let physics_data = physics_data();
         let mut queries = Vec::default();
         for space in physics_data.active_spaces.values() {
             if let Some(space) = physics_data.spaces.get_mut(space) {
-                let query = space.get_queries(&mut physics_data.collision_objects);
+                let query =
+                    space.get_queries(&mut physics_data.collision_objects, &physics_data.rids);
                 queries.extend(query);
             }
         }
@@ -700,15 +708,15 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         for query in queries {
             // TODO optimize function calls copying data.
             // TODO optimize after these are called, the callbacks into direct state objects.
-            query.0.callv(Array::from(query.1.as_slice()));
+            query.0.callv(&Array::from(query.1.as_slice()));
         }
         drop(guard);
-        self.implementation.flushing_queries = false;
         for space in physics_data.active_spaces.values() {
             if let Some(space) = physics_data.spaces.get_mut(space) {
-                space.update_after_queries(&mut physics_data.collision_objects);
+                space.update_after_queries(&mut physics_data.collision_objects, &physics_data.rids);
             }
         }
+        self.implementation.flushing_queries = false;
     }
 
     fn end_sync(&mut self) {

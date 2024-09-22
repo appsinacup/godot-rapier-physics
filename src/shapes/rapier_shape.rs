@@ -19,21 +19,14 @@ use super::rapier_separation_ray_shape::RapierSeparationRayShape;
 use super::rapier_world_boundary_shape::RapierWorldBoundaryShape;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
-#[cfg_attr(feature = "serde-serialize", typetag::serde(tag = "type"))]
 pub trait IRapierShape {
     fn get_base(&self) -> &RapierShapeBase;
     fn get_mut_base(&mut self) -> &mut RapierShapeBase;
     fn get_type(&self) -> ShapeType;
     fn allows_one_way_collision(&self) -> bool;
-    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle;
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine);
-    fn get_data(&self) -> Variant;
-    fn get_handle(&self) -> ShapeHandle;
+    fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant;
 }
-#[cfg_attr(
-    feature = "serde-serialize",
-    derive(serde::Serialize, serde::Deserialize)
-)]
 pub enum RapierShape {
     RapierCapsuleShape(RapierCapsuleShape),
     RapierCircleShape(RapierCircleShape),
@@ -51,7 +44,6 @@ pub enum RapierShape {
 }
 macro_rules! impl_rapier_shape_trait {
     ($enum_name:ident, $($variant:ident),*) => {
-        #[cfg_attr(feature = "serde-serialize", typetag::serde)]
         impl IRapierShape for $enum_name {
             fn get_base(&self) -> &RapierShapeBase {
                 match self {
@@ -77,27 +69,15 @@ macro_rules! impl_rapier_shape_trait {
                 }
             }
 
-            fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
-                match self {
-                    $(Self::$variant(s) => s.create_rapier_shape(physics_engine),)*
-                }
-            }
-
             fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
                 match self {
                     $(Self::$variant(s) => s.set_data(data, physics_engine),)*
                 }
             }
 
-            fn get_data(&self) -> Variant {
+            fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
                 match self {
-                    $(Self::$variant(s) => s.get_data(),)*
-                }
-            }
-
-            fn get_handle(&self) -> ShapeHandle {
-                match self {
-                    $(Self::$variant(s) => s.get_handle(),)*
+                    $(Self::$variant(s) => s.get_data(physics_engine),)*
                 }
             }
         }

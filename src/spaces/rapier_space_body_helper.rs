@@ -174,7 +174,7 @@ impl RapierSpace {
         handle_excluded_info.query_exclude_size = 0;
         handle_excluded_info.query_exclude_body = exclude_body.to_u64() as i64;
         physics_engine.intersect_aabb(
-            self.get_handle(),
+            self.get_state().get_handle(),
             vector_to_rapier(rect_begin),
             vector_to_rapier(rect_end),
             collide_with_bodies,
@@ -238,8 +238,10 @@ impl RapierSpace {
                 {
                     let body_shape_transform =
                         *p_transform * p_body.get_base().get_shape_transform(body_shape_idx);
-                    let body_shape_info =
-                        shape_info_from_body_shape(body_shape.get_handle(), body_shape_transform);
+                    let body_shape_info = shape_info_from_body_shape(
+                        body_shape.get_base().get_handle(),
+                        body_shape_transform,
+                    );
                     for result_idx in 0..result_count {
                         let result_idx = result_idx as usize;
                         let result = &mut results[result_idx];
@@ -264,7 +266,7 @@ impl RapierSpace {
                                                 .get_base()
                                                 .get_shape_transform(shape_index);
                                     let col_shape_info = shape_info_from_body_shape(
-                                        col_shape.get_handle(),
+                                        col_shape.get_base().get_handle(),
                                         col_shape_transform,
                                     );
                                     let contact = physics_engine.shapes_contact(
@@ -278,7 +280,7 @@ impl RapierSpace {
                                     if physics_engine.should_skip_collision_one_dir(
                                         &contact,
                                         body_shape,
-                                        collision_body,
+                                        shape_col_object,
                                         shape_index,
                                         &col_shape_transform,
                                         p_margin,
@@ -371,8 +373,10 @@ impl RapierSpace {
             {
                 let body_shape_transform =
                     *p_transform * p_body.get_base().get_shape_transform(body_shape_idx);
-                let mut body_shape_info =
-                    shape_info_from_body_shape(body_shape.get_handle(), body_shape_transform);
+                let mut body_shape_info = shape_info_from_body_shape(
+                    body_shape.get_base().get_handle(),
+                    body_shape_transform,
+                );
                 // Colliding separation rays allows to properly snap to the ground,
                 // otherwise it's not needed in regular motion.
                 //if !p_collide_separation_ray
@@ -408,7 +412,7 @@ impl RapierSpace {
                                 let col_shape_transform = collision_body.get_base().get_transform()
                                     * collision_body.get_base().get_shape_transform(shape_index);
                                 let col_shape_info = shape_info_from_body_shape(
-                                    col_shape.get_handle(),
+                                    col_shape.get_base().get_handle(),
                                     col_shape_transform,
                                 );
                                 // stuck logic, check if body collides in place
@@ -422,7 +426,7 @@ impl RapierSpace {
                                 if physics_engine.should_skip_collision_one_dir(
                                     &step_contact,
                                     body_shape,
-                                    collision_body,
+                                    shape_col_object,
                                     shape_index,
                                     &col_shape_transform,
                                     p_margin,
@@ -487,7 +491,7 @@ impl RapierSpace {
                                 if physics_engine.should_skip_collision_one_dir(
                                     &contact,
                                     body_shape,
-                                    collision_body,
+                                    shape_col_object,
                                     shape_index,
                                     &col_shape_transform,
                                     p_margin,
@@ -581,8 +585,10 @@ impl RapierSpace {
                     .get_base()
                     .get_shape_transform(body_shape_idx as usize);
             if let Some(body_shape_obj) = physics_shapes.get(&body_shape) {
-                let body_shape_info =
-                    shape_info_from_body_shape(body_shape_obj.get_handle(), body_shape_transform);
+                let body_shape_info = shape_info_from_body_shape(
+                    body_shape_obj.get_base().get_handle(),
+                    body_shape_transform,
+                );
                 for result_idx in 0..result_count {
                     let result = &mut results[result_idx as usize];
                     if !result.user_data.is_valid() {
@@ -601,7 +607,7 @@ impl RapierSpace {
                                 let col_shape_transform = collision_body.get_base().get_transform()
                                     * collision_body.get_base().get_shape_transform(shape_index);
                                 let col_shape_info = shape_info_from_body_shape(
-                                    col_shape.get_handle(),
+                                    col_shape.get_base().get_handle(),
                                     col_shape_transform,
                                 );
                                 let contact = physics_engine.shapes_contact(
@@ -615,7 +621,7 @@ impl RapierSpace {
                                 if physics_engine.should_skip_collision_one_dir(
                                     &contact,
                                     body_shape_obj,
-                                    collision_body,
+                                    shape_col_object,
                                     shape_index,
                                     &col_shape_transform,
                                     p_margin,
@@ -725,7 +731,7 @@ impl PhysicsEngine {
         &self,
         contact: &ContactResult,
         body_shape: &RapierShape,
-        collision_body: &dyn IRapierCollisionObject,
+        collision_body: &RapierCollisionObject,
         shape_index: usize,
         col_shape_transform: &Transform,
         p_margin: f32,

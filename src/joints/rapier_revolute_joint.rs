@@ -6,13 +6,10 @@ use physics_server_3d::JointType;
 
 use super::rapier_joint_base::RapierJointBase;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
+use crate::bodies::rapier_collision_object::RapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
 use crate::types::Vector;
-#[cfg_attr(
-    feature = "serde-serialize",
-    derive(serde::Serialize, serde::Deserialize)
-)]
 pub struct RapierRevoluteJoint {
     angular_limit_lower: f32,
     angular_limit_upper: f32,
@@ -25,8 +22,8 @@ impl RapierRevoluteJoint {
     pub fn new(
         anchor_a: Vector,
         anchor_b: Vector,
-        body_a: &dyn IRapierCollisionObject,
-        body_b: &dyn IRapierCollisionObject,
+        body_a: &RapierCollisionObject,
+        body_b: &RapierCollisionObject,
         physics_engine: &mut PhysicsEngine,
     ) -> Self {
         let invalid_joint = Self {
@@ -53,7 +50,6 @@ impl RapierRevoluteJoint {
         let rapier_anchor_a = vector_to_rapier(anchor_a);
         let rapier_anchor_b = vector_to_rapier(anchor_b);
         let space_handle = body_a.get_base().get_space_handle();
-        let space_rid = body_a.get_base().get_space();
         let handle = physics_engine.joint_create_revolute(
             space_handle,
             body_a.get_base().get_body_handle(),
@@ -75,7 +71,7 @@ impl RapierRevoluteJoint {
             motor_target_velocity: 0.0,
             motor_enabled: false,
             angular_limit_enabled: false,
-            base: RapierJointBase::new(space_handle, space_rid, handle),
+            base: RapierJointBase::new(space_handle, handle),
         }
     }
 
@@ -243,7 +239,6 @@ impl RapierRevoluteJoint {
         }
     }
 }
-#[cfg_attr(feature = "serde-serialize", typetag::serde)]
 impl IRapierJoint for RapierRevoluteJoint {
     fn get_base(&self) -> &RapierJointBase {
         &self.base

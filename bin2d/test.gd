@@ -1,15 +1,31 @@
-extends Node2D
-
+extends Node
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	var file = FileAccess.open("user://space.json", FileAccess.WRITE)
-	var space_state = RapierPhysicsServer2D.space_export_json(get_viewport().world_2d.space)
-	file.store_string(space_state)
-	pass # Replace with function body.
+	print("Start")
+	test_capsule_shape()
+	test_circle_shape()
+	test_concave_polygon_shape()
+	test_convex_polygon_shape()
+	print("Success")
+	print("Quit")
+	await get_tree().create_timer(1.0).timeout
+	#get_tree().quit()
 
+func test_capsule_shape():
+	RapierCapsuleShapeTests.test_create()
+	RapierCapsuleShapeTests.test_set_data_from_array()
+	RapierCapsuleShapeTests.test_set_data_from_dictionary()
+	RapierCapsuleShapeTests.test_set_data_from_vector2()
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(_delta: float) -> void:
-	if Input.is_key_pressed(KEY_B):
-		get_tree().reload_current_scene()
+func test_circle_shape():
+	RapierCircleShapeTests.test_create()
+	RapierCircleShapeTests.test_set_data()
+
+func test_concave_polygon_shape():
+	RapierConcavePolygonShapeTests.test_create()
+	RapierConcavePolygonShapeTests.test_set_data()
+
+func test_convex_polygon_shape():
+	RapierConvexPolygonShapeTests.test_create()
+	RapierConvexPolygonShapeTests.test_set_data()

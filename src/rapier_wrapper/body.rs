@@ -216,6 +216,7 @@ impl PhysicsEngine {
         self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
     }
 
+    #[cfg(feature = "dim3")]
     pub fn body_set_axis_lock(
         &mut self,
         world_handle: WorldHandle,

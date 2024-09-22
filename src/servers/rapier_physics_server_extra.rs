@@ -7,39 +7,31 @@ use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::fluids::rapier_fluid::RapierFluid;
 use crate::servers::RapierPhysicsServer;
 use crate::types::*;
+#[derive(GodotConvert, Var, Export, Debug)]
+#[godot(via = GString)]
 pub enum RapierBodyParam {
-    ContactSkin = 0,
-}
-impl From<i32> for RapierBodyParam {
-    fn from(i: i32) -> Self {
-        match i {
-            0 => RapierBodyParam::ContactSkin,
-            _ => RapierBodyParam::ContactSkin,
-        }
-    }
+    ContactSkin,
 }
 #[godot_api]
 impl RapierPhysicsServer {
     #[func]
-    fn body_set_extra_param(body: Rid, param: i32, value: Variant) {
+    /// Set an extra parameter for a body. See [RapierBodyParam] for available params.
+    fn body_set_extra_param(body: Rid, param: RapierBodyParam, value: Variant) {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_extra_param(
-                    RapierBodyParam::from(param),
-                    value,
-                    &mut physics_data.physics_engine,
-                );
+                body.set_extra_param(param, value, &mut physics_data.physics_engine);
             }
         }
     }
 
     #[func]
-    fn body_get_extra_param(body: Rid, param: i32) -> Variant {
+    /// Get an extra parameter for a body. See [RapierBodyParam] for available params.
+    fn body_get_extra_param(body: Rid, param: RapierBodyParam) -> Variant {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get(&body) {
             if let Some(body) = body.get_body() {
-                return body.get_extra_param(RapierBodyParam::from(param));
+                return body.get_extra_param(param);
             }
         }
         0.0.to_variant()
@@ -47,113 +39,150 @@ impl RapierPhysicsServer {
 
     #[cfg(feature = "serde-serialize")]
     #[func]
-    fn joints_export_json() -> String {
+    /// Exports the body to a JSON string. This is slower than the binary export.
+    fn body_export_json(body: Rid) -> String {
         let physics_data = physics_data();
-        let values = physics_data.joints.values().clone().collect::<Vec<_>>();
-        match serde_json::to_string_pretty(&values) {
-            Ok(s) => s,
-            Err(err) => {
-                godot_error!("{}", err);
-                "{}".to_string()
-            }
+        if let Some(body) = physics_data.collision_objects.get(&body) {
+            return body.export_json();
+        }
+        "".to_string()
+    }
+
+    #[cfg(feature = "serde-serialize")]
+    #[func]
+    /// Exports the body to a binary format.
+    fn body_export_binary(body: Rid) -> PackedByteArray {
+        let physics_data = physics_data();
+        if let Some(body) = physics_data.collision_objects.get(&body) {
+            return body.export_binary();
+        }
+        PackedByteArray::default()
+    }
+
+    #[cfg(feature = "serde-serialize")]
+    #[func]
+    /// Imports the body from a binary format.
+    fn body_import_binary(body: Rid, data: PackedByteArray) {
+        let physics_data = physics_data();
+        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
+            body.import_binary(data);
         }
     }
 
     #[cfg(feature = "serde-serialize")]
     #[func]
-    fn joint_export_json(joint: Rid) -> String {
-        let physics_data = physics_data();
-        if let Some(joint) = physics_data.joints.get(&joint) {
-            match serde_json::to_string_pretty(&joint) {
-                Ok(s) => {
-                    return s;
-                }
-                Err(err) => {
-                    godot_error!("{}", err);
-                    return "{}".to_string();
-                }
-            }
-        }
-        "{}".to_string()
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    #[func]
-    fn shapes_export_json() -> String {
-        let physics_data = physics_data();
-        let values = physics_data.shapes.values().clone().collect::<Vec<_>>();
-        match serde_json::to_string_pretty(&values) {
-            Ok(s) => s,
-            Err(err) => {
-                godot_error!("{}", err);
-                "{}".to_string()
-            }
-        }
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    #[func]
+    /// Exports the shape to a JSON string. This is slower than the binary export.
     fn shape_export_json(shape: Rid) -> String {
+        use crate::shapes::rapier_shape::IRapierShape;
         let physics_data = physics_data();
         if let Some(shape) = physics_data.shapes.get(&shape) {
-            match serde_json::to_string_pretty(&shape) {
-                Ok(s) => {
-                    return s;
-                }
-                Err(err) => {
-                    godot_error!("{}", err);
-                    return "{}".to_string();
-                }
-            }
+            return shape.get_base().export_json();
         }
-        "{}".to_string()
+        "".to_string()
     }
 
     #[cfg(feature = "serde-serialize")]
     #[func]
+    /// Exports the shape to a binary format.
+    fn shape_export_binary(shape: Rid) -> PackedByteArray {
+        use crate::shapes::rapier_shape::IRapierShape;
+        let physics_data = physics_data();
+        if let Some(shape) = physics_data.shapes.get(&shape) {
+            return shape.get_base().export_binary();
+        }
+        PackedByteArray::default()
+    }
+
+    #[cfg(feature = "serde-serialize")]
+    #[func]
+    /// Imports the shape from a binary format.
+    fn shape_import_binary(shape: Rid, data: PackedByteArray) {
+        use crate::shapes::rapier_shape::IRapierShape;
+        let physics_data = physics_data();
+        if let Some(shape) = physics_data.shapes.get_mut(&shape) {
+            shape.get_mut_base().import_binary(data);
+        }
+    }
+
+    #[cfg(feature = "serde-serialize")]
+    #[func]
+    /// Exports the joint to a JSON string. This is slower than the binary export.
+    fn joint_export_json(joint: Rid) -> String {
+        use crate::joints::rapier_joint::IRapierJoint;
+        let physics_data = physics_data();
+        if let Some(joint) = physics_data.joints.get(&joint) {
+            return joint.get_base().export_json();
+        }
+        "".to_string()
+    }
+
+    #[cfg(feature = "serde-serialize")]
+    #[func]
+    /// Exports the joint to a binary format.
+    fn joint_export_binary(joint: Rid) -> PackedByteArray {
+        use crate::joints::rapier_joint::IRapierJoint;
+        let physics_data = physics_data();
+        if let Some(joint) = physics_data.joints.get(&joint) {
+            return joint.get_base().export_binary();
+        }
+        PackedByteArray::default()
+    }
+
+    #[cfg(feature = "serde-serialize")]
+    #[func]
+    /// Imports the joint from a binary format.
+    fn joint_import_binary(joint: Rid, data: PackedByteArray) {
+        use crate::joints::rapier_joint::IRapierJoint;
+        let physics_data = physics_data();
+        if let Some(joint) = physics_data.joints.get_mut(&joint) {
+            joint.get_mut_base().import_binary(data);
+        }
+    }
+
+    #[cfg(feature = "serde-serialize")]
+    #[func]
+    /// Exports the space to a JSON string. This is slower than the binary export.
     fn space_export_json(space: Rid) -> String {
         let physics_data = physics_data();
         if let Some(space) = physics_data.spaces.get(&space) {
             return space.export_json(&mut physics_data.physics_engine);
         }
-        "{}".to_string()
+        "".to_string()
     }
 
     #[cfg(feature = "serde-serialize")]
     #[func]
-    fn collision_objects_export_json() -> String {
+    /// Exports the space to a binary format.
+    fn space_export_binary(space: Rid) -> PackedByteArray {
         let physics_data = physics_data();
-        let _values = physics_data
-            .collision_objects
-            .values()
-            .clone()
-            .collect::<Vec<_>>();
-        //match serde_json::to_string_pretty(&values) {
-        //    Ok(s) => s,
-        //    Err(err) => {
-        //        godot_error!("{}", err);
-        //        "{}".to_string()
-        //    }
-        //}
-        "{}".to_string()
+        if let Some(space) = physics_data.spaces.get(&space) {
+            return space.export_binary(&mut physics_data.physics_engine);
+        }
+        PackedByteArray::default()
     }
 
     #[cfg(feature = "serde-serialize")]
     #[func]
-    fn collision_object_export_json(_collision_object: Rid) -> String {
-        "{}".to_string()
+    /// Imports the space from a binary format.
+    fn space_import_binary(space: Rid, data: PackedByteArray) {
+        let physics_data = physics_data();
+        if let Some(space) = physics_data.spaces.get_mut(&space) {
+            space.import_binary(&mut physics_data.physics_engine, data);
+        }
     }
 
     #[func]
+    /// Create a new fluid.
     pub(crate) fn fluid_create() -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let fluid = RapierFluid::new(rid);
+        let fluid = RapierFluid::new();
         physics_data.fluids.insert(rid, fluid);
         rid
     }
 
     #[func]
+    /// Set the space of the fluid.
     pub(crate) fn fluid_set_space(fluid_rid: Rid, space_rid: Rid) {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
@@ -166,6 +195,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Set the density of the fluid.
     pub(crate) fn fluid_set_density(fluid_rid: Rid, density: real) {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
@@ -174,6 +204,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Set the effects of the fluid.
     pub(crate) fn fluid_set_effects(fluid_rid: Rid, effects: Array<Option<Gd<Resource>>>) {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
@@ -182,6 +213,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Get the points of the fluid particles.
     pub(crate) fn fluid_get_points(fluid_rid: Rid) -> PackedVectorArray {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
@@ -195,6 +227,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Get the velocities of the fluid particles.
     pub(crate) fn fluid_get_velocities(fluid_rid: Rid) -> PackedVectorArray {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
@@ -208,6 +241,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Get the accelerations of the fluid particles.
     pub(crate) fn fluid_get_accelerations(fluid_rid: Rid) -> PackedVectorArray {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
@@ -221,6 +255,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Set the points of the fluid particles.
     pub(crate) fn fluid_set_points(fluid_rid: Rid, points: PackedVectorArray) {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
@@ -229,6 +264,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Set the velocities of the fluid particles.
     pub(crate) fn fluid_set_points_and_velocities(
         fluid_rid: Rid,
         points: PackedVectorArray,
@@ -245,6 +281,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Add the points to the fluid particles.
     pub(crate) fn fluid_add_points_and_velocities(
         fluid_rid: Rid,
         points: PackedVectorArray,
@@ -261,6 +298,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Delete the points of the fluid particles.
     pub(crate) fn fluid_delete_points(fluid_rid: Rid, indices: PackedInt32Array) {
         let physics_data = physics_data();
         if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
@@ -272,6 +310,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Get the active bodies in the space.
     fn space_get_active_bodies(space: Rid) -> Array<Rid> {
         let Ok(mut physics_singleton) =
             PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
@@ -285,6 +324,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Get the bodies transform in the space.
     fn space_get_bodies_transform(space: Rid, bodies: Array<Rid>) -> Array<Transform> {
         let Ok(mut physics_singleton) =
             PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
@@ -298,6 +338,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Step the space forward.
     fn space_step(space: Rid, delta: f32) {
         let Ok(mut physics_singleton) =
             PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
@@ -311,6 +352,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Flush the space queries. Used after space_step.
     fn space_flush_queries(space: Rid) {
         let Ok(mut physics_singleton) =
             PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
@@ -322,4 +364,26 @@ impl RapierPhysicsServer {
             .implementation
             .space_flush_queries(&space);
     }
+
+    #[func]
+    /// Get the handle of the object by rid. The handle can be saved and used when reloading the scene.
+    fn get_handle(rid: Rid) -> Array<i64> {
+        let mut array = Array::new();
+        array.resize(2, &0);
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return array;
+        };
+        let handle = physics_singleton.bind_mut().implementation.get_handle(rid);
+        array.set(0, handle.0 as i64);
+        array.set(1, handle.1 as i64);
+        array
+    }
+
+    #[func]
+    fn noop() {}
+
+    #[func]
+    fn noop_binded(&self) {}
 }

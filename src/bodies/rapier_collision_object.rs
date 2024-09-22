@@ -2,6 +2,7 @@ use bodies::rapier_collision_object_base::CollisionObjectShape;
 use bodies::rapier_collision_object_base::RapierCollisionObjectBase;
 use godot::prelude::*;
 use rapier::geometry::ColliderHandle;
+use servers::rapier_physics_singleton::PhysicsRids;
 use servers::rapier_physics_singleton::PhysicsShapes;
 use servers::rapier_physics_singleton::PhysicsSpaces;
 
@@ -10,7 +11,6 @@ use super::rapier_body::RapierBody;
 use crate::rapier_wrapper::prelude::*;
 use crate::types::*;
 use crate::*;
-//#[cfg_attr(feature = "serde-serialize", typetag::serde(tag = "type"))]
 pub trait IRapierCollisionObject: Sync {
     fn get_base(&self) -> &RapierCollisionObjectBase;
     fn get_mut_base(&mut self) -> &mut RapierCollisionObjectBase;
@@ -24,13 +24,16 @@ pub trait IRapierCollisionObject: Sync {
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
+        physics_rids: &mut PhysicsRids,
     );
     fn recreate_shapes(
         &mut self,
         physics_engine: &mut PhysicsEngine,
         physics_shapes: &mut PhysicsShapes,
         physics_spaces: &mut PhysicsSpaces,
+        physics_rids: &PhysicsRids,
     );
+    #[allow(clippy::too_many_arguments)]
     fn add_shape(
         &mut self,
         p_shape: Rid,
@@ -39,6 +42,7 @@ pub trait IRapierCollisionObject: Sync {
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
+        physics_rids: &PhysicsRids,
     );
     fn set_shape(
         &mut self,
@@ -47,6 +51,7 @@ pub trait IRapierCollisionObject: Sync {
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
+        physics_rids: &PhysicsRids,
     );
     fn set_shape_transform(
         &mut self,
@@ -55,6 +60,7 @@ pub trait IRapierCollisionObject: Sync {
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
+        physics_rids: &PhysicsRids,
     );
     fn set_shape_disabled(
         &mut self,
@@ -63,6 +69,7 @@ pub trait IRapierCollisionObject: Sync {
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
+        physics_rids: &PhysicsRids,
     );
     fn remove_shape_idx(
         &mut self,
@@ -70,6 +77,7 @@ pub trait IRapierCollisionObject: Sync {
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
+        physics_rids: &PhysicsRids,
     );
     fn remove_shape_rid(
         &mut self,
@@ -77,6 +85,7 @@ pub trait IRapierCollisionObject: Sync {
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
+        physics_rids: &PhysicsRids,
     );
     fn create_shape(
         &mut self,
@@ -90,6 +99,7 @@ pub trait IRapierCollisionObject: Sync {
         &mut self,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
+        physics_rids: &PhysicsRids,
     );
     fn shape_changed(
         &mut self,
@@ -97,7 +107,14 @@ pub trait IRapierCollisionObject: Sync {
         physics_engine: &mut PhysicsEngine,
         physics_shapes: &mut PhysicsShapes,
         physics_spaces: &mut PhysicsSpaces,
+        physics_rids: &PhysicsRids,
     );
+    #[cfg(feature = "serde-serialize")]
+    fn export_json(&self) -> String;
+    #[cfg(feature = "serde-serialize")]
+    fn export_binary(&self) -> PackedByteArray;
+    #[cfg(feature = "serde-serialize")]
+    fn import_binary(&mut self, data: PackedByteArray);
 }
 // TODO investigate large enum variant
 #[allow(clippy::large_enum_variant)]
@@ -150,9 +167,10 @@ macro_rules! impl_rapier_collision_object_trait {
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
                 physics_shapes: &mut PhysicsShapes,
+                physics_rids: &mut PhysicsRids,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.set_space(space, physics_engine, physics_spaces, physics_shapes),)*
+                    $(Self::$variant(co) => co.set_space(space, physics_engine, physics_spaces, physics_shapes, physics_rids),)*
                 }
             }
 
@@ -161,9 +179,10 @@ macro_rules! impl_rapier_collision_object_trait {
                 physics_engine: &mut PhysicsEngine,
                 physics_shapes: &mut PhysicsShapes,
                 physics_spaces: &mut PhysicsSpaces,
+                physics_rids: &PhysicsRids,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.recreate_shapes(physics_engine, physics_shapes, physics_spaces),)*
+                    $(Self::$variant(co) => co.recreate_shapes(physics_engine, physics_shapes, physics_spaces, physics_rids),)*
                 }
             }
 
@@ -175,9 +194,10 @@ macro_rules! impl_rapier_collision_object_trait {
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
                 physics_shapes: &mut PhysicsShapes,
+                physics_rids: &PhysicsRids,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.add_shape(p_shape, p_transform, p_disabled, physics_engine, physics_spaces, physics_shapes),)*
+                    $(Self::$variant(co) => co.add_shape(p_shape, p_transform, p_disabled, physics_engine, physics_spaces, physics_shapes, physics_rids),)*
                 }
             }
 
@@ -188,9 +208,10 @@ macro_rules! impl_rapier_collision_object_trait {
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
                 physics_shapes: &mut PhysicsShapes,
+                physics_rids: &PhysicsRids,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.set_shape(shape_idx, p_shape, physics_engine, physics_spaces, physics_shapes),)*
+                    $(Self::$variant(co) => co.set_shape(shape_idx, p_shape, physics_engine, physics_spaces, physics_shapes, physics_rids),)*
                 }
             }
 
@@ -201,9 +222,10 @@ macro_rules! impl_rapier_collision_object_trait {
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
                 physics_shapes: &mut PhysicsShapes,
+                physics_rids: &PhysicsRids,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.set_shape_transform(shape_idx, transform, physics_engine, physics_spaces, physics_shapes),)*
+                    $(Self::$variant(co) => co.set_shape_transform(shape_idx, transform, physics_engine, physics_spaces, physics_shapes, physics_rids),)*
                 }
             }
 
@@ -214,9 +236,10 @@ macro_rules! impl_rapier_collision_object_trait {
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
                 physics_shapes: &mut PhysicsShapes,
+                physics_rids: &PhysicsRids,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.set_shape_disabled(shape_idx, disabled, physics_engine, physics_spaces, physics_shapes),)*
+                    $(Self::$variant(co) => co.set_shape_disabled(shape_idx, disabled, physics_engine, physics_spaces, physics_shapes, physics_rids),)*
                 }
             }
 
@@ -226,9 +249,10 @@ macro_rules! impl_rapier_collision_object_trait {
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
                 physics_shapes: &mut PhysicsShapes,
+                physics_rids: &PhysicsRids,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.remove_shape_idx(p_index, physics_engine, physics_spaces, physics_shapes),)*
+                    $(Self::$variant(co) => co.remove_shape_idx(p_index, physics_engine, physics_spaces, physics_shapes, physics_rids),)*
                 }
             }
 
@@ -238,9 +262,10 @@ macro_rules! impl_rapier_collision_object_trait {
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
                 physics_shapes: &mut PhysicsShapes,
+                physics_rids: &PhysicsRids,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.remove_shape_rid(shape_rid, physics_engine, physics_spaces, physics_shapes),)*
+                    $(Self::$variant(co) => co.remove_shape_rid(shape_rid, physics_engine, physics_spaces, physics_shapes, physics_rids),)*
                 }
             }
 
@@ -266,9 +291,10 @@ macro_rules! impl_rapier_collision_object_trait {
                 &mut self,
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
+                physics_rids: &PhysicsRids,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.shapes_changed(physics_engine, physics_spaces),)*
+                    $(Self::$variant(co) => co.shapes_changed(physics_engine, physics_spaces, physics_rids),)*
                 }
             }
 
@@ -278,9 +304,34 @@ macro_rules! impl_rapier_collision_object_trait {
                 physics_engine: &mut PhysicsEngine,
                 physics_shapes: &mut PhysicsShapes,
                 physics_spaces: &mut PhysicsSpaces,
+                physics_rids: &PhysicsRids,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.shape_changed(p_shape, physics_engine, physics_shapes, physics_spaces),)*
+                    $(Self::$variant(co) => co.shape_changed(p_shape, physics_engine, physics_shapes, physics_spaces, physics_rids),)*
+                }
+            }
+
+            #[cfg(feature = "serde-serialize")]
+            fn export_json(&self) -> String {
+                match self {
+                    $(Self::$variant(co) => co.export_json(),)*
+                }
+            }
+
+            #[cfg(feature = "serde-serialize")]
+            fn export_binary(&self) -> PackedByteArray {
+                match self {
+                    $(Self::$variant(co) => co.export_binary(),)*
+                }
+            }
+
+            #[cfg(feature = "serde-serialize")]
+            fn import_binary(
+                &mut self,
+                data: PackedByteArray,
+            ) {
+                match self {
+                    $(Self::$variant(co) => co.import_binary(data),)*
                 }
             }
         }

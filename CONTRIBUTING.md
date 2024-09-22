@@ -68,14 +68,14 @@ The `Rapier Physics Server`, which is our custom implementation of `Physics Serv
 The difference from `Godot Physics Server` is that resources are not using pointers, and as such are safe to be serialized.
 
 However, there are some things that need to be reconstructed after saving and loading the state, namely:
-- `Callables`
+- `Callable`
 - `RID`
 - `instance_id`
 - `canvas_instance_id`
 
-As described in the chapter above, the `Physics Server` creates some resources and gives Godot `RID`'s that can be used to access them. Godot also gives some resources to the `Physics Server`, eg. `Callables`, that are used to notify Godot of updates (eg. collision events, etc.). Godot also gives to objects from `Physics Server` instance_id's and canvas_instance_id's in order to identify a node corresponds to a resource.
+As described in the chapter above, the `Physics Server` creates some resources and gives Godot `RID`'s that can be used to access them. Godot also gives some resources to the `Physics Server`, eg. `Callable`, that are used to notify Godot of updates (eg. collision events, etc.). Godot also gives to objects from `Physics Server` instance_id's and canvas_instance_id's in order to identify a node corresponds to a resource.
 
-As such, when saving and loading, first one must recreate the Godot scene and make sure all the dependencies are created, and only later load the `Physics Server` state. Even if some of the things the Physics Server loads won't be the exact same, eg. `RID`'s, `Callables`, etc. The simulation will work deterministic as internally it uses Rapier which is itself deterministic. Also the update order isn't based on these resources that Godot hands over.
+As such, when saving and loading, first one must recreate the Godot scene and make sure all the dependencies are created, and only later load the `Physics Server` state. Even if some of the things the Physics Server loads won't be the exact same, eg. `RID`'s, `Callable`, etc. The simulation will work deterministic as internally it uses Rapier which is itself deterministic. Also the update order isn't based on these resources that Godot hands over.
 
 ## Rapier Physics Server Fluids
 

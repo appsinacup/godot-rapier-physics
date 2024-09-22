@@ -8,6 +8,7 @@ use crate::servers::RapierPhysicsServer;
 use crate::types::*;
 #[derive(GodotClass)]
 #[class(base=Node3D)]
+/// The fluid node. Use this node to simulate fluids in 2D.
 pub struct Fluid3D {
     #[var(get)]
     pub(crate) rid: Rid,
@@ -35,46 +36,55 @@ pub struct Fluid3D {
 #[godot_api]
 impl Fluid3D {
     #[func]
+    /// Set the points of the fluid.
     fn set_points(&mut self, points: PackedVectorArray) {
         FluidImpl::set_points(self, points);
     }
 
     #[func]
+    /// Set the density of the fluid.
     fn set_density(&mut self, density: real) {
         FluidImpl::set_density(self, density);
     }
 
     #[func]
+    /// Set the lifetime of the fluid.
     fn set_lifetime(&mut self, lifetime: real) {
         FluidImpl::set_lifetime(self, lifetime);
     }
 
     #[func]
+    /// Set the debug draw of the fluid.
     fn set_debug_draw(&mut self, debug_draw: bool) {
         FluidImpl::set_debug_draw(self, debug_draw);
     }
 
     #[func]
+    /// Get the accelerations of the fluid.
     fn get_accelerations(&self) -> PackedVectorArray {
         FluidImpl::get_accelerations(self)
     }
 
     #[func]
+    /// Get the remaining times of the fluid.
     fn get_remaining_times(&self) -> PackedFloat32Array {
         FluidImpl::get_remaining_times(self)
     }
 
     #[func]
+    /// Get the velocities of the fluid.
     fn get_velocities(&self) -> PackedVectorArray {
         FluidImpl::get_velocities(self)
     }
 
     #[func]
+    /// Get the points of the fluid.
     fn get_points(&self) -> PackedVectorArray {
         FluidImpl::get_points(self)
     }
 
     #[func]
+    /// Create the points of the fluid particles inside a box.
     fn create_box_points(&self, width: i32, height: i32, depth: i32) -> PackedVectorArray {
         let mut new_points = PackedVectorArray::default();
         new_points.resize((width * height * depth) as usize);
@@ -93,6 +103,7 @@ impl Fluid3D {
     }
 
     #[func]
+    /// Create the points of the fluid particles inside a sphere.
     fn create_sphere_points(&self, radius: i32) -> PackedVectorArray {
         let mut new_points = PackedVectorArray::default();
         for i in -radius..radius {
@@ -111,6 +122,7 @@ impl Fluid3D {
     }
 
     #[func]
+    /// Add the points to the fluid particles.
     fn add_points_and_velocities(
         &mut self,
         points: PackedVectorArray,
@@ -120,6 +132,7 @@ impl Fluid3D {
     }
 
     #[func]
+    /// Set the points and velocities of the fluid particles.
     fn set_points_and_velocities(
         &mut self,
         points: PackedVectorArray,
@@ -129,11 +142,13 @@ impl Fluid3D {
     }
 
     #[func]
+    /// Delete the points of the fluid particles.
     fn delete_points(&mut self, indices: PackedInt32Array) {
         FluidImpl::delete_points(self, indices);
     }
 
     #[func]
+    /// Set the effects of the fluid particles.
     fn set_effects(&mut self, effects: Array<Option<Gd<Resource>>>) {
         FluidImpl::set_effects(self, effects);
     }

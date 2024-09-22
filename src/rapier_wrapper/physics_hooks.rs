@@ -103,6 +103,10 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
         result
     }
 
+    fn filter_intersection_pair(&self, _context: &PairFilterContext) -> bool {
+        true
+    }
+
     fn modify_solver_contacts(&self, context: &mut ContactModificationContext) {
         let Some(collider1) = context.colliders.get(context.collider1) else {
             return;

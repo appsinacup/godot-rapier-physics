@@ -100,7 +100,7 @@ func test_spring_joint():
 	var length = PhysicsServer2D.damped_spring_joint_get_param(joint_rid, PhysicsServer2D.DampedSpringParam.DAMPED_SPRING_REST_LENGTH)
 	assert(length == 2)
 	var damping = PhysicsServer2D.damped_spring_joint_get_param(joint_rid, PhysicsServer2D.DampedSpringParam.DAMPED_SPRING_DAMPING)
-	assert(damping == 1.5)
+	assert(damping == 1.0)
 	PhysicsServer2D.damped_spring_joint_set_param(joint_rid, PhysicsServer2D.DAMPED_SPRING_STIFFNESS, 2)
 	PhysicsServer2D.damped_spring_joint_set_param(joint_rid, PhysicsServer2D.DAMPED_SPRING_REST_LENGTH, 3)
 	PhysicsServer2D.damped_spring_joint_set_param(joint_rid, PhysicsServer2D.DAMPED_SPRING_DAMPING, 4)

@@ -10,8 +10,11 @@ use godot::classes::physics_server_3d::*;
 use godot::global::rid_allocate_id;
 use godot::global::rid_from_int64;
 use godot::prelude::*;
+use rapier::prelude::RigidBodyHandle;
 
+use super::rapier_physics_singleton::get_body_rid;
 use super::rapier_physics_singleton::physics_data;
+use super::rapier_physics_singleton::remove_space_rid;
 use super::rapier_project_settings::RapierProjectSettings;
 use crate::bodies::rapier_area::AreaUpdateMode;
 use crate::bodies::rapier_area::RapierArea;
@@ -42,18 +45,15 @@ use crate::shapes::rapier_rectangle_shape::RapierRectangleShape;
 use crate::shapes::rapier_segment_shape_2d::RapierSegmentShape2D;
 use crate::shapes::rapier_separation_ray_shape::RapierSeparationRayShape;
 use crate::shapes::rapier_shape::IRapierShape;
-use crate::shapes::rapier_shape::RapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 use crate::shapes::rapier_world_boundary_shape::RapierWorldBoundaryShape;
 use crate::spaces::rapier_space::RapierSpace;
 use crate::types::*;
 pub struct RapierPhysicsServerImpl {
-    active: bool,
+    pub active: bool,
     pub flushing_queries: bool,
     doing_sync: bool,
-    island_count: i32,
     active_objects: i32,
-    collision_pairs: i32,
     length_unit: real,
     max_ccd_substeps: usize,
     num_additional_friction_iterations: usize,
@@ -74,9 +74,7 @@ impl RapierPhysicsServerImpl {
             active: true,
             flushing_queries: false,
             doing_sync: false,
-            island_count: 0,
             active_objects: 0,
-            collision_pairs: 0,
             length_unit: RapierProjectSettings::get_length_unit(),
             max_ccd_substeps: RapierProjectSettings::get_solver_max_ccd_substeps() as usize,
             num_additional_friction_iterations:
@@ -103,20 +101,14 @@ impl RapierPhysicsServerImpl {
     pub(super) fn world_boundary_shape_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierWorldBoundaryShape::new(rid);
-        physics_data
-            .shapes
-            .insert(rid, RapierShape::RapierWorldBoundaryShape(shape));
+        RapierWorldBoundaryShape::create(rid, &mut physics_data.shapes);
         rid
     }
 
     pub(super) fn separation_ray_shape_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierSeparationRayShape::new(rid);
-        physics_data
-            .shapes
-            .insert(rid, RapierShape::RapierSeparationRayShape(shape));
+        RapierSeparationRayShape::create(rid, &mut physics_data.shapes);
         rid
     }
 
@@ -124,40 +116,28 @@ impl RapierPhysicsServerImpl {
     pub(super) fn segment_shape_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierSegmentShape2D::new(rid);
-        physics_data
-            .shapes
-            .insert(rid, RapierShape::RapierSegmentShape2D(shape));
+        RapierSegmentShape2D::create(rid, &mut physics_data.shapes);
         rid
     }
 
     pub(super) fn circle_shape_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierCircleShape::new(rid);
-        physics_data
-            .shapes
-            .insert(rid, RapierShape::RapierCircleShape(shape));
+        RapierCircleShape::create(rid, &mut physics_data.shapes);
         rid
     }
 
     pub(super) fn rectangle_shape_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierRectangleShape::new(rid);
-        physics_data
-            .shapes
-            .insert(rid, RapierShape::RapierRectangleShape(shape));
+        RapierRectangleShape::create(rid, &mut physics_data.shapes);
         rid
     }
 
     pub(super) fn capsule_shape_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierCapsuleShape::new(rid);
-        physics_data
-            .shapes
-            .insert(rid, RapierShape::RapierCapsuleShape(shape));
+        RapierCapsuleShape::create(rid, &mut physics_data.shapes);
         rid
     }
 
@@ -165,20 +145,14 @@ impl RapierPhysicsServerImpl {
     pub(super) fn cylinder_shape_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierCylinderShape3D::new(rid);
-        physics_data
-            .shapes
-            .insert(rid, RapierShape::RapierCylinderShape3D(shape));
+        RapierCylinderShape3D::create(rid, &mut physics_data.shapes);
         rid
     }
 
     pub(super) fn convex_polygon_shape_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierConvexPolygonShape::new(rid);
-        physics_data
-            .shapes
-            .insert(rid, RapierShape::RapierConvexPolygonShape(shape));
+        RapierConvexPolygonShape::create(rid, &mut physics_data.shapes);
         rid
     }
 
@@ -186,10 +160,7 @@ impl RapierPhysicsServerImpl {
     pub(super) fn concave_polygon_shape_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierConcavePolygonShape::new(rid);
-        physics_data
-            .shapes
-            .insert(rid, RapierShape::RapierConcavePolygonShape(shape));
+        RapierConcavePolygonShape::create(rid, &mut physics_data.shapes);
         rid
     }
 
@@ -197,10 +168,7 @@ impl RapierPhysicsServerImpl {
     pub(super) fn concave_polygon_shape_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierConcavePolygonShape::new(rid);
-        physics_data
-            .shapes
-            .insert(rid, RapierShape::RapierConcavePolygonShape(shape));
+        RapierConcavePolygonShape::create(rid, &mut physics_data.shapes);
         rid
     }
 
@@ -208,10 +176,7 @@ impl RapierPhysicsServerImpl {
     pub(super) fn heightmap_shape_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let shape = RapierHeightMapShape3D::new(rid);
-        physics_data
-            .shapes
-            .insert(rid, RapierShape::RapierHeightMapShape3D(shape));
+        RapierHeightMapShape3D::create(rid, &mut physics_data.shapes);
         rid
     }
 
@@ -249,7 +214,7 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(shape) = physics_data.shapes.get(&shape) {
             if shape.get_base().is_valid() {
-                return shape.get_data();
+                return shape.get_data(&physics_data.physics_engine);
             }
         }
         Variant::nil()
@@ -310,8 +275,12 @@ impl RapierPhysicsServerImpl {
     pub(super) fn space_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let space = RapierSpace::new(rid, &mut physics_data.physics_engine);
-        physics_data.spaces.insert(rid, space);
+        RapierSpace::create(
+            rid,
+            &mut physics_data.physics_engine,
+            &mut physics_data.spaces,
+            &mut physics_data.rids,
+        );
         rid
     }
 
@@ -321,9 +290,11 @@ impl RapierPhysicsServerImpl {
             if active {
                 physics_data
                     .active_spaces
-                    .insert(space.get_handle(), space_rid);
+                    .insert(space.get_state().get_handle(), space_rid);
             } else {
-                physics_data.active_spaces.remove(&space.get_handle());
+                physics_data
+                    .active_spaces
+                    .remove(&space.get_state().get_handle());
             }
         }
     }
@@ -331,7 +302,9 @@ impl RapierPhysicsServerImpl {
     pub(super) fn space_is_active(&self, space: Rid) -> bool {
         let physics_data = physics_data();
         if let Some(space) = physics_data.spaces.get(&space) {
-            return physics_data.active_spaces.contains_key(&space.get_handle());
+            return physics_data
+                .active_spaces
+                .contains_key(&space.get_state().get_handle());
         }
         false
     }
@@ -379,10 +352,11 @@ impl RapierPhysicsServerImpl {
     pub(super) fn space_get_active_bodies(&mut self, space: Rid) -> Array<Rid> {
         let physics_data = physics_data();
         if let Some(space) = physics_data.spaces.get_mut(&space) {
-            let bodies = space.get_active_bodies();
+            let bodies = space.get_state().get_active_bodies();
             let mut array: Array<Rid> = Array::new();
             for body in bodies {
-                array.push(body);
+                let rid = get_body_rid(body, &physics_data.rids);
+                array.push(rid);
             }
             return array;
         }
@@ -423,6 +397,7 @@ impl RapierPhysicsServerImpl {
             &area,
             &mut physics_data.spaces,
             &mut physics_data.collision_objects,
+            &physics_data.rids,
         );
         if let Some(area) = physics_data.collision_objects.get_mut(&area) {
             area.set_space(
@@ -430,6 +405,7 @@ impl RapierPhysicsServerImpl {
                 &mut physics_data.physics_engine,
                 &mut physics_data.spaces,
                 &mut physics_data.shapes,
+                &mut physics_data.rids,
             );
         }
     }
@@ -437,7 +413,7 @@ impl RapierPhysicsServerImpl {
     pub(super) fn area_get_space(&self, area: Rid) -> Rid {
         let physics_data = physics_data();
         if let Some(area) = physics_data.collision_objects.get(&area) {
-            return area.get_base().get_space();
+            return area.get_base().get_space(&physics_data.rids);
         }
         Rid::Invalid
     }
@@ -458,6 +434,7 @@ impl RapierPhysicsServerImpl {
                 &mut physics_data.physics_engine,
                 &mut physics_data.spaces,
                 &mut physics_data.shapes,
+                &physics_data.rids,
             );
         }
     }
@@ -471,6 +448,7 @@ impl RapierPhysicsServerImpl {
                 &mut physics_data.physics_engine,
                 &mut physics_data.spaces,
                 &mut physics_data.shapes,
+                &physics_data.rids,
             );
         }
     }
@@ -489,6 +467,7 @@ impl RapierPhysicsServerImpl {
                 &mut physics_data.physics_engine,
                 &mut physics_data.spaces,
                 &mut physics_data.shapes,
+                &physics_data.rids,
             );
         }
     }
@@ -502,6 +481,7 @@ impl RapierPhysicsServerImpl {
                 &mut physics_data.physics_engine,
                 &mut physics_data.spaces,
                 &mut physics_data.shapes,
+                &physics_data.rids,
             );
         }
     }
@@ -538,6 +518,7 @@ impl RapierPhysicsServerImpl {
                 &mut physics_data.physics_engine,
                 &mut physics_data.spaces,
                 &mut physics_data.shapes,
+                &physics_data.rids,
             );
         }
     }
@@ -551,6 +532,7 @@ impl RapierPhysicsServerImpl {
                     &mut physics_data.physics_engine,
                     &mut physics_data.spaces,
                     &mut physics_data.shapes,
+                    &physics_data.rids,
                 );
             }
         }
@@ -595,31 +577,36 @@ impl RapierPhysicsServerImpl {
             return;
         }
         let area_update_mode = AreaUpdateMode::None;
+        let mut area_handle = RigidBodyHandle::invalid();
         if let Some(area) = physics_data.collision_objects.get_mut(&area) {
             if let Some(area) = area.get_mut_area() {
-                area.set_param(param, value, &mut physics_data.spaces);
+                area.set_param(param, value, &mut physics_data.spaces, &physics_data.rids);
+                area_handle = area.get_base().get_body_handle();
             }
         }
         match area_update_mode {
             AreaUpdateMode::EnableSpaceOverride => {
                 RapierArea::enable_space_override(
-                    &area,
+                    &area_handle,
                     &mut physics_data.spaces,
                     &mut physics_data.collision_objects,
+                    &physics_data.rids,
                 );
             }
             AreaUpdateMode::DisableSpaceOverride => {
-                RapierArea::enable_space_override(
-                    &area,
+                RapierArea::disable_space_override(
+                    &area_handle,
                     &mut physics_data.spaces,
                     &mut physics_data.collision_objects,
+                    &physics_data.rids,
                 );
             }
             AreaUpdateMode::ResetSpaceOverride => {
-                RapierArea::enable_space_override(
-                    &area,
+                RapierArea::reset_space_override(
+                    &area_handle,
                     &mut physics_data.spaces,
                     &mut physics_data.collision_objects,
+                    &physics_data.rids,
                 );
             }
             _ => {}
@@ -696,6 +683,7 @@ impl RapierPhysicsServerImpl {
                     &mut physics_data.physics_engine,
                     &mut physics_data.shapes,
                     &mut physics_data.spaces,
+                    &physics_data.rids,
                 );
             }
         }
@@ -726,6 +714,7 @@ impl RapierPhysicsServerImpl {
                     &mut physics_data.physics_engine,
                     &mut physics_data.shapes,
                     &mut physics_data.spaces,
+                    &physics_data.rids,
                 );
             }
         }
@@ -740,6 +729,7 @@ impl RapierPhysicsServerImpl {
                     &mut physics_data.physics_engine,
                     &mut physics_data.shapes,
                     &mut physics_data.spaces,
+                    &physics_data.rids,
                 );
             }
         }
@@ -763,6 +753,7 @@ impl RapierPhysicsServerImpl {
                 &mut physics_data.physics_engine,
                 &mut physics_data.spaces,
                 &mut physics_data.shapes,
+                &mut physics_data.rids,
             );
         }
     }
@@ -770,13 +761,14 @@ impl RapierPhysicsServerImpl {
     pub(super) fn body_get_space(&self, body: Rid) -> Rid {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get(&body) {
-            return body.get_base().get_space();
+            return body.get_base().get_space(&physics_data.rids);
         }
         Rid::Invalid
     }
 
     pub(super) fn body_set_mode(&mut self, body: Rid, mode: BodyMode) {
         let physics_data = physics_data();
+        let mut body_handle = RigidBodyHandle::invalid();
         if let Some(body) = physics_data.collision_objects.get_mut(&body)
             && let Some(body) = body.get_mut_body()
         {
@@ -784,13 +776,16 @@ impl RapierPhysicsServerImpl {
                 mode,
                 &mut physics_data.physics_engine,
                 &mut physics_data.spaces,
+                &physics_data.rids,
             );
+            body_handle = body.get_base().get_body_handle();
         }
         RapierBody::apply_area_override_to_body(
-            &body,
+            &body_handle,
             &mut physics_data.physics_engine,
             &mut physics_data.spaces,
             &mut physics_data.collision_objects,
+            &physics_data.rids,
         );
     }
 
@@ -821,6 +816,7 @@ impl RapierPhysicsServerImpl {
                     &mut physics_data.physics_engine,
                     &mut physics_data.spaces,
                     &mut physics_data.shapes,
+                    &physics_data.rids,
                 );
             }
         }
@@ -836,6 +832,7 @@ impl RapierPhysicsServerImpl {
                     &mut physics_data.physics_engine,
                     &mut physics_data.spaces,
                     &mut physics_data.shapes,
+                    &physics_data.rids,
                 );
             }
         }
@@ -856,6 +853,7 @@ impl RapierPhysicsServerImpl {
                     &mut physics_data.physics_engine,
                     &mut physics_data.spaces,
                     &mut physics_data.shapes,
+                    &physics_data.rids,
                 );
             }
         }
@@ -901,6 +899,7 @@ impl RapierPhysicsServerImpl {
                     &mut physics_data.physics_engine,
                     &mut physics_data.spaces,
                     &mut physics_data.shapes,
+                    &physics_data.rids,
                 );
             }
         }
@@ -930,6 +929,7 @@ impl RapierPhysicsServerImpl {
                     &mut physics_data.physics_engine,
                     &mut physics_data.spaces,
                     &mut physics_data.shapes,
+                    &physics_data.rids,
                 );
             }
         }
@@ -944,6 +944,7 @@ impl RapierPhysicsServerImpl {
                     &mut physics_data.physics_engine,
                     &mut physics_data.spaces,
                     &mut physics_data.shapes,
+                    &physics_data.rids,
                 );
             }
         }
@@ -1101,6 +1102,7 @@ impl RapierPhysicsServerImpl {
                     value,
                     &mut physics_data.physics_engine,
                     &mut physics_data.spaces,
+                    &physics_data.rids,
                 );
             }
         }
@@ -1123,6 +1125,7 @@ impl RapierPhysicsServerImpl {
                 body.reset_mass_properties(
                     &mut physics_data.physics_engine,
                     &mut physics_data.spaces,
+                    &physics_data.rids,
                 );
             }
         }
@@ -1138,6 +1141,7 @@ impl RapierPhysicsServerImpl {
                     &mut physics_data.physics_engine,
                     &mut physics_data.spaces,
                     &mut physics_data.shapes,
+                    &physics_data.rids,
                 );
             }
         }
@@ -1157,7 +1161,11 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.physics_engine);
+                body.force_mass_update(
+                    &mut physics_data.spaces,
+                    &mut physics_data.physics_engine,
+                    &physics_data.rids,
+                );
                 body.apply_central_impulse(impulse, &mut physics_data.physics_engine);
             }
         }
@@ -1167,7 +1175,11 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.physics_engine);
+                body.force_mass_update(
+                    &mut physics_data.spaces,
+                    &mut physics_data.physics_engine,
+                    &physics_data.rids,
+                );
                 body.apply_torque_impulse(impulse, &mut physics_data.physics_engine);
             }
         }
@@ -1177,7 +1189,11 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.physics_engine);
+                body.force_mass_update(
+                    &mut physics_data.spaces,
+                    &mut physics_data.physics_engine,
+                    &physics_data.rids,
+                );
                 body.apply_impulse(impulse, position, &mut physics_data.physics_engine);
             }
         }
@@ -1187,7 +1203,11 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.physics_engine);
+                body.force_mass_update(
+                    &mut physics_data.spaces,
+                    &mut physics_data.physics_engine,
+                    &physics_data.rids,
+                );
                 body.apply_central_force(force, &mut physics_data.physics_engine);
             }
         }
@@ -1197,7 +1217,11 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.physics_engine);
+                body.force_mass_update(
+                    &mut physics_data.spaces,
+                    &mut physics_data.physics_engine,
+                    &physics_data.rids,
+                );
                 body.apply_force(force, position, &mut physics_data.physics_engine);
             }
         }
@@ -1207,7 +1231,11 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.physics_engine);
+                body.force_mass_update(
+                    &mut physics_data.spaces,
+                    &mut physics_data.physics_engine,
+                    &physics_data.rids,
+                );
                 body.apply_torque(torque, &mut physics_data.physics_engine);
             }
         }
@@ -1217,7 +1245,11 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.physics_engine);
+                body.force_mass_update(
+                    &mut physics_data.spaces,
+                    &mut physics_data.physics_engine,
+                    &physics_data.rids,
+                );
                 body.add_constant_central_force(force, &mut physics_data.physics_engine);
             }
         }
@@ -1227,7 +1259,11 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.physics_engine);
+                body.force_mass_update(
+                    &mut physics_data.spaces,
+                    &mut physics_data.physics_engine,
+                    &physics_data.rids,
+                );
                 body.add_constant_force(force, position, &mut physics_data.physics_engine);
             }
         }
@@ -1237,7 +1273,11 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.physics_engine);
+                body.force_mass_update(
+                    &mut physics_data.spaces,
+                    &mut physics_data.physics_engine,
+                    &physics_data.rids,
+                );
                 body.add_constant_torque(torque, &mut physics_data.physics_engine);
             }
         }
@@ -1247,7 +1287,11 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.physics_engine);
+                body.force_mass_update(
+                    &mut physics_data.spaces,
+                    &mut physics_data.physics_engine,
+                    &physics_data.rids,
+                );
                 body.set_constant_force(force, &mut physics_data.physics_engine);
             }
         }
@@ -1267,7 +1311,11 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(&mut physics_data.spaces, &mut physics_data.physics_engine);
+                body.force_mass_update(
+                    &mut physics_data.spaces,
+                    &mut physics_data.physics_engine,
+                    &physics_data.rids,
+                );
                 body.set_constant_torque(torque, &mut physics_data.physics_engine);
             }
         }
@@ -1384,16 +1432,19 @@ impl RapierPhysicsServerImpl {
 
     pub(super) fn body_set_omit_force_integration(&mut self, body: Rid, enable: bool) {
         let physics_data = physics_data();
+        let mut body_handle = RigidBodyHandle::invalid();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
                 body.set_omit_force_integration(enable);
+                body_handle = body.get_base().get_body_handle();
             }
         }
         RapierBody::apply_area_override_to_body(
-            &body,
+            &body_handle,
             &mut physics_data.physics_engine,
             &mut physics_data.spaces,
             &mut physics_data.collision_objects,
+            &physics_data.rids,
         );
     }
 
@@ -1411,7 +1462,11 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_state_sync_callback(callable, &mut physics_data.spaces);
+                body.set_state_sync_callback(
+                    callable,
+                    &mut physics_data.spaces,
+                    &physics_data.rids,
+                );
             }
         }
     }
@@ -1425,7 +1480,12 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_force_integration_callback(callable, userdata, &mut physics_data.spaces);
+                body.set_force_integration_callback(
+                    callable,
+                    userdata,
+                    &mut physics_data.spaces,
+                    &physics_data.rids,
+                );
             }
         }
     }
@@ -1514,7 +1574,10 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get(&body) {
             if let Some(body) = body.get_body() {
-                if let Some(space) = physics_data.spaces.get(&body.get_base().get_space()) {
+                if let Some(space) = physics_data
+                    .spaces
+                    .get(&body.get_base().get_space(&physics_data.rids))
+                {
                     let result: &mut PhysicsServerExtensionMotionResult = &mut *result;
                     return space.test_body_motion(
                         body,
@@ -1910,13 +1973,13 @@ impl RapierPhysicsServerImpl {
         body_b: Rid,
         local_ref_b: Transform3D,
     ) {
-        use crate::joints::rapier_cone_twist_joint_3d::RapierConeTwistJoint3D;
+        use crate::joints::rapier_generic_6dof_joint_3d::RapierGeneric6DOFJoint3D;
         let physics_data = physics_data();
         let mut joint: RapierJoint;
         if let Some(body_a) = physics_data.collision_objects.get(&body_a)
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
-            joint = RapierJoint::RapierConeTwistJoint3D(RapierConeTwistJoint3D::new(
+            joint = RapierJoint::RapierGeneric6DOFJoint3D(RapierGeneric6DOFJoint3D::new(
                 local_ref_a.origin,
                 local_ref_b.origin,
                 body_a,
@@ -2151,7 +2214,10 @@ impl RapierPhysicsServerImpl {
     fn reset_space_if_empty(&mut self, space: Rid) {
         let physics_data = physics_data();
         if let Some(space) = physics_data.spaces.get_mut(&space) {
-            space.reset_space_if_empty(&mut physics_data.physics_engine);
+            space.get_mut_state().reset_space_if_empty(
+                &mut physics_data.physics_engine,
+                &RapierSpace::get_world_settings(),
+            );
         }
     }
 
@@ -2159,12 +2225,16 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(mut shape) = physics_data.shapes.remove(&rid) {
             for (owner, _) in shape.get_base().get_owners() {
-                if let Some(body) = physics_data.collision_objects.get_mut(owner) {
+                if let Some(body) = physics_data
+                    .collision_objects
+                    .get_mut(&get_body_rid(*owner, &physics_data.rids))
+                {
                     body.remove_shape_rid(
                         shape.get_base().get_rid(),
                         &mut physics_data.physics_engine,
                         &mut physics_data.spaces,
                         &mut physics_data.shapes,
+                        &physics_data.rids,
                     );
                 }
             }
@@ -2174,12 +2244,13 @@ impl RapierPhysicsServerImpl {
             return;
         }
         if let Some(mut body) = physics_data.collision_objects.remove(&rid) {
-            let space = body.get_base().get_space();
+            let space = body.get_base().get_space(&physics_data.rids);
             body.set_space(
                 Rid::Invalid,
                 &mut physics_data.physics_engine,
                 &mut physics_data.spaces,
                 &mut physics_data.shapes,
+                &mut physics_data.rids,
             );
             while body.get_base().get_shape_count() > 0 {
                 body.remove_shape_idx(
@@ -2187,16 +2258,20 @@ impl RapierPhysicsServerImpl {
                     &mut physics_data.physics_engine,
                     &mut physics_data.spaces,
                     &mut physics_data.shapes,
+                    &physics_data.rids,
                 );
             }
             body.get_mut_base()
-                .destroy_body(&mut physics_data.physics_engine);
+                .destroy_body(&mut physics_data.physics_engine, &mut physics_data.rids);
             self.reset_space_if_empty(space);
             return;
         }
         if let Some(mut space) = physics_data.spaces.remove(&rid) {
-            let space_handle = space.get_handle();
-            space.destroy_space(&mut physics_data.physics_engine);
+            let space_handle = space.get_state().get_handle();
+            remove_space_rid(space.get_state().get_handle(), &mut physics_data.rids);
+            space
+                .get_mut_state()
+                .destroy(&mut physics_data.physics_engine);
             if physics_data.active_spaces.remove(&space_handle).is_some() {
                 return;
             }
@@ -2205,7 +2280,7 @@ impl RapierPhysicsServerImpl {
             joint
                 .get_mut_base()
                 .destroy_joint(&mut physics_data.physics_engine);
-            self.reset_space_if_empty(joint.get_base().get_space());
+            self.reset_space_if_empty(joint.get_base().get_space(&physics_data.rids));
             return;
         }
         if let Some(mut fluid) = physics_data.fluids.remove(&rid) {
@@ -2221,9 +2296,7 @@ impl RapierPhysicsServerImpl {
         self.active = true;
         self.flushing_queries = false;
         self.doing_sync = false;
-        self.island_count = 0;
         self.active_objects = 0;
-        self.collision_pairs = 0;
     }
 
     pub(super) fn step(&mut self, step: f32) {
@@ -2231,16 +2304,12 @@ impl RapierPhysicsServerImpl {
         if !self.active {
             return;
         }
-        self.island_count = 0;
         self.active_objects = 0;
-        self.collision_pairs = 0;
         let active_spaces = physics_data.active_spaces.clone();
         for space_rid in active_spaces.values() {
             self.space_step(space_rid, step);
             if let Some(space) = physics_data.spaces.get(space_rid) {
-                self.island_count += space.get_island_count();
-                self.active_objects += space.get_active_objects();
-                self.collision_pairs += space.get_collision_pairs();
+                self.active_objects += space.get_state().get_active_objects();
             }
         }
     }
@@ -2262,8 +2331,6 @@ impl RapierPhysicsServerImpl {
     pub(super) fn get_process_info(&mut self, process_info: ProcessInfo) -> i32 {
         match process_info {
             ProcessInfo::ACTIVE_OBJECTS => self.active_objects,
-            ProcessInfo::COLLISION_PAIRS => self.collision_pairs,
-            ProcessInfo::ISLAND_COUNT => self.island_count,
             _ => 0,
         }
     }
@@ -2299,22 +2366,38 @@ impl RapierPhysicsServerImpl {
         self.flushing_queries = true;
         let mut queries = Vec::default();
         if let Some(space) = physics_data.spaces.get_mut(space) {
-            let query = space.get_queries(&mut physics_data.collision_objects);
+            let query = space.get_queries(&mut physics_data.collision_objects, &physics_data.rids);
             queries.extend(query);
         }
         for query in queries {
             // TODO optimize function calls copying data.
             // TODO optimize after these are called, the callbacks into direct state objects.
-            query.0.callv(Array::from(query.1.as_slice()));
+            query.0.callv(&Array::from(query.1.as_slice()));
         }
         self.flushing_queries = false;
         if let Some(space) = physics_data.spaces.get_mut(space) {
-            space.update_after_queries(&mut physics_data.collision_objects);
+            space.update_after_queries(&mut physics_data.collision_objects, &physics_data.rids);
         }
     }
-}
-impl Drop for RapierPhysicsServerImpl {
-    fn drop(&mut self) {
-        godot_error!("RapierPhysicsServer dropped");
+
+    pub(super) fn get_handle(&self, rid: Rid) -> (u64, u64) {
+        let physics_data = physics_data();
+        if let Some(shape) = physics_data.shapes.get(&rid) {
+            let parts = shape.get_base().get_handle().into_raw_parts();
+            return (parts.0 as u64, parts.1 as u64);
+        } else if let Some(body) = physics_data.collision_objects.get(&rid) {
+            let parts = body.get_base().get_body_handle().into_raw_parts();
+            return (parts.0 as u64, parts.1 as u64);
+        } else if let Some(space) = physics_data.spaces.get(&rid) {
+            let parts = space.get_state().get_handle().into_raw_parts();
+            return (parts.0 as u64, parts.1 as u64);
+        } else if let Some(joint) = physics_data.joints.get(&rid) {
+            let parts = joint.get_base().get_handle().index.into_raw_parts();
+            return (parts.0 as u64, parts.1 as u64);
+        } else if let Some(fluid) = physics_data.fluids.get(&rid) {
+            let parts = fluid.get_handle();
+            return (parts.id as u64, parts.generation);
+        }
+        (0, 0)
     }
 }

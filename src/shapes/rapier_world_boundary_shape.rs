@@ -4,30 +4,22 @@ use godot::classes::physics_server_2d::ShapeType;
 use godot::classes::physics_server_3d::ShapeType;
 use godot::prelude::*;
 
+use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
-use crate::types::*;
-#[cfg_attr(
-    feature = "serde-serialize",
-    derive(serde::Serialize, serde::Deserialize)
-)]
 pub struct RapierWorldBoundaryShape {
-    normal: Vector,
-    d: f32,
-
     base: RapierShapeBase,
 }
 impl RapierWorldBoundaryShape {
-    pub fn new(rid: Rid) -> Self {
-        Self {
-            normal: Vector::ZERO,
-            d: 0.0,
+    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) {
+        let shape = Self {
             base: RapierShapeBase::new(rid),
-        }
+        };
+        physics_shapes.insert(rid, RapierShape::RapierWorldBoundaryShape(shape));
     }
 }
-#[cfg_attr(feature = "serde-serialize", typetag::serde)]
 impl IRapierShape for RapierWorldBoundaryShape {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base
@@ -45,62 +37,60 @@ impl IRapierShape for RapierWorldBoundaryShape {
         true
     }
 
-    fn create_rapier_shape(&mut self, physics_engine: &mut PhysicsEngine) -> ShapeHandle {
-        physics_engine.shape_create_halfspace(vector_to_rapier(self.normal), self.d)
-    }
-
     #[cfg(feature = "dim2")]
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
+        use crate::types::variant_to_float;
         if data.get_type() != VariantType::ARRAY {
-            godot_error!("Invalid shape data");
+            godot_error!("RapierWorldBoundaryShape data must be an array.");
             return;
         }
         let arr: Array<Variant> = data.try_to().unwrap_or_default();
         if arr.len() != 2 {
-            godot_error!("Invalid data size for WorldBoundaryShape2D.");
+            godot_error!("RapierWorldBoundaryShape data must be an array of 2 elements.");
             return;
         }
         if arr.at(0).get_type() != VariantType::VECTOR2
             || (arr.at(1).get_type() != VariantType::FLOAT
                 && arr.at(1).get_type() != VariantType::INT)
         {
-            godot_error!("Invalid data type for WorldBoundaryShape2D.");
+            godot_error!(
+                "RapierWorldBoundaryShape data must be an array of 2 elements. Got {}",
+                data
+            );
             return;
         }
-        self.normal = arr.at(0).try_to().unwrap_or_default();
-        self.d = variant_to_float(&arr.at(1));
-        let handle = self.create_rapier_shape(physics_engine);
-        self.base.set_handle(handle, physics_engine);
+        let normal = arr.at(0).try_to().unwrap_or_default();
+        let d = variant_to_float(&arr.at(1));
+        let handle = physics_engine.shape_create_halfspace(vector_to_rapier(normal), d);
+        self.base.set_handle_and_reset_aabb(handle, physics_engine);
     }
 
     #[cfg(feature = "dim3")]
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         if data.get_type() != VariantType::PLANE {
-            godot_error!("Invalid shape data");
+            godot_error!("RapierWorldBoundaryShape data must be a plane.");
             return;
         }
         let plane: Plane = data.try_to().unwrap_or(Plane::invalid());
-        self.normal = plane.normal;
-        self.d = plane.d;
-        let handle = self.create_rapier_shape(physics_engine);
-        self.base.set_handle(handle, physics_engine);
+        let normal = plane.normal;
+        let d = plane.d;
+        let handle = physics_engine.shape_create_halfspace(vector_to_rapier(normal), d);
+        self.base.set_handle_and_reset_aabb(handle, physics_engine);
     }
 
     #[cfg(feature = "dim2")]
-    fn get_data(&self) -> Variant {
+    fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
+        let (normal, d) = physics_engine.shape_get_halfspace(self.base.get_handle());
         let mut arr = Array::<Variant>::new();
-        arr.push(self.normal.to_variant());
-        arr.push(self.d.to_variant());
+        arr.push(vector_to_godot(normal).to_variant());
+        arr.push(d.to_variant());
         arr.to_variant()
     }
 
     #[cfg(feature = "dim3")]
-    fn get_data(&self) -> Variant {
-        let plane = Plane::new(self.normal, self.d);
+    fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
+        let (normal, d) = physics_engine.shape_get_halfspace(self.base.get_handle());
+        let plane = Plane::new(vector_to_godot(normal), d);
         plane.to_variant()
-    }
-
-    fn get_handle(&self) -> ShapeHandle {
-        self.base.get_handle()
     }
 }

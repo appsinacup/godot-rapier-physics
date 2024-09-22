@@ -1,15 +1,17 @@
 <p align="center">
 <img src="https://github.com/appsinacup/godot-rapier-physics/blob/main/logo.jpg?raw=true"/>
 </p>
+<p align="center">Works on: Desktop, Mobile and Web</p>
 <p align="center">
         <img src="https://github.com/appsinacup/godot-rapier-physics/actions/workflows/runner.yml/badge.svg?branch=main"
             alt="Godot Rapier Build"></a>
         <img src="https://img.shields.io/badge/Godot-4.3-%23478cbf?logo=godot-engine&logoColor=white" />
 </p>
 
+
 <p align = "center">
     <strong>
-        <a href="https://godot.rapier.rs">Documentation</a> | <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/CHANGELOG.md">Changelog</a> | <a href="https://discord.gg/56dMud8HYn">Discord</a> | <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/CONTRIBUTING.md">Contributing</a>
+        <a href="https://godot.rapier.rs">Documentation</a> | <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/CHANGELOG.md">Changelog</a> | <a href="https://discord.gg/56dMud8HYn">Discord</a> | <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/CONTRIBUTING.md">Contributing</a> | <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/ARCHITECTURE.md">Architecture</a>
     </strong>
 </p>
 
@@ -29,11 +31,11 @@ Godot Rapier Physics is a **2D and 3D** physics drop-in replacement for the [God
 
 # Features
 
-Stability|Ghost Collisions(3D only for now)
+Stability|Ghost Collisions
 -|-
 ![](docs/rapier-vid.gif)|![](docs/ghost_collisions.gif)
 
-Fluids Shader| Fluids 3D
+Fluids 2D| Fluids 3D
 -|-
 ![](docs/fluid_shader.gif)|![](docs/water_3d.gif)
 
@@ -59,4 +61,4 @@ This plugin is still being developed. See the [Implementation Progress](https://
 
 - Pin Softness is not supported
 - Double builds are disabled for now (until salva supports double builds)
-- No support for asymetric collisions (eg. object 1 hitting object 2 but object 2 not hitting object 1). This is the exact check rapier does: `(A.layer & B.mask) != 0 || (B.layer & A.mask) != 0`
+- No support for asymmetric collisions (eg. object 1 hitting object 2 but object 2 not hitting object 1). This is the exact check rapier does: `(A.layer & B.mask) != 0 || (B.layer & A.mask) != 0`

@@ -1,91 +1,14 @@
-[gd_scene load_steps=4 format=3 uid="uid://cn4jscixu2bmf"]
+[gd_scene load_steps=3 format=3 uid="uid://cn4jscixu2bmf"]
 
 [ext_resource type="Script" path="res://test.gd" id="1_fs1uw"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_r4e3q"]
-size = Vector2(143.423, 123.296)
+[sub_resource type="CircleShape2D" id="CircleShape2D_01opr"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_3ytxo"]
-size = Vector2(1402.17, 77.1209)
-
-[node name="SceneRayOnSwitch" type="Node2D"]
+[node name="Test2D" type="Node2D"]
 script = ExtResource("1_fs1uw")
 
-[node name="RigidBody2D4" type="RigidBody2D" parent="."]
-position = Vector2(-290, -687)
-mass = 100.0
-max_contacts_reported = 1
+[node name="RigidBody2D" type="RigidBody2D" parent="."]
+position = Vector2(-18, -4)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D4"]
-position = Vector2(91.4772, -75.2912)
-shape = SubResource("RectangleShape2D_r4e3q")
-
-[node name="RigidBody2D5" type="RigidBody2D" parent="."]
-position = Vector2(-288, -830)
-mass = 100.0
-max_contacts_reported = 1
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D5"]
-position = Vector2(91.4772, -75.2912)
-shape = SubResource("RectangleShape2D_r4e3q")
-
-[node name="RigidBody2D6" type="RigidBody2D" parent="."]
-position = Vector2(-288, -979)
-mass = 100.0
-max_contacts_reported = 1
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D6"]
-position = Vector2(91.4772, -75.2912)
-shape = SubResource("RectangleShape2D_r4e3q")
-
-[node name="RigidBody2D7" type="RigidBody2D" parent="."]
-position = Vector2(-290, -1120)
-mass = 100.0
-max_contacts_reported = 1
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D7"]
-position = Vector2(91.4772, -75.2912)
-shape = SubResource("RectangleShape2D_r4e3q")
-
-[node name="StaticBody2D" type="StaticBody2D" parent="."]
-position = Vector2(-1, 55)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
-position = Vector2(15, 75)
-shape = SubResource("RectangleShape2D_3ytxo")
-one_way_collision = true
-
-[node name="CollisionShape2D2" type="CollisionShape2D" parent="StaticBody2D"]
-position = Vector2(-862, -874)
-rotation = 1.20339
-shape = SubResource("RectangleShape2D_3ytxo")
-
-[node name="CollisionShape2D3" type="CollisionShape2D" parent="StaticBody2D"]
-position = Vector2(164, -1290)
-rotation = 1.20339
-shape = SubResource("RectangleShape2D_3ytxo")
-
-[node name="CollisionShape2D4" type="CollisionShape2D" parent="StaticBody2D"]
-position = Vector2(958, -200)
-rotation = 1.20339
-shape = SubResource("RectangleShape2D_3ytxo")
-
-[node name="CollisionShape2D5" type="CollisionShape2D" parent="StaticBody2D"]
-position = Vector2(860, 366)
-rotation = 2.29629
-shape = SubResource("RectangleShape2D_3ytxo")
-
-[node name="CollisionShape2D6" type="CollisionShape2D" parent="StaticBody2D"]
-position = Vector2(188, 627)
-rotation = 3.26575
-shape = SubResource("RectangleShape2D_3ytxo")
-
-[node name="CollisionShape2D7" type="CollisionShape2D" parent="StaticBody2D"]
-position = Vector2(-281, 322)
-rotation = 4.15832
-shape = SubResource("RectangleShape2D_3ytxo")
-
-[node name="Camera2D" type="Camera2D" parent="."]
-position = Vector2(132, -12.9999)
-rotation = -0.435001
-zoom = Vector2(0.5, 0.5)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D"]
+shape = SubResource("CircleShape2D_01opr")

@@ -50,16 +50,16 @@ pub fn register_setting(
     p_hint_string: &str,
 ) {
     let mut project_settings = ProjectSettings::singleton();
-    if !project_settings.has_setting(p_name.into_godot()) {
-        project_settings.set(p_name.into(), p_value.clone());
+    if !project_settings.has_setting(p_name.to_godot()) {
+        project_settings.set(p_name.into(), &p_value.clone());
     }
     let mut property_info = Dictionary::new();
     let _ = property_info.insert("name", p_name);
     let _ = property_info.insert("type", p_value.get_type());
     let _ = property_info.insert("hint", p_hint);
     let _ = property_info.insert("hint_string", p_hint_string);
-    project_settings.add_property_info(property_info);
-    project_settings.set_initial_value(p_name.into(), p_value);
+    project_settings.add_property_info(&property_info);
+    project_settings.set_initial_value(p_name.into(), &p_value);
     project_settings.set_restart_if_changed(p_name.into(), p_needs_restart);
     static mut ORDER: i32 = 1000000;
     unsafe {
