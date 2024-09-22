@@ -536,7 +536,7 @@ impl PhysicsEngine {
                     .multibodies()
                     .peekable()
                     .peek()
-                    .is_some()
+                    .is_none()
                 && physics_world.physics_objects.rigid_body_set.is_empty()
                 && physics_world.physics_objects.collider_set.is_empty()
             {

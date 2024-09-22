@@ -46,6 +46,13 @@ pub struct RemovedColliderInfo {
 #[serde(default)]
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct RapierSpaceState {
+    #[cfg_attr(
+        feature = "serde-serialize",
+        serde(
+            serialize_with = "rapier::utils::serde::serialize_to_vec_tuple",
+            deserialize_with = "rapier::utils::serde::deserialize_from_vec_tuple"
+        )
+    )]
     removed_colliders: HashMap<ColliderHandle, RemovedColliderInfo>,
     active_list: HashSet<RigidBodyHandle>,
     mass_properties_update_list: HashSet<RigidBodyHandle>,

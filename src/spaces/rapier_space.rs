@@ -385,6 +385,18 @@ impl RapierSpace {
                 Ok(s) => return s,
                 Err(e) => {
                     godot_error!("Failed to serialize space to json: {}", e);
+                    match serde_json::to_string_pretty(&self.state) {
+                        Ok(_) => {}
+                        Err(e) => {
+                            godot_error!("Failed to serialize space state to json: {}", e);
+                        }
+                    }
+                    match serde_json::to_string_pretty(&inner) {
+                        Ok(_) => {}
+                        Err(e) => {
+                            godot_error!("Failed to serialize space inner to json: {}", e);
+                        }
+                    }
                 }
             }
         }

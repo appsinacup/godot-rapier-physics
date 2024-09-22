@@ -400,7 +400,7 @@ impl RapierSpace {
                             vector_to_godot(pos2),
                             shape2 as i32,
                             instance_id2,
-                            body2.get_base().get_rid(),
+                            body2.get_base().get_body_handle(),
                             vector_to_godot(vel_pos2),
                             impulse,
                         );
@@ -416,7 +416,7 @@ impl RapierSpace {
                             vector_to_godot(pos1),
                             shape1 as i32,
                             instance_id1,
-                            body1.get_base().get_rid(),
+                            body1.get_base().get_body_handle(),
                             vector_to_godot(vel_pos1),
                             -impulse,
                         );

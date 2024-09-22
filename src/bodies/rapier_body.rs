@@ -41,9 +41,7 @@ pub struct Contact {
     pub collider_pos: Vector,
     pub collider_shape: i32,
     pub collider_instance_id: u64,
-    // TODO set this correct after import
-    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "default_rid"))]
-    pub collider: Rid,
+    pub collider: RigidBodyHandle,
     pub local_velocity_at_pos: Vector,
     pub collider_velocity_at_pos: Vector,
     pub impulse: Vector,
@@ -69,7 +67,7 @@ impl Default for Contact {
             collider_pos: Vector::default(),
             collider_shape: 0,
             collider_instance_id: 0,
-            collider: Rid::Invalid,
+            collider: RigidBodyHandle::invalid(),
             local_velocity_at_pos: Vector::default(),
             collider_velocity_at_pos: Vector::default(),
             impulse: Vector::default(),
@@ -874,7 +872,7 @@ impl RapierBody {
         collider_pos: Vector,
         collider_shape: i32,
         collider_instance_id: u64,
-        collider: Rid,
+        collider: RigidBodyHandle,
         collider_velocity_at_pos: Vector,
         impulse: Vector,
     ) {

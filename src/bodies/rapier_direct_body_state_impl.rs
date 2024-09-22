@@ -6,6 +6,7 @@ use physics_server_2d::*;
 use physics_server_3d::*;
 
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
+use crate::servers::rapier_physics_singleton::get_body_rid;
 use crate::servers::rapier_physics_singleton::physics_data;
 use crate::types::*;
 pub struct RapierDirectBodyStateImpl {
@@ -466,7 +467,7 @@ impl RapierDirectBodyStateImpl {
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 if let Some(contact) = body.contacts().get(contact_idx as usize) {
-                    return contact.collider;
+                    return get_body_rid(contact.collider, &physics_data.rids);
                 }
             }
         }

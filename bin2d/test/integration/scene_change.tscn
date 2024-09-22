@@ -1,0 +1,25 @@
+[gd_scene load_steps=4 format=3 uid="uid://clemidbbr2cib"]
+
+[ext_resource type="Script" path="res://test/integration/scene_change.gd" id="1_crxgh"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_uteag"]
+radius = 31.0161
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_l14l6"]
+size = Vector2(460, 74)
+
+[node name="SceneChange" type="Node2D" node_paths=PackedStringArray("rigidbody")]
+script = ExtResource("1_crxgh")
+rigidbody = NodePath("RigidBody2D")
+
+[node name="RigidBody2D" type="RigidBody2D" parent="."]
+position = Vector2(122, 81)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D"]
+shape = SubResource("CircleShape2D_uteag")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(192, 219)
+shape = SubResource("RectangleShape2D_l14l6")
