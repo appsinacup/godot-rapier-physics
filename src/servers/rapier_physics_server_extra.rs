@@ -7,31 +7,41 @@ use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::fluids::rapier_fluid::RapierFluid;
 use crate::servers::RapierPhysicsServer;
 use crate::types::*;
-#[derive(GodotConvert, Var, Export, Debug)]
-#[godot(via = GString)]
 pub enum RapierBodyParam {
     ContactSkin,
+}
+impl RapierBodyParam {
+    fn from_i32(value: i32) -> RapierBodyParam {
+        match value {
+            0 => RapierBodyParam::ContactSkin,
+            _ => RapierBodyParam::ContactSkin,
+        }
+    }
 }
 #[godot_api]
 impl RapierPhysicsServer {
     #[func]
-    /// Set an extra parameter for a body. See [RapierBodyParam] for available params.
-    fn body_set_extra_param(body: Rid, param: RapierBodyParam, value: Variant) {
+    /// Set an extra parameter for a body.
+    fn body_set_extra_param(body: Rid, param: i32, value: Variant) {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_extra_param(param, value, &mut physics_data.physics_engine);
+                body.set_extra_param(
+                    RapierBodyParam::from_i32(param),
+                    value,
+                    &mut physics_data.physics_engine,
+                );
             }
         }
     }
 
     #[func]
-    /// Get an extra parameter for a body. See [RapierBodyParam] for available params.
-    fn body_get_extra_param(body: Rid, param: RapierBodyParam) -> Variant {
+    /// Get an extra parameter for a body.
+    fn body_get_extra_param(body: Rid, param: i32) -> Variant {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get(&body) {
             if let Some(body) = body.get_body() {
-                return body.get_extra_param(param);
+                return body.get_extra_param(RapierBodyParam::from_i32(param));
             }
         }
         0.0.to_variant()

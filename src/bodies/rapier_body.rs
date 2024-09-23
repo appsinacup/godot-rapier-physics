@@ -1574,6 +1574,7 @@ impl RapierBody {
         if p_mode.ord() >= BodyMode::RIGID.ord() {
             self.mass_properties_changed(physics_engine, physics_spaces, physics_rids);
         }
+        self.set_space_after(physics_engine, physics_spaces, physics_rids);
     }
 
     pub fn set_state(
@@ -1956,7 +1957,7 @@ impl RapierBody {
         &mut self,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
-        physics_rids: &mut PhysicsRids,
+        physics_rids: &PhysicsRids,
     ) {
         if self.base.is_space_valid() && self.base.mode.ord() >= BodyMode::KINEMATIC.ord() {
             if self.get_force_integration_callback().is_some() {
