@@ -6,6 +6,10 @@ on:
     branches:
       - "main"
 
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   static-checks:
     name: 📊 Static checks

@@ -1,6 +1,7 @@
 use godot::prelude::*;
 
 use crate::servers::rapier_project_settings::RapierProjectSettings;
+pub mod rapier_math;
 #[cfg(feature = "dim2")]
 pub mod rapier_physics_server_2d;
 #[cfg(feature = "dim3")]
