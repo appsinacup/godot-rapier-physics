@@ -1,5 +1,6 @@
 use std::num::NonZeroUsize;
 
+use godot::global::godot_print;
 use rapier::crossbeam;
 use rapier::data::Arena;
 use rapier::data::Index;
@@ -210,6 +211,7 @@ impl PhysicsWorld {
             space.active_body_callback(&active_body_info, physics_collision_objects);
         }
         while let Ok(collision_event) = collision_recv.try_recv() {
+            godot_print!("collision event: {:?}", collision_event);
             let handle1 = collision_event.collider1();
             let handle2 = collision_event.collider2();
             // Handle the collision event.
@@ -226,6 +228,7 @@ impl PhysicsWorld {
             space.collision_event_callback(&event_info, physics_collision_objects);
         }
         while let Ok(contact_pair) = contact_force_recv.try_recv() {
+            godot_print!("contact force event");
             if let Some(collider1) = self
                 .physics_objects
                 .collider_set
@@ -242,6 +245,7 @@ impl PhysicsWorld {
                 };
                 let send_contact_points =
                     space.contact_force_event_callback(&event_info, physics_collision_objects);
+                godot_print!("Send contact points: {}", send_contact_points);
                 if send_contact_points
                     && let Some(body1) = self.get_collider_rigid_body(collider1)
                     && let Some(body2) = self.get_collider_rigid_body(collider2)
@@ -252,8 +256,10 @@ impl PhysicsWorld {
                     for manifold in &contact_pair.manifolds {
                         let manifold_normal = manifold.data.normal;
                         contact_info.normal = manifold_normal;
+                        godot_print!("Manifold: {:?}", manifold);
                         // Read the geometric contacts.
                         for contact_point in &manifold.points {
+                            godot_print!("Contact point: {:?}", contact_point);
                             if contact_point.dist
                                 > DEFAULT_EPSILON
                                     + collider1.contact_skin()

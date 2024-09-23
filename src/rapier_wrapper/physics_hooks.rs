@@ -1,3 +1,4 @@
+use godot::global::godot_print;
 use rapier::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
@@ -85,6 +86,7 @@ pub fn update_as_oneway_platform(
 }
 impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
     fn filter_contact_pair(&self, context: &PairFilterContext) -> Option<SolverFlags> {
+        godot_print!("Filter contacts");
         let result = Some(SolverFlags::COMPUTE_IMPULSES);
         let Some(collider1) = context.colliders.get(context.collider1) else {
             return result;
@@ -108,6 +110,7 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
     }
 
     fn modify_solver_contacts(&self, context: &mut ContactModificationContext) {
+        godot_print!("Modify Solver");
         let Some(collider1) = context.colliders.get(context.collider1) else {
             return;
         };
