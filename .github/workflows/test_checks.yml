@@ -22,7 +22,6 @@ jobs:
       - name: Run Integration Tests for 2D Build
         shell: sh
         run: |
-          return
           ./scripts/build-dev-2d.sh
           ls bin2d/addons/bin
           godot --headless --path ./bin2d test.tscn --quit-after 1000 > output.log 2>&1
