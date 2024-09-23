@@ -1,8 +1,11 @@
-[gd_scene load_steps=3 format=3 uid="uid://cn4jscixu2bmf"]
+[gd_scene load_steps=4 format=3 uid="uid://cn4jscixu2bmf"]
 
 [ext_resource type="Script" path="res://test.gd" id="1_fs1uw"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_01opr"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vkitq"]
+size = Vector2(365, 37)
 
 [node name="Test2D" type="Node2D"]
 script = ExtResource("1_fs1uw")
@@ -12,3 +15,12 @@ position = Vector2(-18, -4)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D"]
 shape = SubResource("CircleShape2D_01opr")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(10.5, 96.5)
+shape = SubResource("RectangleShape2D_vkitq")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(4, 4)
