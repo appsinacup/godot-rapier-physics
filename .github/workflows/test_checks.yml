@@ -24,7 +24,7 @@ jobs:
         run: |
           cargo test --all-targets --features="build3d,test" --no-default-features
   run-integration-tests-2d:
-    name: Run Integration Tests 3D
+    name: Run Integration Tests 2D
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -55,7 +55,7 @@ jobs:
           fi
 
   run-integration-tests-3d:
-    name: Run Tests
+    name: Run Integration Tests 3D
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
