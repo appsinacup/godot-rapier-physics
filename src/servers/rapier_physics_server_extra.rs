@@ -1,5 +1,3 @@
-use std::f32::NAN;
-
 use godot::global::rid_allocate_id;
 use godot::global::rid_from_int64;
 use godot::prelude::*;
@@ -431,26 +429,31 @@ impl RapierPhysicsServer {
     fn cosh(x: real) -> real {
         ComplexField::cosh(x)
     }
+
     #[func]
     /// Deterministically compute log.
     fn log(x: real) -> real {
         ComplexField::ln(x)
     }
+
     #[func]
     /// Deterministically compute sin.
     fn sin(x: real) -> real {
         ComplexField::sin(x)
     }
+
     #[func]
     /// Deterministically compute sinh.
     fn sinh(x: real) -> real {
         ComplexField::sinh(x)
     }
+
     #[func]
     /// Deterministically compute tan.
     fn tan(x: real) -> real {
         ComplexField::tan(x)
     }
+
     #[func]
     /// Deterministically compute tanh.
     fn tanh(x: real) -> real {
@@ -463,6 +466,6 @@ impl RapierPhysicsServer {
         if let Some(result) = ComplexField::try_sqrt(x) {
             return result;
         }
-        NAN
+        real::NAN
     }
 }
