@@ -58,7 +58,7 @@ jobs:
         shell: sh
         run: |
           ./scripts/build-dev-3d.sh
-          ls bin2d/addons/bin
+          ls bin3d/addons/bin
           godot --headless --path ./bin3d test.tscn --quit-after 1000 > output.log 2>&1
           echo "---------------------"
           grep "ERROR:" output.log
