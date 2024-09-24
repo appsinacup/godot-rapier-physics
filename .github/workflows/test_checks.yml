@@ -3,8 +3,28 @@ on:
   workflow_call:
 
 jobs:
-  run-tests-2d:
-    name: Run Tests
+  run-unit-tests-2d:
+    name: Run Unit Tests 2D
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Unit Tests for 2D Build
+        shell: sh
+        run: |
+          cargo test --all-targets --features="build2d,test" --no-default-features
+  run-unit-tests-3d:
+    name: Run Unit Tests 3D
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Unit Tests for 3D Build
+        shell: sh
+        run: |
+          cargo test --all-targets --features="build3d,test" --no-default-features
+  run-integration-tests-2d:
+    name: Run Integration Tests 2D
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -15,17 +35,12 @@ jobs:
           version: 4.3.0
           use-dotnet: false
           include-templates: true
-      - name: Run Unit Tests for 2D Build
-        shell: sh
-        run: |
-          cargo test --all-targets --features="build2d,test" --no-default-features
       - name: Run Integration Tests for 2D Build
         shell: sh
-        # Skip this for now
-        if: false
         run: |
           return
           ./scripts/build-dev-2d.sh
+          ls bin2d/addons/godot-rapier2d/bin
           godot --headless --path ./bin2d test.tscn --quit-after 1000 > output.log 2>&1
           echo "---------------------"
           grep "ERROR:" output.log
@@ -40,8 +55,8 @@ jobs:
             exit 1
           fi
 
-  run-tests-3d:
-    name: Run Tests
+  run-integration-tests-3d:
+    name: Run Integration Tests 3D
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -51,16 +66,12 @@ jobs:
           version: 4.3.0
           use-dotnet: false
           include-templates: true
-      - name: Run Unit Tests for 3D Build
-        shell: sh
-        run: |
-          cargo test --all-targets --features="build3d,test" --no-default-features
       - name: Run Integration Tests for 3D Build
-        # Skip this for now
-        if: false
         shell: sh
         run: |
+          return
           ./scripts/build-dev-3d.sh
+          ls bin3d/addons/godot-rapier3d/bin
           godot --headless --path ./bin3d test.tscn --quit-after 1000 > output.log 2>&1
           echo "---------------------"
           grep "ERROR:" output.log

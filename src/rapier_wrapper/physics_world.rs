@@ -259,7 +259,8 @@ impl PhysicsWorld {
                                     + collider1.contact_skin()
                                     + collider2.contact_skin()
                             {
-                                continue;
+                                // TODO comment this out for now since it might miss out events
+                                //continue;
                             }
                             let collider_pos_1 = collider1.position() * contact_point.local_p1;
                             let collider_pos_2 = collider2.position() * contact_point.local_p2;

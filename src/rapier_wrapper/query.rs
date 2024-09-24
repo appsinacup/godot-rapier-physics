@@ -415,23 +415,30 @@ impl PhysicsEngine {
                 let shared_shape2 = scale_shape(raw_shared_shape2, shape_info2);
                 let shape_transform1 = shape_info1.transform;
                 let shape_transform2 = shape_info2.transform;
-                if let Ok(Some(contact)) = parry::query::contact(
+                match parry::query::contact(
                     &shape_transform1,
                     shared_shape1.as_ref(),
                     &shape_transform2,
                     shared_shape2.as_ref(),
                     prediction,
                 ) {
-                    // the distance is negative if there is intersection
-                    // and positive if the objects are separated by distance less than margin
-                    result.pixel_distance = contact.dist;
-                    result.within_margin = contact.dist > 0.0;
-                    result.collided = true;
-                    result.normal1 = contact.normal1.into_inner();
-                    result.normal2 = contact.normal2.into_inner();
-                    result.pixel_point1 = (contact.point1 + contact.normal1.mul(prediction)).coords;
-                    result.pixel_point2 = contact.point2.coords;
-                    return result;
+                    Ok(None) => {}
+                    Ok(Some(contact)) => {
+                        // the distance is negative if there is intersection
+                        // and positive if the objects are separated by distance less than margin
+                        result.pixel_distance = contact.dist;
+                        result.within_margin = contact.dist > 0.0;
+                        result.collided = true;
+                        result.normal1 = contact.normal1.into_inner();
+                        result.normal2 = contact.normal2.into_inner();
+                        result.pixel_point1 =
+                            (contact.point1 + contact.normal1.mul(prediction)).coords;
+                        result.pixel_point2 = contact.point2.coords;
+                        return result;
+                    }
+                    Err(err) => {
+                        godot_error!("Shape Contact Error: {:?}", err);
+                    }
                 }
             }
         }

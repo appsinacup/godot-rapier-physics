@@ -4,7 +4,7 @@ extends MultiMeshInstance2D
 
 @export var fluid: Fluid2D
 @export var color: Color = Color(0.8, 0.8, 0.8, 0.3)
-
+@export var mesh_scale: Vector2 = Vector2(5,5)
 
 func _ready():
 	if multimesh == null:
@@ -23,7 +23,7 @@ func _process(_delta):
 	var points = fluid.points
 	for i in points.size():
 		var point = points[i]
-		var new_transform: Transform2D = Transform2D(0, Vector2(5, 5), 0, point)
+		var new_transform: Transform2D = Transform2D(0, mesh_scale, 0, point)
 		multimesh.set_instance_transform_2d(index, new_transform)
 		multimesh.set_instance_color(index, color)
 		index += 1

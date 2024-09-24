@@ -207,9 +207,10 @@ mod tests {
                 .try_to()
                 .unwrap();
             assert_eq!(data.len(), 3);
-            assert_eq!(data[0], Vector::splat(0.0));
-            assert_eq!(data[1], Vector3::new(1.0, 0.0, 0.0));
-            assert_eq!(data[2], Vector3::new(2.0, 2.0, 2.0));
+            // Order is changed on points
+            assert_eq!(data[1], Vector::splat(0.0));
+            assert_eq!(data[2], Vector3::new(1.0, 0.0, 0.0));
+            assert_eq!(data[0], Vector3::new(2.0, 2.0, 2.0));
             assert!(convex_shape.get_base().is_valid());
             convex_shape
                 .get_mut_base()
