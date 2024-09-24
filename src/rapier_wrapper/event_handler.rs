@@ -1,6 +1,5 @@
 use crossbeam::channel::Sender;
 use godot::global::godot_error;
-use godot::global::godot_print;
 use rapier::crossbeam;
 use rapier::prelude::*;
 pub struct ContactEventHandler {
@@ -26,7 +25,6 @@ impl EventHandler for ContactEventHandler {
         event: CollisionEvent,
         _contact_pair: Option<&ContactPair>,
     ) {
-        godot_print!("Collision event: {:?}", event);
         match self.collision_send.send(event) {
             Ok(_) => (),
             Err(err) => {
@@ -43,7 +41,6 @@ impl EventHandler for ContactEventHandler {
         contact_pair: &ContactPair,
         _total_force_magnitude: Real,
     ) {
-        godot_print!("Force event");
         match self.contact_force_send.send(contact_pair.clone()) {
             Ok(_) => (),
             Err(err) => {
