@@ -226,4 +226,3 @@ func add_area(p_position: Vector2, p_add_child := true) -> Area2D:
 	if p_add_child:
 		add_child(area)
 	return area
-

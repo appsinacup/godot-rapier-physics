@@ -79,6 +79,7 @@ pub struct RapierCollisionObjectBaseState {
     pub(crate) transform: Transform,
     pub(crate) inv_transform: Transform,
 }
+#[derive(Debug)]
 pub struct RapierCollisionObjectBase {
     #[cfg(feature = "dim3")]
     user_flags: u32,
@@ -444,7 +445,6 @@ impl RapierCollisionObjectBase {
         let teleport = self.state.transform == Transform::IDENTITY;
         self.state.transform = p_transform;
         self.state.inv_transform = transform_inverse(&self.state.transform);
-        godot_print!("set transform in base {:?}", self.state.transform);
         if !self.is_valid() {
             return;
         }

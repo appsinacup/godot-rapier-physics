@@ -56,6 +56,19 @@ func test_completed() -> void:
 func test_description() -> String:
 	return ""
 
+func add_collision_bottom(p_width:= 20, p_add_ceiling := true,  p_layers := [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]):
+	var surfaces: Array[StaticBody2D]= []
+	# Bottom Wall
+	surfaces.append(PhysicsTest2D.get_static_body_with_collision_shape(Rect2(BOTTOM_LEFT - Vector2(10000,p_width), Vector2(20000, p_width)), TestCollisionShape.RECTANGLE, true))
+	
+	for wall in surfaces:
+		wall.collision_layer = 0
+		wall.collision_mask = 0
+		for layer in p_layers:
+			wall.set_collision_layer_value(layer, true)
+			wall.set_collision_mask_value(layer, true)
+		add_child(wall)
+
 func add_collision_boundaries(p_width:= 20, p_add_ceiling := true,  p_layers := [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]):
 	var surfaces: Array[StaticBody2D]= []
 	# Left wall

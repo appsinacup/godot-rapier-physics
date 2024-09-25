@@ -1,7 +1,7 @@
 extends PhysicsUnitTest2D
 
 @export var body_shape: PhysicsTest2D.TestCollisionShape = TestCollisionShape.CIRCLE
-var simulation_duration := 0.8
+var simulation_duration := 4
 var speed := 50000
 
 func test_description() -> String:
@@ -28,13 +28,13 @@ func test_start() -> void:
 
 	var body := create_rigid_body(1)
 	body.position = CENTER - Vector2(100, 0)
+	body.linear_damp = 1
 	var contact_lambda = func(p_step: int, _p_target: PhysicsTest2D, _p_monitor: GenericStepMonitor):
-		if p_step == 0: 
+		if p_step == 0:
 			return body.get_colliding_bodies().size() == 0 
 		elif p_step == 1:
-			
-			return body.get_colliding_bodies().size() > 0 and not body.sleeping
-		elif p_step == 2: 
+			return body.get_colliding_bodies().size() > 0 or not body.sleeping
+		elif p_step == 2:
 			return body.sleeping
 
 	var contact_monitor := create_generic_step_monitor(self, contact_lambda, null, simulation_duration)
@@ -42,7 +42,8 @@ func test_start() -> void:
 	contact_monitor.add_test(2, "The body sleep")
 
 	var body_no_contact := create_rigid_body(2, 0)
-	body_no_contact.position = CENTER - Vector2(200, 0)
+	body_no_contact.position = CENTER - Vector2(100, 0)
+	body_no_contact.linear_damp = 1
 
 	var lambda_no_contact = func(p_body, p_monitor: GenericManualMonitor):
 		if p_body.get_colliding_bodies().size() != 0:

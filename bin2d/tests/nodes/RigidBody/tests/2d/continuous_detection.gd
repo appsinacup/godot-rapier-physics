@@ -90,9 +90,9 @@ func test_start() -> void:
 	var y_collision_monitor := create_generic_expiration_monitor(rigid_y_ccd_ray, collide_y_lambda, null, simulation_duration)
 	y_collision_monitor.test_name = "Rigid moving in y with CCD detects collision"
 	
-	process_mode = Node.PROCESS_MODE_DISABLED # to be able to see something
-	await get_tree().create_timer(.5).timeout
-	process_mode = Node.PROCESS_MODE_INHERIT
+	#process_mode = Node.PROCESS_MODE_DISABLED # to be able to see something
+	#await get_tree().create_timer(.5).timeout
+	#process_mode = Node.PROCESS_MODE_INHERIT
 
 func create_rigid_body(p_ccd_mode: RigidBody2D.CCDMode, p_horizontal := true, p_shape: PhysicsTest2D.TestCollisionShape = TestCollisionShape.RECTANGLE) -> RigidBody2D:
 	var player = RigidBody2D.new()

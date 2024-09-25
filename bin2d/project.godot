@@ -10,11 +10,11 @@ config_version=5
 
 [application]
 
-config/name="physics-test"
+config/name="Godot Rapier 2D"
 run/main_scene="res://start.tscn"
 config/features=PackedStringArray("4.3")
 run/low_processor_mode_sleep_usec=1
-config/icon="res://icon.png"
+config/icon="res://addons/godot-rapier2d/logo_square_2d.png"
 
 [autoload]
 
@@ -24,7 +24,7 @@ Utils="*res://base/Utils.gd"
 
 [display]
 
-window/size/resizable=false
+window/size/mode=2
 window/subwindows/embed_subwindows=false
 
 [input]

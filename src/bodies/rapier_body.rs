@@ -74,11 +74,12 @@ impl Default for Contact {
         }
     }
 }
+#[derive(Debug)]
 pub struct ForceIntegrationCallbackData {
     pub callable: Callable,
     pub udata: Variant,
 }
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Copy, Default, Debug)]
 #[cfg_attr(
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
@@ -102,7 +103,7 @@ pub struct BodyImport {
     body_state: RapierBodyState,
     base_state: RapierCollisionObjectBaseState,
 }
-#[derive(Default)]
+#[derive(Default, Debug)]
 #[cfg_attr(
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
@@ -136,6 +137,7 @@ pub struct RapierBodyState {
     pub(crate) contacts: Vec<Contact>,
     pub(crate) contact_count: i32,
 }
+#[derive(Debug)]
 pub struct RapierBody {
     linear_damping_mode: BodyDampMode,
     angular_damping_mode: BodyDampMode,

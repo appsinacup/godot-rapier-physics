@@ -118,6 +118,7 @@ pub trait IRapierCollisionObject: Sync {
 }
 // TODO investigate large enum variant
 #[allow(clippy::large_enum_variant)]
+#[derive(Debug)]
 pub enum RapierCollisionObject {
     RapierArea(RapierArea),
     RapierBody(RapierBody),

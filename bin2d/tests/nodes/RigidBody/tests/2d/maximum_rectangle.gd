@@ -2,7 +2,7 @@ extends PhysicsUnitTest2D
 
 var timer: Timer
 var body_size := Vector2(25, 25)
-var min_body_expected := 450
+var min_body_expected := 550
 var simulation_duration := 15
 
 var bodies : Array[RigidBody2D] = []

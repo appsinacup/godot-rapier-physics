@@ -66,6 +66,7 @@ pub struct RapierAreaState {
     detected_bodies: HashMap<RigidBodyHandle, u32>,
     detected_areas: HashMap<RigidBodyHandle, u32>,
 }
+#[derive(Debug)]
 pub struct RapierArea {
     gravity_override_mode: AreaSpaceOverrideMode,
     linear_damping_override_mode: AreaSpaceOverrideMode,

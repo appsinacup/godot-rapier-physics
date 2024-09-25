@@ -1,6 +1,6 @@
 extends PhysicsUnitTest2D
 
-var stack_height := 10
+var stack_height := 30
 var max_horizontal_movement := 5.0
 var body_size := Vector2(25, 25)
 var body_spacing := 1
