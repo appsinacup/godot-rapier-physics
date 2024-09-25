@@ -27,8 +27,12 @@ jobs:
           path: |
             bin${{ matrix.dimensions }}
             !bin${{ matrix.dimensions }}/test/*
+            !bin${{ matrix.dimensions }}/tests/*
+            !bin${{ matrix.dimensions }}/base/*
             !bin${{ matrix.dimensions }}/export_presets.cfg
             !bin${{ matrix.dimensions }}/project.godot
             !bin${{ matrix.dimensions }}/test.gd
+            !bin${{ matrix.dimensions }}/start.gd
+            !bin${{ matrix.dimensions }}/start.tscn
             !bin${{ matrix.dimensions }}/test.tscn
           if-no-files-found: error

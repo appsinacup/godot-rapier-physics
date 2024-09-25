@@ -659,7 +659,7 @@ impl PhysicsEngine {
         &mut self,
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
-    ) -> RigidBodyMassProps {
+    ) -> (RigidBodyMassProps, usize) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(body) = physics_world
                 .physics_objects
@@ -679,9 +679,13 @@ impl PhysicsEngine {
             body.recompute_mass_properties_from_colliders(
                 &physics_world.physics_objects.collider_set,
             );
-            return body.mass_properties().clone();
+            let mut colliders_count = body.colliders().len();
+            if colliders_count == 0 {
+                colliders_count = 1;
+            }
+            return (body.mass_properties().clone(), colliders_count);
         }
-        RigidBodyMassProps::default()
+        (RigidBodyMassProps::default(), 1)
     }
 
     pub fn body_get_colliders(

@@ -1735,11 +1735,15 @@ impl RapierBody {
             .body_get_mass_properties(self.base.get_space_handle(), self.base.get_body_handle());
         if self.calculate_center_of_mass {
             self.state.center_of_mass =
-                vector_to_godot(rigid_body_mass_properties.local_mprops.local_com.coords);
+                vector_to_godot(rigid_body_mass_properties.0.local_mprops.local_com.coords);
         }
         if self.calculate_inertia {
-            let angular_inertia = rigid_body_mass_properties.local_mprops.principal_inertia();
-            self.state.inertia = angle_to_godot(angular_inertia) * self.state.mass;
+            let angular_inertia = rigid_body_mass_properties
+                .0
+                .local_mprops
+                .principal_inertia();
+            self.state.inertia = angle_to_godot(angular_inertia) * self.state.mass
+                / (rigid_body_mass_properties.1 as real);
         }
         if self.state.inertia.is_zero_approx() {
             self.state.inv_inertia = ANGLE_ZERO;
@@ -1768,6 +1772,7 @@ impl RapierBody {
             }
             // inv inertia tensor
             let rotation_matrix = rigid_body_mass_properties
+                .0
                 .local_mprops
                 .principal_inertia_local_frame
                 .to_rotation_matrix();
@@ -1790,6 +1795,7 @@ impl RapierBody {
                 Vector3::new(column_2.x, column_2.y, column_2.z),
             );
             let inv_inertia = rigid_body_mass_properties
+                .0
                 .local_mprops
                 .inv_principal_inertia_sqrt;
             let tb = self.state.principal_inertia_axes;
