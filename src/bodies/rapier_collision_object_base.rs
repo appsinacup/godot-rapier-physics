@@ -79,6 +79,7 @@ pub struct RapierCollisionObjectBaseState {
     pub(crate) transform: Transform,
     pub(crate) inv_transform: Transform,
 }
+#[derive(Debug)]
 pub struct RapierCollisionObjectBase {
     #[cfg(feature = "dim3")]
     user_flags: u32,

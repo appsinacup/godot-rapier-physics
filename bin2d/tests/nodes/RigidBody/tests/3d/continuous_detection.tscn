@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://dsqnhw3pojva0"]
+
+[ext_resource type="Script" path="res://tests/nodes/RigidBody/tests/3d/continuous_detection.gd" id="1_0j003"]
+
+[node name="continuous_detection" type="Node3D"]
+script = ExtResource("1_0j003")
+
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 10.252)
+current = true

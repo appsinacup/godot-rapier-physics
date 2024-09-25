@@ -51,6 +51,7 @@ use crate::spaces::rapier_space::RapierSpace;
 use crate::types::*;
 pub struct RapierPhysicsServerImpl {
     pub active: bool,
+    pub stepped: bool,
     pub flushing_queries: bool,
     doing_sync: bool,
     active_objects: i32,
@@ -72,6 +73,7 @@ impl RapierPhysicsServerImpl {
     pub(super) fn default() -> Self {
         Self {
             active: true,
+            stepped: false,
             flushing_queries: false,
             doing_sync: false,
             active_objects: 0,
@@ -2294,6 +2296,7 @@ impl RapierPhysicsServerImpl {
 
     pub(super) fn init_ext(&mut self) {
         self.active = true;
+        self.stepped = false;
         self.flushing_queries = false;
         self.doing_sync = false;
         self.active_objects = 0;
@@ -2304,6 +2307,7 @@ impl RapierPhysicsServerImpl {
         if !self.active {
             return;
         }
+        self.stepped = true;
         self.active_objects = 0;
         let active_spaces = physics_data.active_spaces.clone();
         for space_rid in active_spaces.values() {

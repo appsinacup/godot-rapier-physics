@@ -1,0 +1,60 @@
+[gd_scene load_steps=4 format=3 uid="uid://bs884rv61i0xg"]
+
+[ext_resource type="PackedScene" uid="uid://bioauuuhvoo03" path="res://tests/nodes/CollisionShape/tests/3d/collision_precision.tscn" id="1_25700"]
+[ext_resource type="PackedScene" uid="uid://cg72r5vu1t53" path="res://tests/nodes/CollisionShape/tests/3d/convex_collision_detection.tscn" id="1_ohyv1"]
+
+[sub_resource type="GDScript" id="GDScript_tacvx"]
+script/source = "extends TestScene
+"
+
+[node name="collision_shape_3d" type="Node3D"]
+script = SubResource("GDScript_tacvx")
+
+[node name="convex_collision_detection" parent="." instance=ExtResource("1_ohyv1")]
+
+[node name="collision_precision_box_left_right" parent="." instance=ExtResource("1_25700")]
+
+[node name="collision_precision_box_right_left" parent="." instance=ExtResource("1_25700")]
+type = 1
+
+[node name="collision_precision_box_up_down" parent="." instance=ExtResource("1_25700")]
+type = 2
+
+[node name="collision_precision_box_down_up" parent="." instance=ExtResource("1_25700")]
+type = 3
+
+[node name="collision_precision_box_topleft" parent="." instance=ExtResource("1_25700")]
+type = 6
+
+[node name="collision_precision_box_downright" parent="." instance=ExtResource("1_25700")]
+type = 7
+
+[node name="collision_precision_box_segment_segment" parent="." instance=ExtResource("1_25700")]
+type = 8
+
+[node name="collision_precision_box_segment_face" parent="." instance=ExtResource("1_25700")]
+type = 9
+
+[node name="collision_precision_box_vertex_face" parent="." instance=ExtResource("1_25700")]
+type = 10
+
+[node name="collision_precision_box_vertex_vertex" parent="." instance=ExtResource("1_25700")]
+type = 11
+
+[node name="collision_precision_high_convex_left_right" parent="." instance=ExtResource("1_25700")]
+shape_tested = 100
+static_shape = 2
+
+[node name="collision_precision_very_high_convex_left_right" parent="." instance=ExtResource("1_25700")]
+shape_tested = 101
+static_shape = 2
+
+[node name="collision_precision_high_convex_top_left" parent="." instance=ExtResource("1_25700")]
+shape_tested = 100
+static_shape = 2
+type = 4
+
+[node name="collision_precision_very_high_convex_top_left" parent="." instance=ExtResource("1_25700")]
+shape_tested = 101
+static_shape = 2
+type = 4

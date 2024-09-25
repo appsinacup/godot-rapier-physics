@@ -274,7 +274,7 @@ impl PhysicsEngine {
             let is_shape_halfspace = shape_is_halfspace(shape);
             let mut collider = ColliderBuilder::new(shape.clone())
                 .contact_force_event_threshold(-Real::MAX)
-                .density(1.0)
+                .density(0.0)
                 .build();
             collider.set_friction(mat.friction);
             collider.set_restitution(mat.restitution);

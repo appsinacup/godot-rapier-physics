@@ -1,0 +1,18 @@
+[gd_scene load_steps=6 format=3 uid="uid://dl8jh1yybnmc7"]
+
+[ext_resource type="Script" path="res://base/class/test_scene_child.gd" id="1_dma0p"]
+[ext_resource type="PackedScene" uid="uid://bcvyoyk4gx8hd" path="res://tests/nodes/CharacterBody/tests/character_body_2d/detect_surface_type_with_pressure.tscn" id="2_eie1l"]
+[ext_resource type="PackedScene" uid="uid://clt6d1xruk034" path="res://tests/nodes/CharacterBody/tests/character_body_2d/floor_snap_length.tscn" id="3_6m7xl"]
+[ext_resource type="PackedScene" path="res://tests/nodes/CharacterBody/tests/character_body_2d/slide_on_ceiling.tscn" id="4_c1exd"]
+[ext_resource type="PackedScene" uid="uid://b8c3ipxt4fjlo" path="res://tests/nodes/CharacterBody/tests/character_body_2d/floor_constant_speed.tscn" id="5_q1u5f"]
+
+[node name="Scene" type="Node"]
+script = ExtResource("1_dma0p")
+
+[node name="detect_surface_type_with_pressure" parent="." instance=ExtResource("2_eie1l")]
+
+[node name="testing_floor_snap_circle" parent="." instance=ExtResource("3_6m7xl")]
+
+[node name="testing_slide_on_ceiling_cap" parent="." instance=ExtResource("4_c1exd")]
+
+[node name="constant_speed" parent="." instance=ExtResource("5_q1u5f")]

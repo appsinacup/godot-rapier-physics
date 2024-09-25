@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://giro4ikkullp"]
+
+[ext_resource type="Script" path="res://tests/nodes/RigidBody/tests/3d/shape_stack.gd" id="1_rhabn"]
+
+[node name="shape_stack" type="Node3D"]
+script = ExtResource("1_rhabn")
+
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.984808, 0.173648, 0, -0.173648, 0.984808, 0, 12, 15)
+current = true

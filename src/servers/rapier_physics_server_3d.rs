@@ -902,7 +902,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
     }
 
     fn flush_queries(&mut self) {
-        if !self.implementation.active {
+        if !self.implementation.active || !self.implementation.stepped {
             return;
         }
         let physics_data = physics_data();

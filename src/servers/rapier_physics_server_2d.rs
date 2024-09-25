@@ -691,7 +691,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     }
 
     fn flush_queries(&mut self) {
-        if !self.implementation.active {
+        if !self.implementation.active || !self.implementation.stepped {
             return;
         }
         self.implementation.flushing_queries = true;
