@@ -1,6 +1,21 @@
-[gd_scene load_steps=4 format=3 uid="uid://cn4jscixu2bmf"]
+[gd_scene load_steps=5 format=3 uid="uid://cn4jscixu2bmf"]
 
 [ext_resource type="Script" path="res://test.gd" id="1_fs1uw"]
+
+[sub_resource type="GDScript" id="GDScript_i28bw"]
+script/source = "extends RigidBody2D
+
+var add := true
+var last_left := false
+
+func _ready() -> void:
+	await get_tree().create_timer(1.0).timeout
+	apply_torque_impulse(50000)
+
+func _process(delta: float) -> void:
+	print(PhysicsServer2D.body_get_param(self, PhysicsServer2D.BODY_PARAM_INERTIA))
+	
+"
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_01opr"]
 
@@ -12,6 +27,8 @@ script = ExtResource("1_fs1uw")
 
 [node name="RigidBody2D" type="RigidBody2D" parent="."]
 position = Vector2(-18, -4)
+mass = 100.0
+script = SubResource("GDScript_i28bw")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D"]
 shape = SubResource("CircleShape2D_01opr")
