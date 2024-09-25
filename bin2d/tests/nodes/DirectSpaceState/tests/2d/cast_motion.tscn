@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://o8o38bifkam6"]
+
+[ext_resource type="Script" path="res://tests/nodes/DirectSpaceState/tests/2d/cast_motion.gd" id="1_clbiv"]
+
+[node name="cast_motion" type="Node2D"]
+script = ExtResource("1_clbiv")

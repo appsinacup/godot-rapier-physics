@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://byf328f57nfhv"]
+
+[ext_resource type="Script" path="res://tests/nodes/DirectSpaceState/tests/2d/intersect_point.gd" id="1_w7mhd"]
+
+[node name="intersect_point" type="Node2D"]
+script = ExtResource("1_w7mhd")

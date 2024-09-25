@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://gm2tqd86yds4"]
+
+[ext_resource type="Script" path="res://tests/nodes/DirectSpaceState/tests/2d/collide_shape.gd" id="1_7nci6"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_88710"]
+size = Vector2(40, 40)
+
+[node name="collide_shape" type="Node2D"]
+script = ExtResource("1_7nci6")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(800, 320)
+shape = SubResource("RectangleShape2D_88710")

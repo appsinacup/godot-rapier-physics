@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bxrk6vpptw3in"]
+
+[ext_resource type="Script" path="res://tests/nodes/RigidBody/tests/2d/rectangle_stack.gd" id="1_abyb0"]
+
+[node name="rectangle_stack" type="Node2D"]
+script = ExtResource("1_abyb0")

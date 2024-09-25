@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://c223pyi3d8dmw"]
+
+[ext_resource type="Script" path="res://tests/nodes/CharacterBody/tests/character_body_3d/slide_along_static_body.gd" id="1_ayvab"]
+
+[node name="slide_along_static_body" type="Node3D"]
+script = ExtResource("1_ayvab")
+
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 13, 0)

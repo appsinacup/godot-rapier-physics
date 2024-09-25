@@ -1,0 +1,57 @@
+[gd_scene load_steps=3 format=3 uid="uid://3pkcknwknoom"]
+
+[ext_resource type="Script" path="res://tests/performance/collisions/tests/3d/convex_precision.gd" id="1_q2n7m"]
+
+[sub_resource type="GDScript" id="GDScript_7w5x8"]
+script/source = "extends Control
+
+var camera: Camera3D
+
+var normal: Vector3
+var point: Vector3
+
+var ref_normal: Vector3
+var ref_point: Vector3
+
+var width = 2
+var lenght = 1
+
+func _process(_delta):
+	if camera:
+		queue_redraw()
+
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _draw() -> void:
+	if not camera:
+		return
+
+	var start = camera.unproject_position(point)
+	var end = camera.unproject_position(point + normal * lenght)
+	draw_debug_line(start, end,  Color(0, 1, 0))
+
+func draw_debug_line(p_start, p_end, p_color):
+	draw_line(p_start, p_end, p_color, width)
+	draw_triangle(p_end, p_start.direction_to(p_end), width*2, p_color)
+
+func draw_triangle(p_pos, p_dir, p_size, p_color):
+	var a = p_pos + p_dir * p_size
+	var b = p_pos + p_dir.rotated(2*PI/3) * p_size
+	var c = p_pos + p_dir.rotated(4*PI/3) * p_size
+	var points = [a, b, c]
+	draw_polygon(points, [p_color])
+"
+
+[node name="convex_precision" type="Node3D"]
+script = ExtResource("1_q2n7m")
+
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2)
+
+[node name="Draw" type="Control" parent="."]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = SubResource("GDScript_7w5x8")

@@ -1,0 +1,34 @@
+[gd_scene load_steps=3 format=3 uid="uid://baeob8hdpg7rs"]
+
+[ext_resource type="Script" path="res://base/class/test_scene_child.gd" id="1_eq855"]
+[ext_resource type="PackedScene" uid="uid://d32ame83cs40t" path="res://tests/performance/collisions/tests/2d/avg_fps_before_low_fps.tscn" id="3_tl4jl"]
+
+[node name="Scene" type="Node2D"]
+script = ExtResource("1_eq855")
+
+[node name="maximum_bodies_before_low_fps_capsule-capsule" parent="." instance=ExtResource("3_tl4jl")]
+position = Vector2(-4, 7)
+shape1 = 5
+shape2 = 5
+
+[node name="maximum_bodies_before_low_fps_polygon-polygon" parent="." instance=ExtResource("3_tl4jl")]
+position = Vector2(-4, 7)
+shape1 = 7
+shape2 = 7
+
+[node name="maximum_bodies_before_low_fps_circle-circle" parent="." instance=ExtResource("3_tl4jl")]
+position = Vector2(-4, 7)
+shape1 = 3
+shape2 = 3
+
+[node name="maximum_bodies_before_low_fps_convex-convex" parent="." instance=ExtResource("3_tl4jl")]
+position = Vector2(-4, 7)
+shape1 = 6
+shape2 = 6
+
+[node name="maximum_bodies_before_low_fps_rect-rect" parent="." instance=ExtResource("3_tl4jl")]
+position = Vector2(-4, 7)
+
+[node name="HFlowContainer" type="HFlowContainer" parent="."]
+offset_right = 40.0
+offset_bottom = 40.0
