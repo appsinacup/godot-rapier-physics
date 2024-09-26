@@ -5,6 +5,7 @@ use rapier::prelude::RigidBodyHandle;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::get_body_rid;
+use crate::servers::rapier_physics_singleton::insert_shape_rid;
 use crate::servers::rapier_physics_singleton::remove_shape_rid;
 use crate::servers::rapier_physics_singleton::PhysicsData;
 use crate::servers::rapier_physics_singleton::PhysicsRids;
@@ -43,12 +44,18 @@ impl RapierShapeBase {
         &mut self,
         handle: ShapeHandle,
         physics_engine: &mut PhysicsEngine,
-        physics_rids: &mut PhysicsRids
+        physics_rids: &mut PhysicsRids,
     ) {
+        // new handle has to be valid
+        if handle == ShapeHandle::default() {
+            godot_error!("Invalid shape handle");
+            return;
+        }
         // destroy previous shape
         if self.state.handle != ShapeHandle::default() {
             self.destroy_shape(physics_engine, physics_rids);
         }
+        insert_shape_rid(handle, self.get_rid(), physics_rids);
         let rapier_aabb = physics_engine.shape_get_aabb(handle);
         let vertices = rapier_aabb.vertices();
         self.state.aabb = Rect::new(
@@ -68,7 +75,8 @@ impl RapierShapeBase {
 
     pub fn call_shape_changed(
         owners: HashMap<RigidBodyHandle, i32>,
-        shape_rid: ShapeHandle,
+        old_shape_handle: ShapeHandle,
+        new_shape_handle: ShapeHandle,
         physics_data: &mut PhysicsData,
     ) {
         for (owner, _) in owners {
@@ -77,7 +85,8 @@ impl RapierShapeBase {
                 .get_mut(&get_body_rid(owner, &physics_data.rids))
             {
                 owner.shape_changed(
-                    shape_rid,
+                    old_shape_handle,
+                    new_shape_handle,
                     &mut physics_data.physics_engine,
                     &mut physics_data.spaces,
                     &physics_data.rids,
@@ -113,7 +122,11 @@ impl RapierShapeBase {
         self.rid
     }
 
-    pub fn destroy_shape(&mut self, physics_engine: &mut PhysicsEngine, physics_rids: &mut PhysicsRids) {
+    pub fn destroy_shape(
+        &mut self,
+        physics_engine: &mut PhysicsEngine,
+        physics_rids: &mut PhysicsRids,
+    ) {
         if self.state.handle != ShapeHandle::default() {
             physics_engine.shape_destroy(self.state.handle);
             self.state.handle = ShapeHandle::default();

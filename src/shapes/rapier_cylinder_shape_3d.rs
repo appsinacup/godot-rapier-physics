@@ -3,6 +3,7 @@ use godot::prelude::*;
 
 use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::PhysicsRids;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::shapes::rapier_shape::*;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
@@ -34,7 +35,12 @@ impl IRapierShape for RapierCylinderShape3D {
         true
     }
 
-    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
+    fn set_data(
+        &mut self,
+        data: Variant,
+        physics_engine: &mut PhysicsEngine,
+        physics_rids: &mut PhysicsRids,
+    ) {
         let height;
         let radius;
         match data.get_type() {
@@ -79,7 +85,8 @@ impl IRapierShape for RapierCylinderShape3D {
             }
         }
         let handle = physics_engine.shape_create_cylinder(height / 2.0, radius);
-        self.base.set_handle_and_reset_aabb(handle, physics_engine);
+        self.base
+            .set_handle_and_reset_aabb(handle, physics_engine, physics_rids);
     }
 
     fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
@@ -123,7 +130,11 @@ mod tests {
             let mut arr = Array::default();
             arr.push(1.0);
             arr.push(0.5);
-            cylinder_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
+            cylinder_shape.set_data(
+                arr.to_variant(),
+                &mut physics_data().physics_engine,
+                &mut physics_data().rids,
+            );
             assert!(cylinder_shape.get_base().is_valid());
             let data: Vector2 = cylinder_shape
                 .get_data(&physics_data().physics_engine)
@@ -133,7 +144,7 @@ mod tests {
             assert_eq!(data.y, 1.0); // height
             cylinder_shape
                 .get_mut_base()
-                .destroy_shape(&mut physics_data().physics_engine);
+                .destroy_shape(&mut physics_data().physics_engine, &mut physics_data().rids);
             assert!(!cylinder_shape.get_base().is_valid());
         }
 
@@ -143,7 +154,11 @@ mod tests {
                 base: RapierShapeBase::new(Rid::Invalid),
             };
             let vec = Vector2::new(0.5, 1.0);
-            cylinder_shape.set_data(vec.to_variant(), &mut physics_data().physics_engine);
+            cylinder_shape.set_data(
+                vec.to_variant(),
+                &mut physics_data().physics_engine,
+                &mut physics_data().rids,
+            );
             assert!(cylinder_shape.get_base().is_valid());
             let data: Vector2 = cylinder_shape
                 .get_data(&physics_data().physics_engine)
@@ -153,7 +168,7 @@ mod tests {
             assert_eq!(data.y, 1.0); // height
             cylinder_shape
                 .get_mut_base()
-                .destroy_shape(&mut physics_data().physics_engine);
+                .destroy_shape(&mut physics_data().physics_engine, &mut physics_data().rids);
             assert!(!cylinder_shape.get_base().is_valid());
         }
 
@@ -166,7 +181,11 @@ mod tests {
             let mut dict = Dictionary::new();
             let _ = dict.insert("height", 1.0);
             let _ = dict.insert("radius", 0.5);
-            cylinder_shape.set_data(dict.to_variant(), &mut physics_data().physics_engine);
+            cylinder_shape.set_data(
+                dict.to_variant(),
+                &mut physics_data().physics_engine,
+                &mut physics_data().rids,
+            );
             assert!(cylinder_shape.get_base().is_valid());
             let data: Vector2 = cylinder_shape
                 .get_data(&physics_data().physics_engine)
@@ -176,7 +195,7 @@ mod tests {
             assert_eq!(data.y, 1.0); // height
             cylinder_shape
                 .get_mut_base()
-                .destroy_shape(&mut physics_data().physics_engine);
+                .destroy_shape(&mut physics_data().physics_engine, &mut physics_data().rids);
             assert!(!cylinder_shape.get_base().is_valid());
         }
     }

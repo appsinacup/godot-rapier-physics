@@ -150,7 +150,7 @@ impl RapierSpace {
                 physics_collision_objects.get(&get_body_rid(area_handle, physics_rids))
             {
                 if let Some(area) = area.get_area() {
-                    let area_queries = &mut area.get_queries();
+                    let area_queries = &mut area.get_queries(physics_rids);
                     queries.append(area_queries);
                 }
             }

@@ -6,6 +6,7 @@ use godot::classes::ProjectSettings;
 use godot::prelude::*;
 use rapier::dynamics::RigidBodyHandle;
 use rapier::geometry::ColliderHandle;
+use servers::rapier_physics_singleton::get_body_rid;
 use servers::rapier_physics_singleton::get_shape_rid;
 use servers::rapier_physics_singleton::get_space_rid;
 use servers::rapier_physics_singleton::insert_body_rid;
@@ -153,30 +154,24 @@ impl RapierCollisionObjectBase {
             godot_error!("Rapier shape is invalid");
             return ColliderHandle::invalid();
         }
-        let handle;
-            let mut user_data = UserData::default();
-            self.set_collider_user_data(&mut user_data, p_shape_index);
-            match self.collision_object_type {
-                CollisionObjectType::Body => {
-                    handle = physics_engine.collider_create_solid(
-                        self.state.space_handle,
-                        shape.handle,
-                        &mat,
-                        self.state.body_handle,
-                        &user_data,
-                    );
-                }
-                CollisionObjectType::Area => {
-                    handle = physics_engine.collider_create_sensor(
-                        self.state.space_handle,
-                        shape.handle,
-                        &mat,
-                        self.state.body_handle,
-                        &user_data,
-                    );
-                }
-            }
-        handle
+        let mut user_data = UserData::default();
+        self.set_collider_user_data(&mut user_data, p_shape_index);
+        match self.collision_object_type {
+            CollisionObjectType::Body => physics_engine.collider_create_solid(
+                self.state.space_handle,
+                shape.handle,
+                &mat,
+                self.state.body_handle,
+                &user_data,
+            ),
+            CollisionObjectType::Area => physics_engine.collider_create_sensor(
+                self.state.space_handle,
+                shape.handle,
+                &mat,
+                self.state.body_handle,
+                &user_data,
+            ),
+        }
     }
 
     pub(super) fn update_shapes_indexes(&mut self, physics_engine: &mut PhysicsEngine) {
@@ -209,7 +204,6 @@ impl RapierCollisionObjectBase {
                 // Keep track of body information for delayed removal
                 space.get_mut_state().add_removed_collider(
                     shape.collider_handle,
-                    self.rid,
                     self.state.body_handle,
                     self.instance_id,
                     i,
@@ -234,7 +228,6 @@ impl RapierCollisionObjectBase {
                 // Keep track of body information for delayed removal
                 space.get_mut_state().add_removed_collider(
                     shape.collider_handle,
-                    self.rid,
                     self.state.body_handle,
                     self.instance_id,
                     p_shape_index,
@@ -396,12 +389,18 @@ impl RapierCollisionObjectBase {
     }
 
     pub fn set_collider_user_data(&self, r_user_data: &mut UserData, p_shape_index: usize) {
-        r_user_data.part1 = self.rid.to_u64();
+        let index = self.get_body_handle().0.into_raw_parts();
+        let index_u64 = (index.0 as u64) << 32 | (index.1 as u64);
+        r_user_data.part1 = index_u64;
         r_user_data.part2 = p_shape_index as u64;
     }
 
-    pub fn get_collider_user_data(p_user_data: &UserData) -> (Rid, usize) {
-        (Rid::new(p_user_data.part1), p_user_data.part2 as usize)
+    pub fn get_collider_user_data(p_user_data: &UserData, physics_rids: &PhysicsRids) -> (Rid, usize) {
+        let index_u64 = p_user_data.part1;
+        let index_high = (index_u64 >> 32) as u32;
+        let index_low = (index_u64 & 0xFFFFFFFF) as u32;
+        let rigid_body_handle = RigidBodyHandle::from_raw_parts(index_high, index_low);
+        (get_body_rid(rigid_body_handle, physics_rids), p_user_data.part2 as usize)
     }
 
     pub fn get_type(&self) -> CollisionObjectType {

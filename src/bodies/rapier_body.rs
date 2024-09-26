@@ -15,6 +15,7 @@ use rapier::geometry::ColliderHandle;
 use rapier::math::DEFAULT_EPSILON;
 use rapier::prelude::RigidBodyHandle;
 use servers::rapier_physics_singleton::get_body_rid;
+use servers::rapier_physics_singleton::get_shape_rid;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsRids;
 use servers::rapier_physics_singleton::PhysicsShapes;
@@ -1585,7 +1586,6 @@ impl RapierBody {
         p_variant: Variant,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
-        physics_shapes: &mut PhysicsShapes,
         physics_rids: &PhysicsRids,
     ) {
         match p_state {
@@ -1605,12 +1605,7 @@ impl RapierBody {
                 let new_scale = transform_scale(&transform);
                 self.base.set_transform(transform, true, physics_engine);
                 if old_scale != new_scale {
-                    self.recreate_shapes(
-                        physics_engine,
-                        physics_shapes,
-                        physics_spaces,
-                        physics_rids,
-                    );
+                    self.recreate_shapes(physics_engine, physics_spaces, physics_rids);
                 }
                 // set_transform updates mass properties
                 self.mass_properties_changed(physics_engine, physics_spaces, physics_rids);
@@ -2090,7 +2085,6 @@ impl IRapierCollisionObject for RapierBody {
         space: Rid,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
-        physics_shapes: &mut PhysicsShapes,
         physics_rids: &mut PhysicsRids,
     ) {
         if space == self.base.get_space(physics_rids) {
@@ -2099,7 +2093,7 @@ impl IRapierCollisionObject for RapierBody {
         self.set_space_before(physics_spaces, physics_rids);
         self.base
             .set_space(space, physics_engine, physics_spaces, physics_rids);
-        self.recreate_shapes(physics_engine, physics_shapes, physics_spaces, physics_rids);
+        self.recreate_shapes(physics_engine, physics_spaces, physics_rids);
         self.set_space_after(physics_engine, physics_spaces, physics_rids);
     }
 
@@ -2151,7 +2145,6 @@ impl IRapierCollisionObject for RapierBody {
         p_transform: Transform,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
-        physics_shapes: &mut PhysicsShapes,
         physics_rids: &PhysicsRids,
     ) {
         RapierCollisionObjectBase::set_shape_transform(
@@ -2160,7 +2153,6 @@ impl IRapierCollisionObject for RapierBody {
             p_transform,
             physics_engine,
             physics_spaces,
-            physics_shapes,
             physics_rids,
         );
     }
@@ -2171,7 +2163,6 @@ impl IRapierCollisionObject for RapierBody {
         p_disabled: bool,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
-        physics_shapes: &mut PhysicsShapes,
         physics_rids: &PhysicsRids,
     ) {
         RapierCollisionObjectBase::set_shape_disabled(
@@ -2180,14 +2171,13 @@ impl IRapierCollisionObject for RapierBody {
             p_disabled,
             physics_engine,
             physics_spaces,
-            physics_shapes,
             physics_rids,
         );
     }
 
     fn remove_shape_rid(
         &mut self,
-        shape: ShapeHandle,
+        shape: Rid,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
@@ -2196,7 +2186,7 @@ impl IRapierCollisionObject for RapierBody {
         // remove a shape, all the times it appears
         let mut i = 0;
         while i < self.base.state.shapes.len() {
-            if self.base.state.shapes[i].handle == shape {
+            if get_shape_rid(self.base.state.shapes[i].handle, physics_rids) == shape {
                 self.remove_shape_idx(
                     i,
                     physics_engine,
@@ -2238,9 +2228,9 @@ impl IRapierCollisionObject for RapierBody {
             return ColliderHandle::invalid();
         }
         let mat = self.init_material();
-        let handle =
-            self.base
-                .create_shape(shape, p_shape_index, mat, physics_engine);
+        let handle = self
+            .base
+            .create_shape(shape, p_shape_index, mat, physics_engine);
         self.init_collider(handle, self.base.get_space_handle(), physics_engine);
         handle
     }
@@ -2248,7 +2238,6 @@ impl IRapierCollisionObject for RapierBody {
     fn recreate_shapes(
         &mut self,
         physics_engine: &mut PhysicsEngine,
-        physics_shapes: &mut PhysicsShapes,
         physics_spaces: &mut PhysicsSpaces,
         physics_rids: &PhysicsRids,
     ) {
@@ -2258,7 +2247,6 @@ impl IRapierCollisionObject for RapierBody {
         RapierCollisionObjectBase::recreate_shapes(
             self,
             physics_engine,
-            physics_shapes,
             physics_spaces,
             physics_rids,
         );
@@ -2288,14 +2276,16 @@ impl IRapierCollisionObject for RapierBody {
 
     fn shape_changed(
         &mut self,
-        p_shape: ShapeHandle,
+        old_shape_handle: ShapeHandle,
+        new_shape_handle: ShapeHandle,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_rids: &PhysicsRids,
     ) {
         RapierCollisionObjectBase::shape_changed(
             self,
-            p_shape,
+            old_shape_handle,
+            new_shape_handle,
             physics_engine,
             physics_spaces,
             physics_rids,

@@ -6,6 +6,7 @@ use godot::prelude::*;
 
 use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::PhysicsRids;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::shapes::rapier_shape::*;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
@@ -63,7 +64,12 @@ impl IRapierShape for RapierConcavePolygonShape {
         true
     }
 
-    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
+    fn set_data(
+        &mut self,
+        data: Variant,
+        physics_engine: &mut PhysicsEngine,
+        physics_rids: &mut PhysicsRids,
+    ) {
         let points_local;
         match data.get_type() {
             #[cfg(feature = "dim3")]
@@ -114,7 +120,8 @@ impl IRapierShape for RapierConcavePolygonShape {
             }
         }
         let handle = self.create_rapier_shape(physics_engine, &points_local);
-        self.base.set_handle_and_reset_aabb(handle, physics_engine);
+        self.base
+            .set_handle_and_reset_aabb(handle, physics_engine, physics_rids);
     }
 
     #[cfg(feature = "dim2")]
@@ -211,7 +218,11 @@ mod tests {
                 Vector::splat(2.0),
                 Vector::splat(4.0),
             ]);
-            concave_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
+            concave_shape.set_data(
+                arr.to_variant(),
+                &mut physics_data().physics_engine,
+                &mut physics_data().rids,
+            );
             assert!(concave_shape.get_base().is_valid());
             let data: PackedVectorArray = concave_shape
                 .get_data(&physics_data().physics_engine)
@@ -224,7 +235,7 @@ mod tests {
             assert_eq!(data[3], Vector::splat(4.0));
             concave_shape
                 .get_mut_base()
-                .destroy_shape(&mut physics_data().physics_engine);
+                .destroy_shape(&mut physics_data().physics_engine, &mut physics_data().rids);
             assert!(!concave_shape.get_base().is_valid());
         }
 
@@ -244,7 +255,11 @@ mod tests {
                 Vector::splat(5.0),
             ]);
             let _ = dict.insert("faces", arr);
-            concave_shape.set_data(dict.to_variant(), &mut physics_data().physics_engine);
+            concave_shape.set_data(
+                dict.to_variant(),
+                &mut physics_data().physics_engine,
+                &mut physics_data().rids,
+            );
             let data: PackedVectorArray = concave_shape
                 .get_data(&physics_data().physics_engine)
                 .try_to()
@@ -259,7 +274,7 @@ mod tests {
             assert!(concave_shape.get_base().is_valid());
             concave_shape
                 .get_mut_base()
-                .destroy_shape(&mut physics_data().physics_engine);
+                .destroy_shape(&mut physics_data().physics_engine, &mut physics_data().rids);
             assert!(!concave_shape.get_base().is_valid());
         }
     }

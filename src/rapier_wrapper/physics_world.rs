@@ -8,6 +8,7 @@ use salva::integrations::rapier::FluidsPipeline;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsCollisionObjects;
+use crate::servers::rapier_physics_singleton::PhysicsRids;
 use crate::spaces::rapier_space::RapierSpace;
 #[cfg_attr(
     feature = "serde-serialize",
@@ -124,6 +125,7 @@ impl PhysicsWorld {
         collision_modify_contacts_callback: CollisionModifyContactsCallback,
         space: &mut RapierSpace,
         physics_collision_objects: &mut PhysicsCollisionObjects,
+        physics_rids: &PhysicsRids,
     ) {
         for handle in self.physics_objects.island_manager.active_dynamic_bodies() {
             if let Some(body) = self.physics_objects.rigid_body_set.get(*handle) {
@@ -134,6 +136,7 @@ impl PhysicsWorld {
                 space.before_active_body_callback(
                     &before_active_body_info,
                     physics_collision_objects,
+                    physics_rids,
                 );
             }
         }

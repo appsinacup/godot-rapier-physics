@@ -1,4 +1,3 @@
-use godot::builtin::Rid;
 use hashbrown::HashMap;
 use hashbrown::HashSet;
 use rapier::prelude::ColliderHandle;
@@ -8,17 +7,14 @@ use crate::bodies::rapier_collision_object_base::CollisionObjectType;
 use crate::rapier_wrapper::handle::WorldHandle;
 use crate::rapier_wrapper::prelude::PhysicsEngine;
 use crate::rapier_wrapper::prelude::WorldSettings;
-use crate::types::*;
 impl RemovedColliderInfo {
     pub fn new(
-        rid: Rid,
         rb_handle: RigidBodyHandle,
         instance_id: u64,
         shape_index: usize,
         collision_object_type: CollisionObjectType,
     ) -> Self {
         Self {
-            rid,
             rb_handle,
             instance_id,
             shape_index,
@@ -32,8 +28,6 @@ impl RemovedColliderInfo {
 )]
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct RemovedColliderInfo {
-    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "default_rid"))]
-    pub rid: Rid,
     pub rb_handle: RigidBodyHandle,
     pub instance_id: u64,
     pub shape_index: usize,
@@ -138,7 +132,6 @@ impl RapierSpaceState {
     pub fn add_removed_collider(
         &mut self,
         handle: ColliderHandle,
-        rid: Rid,
         rb_handle: RigidBodyHandle,
         instance_id: u64,
         shape_index: usize,
@@ -146,13 +139,7 @@ impl RapierSpaceState {
     ) {
         self.removed_colliders.insert(
             handle,
-            RemovedColliderInfo::new(
-                rid,
-                rb_handle,
-                instance_id,
-                shape_index,
-                collision_object_type,
-            ),
+            RemovedColliderInfo::new(rb_handle, instance_id, shape_index, collision_object_type),
         );
     }
 
@@ -382,14 +369,12 @@ mod tests {
         let mut physics_engine = PhysicsEngine::default();
         let mut state = RapierSpaceState::new(&mut physics_engine, &create_world_settings());
         let collider_handle = create_test_collider_handle();
-        let rid = Rid::new(1234);
         let rb_handle = create_test_rigid_body_handle();
         let instance_id = 123;
         let shape_index = 0;
         let collision_object_type = CollisionObjectType::Body;
         state.add_removed_collider(
             collider_handle,
-            rid,
             rb_handle,
             instance_id,
             shape_index,
@@ -398,7 +383,6 @@ mod tests {
         let removed_info = state.get_removed_collider_info(&collider_handle);
         assert!(removed_info.is_some());
         let removed_info = removed_info.unwrap();
-        assert_eq!(removed_info.rid, rid);
         assert_eq!(removed_info.rb_handle, rb_handle);
         assert_eq!(removed_info.instance_id, instance_id);
         assert_eq!(removed_info.shape_index, shape_index);

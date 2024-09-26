@@ -6,6 +6,7 @@ use godot::prelude::*;
 
 use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::PhysicsRids;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
@@ -43,12 +44,18 @@ impl IRapierShape for RapierRectangleShape {
         true
     }
 
-    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
+    fn set_data(
+        &mut self,
+        data: Variant,
+        physics_engine: &mut PhysicsEngine,
+        physics_rids: &mut PhysicsRids,
+    ) {
         if let Ok(v) = data.try_to() {
             let half_extents = v;
             let v = vector_to_rapier(half_extents) * 2.0;
             let handle = physics_engine.shape_create_box(v);
-            self.base.set_handle_and_reset_aabb(handle, physics_engine);
+            self.base
+                .set_handle_and_reset_aabb(handle, physics_engine, physics_rids);
         } else {
             godot_error!("Invalid data type for RapierRectangleShape");
         }

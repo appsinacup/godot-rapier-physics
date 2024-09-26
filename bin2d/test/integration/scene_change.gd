@@ -7,7 +7,7 @@ extends Node2D
 func _ready() -> void:
 	FileAccess.open("user://rigidbody.json", FileAccess.WRITE).store_string(RapierPhysicsServer2D.body_export_json(rigidbody.get_rid()))
 	FileAccess.open("user://space.json", FileAccess.WRITE).store_string(RapierPhysicsServer2D.space_export_json(space))
-	await get_tree().create_timer(0.1).timeout
+	await get_tree().create_timer(1.0).timeout
 	get_tree().reload_current_scene()
 
 

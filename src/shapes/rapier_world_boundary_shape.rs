@@ -6,6 +6,7 @@ use godot::prelude::*;
 
 use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::PhysicsRids;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
@@ -38,7 +39,12 @@ impl IRapierShape for RapierWorldBoundaryShape {
     }
 
     #[cfg(feature = "dim2")]
-    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
+    fn set_data(
+        &mut self,
+        data: Variant,
+        physics_engine: &mut PhysicsEngine,
+        physics_rids: &mut PhysicsRids,
+    ) {
         use crate::types::variant_to_float;
         if data.get_type() != VariantType::ARRAY {
             godot_error!("RapierWorldBoundaryShape data must be an array.");
@@ -62,11 +68,17 @@ impl IRapierShape for RapierWorldBoundaryShape {
         let normal = arr.at(0).try_to().unwrap_or_default();
         let d = variant_to_float(&arr.at(1));
         let handle = physics_engine.shape_create_halfspace(vector_to_rapier(normal), d);
-        self.base.set_handle_and_reset_aabb(handle, physics_engine);
+        self.base
+            .set_handle_and_reset_aabb(handle, physics_engine, physics_rids);
     }
 
     #[cfg(feature = "dim3")]
-    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
+    fn set_data(
+        &mut self,
+        data: Variant,
+        physics_engine: &mut PhysicsEngine,
+        physics_rids: &mut PhysicsRids,
+    ) {
         if data.get_type() != VariantType::PLANE {
             godot_error!("RapierWorldBoundaryShape data must be a plane.");
             return;
@@ -75,7 +87,8 @@ impl IRapierShape for RapierWorldBoundaryShape {
         let normal = plane.normal;
         let d = plane.d;
         let handle = physics_engine.shape_create_halfspace(vector_to_rapier(normal), d);
-        self.base.set_handle_and_reset_aabb(handle, physics_engine);
+        self.base
+            .set_handle_and_reset_aabb(handle, physics_engine, physics_rids);
     }
 
     #[cfg(feature = "dim2")]

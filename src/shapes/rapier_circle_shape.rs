@@ -6,6 +6,7 @@ use godot::prelude::*;
 
 use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::PhysicsRids;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::shapes::rapier_shape::*;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
@@ -44,14 +45,20 @@ impl IRapierShape for RapierCircleShape {
         true
     }
 
-    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
+    fn set_data(
+        &mut self,
+        data: Variant,
+        physics_engine: &mut PhysicsEngine,
+        physics_rids: &mut PhysicsRids,
+    ) {
         let radius = variant_to_float(&data);
         if radius <= 0.0 {
             godot_error!("RapierCircleShape radius must be positive. Got {}", radius);
             return;
         }
         let handle = physics_engine.shape_create_circle(radius);
-        self.base.set_handle_and_reset_aabb(handle, physics_engine);
+        self.base
+            .set_handle_and_reset_aabb(handle, physics_engine, physics_rids);
     }
 
     fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
@@ -97,7 +104,11 @@ mod tests {
                 base: RapierShapeBase::new(Rid::Invalid),
             };
             let data = Variant::from(1.5);
-            circle_shape.set_data(data, &mut physics_data().physics_engine);
+            circle_shape.set_data(
+                data,
+                &mut physics_data().physics_engine,
+                &mut physics_data().rids,
+            );
             assert!(circle_shape.get_base().is_valid());
             assert_eq!(
                 circle_shape.get_data(&physics_data().physics_engine),
@@ -105,7 +116,7 @@ mod tests {
             );
             circle_shape
                 .get_mut_base()
-                .destroy_shape(&mut physics_data().physics_engine);
+                .destroy_shape(&mut physics_data().physics_engine, &mut physics_data().rids);
             assert!(!circle_shape.get_base().is_valid());
         }
     }

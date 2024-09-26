@@ -14,6 +14,7 @@ use hashbrown::HashMap;
 use rapier::geometry::ColliderHandle;
 use rapier::prelude::RigidBodyHandle;
 use servers::rapier_physics_singleton::get_body_rid;
+use servers::rapier_physics_singleton::get_shape_rid;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsRids;
 use servers::rapier_physics_singleton::PhysicsShapes;
@@ -31,9 +32,7 @@ use crate::*;
 )]
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 struct MonitorInfo {
-    // TODO set this correct after import
-    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "default_rid"))]
-    pub rid: Rid,
+    pub handle: RigidBodyHandle,
     pub instance_id: u64,
     pub object_shape_index: u32,
     pub area_shape_index: u32,
@@ -206,7 +205,6 @@ impl RapierArea {
         collider_handle: ColliderHandle,
         body: &mut Option<&mut RapierCollisionObject>,
         body_shape: usize,
-        body_rid: Rid,
         body_handle: RigidBodyHandle,
         body_instance_id: u64,
         area_collider_handle: ColliderHandle,
@@ -240,7 +238,7 @@ impl RapierArea {
             self.state.monitored_objects.insert(
                 handle_pair_hash,
                 MonitorInfo {
-                    rid: body_rid,
+                    handle: body_handle,
                     instance_id: body_instance_id,
                     object_shape_index: body_shape as u32,
                     area_shape_index: area_shape as u32,
@@ -260,7 +258,6 @@ impl RapierArea {
         collider_handle: ColliderHandle,
         body: &mut Option<&mut RapierCollisionObject>,
         body_shape: usize,
-        body_rid: Rid,
         body_handle: RigidBodyHandle,
         body_instance_id: u64,
         area_collider_handle: ColliderHandle,
@@ -293,7 +290,7 @@ impl RapierArea {
             self.state.monitored_objects.insert(
                 handle_pair_hash,
                 MonitorInfo {
-                    rid: body_rid,
+                    handle: body_handle,
                     instance_id: body_instance_id,
                     object_shape_index: body_shape as u32,
                     area_shape_index: area_shape as u32,
@@ -313,7 +310,6 @@ impl RapierArea {
         collider_handle: ColliderHandle,
         other_area: &mut Option<&mut RapierCollisionObject>,
         other_area_shape: usize,
-        other_area_rid: Rid,
         other_area_handle: RigidBodyHandle,
         other_area_instance_id: u64,
         area_collider_handle: ColliderHandle,
@@ -349,7 +345,7 @@ impl RapierArea {
             self.state.monitored_objects.insert(
                 handle_pair_hash,
                 MonitorInfo {
-                    rid: other_area_rid,
+                    handle: other_area_handle,
                     instance_id: other_area_instance_id,
                     object_shape_index: other_area_shape as u32,
                     area_shape_index: area_shape as u32,
@@ -369,7 +365,6 @@ impl RapierArea {
         collider_handle: ColliderHandle,
         other_area: &mut Option<&mut RapierCollisionObject>,
         other_area_shape: usize,
-        other_area_rid: Rid,
         other_area_handle: RigidBodyHandle,
         other_area_instance_id: u64,
         area_collider_handle: ColliderHandle,
@@ -405,7 +400,7 @@ impl RapierArea {
             self.state.monitored_objects.insert(
                 handle_pair_hash,
                 MonitorInfo {
-                    rid: other_area_rid,
+                    handle: other_area_handle,
                     instance_id: other_area_instance_id,
                     object_shape_index: other_area_shape as u32,
                     area_shape_index: area_shape as u32,
@@ -461,7 +456,6 @@ impl RapierArea {
         &mut self,
         callback: Callable,
         physics_engine: &mut PhysicsEngine,
-        physics_shapes: &mut PhysicsShapes,
         physics_spaces: &mut PhysicsSpaces,
         physics_rids: &PhysicsRids,
     ) {
@@ -470,14 +464,13 @@ impl RapierArea {
         } else {
             self.monitor_callback = None;
         }
-        self.recreate_shapes(physics_engine, physics_shapes, physics_spaces, physics_rids);
+        self.recreate_shapes(physics_engine, physics_spaces, physics_rids);
     }
 
     pub fn set_area_monitor_callback(
         &mut self,
         callback: Callable,
         physics_engine: &mut PhysicsEngine,
-        physics_shapes: &mut PhysicsShapes,
         physics_spaces: &mut PhysicsSpaces,
         physics_rids: &PhysicsRids,
     ) {
@@ -486,7 +479,7 @@ impl RapierArea {
         } else {
             self.area_monitor_callback = None;
         }
-        self.recreate_shapes(physics_engine, physics_shapes, physics_spaces, physics_rids);
+        self.recreate_shapes(physics_engine, physics_spaces, physics_rids);
     }
 
     pub fn set_param(
@@ -685,12 +678,11 @@ impl RapierArea {
         &mut self,
         monitorable: bool,
         physics_engine: &mut PhysicsEngine,
-        physics_shapes: &mut PhysicsShapes,
         physics_spaces: &mut PhysicsSpaces,
         physics_rids: &PhysicsRids,
     ) {
         self.monitorable = monitorable;
-        self.recreate_shapes(physics_engine, physics_shapes, physics_spaces, physics_rids);
+        self.recreate_shapes(physics_engine, physics_spaces, physics_rids);
     }
 
     pub fn is_monitorable(&self) -> bool {
@@ -701,7 +693,7 @@ impl RapierArea {
         self.priority
     }
 
-    pub fn get_queries(&self) -> Vec<(Callable, Vec<Variant>)> {
+    pub fn get_queries(&self, physics_rids: &PhysicsRids) -> Vec<(Callable, Vec<Variant>)> {
         let mut queries = Vec::default();
         if self.state.monitored_objects.is_empty() {
             return queries;
@@ -711,10 +703,11 @@ impl RapierArea {
                 godot_error!("Invalid monitor state");
                 continue;
             }
+            let rid = get_body_rid(monitor_info.handle, physics_rids);
             let arg_array = if monitor_info.state > 0 {
                 vec![
                     AreaBodyStatus::ADDED.to_variant(),
-                    monitor_info.rid.to_variant(),
+                    rid.to_variant(),
                     monitor_info.instance_id.to_variant(),
                     monitor_info.object_shape_index.to_variant(),
                     monitor_info.area_shape_index.to_variant(),
@@ -722,7 +715,7 @@ impl RapierArea {
             } else {
                 vec![
                     AreaBodyStatus::REMOVED.to_variant(),
-                    monitor_info.rid.to_variant(),
+                    rid.to_variant(),
                     monitor_info.instance_id.to_variant(),
                     monitor_info.object_shape_index.to_variant(),
                     monitor_info.area_shape_index.to_variant(),
@@ -834,7 +827,6 @@ impl IRapierCollisionObject for RapierArea {
         p_space: Rid,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
-        physics_shapes: &mut PhysicsShapes,
         physics_rids: &mut PhysicsRids,
     ) {
         if p_space == self.base.get_space(physics_rids) {
@@ -842,7 +834,7 @@ impl IRapierCollisionObject for RapierArea {
         }
         self.base
             .set_space(p_space, physics_engine, physics_spaces, physics_rids);
-        self.recreate_shapes(physics_engine, physics_shapes, physics_spaces, physics_rids);
+        self.recreate_shapes(physics_engine, physics_spaces, physics_rids);
     }
 
     fn add_shape(
@@ -893,7 +885,6 @@ impl IRapierCollisionObject for RapierArea {
         p_transform: Transform,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
-        physics_shapes: &mut PhysicsShapes,
         physics_rids: &PhysicsRids,
     ) {
         RapierCollisionObjectBase::set_shape_transform(
@@ -902,7 +893,6 @@ impl IRapierCollisionObject for RapierArea {
             p_transform,
             physics_engine,
             physics_spaces,
-            physics_shapes,
             physics_rids,
         );
     }
@@ -913,7 +903,6 @@ impl IRapierCollisionObject for RapierArea {
         p_disabled: bool,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
-        physics_shapes: &mut PhysicsShapes,
         physics_rids: &PhysicsRids,
     ) {
         RapierCollisionObjectBase::set_shape_disabled(
@@ -922,14 +911,13 @@ impl IRapierCollisionObject for RapierArea {
             p_disabled,
             physics_engine,
             physics_spaces,
-            physics_shapes,
             physics_rids,
         );
     }
 
     fn remove_shape_rid(
         &mut self,
-        shape: ShapeHandle,
+        shape: Rid,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
@@ -938,7 +926,7 @@ impl IRapierCollisionObject for RapierArea {
         // remove a shape, all the times it appears
         let mut i = 0;
         while i < self.base.state.shapes.len() {
-            if self.base.state.shapes[i].handle == shape {
+            if get_shape_rid(self.base.state.shapes[i].handle, physics_rids) == shape {
                 self.remove_shape_idx(
                     i,
                     physics_engine,
@@ -994,14 +982,12 @@ impl IRapierCollisionObject for RapierArea {
     fn recreate_shapes(
         &mut self,
         physics_engine: &mut PhysicsEngine,
-        physics_shapes: &mut PhysicsShapes,
         physics_spaces: &mut PhysicsSpaces,
         physics_rids: &PhysicsRids,
     ) {
         RapierCollisionObjectBase::recreate_shapes(
             self,
             physics_engine,
-            physics_shapes,
             physics_spaces,
             physics_rids,
         );
@@ -1009,14 +995,16 @@ impl IRapierCollisionObject for RapierArea {
 
     fn shape_changed(
         &mut self,
-        p_shape: ShapeHandle,
+        old_shape_handle: ShapeHandle,
+        new_shape_handle: ShapeHandle,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_rids: &PhysicsRids,
     ) {
         RapierCollisionObjectBase::shape_changed(
             self,
-            p_shape,
+            old_shape_handle,
+            new_shape_handle,
             physics_engine,
             physics_spaces,
             physics_rids,

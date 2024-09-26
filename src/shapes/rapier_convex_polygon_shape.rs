@@ -6,6 +6,7 @@ use godot::prelude::*;
 
 use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::PhysicsRids;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
@@ -58,7 +59,12 @@ impl IRapierShape for RapierConvexPolygonShape {
         true
     }
 
-    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
+    fn set_data(
+        &mut self,
+        data: Variant,
+        physics_engine: &mut PhysicsEngine,
+        physics_rids: &mut PhysicsRids,
+    ) {
         let points;
         match data.get_type() {
             VariantType::PACKED_VECTOR2_ARRAY | VariantType::PACKED_VECTOR3_ARRAY => {
@@ -118,7 +124,8 @@ impl IRapierShape for RapierConvexPolygonShape {
                 new_points.len(),
             );
         }
-        self.base.set_handle_and_reset_aabb(handle, physics_engine);
+        self.base
+            .set_handle_and_reset_aabb(handle, physics_engine, physics_rids);
     }
 
     fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
@@ -172,7 +179,11 @@ mod tests {
                 Vector::new(5.0, 3.0),
                 Vector::new(3.0, 5.0),
             ]);
-            convex_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
+            convex_shape.set_data(
+                arr.to_variant(),
+                &mut physics_data().physics_engine,
+                &mut physics_data().rids,
+            );
             assert!(convex_shape.get_base().is_valid());
             let data: PackedVectorArray = convex_shape
                 .get_data(&physics_data().physics_engine)
@@ -185,7 +196,7 @@ mod tests {
             assert_eq!(data[3], Vector::new(3.0, 5.0));
             convex_shape
                 .get_mut_base()
-                .destroy_shape(&mut physics_data().physics_engine);
+                .destroy_shape(&mut physics_data().physics_engine, &mut physics_data().rids);
             assert!(!convex_shape.get_base().is_valid());
         }
 
@@ -201,7 +212,11 @@ mod tests {
                 Vector3::new(1.0, 0.0, 0.0),
                 Vector3::new(2.0, 2.0, 2.0),
             ]);
-            convex_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
+            convex_shape.set_data(
+                arr.to_variant(),
+                &mut physics_data().physics_engine,
+                &mut physics_data().rids,
+            );
             let data: PackedVectorArray = convex_shape
                 .get_data(&physics_data().physics_engine)
                 .try_to()
@@ -214,7 +229,7 @@ mod tests {
             assert!(convex_shape.get_base().is_valid());
             convex_shape
                 .get_mut_base()
-                .destroy_shape(&mut physics_data().physics_engine);
+                .destroy_shape(&mut physics_data().physics_engine, &mut physics_data().rids);
             assert!(!convex_shape.get_base().is_valid());
         }
     }

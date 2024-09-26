@@ -16,7 +16,7 @@ pub type PhysicsActiveSpaces = HashMap<WorldHandle, Rid>;
 pub enum PhysicsType {
     World,
     RigidBody,
-    Shape
+    Shape,
 }
 pub type PhysicsRids = HashMap<(PhysicsType, Index), Rid>;
 pub type PhysicsCollisionObjects = HashMap<Rid, RapierCollisionObject>;
