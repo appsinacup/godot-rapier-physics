@@ -1870,7 +1870,7 @@ impl RapierBody {
         linear_velocity + angular_velocity.cross(rel_pos - self.state.center_of_mass)
     }
 
-    pub fn get_aabb(&self, physics_shapes: &PhysicsShapes) -> Rect {
+    pub fn get_aabb(&self, physics_shapes: &PhysicsShapes, physics_rids: &PhysicsRids) -> Rect {
         let mut shapes_found = false;
         let mut body_aabb = Rect::default();
         let shape_count = self.base.get_shape_count() as usize;
@@ -1878,7 +1878,7 @@ impl RapierBody {
             if self.base.is_shape_disabled(i) {
                 continue;
             }
-            if let Some(shape) = physics_shapes.get(&self.base.get_shape(i)) {
+            if let Some(shape) = physics_shapes.get(&self.base.get_shape(physics_rids, i)) {
                 let mut shape_transform = self.base.get_shape_transform(i);
                 if !shapes_found {
                     body_aabb = shape.get_base().get_aabb(shape_transform.origin);
@@ -2105,7 +2105,7 @@ impl IRapierCollisionObject for RapierBody {
 
     fn add_shape(
         &mut self,
-        p_shape: godot::prelude::Rid,
+        p_shape: ShapeHandle,
         p_transform: Transform,
         p_disabled: bool,
         physics_engine: &mut PhysicsEngine,
@@ -2128,7 +2128,7 @@ impl IRapierCollisionObject for RapierBody {
     fn set_shape(
         &mut self,
         p_index: usize,
-        p_shape: Rid,
+        p_shape: ShapeHandle,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
@@ -2187,7 +2187,7 @@ impl IRapierCollisionObject for RapierBody {
 
     fn remove_shape_rid(
         &mut self,
-        shape: Rid,
+        shape: ShapeHandle,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
@@ -2196,7 +2196,7 @@ impl IRapierCollisionObject for RapierBody {
         // remove a shape, all the times it appears
         let mut i = 0;
         while i < self.base.state.shapes.len() {
-            if self.base.state.shapes[i].shape == shape {
+            if self.base.state.shapes[i].handle == shape {
                 self.remove_shape_idx(
                     i,
                     physics_engine,
@@ -2233,7 +2233,6 @@ impl IRapierCollisionObject for RapierBody {
         shape: CollisionObjectShape,
         p_shape_index: usize,
         physics_engine: &mut PhysicsEngine,
-        physics_shapes: &mut PhysicsShapes,
     ) -> ColliderHandle {
         if !self.base.is_valid() {
             return ColliderHandle::invalid();
@@ -2241,7 +2240,7 @@ impl IRapierCollisionObject for RapierBody {
         let mat = self.init_material();
         let handle =
             self.base
-                .create_shape(shape, p_shape_index, mat, physics_engine, physics_shapes);
+                .create_shape(shape, p_shape_index, mat, physics_engine);
         self.init_collider(handle, self.base.get_space_handle(), physics_engine);
         handle
     }
@@ -2289,9 +2288,8 @@ impl IRapierCollisionObject for RapierBody {
 
     fn shape_changed(
         &mut self,
-        p_shape: Rid,
+        p_shape: ShapeHandle,
         physics_engine: &mut PhysicsEngine,
-        physics_shapes: &mut PhysicsShapes,
         physics_spaces: &mut PhysicsSpaces,
         physics_rids: &PhysicsRids,
     ) {
@@ -2299,7 +2297,6 @@ impl IRapierCollisionObject for RapierBody {
             self,
             p_shape,
             physics_engine,
-            physics_shapes,
             physics_spaces,
             physics_rids,
         );

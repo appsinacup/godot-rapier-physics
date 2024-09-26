@@ -847,7 +847,7 @@ impl IRapierCollisionObject for RapierArea {
 
     fn add_shape(
         &mut self,
-        p_shape: godot::prelude::Rid,
+        p_shape: ShapeHandle,
         p_transform: Transform,
         p_disabled: bool,
         physics_engine: &mut PhysicsEngine,
@@ -870,7 +870,7 @@ impl IRapierCollisionObject for RapierArea {
     fn set_shape(
         &mut self,
         p_index: usize,
-        p_shape: Rid,
+        p_shape: ShapeHandle,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
@@ -929,7 +929,7 @@ impl IRapierCollisionObject for RapierArea {
 
     fn remove_shape_rid(
         &mut self,
-        shape: Rid,
+        shape: ShapeHandle,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
@@ -938,7 +938,7 @@ impl IRapierCollisionObject for RapierArea {
         // remove a shape, all the times it appears
         let mut i = 0;
         while i < self.base.state.shapes.len() {
-            if self.base.state.shapes[i].shape == shape {
+            if self.base.state.shapes[i].handle == shape {
                 self.remove_shape_idx(
                     i,
                     physics_engine,
@@ -975,14 +975,13 @@ impl IRapierCollisionObject for RapierArea {
         shape: CollisionObjectShape,
         p_shape_index: usize,
         physics_engine: &mut PhysicsEngine,
-        physics_shapes: &mut PhysicsShapes,
     ) -> ColliderHandle {
         if !self.base.is_valid() {
             return ColliderHandle::invalid();
         }
         let mat = self.init_material();
         self.base
-            .create_shape(shape, p_shape_index, mat, physics_engine, physics_shapes)
+            .create_shape(shape, p_shape_index, mat, physics_engine)
     }
 
     fn init_material(&self) -> Material {
@@ -1010,9 +1009,8 @@ impl IRapierCollisionObject for RapierArea {
 
     fn shape_changed(
         &mut self,
-        p_shape: Rid,
+        p_shape: ShapeHandle,
         physics_engine: &mut PhysicsEngine,
-        physics_shapes: &mut PhysicsShapes,
         physics_spaces: &mut PhysicsSpaces,
         physics_rids: &PhysicsRids,
     ) {
@@ -1020,7 +1018,6 @@ impl IRapierCollisionObject for RapierArea {
             self,
             p_shape,
             physics_engine,
-            physics_shapes,
             physics_spaces,
             physics_rids,
         );

@@ -36,7 +36,7 @@ pub trait IRapierCollisionObject: Sync {
     #[allow(clippy::too_many_arguments)]
     fn add_shape(
         &mut self,
-        p_shape: Rid,
+        p_shape: ShapeHandle,
         p_transform: Transform,
         p_disabled: bool,
         physics_engine: &mut PhysicsEngine,
@@ -47,7 +47,7 @@ pub trait IRapierCollisionObject: Sync {
     fn set_shape(
         &mut self,
         shape_idx: usize,
-        p_shape: Rid,
+        p_shape: ShapeHandle,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
@@ -81,7 +81,7 @@ pub trait IRapierCollisionObject: Sync {
     );
     fn remove_shape_rid(
         &mut self,
-        shape_rid: Rid,
+        shape_rid: ShapeHandle,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
@@ -92,7 +92,6 @@ pub trait IRapierCollisionObject: Sync {
         shape: CollisionObjectShape,
         p_shape_index: usize,
         physics_engine: &mut PhysicsEngine,
-        physics_shapes: &mut PhysicsShapes,
     ) -> ColliderHandle;
     fn init_material(&self) -> Material;
     fn shapes_changed(
@@ -103,9 +102,8 @@ pub trait IRapierCollisionObject: Sync {
     );
     fn shape_changed(
         &mut self,
-        p_shape: Rid,
+        p_shape: ShapeHandle,
         physics_engine: &mut PhysicsEngine,
-        physics_shapes: &mut PhysicsShapes,
         physics_spaces: &mut PhysicsSpaces,
         physics_rids: &PhysicsRids,
     );
@@ -189,7 +187,7 @@ macro_rules! impl_rapier_collision_object_trait {
 
             fn add_shape(
                 &mut self,
-                p_shape: Rid,
+                p_shape: ShapeHandle,
                 p_transform: Transform,
                 p_disabled: bool,
                 physics_engine: &mut PhysicsEngine,
@@ -205,7 +203,7 @@ macro_rules! impl_rapier_collision_object_trait {
             fn set_shape(
                 &mut self,
                 shape_idx: usize,
-                p_shape: Rid,
+                p_shape: ShapeHandle,
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
                 physics_shapes: &mut PhysicsShapes,
@@ -259,7 +257,7 @@ macro_rules! impl_rapier_collision_object_trait {
 
             fn remove_shape_rid(
                 &mut self,
-                shape_rid: Rid,
+                shape_rid: ShapeHandle,
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
                 physics_shapes: &mut PhysicsShapes,
@@ -275,10 +273,9 @@ macro_rules! impl_rapier_collision_object_trait {
                 shape: CollisionObjectShape,
                 p_shape_index: usize,
                 physics_engine: &mut PhysicsEngine,
-                physics_shapes: &mut PhysicsShapes,
             ) -> ColliderHandle {
                 match self {
-                    $(Self::$variant(co) => co.create_shape(shape, p_shape_index, physics_engine, physics_shapes),)*
+                    $(Self::$variant(co) => co.create_shape(shape, p_shape_index, physics_engine),)*
                 }
             }
 
@@ -301,14 +298,13 @@ macro_rules! impl_rapier_collision_object_trait {
 
             fn shape_changed(
                 &mut self,
-                p_shape: Rid,
+                p_shape: ShapeHandle,
                 physics_engine: &mut PhysicsEngine,
-                physics_shapes: &mut PhysicsShapes,
                 physics_spaces: &mut PhysicsSpaces,
                 physics_rids: &PhysicsRids,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.shape_changed(p_shape, physics_engine, physics_shapes, physics_spaces, physics_rids),)*
+                    $(Self::$variant(co) => co.shape_changed(p_shape, physics_engine, physics_spaces, physics_rids),)*
                 }
             }
 

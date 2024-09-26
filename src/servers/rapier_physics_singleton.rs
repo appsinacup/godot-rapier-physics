@@ -16,6 +16,7 @@ pub type PhysicsActiveSpaces = HashMap<WorldHandle, Rid>;
 pub enum PhysicsType {
     World,
     RigidBody,
+    Shape
 }
 pub type PhysicsRids = HashMap<(PhysicsType, Index), Rid>;
 pub type PhysicsCollisionObjects = HashMap<Rid, RapierCollisionObject>;
@@ -50,6 +51,11 @@ pub fn physics_data() -> &'static mut PhysicsData {
         SINGLETON.as_mut().unwrap()
     }
 }
+pub fn get_shape_rid(handle: ShapeHandle, physics_rids: &PhysicsRids) -> Rid {
+    return *physics_rids
+        .get(&(PhysicsType::Shape, handle))
+        .unwrap_or(&Rid::Invalid);
+}
 pub fn get_body_rid(handle: RigidBodyHandle, physics_rids: &PhysicsRids) -> Rid {
     return *physics_rids
         .get(&(PhysicsType::RigidBody, handle.0))
@@ -59,6 +65,9 @@ pub fn get_space_rid(handle: WorldHandle, physics_rids: &PhysicsRids) -> Rid {
     return *physics_rids
         .get(&(PhysicsType::World, handle))
         .unwrap_or(&Rid::Invalid);
+}
+pub fn insert_shape_rid(handle: ShapeHandle, rid: Rid, physics_rids: &mut PhysicsRids) {
+    physics_rids.insert((PhysicsType::Shape, handle), rid);
 }
 pub fn insert_body_rid(handle: RigidBodyHandle, rid: Rid, physics_rids: &mut PhysicsRids) {
     physics_rids.insert((PhysicsType::RigidBody, handle.0), rid);
@@ -71,4 +80,7 @@ pub fn remove_body_rid(handle: RigidBodyHandle, physics_rids: &mut PhysicsRids) 
 }
 pub fn remove_space_rid(handle: WorldHandle, physics_rids: &mut PhysicsRids) {
     physics_rids.remove(&(PhysicsType::World, handle));
+}
+pub fn remove_shape_rid(handle: ShapeHandle, physics_rids: &mut PhysicsRids) {
+    physics_rids.remove(&(PhysicsType::Shape, handle));
 }

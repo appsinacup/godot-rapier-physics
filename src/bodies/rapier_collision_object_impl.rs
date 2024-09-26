@@ -4,7 +4,9 @@ use rapier::geometry::ColliderHandle;
 use super::rapier_collision_object::IRapierCollisionObject;
 use super::rapier_collision_object_base::CollisionObjectShape;
 use super::rapier_collision_object_base::RapierCollisionObjectBase;
+use crate::rapier_wrapper::handle::ShapeHandle;
 use crate::rapier_wrapper::prelude::PhysicsEngine;
+use crate::servers::rapier_physics_singleton::get_shape_rid;
 use crate::servers::rapier_physics_singleton::PhysicsRids;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::servers::rapier_physics_singleton::PhysicsSpaces;
@@ -39,12 +41,10 @@ impl RapierCollisionObjectBase {
                     collision_object.get_base().state.shapes[i],
                     i,
                     physics_engine,
-                    physics_shapes,
                 );
             collision_object.get_base().update_shape_transform(
                 &collision_object.get_base().state.shapes[i],
                 physics_engine,
-                physics_shapes,
             );
         }
     }
@@ -52,7 +52,7 @@ impl RapierCollisionObjectBase {
     #[allow(clippy::too_many_arguments)]
     pub(super) fn add_shape(
         collision_object: &mut dyn IRapierCollisionObject,
-        p_shape: godot::prelude::Rid,
+        p_shape: ShapeHandle,
         p_transform: Transform,
         p_disabled: bool,
         physics_engine: &mut PhysicsEngine,
@@ -62,7 +62,7 @@ impl RapierCollisionObjectBase {
     ) {
         let mut shape = CollisionObjectShape {
             xform: p_transform,
-            shape: p_shape,
+            handle: p_shape,
             disabled: p_disabled,
             one_way_collision: false,
             one_way_collision_margin: 0.0,
@@ -73,16 +73,14 @@ impl RapierCollisionObjectBase {
                 shape,
                 collision_object.get_base().state.shapes.len(),
                 physics_engine,
-                physics_shapes,
             );
             collision_object.get_base().update_shape_transform(
                 &shape,
                 physics_engine,
-                physics_shapes,
             );
         }
         collision_object.get_mut_base().state.shapes.push(shape);
-        if let Some(shape) = physics_shapes.get_mut(&p_shape) {
+        if let Some(shape) = physics_shapes.get_mut(&get_shape_rid(p_shape, physics_rids)) {
             shape
                 .get_mut_base()
                 .add_owner(collision_object.get_base().get_body_handle());
@@ -94,15 +92,14 @@ impl RapierCollisionObjectBase {
 
     pub(super) fn shape_changed(
         collision_object: &mut dyn IRapierCollisionObject,
-        p_shape: Rid,
+        p_shape: ShapeHandle,
         physics_engine: &mut PhysicsEngine,
-        physics_shapes: &mut PhysicsShapes,
         physics_spaces: &mut PhysicsSpaces,
         physics_rids: &PhysicsRids,
     ) {
         for i in 0..collision_object.get_base().state.shapes.len() {
             let shape = collision_object.get_base().state.shapes[i];
-            if shape.shape != p_shape || shape.disabled {
+            if shape.handle != p_shape || shape.disabled {
                 continue;
             }
             if collision_object.get_base().state.shapes[i].collider_handle
@@ -118,12 +115,10 @@ impl RapierCollisionObjectBase {
                     i,
                     collision_object.init_material(),
                     physics_engine,
-                    physics_shapes,
                 );
             collision_object.get_base().update_shape_transform(
                 &collision_object.get_base().state.shapes[i],
                 physics_engine,
-                physics_shapes,
             );
         }
         collision_object.shapes_changed(physics_engine, physics_spaces, physics_rids);
@@ -152,7 +147,7 @@ impl RapierCollisionObjectBase {
         }
         let shape = &mut collision_object.get_mut_base().state.shapes[p_index];
         shape.collider_handle = ColliderHandle::invalid();
-        if let Some(shape) = physics_shapes.get_mut(&shape.shape) {
+        if let Some(shape) = physics_shapes.get_mut(&get_shape_rid(shape.handle, physics_rids)) {
             shape
                 .get_mut_base()
                 .remove_owner(collision_object.get_base().get_body_handle());
@@ -169,7 +164,7 @@ impl RapierCollisionObjectBase {
     pub(super) fn set_shape(
         collision_object: &mut dyn IRapierCollisionObject,
         p_index: usize,
-        p_shape: Rid,
+        p_shape: ShapeHandle,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
@@ -187,13 +182,13 @@ impl RapierCollisionObjectBase {
                 physics_rids,
             );
         let shape = collision_object.get_base().state.shapes[p_index];
-        if let Some(shape) = physics_shapes.get_mut(&shape.shape) {
+        if let Some(shape) = physics_shapes.get_mut(&get_shape_rid(shape.handle, physics_rids)) {
             shape
                 .get_mut_base()
                 .remove_owner(collision_object.get_base().get_body_handle());
         }
-        collision_object.get_mut_base().state.shapes[p_index].shape = p_shape;
-        if let Some(shape) = physics_shapes.get_mut(&p_shape) {
+        collision_object.get_mut_base().state.shapes[p_index].handle = p_shape;
+        if let Some(shape) = physics_shapes.get_mut(&get_shape_rid(shape.handle, physics_rids)) {
             shape
                 .get_mut_base()
                 .add_owner(collision_object.get_base().get_body_handle());
@@ -205,12 +200,10 @@ impl RapierCollisionObjectBase {
                     p_index,
                     collision_object.init_material(),
                     physics_engine,
-                    physics_shapes,
                 );
             collision_object.get_base().update_shape_transform(
                 &shape,
                 physics_engine,
-                physics_shapes,
             );
         }
         if collision_object.get_base().is_space_valid() {
@@ -234,7 +227,7 @@ impl RapierCollisionObjectBase {
         let shape = &collision_object.get_base().state.shapes[p_index];
         collision_object
             .get_base()
-            .update_shape_transform(shape, physics_engine, physics_shapes);
+            .update_shape_transform(shape, physics_engine);
         if collision_object.get_base().is_space_valid() {
             collision_object.shapes_changed(physics_engine, physics_spaces, physics_rids);
         }
@@ -275,12 +268,10 @@ impl RapierCollisionObjectBase {
                     p_index,
                     collision_object.init_material(),
                     physics_engine,
-                    physics_shapes,
                 );
             collision_object.get_base().update_shape_transform(
                 &shape,
                 physics_engine,
-                physics_shapes,
             );
         }
         if collision_object.get_base().is_space_valid() {

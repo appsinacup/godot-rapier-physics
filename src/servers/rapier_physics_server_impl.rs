@@ -2232,7 +2232,7 @@ impl RapierPhysicsServerImpl {
                     .get_mut(&get_body_rid(*owner, &physics_data.rids))
                 {
                     body.remove_shape_rid(
-                        shape.get_base().get_rid(),
+                        shape.get_base().get_handle(),
                         &mut physics_data.physics_engine,
                         &mut physics_data.spaces,
                         &mut physics_data.shapes,

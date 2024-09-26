@@ -18,7 +18,6 @@ dim2 = []
 dim3 = []
 single = []
 double = []
-# TODO add feature for "glam/libm"
 enhanced-determinism = ["rapier2d/enhanced-determinism", "rapier2d-f64/enhanced-determinism", "rapier3d/enhanced-determinism", "rapier3d-f64/enhanced-determinism"]
 serde-serialize = ["serde", "hashbrown/serde", "bincode", "serde_json", "godot/serde", "rapier2d/serde-serialize", "rapier2d-f64/serde-serialize", "rapier3d/serde-serialize", "rapier3d-f64/serde-serialize" ]
 simd-stable = ["rapier2d/simd-stable", "rapier2d-f64/simd-stable", "rapier3d/simd-stable", "rapier3d-f64/simd-stable"]
