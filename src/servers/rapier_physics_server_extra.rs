@@ -307,7 +307,7 @@ impl RapierPhysicsServer {
     /// Get the handle of the object by rid. The handle can be saved and used when reloading the scene.
     fn get_handle(rid: Rid) -> Array<i64> {
         let mut array = Array::new();
-        array.resize(2, &0);
+        array.resize(3, &0);
         let Ok(mut physics_singleton) =
             PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
@@ -316,6 +316,7 @@ impl RapierPhysicsServer {
         let handle = physics_singleton.bind_mut().implementation.get_handle(rid);
         array.set(0, handle.0 as i64);
         array.set(1, handle.1 as i64);
+        array.set(2, handle.2 as i64);
         array
     }
 }

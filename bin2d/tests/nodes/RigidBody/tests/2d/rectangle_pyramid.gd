@@ -47,8 +47,6 @@ func test_start() -> void:
 	var pyramid_top_cube := create_generic_expiration_monitor(self, test_head_position, null, simulation_duration)
 	pyramid_top_cube.test_name = "The top cube did not move"
 	
-	FileAccess.open("user://space.json", FileAccess.WRITE).store_string(RapierPhysicsServer2D.space_export_json(get_viewport().world_2d.space))
-	
 func create_pyramid():
 	var pos_y = -0.5 * box_size.y - box_spacing.y + Global.WINDOW_SIZE.y - size_boundary
 	var pos_x

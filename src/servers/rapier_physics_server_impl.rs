@@ -2399,24 +2399,24 @@ impl RapierPhysicsServerImpl {
         }
     }
 
-    pub(super) fn get_handle(&self, rid: Rid) -> (u64, u64) {
+    pub(super) fn get_handle(&self, rid: Rid) -> (u64, u64, u64) {
         let physics_data = physics_data();
         if let Some(shape) = physics_data.shapes.get(&rid) {
             let parts = shape.get_base().get_handle().into_raw_parts();
-            return (parts.0 as u64, parts.1 as u64);
+            return (1, parts.0 as u64, parts.1 as u64);
         } else if let Some(body) = physics_data.collision_objects.get(&rid) {
             let parts = body.get_base().get_body_handle().into_raw_parts();
-            return (parts.0 as u64, parts.1 as u64);
+            return (2, parts.0 as u64, parts.1 as u64);
         } else if let Some(space) = physics_data.spaces.get(&rid) {
             let parts = space.get_state().get_handle().into_raw_parts();
-            return (parts.0 as u64, parts.1 as u64);
+            return (3, parts.0 as u64, parts.1 as u64);
         } else if let Some(joint) = physics_data.joints.get(&rid) {
             let parts = joint.get_base().get_handle().index.into_raw_parts();
-            return (parts.0 as u64, parts.1 as u64);
+            return (4, parts.0 as u64, parts.1 as u64);
         } else if let Some(fluid) = physics_data.fluids.get(&rid) {
             let parts = fluid.get_handle();
-            return (parts.id as u64, parts.generation);
+            return (5, parts.id as u64, parts.generation);
         }
-        (0, 0)
+        (0, 0, 0)
     }
 }
