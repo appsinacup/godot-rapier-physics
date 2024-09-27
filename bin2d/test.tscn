@@ -13,7 +13,7 @@ func _ready() -> void:
 	apply_torque_impulse(50000)
 
 func _process(delta: float) -> void:
-	print(PhysicsServer2D.body_get_param(self, PhysicsServer2D.BODY_PARAM_INERTIA))
+	print(RapierPhysicsServer2D.get_handle(self.get_rid()))
 	
 "
 
@@ -31,6 +31,14 @@ mass = 100.0
 script = SubResource("GDScript_i28bw")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D"]
+shape = SubResource("CircleShape2D_01opr")
+
+[node name="RigidBody2D2" type="RigidBody2D" parent="."]
+position = Vector2(-18, -4)
+mass = 100.0
+script = SubResource("GDScript_i28bw")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D2"]
 shape = SubResource("CircleShape2D_01opr")
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]

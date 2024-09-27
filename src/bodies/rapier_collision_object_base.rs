@@ -304,10 +304,6 @@ impl RapierCollisionObjectBase {
             self.state.space_handle = WorldHandle::default();
             return;
         }
-        let user_data = UserData {
-            part1: self.rid.to_u64(),
-            ..Default::default()
-        };
         let position = vector_to_rapier(self.state.transform.origin);
         let angle = transform_rotation_rapier(&self.state.transform);
         if self.mode == BodyMode::STATIC {
@@ -315,7 +311,6 @@ impl RapierCollisionObjectBase {
                 self.state.space_handle,
                 position,
                 angle,
-                &user_data,
                 BodyType::Static,
                 self.activation_angular_threshold,
                 self.activation_linear_threshold,
@@ -326,7 +321,6 @@ impl RapierCollisionObjectBase {
                 self.state.space_handle,
                 position,
                 angle,
-                &user_data,
                 BodyType::Kinematic,
                 self.activation_angular_threshold,
                 self.activation_linear_threshold,
@@ -337,7 +331,6 @@ impl RapierCollisionObjectBase {
                 self.state.space_handle,
                 position,
                 angle,
-                &user_data,
                 BodyType::Dynamic,
                 self.activation_angular_threshold,
                 self.activation_linear_threshold,
@@ -345,6 +338,13 @@ impl RapierCollisionObjectBase {
             );
         }
         insert_body_rid(self.state.body_handle, self.rid, physics_rids);
+        let mut user_data = UserData::default();
+        self.set_collider_user_data(&mut user_data, 0);
+        physics_engine.body_set_user_data(
+            self.state.space_handle,
+            self.state.body_handle,
+            &user_data,
+        );
     }
 
     pub fn get_space_handle(&self) -> WorldHandle {
@@ -402,7 +402,7 @@ impl RapierCollisionObjectBase {
         let index_u64 = p_user_data.part1;
         let index_high = (index_u64 >> 32) as u32;
         let index_low = (index_u64 & 0xFFFFFFFF) as u32;
-        let rigid_body_handle = RigidBodyHandle::from_raw_parts(index_low, index_high);
+        let rigid_body_handle = RigidBodyHandle::from_raw_parts(index_high, index_low);
         let rid = get_body_rid(rigid_body_handle, physics_rids);
         (rid, p_user_data.part2 as usize)
     }

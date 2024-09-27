@@ -13,7 +13,7 @@ jobs:
         arch: ["x86_64-linux-android", "aarch64-linux-android", "i686-linux-android"]
         precision: [single]
         dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
-        features: [{"feature":"parallel,simd-stable,serde-serialize", "name": "simd-parallel"}, {"feature":"enhanced-determinism,serde-serialize", "name": "enhanced-determinism"}]
+        features: [{"feature":"simd-stable,serde-serialize", "name": "simd-parallel"}, {"feature":"enhanced-determinism,serde-serialize", "name": "enhanced-determinism"}]
 
     steps:
       - uses: actions/checkout@v4

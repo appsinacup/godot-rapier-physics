@@ -4,3 +4,7 @@
 
 [node name="maximum_bodies_before_low_fps" type="Node2D"]
 script = ExtResource("1_ov27a")
+shape1 = 3
+NB_ITERATION = 1
+NUMBER_BODIES_PER_SPAWN = 40
+SPAWN_DELAY = 0.1

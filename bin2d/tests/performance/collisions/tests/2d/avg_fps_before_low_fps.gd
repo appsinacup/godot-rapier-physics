@@ -39,7 +39,7 @@ func test_start() -> void:
 	add_child(label_number)
 	
 	# ground
-	add_child(PhysicsTest2D.get_static_body_with_collision_shape(Rect2(BOTTOM_LEFT - Vector2(5000, 100), Vector2(Global.WINDOW_SIZE.x + 5000, 100)), TestCollisionShape.RECTANGLE, true))
+	add_child(PhysicsTest2D.get_static_body_with_collision_shape(Rect2(BOTTOM_LEFT - Vector2(5000, 100), Vector2(Global.WINDOW_SIZE.x + 10000, 100)), TestCollisionShape.RECTANGLE, true))
 	timer = Timer.new()
 	timer.wait_time = SPAWN_DELAY
 	timer.process_callback =Timer.TIMER_PROCESS_PHYSICS

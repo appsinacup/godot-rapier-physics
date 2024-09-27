@@ -586,6 +586,7 @@ impl PhysicsEngine {
         self.physics_worlds[world_handle] = physics_world;
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn world_step(
         &mut self,
         world_handle: WorldHandle,

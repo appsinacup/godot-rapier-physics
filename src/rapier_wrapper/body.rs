@@ -49,7 +49,6 @@ impl PhysicsEngine {
         world_handle: WorldHandle,
         pos: Vector<Real>,
         rot: Rotation<Real>,
-        user_data: &UserData,
         body_type: BodyType,
         activation_angular_threshold: Real,
         activation_linear_threshold: Real,
@@ -81,11 +80,26 @@ impl PhysicsEngine {
             true,
             true,
         );
-        rigid_body.user_data = user_data.get_data();
         physics_world
             .physics_objects
             .rigid_body_set
             .insert(rigid_body)
+    }
+
+    pub fn body_set_user_data(
+        &mut self,
+        world_handle: WorldHandle,
+        body_handle: RigidBodyHandle,
+        user_data: &UserData,
+    ) {
+        if let Some(physics_world) = self.get_mut_world(world_handle)
+            && let Some(body) = physics_world
+                .physics_objects
+                .rigid_body_set
+                .get_mut(body_handle)
+        {
+            body.user_data = user_data.get_data();
+        }
     }
 
     pub fn body_change_mode(
