@@ -23,3 +23,5 @@ shape = SubResource("CircleShape2D_uteag")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
 position = Vector2(192, 219)
 shape = SubResource("RectangleShape2D_l14l6")
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D"]
