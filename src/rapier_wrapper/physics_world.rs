@@ -166,6 +166,7 @@ impl PhysicsWorld {
             collision_filter_body_callback: &collision_filter_body_callback,
             collision_modify_contacts_callback: &collision_modify_contacts_callback,
             physics_collision_objects,
+            physics_rids,
             last_step: RapierSpace::get_last_step(),
             ghost_collision_distance: space.get_ghost_collision_distance(),
         };
@@ -200,7 +201,7 @@ impl PhysicsWorld {
             let active_body_info = ActiveBodyInfo {
                 body_user_data: self.get_rigid_body_user_data(*handle),
             };
-            space.active_body_callback(&active_body_info, physics_collision_objects);
+            space.active_body_callback(&active_body_info, physics_collision_objects, physics_rids);
         }
         for handle in self
             .physics_objects
@@ -210,7 +211,7 @@ impl PhysicsWorld {
             let active_body_info = ActiveBodyInfo {
                 body_user_data: self.get_rigid_body_user_data(*handle),
             };
-            space.active_body_callback(&active_body_info, physics_collision_objects);
+            space.active_body_callback(&active_body_info, physics_collision_objects, physics_rids);
         }
         while let Ok(collision_event) = collision_recv.try_recv() {
             let handle1 = collision_event.collider1();
@@ -226,7 +227,7 @@ impl PhysicsWorld {
                 user_data1: self.get_collider_user_data(handle1),
                 user_data2: self.get_collider_user_data(handle2),
             };
-            space.collision_event_callback(&event_info, physics_collision_objects);
+            space.collision_event_callback(&event_info, physics_collision_objects, physics_rids);
         }
         while let Ok(contact_pair) = contact_force_recv.try_recv() {
             if let Some(collider1) = self
@@ -243,8 +244,11 @@ impl PhysicsWorld {
                     user_data1: UserData::new(collider1.user_data),
                     user_data2: UserData::new(collider2.user_data),
                 };
-                let send_contact_points =
-                    space.contact_force_event_callback(&event_info, physics_collision_objects);
+                let send_contact_points = space.contact_force_event_callback(
+                    &event_info,
+                    physics_collision_objects,
+                    physics_rids,
+                );
                 if send_contact_points
                     && let Some(body1) = self.get_collider_rigid_body(collider1)
                     && let Some(body2) = self.get_collider_rigid_body(collider2)
@@ -280,6 +284,7 @@ impl PhysicsWorld {
                                 &contact_info,
                                 &event_info,
                                 physics_collision_objects,
+                                physics_rids,
                             );
                         }
                     }
@@ -589,6 +594,7 @@ impl PhysicsEngine {
         collision_modify_contacts_callback: CollisionModifyContactsCallback,
         space: &mut RapierSpace,
         physics_collision_objects: &mut PhysicsCollisionObjects,
+        physics_rids: &PhysicsRids,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             physics_world.step(
@@ -597,6 +603,7 @@ impl PhysicsEngine {
                 collision_modify_contacts_callback,
                 space,
                 physics_collision_objects,
+                physics_rids,
             );
         }
     }

@@ -34,8 +34,8 @@ double-dim3 = ["double", "dim3", "rapier3d-f64", "salva3d"]
 bincode = { version = "1", optional = true }
 hashbrown = { version = "0.14" }
 
-godot = { git = "https://github.com/Ughuuu/gdext", branch = "remove-hook", features=["api-4-3", "register-docs", "experimental-threads"] }
-#godot = { git = "https://github.com/godot-rust/gdext", branch = "master", features=["api-4-3", "register-docs"] }
+#godot = { git = "https://github.com/Ughuuu/gdext", branch = "remove-hook", features=["api-4-3", "register-docs", "experimental-threads"] }
+godot = { git = "https://github.com/godot-rust/gdext", branch = "master", features=["api-4-3", "register-docs", "experimental-threads"] }
 
 rapier2d = { git = "https://github.com/ughuuu/rapier", branch = "custom-changes", optional = true }
 rapier2d-f64 = { git = "https://github.com/ughuuu/rapier", branch = "custom-changes", optional = true}

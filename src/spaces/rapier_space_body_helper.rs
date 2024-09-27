@@ -38,7 +38,8 @@ impl RapierSpace {
                 return true;
             }
         }
-        let (collision_object_2d, _) = RapierCollisionObjectBase::get_collider_user_data(user_data, physics_rids);
+        let (collision_object_2d, _) =
+            RapierCollisionObjectBase::get_collider_user_data(user_data, physics_rids);
         let Some(collision_object_2d) = physics_collision_objects.get(&collision_object_2d) else {
             return false;
         };
@@ -166,6 +167,7 @@ impl RapierSpace {
         exclude_body: Rid,
         physics_engine: &PhysicsEngine,
         physics_collision_objects: &PhysicsCollisionObjects,
+        physics_rids: &PhysicsRids,
     ) -> i32 {
         if max_results < 1 {
             return 0;
@@ -189,6 +191,7 @@ impl RapierSpace {
             max_results,
             &handle_excluded_info,
             physics_collision_objects,
+            physics_rids,
             self,
         ) as i32
     }
@@ -229,6 +232,7 @@ impl RapierSpace {
                 p_body.get_base().get_rid(),
                 physics_engine,
                 physics_collision_objects,
+                physics_rids,
             );
             // Optimization
             if result_count == 0 {
@@ -256,7 +260,10 @@ impl RapierSpace {
                             continue;
                         }
                         let (shape_col_object, shape_index) =
-                            RapierCollisionObjectBase::get_collider_user_data(&result.user_data, physics_rids);
+                            RapierCollisionObjectBase::get_collider_user_data(
+                                &result.user_data,
+                                physics_rids,
+                            );
                         if let Some(shape_col_object) =
                             physics_collision_objects.get(&shape_col_object)
                         {
@@ -369,6 +376,7 @@ impl RapierSpace {
             p_body.get_base().get_rid(),
             physics_engine,
             physics_collision_objects,
+            physics_rids,
         );
         if result_count == 0 {
             return;
@@ -409,7 +417,10 @@ impl RapierSpace {
                         continue;
                     }
                     let (shape_col_object, shape_index) =
-                        RapierCollisionObjectBase::get_collider_user_data(&result.user_data, physics_rids);
+                        RapierCollisionObjectBase::get_collider_user_data(
+                            &result.user_data,
+                            physics_rids,
+                        );
                     if let Some(shape_col_object) = physics_collision_objects.get(&shape_col_object)
                     {
                         if let Some(collision_body) = shape_col_object.get_body() {
@@ -568,6 +579,7 @@ impl RapierSpace {
             p_body.get_base().get_rid(),
             physics_engine,
             physics_collision_objects,
+            physics_rids,
         );
         // Optimization
         if result_count == 0 {
@@ -610,7 +622,10 @@ impl RapierSpace {
                         continue;
                     }
                     let (shape_col_object, shape_index) =
-                        RapierCollisionObjectBase::get_collider_user_data(&result.user_data, physics_rids);
+                        RapierCollisionObjectBase::get_collider_user_data(
+                            &result.user_data,
+                            physics_rids,
+                        );
                     if let Some(shape_col_object) = physics_collision_objects.get(&shape_col_object)
                     {
                         if let Some(collision_body) = shape_col_object.get_body() {

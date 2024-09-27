@@ -35,8 +35,10 @@ impl RapierSpace {
         physics_collision_objects: &mut PhysicsCollisionObjects,
         physics_rids: &PhysicsRids,
     ) {
-        let (rid, _) =
-            RapierCollisionObjectBase::get_collider_user_data(&active_body_info.body_user_data, physics_rids);
+        let (rid, _) = RapierCollisionObjectBase::get_collider_user_data(
+            &active_body_info.body_user_data,
+            physics_rids,
+        );
         if let Some(body) = physics_collision_objects.get_mut(&rid)
             && let Some(body) = body.get_mut_body()
         {
@@ -50,8 +52,10 @@ impl RapierSpace {
         physics_collision_objects: &mut PhysicsCollisionObjects,
         physics_rids: &PhysicsRids,
     ) {
-        let (rid, _) =
-            RapierCollisionObjectBase::get_collider_user_data(&active_body_info.body_user_data, physics_rids);
+        let (rid, _) = RapierCollisionObjectBase::get_collider_user_data(
+            &active_body_info.body_user_data,
+            physics_rids,
+        );
         if let Some(body) = physics_collision_objects.get_mut(&rid)
             && let Some(body) = body.get_mut_body()
         {
@@ -66,9 +70,15 @@ impl RapierSpace {
     ) -> bool {
         let mut colliders_info = CollidersInfo::default();
         (colliders_info.object1, colliders_info.shape1) =
-            RapierCollisionObjectBase::get_collider_user_data(&filter_info.user_data1, physics_rids);
+            RapierCollisionObjectBase::get_collider_user_data(
+                &filter_info.user_data1,
+                physics_rids,
+            );
         (colliders_info.object2, colliders_info.shape2) =
-            RapierCollisionObjectBase::get_collider_user_data(&filter_info.user_data2, physics_rids);
+            RapierCollisionObjectBase::get_collider_user_data(
+                &filter_info.user_data2,
+                physics_rids,
+            );
         if let Some(body1) = physics_collision_objects.get(&colliders_info.object1)
             && let Some(body1) = body1.get_body()
             && let Some(body2) = physics_collision_objects.get(&colliders_info.object2)
@@ -87,10 +97,14 @@ impl RapierSpace {
         physics_rids: &PhysicsRids,
     ) -> OneWayDirection {
         let mut result = OneWayDirection::default();
-        let (object1, shape1) =
-            RapierCollisionObjectBase::get_collider_user_data(&filter_info.user_data1, physics_rids);
-        let (object2, shape2) =
-            RapierCollisionObjectBase::get_collider_user_data(&filter_info.user_data2, physics_rids);
+        let (object1, shape1) = RapierCollisionObjectBase::get_collider_user_data(
+            &filter_info.user_data1,
+            physics_rids,
+        );
+        let (object2, shape2) = RapierCollisionObjectBase::get_collider_user_data(
+            &filter_info.user_data2,
+            physics_rids,
+        );
         if let Some(collision_object_1) = physics_collision_objects.get(&object1)
             && let Some(collision_object_2) = physics_collision_objects.get(&object2)
         {

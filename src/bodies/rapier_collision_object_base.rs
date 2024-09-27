@@ -395,12 +395,16 @@ impl RapierCollisionObjectBase {
         r_user_data.part2 = p_shape_index as u64;
     }
 
-    pub fn get_collider_user_data(p_user_data: &UserData, physics_rids: &PhysicsRids) -> (Rid, usize) {
+    pub fn get_collider_user_data(
+        p_user_data: &UserData,
+        physics_rids: &PhysicsRids,
+    ) -> (Rid, usize) {
         let index_u64 = p_user_data.part1;
         let index_high = (index_u64 >> 32) as u32;
         let index_low = (index_u64 & 0xFFFFFFFF) as u32;
-        let rigid_body_handle = RigidBodyHandle::from_raw_parts(index_high, index_low);
-        (get_body_rid(rigid_body_handle, physics_rids), p_user_data.part2 as usize)
+        let rigid_body_handle = RigidBodyHandle::from_raw_parts(index_low, index_high);
+        let rid = get_body_rid(rigid_body_handle, physics_rids);
+        (rid, p_user_data.part2 as usize)
     }
 
     pub fn get_type(&self) -> CollisionObjectType {

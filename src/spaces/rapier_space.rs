@@ -268,6 +268,7 @@ impl RapierSpace {
                 RapierSpace::collision_modify_contacts_callback,
                 space,
                 &mut physics_data.collision_objects,
+                &physics_data.rids,
             );
             space.after_step(
                 &mut physics_data.physics_engine,
