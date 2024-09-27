@@ -1,7 +1,7 @@
-extends Node2D
+class_name Rapier2DState
+extends Node
 
-@export var rigidbody: RigidBody2D
-@onready var space := get_viewport().world_2d.space
+@export var state : Dictionary = {}
 
 func is_physics_object(node: Node) -> bool:
 	return node is CollisionObject2D or \
@@ -9,9 +9,9 @@ func is_physics_object(node: Node) -> bool:
 		node is CollisionPolygon2D or \
 		node is Joint2D
 
-func get_all_physics_nodes(p_node: Node, path: String = "") -> Array[String]:
+func get_all_physics_nodes(p_node: Node, path: String = "/root/") -> Array[String]:
 	var results : Array[String] = []
-	if path == "" && is_physics_object(p_node):
+	if path == "/root/" && is_physics_object(p_node):
 		results.append(path + p_node.name)
 	path += p_node.name + "/"
 	for node in p_node.get_children():
@@ -21,26 +21,64 @@ func get_all_physics_nodes(p_node: Node, path: String = "") -> Array[String]:
 			results.append_array(get_all_physics_nodes(node, path))
 	return results
 
-func save_all_physics_objects(p_node: Node):
-	var physics_nodes := get_all_physics_nodes(p_node)
-	var physics_map = {}
+
+func save_state(save_json: bool = false) -> int:
+	var physics_nodes := get_all_physics_nodes(get_tree().current_scene)
 	for node_path in physics_nodes:
-		var node = get_node(node_path)
-		physics_map[node_path] = RapierPhysicsServer2D.get_handle(node)
+		var node := get_node(node_path)
+		var node_state
+		var rid : RID
 		if node is CollisionObject2D:
-			RapierPhysicsServer2D.body_export_json(node.get_rid())
+			rid = node.get_rid()
+		if node is CollisionShape2D:
+			rid = node.shape.get_rid()
+		if node is CollisionPolygon2D:
+			node.get_canvas_item()
+			var parent = node.get_parent()
+			if parent is CollisionObject2D:
+				var idx = 0
+				for child in parent.get_children():
+					if child is CollisionShape2D:
+						if child.shape.disabled:
+							continue
+					if child is CollisionPolygon2D:
+						if child.disabled:
+							continue
+					if child == node:
+						break
+					idx += 1
+				rid = PhysicsServer2D.body_get_shape(parent.get_rid(), idx)
+				#PhysicsServer2D.body_get_shape()
+				#rid = node.get_rid()
+			else:
+				print("Cannot get RID of CollisionPolygon2D")
+		if node is Joint2D:
+			rid = node.get_rid()
+		if save_json:
+			node_state = RapierPhysicsServer2D.export_json(rid)
+		else:
+			node_state = RapierPhysicsServer2D.export_binary(rid)
+		state[RapierPhysicsServer2D.get_handle(rid)] = {
+			"state" : node_state,
+			"path": node_path
+		}
+	var space_rid = get_viewport().world_2d.space
+	var space_state
+	if save_json:
+		space_state = RapierPhysicsServer2D.export_json(space_rid)
+	else:
+		space_state = RapierPhysicsServer2D.export_binary(space_rid)
+	state[RapierPhysicsServer2D.get_handle(space_rid)] = {
+		"state" : space_state,
+		"path": "space"
+	}
+	return hash(state)
+
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	print(get_all_physics_nodes(get_tree().current_scene))
-	FileAccess.open("user://rigidbody.json", FileAccess.WRITE).store_string(RapierPhysicsServer2D.body_export_json(rigidbody.get_rid()))
-	FileAccess.open("user://space.json", FileAccess.WRITE).store_string(RapierPhysicsServer2D.space_export_json(space))
-	var ctx = HashingContext.new()
-	ctx.start(HashingContext.HASH_SHA256)
-	ctx.update(RapierPhysicsServer2D.body_export_binary(rigidbody.get_rid()))
-	var res = ctx.finish()
+	print(save_state(false))
 	# Print the result as hex string and array.
-	print(res.hex_encode())
 	await get_tree().create_timer(1.0).timeout
 	get_tree().reload_current_scene()
 

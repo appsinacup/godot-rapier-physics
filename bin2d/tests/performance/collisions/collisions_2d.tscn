@@ -18,7 +18,6 @@ shape2 = 7
 
 [node name="maximum_bodies_before_low_fps_circle-circle" parent="." instance=ExtResource("3_tl4jl")]
 position = Vector2(-4, 7)
-shape1 = 3
 shape2 = 3
 
 [node name="maximum_bodies_before_low_fps_convex-convex" parent="." instance=ExtResource("3_tl4jl")]

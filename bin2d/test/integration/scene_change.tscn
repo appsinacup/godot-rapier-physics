@@ -8,9 +8,8 @@ radius = 31.0161
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_l14l6"]
 size = Vector2(460, 74)
 
-[node name="SceneChange" type="Node2D" node_paths=PackedStringArray("rigidbody")]
+[node name="SceneChange" type="Node2D"]
 script = ExtResource("1_crxgh")
-rigidbody = NodePath("RigidBody2D")
 
 [node name="RigidBody2D" type="RigidBody2D" parent="."]
 position = Vector2(122, 81)
@@ -25,3 +24,6 @@ position = Vector2(192, 219)
 shape = SubResource("RectangleShape2D_l14l6")
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D"]
+polygon = PackedVector2Array(198, 74, 238, 14, 300, 93)
+
+[node name="PinJoint2D" type="PinJoint2D" parent="."]
