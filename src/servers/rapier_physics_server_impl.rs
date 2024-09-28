@@ -2269,17 +2269,6 @@ impl RapierPhysicsServerImpl {
                 &mut physics_data.spaces,
                 &mut physics_data.rids,
             );
-            while body.get_base().get_shape_count() > 0 {
-                body.remove_shape_idx(
-                    0,
-                    &mut physics_data.physics_engine,
-                    &mut physics_data.spaces,
-                    &mut physics_data.shapes,
-                    &physics_data.rids,
-                );
-            }
-            body.get_mut_base()
-                .destroy_body(&mut physics_data.physics_engine, &mut physics_data.rids);
             self.reset_space_if_empty(space);
             return;
         }

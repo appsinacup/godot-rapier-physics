@@ -17,6 +17,13 @@ use crate::types::*;
 #[derive(PartialEq, Clone, Debug, Default)]
 pub struct RapierShapeState {
     aabb: Rect,
+    #[cfg_attr(
+        feature = "serde-serialize",
+        serde(
+            serialize_with = "rapier::utils::serde::serialize_to_vec_tuple",
+            deserialize_with = "rapier::utils::serde::deserialize_from_vec_tuple"
+        )
+    )]
     owners: HashMap<RigidBodyHandle, i32>,
     handle: ShapeHandle,
 }

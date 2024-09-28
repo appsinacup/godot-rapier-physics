@@ -319,4 +319,19 @@ impl RapierPhysicsServer {
         array.set(2, handle.2 as i64);
         array
     }
+
+    #[func]
+    fn get_stats() -> Array<i64> {
+        let mut array = Array::new();
+        array.resize(8, &0);
+        array.set(0, physics_data().rids.len() as i64);
+        array.set(1, physics_data().active_spaces.len() as i64);
+        array.set(2, physics_data().fluids.len() as i64);
+        array.set(3, physics_data().joints.len() as i64);
+        array.set(4, physics_data().shapes.len() as i64);
+        array.set(5, physics_data().spaces.len() as i64);
+        array.set(6, physics_data().physics_engine.shapes.len() as i64);
+        array.set(7, physics_data().physics_engine.physics_worlds.len() as i64);
+        array
+    }
 }

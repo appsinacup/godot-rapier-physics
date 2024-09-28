@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://clemidbbr2cib"]
+[gd_scene load_steps=4 format=3 uid="uid://clemidbbr2cib"]
 
 [ext_resource type="Script" path="res://test/integration/scene_change.gd" id="1_crxgh"]
 
@@ -7,9 +7,6 @@ radius = 31.0161
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_l14l6"]
 size = Vector2(460, 74)
-
-[sub_resource type="TileSet" id="TileSet_ufx62"]
-physics_layer_0/collision_layer = 1
 
 [node name="SceneChange" type="Node2D"]
 script = ExtResource("1_crxgh")
@@ -28,13 +25,3 @@ shape = SubResource("RectangleShape2D_l14l6")
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D"]
 polygon = PackedVector2Array(221, -20, 172, 65, 243, 126, 661, 32, 341, 64)
-
-[node name="PinJoint2D" type="PinJoint2D" parent="."]
-node_a = NodePath("../RigidBody2D")
-node_b = NodePath("../StaticBody2D")
-
-[node name="TileMap" type="TileMap" parent="."]
-format = 2
-
-[node name="TileMapLayer" type="TileMapLayer" parent="."]
-tile_set = SubResource("TileSet_ufx62")

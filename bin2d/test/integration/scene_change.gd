@@ -57,7 +57,8 @@ func save_state(save_json: bool = false) -> int:
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	print(save_state(false))
+	print(RapierPhysicsServer2D.get_stats())
+	print(save_state(true))
 	FileAccess.open("user://save.json", FileAccess.WRITE).store_string(JSON.stringify(state, " "))
 	# Print the result as hex string and array.
 	await get_tree().create_timer(1.0).timeout
