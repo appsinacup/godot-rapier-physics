@@ -35,20 +35,20 @@ func save_state(save_json: bool = false) -> int:
 			for owner_id in node.get_shape_owners():
 				for owner_shape_id in node.shape_owner_get_shape_count(owner_id):
 					var shape_rid = node.shape_owner_get_shape(owner_id, owner_shape_id).get_rid()
-					state[RapierPhysicsServer2D.get_handle(shape_rid)] = {
+					state[RapierPhysicsServer2D.get_rapier_id(shape_rid)] = {
 						"state" : save_node(shape_rid, save_json),
 						"path": node_path,
 						"owner_id": owner_id
 					}
 		if node is Joint2D:
 			rid = node.get_rid()
-		print("Processing ", node_path, " with handle ", RapierPhysicsServer2D.get_handle(rid))
-		state[RapierPhysicsServer2D.get_handle(rid)] = {
+		print("Processing ", node_path, " with rapier id ", RapierPhysicsServer2D.get_rapier_id(rid))
+		state[RapierPhysicsServer2D.get_rapier_id(rid)] = {
 			"state" : save_node(rid, save_json),
 			"path": node_path
 		}
 	var space_rid = get_viewport().world_2d.space
-	state[RapierPhysicsServer2D.get_handle(space_rid)] = {
+	state[RapierPhysicsServer2D.get_rapier_id(space_rid)] = {
 		"state" : save_node(space_rid, save_json),
 		"path": "space"
 	}

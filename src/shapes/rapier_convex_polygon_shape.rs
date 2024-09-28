@@ -6,9 +6,8 @@ use godot::prelude::*;
 
 use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::insert_id_rid;
-use crate::servers::rapier_physics_singleton::PhysicsIds;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
+use crate::servers::rapier_physics_singleton::RapierId;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 #[cfg(feature = "dim2")]
@@ -18,12 +17,13 @@ pub struct RapierConvexPolygonShape {
     base: RapierShapeBase,
 }
 impl RapierConvexPolygonShape {
-    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes, physics_ids: &mut PhysicsIds) {
+    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) -> RapierId {
         let shape = Self {
             base: RapierShapeBase::new(rid),
         };
-        insert_id_rid(shape.base.get_id(), rid, physics_ids);
+        let id = shape.base.get_id();
         physics_shapes.insert(rid, RapierShape::RapierConvexPolygonShape(shape));
+        id
     }
 }
 impl RapierConvexPolygonShape {
@@ -150,9 +150,8 @@ mod tests {
         #[func]
         fn test_create() {
             let mut physics_shapes = PhysicsShapes::new();
-            let mut physics_ids = PhysicsIds::new();
             let rid = Rid::new(123);
-            RapierConvexPolygonShape::create(rid, &mut physics_shapes, &mut physics_ids);
+            RapierConvexPolygonShape::create(rid, &mut physics_shapes);
             assert!(physics_shapes.contains_key(&rid));
             match physics_shapes.get(&rid) {
                 Some(RapierShape::RapierConvexPolygonShape(_)) => {}

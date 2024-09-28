@@ -6,21 +6,21 @@ use godot::prelude::*;
 
 use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::insert_id_rid;
-use crate::servers::rapier_physics_singleton::PhysicsIds;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
+use crate::servers::rapier_physics_singleton::RapierId;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 pub struct RapierRectangleShape {
     base: RapierShapeBase,
 }
 impl RapierRectangleShape {
-    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes, physics_ids: &mut PhysicsIds) {
+    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) -> RapierId {
         let shape = Self {
             base: RapierShapeBase::new(rid),
         };
-        insert_id_rid(shape.base.get_id(), rid, physics_ids);
+        let id = shape.base.get_id();
         physics_shapes.insert(rid, RapierShape::RapierRectangleShape(shape));
+        id
     }
 }
 impl IRapierShape for RapierRectangleShape {

@@ -11,9 +11,6 @@ var last_left := false
 func _ready() -> void:
 	await get_tree().create_timer(1.0).timeout
 	apply_torque_impulse(50000)
-
-func _process(delta: float) -> void:
-	print(RapierPhysicsServer2D.get_handle(self.get_rid()))
 	
 "
 
