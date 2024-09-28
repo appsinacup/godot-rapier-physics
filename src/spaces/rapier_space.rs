@@ -8,11 +8,11 @@ use godot::classes::ProjectSettings;
 use godot::prelude::*;
 use hashbrown::HashSet;
 use servers::rapier_physics_singleton::get_id_rid;
-use servers::rapier_physics_singleton::insert_id_rid;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsData;
 use servers::rapier_physics_singleton::PhysicsIds;
 use servers::rapier_physics_singleton::PhysicsSpaces;
+use servers::rapier_physics_singleton::RapierId;
 use spaces::rapier_space_state::RapierSpaceState;
 
 use super::PhysicsDirectSpaceState;
@@ -57,8 +57,7 @@ impl RapierSpace {
         rid: Rid,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
-        physics_ids: &mut PhysicsIds,
-    ) -> WorldHandle {
+    ) -> RapierId {
         let mut direct_access = RapierDirectSpaceState::new_alloc();
         direct_access.bind_mut().set_space(rid);
         let project_settings = ProjectSettings::singleton();
@@ -80,10 +79,9 @@ impl RapierSpace {
             ghost_collision_distance: RapierProjectSettings::get_ghost_collision_distance(),
             state: RapierSpaceState::new(physics_engine, &Self::get_world_settings()),
         };
-        let handle = space.get_state().get_handle();
-        insert_id_rid(space.get_state().get_id(), rid, physics_ids);
+        let id = space.get_state().get_id();
         physics_spaces.insert(rid, space);
-        handle
+        id
     }
 
     pub fn get_state(&self) -> &RapierSpaceState {

@@ -293,12 +293,12 @@ impl RapierPhysicsServerImpl {
     pub(super) fn space_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        RapierSpace::create(
+        let id = RapierSpace::create(
             rid,
             &mut physics_data.physics_engine,
             &mut physics_data.spaces,
-            &mut physics_data.ids,
         );
+        insert_id_rid(id, rid, &mut physics_data.ids);
         rid
     }
 
@@ -403,6 +403,7 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
         let area = RapierArea::new(rid);
+        insert_id_rid(area.get_base().get_id(), rid, &mut physics_data.ids);
         physics_data
             .collision_objects
             .insert(rid, RapierCollisionObject::RapierArea(area));
@@ -758,6 +759,7 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
         let body = RapierBody::new(rid);
+        insert_id_rid(body.get_base().get_id(), rid, &mut physics_data.ids);
         physics_data
             .collision_objects
             .insert(rid, RapierCollisionObject::RapierBody(body));
