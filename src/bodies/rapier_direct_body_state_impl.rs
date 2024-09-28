@@ -6,7 +6,7 @@ use physics_server_2d::*;
 use physics_server_3d::*;
 
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
-use crate::servers::rapier_physics_singleton::get_body_rid;
+use crate::servers::rapier_physics_singleton::get_id_rid;
 use crate::servers::rapier_physics_singleton::physics_data;
 use crate::types::*;
 pub struct RapierDirectBodyStateImpl {
@@ -30,7 +30,7 @@ impl RapierDirectBodyStateImpl {
         let mut gravity_scale = 1.0;
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
-            space_rid = body.get_base().get_space(&physics_data.rids);
+            space_rid = body.get_base().get_space(&physics_data.ids);
             if let Some(body) = body.get_body() {
                 if body.using_area_gravity() {
                     return body.total_gravity();
@@ -213,7 +213,7 @@ impl RapierDirectBodyStateImpl {
                 body.force_mass_update(
                     &mut physics_data.spaces,
                     &mut physics_data.physics_engine,
-                    &physics_data.rids,
+                    &physics_data.ids,
                 );
                 body.apply_central_impulse(impulse, &mut physics_data.physics_engine)
             }
@@ -227,7 +227,7 @@ impl RapierDirectBodyStateImpl {
                 body.force_mass_update(
                     &mut physics_data.spaces,
                     &mut physics_data.physics_engine,
-                    &physics_data.rids,
+                    &physics_data.ids,
                 );
                 body.apply_impulse(impulse, position, &mut physics_data.physics_engine)
             }
@@ -241,7 +241,7 @@ impl RapierDirectBodyStateImpl {
                 body.force_mass_update(
                     &mut physics_data.spaces,
                     &mut physics_data.physics_engine,
-                    &physics_data.rids,
+                    &physics_data.ids,
                 );
                 body.apply_torque_impulse(impulse, &mut physics_data.physics_engine)
             }
@@ -255,7 +255,7 @@ impl RapierDirectBodyStateImpl {
                 body.force_mass_update(
                     &mut physics_data.spaces,
                     &mut physics_data.physics_engine,
-                    &physics_data.rids,
+                    &physics_data.ids,
                 );
                 body.apply_central_force(force, &mut physics_data.physics_engine)
             }
@@ -269,7 +269,7 @@ impl RapierDirectBodyStateImpl {
                 body.force_mass_update(
                     &mut physics_data.spaces,
                     &mut physics_data.physics_engine,
-                    &physics_data.rids,
+                    &physics_data.ids,
                 );
                 body.apply_force(force, position, &mut physics_data.physics_engine)
             }
@@ -283,7 +283,7 @@ impl RapierDirectBodyStateImpl {
                 body.force_mass_update(
                     &mut physics_data.spaces,
                     &mut physics_data.physics_engine,
-                    &physics_data.rids,
+                    &physics_data.ids,
                 );
                 body.apply_torque(torque, &mut physics_data.physics_engine)
             }
@@ -297,7 +297,7 @@ impl RapierDirectBodyStateImpl {
                 body.force_mass_update(
                     &mut physics_data.spaces,
                     &mut physics_data.physics_engine,
-                    &physics_data.rids,
+                    &physics_data.ids,
                 );
                 body.add_constant_central_force(force, &mut physics_data.physics_engine)
             }
@@ -311,7 +311,7 @@ impl RapierDirectBodyStateImpl {
                 body.force_mass_update(
                     &mut physics_data.spaces,
                     &mut physics_data.physics_engine,
-                    &physics_data.rids,
+                    &physics_data.ids,
                 );
                 body.add_constant_force(force, position, &mut physics_data.physics_engine)
             }
@@ -325,7 +325,7 @@ impl RapierDirectBodyStateImpl {
                 body.force_mass_update(
                     &mut physics_data.spaces,
                     &mut physics_data.physics_engine,
-                    &physics_data.rids,
+                    &physics_data.ids,
                 );
                 body.add_constant_torque(torque, &mut physics_data.physics_engine)
             }
@@ -339,7 +339,7 @@ impl RapierDirectBodyStateImpl {
                 body.force_mass_update(
                     &mut physics_data.spaces,
                     &mut physics_data.physics_engine,
-                    &physics_data.rids,
+                    &physics_data.ids,
                 );
                 body.set_constant_force(force, &mut physics_data.physics_engine)
             }
@@ -363,7 +363,7 @@ impl RapierDirectBodyStateImpl {
                 body.force_mass_update(
                     &mut physics_data.spaces,
                     &mut physics_data.physics_engine,
-                    &physics_data.rids,
+                    &physics_data.ids,
                 );
                 body.set_constant_torque(torque, &mut physics_data.physics_engine)
             }
@@ -386,7 +386,7 @@ impl RapierDirectBodyStateImpl {
             if let Some(body) = body.get_mut_body() {
                 if let Some(space) = physics_data
                     .spaces
-                    .get_mut(&body.get_base().get_space(&physics_data.rids))
+                    .get_mut(&body.get_base().get_space(&physics_data.ids))
                 {
                     body.set_active(!enabled, space);
                 }
@@ -467,7 +467,7 @@ impl RapierDirectBodyStateImpl {
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 if let Some(contact) = body.contacts().get(contact_idx as usize) {
-                    return get_body_rid(contact.collider, &physics_data.rids);
+                    return get_id_rid(contact.collider, &physics_data.ids);
                 }
             }
         }
@@ -554,7 +554,7 @@ impl RapierDirectBodyStateImpl {
             if let Some(body) = body.get_mut_body() {
                 if let Some(space) = physics_data
                     .spaces
-                    .get_mut(&body.get_base().get_space(&physics_data.rids))
+                    .get_mut(&body.get_base().get_space(&physics_data.ids))
                 {
                     body.on_marked_active(space);
                 }

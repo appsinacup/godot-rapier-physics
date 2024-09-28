@@ -4,10 +4,13 @@ use godot::prelude::*;
 
 use super::types::*;
 use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::next_id;
 use crate::servers::rapier_physics_singleton::PhysicsSpaces;
+use crate::servers::rapier_physics_singleton::RapierId;
 use crate::types::Vector;
 //#[derive(Serialize, Deserialize, Debug)]
 pub struct RapierFluid {
+    id: RapierId,
     density: real,
     space: Rid,
     space_handle: WorldHandle,
@@ -20,6 +23,7 @@ pub struct RapierFluid {
 impl RapierFluid {
     pub fn new() -> Self {
         Self {
+            id: next_id(),
             density: 1.0,
             space: Rid::Invalid,
             space_handle: WorldHandle::default(),
@@ -263,7 +267,7 @@ impl RapierFluid {
         }
     }
 
-    pub fn get_handle(&self) -> HandleDouble {
-        self.fluid_handle
+    pub fn get_id(&self) -> RapierId {
+        self.id
     }
 }

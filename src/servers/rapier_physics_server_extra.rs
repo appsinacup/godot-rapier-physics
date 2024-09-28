@@ -304,27 +304,22 @@ impl RapierPhysicsServer {
     }
 
     #[func]
-    /// Get the handle of the object by rid. The handle can be saved and used when reloading the scene.
-    fn get_handle(rid: Rid) -> Array<i64> {
-        let mut array = Array::new();
-        array.resize(3, &0);
+    /// Get the id of the object by rid. The id can be saved and used when reloading the scene.
+    fn get_rapier_id(rid: Rid) -> i64 {
         let Ok(mut physics_singleton) =
             PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
-            return array;
+            return 0;
         };
-        let handle = physics_singleton.bind_mut().implementation.get_handle(rid);
-        array.set(0, handle.0 as i64);
-        array.set(1, handle.1 as i64);
-        array.set(2, handle.2 as i64);
-        array
+        return physics_singleton.bind_mut().implementation.get_id(rid) as i64;
     }
 
     #[func]
     fn get_stats() -> Array<i64> {
         let mut array = Array::new();
         array.resize(8, &0);
-        array.set(0, physics_data().rids.len() as i64);
+        godot_print!("rids {:?}", physics_data().ids);
+        array.set(0, physics_data().ids.len() as i64);
         array.set(1, physics_data().active_spaces.len() as i64);
         array.set(2, physics_data().fluids.len() as i64);
         array.set(3, physics_data().joints.len() as i64);

@@ -6,7 +6,8 @@ use godot::prelude::*;
 
 use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::PhysicsRids;
+use crate::servers::rapier_physics_singleton::insert_id_rid;
+use crate::servers::rapier_physics_singleton::PhysicsIds;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
@@ -15,10 +16,11 @@ pub struct RapierHeightMapShape3D {
     base: RapierShapeBase,
 }
 impl RapierHeightMapShape3D {
-    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) {
+    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes, physics_ids: &mut PhysicsIds) {
         let shape = Self {
             base: RapierShapeBase::new(rid),
         };
+        insert_id_rid(shape.base.get_id(), rid, physics_ids);
         physics_shapes.insert(rid, RapierShape::RapierHeightMapShape3D(shape));
     }
 }
@@ -39,12 +41,7 @@ impl IRapierShape for RapierHeightMapShape3D {
         true
     }
 
-    fn set_data(
-        &mut self,
-        data: Variant,
-        physics_engine: &mut PhysicsEngine,
-        physics_rids: &mut PhysicsRids,
-    ) {
+    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         let width;
         let depth;
         let heights;
@@ -104,8 +101,7 @@ impl IRapierShape for RapierHeightMapShape3D {
             return;
         }
         let handle = physics_engine.shape_create_heightmap(heights.as_slice(), width, depth);
-        self.base
-            .set_handle_and_reset_aabb(handle, physics_engine, physics_rids);
+        self.base.set_handle_and_reset_aabb(handle, physics_engine);
     }
 
     fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {

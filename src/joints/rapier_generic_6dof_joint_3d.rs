@@ -34,6 +34,7 @@ impl RapierGeneric6DOFJoint3D {
         let rapier_anchor_a = vector_to_rapier(anchor_a);
         let rapier_anchor_b = vector_to_rapier(anchor_b);
         let space_handle = body_a.get_base().get_space_handle();
+        let space_id = body_a.get_base().get_space_id();
         let handle = physics_engine.joint_create_spherical(
             space_handle,
             body_a.get_base().get_body_handle(),
@@ -45,7 +46,7 @@ impl RapierGeneric6DOFJoint3D {
             true,
         );
         Self {
-            base: RapierJointBase::new(space_handle, handle),
+            base: RapierJointBase::new(space_id, space_handle, handle),
         }
     }
 }

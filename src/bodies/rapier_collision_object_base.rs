@@ -6,17 +6,15 @@ use godot::classes::ProjectSettings;
 use godot::prelude::*;
 use rapier::dynamics::RigidBodyHandle;
 use rapier::geometry::ColliderHandle;
-use servers::rapier_physics_singleton::get_body_rid;
-use servers::rapier_physics_singleton::get_shape_rid;
-use servers::rapier_physics_singleton::get_space_rid;
-use servers::rapier_physics_singleton::insert_body_rid;
-use servers::rapier_physics_singleton::remove_body_rid;
-use servers::rapier_physics_singleton::PhysicsRids;
+use servers::rapier_physics_singleton::get_id_rid;
+use servers::rapier_physics_singleton::PhysicsIds;
 use servers::rapier_physics_singleton::PhysicsSpaces;
+use servers::rapier_physics_singleton::RapierId;
 use servers::rapier_project_settings::RapierProjectSettings;
 use spaces::rapier_space::RapierSpace;
 
 use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::next_id;
 use crate::types::*;
 use crate::*;
 #[cfg(feature = "dim2")]
@@ -47,6 +45,7 @@ pub enum CollisionObjectType {
 )]
 pub struct CollisionObjectShape {
     pub xform: Transform,
+    pub id: RapierId,
     pub handle: ShapeHandle,
     pub disabled: bool,
     pub one_way_collision: bool,
@@ -57,6 +56,7 @@ impl Default for CollisionObjectShape {
     fn default() -> Self {
         Self {
             xform: Transform::IDENTITY,
+            id: RapierId::default(),
             handle: ShapeHandle::default(),
             disabled: false,
             one_way_collision: false,
@@ -71,8 +71,11 @@ impl Default for CollisionObjectShape {
     derive(serde::Serialize, serde::Deserialize)
 )]
 pub struct RapierCollisionObjectBaseState {
+    #[serde(default = "next_id")]
+    pub(crate) id: RapierId,
     pub(crate) body_handle: RigidBodyHandle,
     pub(crate) space_handle: WorldHandle,
+    pub(crate) space_id: RapierId,
     pub(crate) shapes: Vec<CollisionObjectShape>,
     pub(crate) transform: Transform,
     pub(crate) inv_transform: Transform,
@@ -193,9 +196,9 @@ impl RapierCollisionObjectBase {
         &mut self,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
     ) {
-        if let Some(space) = physics_spaces.get_mut(&self.get_space(physics_rids)) {
+        if let Some(space) = physics_spaces.get_mut(&self.get_space(physics_ids)) {
             for (i, shape) in self.state.shapes.iter_mut().enumerate() {
                 if shape.collider_handle == ColliderHandle::invalid() {
                     // skip
@@ -204,7 +207,7 @@ impl RapierCollisionObjectBase {
                 // Keep track of body information for delayed removal
                 space.get_mut_state().add_removed_collider(
                     shape.collider_handle,
-                    self.state.body_handle,
+                    self.state.id,
                     self.instance_id,
                     i,
                     self.collision_object_type,
@@ -221,14 +224,14 @@ impl RapierCollisionObjectBase {
         p_shape_index: usize,
         physics_spaces: &mut PhysicsSpaces,
         physics_engine: &mut PhysicsEngine,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
     ) -> ColliderHandle {
         if shape.collider_handle != ColliderHandle::invalid() {
-            if let Some(space) = physics_spaces.get_mut(&self.get_space(physics_rids)) {
+            if let Some(space) = physics_spaces.get_mut(&self.get_space(physics_ids)) {
                 // Keep track of body information for delayed removal
                 space.get_mut_state().add_removed_collider(
                     shape.collider_handle,
-                    self.state.body_handle,
+                    self.state.id,
                     self.instance_id,
                     p_shape_index,
                     self.get_type(),
@@ -285,13 +288,13 @@ impl RapierCollisionObjectBase {
         p_space: Rid,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
-        physics_rids: &mut PhysicsRids,
+        physics_ids: &mut PhysicsIds,
     ) {
         // previous space
         if self.is_space_valid() {
-            self.destroy_body(physics_engine, physics_rids);
-            self.destroy_shapes(physics_engine, physics_spaces, physics_rids);
-            if let Some(space) = physics_spaces.get_mut(&self.get_space(physics_rids)) {
+            self.destroy_body(physics_engine);
+            self.destroy_shapes(physics_engine, physics_spaces, physics_ids);
+            if let Some(space) = physics_spaces.get_mut(&self.get_space(physics_ids)) {
                 space
                     .get_mut_state()
                     .reset_space_if_empty(physics_engine, &RapierSpace::get_world_settings());
@@ -337,7 +340,6 @@ impl RapierCollisionObjectBase {
                 self.activation_time_until_sleep,
             );
         }
-        insert_body_rid(self.state.body_handle, self.rid, physics_rids);
         let mut user_data = UserData::default();
         self.set_collider_user_data(&mut user_data, 0);
         physics_engine.body_set_user_data(
@@ -349,6 +351,10 @@ impl RapierCollisionObjectBase {
 
     pub fn get_space_handle(&self) -> WorldHandle {
         self.state.space_handle
+    }
+
+    pub fn get_space_id(&self) -> RapierId {
+        self.state.space_id
     }
 
     pub fn is_valid(&self) -> bool {
@@ -365,6 +371,10 @@ impl RapierCollisionObjectBase {
 
     pub fn get_rid(&self) -> Rid {
         self.rid
+    }
+
+    pub fn get_id(&self) -> RapierId {
+        self.state.id
     }
 
     pub fn set_instance_id(&mut self, p_instance_id: u64) {
@@ -389,21 +399,16 @@ impl RapierCollisionObjectBase {
     }
 
     pub fn set_collider_user_data(&self, r_user_data: &mut UserData, p_shape_index: usize) {
-        let index = self.get_body_handle().0.into_raw_parts();
-        let index_u64 = (index.0 as u64) << 32 | (index.1 as u64);
-        r_user_data.part1 = index_u64;
+        r_user_data.part1 = self.get_id();
         r_user_data.part2 = p_shape_index as u64;
     }
 
     pub fn get_collider_user_data(
         p_user_data: &UserData,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
     ) -> (Rid, usize) {
-        let index_u64 = p_user_data.part1;
-        let index_high = (index_u64 >> 32) as u32;
-        let index_low = (index_u64 & 0xFFFFFFFF) as u32;
-        let rigid_body_handle = RigidBodyHandle::from_raw_parts(index_high, index_low);
-        let rid = get_body_rid(rigid_body_handle, physics_rids);
+        let id = p_user_data.part1;
+        let rid = get_id_rid(id, physics_ids);
         (rid, p_user_data.part2 as usize)
     }
 
@@ -415,9 +420,9 @@ impl RapierCollisionObjectBase {
         self.state.shapes.len() as i32
     }
 
-    pub fn get_shape(&self, physics_rids: &PhysicsRids, idx: usize) -> Rid {
+    pub fn get_shape(&self, physics_ids: &PhysicsIds, idx: usize) -> Rid {
         if let Some(shape) = self.state.shapes.get(idx) {
-            return get_shape_rid(shape.handle, physics_rids);
+            return get_id_rid(shape.id, physics_ids);
         }
         Rid::Invalid
     }
@@ -462,8 +467,8 @@ impl RapierCollisionObjectBase {
         self.state.inv_transform
     }
 
-    pub fn get_space(&self, physics_rids: &PhysicsRids) -> Rid {
-        get_space_rid(self.state.space_handle, physics_rids)
+    pub fn get_space(&self, physics_ids: &PhysicsIds) -> Rid {
+        get_id_rid(self.state.space_id, physics_ids)
     }
 
     pub fn is_shape_disabled(&self, idx: usize) -> bool {
@@ -540,13 +545,8 @@ impl RapierCollisionObjectBase {
         self.pickable = p_pickable;
     }
 
-    pub fn destroy_body(
-        &mut self,
-        physics_engine: &mut PhysicsEngine,
-        physics_rids: &mut PhysicsRids,
-    ) {
+    pub fn destroy_body(&mut self, physics_engine: &mut PhysicsEngine) {
         if self.state.body_handle != RigidBodyHandle::invalid() {
-            remove_body_rid(self.state.body_handle, physics_rids);
             physics_engine.body_destroy(self.state.space_handle, self.state.body_handle);
             self.state.body_handle = RigidBodyHandle::invalid();
         }

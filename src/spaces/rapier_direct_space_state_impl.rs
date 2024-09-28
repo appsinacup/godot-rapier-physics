@@ -69,7 +69,7 @@ impl RapierDirectSpaceStateImpl {
             &mut hit_info,
             &query_excluded_info,
             &physics_data.collision_objects,
-            &physics_data.rids,
+            &physics_data.ids,
             space,
         );
         if collide {
@@ -78,7 +78,7 @@ impl RapierDirectSpaceStateImpl {
             result.normal = vector_to_godot(hit_info.normal);
             let (rid, shape_index) = RapierCollisionObjectBase::get_collider_user_data(
                 &hit_info.user_data,
-                &physics_data.rids,
+                &physics_data.ids,
             );
             result.rid = rid;
             result.shape = shape_index as i32;
@@ -140,7 +140,7 @@ impl RapierDirectSpaceStateImpl {
             max_results,
             &query_excluded_info,
             &physics_data.collision_objects,
-            &physics_data.rids,
+            &physics_data.ids,
             space,
         );
         if result_count > max_results {
@@ -152,7 +152,7 @@ impl RapierDirectSpaceStateImpl {
             let hit_info = unsafe { &mut *hit_info_ptr.add(i) };
             let (rid, shape_index) = RapierCollisionObjectBase::get_collider_user_data(
                 &hit_info.user_data,
-                &physics_data.rids,
+                &physics_data.ids,
             );
             result_slice.rid = rid;
             result_slice.shape = shape_index as i32;
@@ -217,7 +217,7 @@ impl RapierDirectSpaceStateImpl {
                 collide_with_areas,
                 &query_excluded_info,
                 &physics_data.collision_objects,
-                &physics_data.rids,
+                &physics_data.ids,
                 space,
             );
             if !result.collided {
@@ -231,7 +231,7 @@ impl RapierDirectSpaceStateImpl {
             }
             let (rid, shape_index) = RapierCollisionObjectBase::get_collider_user_data(
                 &result.user_data,
-                &physics_data.rids,
+                &physics_data.ids,
             );
             if let Some(collision_object_2d) = physics_data.collision_objects.get(&rid) {
                 results_slice[cpt].shape = shape_index as i32;
@@ -290,7 +290,7 @@ impl RapierDirectSpaceStateImpl {
                 collide_with_areas,
                 &query_excluded_info,
                 &physics_data.collision_objects,
-                &physics_data.rids,
+                &physics_data.ids,
                 space,
             )
             .toi;
@@ -348,7 +348,7 @@ impl RapierDirectSpaceStateImpl {
                 collide_with_areas,
                 &query_excluded_info,
                 &physics_data.collision_objects,
-                &physics_data.rids,
+                &physics_data.ids,
                 space,
             );
             if !result.collided {
@@ -404,16 +404,14 @@ impl RapierDirectSpaceStateImpl {
             collide_with_areas,
             &query_excluded_info,
             &physics_data.collision_objects,
-            &physics_data.rids,
+            &physics_data.ids,
             space,
         );
         if !result.collided {
             return false;
         }
-        let (rid, shape_index) = RapierCollisionObjectBase::get_collider_user_data(
-            &result.user_data,
-            &physics_data.rids,
-        );
+        let (rid, shape_index) =
+            RapierCollisionObjectBase::get_collider_user_data(&result.user_data, &physics_data.ids);
         let r_info = &mut *rest_info;
         if let Some(collision_object_2d) = physics_data.collision_objects.get(&rid) {
             let instance_id = collision_object_2d.get_base().get_instance_id();

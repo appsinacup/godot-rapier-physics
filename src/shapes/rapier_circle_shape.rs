@@ -6,7 +6,8 @@ use godot::prelude::*;
 
 use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::PhysicsRids;
+use crate::servers::rapier_physics_singleton::insert_id_rid;
+use crate::servers::rapier_physics_singleton::PhysicsIds;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::shapes::rapier_shape::*;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
@@ -15,10 +16,11 @@ pub struct RapierCircleShape {
     base: RapierShapeBase,
 }
 impl RapierCircleShape {
-    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) {
+    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes, physics_ids: &mut PhysicsIds) {
         let shape = Self {
             base: RapierShapeBase::new(rid),
         };
+        insert_id_rid(shape.base.get_id(), rid, physics_ids);
         physics_shapes.insert(rid, RapierShape::RapierCircleShape(shape));
     }
 }
@@ -45,20 +47,14 @@ impl IRapierShape for RapierCircleShape {
         true
     }
 
-    fn set_data(
-        &mut self,
-        data: Variant,
-        physics_engine: &mut PhysicsEngine,
-        physics_rids: &mut PhysicsRids,
-    ) {
+    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         let radius = variant_to_float(&data);
         if radius <= 0.0 {
             godot_error!("RapierCircleShape radius must be positive. Got {}", radius);
             return;
         }
         let handle = physics_engine.shape_create_circle(radius);
-        self.base
-            .set_handle_and_reset_aabb(handle, physics_engine, physics_rids);
+        self.base.set_handle_and_reset_aabb(handle, physics_engine);
     }
 
     fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
@@ -83,8 +79,9 @@ mod tests {
         #[func]
         fn test_create() {
             let mut physics_shapes = PhysicsShapes::new();
+            let mut physics_ids = PhysicsIds::new();
             let rid = Rid::new(123);
-            RapierCircleShape::create(rid, &mut physics_shapes);
+            RapierCircleShape::create(rid, &mut physics_shapes, &mut physics_ids);
             assert!(physics_shapes.contains_key(&rid));
             match physics_shapes.get(&rid) {
                 Some(RapierShape::RapierCircleShape(_)) => {}
@@ -104,11 +101,7 @@ mod tests {
                 base: RapierShapeBase::new(Rid::Invalid),
             };
             let data = Variant::from(1.5);
-            circle_shape.set_data(
-                data,
-                &mut physics_data().physics_engine,
-                &mut physics_data().rids,
-            );
+            circle_shape.set_data(data, &mut physics_data().physics_engine);
             assert!(circle_shape.get_base().is_valid());
             assert_eq!(
                 circle_shape.get_data(&physics_data().physics_engine),
@@ -116,7 +109,7 @@ mod tests {
             );
             circle_shape
                 .get_mut_base()
-                .destroy_shape(&mut physics_data().physics_engine, &mut physics_data().rids);
+                .destroy_shape(&mut physics_data().physics_engine);
             assert!(!circle_shape.get_base().is_valid());
         }
     }

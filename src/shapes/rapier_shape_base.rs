@@ -1,14 +1,12 @@
 use godot::prelude::*;
 use hashbrown::HashMap;
-use rapier::prelude::RigidBodyHandle;
 
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::get_body_rid;
-use crate::servers::rapier_physics_singleton::insert_shape_rid;
-use crate::servers::rapier_physics_singleton::remove_shape_rid;
+use crate::servers::rapier_physics_singleton::get_id_rid;
+use crate::servers::rapier_physics_singleton::next_id;
 use crate::servers::rapier_physics_singleton::PhysicsData;
-use crate::servers::rapier_physics_singleton::PhysicsRids;
+use crate::servers::rapier_physics_singleton::RapierId;
 use crate::types::*;
 #[cfg_attr(
     feature = "serde-serialize",
@@ -24,8 +22,10 @@ pub struct RapierShapeState {
             deserialize_with = "rapier::utils::serde::deserialize_from_vec_tuple"
         )
     )]
-    owners: HashMap<RigidBodyHandle, i32>,
+    owners: HashMap<RapierId, i32>,
     handle: ShapeHandle,
+    #[serde(default = "next_id")]
+    id: RapierId,
 }
 pub struct RapierShapeBase {
     rid: Rid,
@@ -51,7 +51,6 @@ impl RapierShapeBase {
         &mut self,
         handle: ShapeHandle,
         physics_engine: &mut PhysicsEngine,
-        physics_rids: &mut PhysicsRids,
     ) {
         // new handle has to be valid
         if handle == ShapeHandle::default() {
@@ -60,9 +59,8 @@ impl RapierShapeBase {
         }
         // destroy previous shape
         if self.state.handle != ShapeHandle::default() {
-            self.destroy_shape(physics_engine, physics_rids);
+            self.destroy_shape(physics_engine);
         }
-        insert_shape_rid(handle, self.get_rid(), physics_rids);
         let rapier_aabb = physics_engine.shape_get_aabb(handle);
         let vertices = rapier_aabb.vertices();
         self.state.aabb = Rect::new(
@@ -81,22 +79,22 @@ impl RapierShapeBase {
     }
 
     pub fn call_shape_changed(
-        owners: HashMap<RigidBodyHandle, i32>,
-        old_shape_handle: ShapeHandle,
-        new_shape_handle: ShapeHandle,
+        owners: HashMap<RapierId, i32>,
+        shape_id: RapierId,
+        shape_handle: ShapeHandle,
         physics_data: &mut PhysicsData,
     ) {
         for (owner, _) in owners {
             if let Some(owner) = physics_data
                 .collision_objects
-                .get_mut(&get_body_rid(owner, &physics_data.rids))
+                .get_mut(&get_id_rid(owner, &physics_data.ids))
             {
                 owner.shape_changed(
-                    old_shape_handle,
-                    new_shape_handle,
+                    shape_id,
+                    shape_handle,
                     &mut physics_data.physics_engine,
                     &mut physics_data.spaces,
-                    &physics_data.rids,
+                    &physics_data.ids,
                 );
             }
         }
@@ -108,11 +106,11 @@ impl RapierShapeBase {
         aabb_clone
     }
 
-    pub fn add_owner(&mut self, owner: RigidBodyHandle) {
+    pub fn add_owner(&mut self, owner: RapierId) {
         *self.state.owners.entry(owner).or_insert(0) += 1;
     }
 
-    pub fn remove_owner(&mut self, owner: RigidBodyHandle) {
+    pub fn remove_owner(&mut self, owner: RapierId) {
         if let Some(count) = self.state.owners.get_mut(&owner) {
             *count -= 1;
             if *count == 0 {
@@ -121,7 +119,7 @@ impl RapierShapeBase {
         }
     }
 
-    pub fn get_owners(&self) -> &HashMap<RigidBodyHandle, i32> {
+    pub fn get_owners(&self) -> &HashMap<RapierId, i32> {
         &self.state.owners
     }
 
@@ -129,15 +127,14 @@ impl RapierShapeBase {
         self.rid
     }
 
-    pub fn destroy_shape(
-        &mut self,
-        physics_engine: &mut PhysicsEngine,
-        physics_rids: &mut PhysicsRids,
-    ) {
+    pub fn get_id(&self) -> RapierId {
+        self.state.id
+    }
+
+    pub fn destroy_shape(&mut self, physics_engine: &mut PhysicsEngine) {
         if self.state.handle != ShapeHandle::default() {
             physics_engine.shape_destroy(self.state.handle);
             self.state.handle = ShapeHandle::default();
-            remove_shape_rid(self.get_handle(), physics_rids);
         }
     }
 
@@ -193,12 +190,7 @@ impl Drop for RapierShapeBase {
 }
 #[cfg(test)]
 mod tests {
-    use rapier::prelude::*;
-
     use super::*;
-    fn create_test_rigid_body_handle() -> RigidBodyHandle {
-        RigidBodyHandle::from_raw_parts(1, 0)
-    }
     fn create_test_shape_handle() -> ShapeHandle {
         ShapeHandle::from_raw_parts(1, 0)
     }
@@ -215,9 +207,8 @@ mod tests {
         let rid = Rid::new(123);
         let mut shape_base = RapierShapeBase::new(rid);
         let mut physics_engine = PhysicsEngine::default();
-        let mut physics_rids = PhysicsRids::default();
         let handle = create_test_shape_handle();
-        shape_base.set_handle_and_reset_aabb(handle, &mut physics_engine, &mut physics_rids);
+        shape_base.set_handle_and_reset_aabb(handle, &mut physics_engine);
         assert_eq!(shape_base.get_handle(), handle);
         assert!(shape_base.is_valid());
     }
@@ -225,26 +216,25 @@ mod tests {
     fn test_add_and_remove_owner() {
         let rid = Rid::new(123);
         let mut shape_base = RapierShapeBase::new(rid);
-        let rb_handle = create_test_rigid_body_handle();
-        shape_base.add_owner(rb_handle);
-        assert_eq!(shape_base.get_owners().get(&rb_handle), Some(&1));
-        shape_base.add_owner(rb_handle);
-        assert_eq!(shape_base.get_owners().get(&rb_handle), Some(&2));
-        shape_base.remove_owner(rb_handle);
-        assert_eq!(shape_base.get_owners().get(&rb_handle), Some(&1));
-        shape_base.remove_owner(rb_handle);
-        assert!(shape_base.get_owners().get(&rb_handle).is_none());
+        let rb_id = next_id();
+        shape_base.add_owner(rb_id);
+        assert_eq!(shape_base.get_owners().get(&rb_id), Some(&1));
+        shape_base.add_owner(rb_id);
+        assert_eq!(shape_base.get_owners().get(&rb_id), Some(&2));
+        shape_base.remove_owner(rb_id);
+        assert_eq!(shape_base.get_owners().get(&rb_id), Some(&1));
+        shape_base.remove_owner(rb_id);
+        assert!(shape_base.get_owners().get(&rb_id).is_none());
     }
     #[test]
     fn test_destroy_shape() {
         let rid = Rid::new(123);
         let mut shape_base = RapierShapeBase::new(rid);
         let mut physics_engine = PhysicsEngine::default();
-        let mut physics_rids = PhysicsRids::default();
         let handle = create_test_shape_handle();
-        shape_base.set_handle_and_reset_aabb(handle, &mut physics_engine, &mut physics_rids);
+        shape_base.set_handle_and_reset_aabb(handle, &mut physics_engine);
         assert!(shape_base.is_valid());
-        shape_base.destroy_shape(&mut physics_engine, &mut physics_rids);
+        shape_base.destroy_shape(&mut physics_engine);
         assert!(!shape_base.is_valid());
     }
 }

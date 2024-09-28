@@ -3,7 +3,8 @@ use godot::prelude::*;
 
 use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::PhysicsRids;
+use crate::servers::rapier_physics_singleton::insert_id_rid;
+use crate::servers::rapier_physics_singleton::PhysicsIds;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
@@ -11,10 +12,11 @@ pub struct RapierSegmentShape2D {
     base: RapierShapeBase,
 }
 impl RapierSegmentShape2D {
-    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) {
+    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes, physics_ids: &mut PhysicsIds) {
         let shape = Self {
             base: RapierShapeBase::new(rid),
         };
+        insert_id_rid(shape.base.get_id(), rid, physics_ids);
         physics_shapes.insert(rid, RapierShape::RapierSegmentShape2D(shape));
     }
 }
@@ -35,12 +37,7 @@ impl IRapierShape for RapierSegmentShape2D {
         true
     }
 
-    fn set_data(
-        &mut self,
-        data: Variant,
-        physics_engine: &mut PhysicsEngine,
-        physics_rids: &mut PhysicsRids,
-    ) {
+    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         if data.get_type() != VariantType::RECT2 {
             godot_error!("RapierSegmentShape data must be a Rect2. Got {}", data);
             return;
@@ -50,8 +47,7 @@ impl IRapierShape for RapierSegmentShape2D {
         let p2 = r.size;
         let rapier_points = [vector_to_rapier(p1), vector_to_rapier(p2)];
         let handle = physics_engine.shape_create_concave_polyline(&rapier_points.to_vec(), None);
-        self.base
-            .set_handle_and_reset_aabb(handle, physics_engine, physics_rids);
+        self.base.set_handle_and_reset_aabb(handle, physics_engine);
     }
 
     fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {

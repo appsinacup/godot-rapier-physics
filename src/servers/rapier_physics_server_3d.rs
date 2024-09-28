@@ -912,7 +912,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         for space in physics_data.active_spaces.values() {
             if let Some(space) = physics_data.spaces.get_mut(space) {
                 let query =
-                    space.get_queries(&mut physics_data.collision_objects, &physics_data.rids);
+                    space.get_queries(&mut physics_data.collision_objects, &physics_data.ids);
                 queries.extend(query);
             }
         }
@@ -925,7 +925,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         self.implementation.flushing_queries = false;
         for space in physics_data.active_spaces.values() {
             if let Some(space) = physics_data.spaces.get_mut(space) {
-                space.update_after_queries(&mut physics_data.collision_objects, &physics_data.rids);
+                space.update_after_queries(&mut physics_data.collision_objects, &physics_data.ids);
             }
         }
     }

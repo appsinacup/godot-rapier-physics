@@ -21,7 +21,7 @@ func get_all_physics_nodes(p_node: Node, path: String = "/root/") -> Array[Strin
 
 func save_node(rid: RID, save_json: bool):
 	if save_json:
-		return RapierPhysicsServer2D.export_json(rid)
+		return JSON.parse_string(RapierPhysicsServer2D.export_json(rid))
 	else:
 		return RapierPhysicsServer2D.export_binary(rid)
 

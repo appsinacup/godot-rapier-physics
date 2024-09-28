@@ -6,7 +6,8 @@ use godot::prelude::*;
 
 use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::PhysicsRids;
+use crate::servers::rapier_physics_singleton::insert_id_rid;
+use crate::servers::rapier_physics_singleton::PhysicsIds;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
@@ -16,12 +17,13 @@ pub struct RapierSeparationRayShape {
     base: RapierShapeBase,
 }
 impl RapierSeparationRayShape {
-    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) {
+    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes, physics_ids: &mut PhysicsIds) {
         let shape = Self {
             length: 0.0,
             slide_on_slope: false,
             base: RapierShapeBase::new(rid),
         };
+        insert_id_rid(shape.base.get_id(), rid, physics_ids);
         physics_shapes.insert(rid, RapierShape::RapierSeparationRayShape(shape));
     }
 }
@@ -42,12 +44,7 @@ impl IRapierShape for RapierSeparationRayShape {
         false
     }
 
-    fn set_data(
-        &mut self,
-        data: Variant,
-        _physics_engine: &mut PhysicsEngine,
-        _physics_rids: &mut PhysicsRids,
-    ) {
+    fn set_data(&mut self, data: Variant, _physics_engine: &mut PhysicsEngine) {
         if data.get_type() != VariantType::DICTIONARY {
             godot_error!(
                 "RapierSeparationRayShape data must be a dictionary. Got {}",

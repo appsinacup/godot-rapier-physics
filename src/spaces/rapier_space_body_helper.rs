@@ -8,7 +8,7 @@ use rapier::geometry::ColliderHandle;
 use rapier::math::Real;
 use rapier::math::DEFAULT_EPSILON;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
-use servers::rapier_physics_singleton::PhysicsRids;
+use servers::rapier_physics_singleton::PhysicsIds;
 use servers::rapier_physics_singleton::PhysicsShapes;
 use shapes::rapier_shape::IRapierShape;
 use shapes::rapier_shape::RapierShape;
@@ -31,7 +31,7 @@ impl RapierSpace {
         user_data: &UserData,
         handle_excluded_info: &QueryExcludedInfo,
         physics_collision_objects: &PhysicsCollisionObjects,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
     ) -> bool {
         for exclude_index in 0..handle_excluded_info.query_exclude_size {
             if handle_excluded_info.query_exclude[exclude_index] == collider_handle {
@@ -39,7 +39,7 @@ impl RapierSpace {
             }
         }
         let (collision_object_2d, _) =
-            RapierCollisionObjectBase::get_collider_user_data(user_data, physics_rids);
+            RapierCollisionObjectBase::get_collider_user_data(user_data, physics_ids);
         let Some(collision_object_2d) = physics_collision_objects.get(&collision_object_2d) else {
             return false;
         };
@@ -76,7 +76,7 @@ impl RapierSpace {
         result: &mut PhysicsServerExtensionMotionResult,
         physics_engine: &PhysicsEngine,
         physics_shapes: &PhysicsShapes,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
         physics_collision_objects: &PhysicsCollisionObjects,
     ) -> bool {
         result.travel = Vector::default();
@@ -94,7 +94,7 @@ impl RapierSpace {
             &mut recover_motion,
             physics_engine,
             physics_shapes,
-            physics_rids,
+            physics_ids,
             physics_collision_objects,
         );
         // Step 2: Cast motion.
@@ -114,7 +114,7 @@ impl RapierSpace {
             &mut best_body_shape,
             physics_engine,
             physics_shapes,
-            physics_rids,
+            physics_ids,
             physics_collision_objects,
         );
         // Step 3: Rest Info
@@ -136,7 +136,7 @@ impl RapierSpace {
                 result,
                 physics_engine,
                 physics_shapes,
-                physics_rids,
+                physics_ids,
                 physics_collision_objects,
             );
         }
@@ -167,7 +167,7 @@ impl RapierSpace {
         exclude_body: Rid,
         physics_engine: &PhysicsEngine,
         physics_collision_objects: &PhysicsCollisionObjects,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
     ) -> i32 {
         if max_results < 1 {
             return 0;
@@ -191,7 +191,7 @@ impl RapierSpace {
             max_results,
             &handle_excluded_info,
             physics_collision_objects,
-            physics_rids,
+            physics_ids,
             self,
         ) as i32
     }
@@ -206,7 +206,7 @@ impl RapierSpace {
         p_recover_motion: &mut Vector,
         physics_engine: &PhysicsEngine,
         physics_shapes: &PhysicsShapes,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
         physics_collision_objects: &PhysicsCollisionObjects,
     ) -> bool {
         let shape_count = p_body.get_base().get_shape_count();
@@ -216,7 +216,7 @@ impl RapierSpace {
         let min_contact_depth = p_margin * TEST_MOTION_MIN_CONTACT_DEPTH_FACTOR;
         let mut recovered = false;
         let mut recover_attempts = BODY_MOTION_RECOVER_ATTEMPTS;
-        let body_aabb = p_body.get_aabb(physics_shapes, physics_rids);
+        let body_aabb = p_body.get_aabb(physics_shapes, physics_ids);
         loop {
             let mut results = [PointHitInfo::default(); 32];
             // Undo the currently transform the physics server is aware of and apply the provided one
@@ -232,7 +232,7 @@ impl RapierSpace {
                 p_body.get_base().get_rid(),
                 physics_engine,
                 physics_collision_objects,
-                physics_rids,
+                physics_ids,
             );
             // Optimization
             if result_count == 0 {
@@ -245,7 +245,7 @@ impl RapierSpace {
                     continue;
                 }
                 if let Some(body_shape) =
-                    physics_shapes.get(&p_body.get_base().get_shape(physics_rids, body_shape_idx))
+                    physics_shapes.get(&p_body.get_base().get_shape(physics_ids, body_shape_idx))
                 {
                     let body_shape_transform =
                         *p_transform * p_body.get_base().get_shape_transform(body_shape_idx);
@@ -262,7 +262,7 @@ impl RapierSpace {
                         let (shape_col_object, shape_index) =
                             RapierCollisionObjectBase::get_collider_user_data(
                                 &result.user_data,
-                                physics_rids,
+                                physics_ids,
                             );
                         if let Some(shape_col_object) =
                             physics_collision_objects.get(&shape_col_object)
@@ -274,7 +274,7 @@ impl RapierSpace {
                                 if let Some(col_shape) = physics_shapes.get(
                                     &collision_body
                                         .get_base()
-                                        .get_shape(physics_rids, shape_index),
+                                        .get_shape(physics_ids, shape_index),
                                 ) {
                                     let col_shape_transform =
                                         collision_body.get_base().get_transform()
@@ -356,10 +356,10 @@ impl RapierSpace {
         p_best_body_shape: &mut i32,
         physics_engine: &PhysicsEngine,
         physics_shapes: &PhysicsShapes,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
         physics_collision_objects: &PhysicsCollisionObjects,
     ) {
-        let body_aabb = p_body.get_aabb(physics_shapes, physics_rids);
+        let body_aabb = p_body.get_aabb(physics_shapes, physics_ids);
         let margin_aabb = *p_transform * body_aabb;
         let margin_aabb = margin_aabb.grow(p_margin);
         let mut motion_aabb = margin_aabb;
@@ -376,7 +376,7 @@ impl RapierSpace {
             p_body.get_base().get_rid(),
             physics_engine,
             physics_collision_objects,
-            physics_rids,
+            physics_ids,
         );
         if result_count == 0 {
             return;
@@ -387,7 +387,7 @@ impl RapierSpace {
                 continue;
             }
             if let Some(body_shape) =
-                physics_shapes.get(&p_body.get_base().get_shape(physics_rids, body_shape_idx))
+                physics_shapes.get(&p_body.get_base().get_shape(physics_ids, body_shape_idx))
             {
                 let body_shape_transform =
                     *p_transform * p_body.get_base().get_shape_transform(body_shape_idx);
@@ -419,7 +419,7 @@ impl RapierSpace {
                     let (shape_col_object, shape_index) =
                         RapierCollisionObjectBase::get_collider_user_data(
                             &result.user_data,
-                            physics_rids,
+                            physics_ids,
                         );
                     if let Some(shape_col_object) = physics_collision_objects.get(&shape_col_object)
                     {
@@ -430,7 +430,7 @@ impl RapierSpace {
                             if let Some(col_shape) = physics_shapes.get(
                                 &collision_body
                                     .get_base()
-                                    .get_shape(physics_rids, shape_index),
+                                    .get_shape(physics_ids, shape_index),
                             ) {
                                 let col_shape_transform = collision_body.get_base().get_transform()
                                     * collision_body.get_base().get_shape_transform(shape_index);
@@ -554,14 +554,14 @@ impl RapierSpace {
         p_result: &mut PhysicsServerExtensionMotionResult,
         physics_engine: &PhysicsEngine,
         physics_shapes: &PhysicsShapes,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
         physics_collision_objects: &PhysicsCollisionObjects,
     ) -> bool {
         let shape_count = p_body.get_base().get_shape_count();
         if shape_count < 1 {
             return false;
         }
-        let body_aabb = p_body.get_aabb(physics_shapes, physics_rids);
+        let body_aabb = p_body.get_aabb(physics_shapes, physics_ids);
         let margin_aabb = *p_transform * body_aabb;
         let margin_aabb = margin_aabb.grow(p_margin);
         // also check things at motion
@@ -579,7 +579,7 @@ impl RapierSpace {
             p_body.get_base().get_rid(),
             physics_engine,
             physics_collision_objects,
-            physics_rids,
+            physics_ids,
         );
         // Optimization
         if result_count == 0 {
@@ -606,7 +606,7 @@ impl RapierSpace {
             }
             let body_shape = p_body
                 .get_base()
-                .get_shape(physics_rids, body_shape_idx as usize);
+                .get_shape(physics_ids, body_shape_idx as usize);
             let body_shape_transform = *p_transform
                 * p_body
                     .get_base()
@@ -624,7 +624,7 @@ impl RapierSpace {
                     let (shape_col_object, shape_index) =
                         RapierCollisionObjectBase::get_collider_user_data(
                             &result.user_data,
-                            physics_rids,
+                            physics_ids,
                         );
                     if let Some(shape_col_object) = physics_collision_objects.get(&shape_col_object)
                     {
@@ -634,7 +634,7 @@ impl RapierSpace {
                             }
                             let col_shape_rid = collision_body
                                 .get_base()
-                                .get_shape(physics_rids, shape_index);
+                                .get_shape(physics_ids, shape_index);
                             if let Some(col_shape) = physics_shapes.get(&col_shape_rid) {
                                 let col_shape_transform = collision_body.get_base().get_transform()
                                     * collision_body.get_base().get_shape_transform(shape_index);

@@ -2,7 +2,7 @@ use rapier::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsCollisionObjects;
-use crate::servers::rapier_physics_singleton::PhysicsRids;
+use crate::servers::rapier_physics_singleton::PhysicsIds;
 #[derive(Default)]
 pub struct OneWayDirection {
     pub body1: bool,
@@ -15,12 +15,12 @@ pub struct OneWayDirection {
 pub type CollisionFilterCallback = fn(
     filter_info: &CollisionFilterInfo,
     physics_collision_objects: &PhysicsCollisionObjects,
-    physics_rids: &PhysicsRids,
+    physics_ids: &PhysicsIds,
 ) -> bool;
 pub type CollisionModifyContactsCallback = fn(
     filter_info: &CollisionFilterInfo,
     physics_collision_objects: &PhysicsCollisionObjects,
-    physics_rids: &PhysicsRids,
+    physics_ids: &PhysicsIds,
 ) -> OneWayDirection;
 pub struct CollisionFilterInfo {
     pub user_data1: UserData,
@@ -30,7 +30,7 @@ pub struct PhysicsHooksCollisionFilter<'a> {
     pub collision_filter_body_callback: &'a CollisionFilterCallback,
     pub collision_modify_contacts_callback: &'a CollisionModifyContactsCallback,
     pub physics_collision_objects: &'a PhysicsCollisionObjects,
-    pub physics_rids: &'a PhysicsRids,
+    pub physics_ids: &'a PhysicsIds,
     pub last_step: Real,
     pub ghost_collision_distance: Real,
 }
@@ -104,7 +104,7 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
         if !(self.collision_filter_body_callback)(
             &filter_info,
             self.physics_collision_objects,
-            self.physics_rids,
+            self.physics_ids,
         ) {
             return None;
         }
@@ -143,7 +143,7 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
         let one_way_direction = (self.collision_modify_contacts_callback)(
             &filter_info,
             self.physics_collision_objects,
-            self.physics_rids,
+            self.physics_ids,
         );
         if one_way_direction.body1 {
             update_as_oneway_platform(context, &(context.normal.clone()), &allowed_local_n1);

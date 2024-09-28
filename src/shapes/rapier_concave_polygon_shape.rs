@@ -6,7 +6,8 @@ use godot::prelude::*;
 
 use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::PhysicsRids;
+use crate::servers::rapier_physics_singleton::insert_id_rid;
+use crate::servers::rapier_physics_singleton::PhysicsIds;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::shapes::rapier_shape::*;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
@@ -15,10 +16,11 @@ pub struct RapierConcavePolygonShape {
     base: RapierShapeBase,
 }
 impl RapierConcavePolygonShape {
-    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) {
+    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes, physics_ids: &mut PhysicsIds) {
         let shape = Self {
             base: RapierShapeBase::new(rid),
         };
+        insert_id_rid(shape.base.get_id(), rid, physics_ids);
         physics_shapes.insert(rid, RapierShape::RapierConcavePolygonShape(shape));
     }
 }
@@ -64,12 +66,7 @@ impl IRapierShape for RapierConcavePolygonShape {
         true
     }
 
-    fn set_data(
-        &mut self,
-        data: Variant,
-        physics_engine: &mut PhysicsEngine,
-        physics_rids: &mut PhysicsRids,
-    ) {
+    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         let points_local;
         match data.get_type() {
             #[cfg(feature = "dim3")]
@@ -120,8 +117,7 @@ impl IRapierShape for RapierConcavePolygonShape {
             }
         }
         let handle = self.create_rapier_shape(physics_engine, &points_local);
-        self.base
-            .set_handle_and_reset_aabb(handle, physics_engine, physics_rids);
+        self.base.set_handle_and_reset_aabb(handle, physics_engine);
     }
 
     #[cfg(feature = "dim2")]
@@ -194,8 +190,9 @@ mod tests {
         #[func]
         fn test_create() {
             let mut physics_shapes = PhysicsShapes::new();
+            let mut physics_ids = PhysicsIds::new();
             let rid = Rid::new(123);
-            RapierConcavePolygonShape::create(rid, &mut physics_shapes);
+            RapierConcavePolygonShape::create(rid, &mut physics_shapes, &mut physics_ids);
             assert!(physics_shapes.contains_key(&rid));
             match physics_shapes.get(&rid) {
                 Some(RapierShape::RapierConcavePolygonShape(_)) => {}
@@ -218,11 +215,7 @@ mod tests {
                 Vector::splat(2.0),
                 Vector::splat(4.0),
             ]);
-            concave_shape.set_data(
-                arr.to_variant(),
-                &mut physics_data().physics_engine,
-                &mut physics_data().rids,
-            );
+            concave_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
             assert!(concave_shape.get_base().is_valid());
             let data: PackedVectorArray = concave_shape
                 .get_data(&physics_data().physics_engine)
@@ -235,7 +228,7 @@ mod tests {
             assert_eq!(data[3], Vector::splat(4.0));
             concave_shape
                 .get_mut_base()
-                .destroy_shape(&mut physics_data().physics_engine, &mut physics_data().rids);
+                .destroy_shape(&mut physics_data().physics_engine);
             assert!(!concave_shape.get_base().is_valid());
         }
 
@@ -255,11 +248,7 @@ mod tests {
                 Vector::splat(5.0),
             ]);
             let _ = dict.insert("faces", arr);
-            concave_shape.set_data(
-                dict.to_variant(),
-                &mut physics_data().physics_engine,
-                &mut physics_data().rids,
-            );
+            concave_shape.set_data(dict.to_variant(), &mut physics_data().physics_engine);
             let data: PackedVectorArray = concave_shape
                 .get_data(&physics_data().physics_engine)
                 .try_to()
@@ -274,7 +263,7 @@ mod tests {
             assert!(concave_shape.get_base().is_valid());
             concave_shape
                 .get_mut_base()
-                .destroy_shape(&mut physics_data().physics_engine, &mut physics_data().rids);
+                .destroy_shape(&mut physics_data().physics_engine);
             assert!(!concave_shape.get_base().is_valid());
         }
     }

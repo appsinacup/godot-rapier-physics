@@ -5,10 +5,11 @@ use super::rapier_collision_object_base::CollisionObjectShape;
 use super::rapier_collision_object_base::RapierCollisionObjectBase;
 use crate::rapier_wrapper::handle::ShapeHandle;
 use crate::rapier_wrapper::prelude::PhysicsEngine;
-use crate::servers::rapier_physics_singleton::get_shape_rid;
-use crate::servers::rapier_physics_singleton::PhysicsRids;
+use crate::servers::rapier_physics_singleton::get_id_rid;
+use crate::servers::rapier_physics_singleton::PhysicsIds;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::servers::rapier_physics_singleton::PhysicsSpaces;
+use crate::servers::rapier_physics_singleton::RapierId;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::types::Transform;
 impl RapierCollisionObjectBase {
@@ -16,7 +17,7 @@ impl RapierCollisionObjectBase {
         collision_object: &mut dyn IRapierCollisionObject,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
     ) {
         for i in 0..collision_object.get_base().get_shape_count() as usize {
             if collision_object.get_base().state.shapes[i].disabled {
@@ -31,7 +32,7 @@ impl RapierCollisionObjectBase {
                         i,
                         physics_spaces,
                         physics_engine,
-                        physics_rids,
+                        physics_ids,
                     );
             }
             collision_object.get_mut_base().state.shapes[i].collider_handle = collision_object
@@ -50,16 +51,18 @@ impl RapierCollisionObjectBase {
     #[allow(clippy::too_many_arguments)]
     pub(super) fn add_shape(
         collision_object: &mut dyn IRapierCollisionObject,
+        p_shape_id: RapierId,
         p_shape: ShapeHandle,
         p_transform: Transform,
         p_disabled: bool,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
     ) {
         let mut shape = CollisionObjectShape {
             xform: p_transform,
+            id: p_shape_id,
             handle: p_shape,
             disabled: p_disabled,
             one_way_collision: false,
@@ -77,36 +80,36 @@ impl RapierCollisionObjectBase {
                 .update_shape_transform(&shape, physics_engine);
         }
         collision_object.get_mut_base().state.shapes.push(shape);
-        if let Some(shape) = physics_shapes.get_mut(&get_shape_rid(p_shape, physics_rids)) {
+        if let Some(shape) = physics_shapes.get_mut(&get_id_rid(p_shape_id, physics_ids)) {
             shape
                 .get_mut_base()
-                .add_owner(collision_object.get_base().get_body_handle());
+                .add_owner(collision_object.get_base().get_id());
         }
         if collision_object.get_base().is_space_valid() {
-            collision_object.shapes_changed(physics_engine, physics_spaces, physics_rids);
+            collision_object.shapes_changed(physics_engine, physics_spaces, physics_ids);
         }
     }
 
     pub(super) fn shape_changed(
         collision_object: &mut dyn IRapierCollisionObject,
-        old_shape_handle: ShapeHandle,
-        new_shape_handle: ShapeHandle,
+        shape_id: RapierId,
+        shape_handle: ShapeHandle,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
     ) {
         for i in 0..collision_object.get_base().state.shapes.len() {
             let shape = collision_object.get_base().state.shapes[i];
-            if shape.handle != old_shape_handle || shape.disabled {
+            if shape.id != shape_id || shape.disabled {
                 continue;
             }
-            collision_object.get_mut_base().state.shapes[i].handle = new_shape_handle;
+            collision_object.get_mut_base().state.shapes[i].handle = shape_handle;
             if collision_object.get_base().state.shapes[i].collider_handle
                 != ColliderHandle::invalid()
             {
                 collision_object.get_mut_base().state.shapes[i].collider_handle = collision_object
                     .get_base()
-                    .destroy_shape(shape, i, physics_spaces, physics_engine, physics_rids);
+                    .destroy_shape(shape, i, physics_spaces, physics_engine, physics_ids);
             }
             collision_object.get_mut_base().state.shapes[i].collider_handle =
                 collision_object.get_base().create_shape(
@@ -120,7 +123,7 @@ impl RapierCollisionObjectBase {
                 physics_engine,
             );
         }
-        collision_object.shapes_changed(physics_engine, physics_spaces, physics_rids);
+        collision_object.shapes_changed(physics_engine, physics_spaces, physics_ids);
     }
 
     pub(super) fn remove_shape_idx(
@@ -129,7 +132,7 @@ impl RapierCollisionObjectBase {
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
     ) {
         if p_index >= collision_object.get_base().state.shapes.len() {
             return;
@@ -141,19 +144,19 @@ impl RapierCollisionObjectBase {
                 p_index,
                 physics_spaces,
                 physics_engine,
-                physics_rids,
+                physics_ids,
             );
         }
         let shape = &mut collision_object.get_mut_base().state.shapes[p_index];
         shape.collider_handle = ColliderHandle::invalid();
-        if let Some(shape) = physics_shapes.get_mut(&get_shape_rid(shape.handle, physics_rids)) {
+        if let Some(shape) = physics_shapes.get_mut(&get_id_rid(shape.id, physics_ids)) {
             shape
                 .get_mut_base()
-                .remove_owner(collision_object.get_base().get_body_handle());
+                .remove_owner(collision_object.get_base().get_id());
         }
         collision_object.get_mut_base().state.shapes.remove(p_index);
         if collision_object.get_base().is_space_valid() {
-            collision_object.shapes_changed(physics_engine, physics_spaces, physics_rids);
+            collision_object.shapes_changed(physics_engine, physics_spaces, physics_ids);
         }
         collision_object
             .get_mut_base()
@@ -167,7 +170,7 @@ impl RapierCollisionObjectBase {
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
     ) {
         if p_index >= collision_object.get_base().state.shapes.len() {
             return;
@@ -178,19 +181,19 @@ impl RapierCollisionObjectBase {
                 p_index,
                 physics_spaces,
                 physics_engine,
-                physics_rids,
+                physics_ids,
             );
         let shape = collision_object.get_base().state.shapes[p_index];
-        if let Some(shape) = physics_shapes.get_mut(&get_shape_rid(shape.handle, physics_rids)) {
+        if let Some(shape) = physics_shapes.get_mut(&get_id_rid(shape.id, physics_ids)) {
             shape
                 .get_mut_base()
-                .remove_owner(collision_object.get_base().get_body_handle());
+                .remove_owner(collision_object.get_base().get_id());
         }
         collision_object.get_mut_base().state.shapes[p_index].handle = p_shape;
-        if let Some(shape) = physics_shapes.get_mut(&get_shape_rid(shape.handle, physics_rids)) {
+        if let Some(shape) = physics_shapes.get_mut(&get_id_rid(shape.id, physics_ids)) {
             shape
                 .get_mut_base()
-                .add_owner(collision_object.get_base().get_body_handle());
+                .add_owner(collision_object.get_base().get_id());
         }
         if !shape.disabled {
             collision_object.get_mut_base().state.shapes[p_index].collider_handle =
@@ -205,7 +208,7 @@ impl RapierCollisionObjectBase {
                 .update_shape_transform(&shape, physics_engine);
         }
         if collision_object.get_base().is_space_valid() {
-            collision_object.shapes_changed(physics_engine, physics_spaces, physics_rids);
+            collision_object.shapes_changed(physics_engine, physics_spaces, physics_ids);
         }
     }
 
@@ -215,7 +218,7 @@ impl RapierCollisionObjectBase {
         p_transform: Transform,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
     ) {
         if p_index >= collision_object.get_base().state.shapes.len() {
             return;
@@ -226,7 +229,7 @@ impl RapierCollisionObjectBase {
             .get_base()
             .update_shape_transform(shape, physics_engine);
         if collision_object.get_base().is_space_valid() {
-            collision_object.shapes_changed(physics_engine, physics_spaces, physics_rids);
+            collision_object.shapes_changed(physics_engine, physics_spaces, physics_ids);
         }
     }
 
@@ -236,7 +239,7 @@ impl RapierCollisionObjectBase {
         p_disabled: bool,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
     ) {
         if p_index >= collision_object.get_base().state.shapes.len() {
             return;
@@ -254,7 +257,7 @@ impl RapierCollisionObjectBase {
                     p_index,
                     physics_spaces,
                     physics_engine,
-                    physics_rids,
+                    physics_ids,
                 );
         }
         if !shape.disabled {
@@ -270,7 +273,7 @@ impl RapierCollisionObjectBase {
                 .update_shape_transform(&shape, physics_engine);
         }
         if collision_object.get_base().is_space_valid() {
-            collision_object.shapes_changed(physics_engine, physics_spaces, physics_rids);
+            collision_object.shapes_changed(physics_engine, physics_spaces, physics_ids);
         }
     }
 }
