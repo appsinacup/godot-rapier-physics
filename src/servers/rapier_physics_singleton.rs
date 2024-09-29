@@ -48,6 +48,9 @@ pub fn get_id_rid(id: RapierId, physics_ids: &PhysicsIds) -> Rid {
     return *physics_ids.get(&id).unwrap_or(&Rid::Invalid);
 }
 pub fn insert_id_rid(id: RapierId, rid: Rid, physics_ids: &mut PhysicsIds) {
+    if id == RapierId::default() {
+        godot_error!("RapierId cannot be 0");
+    }
     physics_ids.insert(id, rid);
 }
 pub fn remove_id_rid(id: RapierId, physics_ids: &mut PhysicsIds) {
