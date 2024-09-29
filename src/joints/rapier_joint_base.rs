@@ -102,6 +102,7 @@ impl RapierJointBase {
             joint.is_disabled_collisions_between_bodies(),
             physics_engine,
         );
+        self.state.id = joint.get_id();
     }
 
     pub fn destroy_joint(&mut self, physics_engine: &mut PhysicsEngine) {

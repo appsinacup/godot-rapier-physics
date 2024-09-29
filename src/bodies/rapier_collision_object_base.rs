@@ -71,7 +71,6 @@ impl Default for CollisionObjectShape {
     derive(serde::Serialize, serde::Deserialize)
 )]
 pub struct RapierCollisionObjectBaseState {
-    #[serde(default = "next_id")]
     pub(crate) id: RapierId,
     pub(crate) body_handle: RigidBodyHandle,
     pub(crate) space_handle: WorldHandle,
@@ -129,7 +128,10 @@ impl RapierCollisionObjectBase {
             user_flags: 0,
             collision_object_type,
             rid,
-            state: RapierCollisionObjectBaseState::default(),
+            state: RapierCollisionObjectBaseState {
+                id: next_id(),
+                ..Default::default()
+            },
             instance_id: 0,
             canvas_instance_id: 0,
             pickable: true,
@@ -302,9 +304,11 @@ impl RapierCollisionObjectBase {
         }
         if let Some(space) = physics_spaces.get_mut(&p_space) {
             self.state.space_handle = space.get_state().get_handle();
+            self.state.space_id = space.get_state().get_id();
             self.is_debugging_contacts = space.is_debugging_contacts();
         } else {
             self.state.space_handle = WorldHandle::default();
+            self.state.space_id = RapierId::default();
             return;
         }
         let position = vector_to_rapier(self.state.transform.origin);

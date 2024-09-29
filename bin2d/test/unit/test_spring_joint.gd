@@ -1,11 +1,11 @@
 extends Node2D
 
-var body_a := PhysicsServer2D.body_create()
-var body_b := PhysicsServer2D.body_create()
-var body_a_with_space1 := PhysicsServer2D.body_create()
-var body_b_with_space1 := PhysicsServer2D.body_create()
-var body_a_with_space2 := PhysicsServer2D.body_create()
-var body_b_with_space2 := PhysicsServer2D.body_create()
+@onready var body_a := PhysicsServer2D.body_create()
+@onready var body_b := PhysicsServer2D.body_create()
+@onready var body_a_with_space1 := PhysicsServer2D.body_create()
+@onready var body_b_with_space1 := PhysicsServer2D.body_create()
+@onready var body_a_with_space2 := PhysicsServer2D.body_create()
+@onready var body_b_with_space2 := PhysicsServer2D.body_create()
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -18,35 +18,32 @@ func _ready() -> void:
 	test_spring_joint_empty()
 	test_spring_joint_base()
 	test_spring_joint()
-	print("Spring joint tests passed.")
 
 
 func test_spring_joint_empty():
+	print("test_spring_joint_empty")
+	
 	var stiffness = PhysicsServer2D.damped_spring_joint_get_param(RID(), PhysicsServer2D.DampedSpringParam.DAMPED_SPRING_STIFFNESS)
 	assert(stiffness == 0)
 	var length = PhysicsServer2D.damped_spring_joint_get_param(RID(), PhysicsServer2D.DampedSpringParam.DAMPED_SPRING_REST_LENGTH)
 	assert(length == 0)
 	var damping = PhysicsServer2D.damped_spring_joint_get_param(RID(), PhysicsServer2D.DampedSpringParam.DAMPED_SPRING_DAMPING)
 	assert(damping == 0)
-	#var invalid = PhysicsServer2D.damped_spring_joint_get_param(RID(), 100)
-	#assert(invalid == 0)
-	# Test no crash here
 	PhysicsServer2D.damped_spring_joint_set_param(RID(), PhysicsServer2D.DAMPED_SPRING_STIFFNESS, 1)
 	PhysicsServer2D.damped_spring_joint_set_param(RID(), PhysicsServer2D.DAMPED_SPRING_REST_LENGTH, 2)
 	PhysicsServer2D.damped_spring_joint_set_param(RID(), PhysicsServer2D.DAMPED_SPRING_DAMPING, 3)
-	# PhysicsServer2D.damped_spring_joint_set_param(RID(), 100, 4)
 	PhysicsServer2D.joint_clear(RID())
 	var joint_type := PhysicsServer2D.joint_get_type(RID())
-	#assert(joint_type == PhysicsServer2D.JOINT_TYPE_MAX)
+	assert(joint_type == PhysicsServer2D.JOINT_TYPE_MAX)
 	PhysicsServer2D.joint_make_damped_spring(RID(), Vector2.ZERO, Vector2.ZERO, RID(), RID())
 	PhysicsServer2D.joint_make_damped_spring(RID(), Vector2.ZERO, Vector2.ZERO, body_a, RID())
 	PhysicsServer2D.joint_make_damped_spring(RID(), Vector2.ZERO, Vector2.ZERO, RID(), body_b)
 	PhysicsServer2D.joint_make_damped_spring(RID(), Vector2.ZERO, Vector2.ZERO, body_a, body_a)
 	PhysicsServer2D.joint_make_damped_spring(RID(), Vector2.ZERO, Vector2.ZERO, body_a, body_b)
 	PhysicsServer2D.joint_make_damped_spring(body_a, Vector2.ZERO, Vector2.ZERO, body_a, body_b)
-	print("Spring joint empty tests passed.")
 
 func test_spring_joint_base():
+	print("test_spring_joint_base")
 	# Base Joint
 	var joint_rid = PhysicsServer2D.joint_create()
 	assert(joint_rid != null)
@@ -129,4 +126,3 @@ func test_spring_joint():
 
 	PhysicsServer2D.joint_make_damped_spring(joint_rid, Vector2.ZERO, Vector2.ZERO, RID())
 	
-	print("Spring joint tests passed.")

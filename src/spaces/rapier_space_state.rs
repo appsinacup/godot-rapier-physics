@@ -244,7 +244,6 @@ impl RapierSpaceState {
     ) {
         if self.is_valid() {
             physics_engine.world_reset_if_empty(self.handle, world_settings);
-            // TODO reset ids
         }
     }
 }

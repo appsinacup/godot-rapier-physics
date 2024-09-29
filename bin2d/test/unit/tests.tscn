@@ -6,7 +6,7 @@
 [ext_resource type="Script" path="res://test/unit/test_spring_joint.gd" id="5_g8t46"]
 [ext_resource type="Script" path="res://test/unit/test_pin_joint.gd" id="6_0ffp6"]
 
-[node name="TestBody" type="Node2D"]
+[node name="Tests" type="Node2D"]
 
 [node name="Camera2D" type="Camera2D" parent="."]
 zoom = Vector2(4, 4)

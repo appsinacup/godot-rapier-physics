@@ -315,18 +315,26 @@ impl RapierPhysicsServer {
     }
 
     #[func]
-    fn get_stats() -> Array<i64> {
-        let mut array = Array::new();
-        array.resize(8, &0);
-        godot_print!("rids {:?}", physics_data().ids);
-        array.set(0, physics_data().ids.len() as i64);
-        array.set(1, physics_data().active_spaces.len() as i64);
-        array.set(2, physics_data().fluids.len() as i64);
-        array.set(3, physics_data().joints.len() as i64);
-        array.set(4, physics_data().shapes.len() as i64);
-        array.set(5, physics_data().spaces.len() as i64);
-        array.set(6, physics_data().physics_engine.shapes.len() as i64);
-        array.set(7, physics_data().physics_engine.physics_worlds.len() as i64);
-        array
+    fn get_stats() -> Dictionary {
+        let mut dictionary = Dictionary::new();
+        dictionary.set("ids", physics_data().ids.len() as i64);
+        dictionary.set("active_spaces", physics_data().active_spaces.len() as i64);
+        dictionary.set("spaces", physics_data().spaces.len() as i64);
+        dictionary.set(
+            "collision_objects",
+            physics_data().collision_objects.len() as i64,
+        );
+        dictionary.set("fluids", physics_data().fluids.len() as i64);
+        dictionary.set("joints", physics_data().joints.len() as i64);
+        dictionary.set("shapes", physics_data().shapes.len() as i64);
+        dictionary.set(
+            "physics_engine_shapes",
+            physics_data().physics_engine.shapes.len() as i64,
+        );
+        dictionary.set(
+            "physics_worlds",
+            physics_data().physics_engine.physics_worlds.len() as i64,
+        );
+        dictionary
     }
 }

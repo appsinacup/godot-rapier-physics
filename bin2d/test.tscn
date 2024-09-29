@@ -31,7 +31,7 @@ script = SubResource("GDScript_i28bw")
 shape = SubResource("CircleShape2D_01opr")
 
 [node name="RigidBody2D2" type="RigidBody2D" parent="."]
-position = Vector2(-18, -4)
+position = Vector2(-17, -3)
 mass = 100.0
 script = SubResource("GDScript_i28bw")
 

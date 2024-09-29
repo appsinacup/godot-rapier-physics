@@ -15,6 +15,7 @@ use super::rapier_physics_singleton::get_id_rid;
 use super::rapier_physics_singleton::insert_id_rid;
 use super::rapier_physics_singleton::physics_data;
 use super::rapier_physics_singleton::remove_id_rid;
+use super::rapier_physics_singleton::reset_ids;
 use super::rapier_physics_singleton::RapierId;
 use super::rapier_project_settings::RapierProjectSettings;
 use crate::bodies::rapier_area::AreaUpdateMode;
@@ -816,8 +817,6 @@ impl RapierPhysicsServerImpl {
                 &mut physics_data.collision_objects,
                 &physics_data.ids,
             );
-        } else {
-            godot_error!("Body not found");
         }
     }
 
@@ -1481,8 +1480,6 @@ impl RapierPhysicsServerImpl {
                 &mut physics_data.collision_objects,
                 &physics_data.ids,
             );
-        } else {
-            godot_error!("Invalid body id");
         }
     }
 
@@ -1637,9 +1634,12 @@ impl RapierPhysicsServerImpl {
     pub(super) fn joint_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
+        let joint = RapierEmptyJoint::new();
+        let id = joint.get_base().get_id();
         physics_data
             .joints
-            .insert(rid, RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new()));
+            .insert(rid, RapierJoint::RapierEmptyJoint(joint));
+        insert_id_rid(id, rid, &mut physics_data.ids);
         rid
     }
 
@@ -2248,26 +2248,16 @@ impl RapierPhysicsServerImpl {
         JointType::MAX
     }
 
-    fn reset_space_if_empty(&mut self, space: Rid) {
-        let physics_data = physics_data();
-        if let Some(space) = physics_data.spaces.get_mut(&space) {
-            space.get_mut_state().reset_space_if_empty(
-                &mut physics_data.physics_engine,
-                &RapierSpace::get_world_settings(),
-            );
-        }
-    }
-
     pub(super) fn free_rid(&mut self, rid: Rid) {
         let physics_data = physics_data();
+        let mut space_to_reset = Rid::Invalid;
         if let Some(mut shape) = physics_data.shapes.remove(&rid) {
-            let mut space = Rid::Invalid;
             for (owner, _) in shape.get_base().get_owners() {
                 if let Some(body) = physics_data
                     .collision_objects
                     .get_mut(&get_id_rid(*owner, &physics_data.ids))
                 {
-                    space = body.get_base().get_space(&physics_data.ids);
+                    space_to_reset = body.get_base().get_space(&physics_data.ids);
                     body.remove_shape_rid(
                         shape.get_base().get_rid(),
                         &mut physics_data.physics_engine,
@@ -2281,11 +2271,8 @@ impl RapierPhysicsServerImpl {
                 .get_mut_base()
                 .destroy_shape(&mut physics_data.physics_engine);
             remove_id_rid(shape.get_base().get_id(), &mut physics_data.ids);
-            self.reset_space_if_empty(space);
-            return;
-        }
-        if let Some(mut body) = physics_data.collision_objects.remove(&rid) {
-            let space = body.get_base().get_space(&physics_data.ids);
+        } else if let Some(mut body) = physics_data.collision_objects.remove(&rid) {
+            space_to_reset = body.get_base().get_space(&physics_data.ids);
             body.set_space(
                 Rid::Invalid,
                 &mut physics_data.physics_engine,
@@ -2293,30 +2280,38 @@ impl RapierPhysicsServerImpl {
                 &mut physics_data.ids,
             );
             remove_id_rid(body.get_base().get_id(), &mut physics_data.ids);
-            self.reset_space_if_empty(space);
-            return;
-        }
-        if let Some(mut space) = physics_data.spaces.remove(&rid) {
+        } else if let Some(mut space) = physics_data.spaces.remove(&rid) {
             let space_handle = space.get_state().get_handle();
             remove_id_rid(space.get_state().get_id(), &mut physics_data.ids);
             space
                 .get_mut_state()
                 .destroy(&mut physics_data.physics_engine);
-            if physics_data.active_spaces.remove(&space_handle).is_some() {
-                return;
-            }
-        }
-        if let Some(mut joint) = physics_data.joints.remove(&rid) {
+            physics_data.active_spaces.remove(&space_handle);
+        } else if let Some(mut joint) = physics_data.joints.remove(&rid) {
+            space_to_reset = joint.get_base().get_space(&physics_data.ids);
             joint
                 .get_mut_base()
                 .destroy_joint(&mut physics_data.physics_engine);
             remove_id_rid(joint.get_base().get_id(), &mut physics_data.ids);
-            self.reset_space_if_empty(joint.get_base().get_space(&physics_data.ids));
-            return;
-        }
-        if let Some(mut fluid) = physics_data.fluids.remove(&rid) {
+        } else if let Some(mut fluid) = physics_data.fluids.remove(&rid) {
             fluid.destroy_fluid(&mut physics_data.physics_engine);
             remove_id_rid(fluid.get_id(), &mut physics_data.ids);
+        }
+        if let Some(space) = physics_data.spaces.get_mut(&space_to_reset) {
+            space.get_mut_state().reset_space_if_empty(
+                &mut physics_data.physics_engine,
+                &RapierSpace::get_world_settings(),
+            );
+        }
+        // If there are no more objects, reset the ids. Ensures there will be determinism.
+        if physics_data.collision_objects.is_empty()
+            && physics_data.spaces.is_empty()
+            && physics_data.joints.is_empty()
+            && physics_data.fluids.is_empty()
+            && physics_data.shapes.is_empty()
+            && physics_data.ids.is_empty()
+        {
+            reset_ids();
         }
     }
 

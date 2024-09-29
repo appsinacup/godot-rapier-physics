@@ -10,6 +10,7 @@ func _ready() -> void:
 	print("Success")
 	print("Quit")
 	await get_tree().create_timer(1.0).timeout
+	get_tree().reload_current_scene()
 	#get_tree().quit()
 
 func test_capsule_shape():

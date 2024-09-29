@@ -24,7 +24,6 @@ pub struct RapierShapeState {
     )]
     owners: HashMap<RapierId, i32>,
     handle: ShapeHandle,
-    #[serde(default = "next_id")]
     id: RapierId,
 }
 pub struct RapierShapeBase {
@@ -43,7 +42,10 @@ impl RapierShapeBase {
     pub(super) fn new(rid: Rid) -> Self {
         Self {
             rid,
-            state: RapierShapeState::default(),
+            state: RapierShapeState {
+                id: next_id(),
+                ..Default::default()
+            },
         }
     }
 

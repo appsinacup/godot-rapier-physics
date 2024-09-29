@@ -56,10 +56,15 @@ pub fn insert_id_rid(id: RapierId, rid: Rid, physics_ids: &mut PhysicsIds) {
 pub fn remove_id_rid(id: RapierId, physics_ids: &mut PhysicsIds) {
     physics_ids.remove(&id);
 }
-static mut ID: RapierId = 1;
+static mut ID: RapierId = 0;
 pub fn next_id() -> RapierId {
     unsafe {
         ID += 1;
         ID
+    }
+}
+pub fn reset_ids() {
+    unsafe {
+        ID = 0;
     }
 }

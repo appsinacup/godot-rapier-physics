@@ -5,13 +5,14 @@ func _ready():
 	test_body_empty()
 	test_body()
 	test_body_collision_exception_invalid()
-	print("Body tests passed")
 
 func test_body_collision_exception_invalid():
+	print("test_body_collision_exception_invalid")
 	PhysicsServer2D.body_add_collision_exception(RID(), RID())
 	PhysicsServer2D.body_remove_collision_exception(RID(), RID())
 
 func test_body_create():
+	print("test_body_create")
 	var body = PhysicsServer2D.body_create()
 	var space = get_viewport().world_2d.space
 	assert(body.is_valid())
@@ -29,6 +30,7 @@ func test_body_create():
 	PhysicsServer2D.free_rid(RID())
 	
 func test_body_empty():
+	print("test_body_empty")
 	var body_rid = RID()
 	
 	var shape_rid = RID()
@@ -132,9 +134,10 @@ func test_body_empty():
 	PhysicsServer2D.body_set_shape_transform(body_rid, 0, transform)
 	PhysicsServer2D.body_set_space(body_rid, space_rid)
 	PhysicsServer2D.body_set_state(body_rid, PhysicsServer2D.BodyState.BODY_STATE_ANGULAR_VELOCITY, 2.3)
-	print("Body functions test passed")
 
 func test_body():
+	print("test_body")
+	
 	var body_rid = PhysicsServer2D.body_create()
 	var space_rid = get_viewport().world_2d.space
 	var shape_rid = RID()
@@ -235,4 +238,5 @@ func test_body():
 	var omit_force_integration = PhysicsServer2D.body_is_omitting_force_integration(body_rid)
 	assert(omit_force_integration == true)
 
-	print("Body functions test passed")
+	
+	PhysicsServer2D.free_rid(body_rid)
