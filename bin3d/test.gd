@@ -9,7 +9,6 @@ func _ready() -> void:
 	test_convex_polygon_shape()
 	test_cylinder_shape()
 	print("Success")
-	print("Quit")
 	await get_tree().create_timer(1.0).timeout
 	get_tree().quit()
 

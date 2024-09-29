@@ -8,10 +8,8 @@ func _ready() -> void:
 	test_concave_polygon_shape()
 	test_convex_polygon_shape()
 	print("Success")
-	print("Quit")
 	await get_tree().create_timer(1.0).timeout
-	get_tree().reload_current_scene()
-	#get_tree().quit()
+	get_tree().quit()
 
 func test_capsule_shape():
 	RapierCapsuleShapeTests.test_create()
