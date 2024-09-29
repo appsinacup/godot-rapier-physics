@@ -207,6 +207,10 @@ impl RapierPhysicsServerImpl {
                 shape_handle = shape.get_base().get_handle();
             }
         }
+        if shape_id == RapierId::default() {
+            godot_error!("Invalid shape id");
+            return;
+        }
         if let Some(owners) = owners {
             RapierShapeBase::call_shape_changed(owners, shape_id, shape_handle, physics_data);
         }
@@ -607,6 +611,10 @@ impl RapierPhysicsServerImpl {
                 area_id = area.get_base().get_id();
             }
         }
+        if area_id == RapierId::default() {
+            godot_error!("Area not found");
+            return;
+        }
         match area_update_mode {
             AreaUpdateMode::EnableSpaceOverride => {
                 RapierArea::enable_space_override(
@@ -808,6 +816,8 @@ impl RapierPhysicsServerImpl {
                 &mut physics_data.collision_objects,
                 &physics_data.ids,
             );
+        } else {
+            godot_error!("Body not found");
         }
     }
 
@@ -1471,6 +1481,8 @@ impl RapierPhysicsServerImpl {
                 &mut physics_data.collision_objects,
                 &physics_data.ids,
             );
+        } else {
+            godot_error!("Invalid body id");
         }
     }
 

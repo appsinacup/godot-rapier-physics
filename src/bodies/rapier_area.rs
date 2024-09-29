@@ -753,6 +753,10 @@ impl RapierArea {
             area.state.monitored_objects.clear();
             area_id = area.get_base().get_id();
         }
+        if area_id == RapierId::default() {
+            godot_error!("Invalid area id");
+            return;
+        }
         if let Some(space) = physics_spaces.get_mut(&previous_space_rid) {
             if !detected_bodies.is_empty() {
                 space

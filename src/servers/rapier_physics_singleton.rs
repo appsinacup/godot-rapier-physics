@@ -53,8 +53,8 @@ pub fn insert_id_rid(id: RapierId, rid: Rid, physics_ids: &mut PhysicsIds) {
 pub fn remove_id_rid(id: RapierId, physics_ids: &mut PhysicsIds) {
     physics_ids.remove(&id);
 }
+static mut ID: RapierId = 1;
 pub fn next_id() -> RapierId {
-    static mut ID: RapierId = 1;
     unsafe {
         ID += 1;
         ID

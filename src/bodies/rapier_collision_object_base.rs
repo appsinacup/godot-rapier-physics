@@ -56,7 +56,7 @@ impl Default for CollisionObjectShape {
     fn default() -> Self {
         Self {
             xform: Transform::IDENTITY,
-            id: RapierId::default(),
+            id: next_id(),
             handle: ShapeHandle::default(),
             disabled: false,
             one_way_collision: false,
