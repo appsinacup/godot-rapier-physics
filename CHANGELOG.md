@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.8.5
+
+- Remove some references to RID internally and use uid instead. Also fix Area issue. by @Ughuuu in #243
+- Add deterministic base function. Fix freeze mode. Fix missing events/collisions. by @Ughuuu in #258
+- Add integration tests from godot physics tests. Fix inertia issue again. by @Ughuuu in #259
+- Fix missing internal rids
+
 ## v0.8.4
 
 - add space_step and space_flush_queries by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/241
