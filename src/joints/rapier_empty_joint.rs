@@ -21,6 +21,7 @@ impl RapierEmptyJoint {
     pub fn new() -> Self {
         Self {
             base: RapierJointBase::new(
+                Rid::Invalid,
                 RapierId::default(),
                 WorldHandle::default(),
                 JointHandle::default(),

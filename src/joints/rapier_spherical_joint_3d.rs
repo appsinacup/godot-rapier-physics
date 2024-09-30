@@ -13,6 +13,7 @@ pub struct RapierSphericalJoint3D {
 }
 impl RapierSphericalJoint3D {
     pub fn new(
+        rid: Rid,
         anchor_a: Vector3,
         anchor_b: Vector3,
         body_a: &RapierCollisionObject,
@@ -52,7 +53,7 @@ impl RapierSphericalJoint3D {
         Self {
             anchor_a,
             anchor_b,
-            base: RapierJointBase::new(space_id, space_handle, handle),
+            base: RapierJointBase::new(rid, space_id, space_handle, handle),
         }
     }
 

@@ -11,6 +11,7 @@ pub struct RapierSliderJoint3D {
 }
 impl RapierSliderJoint3D {
     pub fn new(
+        rid: Rid,
         anchor_a: Transform3D,
         anchor_b: Transform3D,
         body_a: &RapierCollisionObject,
@@ -46,7 +47,7 @@ impl RapierSliderJoint3D {
             true,
         );
         Self {
-            base: RapierJointBase::new(space_id, space_handle, handle),
+            base: RapierJointBase::new(rid, space_id, space_handle, handle),
         }
     }
 }

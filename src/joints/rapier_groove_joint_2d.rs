@@ -12,6 +12,7 @@ pub struct RapierGrooveJoint2D {
 }
 impl RapierGrooveJoint2D {
     pub fn new(
+        rid: Rid,
         p_a_groove1: Vector,
         p_a_groove2: Vector,
         p_b_anchor: Vector,
@@ -59,7 +60,7 @@ impl RapierGrooveJoint2D {
             true,
         );
         Self {
-            base: RapierJointBase::new(space_id, space_handle, handle),
+            base: RapierJointBase::new(rid, space_id, space_handle, handle),
         }
     }
 }

@@ -1,3 +1,4 @@
+use godot::builtin::Rid;
 use godot::classes::*;
 #[cfg(feature = "dim2")]
 use physics_server_2d::JointType;
@@ -20,6 +21,7 @@ pub struct RapierRevoluteJoint {
 }
 impl RapierRevoluteJoint {
     pub fn new(
+        rid: Rid,
         anchor_a: Vector,
         anchor_b: Vector,
         body_a: &RapierCollisionObject,
@@ -72,7 +74,7 @@ impl RapierRevoluteJoint {
             motor_target_velocity: 0.0,
             motor_enabled: false,
             angular_limit_enabled: false,
-            base: RapierJointBase::new(space_id, space_handle, handle),
+            base: RapierJointBase::new(rid, space_id, space_handle, handle),
         }
     }
 

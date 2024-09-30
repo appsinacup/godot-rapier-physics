@@ -15,6 +15,7 @@ pub struct RapierDampedSpringJoint2D {
 }
 impl RapierDampedSpringJoint2D {
     pub fn new(
+        rid: Rid,
         p_anchor_a: Vector,
         p_anchor_b: Vector,
         body_a: &RapierCollisionObject,
@@ -60,7 +61,7 @@ impl RapierDampedSpringJoint2D {
             rest_length,
             stiffness: 20.0,
             damping: 1.0,
-            base: RapierJointBase::new(space_id, space_handle, handle),
+            base: RapierJointBase::new(rid, space_id, space_handle, handle),
         }
     }
 

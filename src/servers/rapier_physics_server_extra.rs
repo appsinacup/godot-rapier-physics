@@ -96,14 +96,34 @@ impl RapierPhysicsServer {
     /// Imports the physics object from a binary format.
     fn import_binary(physics_object: Rid, data: PackedByteArray) {
         use crate::joints::rapier_joint::IRapierJoint;
+        use crate::servers::rapier_physics_singleton::insert_id_rid;
+        use crate::servers::rapier_physics_singleton::remove_id_rid;
         use crate::shapes::rapier_shape::IRapierShape;
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&physics_object) {
+            remove_id_rid(body.get_base().get_id(), &mut physics_data.ids);
             body.import_binary(data);
+            insert_id_rid(
+                body.get_base().get_id(),
+                body.get_base().get_rid(),
+                &mut physics_data.ids,
+            );
         } else if let Some(shape) = physics_data.shapes.get_mut(&physics_object) {
+            remove_id_rid(shape.get_base().get_id(), &mut physics_data.ids);
             shape.get_mut_base().import_binary(data);
+            insert_id_rid(
+                shape.get_base().get_id(),
+                shape.get_base().get_rid(),
+                &mut physics_data.ids,
+            );
         } else if let Some(joint) = physics_data.joints.get_mut(&physics_object) {
+            remove_id_rid(joint.get_base().get_id(), &mut physics_data.ids);
             joint.get_mut_base().import_binary(data);
+            insert_id_rid(
+                joint.get_base().get_id(),
+                joint.get_base().get_rid(),
+                &mut physics_data.ids,
+            );
         } else if let Some(space) = physics_data.spaces.get_mut(&physics_object) {
             space.import_binary(&mut physics_data.physics_engine, data);
         }

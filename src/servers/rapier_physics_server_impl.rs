@@ -1720,6 +1720,7 @@ impl RapierPhysicsServerImpl {
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
             joint = RapierJoint::RapierSphericalJoint3D(RapierSphericalJoint3D::new(
+                rid,
                 local_a,
                 local_b,
                 body_a,
@@ -1801,6 +1802,7 @@ impl RapierPhysicsServerImpl {
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
             joint = RapierJoint::RapierRevoluteJoint(RapierRevoluteJoint::new(
+                rid,
                 hinge_a.origin,
                 hinge_b.origin,
                 body_a,
@@ -1839,6 +1841,7 @@ impl RapierPhysicsServerImpl {
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
             joint = RapierJoint::RapierRevoluteJoint(RapierRevoluteJoint::new(
+                rid,
                 pivot_a,
                 pivot_b,
                 body_a,
@@ -1909,6 +1912,7 @@ impl RapierPhysicsServerImpl {
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
             joint = RapierJoint::RapierSliderJoint3D(RapierSliderJoint3D::new(
+                rid,
                 local_ref_a,
                 local_ref_b,
                 body_a,
@@ -1963,6 +1967,7 @@ impl RapierPhysicsServerImpl {
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
             joint = RapierJoint::RapierConeTwistJoint3D(RapierConeTwistJoint3D::new(
+                rid,
                 local_ref_a.origin,
                 local_ref_b.origin,
                 body_a,
@@ -2017,6 +2022,7 @@ impl RapierPhysicsServerImpl {
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
             joint = RapierJoint::RapierGeneric6DOFJoint3D(RapierGeneric6DOFJoint3D::new(
+                rid,
                 local_ref_a.origin,
                 local_ref_b.origin,
                 body_a,
@@ -2085,6 +2091,7 @@ impl RapierPhysicsServerImpl {
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
             joint = RapierJoint::RapierRevoluteJoint(RapierRevoluteJoint::new(
+                rid,
                 anchor,
                 anchor,
                 body_a,
@@ -2121,6 +2128,7 @@ impl RapierPhysicsServerImpl {
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
             joint = RapierJoint::RapierGrooveJoint2D(RapierGrooveJoint2D::new(
+                rid,
                 a_groove1,
                 a_groove2,
                 b_anchor,
@@ -2157,6 +2165,7 @@ impl RapierPhysicsServerImpl {
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
             joint = RapierJoint::RapierDampedSpringJoint2D(RapierDampedSpringJoint2D::new(
+                rid,
                 anchor_a,
                 anchor_b,
                 body_a,

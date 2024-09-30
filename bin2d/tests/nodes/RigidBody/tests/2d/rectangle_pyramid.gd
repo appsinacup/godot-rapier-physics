@@ -1,6 +1,6 @@
 extends PhysicsUnitTest2D
 
-@export var height := 50
+@export var height := 40
 @export var box_size := Vector2(20.0, 20.0)
 @export var box_spacing :=  Vector2(0.01,0.01)
 var simulation_duration := 4
@@ -19,7 +19,7 @@ func test_name() -> String:
 	return "RigidBody2D | testing the stability with a pyramid [tolerance %.2v]" % [tolerance]
 
 func test_start() -> void:
-	add_collision_bottom(size_boundary, false)
+	add_collision_bottom(size_boundary)
 	create_pyramid()
 
 	var test_sleep: Callable = func(_p_target: PhysicsTest2D, _p_monitor: GenericExpirationMonitor):

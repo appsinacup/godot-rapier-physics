@@ -17,6 +17,7 @@ pub struct RapierJointBaseState {
     space_id: RapierId,
 }
 pub struct RapierJointBase {
+    rid: Rid,
     max_force: f32,
     disabled_collisions_between_bodies: bool,
     state: RapierJointBaseState,
@@ -24,6 +25,7 @@ pub struct RapierJointBase {
 impl Default for RapierJointBase {
     fn default() -> Self {
         Self::new(
+            Rid::Invalid,
             RapierId::default(),
             WorldHandle::default(),
             JointHandle::default(),
@@ -31,8 +33,14 @@ impl Default for RapierJointBase {
     }
 }
 impl RapierJointBase {
-    pub fn new(space_id: RapierId, space_handle: WorldHandle, handle: JointHandle) -> Self {
+    pub fn new(
+        rid: Rid,
+        space_id: RapierId,
+        space_handle: WorldHandle,
+        handle: JointHandle,
+    ) -> Self {
         Self {
+            rid,
             max_force: f32::MAX,
             disabled_collisions_between_bodies: true,
             state: RapierJointBaseState {
@@ -50,6 +58,10 @@ impl RapierJointBase {
 
     pub fn get_id(&self) -> RapierId {
         self.state.id
+    }
+
+    pub fn get_rid(&self) -> Rid {
+        self.rid
     }
 
     pub fn get_space_handle(&self) -> WorldHandle {
@@ -103,6 +115,7 @@ impl RapierJointBase {
             physics_engine,
         );
         self.state.id = joint.get_id();
+        self.rid = joint.get_rid();
     }
 
     pub fn destroy_joint(&mut self, physics_engine: &mut PhysicsEngine) {
