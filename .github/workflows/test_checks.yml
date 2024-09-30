@@ -36,9 +36,9 @@ jobs:
           use-dotnet: false
           include-templates: true
       - name: Run Integration Tests for 2D Build
+        if: never()
         shell: sh
         run: |
-          return
           ./scripts/build-dev-2d.sh
           ls bin2d/addons/godot-rapier2d/bin
           godot --headless --path ./bin2d test.tscn --quit-after 1000 > output.log 2>&1
@@ -67,9 +67,9 @@ jobs:
           use-dotnet: false
           include-templates: true
       - name: Run Integration Tests for 3D Build
+        if: never()
         shell: sh
         run: |
-          return
           ./scripts/build-dev-3d.sh
           ls bin3d/addons/godot-rapier3d/bin
           godot --headless --path ./bin3d test.tscn --quit-after 1000 > output.log 2>&1
