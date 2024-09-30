@@ -36,7 +36,7 @@ jobs:
           use-dotnet: false
           include-templates: true
       - name: Run Integration Tests for 2D Build
-        if: never()
+        if: false
         shell: sh
         run: |
           ./scripts/build-dev-2d.sh
@@ -67,7 +67,7 @@ jobs:
           use-dotnet: false
           include-templates: true
       - name: Run Integration Tests for 3D Build
-        if: never()
+        if: false
         shell: sh
         run: |
           ./scripts/build-dev-3d.sh
