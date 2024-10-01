@@ -1,5 +1,6 @@
 use godot::prelude::*;
 use hashbrown::HashMap;
+use rapier::prelude::SharedShape;
 
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::rapier_wrapper::prelude::*;
@@ -8,6 +9,16 @@ use crate::servers::rapier_physics_singleton::next_id;
 use crate::servers::rapier_physics_singleton::PhysicsData;
 use crate::servers::rapier_physics_singleton::RapierId;
 use crate::types::*;
+#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
+pub struct ShapeExport<'a> {
+    state: &'a RapierShapeState,
+    shape: &'a SharedShape,
+}
+#[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize))]
+pub struct ShapeImport {
+    state: RapierShapeState,
+    shape: SharedShape,
+}
 #[cfg_attr(
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
@@ -152,27 +163,34 @@ impl RapierShapeBase {
     }
 
     #[cfg(feature = "serde-serialize")]
-    pub fn export_binary(&self) -> PackedByteArray {
+    pub fn export_binary(&self, physics_engine: &mut PhysicsEngine) -> PackedByteArray {
         let mut buf = PackedByteArray::new();
-        match bincode::serialize(&self.state) {
-            Ok(binary_data) => {
-                buf.resize(binary_data.len());
-                for i in 0..binary_data.len() {
-                    buf[i] = binary_data[i];
+        if let Some(inner) = physics_engine.get_shape(self.get_handle()) {
+            let export = ShapeExport {
+                state: &self.state,
+                shape: inner,
+            };
+            match bincode::serialize(&export) {
+                Ok(binary_data) => {
+                    buf.resize(binary_data.len());
+                    for i in 0..binary_data.len() {
+                        buf[i] = binary_data[i];
+                    }
                 }
-            }
-            Err(e) => {
-                godot_error!("Failed to serialize shape to binary: {}", e);
+                Err(e) => {
+                    godot_error!("Failed to serialize shape to binary: {}", e);
+                }
             }
         }
         buf
     }
 
     #[cfg(feature = "serde-serialize")]
-    pub fn import_binary(&mut self, data: PackedByteArray) {
-        match bincode::deserialize::<RapierShapeState>(data.as_slice()) {
+    pub fn import_binary(&mut self, data: PackedByteArray, physics_engine: &mut PhysicsEngine) {
+        match bincode::deserialize::<ShapeImport>(data.as_slice()) {
             Ok(import) => {
-                self.state = import;
+                self.state = import.state;
+                physics_engine.import_shape(import.shape, self.get_handle());
             }
             Err(e) => {
                 godot_error!("Failed to deserialize shape from binary: {}", e);

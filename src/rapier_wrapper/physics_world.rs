@@ -512,6 +512,10 @@ impl PhysicsEngine {
         self.shapes.insert(shape)
     }
 
+    pub fn import_shape(&mut self, shape: SharedShape, handle: ShapeHandle) {
+        self.shapes[handle] = shape;
+    }
+
     pub fn remove_shape(&mut self, shape_handle: ShapeHandle) {
         self.shapes.remove(shape_handle);
     }
