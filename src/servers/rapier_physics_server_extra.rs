@@ -79,7 +79,9 @@ impl RapierPhysicsServer {
         }
         use crate::shapes::rapier_shape::IRapierShape;
         if let Some(shape) = physics_data.shapes.get(&physics_object) {
-            return shape.get_base().export_binary(&mut physics_data.physics_engine);
+            return shape
+                .get_base()
+                .export_binary(&mut physics_data.physics_engine);
         }
         use crate::joints::rapier_joint::IRapierJoint;
         if let Some(joint) = physics_data.joints.get(&physics_object) {
@@ -114,7 +116,9 @@ impl RapierPhysicsServer {
             shape
                 .get_mut_base()
                 .destroy_shape(&mut physics_data.physics_engine);
-            shape.get_mut_base().import_binary(data, &mut physics_data.physics_engine);
+            shape
+                .get_mut_base()
+                .import_binary(data, &mut physics_data.physics_engine);
             insert_id_rid(
                 shape.get_base().get_id(),
                 shape.get_base().get_rid(),
