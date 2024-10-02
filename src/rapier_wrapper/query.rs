@@ -8,6 +8,7 @@ use rapier::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsCollisionObjects;
+use crate::servers::rapier_physics_singleton::PhysicsIds;
 use crate::spaces::rapier_space::RapierSpace;
 pub struct RayHitInfo {
     pub pixel_position: Vector<Real>,
@@ -88,6 +89,7 @@ impl PhysicsEngine {
         hit_info: &mut RayHitInfo,
         handle_excluded_info: &QueryExcludedInfo,
         physics_collision_objects: &PhysicsCollisionObjects,
+        physics_ids: &PhysicsIds,
         space: &RapierSpace,
     ) -> bool {
         let mut result = false;
@@ -108,6 +110,7 @@ impl PhysicsEngine {
                 &physics_world.get_collider_user_data(handle),
                 handle_excluded_info,
                 physics_collision_objects,
+                physics_ids,
             )
         };
         filter.predicate = Some(&predicate);
@@ -155,6 +158,7 @@ impl PhysicsEngine {
         hit_info_length: usize,
         handle_excluded_info: &QueryExcludedInfo,
         physics_collision_objects: &PhysicsCollisionObjects,
+        physics_ids: &PhysicsIds,
         space: &RapierSpace,
     ) -> usize {
         let mut cpt_hit = 0;
@@ -176,6 +180,7 @@ impl PhysicsEngine {
                     &physics_world.get_collider_user_data(handle),
                     handle_excluded_info,
                     physics_collision_objects,
+                    physics_ids,
                 )
             };
             filter.predicate = Some(&predicate);
@@ -274,6 +279,7 @@ impl PhysicsEngine {
         collide_with_area: bool,
         handle_excluded_info: &QueryExcludedInfo,
         physics_collision_objects: &PhysicsCollisionObjects,
+        physics_ids: &PhysicsIds,
         space: &RapierSpace,
     ) -> ShapeCastResult {
         let mut shape_vel = shape_vel;
@@ -298,6 +304,7 @@ impl PhysicsEngine {
                         &physics_world.get_collider_user_data(handle),
                         handle_excluded_info,
                         physics_collision_objects,
+                        physics_ids,
                     )
                 };
                 filter.predicate = Some(&predicate);
@@ -355,6 +362,7 @@ impl PhysicsEngine {
         max_results: usize,
         handle_excluded_info: &QueryExcludedInfo,
         physics_collision_objects: &PhysicsCollisionObjects,
+        physics_ids: &PhysicsIds,
         space: &RapierSpace,
     ) -> usize {
         let mut cpt_hit = 0;
@@ -384,6 +392,7 @@ impl PhysicsEngine {
                                 &physics_world.get_collider_user_data(*handle),
                                 handle_excluded_info,
                                 physics_collision_objects,
+                                physics_ids,
                             );
                         }
                     }

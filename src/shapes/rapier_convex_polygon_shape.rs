@@ -7,6 +7,7 @@ use godot::prelude::*;
 use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
+use crate::servers::rapier_physics_singleton::RapierId;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 #[cfg(feature = "dim2")]
@@ -16,11 +17,13 @@ pub struct RapierConvexPolygonShape {
     base: RapierShapeBase,
 }
 impl RapierConvexPolygonShape {
-    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) {
+    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) -> RapierId {
         let shape = Self {
             base: RapierShapeBase::new(rid),
         };
+        let id = shape.base.get_id();
         physics_shapes.insert(rid, RapierShape::RapierConvexPolygonShape(shape));
+        id
     }
 }
 impl RapierConvexPolygonShape {

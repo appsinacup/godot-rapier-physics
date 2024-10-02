@@ -1,13 +1,24 @@
 extends Node2D
 
-@export var rigidbody: RigidBody2D
-@onready var space := get_viewport().world_2d.space
+@export var rapier_state : Rapier2DState
+@export var save_state: bool = true
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	FileAccess.open("user://rigidbody.json", FileAccess.WRITE).store_string(RapierPhysicsServer2D.body_export_json(rigidbody.get_rid()))
-	FileAccess.open("user://space.json", FileAccess.WRITE).store_string(RapierPhysicsServer2D.space_export_json(space))
-	await get_tree().create_timer(0.1).timeout
+	# Disable so it won't run
+	PhysicsServer2D.set_active(false)
+	print("Before")
+	print(RapierPhysicsServer2D.get_stats())
+	if save_state:
+		print(rapier_state.save_state(false))
+		FileAccess.open("user://save.json", FileAccess.WRITE).store_string(JSON.stringify(rapier_state.state, " "))
+	else:
+		var state = JSON.parse_string(FileAccess.open("user://save.json", FileAccess.READ).get_as_text())
+		rapier_state.state = state
+		rapier_state.load_state()
+	print("After")
+	print(RapierPhysicsServer2D.get_stats())
+	await get_tree().create_timer(1.0).timeout
 	get_tree().reload_current_scene()
 
 

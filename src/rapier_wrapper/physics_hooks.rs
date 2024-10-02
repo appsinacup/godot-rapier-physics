@@ -2,6 +2,7 @@ use rapier::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsCollisionObjects;
+use crate::servers::rapier_physics_singleton::PhysicsIds;
 #[derive(Default)]
 pub struct OneWayDirection {
     pub body1: bool,
@@ -14,10 +15,12 @@ pub struct OneWayDirection {
 pub type CollisionFilterCallback = fn(
     filter_info: &CollisionFilterInfo,
     physics_collision_objects: &PhysicsCollisionObjects,
+    physics_ids: &PhysicsIds,
 ) -> bool;
 pub type CollisionModifyContactsCallback = fn(
     filter_info: &CollisionFilterInfo,
     physics_collision_objects: &PhysicsCollisionObjects,
+    physics_ids: &PhysicsIds,
 ) -> OneWayDirection;
 pub struct CollisionFilterInfo {
     pub user_data1: UserData,
@@ -27,6 +30,7 @@ pub struct PhysicsHooksCollisionFilter<'a> {
     pub collision_filter_body_callback: &'a CollisionFilterCallback,
     pub collision_modify_contacts_callback: &'a CollisionModifyContactsCallback,
     pub physics_collision_objects: &'a PhysicsCollisionObjects,
+    pub physics_ids: &'a PhysicsIds,
     pub last_step: Real,
     pub ghost_collision_distance: Real,
 }
@@ -97,7 +101,11 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
             user_data2: UserData::new(collider2.user_data),
         };
         // Handle contact filtering for rigid bodies
-        if !(self.collision_filter_body_callback)(&filter_info, self.physics_collision_objects) {
+        if !(self.collision_filter_body_callback)(
+            &filter_info,
+            self.physics_collision_objects,
+            self.physics_ids,
+        ) {
             return None;
         }
         result
@@ -132,8 +140,11 @@ impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
         };
         let allowed_local_n1 = collider1.position().rotation * Vector::y();
         let allowed_local_n2 = collider2.position().rotation * Vector::y();
-        let one_way_direction =
-            (self.collision_modify_contacts_callback)(&filter_info, self.physics_collision_objects);
+        let one_way_direction = (self.collision_modify_contacts_callback)(
+            &filter_info,
+            self.physics_collision_objects,
+            self.physics_ids,
+        );
         if one_way_direction.body1 {
             update_as_oneway_platform(context, &(context.normal.clone()), &allowed_local_n1);
         }

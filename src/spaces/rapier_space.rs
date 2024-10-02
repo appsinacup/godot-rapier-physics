@@ -7,12 +7,12 @@ use godot::classes::physics_server_3d::*;
 use godot::classes::ProjectSettings;
 use godot::prelude::*;
 use hashbrown::HashSet;
-use servers::rapier_physics_singleton::get_body_rid;
-use servers::rapier_physics_singleton::insert_space_rid;
+use servers::rapier_physics_singleton::get_id_rid;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsData;
-use servers::rapier_physics_singleton::PhysicsRids;
+use servers::rapier_physics_singleton::PhysicsIds;
 use servers::rapier_physics_singleton::PhysicsSpaces;
+use servers::rapier_physics_singleton::RapierId;
 use spaces::rapier_space_state::RapierSpaceState;
 
 use super::PhysicsDirectSpaceState;
@@ -57,8 +57,7 @@ impl RapierSpace {
         rid: Rid,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
-        physics_rids: &mut PhysicsRids,
-    ) -> WorldHandle {
+    ) -> RapierId {
         let mut direct_access = RapierDirectSpaceState::new_alloc();
         direct_access.bind_mut().set_space(rid);
         let project_settings = ProjectSettings::singleton();
@@ -80,10 +79,9 @@ impl RapierSpace {
             ghost_collision_distance: RapierProjectSettings::get_ghost_collision_distance(),
             state: RapierSpaceState::new(physics_engine, &Self::get_world_settings()),
         };
-        let handle = space.get_state().get_handle();
+        let id = space.get_state().get_id();
         physics_spaces.insert(rid, space);
-        insert_space_rid(handle, rid, physics_rids);
-        handle
+        id
     }
 
     pub fn get_state(&self) -> &RapierSpaceState {
@@ -97,24 +95,22 @@ impl RapierSpace {
     pub fn get_queries(
         &mut self,
         physics_collision_objects: &mut PhysicsCollisionObjects,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
     ) -> Vec<(Callable, Vec<Variant>)> {
         let mut queries = Vec::default();
-        for body_handle in self
+        for body_id in self
             .state
             .get_state_query_list()
             .union(self.state.get_force_integrate_query_list())
         {
             if let Some(body) =
-                physics_collision_objects.get_mut(&get_body_rid(*body_handle, physics_rids))
+                physics_collision_objects.get_mut(&get_id_rid(*body_id, physics_ids))
             {
                 if let Some(body) = body.get_mut_body() {
                     body.create_direct_state();
                 }
             }
-            if let Some(body) =
-                physics_collision_objects.get(&get_body_rid(*body_handle, physics_rids))
-            {
+            if let Some(body) = physics_collision_objects.get(&get_id_rid(*body_id, physics_ids)) {
                 if let Some(body) = body.get_body() {
                     if let Some(direct_state) = body.get_direct_state() {
                         if let Some(state_sync_callback) = body.get_state_sync_callback() {
@@ -146,11 +142,10 @@ impl RapierSpace {
             }
         }
         for area_handle in self.state.get_monitor_query_list().clone() {
-            if let Some(area) =
-                physics_collision_objects.get(&get_body_rid(area_handle, physics_rids))
+            if let Some(area) = physics_collision_objects.get(&get_id_rid(area_handle, physics_ids))
             {
                 if let Some(area) = area.get_area() {
-                    let area_queries = &mut area.get_queries();
+                    let area_queries = &mut area.get_queries(physics_ids);
                     queries.append(area_queries);
                 }
             }
@@ -161,11 +156,11 @@ impl RapierSpace {
     pub fn update_after_queries(
         &mut self,
         physics_collision_objects: &mut PhysicsCollisionObjects,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
     ) {
         for area_handle in self.state.get_monitor_query_list().clone() {
             if let Some(area) =
-                physics_collision_objects.get_mut(&get_body_rid(area_handle, physics_rids))
+                physics_collision_objects.get_mut(&get_id_rid(area_handle, physics_ids))
             {
                 if let Some(area) = area.get_mut_area() {
                     area.clear_monitored_objects();
@@ -194,7 +189,7 @@ impl RapierSpace {
                 &mut physics_data.spaces,
                 &mut physics_data.physics_engine,
                 &area,
-                &physics_data.rids,
+                &physics_data.ids,
             );
         }
         let Some(space) = physics_data.spaces.get_mut(space_rid) else {
@@ -213,7 +208,7 @@ impl RapierSpace {
         for body in space.get_state().get_active_list() {
             if let Some(body) = physics_data
                 .collision_objects
-                .get_mut(&get_body_rid(*body, &physics_data.rids))
+                .get_mut(&get_id_rid(*body, &physics_data.ids))
                 && let Some(body) = body.get_mut_body()
             {
                 body.reset_contact_count();
@@ -222,7 +217,7 @@ impl RapierSpace {
         for body in space.get_state().get_mass_properties_update_list() {
             if let Some(body) = physics_data
                 .collision_objects
-                .get_mut(&get_body_rid(*body, &physics_data.rids))
+                .get_mut(&get_id_rid(*body, &physics_data.ids))
                 && let Some(body) = body.get_mut_body()
             {
                 body.update_mass_properties(false, &mut physics_data.physics_engine);
@@ -235,7 +230,7 @@ impl RapierSpace {
                 &mut physics_data.physics_engine,
                 &mut physics_data.spaces,
                 &mut physics_data.collision_objects,
-                &physics_data.rids,
+                &physics_data.ids,
             );
         }
         for body in gravity_update_list {
@@ -245,11 +240,11 @@ impl RapierSpace {
                 &mut physics_data.physics_engine,
                 &mut physics_data.spaces,
                 &mut physics_data.collision_objects,
-                &physics_data.rids,
+                &physics_data.ids,
             );
             if let Some(body) = physics_data
                 .collision_objects
-                .get_mut(&get_body_rid(body, &physics_data.rids))
+                .get_mut(&get_id_rid(body, &physics_data.ids))
                 && let Some(body) = body.get_mut_body()
             {
                 body.update_gravity(step, &mut physics_data.physics_engine);
@@ -268,11 +263,12 @@ impl RapierSpace {
                 RapierSpace::collision_modify_contacts_callback,
                 space,
                 &mut physics_data.collision_objects,
+                &physics_data.ids,
             );
             space.after_step(
                 &mut physics_data.physics_engine,
                 &mut physics_data.collision_objects,
-                &physics_data.rids,
+                &physics_data.ids,
             );
         }
     }
@@ -341,7 +337,7 @@ impl RapierSpace {
         &mut self,
         physics_engine: &mut PhysicsEngine,
         physics_collision_objects: &mut PhysicsCollisionObjects,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
     ) {
         // Needed only for one physics step to retrieve lost info
         self.state.reset_removed_colliders();
@@ -349,8 +345,7 @@ impl RapierSpace {
             physics_engine.world_get_active_objects_count(self.state.get_handle()) as i32,
         );
         for body in self.state.get_active_list().clone() {
-            if let Some(body) = physics_collision_objects.get_mut(&get_body_rid(body, physics_rids))
-            {
+            if let Some(body) = physics_collision_objects.get_mut(&get_id_rid(body, physics_ids)) {
                 if let Some(body) = body.get_mut_body() {
                     body.on_update_active(self, physics_engine);
                 }
@@ -394,7 +389,7 @@ impl RapierSpace {
                     match serde_json::to_string_pretty(&inner) {
                         Ok(_) => {}
                         Err(e) => {
-                            godot_error!("Failed to serialize space inner to json: {}", e);
+                            godot_error!("Failed to serialize space world to json: {}", e);
                         }
                     }
                 }

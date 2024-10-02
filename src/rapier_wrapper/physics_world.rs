@@ -8,6 +8,7 @@ use salva::integrations::rapier::FluidsPipeline;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsCollisionObjects;
+use crate::servers::rapier_physics_singleton::PhysicsIds;
 use crate::spaces::rapier_space::RapierSpace;
 #[cfg_attr(
     feature = "serde-serialize",
@@ -124,6 +125,7 @@ impl PhysicsWorld {
         collision_modify_contacts_callback: CollisionModifyContactsCallback,
         space: &mut RapierSpace,
         physics_collision_objects: &mut PhysicsCollisionObjects,
+        physics_ids: &PhysicsIds,
     ) {
         for handle in self.physics_objects.island_manager.active_dynamic_bodies() {
             if let Some(body) = self.physics_objects.rigid_body_set.get(*handle) {
@@ -134,6 +136,7 @@ impl PhysicsWorld {
                 space.before_active_body_callback(
                     &before_active_body_info,
                     physics_collision_objects,
+                    physics_ids,
                 );
             }
         }
@@ -163,6 +166,7 @@ impl PhysicsWorld {
             collision_filter_body_callback: &collision_filter_body_callback,
             collision_modify_contacts_callback: &collision_modify_contacts_callback,
             physics_collision_objects,
+            physics_ids,
             last_step: RapierSpace::get_last_step(),
             ghost_collision_distance: space.get_ghost_collision_distance(),
         };
@@ -197,7 +201,7 @@ impl PhysicsWorld {
             let active_body_info = ActiveBodyInfo {
                 body_user_data: self.get_rigid_body_user_data(*handle),
             };
-            space.active_body_callback(&active_body_info, physics_collision_objects);
+            space.active_body_callback(&active_body_info, physics_collision_objects, physics_ids);
         }
         for handle in self
             .physics_objects
@@ -207,7 +211,7 @@ impl PhysicsWorld {
             let active_body_info = ActiveBodyInfo {
                 body_user_data: self.get_rigid_body_user_data(*handle),
             };
-            space.active_body_callback(&active_body_info, physics_collision_objects);
+            space.active_body_callback(&active_body_info, physics_collision_objects, physics_ids);
         }
         while let Ok(collision_event) = collision_recv.try_recv() {
             let handle1 = collision_event.collider1();
@@ -223,7 +227,7 @@ impl PhysicsWorld {
                 user_data1: self.get_collider_user_data(handle1),
                 user_data2: self.get_collider_user_data(handle2),
             };
-            space.collision_event_callback(&event_info, physics_collision_objects);
+            space.collision_event_callback(&event_info, physics_collision_objects, physics_ids);
         }
         while let Ok(contact_pair) = contact_force_recv.try_recv() {
             if let Some(collider1) = self
@@ -240,8 +244,11 @@ impl PhysicsWorld {
                     user_data1: UserData::new(collider1.user_data),
                     user_data2: UserData::new(collider2.user_data),
                 };
-                let send_contact_points =
-                    space.contact_force_event_callback(&event_info, physics_collision_objects);
+                let send_contact_points = space.contact_force_event_callback(
+                    &event_info,
+                    physics_collision_objects,
+                    physics_ids,
+                );
                 if send_contact_points
                     && let Some(body1) = self.get_collider_rigid_body(collider1)
                     && let Some(body2) = self.get_collider_rigid_body(collider2)
@@ -277,6 +284,7 @@ impl PhysicsWorld {
                                 &contact_info,
                                 &event_info,
                                 physics_collision_objects,
+                                physics_ids,
                             );
                         }
                     }
@@ -504,6 +512,10 @@ impl PhysicsEngine {
         self.shapes.insert(shape)
     }
 
+    pub fn import_shape(&mut self, shape: SharedShape, handle: ShapeHandle) {
+        self.shapes[handle] = shape;
+    }
+
     pub fn remove_shape(&mut self, shape_handle: ShapeHandle) {
         self.shapes.remove(shape_handle);
     }
@@ -578,6 +590,7 @@ impl PhysicsEngine {
         self.physics_worlds[world_handle] = physics_world;
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn world_step(
         &mut self,
         world_handle: WorldHandle,
@@ -586,6 +599,7 @@ impl PhysicsEngine {
         collision_modify_contacts_callback: CollisionModifyContactsCallback,
         space: &mut RapierSpace,
         physics_collision_objects: &mut PhysicsCollisionObjects,
+        physics_ids: &PhysicsIds,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             physics_world.step(
@@ -594,6 +608,7 @@ impl PhysicsEngine {
                 collision_modify_contacts_callback,
                 space,
                 physics_collision_objects,
+                physics_ids,
             );
         }
     }

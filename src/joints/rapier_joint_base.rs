@@ -1,5 +1,7 @@
-use servers::rapier_physics_singleton::get_space_rid;
-use servers::rapier_physics_singleton::PhysicsRids;
+use servers::rapier_physics_singleton::get_id_rid;
+use servers::rapier_physics_singleton::next_id;
+use servers::rapier_physics_singleton::PhysicsIds;
+use servers::rapier_physics_singleton::RapierId;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::*;
@@ -9,27 +11,43 @@ use crate::*;
 )]
 #[derive(Default, Debug, PartialEq, Clone, Copy)]
 pub struct RapierJointBaseState {
+    id: RapierId,
     handle: JointHandle,
     space_handle: WorldHandle,
+    space_id: RapierId,
 }
 pub struct RapierJointBase {
+    rid: Rid,
     max_force: f32,
     disabled_collisions_between_bodies: bool,
     state: RapierJointBaseState,
 }
 impl Default for RapierJointBase {
     fn default() -> Self {
-        Self::new(WorldHandle::default(), JointHandle::default())
+        Self::new(
+            Rid::Invalid,
+            RapierId::default(),
+            WorldHandle::default(),
+            JointHandle::default(),
+        )
     }
 }
 impl RapierJointBase {
-    pub fn new(space_handle: WorldHandle, handle: JointHandle) -> Self {
+    pub fn new(
+        rid: Rid,
+        space_id: RapierId,
+        space_handle: WorldHandle,
+        handle: JointHandle,
+    ) -> Self {
         Self {
+            rid,
             max_force: f32::MAX,
             disabled_collisions_between_bodies: true,
             state: RapierJointBaseState {
+                id: next_id(),
                 handle,
                 space_handle,
+                space_id,
             },
         }
     }
@@ -38,12 +56,20 @@ impl RapierJointBase {
         self.state.handle
     }
 
+    pub fn get_id(&self) -> RapierId {
+        self.state.id
+    }
+
+    pub fn get_rid(&self) -> Rid {
+        self.rid
+    }
+
     pub fn get_space_handle(&self) -> WorldHandle {
         self.state.space_handle
     }
 
-    pub fn get_space(&self, physics_rids: &PhysicsRids) -> Rid {
-        get_space_rid(self.state.space_handle, physics_rids)
+    pub fn get_space(&self, physics_ids: &PhysicsIds) -> Rid {
+        get_id_rid(self.state.space_id, physics_ids)
     }
 
     pub fn set_max_force(&mut self, force: f32) {
@@ -88,6 +114,8 @@ impl RapierJointBase {
             joint.is_disabled_collisions_between_bodies(),
             physics_engine,
         );
+        self.state.id = joint.get_id();
+        self.rid = joint.get_rid();
     }
 
     pub fn destroy_joint(&mut self, physics_engine: &mut PhysicsEngine) {

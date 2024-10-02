@@ -2,9 +2,10 @@ use bodies::rapier_collision_object_base::CollisionObjectShape;
 use bodies::rapier_collision_object_base::RapierCollisionObjectBase;
 use godot::prelude::*;
 use rapier::geometry::ColliderHandle;
-use servers::rapier_physics_singleton::PhysicsRids;
+use servers::rapier_physics_singleton::PhysicsIds;
 use servers::rapier_physics_singleton::PhysicsShapes;
 use servers::rapier_physics_singleton::PhysicsSpaces;
+use servers::rapier_physics_singleton::RapierId;
 
 use super::rapier_area::RapierArea;
 use super::rapier_body::RapierBody;
@@ -23,35 +24,34 @@ pub trait IRapierCollisionObject: Sync {
         space: Rid,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
-        physics_shapes: &mut PhysicsShapes,
-        physics_rids: &mut PhysicsRids,
+        physics_ids: &mut PhysicsIds,
     );
     fn recreate_shapes(
         &mut self,
         physics_engine: &mut PhysicsEngine,
-        physics_shapes: &mut PhysicsShapes,
         physics_spaces: &mut PhysicsSpaces,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
     );
     #[allow(clippy::too_many_arguments)]
     fn add_shape(
         &mut self,
-        p_shape: Rid,
+        p_shape_id: RapierId,
+        p_shape: ShapeHandle,
         p_transform: Transform,
         p_disabled: bool,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
     );
     fn set_shape(
         &mut self,
         shape_idx: usize,
-        p_shape: Rid,
+        p_shape: ShapeHandle,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
     );
     fn set_shape_transform(
         &mut self,
@@ -59,8 +59,7 @@ pub trait IRapierCollisionObject: Sync {
         transform: Transform,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
-        physics_shapes: &mut PhysicsShapes,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
     );
     fn set_shape_disabled(
         &mut self,
@@ -68,8 +67,7 @@ pub trait IRapierCollisionObject: Sync {
         disabled: bool,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
-        physics_shapes: &mut PhysicsShapes,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
     );
     fn remove_shape_idx(
         &mut self,
@@ -77,7 +75,7 @@ pub trait IRapierCollisionObject: Sync {
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
     );
     fn remove_shape_rid(
         &mut self,
@@ -85,29 +83,28 @@ pub trait IRapierCollisionObject: Sync {
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_shapes: &mut PhysicsShapes,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
     );
     fn create_shape(
         &mut self,
         shape: CollisionObjectShape,
         p_shape_index: usize,
         physics_engine: &mut PhysicsEngine,
-        physics_shapes: &mut PhysicsShapes,
     ) -> ColliderHandle;
     fn init_material(&self) -> Material;
     fn shapes_changed(
         &mut self,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
     );
     fn shape_changed(
         &mut self,
-        p_shape: Rid,
+        shape_id: RapierId,
+        shape_handle: ShapeHandle,
         physics_engine: &mut PhysicsEngine,
-        physics_shapes: &mut PhysicsShapes,
         physics_spaces: &mut PhysicsSpaces,
-        physics_rids: &PhysicsRids,
+        physics_ids: &PhysicsIds,
     );
     #[cfg(feature = "serde-serialize")]
     fn export_json(&self) -> String;
@@ -167,52 +164,51 @@ macro_rules! impl_rapier_collision_object_trait {
                 space: Rid,
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
-                physics_shapes: &mut PhysicsShapes,
-                physics_rids: &mut PhysicsRids,
+                physics_ids: &mut PhysicsIds,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.set_space(space, physics_engine, physics_spaces, physics_shapes, physics_rids),)*
+                    $(Self::$variant(co) => co.set_space(space, physics_engine, physics_spaces, physics_ids),)*
                 }
             }
 
             fn recreate_shapes(
                 &mut self,
                 physics_engine: &mut PhysicsEngine,
-                physics_shapes: &mut PhysicsShapes,
                 physics_spaces: &mut PhysicsSpaces,
-                physics_rids: &PhysicsRids,
+                physics_ids: &PhysicsIds,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.recreate_shapes(physics_engine, physics_shapes, physics_spaces, physics_rids),)*
+                    $(Self::$variant(co) => co.recreate_shapes(physics_engine, physics_spaces, physics_ids),)*
                 }
             }
 
             fn add_shape(
                 &mut self,
-                p_shape: Rid,
+                p_shape_id: RapierId,
+                p_shape: ShapeHandle,
                 p_transform: Transform,
                 p_disabled: bool,
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
                 physics_shapes: &mut PhysicsShapes,
-                physics_rids: &PhysicsRids,
+                physics_ids: &PhysicsIds,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.add_shape(p_shape, p_transform, p_disabled, physics_engine, physics_spaces, physics_shapes, physics_rids),)*
+                    $(Self::$variant(co) => co.add_shape(p_shape_id, p_shape, p_transform, p_disabled, physics_engine, physics_spaces, physics_shapes, physics_ids),)*
                 }
             }
 
             fn set_shape(
                 &mut self,
                 shape_idx: usize,
-                p_shape: Rid,
+                p_shape: ShapeHandle,
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
                 physics_shapes: &mut PhysicsShapes,
-                physics_rids: &PhysicsRids,
+                physics_ids: &PhysicsIds,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.set_shape(shape_idx, p_shape, physics_engine, physics_spaces, physics_shapes, physics_rids),)*
+                    $(Self::$variant(co) => co.set_shape(shape_idx, p_shape, physics_engine, physics_spaces, physics_shapes, physics_ids),)*
                 }
             }
 
@@ -222,11 +218,10 @@ macro_rules! impl_rapier_collision_object_trait {
                 transform: Transform,
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
-                physics_shapes: &mut PhysicsShapes,
-                physics_rids: &PhysicsRids,
+                physics_ids: &PhysicsIds,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.set_shape_transform(shape_idx, transform, physics_engine, physics_spaces, physics_shapes, physics_rids),)*
+                    $(Self::$variant(co) => co.set_shape_transform(shape_idx, transform, physics_engine, physics_spaces, physics_ids),)*
                 }
             }
 
@@ -236,11 +231,10 @@ macro_rules! impl_rapier_collision_object_trait {
                 disabled: bool,
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
-                physics_shapes: &mut PhysicsShapes,
-                physics_rids: &PhysicsRids,
+                physics_ids: &PhysicsIds,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.set_shape_disabled(shape_idx, disabled, physics_engine, physics_spaces, physics_shapes, physics_rids),)*
+                    $(Self::$variant(co) => co.set_shape_disabled(shape_idx, disabled, physics_engine, physics_spaces, physics_ids),)*
                 }
             }
 
@@ -250,10 +244,10 @@ macro_rules! impl_rapier_collision_object_trait {
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
                 physics_shapes: &mut PhysicsShapes,
-                physics_rids: &PhysicsRids,
+                physics_ids: &PhysicsIds,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.remove_shape_idx(p_index, physics_engine, physics_spaces, physics_shapes, physics_rids),)*
+                    $(Self::$variant(co) => co.remove_shape_idx(p_index, physics_engine, physics_spaces, physics_shapes, physics_ids),)*
                 }
             }
 
@@ -263,10 +257,10 @@ macro_rules! impl_rapier_collision_object_trait {
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
                 physics_shapes: &mut PhysicsShapes,
-                physics_rids: &PhysicsRids,
+                physics_ids: &PhysicsIds,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.remove_shape_rid(shape_rid, physics_engine, physics_spaces, physics_shapes, physics_rids),)*
+                    $(Self::$variant(co) => co.remove_shape_rid(shape_rid, physics_engine, physics_spaces, physics_shapes, physics_ids),)*
                 }
             }
 
@@ -275,10 +269,9 @@ macro_rules! impl_rapier_collision_object_trait {
                 shape: CollisionObjectShape,
                 p_shape_index: usize,
                 physics_engine: &mut PhysicsEngine,
-                physics_shapes: &mut PhysicsShapes,
             ) -> ColliderHandle {
                 match self {
-                    $(Self::$variant(co) => co.create_shape(shape, p_shape_index, physics_engine, physics_shapes),)*
+                    $(Self::$variant(co) => co.create_shape(shape, p_shape_index, physics_engine),)*
                 }
             }
 
@@ -292,23 +285,23 @@ macro_rules! impl_rapier_collision_object_trait {
                 &mut self,
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
-                physics_rids: &PhysicsRids,
+                physics_ids: &PhysicsIds,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.shapes_changed(physics_engine, physics_spaces, physics_rids),)*
+                    $(Self::$variant(co) => co.shapes_changed(physics_engine, physics_spaces, physics_ids),)*
                 }
             }
 
             fn shape_changed(
                 &mut self,
-                p_shape: Rid,
+                shape_id: RapierId,
+                shape_handle: ShapeHandle,
                 physics_engine: &mut PhysicsEngine,
-                physics_shapes: &mut PhysicsShapes,
                 physics_spaces: &mut PhysicsSpaces,
-                physics_rids: &PhysicsRids,
+                physics_ids: &PhysicsIds,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.shape_changed(p_shape, physics_engine, physics_shapes, physics_spaces, physics_rids),)*
+                    $(Self::$variant(co) => co.shape_changed(shape_id, shape_handle, physics_engine, physics_spaces, physics_ids),)*
                 }
             }
 

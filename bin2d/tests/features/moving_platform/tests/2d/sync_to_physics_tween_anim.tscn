@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://opo6mf7x8wsn"]
-
-[ext_resource type="Script" path="res://tests/features/moving_platform/tests/2d/sync_to_physics_tween_anim.gd" id="1_er3q3"]
-
-[node name="sync_to_physics_tween_anim" type="Node2D"]
-script = ExtResource("1_er3q3")

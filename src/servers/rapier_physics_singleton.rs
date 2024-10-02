@@ -1,7 +1,5 @@
 use godot::prelude::*;
 use hashbrown::HashMap;
-use rapier::data::Index;
-use rapier::prelude::RigidBodyHandle;
 
 use crate::bodies::rapier_collision_object::RapierCollisionObject;
 use crate::fluids::rapier_fluid::RapierFluid;
@@ -12,12 +10,8 @@ use crate::spaces::rapier_space::RapierSpace;
 pub type PhysicsShapes = HashMap<Rid, RapierShape>;
 pub type PhysicsSpaces = HashMap<Rid, RapierSpace>;
 pub type PhysicsActiveSpaces = HashMap<WorldHandle, Rid>;
-#[derive(PartialEq, Clone, Debug, Eq, Hash)]
-pub enum PhysicsType {
-    World,
-    RigidBody,
-}
-pub type PhysicsRids = HashMap<(PhysicsType, Index), Rid>;
+pub type RapierId = u64;
+pub type PhysicsIds = HashMap<RapierId, Rid>;
 pub type PhysicsCollisionObjects = HashMap<Rid, RapierCollisionObject>;
 pub type PhysicsJoints = HashMap<Rid, RapierJoint>;
 pub type PhysicsFluids = HashMap<Rid, RapierFluid>;
@@ -30,7 +24,7 @@ pub struct PhysicsData {
     pub joints: PhysicsJoints,
     pub fluids: PhysicsFluids,
     pub physics_engine: PhysicsEngine,
-    pub rids: PhysicsRids,
+    pub ids: PhysicsIds,
 }
 pub fn physics_data() -> &'static mut PhysicsData {
     static mut SINGLETON: Option<PhysicsData> = None;
@@ -44,31 +38,33 @@ pub fn physics_data() -> &'static mut PhysicsData {
                 joints: HashMap::default(),
                 fluids: HashMap::default(),
                 physics_engine: PhysicsEngine::default(),
-                rids: HashMap::default(),
+                ids: HashMap::default(),
             });
         }
         SINGLETON.as_mut().unwrap()
     }
 }
-pub fn get_body_rid(handle: RigidBodyHandle, physics_rids: &PhysicsRids) -> Rid {
-    return *physics_rids
-        .get(&(PhysicsType::RigidBody, handle.0))
-        .unwrap_or(&Rid::Invalid);
+pub fn get_id_rid(id: RapierId, physics_ids: &PhysicsIds) -> Rid {
+    return *physics_ids.get(&id).unwrap_or(&Rid::Invalid);
 }
-pub fn get_space_rid(handle: WorldHandle, physics_rids: &PhysicsRids) -> Rid {
-    return *physics_rids
-        .get(&(PhysicsType::World, handle))
-        .unwrap_or(&Rid::Invalid);
+pub fn insert_id_rid(id: RapierId, rid: Rid, physics_ids: &mut PhysicsIds) {
+    if id == RapierId::default() {
+        godot_error!("RapierId cannot be 0");
+    }
+    physics_ids.insert(id, rid);
 }
-pub fn insert_body_rid(handle: RigidBodyHandle, rid: Rid, physics_rids: &mut PhysicsRids) {
-    physics_rids.insert((PhysicsType::RigidBody, handle.0), rid);
+pub fn remove_id_rid(id: RapierId, physics_ids: &mut PhysicsIds) {
+    physics_ids.remove(&id);
 }
-pub fn insert_space_rid(handle: WorldHandle, rid: Rid, physics_rids: &mut PhysicsRids) {
-    physics_rids.insert((PhysicsType::World, handle), rid);
+static mut ID: RapierId = 0;
+pub fn next_id() -> RapierId {
+    unsafe {
+        ID += 1;
+        ID
+    }
 }
-pub fn remove_body_rid(handle: RigidBodyHandle, physics_rids: &mut PhysicsRids) {
-    physics_rids.remove(&(PhysicsType::RigidBody, handle.0));
-}
-pub fn remove_space_rid(handle: WorldHandle, physics_rids: &mut PhysicsRids) {
-    physics_rids.remove(&(PhysicsType::World, handle));
+pub fn reset_ids() {
+    unsafe {
+        ID = 0;
+    }
 }

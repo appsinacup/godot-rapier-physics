@@ -1,11 +1,11 @@
 extends TestBase
 
-var body_a := PhysicsServer2D.body_create()
-var body_b := PhysicsServer2D.body_create()
-var body_a_with_space1 := PhysicsServer2D.body_create()
-var body_b_with_space1 := PhysicsServer2D.body_create()
-var body_a_with_space2 := PhysicsServer2D.body_create()
-var body_b_with_space2 := PhysicsServer2D.body_create()
+@onready var body_a := PhysicsServer2D.body_create()
+@onready var body_b := PhysicsServer2D.body_create()
+@onready var body_a_with_space1 := PhysicsServer2D.body_create()
+@onready var body_b_with_space1 := PhysicsServer2D.body_create()
+@onready var body_a_with_space2 := PhysicsServer2D.body_create()
+@onready var body_b_with_space2 := PhysicsServer2D.body_create()
 
 func _ready():
 	var new_space1 := PhysicsServer2D.space_create()

@@ -4,17 +4,20 @@ use godot::prelude::*;
 use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
+use crate::servers::rapier_physics_singleton::RapierId;
 use crate::shapes::rapier_shape::*;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 pub struct RapierCylinderShape3D {
     base: RapierShapeBase,
 }
 impl RapierCylinderShape3D {
-    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) {
+    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) -> RapierId {
         let shape = Self {
             base: RapierShapeBase::new(rid),
         };
+        let id = shape.base.get_id();
         physics_shapes.insert(rid, RapierShape::RapierCylinderShape3D(shape));
+        id
     }
 }
 impl IRapierShape for RapierCylinderShape3D {

@@ -1,25 +1,22 @@
-use godot::builtin::Rid;
 use hashbrown::HashMap;
 use hashbrown::HashSet;
 use rapier::prelude::ColliderHandle;
-use rapier::prelude::RigidBodyHandle;
 
 use crate::bodies::rapier_collision_object_base::CollisionObjectType;
 use crate::rapier_wrapper::handle::WorldHandle;
 use crate::rapier_wrapper::prelude::PhysicsEngine;
 use crate::rapier_wrapper::prelude::WorldSettings;
-use crate::types::*;
+use crate::servers::rapier_physics_singleton::next_id;
+use crate::servers::rapier_physics_singleton::RapierId;
 impl RemovedColliderInfo {
     pub fn new(
-        rid: Rid,
-        rb_handle: RigidBodyHandle,
+        rb_id: RapierId,
         instance_id: u64,
         shape_index: usize,
         collision_object_type: CollisionObjectType,
     ) -> Self {
         Self {
-            rid,
-            rb_handle,
+            rb_id,
             instance_id,
             shape_index,
             collision_object_type,
@@ -32,9 +29,7 @@ impl RemovedColliderInfo {
 )]
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct RemovedColliderInfo {
-    #[cfg_attr(feature = "serde-serialize", serde(skip, default = "default_rid"))]
-    pub rid: Rid,
-    pub rb_handle: RigidBodyHandle,
+    pub rb_id: RapierId,
     pub instance_id: u64,
     pub shape_index: usize,
     pub collision_object_type: CollisionObjectType,
@@ -54,105 +49,100 @@ pub struct RapierSpaceState {
         )
     )]
     removed_colliders: HashMap<ColliderHandle, RemovedColliderInfo>,
-    active_list: HashSet<RigidBodyHandle>,
-    mass_properties_update_list: HashSet<RigidBodyHandle>,
-    gravity_update_list: HashSet<RigidBodyHandle>,
-    state_query_list: HashSet<RigidBodyHandle>,
-    force_integrate_query_list: HashSet<RigidBodyHandle>,
-    monitor_query_list: HashSet<RigidBodyHandle>,
-    area_update_list: HashSet<RigidBodyHandle>,
-    body_area_update_list: HashSet<RigidBodyHandle>,
+    active_list: HashSet<RapierId>,
+    mass_properties_update_list: HashSet<RapierId>,
+    gravity_update_list: HashSet<RapierId>,
+    state_query_list: HashSet<RapierId>,
+    force_integrate_query_list: HashSet<RapierId>,
+    monitor_query_list: HashSet<RapierId>,
+    area_update_list: HashSet<RapierId>,
+    body_area_update_list: HashSet<RapierId>,
     time_stepped: f32,
     active_objects: i32,
     handle: WorldHandle,
+    id: u64,
 }
 impl RapierSpaceState {
     pub fn new(physics_engine: &mut PhysicsEngine, world_settings: &WorldSettings) -> Self {
         let handle = physics_engine.world_create(world_settings);
         Self {
             handle,
+            id: next_id(),
             ..Default::default()
         }
     }
 
-    pub fn body_add_to_mass_properties_update_list(&mut self, body: RigidBodyHandle) {
+    pub fn body_add_to_mass_properties_update_list(&mut self, body: RapierId) {
         self.mass_properties_update_list.insert(body);
     }
 
-    pub fn body_remove_from_mass_properties_update_list(&mut self, body: RigidBodyHandle) {
+    pub fn body_remove_from_mass_properties_update_list(&mut self, body: RapierId) {
         self.mass_properties_update_list.remove(&body);
     }
 
-    pub fn body_add_to_gravity_update_list(&mut self, body: RigidBodyHandle) {
+    pub fn body_add_to_gravity_update_list(&mut self, body: RapierId) {
         self.gravity_update_list.insert(body);
     }
 
-    pub fn body_remove_from_gravity_update_list(&mut self, body: RigidBodyHandle) {
+    pub fn body_remove_from_gravity_update_list(&mut self, body: RapierId) {
         self.gravity_update_list.remove(&body);
     }
 
-    pub fn body_add_to_active_list(&mut self, body: RigidBodyHandle) {
+    pub fn body_add_to_active_list(&mut self, body: RapierId) {
         self.active_list.insert(body);
     }
 
-    pub fn body_remove_from_active_list(&mut self, body: RigidBodyHandle) {
+    pub fn body_remove_from_active_list(&mut self, body: RapierId) {
         self.active_list.remove(&body);
     }
 
-    pub fn body_add_to_state_query_list(&mut self, body: RigidBodyHandle) {
+    pub fn body_add_to_state_query_list(&mut self, body: RapierId) {
         self.state_query_list.insert(body);
     }
 
-    pub fn body_remove_from_state_query_list(&mut self, body: RigidBodyHandle) {
+    pub fn body_remove_from_state_query_list(&mut self, body: RapierId) {
         self.state_query_list.remove(&body);
     }
 
-    pub fn body_add_to_force_integrate_list(&mut self, body: RigidBodyHandle) {
+    pub fn body_add_to_force_integrate_list(&mut self, body: RapierId) {
         self.force_integrate_query_list.insert(body);
     }
 
-    pub fn body_remove_from_force_integrate_list(&mut self, body: RigidBodyHandle) {
+    pub fn body_remove_from_force_integrate_list(&mut self, body: RapierId) {
         self.force_integrate_query_list.remove(&body);
     }
 
-    pub fn area_add_to_monitor_query_list(&mut self, area: RigidBodyHandle) {
+    pub fn area_add_to_monitor_query_list(&mut self, area: RapierId) {
         self.monitor_query_list.insert(area);
     }
 
-    pub fn area_add_to_area_update_list(&mut self, area: RigidBodyHandle) {
+    pub fn area_add_to_area_update_list(&mut self, area: RapierId) {
         self.area_update_list.insert(area);
     }
 
-    pub fn area_remove_from_area_update_list(&mut self, area: RigidBodyHandle) {
+    pub fn area_remove_from_area_update_list(&mut self, area: RapierId) {
         self.area_update_list.remove(&area);
     }
 
-    pub fn body_add_to_area_update_list(&mut self, body: RigidBodyHandle) {
+    pub fn body_add_to_area_update_list(&mut self, body: RapierId) {
         self.body_area_update_list.insert(body);
     }
 
-    pub fn body_remove_from_area_update_list(&mut self, body: RigidBodyHandle) {
+    pub fn body_remove_from_area_update_list(&mut self, body: RapierId) {
         self.body_area_update_list.remove(&body);
     }
 
     pub fn add_removed_collider(
         &mut self,
         handle: ColliderHandle,
-        rid: Rid,
-        rb_handle: RigidBodyHandle,
+        rb_id: RapierId,
         instance_id: u64,
         shape_index: usize,
         collision_object_type: CollisionObjectType,
     ) {
         self.removed_colliders.insert(
             handle,
-            RemovedColliderInfo::new(
-                rid,
-                rb_handle,
-                instance_id,
-                shape_index,
-                collision_object_type,
-            ),
+            RemovedColliderInfo::new(rb_id, instance_id, shape_index, collision_object_type),
         );
     }
 
@@ -165,6 +155,10 @@ impl RapierSpaceState {
 
     pub fn get_handle(&self) -> WorldHandle {
         self.handle
+    }
+
+    pub fn get_id(&self) -> RapierId {
+        self.id
     }
 
     pub fn is_valid(&self) -> bool {
@@ -187,39 +181,39 @@ impl RapierSpaceState {
         self.time_stepped = time;
     }
 
-    pub fn get_active_list(&self) -> &HashSet<RigidBodyHandle> {
+    pub fn get_active_list(&self) -> &HashSet<RapierId> {
         &self.active_list
     }
 
-    pub fn get_mass_properties_update_list(&self) -> &HashSet<RigidBodyHandle> {
+    pub fn get_mass_properties_update_list(&self) -> &HashSet<RapierId> {
         &self.mass_properties_update_list
     }
 
-    pub fn get_area_update_list(&self) -> &HashSet<RigidBodyHandle> {
+    pub fn get_area_update_list(&self) -> &HashSet<RapierId> {
         &self.area_update_list
     }
 
-    pub fn get_body_area_update_list(&self) -> &HashSet<RigidBodyHandle> {
+    pub fn get_body_area_update_list(&self) -> &HashSet<RapierId> {
         &self.body_area_update_list
     }
 
-    pub fn get_gravity_update_list(&self) -> &HashSet<RigidBodyHandle> {
+    pub fn get_gravity_update_list(&self) -> &HashSet<RapierId> {
         &self.gravity_update_list
     }
 
-    pub fn get_active_bodies(&self) -> Vec<RigidBodyHandle> {
+    pub fn get_active_bodies(&self) -> Vec<RapierId> {
         self.active_list.clone().into_iter().collect()
     }
 
-    pub fn get_state_query_list(&self) -> &HashSet<RigidBodyHandle> {
+    pub fn get_state_query_list(&self) -> &HashSet<RapierId> {
         &self.state_query_list
     }
 
-    pub fn get_force_integrate_query_list(&self) -> &HashSet<RigidBodyHandle> {
+    pub fn get_force_integrate_query_list(&self) -> &HashSet<RapierId> {
         &self.force_integrate_query_list
     }
 
-    pub fn get_monitor_query_list(&self) -> &HashSet<RigidBodyHandle> {
+    pub fn get_monitor_query_list(&self) -> &HashSet<RapierId> {
         &self.monitor_query_list
     }
 
@@ -255,17 +249,8 @@ impl RapierSpaceState {
 }
 #[cfg(test)]
 mod tests {
-    use rapier::prelude::ColliderHandle;
-    use rapier::prelude::RigidBodyHandle;
-
     use super::*;
     use crate::bodies::rapier_collision_object_base::CollisionObjectType;
-    fn create_test_rigid_body_handle() -> RigidBodyHandle {
-        RigidBodyHandle::from_raw_parts(1, 0)
-    }
-    fn create_test_collider_handle() -> ColliderHandle {
-        ColliderHandle::from_raw_parts(1, 0)
-    }
     fn create_world_settings() -> WorldSettings {
         WorldSettings {
             particle_radius: 1.0,
@@ -296,24 +281,24 @@ mod tests {
     fn test_body_add_and_remove_from_active_list() {
         let mut physics_engine = PhysicsEngine::default();
         let mut state = RapierSpaceState::new(&mut physics_engine, &create_world_settings());
-        let rb_handle = create_test_rigid_body_handle();
-        state.body_add_to_active_list(rb_handle);
-        assert!(state.get_active_list().contains(&rb_handle));
-        state.body_remove_from_active_list(rb_handle);
-        assert!(!state.get_active_list().contains(&rb_handle));
+        let rb_id = next_id();
+        state.body_add_to_active_list(rb_id);
+        assert!(state.get_active_list().contains(&rb_id));
+        state.body_remove_from_active_list(rb_id);
+        assert!(!state.get_active_list().contains(&rb_id));
         assert!(state.get_active_bodies().is_empty());
     }
     #[test]
     fn test_body_add_and_remove_reset_from_mass_properties_update_list() {
         let mut physics_engine = PhysicsEngine::default();
         let mut state = RapierSpaceState::new(&mut physics_engine, &create_world_settings());
-        let rb_handle = create_test_rigid_body_handle();
-        state.body_add_to_mass_properties_update_list(rb_handle);
-        assert!(state.get_mass_properties_update_list().contains(&rb_handle));
-        state.body_remove_from_mass_properties_update_list(rb_handle);
-        assert!(!state.get_mass_properties_update_list().contains(&rb_handle));
-        state.body_add_to_mass_properties_update_list(rb_handle);
-        assert!(state.get_mass_properties_update_list().contains(&rb_handle));
+        let rb_id = next_id();
+        state.body_add_to_mass_properties_update_list(rb_id);
+        assert!(state.get_mass_properties_update_list().contains(&rb_id));
+        state.body_remove_from_mass_properties_update_list(rb_id);
+        assert!(!state.get_mass_properties_update_list().contains(&rb_id));
+        state.body_add_to_mass_properties_update_list(rb_id);
+        assert!(state.get_mass_properties_update_list().contains(&rb_id));
         state.reset_mass_properties_update_list();
         assert!(state.get_mass_properties_update_list().is_empty());
     }
@@ -321,39 +306,39 @@ mod tests {
     fn test_body_add_and_remove_from_gravity_update_list() {
         let mut physics_engine = PhysicsEngine::default();
         let mut state = RapierSpaceState::new(&mut physics_engine, &create_world_settings());
-        let rb_handle = create_test_rigid_body_handle();
-        state.body_add_to_gravity_update_list(rb_handle);
-        assert!(state.get_gravity_update_list().contains(&rb_handle));
-        state.body_remove_from_gravity_update_list(rb_handle);
-        assert!(!state.get_gravity_update_list().contains(&rb_handle));
+        let rb_id = next_id();
+        state.body_add_to_gravity_update_list(rb_id);
+        assert!(state.get_gravity_update_list().contains(&rb_id));
+        state.body_remove_from_gravity_update_list(rb_id);
+        assert!(!state.get_gravity_update_list().contains(&rb_id));
     }
     #[test]
     fn test_body_add_and_remove_from_state_query_list() {
         let mut physics_engine = PhysicsEngine::default();
         let mut state = RapierSpaceState::new(&mut physics_engine, &create_world_settings());
-        let rb_handle = create_test_rigid_body_handle();
-        state.body_add_to_state_query_list(rb_handle);
-        assert!(state.get_state_query_list().contains(&rb_handle));
-        state.body_remove_from_state_query_list(rb_handle);
-        assert!(!state.get_state_query_list().contains(&rb_handle));
+        let rb_id = next_id();
+        state.body_add_to_state_query_list(rb_id);
+        assert!(state.get_state_query_list().contains(&rb_id));
+        state.body_remove_from_state_query_list(rb_id);
+        assert!(!state.get_state_query_list().contains(&rb_id));
     }
     #[test]
     fn test_body_add_and_remove_from_force_integrate_query_list() {
         let mut physics_engine = PhysicsEngine::default();
         let mut state = RapierSpaceState::new(&mut physics_engine, &create_world_settings());
-        let rb_handle = create_test_rigid_body_handle();
-        state.body_add_to_force_integrate_list(rb_handle);
-        assert!(state.get_force_integrate_query_list().contains(&rb_handle));
-        state.body_remove_from_force_integrate_list(rb_handle);
-        assert!(!state.get_force_integrate_query_list().contains(&rb_handle));
+        let rb_id = next_id();
+        state.body_add_to_force_integrate_list(rb_id);
+        assert!(state.get_force_integrate_query_list().contains(&rb_id));
+        state.body_remove_from_force_integrate_list(rb_id);
+        assert!(!state.get_force_integrate_query_list().contains(&rb_id));
     }
     #[test]
     fn test_area_add_and_reset_from_monitor_query_list() {
         let mut physics_engine = PhysicsEngine::default();
         let mut state = RapierSpaceState::new(&mut physics_engine, &create_world_settings());
-        let rb_handle = create_test_rigid_body_handle();
-        state.area_add_to_monitor_query_list(rb_handle);
-        assert!(state.get_monitor_query_list().contains(&rb_handle));
+        let rb_id = next_id();
+        state.area_add_to_monitor_query_list(rb_id);
+        assert!(state.get_monitor_query_list().contains(&rb_id));
         state.reset_monitor_query_list();
         assert!(state.get_monitor_query_list().is_empty());
     }
@@ -361,36 +346,34 @@ mod tests {
     fn test_body_add_and_remove_from_area_update_list() {
         let mut physics_engine = PhysicsEngine::default();
         let mut state = RapierSpaceState::new(&mut physics_engine, &create_world_settings());
-        let rb_handle = create_test_rigid_body_handle();
-        state.body_add_to_area_update_list(rb_handle);
-        assert!(state.get_body_area_update_list().contains(&rb_handle));
-        state.body_remove_from_area_update_list(rb_handle);
-        assert!(!state.get_body_area_update_list().contains(&rb_handle));
+        let rb_id = next_id();
+        state.body_add_to_area_update_list(rb_id);
+        assert!(state.get_body_area_update_list().contains(&rb_id));
+        state.body_remove_from_area_update_list(rb_id);
+        assert!(!state.get_body_area_update_list().contains(&rb_id));
     }
     #[test]
     fn test_area_add_and_remove_from_area_update_list() {
         let mut physics_engine = PhysicsEngine::default();
         let mut state = RapierSpaceState::new(&mut physics_engine, &create_world_settings());
-        let rb_handle = create_test_rigid_body_handle();
-        state.area_add_to_area_update_list(rb_handle);
-        assert!(state.get_area_update_list().contains(&rb_handle));
-        state.area_remove_from_area_update_list(rb_handle);
-        assert!(!state.get_area_update_list().contains(&rb_handle));
+        let rb_id = next_id();
+        state.area_add_to_area_update_list(rb_id);
+        assert!(state.get_area_update_list().contains(&rb_id));
+        state.area_remove_from_area_update_list(rb_id);
+        assert!(!state.get_area_update_list().contains(&rb_id));
     }
     #[test]
     fn test_add_removed_collider() {
         let mut physics_engine = PhysicsEngine::default();
         let mut state = RapierSpaceState::new(&mut physics_engine, &create_world_settings());
-        let collider_handle = create_test_collider_handle();
-        let rid = Rid::new(1234);
-        let rb_handle = create_test_rigid_body_handle();
+        let collider_handle = ColliderHandle::from_raw_parts(1, 0);
+        let rb_id = next_id();
         let instance_id = 123;
         let shape_index = 0;
         let collision_object_type = CollisionObjectType::Body;
         state.add_removed_collider(
             collider_handle,
-            rid,
-            rb_handle,
+            rb_id,
             instance_id,
             shape_index,
             collision_object_type,
@@ -398,8 +381,7 @@ mod tests {
         let removed_info = state.get_removed_collider_info(&collider_handle);
         assert!(removed_info.is_some());
         let removed_info = removed_info.unwrap();
-        assert_eq!(removed_info.rid, rid);
-        assert_eq!(removed_info.rb_handle, rb_handle);
+        assert_eq!(removed_info.rb_id, rb_id);
         assert_eq!(removed_info.instance_id, instance_id);
         assert_eq!(removed_info.shape_index, shape_index);
         assert_eq!(removed_info.collision_object_type, collision_object_type);
