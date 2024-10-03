@@ -1,7 +1,15 @@
 use godot::prelude::*;
 use rapier::na::ComplexField;
+#[cfg(feature = "dim3")]
 #[derive(GodotClass)]
-#[class(base=Object, init)]
+#[class(base=Object, init, rename=RapierMath3D)]
+/// Contains Rapier Deterministic Math functions.
+pub struct RapierMath {
+    base: Base<Object>,
+}
+#[cfg(feature = "dim2")]
+#[derive(GodotClass)]
+#[class(base=Object, init, rename=RapierMath2D)]
 /// Contains Rapier Deterministic Math functions.
 pub struct RapierMath {
     base: Base<Object>,

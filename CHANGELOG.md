@@ -1,5 +1,7 @@
 # Changelog
 
+## v0.8.6
+
 ## v0.8.5
 
 - Remove some references to RID internally and use uid instead. Also fix Area issue. by @Ughuuu in #243
