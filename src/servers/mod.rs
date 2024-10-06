@@ -55,12 +55,12 @@ fn print_version() {
         .unwrap_or_default();
     if physics_engine != "Rapier2D" {
         godot_print_rich!(
-            "[color=red]Physics Engine 2D: {}[/color]. Go to [b]Advanced Settings -> Physics -> 2D[/b] to change it to [b]Rapier2D[/b].",
+            "[color=red]PHYSICS ENGINE 2D: {}[/color]. Go to [b]Advanced Settings -> Physics -> 2D[/b] to change it to [b]Rapier2D[/b].",
             physics_engine
         );
     } else {
         godot_print_rich!(
-            "[color=green]The current Physics Engine 2D: {} v{}[/color]",
+            "[color=green]PHYSICS ENGINE 2D: {} v{}[/color]",
             physics_engine,
             version
         );
@@ -86,12 +86,12 @@ fn print_version() {
         .unwrap_or_default();
     if physics_engine != "Rapier3D" {
         godot_print_rich!(
-            "[color=red]Physics Engine 3D: {}[/color]. Go to [b]Advanced Settings -> Physics -> 3D[/b] to change it to [b]Rapier3D[/b].",
+            "[color=red]PHYSICS ENGINE 3D: {}[/color]. Go to [b]Advanced Settings -> Physics -> 3D[/b] to change it to [b]Rapier3D[/b].",
             physics_engine
         );
     } else {
         godot_print_rich!(
-            "[color=green]The current Physics Engine 3D: {} v{}[/color]",
+            "[color=green]PHYSICS ENGINE 3D: {} v{}[/color]",
             physics_engine,
             version
         );

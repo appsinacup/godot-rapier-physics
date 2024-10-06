@@ -27,4 +27,4 @@ window/size/viewport_height=1080
 [physics]
 
 2d/physics_engine="Rapier2D"
-3d/physics_engine="JoltPhysics3D"
+3d/physics_engine="Rapier3D"
