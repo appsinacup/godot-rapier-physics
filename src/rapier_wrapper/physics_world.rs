@@ -1,7 +1,7 @@
 use std::num::NonZeroUsize;
 
+use hashbrown::HashMap;
 use rapier::crossbeam;
-use rapier::data::Arena;
 use rapier::data::Index;
 use rapier::prelude::*;
 use salva::integrations::rapier::FluidsPipeline;
@@ -9,6 +9,7 @@ use salva::integrations::rapier::FluidsPipeline;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use crate::servers::rapier_physics_singleton::PhysicsIds;
+use crate::servers::rapier_physics_singleton::RapierId;
 use crate::spaces::rapier_space::RapierSpace;
 #[cfg_attr(
     feature = "serde-serialize",
@@ -496,47 +497,40 @@ impl PhysicsWorld {
 }
 #[derive(Default)]
 pub struct PhysicsEngine {
-    pub physics_worlds: Arena<PhysicsWorld>,
-    pub shapes: Arena<SharedShape>,
+    pub physics_worlds: HashMap<RapierId, PhysicsWorld>,
+    pub shapes: HashMap<RapierId, SharedShape>,
 }
 impl PhysicsEngine {
     pub fn get_mut_world(&mut self, world_handle: WorldHandle) -> Option<&mut PhysicsWorld> {
-        self.physics_worlds.get_mut(world_handle)
+        self.physics_worlds.get_mut(&world_handle)
     }
 
     pub fn get_world(&self, world_handle: WorldHandle) -> Option<&PhysicsWorld> {
-        self.physics_worlds.get(world_handle)
+        self.physics_worlds.get(&world_handle)
     }
 
-    pub fn insert_shape(&mut self, shape: SharedShape) -> ShapeHandle {
-        self.shapes.insert(shape)
-    }
-
-    pub fn import_shape(&mut self, shape: SharedShape, handle: ShapeHandle) {
-        self.shapes[handle] = shape;
+    pub fn insert_shape(&mut self, shape: SharedShape, handle: ShapeHandle) {
+        self.shapes.insert(handle, shape);
     }
 
     pub fn remove_shape(&mut self, shape_handle: ShapeHandle) {
-        self.shapes.remove(shape_handle);
+        self.shapes.remove_entry(&shape_handle);
     }
 
     pub fn get_shape(&self, shape_handle: ShapeHandle) -> Option<&SharedShape> {
-        self.shapes.get(shape_handle)
+        self.shapes.get(&shape_handle)
     }
 
-    pub fn world_create(&mut self, settings: &WorldSettings) -> WorldHandle {
-        let physics_world = PhysicsWorld::new(settings);
-        let world_handle = self.physics_worlds.insert(physics_world);
-        if let Some(physics_world) = self.get_mut_world(world_handle) {
-            physics_world.physics_objects.handle = world_handle;
-        }
-        world_handle
+    pub fn world_create(&mut self, settings: &WorldSettings, handle: WorldHandle) {
+        let mut physics_world = PhysicsWorld::new(settings);
+        physics_world.physics_objects.handle = handle;
+        self.physics_worlds.insert(handle, physics_world);
     }
 
     pub fn world_destroy(&mut self, world_handle: WorldHandle) {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             physics_world.physics_objects.handle = WorldHandle::default();
-            self.physics_worlds.remove(world_handle);
+            self.physics_worlds.remove(&world_handle);
         }
     }
 
@@ -587,7 +581,7 @@ impl PhysicsEngine {
     ) {
         let mut physics_world = PhysicsWorld::new(settings);
         physics_world.physics_objects = physics_objects;
-        self.physics_worlds[world_handle] = physics_world;
+        self.physics_worlds.insert(world_handle, physics_world);
     }
 
     #[allow(clippy::too_many_arguments)]

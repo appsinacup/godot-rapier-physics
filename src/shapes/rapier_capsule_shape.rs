@@ -14,13 +14,11 @@ pub struct RapierCapsuleShape {
     base: RapierShapeBase,
 }
 impl RapierCapsuleShape {
-    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) -> RapierId {
+    pub fn create(id: RapierId, rid: Rid, physics_shapes: &mut PhysicsShapes) {
         let shape = Self {
-            base: RapierShapeBase::new(rid),
+            base: RapierShapeBase::new(id, rid),
         };
-        let id = shape.base.get_id();
         physics_shapes.insert(rid, RapierShape::RapierCapsuleShape(shape));
-        id
     }
 }
 impl IRapierShape for RapierCapsuleShape {
@@ -100,12 +98,12 @@ impl IRapierShape for RapierCapsuleShape {
             godot_error!("RapierCapsuleShape radius must be positive. Got {}", radius);
             return;
         }
-        let handle = physics_engine.shape_create_capsule((height / 2.0) - radius, radius);
-        self.base.set_handle_and_reset_aabb(handle, physics_engine);
+        physics_engine.shape_create_capsule((height / 2.0) - radius, radius, self.base.get_id());
+        self.base.reset_aabb(physics_engine);
     }
 
     fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
-        let (height, radius) = physics_engine.shape_get_capsule(self.base.get_handle());
+        let (height, radius) = physics_engine.shape_get_capsule(self.base.get_id());
         Vector2::new((height + radius) * 2.0, radius).to_variant()
     }
 }
@@ -126,7 +124,7 @@ mod tests {
         fn test_create() {
             let mut physics_shapes = PhysicsShapes::new();
             let rid = Rid::new(123);
-            RapierCapsuleShape::create(rid, &mut physics_shapes);
+            RapierCapsuleShape::create(0, rid, &mut physics_shapes);
             assert!(physics_shapes.contains_key(&rid));
             match physics_shapes.get(&rid) {
                 Some(RapierShape::RapierCapsuleShape(_)) => {}
@@ -140,7 +138,7 @@ mod tests {
         #[func]
         fn test_set_data_from_array() {
             let mut capsule_shape = RapierCapsuleShape {
-                base: RapierShapeBase::new(Rid::Invalid),
+                base: RapierShapeBase::new(RapierId::default(), Rid::Invalid),
             };
             let arr: Array<real> = array![3.0, 1.0];
             capsule_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
@@ -148,24 +146,21 @@ mod tests {
             let data_vector = data.try_to::<Vector2>().unwrap();
             assert_eq!(data_vector.x, 3.0);
             assert_eq!(data_vector.y, 1.0);
-            assert!(capsule_shape.get_base().is_valid());
             capsule_shape
                 .get_mut_base()
                 .destroy_shape(&mut physics_data().physics_engine);
-            assert!(!capsule_shape.get_base().is_valid());
         }
 
         #[func]
         fn test_set_data_from_vector2() {
             let mut capsule_shape = RapierCapsuleShape {
-                base: RapierShapeBase::new(Rid::Invalid),
+                base: RapierShapeBase::new(RapierId::default(), Rid::Invalid),
             };
             let vector2_data = Vector2::new(1.0, 2.0);
             capsule_shape.set_data(
                 vector2_data.to_variant(),
                 &mut physics_data().physics_engine,
             );
-            assert!(capsule_shape.get_base().is_valid());
             let data = capsule_shape.get_data(&physics_data().physics_engine);
             let data_vector = data.try_to::<Vector2>().unwrap();
             assert_eq!(data_vector.x, 2.0);
@@ -173,19 +168,17 @@ mod tests {
             capsule_shape
                 .get_mut_base()
                 .destroy_shape(&mut physics_data().physics_engine);
-            assert!(!capsule_shape.get_base().is_valid());
         }
 
         #[func]
         fn test_set_data_from_dictionary() {
             let mut capsule_shape = RapierCapsuleShape {
-                base: RapierShapeBase::new(Rid::Invalid),
+                base: RapierShapeBase::new(RapierId::default(), Rid::Invalid),
             };
             let mut dict = Dictionary::new();
             let _ = dict.insert("radius", 1.0);
             let _ = dict.insert("height", 2.0);
             capsule_shape.set_data(dict.to_variant(), &mut physics_data().physics_engine);
-            assert!(capsule_shape.get_base().is_valid());
             let data = capsule_shape.get_data(&physics_data().physics_engine);
             let data_vector = data.try_to::<Vector2>().unwrap();
             assert_eq!(data_vector.x, 2.0);
@@ -193,7 +186,6 @@ mod tests {
             capsule_shape
                 .get_mut_base()
                 .destroy_shape(&mut physics_data().physics_engine);
-            assert!(!capsule_shape.get_base().is_valid());
         }
     }
 }

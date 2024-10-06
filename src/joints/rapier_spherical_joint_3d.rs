@@ -6,6 +6,7 @@ use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::bodies::rapier_collision_object::RapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::RapierId;
 pub struct RapierSphericalJoint3D {
     anchor_a: Vector3,
     anchor_b: Vector3,
@@ -13,6 +14,7 @@ pub struct RapierSphericalJoint3D {
 }
 impl RapierSphericalJoint3D {
     pub fn new(
+        id: RapierId,
         rid: Rid,
         anchor_a: Vector3,
         anchor_b: Vector3,
@@ -32,13 +34,13 @@ impl RapierSphericalJoint3D {
         }
         if !body_a.get_base().is_valid()
             || !body_b.get_base().is_valid()
-            || body_a.get_base().get_space_handle() != body_b.get_base().get_space_handle()
+            || body_a.get_base().get_space_id() != body_b.get_base().get_space_id()
         {
             return invalid_joint;
         }
         let rapier_anchor_a = vector_to_rapier(anchor_a);
         let rapier_anchor_b = vector_to_rapier(anchor_b);
-        let space_handle = body_a.get_base().get_space_handle();
+        let space_handle = body_a.get_base().get_space_id();
         let space_id = body_a.get_base().get_space_id();
         let handle = physics_engine.joint_create_spherical(
             space_handle,
@@ -53,7 +55,7 @@ impl RapierSphericalJoint3D {
         Self {
             anchor_a,
             anchor_b,
-            base: RapierJointBase::new(rid, space_id, space_handle, handle),
+            base: RapierJointBase::new(id, rid, space_id, space_handle, handle),
         }
     }
 
@@ -65,7 +67,7 @@ impl RapierSphericalJoint3D {
         let anchor_a = vector_to_rapier(self.anchor_a);
         let anchor_b = vector_to_rapier(self.anchor_a);
         physics_engine.join_change_sperical_anchors(
-            self.base.get_space_handle(),
+            self.base.get_space_id(),
             self.base.get_handle(),
             anchor_a,
             anchor_b,
@@ -80,7 +82,7 @@ impl RapierSphericalJoint3D {
         let anchor_a = vector_to_rapier(self.anchor_a);
         let anchor_b = vector_to_rapier(self.anchor_a);
         physics_engine.join_change_sperical_anchors(
-            self.base.get_space_handle(),
+            self.base.get_space_id(),
             self.base.get_handle(),
             anchor_a,
             anchor_b,

@@ -142,7 +142,13 @@ impl RapierPhysicsServer {
     pub(crate) fn fluid_create() -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
-        let fluid = RapierFluid::new();
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return Rid::Invalid;
+        };
+        let id = physics_singleton.bind_mut().implementation.next_id();
+        let fluid = RapierFluid::new(id);
         physics_data.fluids.insert(rid, fluid);
         rid
     }

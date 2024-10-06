@@ -11,13 +11,11 @@ pub struct RapierCylinderShape3D {
     base: RapierShapeBase,
 }
 impl RapierCylinderShape3D {
-    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) -> RapierId {
+    pub fn create(id: RapierId, rid: Rid, physics_shapes: &mut PhysicsShapes) {
         let shape = Self {
-            base: RapierShapeBase::new(rid),
+            base: RapierShapeBase::new(id, rid),
         };
-        let id = shape.base.get_id();
         physics_shapes.insert(rid, RapierShape::RapierCylinderShape3D(shape));
-        id
     }
 }
 impl IRapierShape for RapierCylinderShape3D {
@@ -81,12 +79,12 @@ impl IRapierShape for RapierCylinderShape3D {
                 return;
             }
         }
-        let handle = physics_engine.shape_create_cylinder(height / 2.0, radius);
-        self.base.set_handle_and_reset_aabb(handle, physics_engine);
+        physics_engine.shape_create_cylinder(height / 2.0, radius, self.base.get_id());
+        self.base.reset_aabb(physics_engine);
     }
 
     fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
-        let (half_height, radius) = physics_engine.shape_get_cylinder(self.base.get_handle());
+        let (half_height, radius) = physics_engine.shape_get_cylinder(self.base.get_id());
         Vector2::new(radius, half_height * 2.0).to_variant()
     }
 }
@@ -107,7 +105,7 @@ mod tests {
         fn test_create() {
             let mut physics_shapes = PhysicsShapes::new();
             let rid = Rid::new(123);
-            RapierCylinderShape3D::create(rid, &mut physics_shapes);
+            RapierCylinderShape3D::create(0, rid, &mut physics_shapes);
             assert!(physics_shapes.contains_key(&rid));
             match physics_shapes.get(&rid) {
                 Some(RapierShape::RapierCylinderShape3D(_)) => {}
@@ -121,13 +119,12 @@ mod tests {
         #[func]
         fn test_set_data_array() {
             let mut cylinder_shape = RapierCylinderShape3D {
-                base: RapierShapeBase::new(Rid::Invalid),
+                base: RapierShapeBase::new(RapierId::default(), Rid::Invalid),
             };
             let mut arr = Array::default();
             arr.push(1.0);
             arr.push(0.5);
             cylinder_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
-            assert!(cylinder_shape.get_base().is_valid());
             let data: Vector2 = cylinder_shape
                 .get_data(&physics_data().physics_engine)
                 .try_to()
@@ -137,17 +134,15 @@ mod tests {
             cylinder_shape
                 .get_mut_base()
                 .destroy_shape(&mut physics_data().physics_engine);
-            assert!(!cylinder_shape.get_base().is_valid());
         }
 
         #[func]
         fn test_set_data_vector2() {
             let mut cylinder_shape = RapierCylinderShape3D {
-                base: RapierShapeBase::new(Rid::Invalid),
+                base: RapierShapeBase::new(RapierId::default(), Rid::Invalid),
             };
             let vec = Vector2::new(0.5, 1.0);
             cylinder_shape.set_data(vec.to_variant(), &mut physics_data().physics_engine);
-            assert!(cylinder_shape.get_base().is_valid());
             let data: Vector2 = cylinder_shape
                 .get_data(&physics_data().physics_engine)
                 .try_to()
@@ -157,20 +152,18 @@ mod tests {
             cylinder_shape
                 .get_mut_base()
                 .destroy_shape(&mut physics_data().physics_engine);
-            assert!(!cylinder_shape.get_base().is_valid());
         }
 
         #[func]
         fn test_set_data_dictionary() {
             let rid = Rid::new(123);
             let mut cylinder_shape = RapierCylinderShape3D {
-                base: RapierShapeBase::new(rid),
+                base: RapierShapeBase::new(0, rid),
             };
             let mut dict = Dictionary::new();
             let _ = dict.insert("height", 1.0);
             let _ = dict.insert("radius", 0.5);
             cylinder_shape.set_data(dict.to_variant(), &mut physics_data().physics_engine);
-            assert!(cylinder_shape.get_base().is_valid());
             let data: Vector2 = cylinder_shape
                 .get_data(&physics_data().physics_engine)
                 .try_to()
@@ -180,7 +173,6 @@ mod tests {
             cylinder_shape
                 .get_mut_base()
                 .destroy_shape(&mut physics_data().physics_engine);
-            assert!(!cylinder_shape.get_base().is_valid());
         }
     }
 }

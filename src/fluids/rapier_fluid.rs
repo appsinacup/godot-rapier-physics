@@ -4,7 +4,6 @@ use godot::prelude::*;
 
 use super::types::*;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::next_id;
 use crate::servers::rapier_physics_singleton::PhysicsSpaces;
 use crate::servers::rapier_physics_singleton::RapierId;
 use crate::types::Vector;
@@ -13,7 +12,7 @@ pub struct RapierFluid {
     id: RapierId,
     density: real,
     space: Rid,
-    space_handle: WorldHandle,
+    space_id: WorldHandle,
     effects: Array<Option<Gd<Resource>>>,
     fluid_handle: HandleDouble,
     points: Vec<Vector>,
@@ -21,12 +20,12 @@ pub struct RapierFluid {
     accelerations: Vec<Vector>,
 }
 impl RapierFluid {
-    pub fn new() -> Self {
+    pub fn new(id: RapierId) -> Self {
         Self {
-            id: next_id(),
+            id,
             density: 1.0,
             space: Rid::Invalid,
-            space_handle: WorldHandle::default(),
+            space_id: WorldHandle::default(),
             effects: Array::default(),
             fluid_handle: invalid_handle_double(),
             points: Vec::new(),
@@ -36,7 +35,7 @@ impl RapierFluid {
     }
 
     pub fn is_valid(&self) -> bool {
-        self.fluid_handle.is_valid() && self.space_handle != WorldHandle::default()
+        self.fluid_handle.is_valid() && self.space_id != WorldHandle::default()
     }
 
     pub fn set_points(&mut self, points: Vec<Vector>, physics_engine: &mut PhysicsEngine) {
@@ -50,11 +49,7 @@ impl RapierFluid {
                 .iter()
                 .map(|vec: &crate::types::Vector| vector_to_rapier(*vec))
                 .collect::<Vec<_>>();
-            physics_engine.fluid_change_points(
-                self.space_handle,
-                self.fluid_handle,
-                &rapier_points,
-            );
+            physics_engine.fluid_change_points(self.space_id, self.fluid_handle, &rapier_points);
         }
     }
 
@@ -80,7 +75,7 @@ impl RapierFluid {
                 .map(|vec: &crate::types::Vector| vector_to_rapier(*vec))
                 .collect::<Vec<_>>();
             physics_engine.fluid_change_points_and_velocities(
-                self.space_handle,
+                self.space_id,
                 self.fluid_handle,
                 &rapier_points,
                 &rapier_velocities,
@@ -108,7 +103,7 @@ impl RapierFluid {
                 .map(|vec: &crate::types::Vector| vector_to_rapier(*vec))
                 .collect::<Vec<_>>();
             physics_engine.fluid_add_points_and_velocities(
-                self.space_handle,
+                self.space_id,
                 self.fluid_handle,
                 &rapier_points,
                 &rapier_velocities,
@@ -123,20 +118,19 @@ impl RapierFluid {
             self.velocities.remove(index as usize);
             self.accelerations.remove(index as usize);
         }
-        physics_engine.fluid_delete_points(self.space_handle, self.fluid_handle, indices);
+        physics_engine.fluid_delete_points(self.space_id, self.fluid_handle, indices);
     }
 
     pub fn get_points(&mut self, physics_engine: &mut PhysicsEngine) -> &Vec<Vector> {
         if self.is_valid() {
-            self.points = physics_engine.fluid_get_points(self.space_handle, self.fluid_handle);
+            self.points = physics_engine.fluid_get_points(self.space_id, self.fluid_handle);
         }
         &self.points
     }
 
     pub fn get_velocities(&mut self, physics_engine: &mut PhysicsEngine) -> &Vec<Vector> {
         if self.is_valid() {
-            self.velocities =
-                physics_engine.fluid_get_velocities(self.space_handle, self.fluid_handle);
+            self.velocities = physics_engine.fluid_get_velocities(self.space_id, self.fluid_handle);
         }
         &self.velocities
     }
@@ -144,7 +138,7 @@ impl RapierFluid {
     pub fn get_accelerations(&mut self, physics_engine: &mut PhysicsEngine) -> &Vec<Vector> {
         if self.is_valid() {
             self.accelerations =
-                physics_engine.fluid_get_accelerations(self.space_handle, self.fluid_handle);
+                physics_engine.fluid_get_accelerations(self.space_id, self.fluid_handle);
         }
         &self.accelerations
     }
@@ -153,7 +147,7 @@ impl RapierFluid {
         if let Ok(effect) = effect.clone().try_cast::<FluidEffectElasticity>() {
             let effect = effect.bind();
             physics_engine.fluid_add_effect_elasticity(
-                self.space_handle,
+                self.space_id,
                 self.fluid_handle,
                 effect.get_young_modulus(),
                 effect.get_poisson_ratio(),
@@ -162,7 +156,7 @@ impl RapierFluid {
         } else if let Ok(effect) = effect.clone().try_cast::<FluidEffectSurfaceTensionAKINCI>() {
             let effect = effect.bind();
             physics_engine.fluid_add_effect_surface_tension_akinci(
-                self.space_handle,
+                self.space_id,
                 self.fluid_handle,
                 effect.get_fluid_tension_coefficient(),
                 effect.get_boundary_adhesion_coefficient(),
@@ -170,7 +164,7 @@ impl RapierFluid {
         } else if let Ok(effect) = effect.clone().try_cast::<FluidEffectSurfaceTensionHE>() {
             let effect = effect.bind();
             physics_engine.fluid_add_effect_surface_tension_he(
-                self.space_handle,
+                self.space_id,
                 self.fluid_handle,
                 effect.get_fluid_tension_coefficient(),
                 effect.get_boundary_adhesion_coefficient(),
@@ -178,7 +172,7 @@ impl RapierFluid {
         } else if let Ok(effect) = effect.clone().try_cast::<FluidEffectSurfaceTensionWCSPH>() {
             let effect = effect.bind();
             physics_engine.fluid_add_effect_surface_tension_wcsph(
-                self.space_handle,
+                self.space_id,
                 self.fluid_handle,
                 effect.get_fluid_tension_coefficient(),
                 effect.get_boundary_adhesion_coefficient(),
@@ -186,7 +180,7 @@ impl RapierFluid {
         } else if let Ok(effect) = effect.clone().try_cast::<FluidEffectViscosityArtificial>() {
             let effect = effect.bind();
             physics_engine.fluid_add_effect_viscosity_artificial(
-                self.space_handle,
+                self.space_id,
                 self.fluid_handle,
                 effect.get_fluid_viscosity_coefficient(),
                 effect.get_boundary_adhesion_coefficient(),
@@ -194,14 +188,14 @@ impl RapierFluid {
         } else if let Ok(effect) = effect.clone().try_cast::<FluidEffectViscosityDFSPH>() {
             let effect = effect.bind();
             physics_engine.fluid_add_effect_viscosity_dfsph(
-                self.space_handle,
+                self.space_id,
                 self.fluid_handle,
                 effect.get_fluid_viscosity_coefficient(),
             );
         } else if let Ok(effect) = effect.clone().try_cast::<FluidEffectViscosityXSPH>() {
             let effect = effect.bind();
             physics_engine.fluid_add_effect_viscosity_xsph(
-                self.space_handle,
+                self.space_id,
                 self.fluid_handle,
                 effect.get_fluid_viscosity_coefficient(),
                 effect.get_boundary_adhesion_coefficient(),
@@ -218,7 +212,7 @@ impl RapierFluid {
             self.effects = effects.clone();
         }
         if self.is_valid() {
-            physics_engine.fluid_clear_effects(self.space_handle, self.fluid_handle);
+            physics_engine.fluid_clear_effects(self.space_id, self.fluid_handle);
             for effect in self.effects.iter_shared().flatten() {
                 let effect = effect.clone();
                 self.set_effect(&effect, physics_engine);
@@ -229,7 +223,7 @@ impl RapierFluid {
     pub fn set_density(&mut self, density: f32, physics_engine: &mut PhysicsEngine) {
         self.density = density;
         if self.is_valid() {
-            physics_engine.fluid_change_density(self.space_handle, self.fluid_handle, density);
+            physics_engine.fluid_change_density(self.space_id, self.fluid_handle, density);
         }
     }
 
@@ -244,15 +238,15 @@ impl RapierFluid {
         }
         // remove from old space
         if self.is_valid() {
-            physics_engine.fluid_destroy(self.space_handle, self.fluid_handle);
+            physics_engine.fluid_destroy(self.space_id, self.fluid_handle);
         }
         self.fluid_handle = invalid_handle_double();
-        self.space_handle = WorldHandle::default();
+        self.space_id = WorldHandle::default();
         if let Some(space) = physics_spaces.get(&p_space) {
             self.space = p_space;
-            self.space_handle = space.get_state().get_handle();
-            if self.space_handle != WorldHandle::default() {
-                self.fluid_handle = physics_engine.fluid_create(self.space_handle, self.density);
+            self.space_id = space.get_state().get_id();
+            if self.space_id != WorldHandle::default() {
+                self.fluid_handle = physics_engine.fluid_create(self.space_id, self.density);
             }
             self.set_points(self.points.clone(), physics_engine);
             self.set_effects(self.effects.clone(), physics_engine);
@@ -261,9 +255,9 @@ impl RapierFluid {
 
     pub fn destroy_fluid(&mut self, physics_engine: &mut PhysicsEngine) {
         if self.is_valid() {
-            physics_engine.fluid_destroy(self.space_handle, self.fluid_handle);
+            physics_engine.fluid_destroy(self.space_id, self.fluid_handle);
             self.fluid_handle = invalid_handle_double();
-            self.space_handle = WorldHandle::default()
+            self.space_id = WorldHandle::default()
         }
     }
 

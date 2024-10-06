@@ -58,12 +58,15 @@ pub fn shape_info_from_body_shape(shape_handle: ShapeHandle, transform: Transfor
 }
 impl PhysicsEngine {
     #[cfg(feature = "dim2")]
-    pub fn shape_create_convex_polyline(&mut self, points: &Vec<Vector<Real>>) -> ShapeHandle {
+    pub fn shape_create_convex_polyline(
+        &mut self,
+        points: &Vec<Vector<Real>>,
+        handle: ShapeHandle,
+    ) {
         let points_vec = point_array_to_vec(points);
         if let Some(shape_data) = SharedShape::convex_polyline(points_vec) {
-            return self.insert_shape(shape_data);
+            self.insert_shape(shape_data, handle)
         }
-        ShapeHandle::default()
     }
 
     #[cfg(feature = "dim2")]
@@ -91,24 +94,27 @@ impl PhysicsEngine {
     }
 
     #[cfg(feature = "dim3")]
-    pub fn shape_create_convex_polyline(&mut self, points: &Vec<Vector<Real>>) -> ShapeHandle {
+    pub fn shape_create_convex_polyline(
+        &mut self,
+        points: &Vec<Vector<Real>>,
+        handle: ShapeHandle,
+    ) {
         let points_vec = point_array_to_vec(points);
         if let Some(shape_data) = SharedShape::convex_hull(&points_vec) {
-            return self.insert_shape(shape_data);
+            self.insert_shape(shape_data, handle)
         }
-        ShapeHandle::default()
     }
 
     #[cfg(feature = "dim2")]
-    pub fn shape_create_box(&mut self, size: Vector<Real>) -> ShapeHandle {
+    pub fn shape_create_box(&mut self, size: Vector<Real>, handle: ShapeHandle) {
         let shape = SharedShape::cuboid(0.5 * size.x, 0.5 * size.y);
-        self.insert_shape(shape)
+        self.insert_shape(shape, handle);
     }
 
     #[cfg(feature = "dim3")]
-    pub fn shape_create_box(&mut self, size: Vector<Real>) -> ShapeHandle {
+    pub fn shape_create_box(&mut self, size: Vector<Real>, handle: ShapeHandle) {
         let shape = SharedShape::cuboid(0.5 * size.x, 0.5 * size.y, 0.5 * size.z);
-        self.insert_shape(shape)
+        self.insert_shape(shape, handle);
     }
 
     pub fn shape_get_box_size(&self, shape_handle: ShapeHandle) -> Vector<Real> {
@@ -120,12 +126,17 @@ impl PhysicsEngine {
         Vector::zeros()
     }
 
-    pub fn shape_create_halfspace(&mut self, normal: Vector<Real>, distance: Real) -> ShapeHandle {
+    pub fn shape_create_halfspace(
+        &mut self,
+        normal: Vector<Real>,
+        distance: Real,
+        handle: ShapeHandle,
+    ) {
         let shape = SharedShape::halfspace(UnitVector::new_normalize(normal));
         let shape_position = Isometry::new(normal * distance, ANG_ZERO);
         let shapes_vec = vec![(shape_position, shape)];
         let shape_compound = SharedShape::compound(shapes_vec);
-        self.insert_shape(shape_compound)
+        self.insert_shape(shape_compound, handle);
     }
 
     pub fn shape_get_halfspace(&self, shape_handle: ShapeHandle) -> (Vector<Real>, Real) {
@@ -140,9 +151,9 @@ impl PhysicsEngine {
         (Vector::zeros(), 0.0)
     }
 
-    pub fn shape_create_circle(&mut self, radius: Real) -> ShapeHandle {
+    pub fn shape_create_circle(&mut self, radius: Real, handle: ShapeHandle) {
         let shape = SharedShape::ball(radius);
-        self.insert_shape(shape)
+        self.insert_shape(shape, handle);
     }
 
     pub fn shape_circle_get_radius(&self, shape_handle: ShapeHandle) -> Real {
@@ -154,9 +165,9 @@ impl PhysicsEngine {
         0.0
     }
 
-    pub fn shape_create_capsule(&mut self, half_height: Real, radius: Real) -> ShapeHandle {
+    pub fn shape_create_capsule(&mut self, half_height: Real, radius: Real, handle: ShapeHandle) {
         let shape = SharedShape::capsule_y(half_height, radius);
-        self.insert_shape(shape)
+        self.insert_shape(shape, handle);
     }
 
     pub fn shape_get_capsule(&self, shape_handle: ShapeHandle) -> (Real, Real) {
@@ -169,9 +180,9 @@ impl PhysicsEngine {
     }
 
     #[cfg(feature = "dim3")]
-    pub fn shape_create_cylinder(&mut self, half_height: Real, radius: Real) -> ShapeHandle {
+    pub fn shape_create_cylinder(&mut self, half_height: Real, radius: Real, handle: ShapeHandle) {
         let shape = SharedShape::cylinder(half_height, radius);
-        self.insert_shape(shape)
+        self.insert_shape(shape, handle)
     }
 
     #[cfg(feature = "dim3")]
@@ -190,7 +201,8 @@ impl PhysicsEngine {
         heights: &[Real],
         width: i32,
         depth: i32,
-    ) -> ShapeHandle {
+        handle: ShapeHandle,
+    ) {
         use nalgebra::Vector3;
         let width = width as usize;
         let depth = depth as usize;
@@ -207,7 +219,7 @@ impl PhysicsEngine {
             Vector3::new(new_depth as Real, 1.0, new_width as Real),
             HeightFieldFlags::FIX_INTERNAL_EDGES,
         );
-        self.insert_shape(shape)
+        self.insert_shape(shape, handle)
     }
 
     #[cfg(feature = "dim3")]
@@ -228,10 +240,11 @@ impl PhysicsEngine {
         &mut self,
         points: &Vec<Vector<Real>>,
         indices: Option<Vec<[u32; 2]>>,
-    ) -> ShapeHandle {
+        handle: ShapeHandle,
+    ) {
         let points_vec = point_array_to_vec(points);
         let shape = SharedShape::polyline(points_vec, indices);
-        self.insert_shape(shape)
+        self.insert_shape(shape, handle);
     }
 
     #[cfg(feature = "dim3")]
@@ -239,14 +252,15 @@ impl PhysicsEngine {
         &mut self,
         points: &Vec<Vector<Real>>,
         indices: Option<Vec<[u32; 3]>>,
-    ) -> ShapeHandle {
+        handle: ShapeHandle,
+    ) {
         let points_vec = point_array_to_vec(points);
         let shape = SharedShape::trimesh_with_flags(
             points_vec,
             indices.unwrap(),
             TriMeshFlags::FIX_INTERNAL_EDGES,
         );
-        self.insert_shape(shape)
+        self.insert_shape(shape, handle)
     }
 
     #[cfg(feature = "dim2")]

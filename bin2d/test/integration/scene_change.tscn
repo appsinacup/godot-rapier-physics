@@ -12,7 +12,6 @@ size = Vector2(460, 74)
 [node name="SceneChange" type="Node2D" node_paths=PackedStringArray("rapier_state")]
 script = ExtResource("1_crxgh")
 rapier_state = NodePath("Rapier2DState")
-save_state = false
 
 [node name="RigidBody2D" type="RigidBody2D" parent="."]
 position = Vector2(122, 81)

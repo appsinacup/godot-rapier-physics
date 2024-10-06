@@ -14,13 +14,11 @@ pub struct RapierRectangleShape {
     base: RapierShapeBase,
 }
 impl RapierRectangleShape {
-    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) -> RapierId {
+    pub fn create(id: RapierId, rid: Rid, physics_shapes: &mut PhysicsShapes) {
         let shape = Self {
-            base: RapierShapeBase::new(rid),
+            base: RapierShapeBase::new(id, rid),
         };
-        let id = shape.base.get_id();
         physics_shapes.insert(rid, RapierShape::RapierRectangleShape(shape));
-        id
     }
 }
 impl IRapierShape for RapierRectangleShape {
@@ -50,15 +48,15 @@ impl IRapierShape for RapierRectangleShape {
         if let Ok(v) = data.try_to() {
             let half_extents = v;
             let v = vector_to_rapier(half_extents) * 2.0;
-            let handle = physics_engine.shape_create_box(v);
-            self.base.set_handle_and_reset_aabb(handle, physics_engine);
+            physics_engine.shape_create_box(v, self.base.get_id());
+            self.base.reset_aabb(physics_engine);
         } else {
             godot_error!("Invalid data type for RapierRectangleShape");
         }
     }
 
     fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
-        let half_extents = physics_engine.shape_get_box_size(self.base.get_handle());
+        let half_extents = physics_engine.shape_get_box_size(self.base.get_id());
         vector_to_godot(half_extents).to_variant()
     }
 }

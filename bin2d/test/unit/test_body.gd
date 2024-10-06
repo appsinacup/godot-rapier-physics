@@ -34,7 +34,7 @@ func test_body_empty():
 	var body_rid = RID()
 	
 	var shape_rid = RID()
-	var transform = Transform2D()
+	var new_transform = Transform2D()
 	var force = Vector2(0, 0)
 	var impulse = Vector2(0, 0)
 	var callback = Callable()
@@ -47,7 +47,7 @@ func test_body_empty():
 	PhysicsServer2D.body_add_constant_central_force(body_rid, force)
 	PhysicsServer2D.body_add_constant_force(body_rid, force)
 	PhysicsServer2D.body_add_constant_torque(body_rid, torque)
-	PhysicsServer2D.body_add_shape(body_rid, shape_rid, transform)
+	PhysicsServer2D.body_add_shape(body_rid, shape_rid, new_transform)
 	PhysicsServer2D.body_apply_central_force(body_rid, force)
 	PhysicsServer2D.body_apply_central_impulse(body_rid, impulse)
 	PhysicsServer2D.body_apply_force(body_rid, force, impulse)
@@ -91,8 +91,7 @@ func test_body_empty():
 	var object_instance_id = PhysicsServer2D.body_get_object_instance_id(body_rid)
 	assert(object_instance_id == 0)
 
-	var param_value = PhysicsServer2D.body_get_param(body_rid, PhysicsServer2D.BodyParameter.BODY_PARAM_ANGULAR_DAMP)
-	#assert(param_value == null)
+	PhysicsServer2D.body_get_param(body_rid, PhysicsServer2D.BodyParameter.BODY_PARAM_ANGULAR_DAMP)
 
 	shape_rid = PhysicsServer2D.body_get_shape(body_rid, 0)
 	assert(shape_rid == RID())
@@ -131,7 +130,7 @@ func test_body_empty():
 	PhysicsServer2D.body_set_shape(body_rid, 0, shape_rid)
 	PhysicsServer2D.body_set_shape_as_one_way_collision(body_rid, 0, true, 0.0)
 	PhysicsServer2D.body_set_shape_disabled(body_rid, 0, true)
-	PhysicsServer2D.body_set_shape_transform(body_rid, 0, transform)
+	PhysicsServer2D.body_set_shape_transform(body_rid, 0, new_transform)
 	PhysicsServer2D.body_set_space(body_rid, space_rid)
 	PhysicsServer2D.body_set_state(body_rid, PhysicsServer2D.BodyState.BODY_STATE_ANGULAR_VELOCITY, 2.3)
 
@@ -143,18 +142,17 @@ func test_body():
 	var shape_rid = RID()
 	PhysicsServer2D.body_set_space(body_rid, space_rid)
 	
-	var transform = Transform2D()
+	var new_transform = Transform2D()
 	var force = Vector2(1, 2)
 	var impulse = Vector2(1, 2)
 	var callback = Callable()
-	var excepted_body_rid = RID()
 	var axis_velocity = Vector2(1, 2)
 	var torque = 10.0
 	
 	PhysicsServer2D.body_add_constant_central_force(body_rid, force)
 	PhysicsServer2D.body_add_constant_force(body_rid, force)
 	PhysicsServer2D.body_add_constant_torque(body_rid, torque)
-	PhysicsServer2D.body_add_shape(body_rid, shape_rid, transform)
+	PhysicsServer2D.body_add_shape(body_rid, shape_rid, new_transform)
 	PhysicsServer2D.body_apply_central_force(body_rid, force)
 	PhysicsServer2D.body_apply_central_impulse(body_rid, impulse)
 	PhysicsServer2D.body_apply_force(body_rid, force, impulse)
@@ -183,7 +181,7 @@ func test_body():
 	PhysicsServer2D.body_set_shape(body_rid, 0, shape_rid)
 	PhysicsServer2D.body_set_shape_as_one_way_collision(body_rid, 0, true, 0.0)
 	PhysicsServer2D.body_set_shape_disabled(body_rid, 0, true)
-	PhysicsServer2D.body_set_shape_transform(body_rid, 0, transform)
+	PhysicsServer2D.body_set_shape_transform(body_rid, 0, new_transform)
 	PhysicsServer2D.body_set_state(body_rid, PhysicsServer2D.BodyState.BODY_STATE_ANGULAR_VELOCITY, 4.0)
 
 	var canvas_instance_id = PhysicsServer2D.body_get_canvas_instance_id(body_rid)

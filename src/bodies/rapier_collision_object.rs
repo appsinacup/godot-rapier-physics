@@ -36,7 +36,6 @@ pub trait IRapierCollisionObject: Sync {
     fn add_shape(
         &mut self,
         p_shape_id: RapierId,
-        p_shape: ShapeHandle,
         p_transform: Transform,
         p_disabled: bool,
         physics_engine: &mut PhysicsEngine,
@@ -101,7 +100,6 @@ pub trait IRapierCollisionObject: Sync {
     fn shape_changed(
         &mut self,
         shape_id: RapierId,
-        shape_handle: ShapeHandle,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_ids: &PhysicsIds,
@@ -185,7 +183,6 @@ macro_rules! impl_rapier_collision_object_trait {
             fn add_shape(
                 &mut self,
                 p_shape_id: RapierId,
-                p_shape: ShapeHandle,
                 p_transform: Transform,
                 p_disabled: bool,
                 physics_engine: &mut PhysicsEngine,
@@ -194,7 +191,7 @@ macro_rules! impl_rapier_collision_object_trait {
                 physics_ids: &PhysicsIds,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.add_shape(p_shape_id, p_shape, p_transform, p_disabled, physics_engine, physics_spaces, physics_shapes, physics_ids),)*
+                    $(Self::$variant(co) => co.add_shape(p_shape_id, p_transform, p_disabled, physics_engine, physics_spaces, physics_shapes, physics_ids),)*
                 }
             }
 
@@ -295,13 +292,12 @@ macro_rules! impl_rapier_collision_object_trait {
             fn shape_changed(
                 &mut self,
                 shape_id: RapierId,
-                shape_handle: ShapeHandle,
                 physics_engine: &mut PhysicsEngine,
                 physics_spaces: &mut PhysicsSpaces,
                 physics_ids: &PhysicsIds,
             ) {
                 match self {
-                    $(Self::$variant(co) => co.shape_changed(shape_id, shape_handle, physics_engine, physics_spaces, physics_ids),)*
+                    $(Self::$variant(co) => co.shape_changed(shape_id, physics_engine, physics_spaces, physics_ids),)*
                 }
             }
 

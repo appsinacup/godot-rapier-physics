@@ -166,7 +166,7 @@ pub struct RapierBody {
     base: RapierCollisionObjectBase,
 }
 impl RapierBody {
-    pub fn new(rid: Rid) -> Self {
+    pub fn new(id: RapierId, rid: Rid) -> Self {
         let state = RapierBodyState {
             mass: 1.0,
             inv_mass: 1.0,
@@ -197,7 +197,7 @@ impl RapierBody {
             fi_callback_data: None,
             direct_state: None,
             state,
-            base: RapierCollisionObjectBase::new(rid, CollisionObjectType::Body),
+            base: RapierCollisionObjectBase::new(id, rid, CollisionObjectType::Body),
         }
     }
 
@@ -233,7 +233,7 @@ impl RapierBody {
         // Force update means local properties will be re-calculated internally,
         // it's needed for applying forces right away (otherwise it's updated on next step)
         physics_engine.body_set_mass_properties(
-            self.base.get_space_handle(),
+            self.base.get_space_id(),
             self.base.get_body_handle(),
             self.state.mass,
             angle_to_rapier(inertia_value),
@@ -261,7 +261,7 @@ impl RapierBody {
                 self.state.total_linear_damping += linear_damp;
             }
             physics_engine.body_set_linear_damping(
-                self.base.get_space_handle(),
+                self.base.get_space_id(),
                 self.base.get_body_handle(),
                 self.state.total_linear_damping,
             );
@@ -284,7 +284,7 @@ impl RapierBody {
                 self.state.total_angular_damping += angular_damp;
             }
             physics_engine.body_set_angular_damping(
-                self.base.get_space_handle(),
+                self.base.get_space_id(),
                 self.base.get_body_handle(),
                 self.state.total_angular_damping,
             );
@@ -296,7 +296,7 @@ impl RapierBody {
             return;
         }
         physics_engine.body_set_gravity_scale(
-            self.base.get_space_handle(),
+            self.base.get_space_id(),
             self.base.get_body_handle(),
             new_value,
             true,
@@ -326,7 +326,7 @@ impl RapierBody {
 
     fn update_colliders_filters(&self, physics_engine: &mut PhysicsEngine) {
         let colliders = physics_engine
-            .body_get_colliders(self.base.get_space_handle(), self.base.get_body_handle())
+            .body_get_colliders(self.base.get_space_id(), self.base.get_body_handle())
             .to_vec();
         let mut override_modify_contacts = false;
         for shape in self.base.state.shapes.clone() {
@@ -338,7 +338,7 @@ impl RapierBody {
         for collider in colliders {
             self.update_collider_filters(
                 collider,
-                self.base.get_space_handle(),
+                self.base.get_space_id(),
                 physics_engine,
                 override_modify_contacts,
             );
@@ -392,7 +392,7 @@ impl RapierBody {
             return;
         }
         physics_engine.body_set_linear_velocity(
-            self.base.get_space_handle(),
+            self.base.get_space_id(),
             self.base.get_body_handle(),
             vector_to_rapier(self.state.linear_velocity),
         );
@@ -427,7 +427,7 @@ impl RapierBody {
         }
         if let Some(axis_lock) = LockedAxes::from_bits(self.axis_lock) {
             physics_engine.body_set_axis_lock(
-                self.base.get_space_handle(),
+                self.base.get_space_id(),
                 self.base.get_body_handle(),
                 axis_lock,
             );
@@ -446,7 +446,7 @@ impl RapierBody {
             return self.state.linear_velocity;
         }
         let vel = physics_engine
-            .body_get_linear_velocity(self.base.get_space_handle(), self.base.get_body_handle());
+            .body_get_linear_velocity(self.base.get_space_id(), self.base.get_body_handle());
         vector_to_godot(vel)
     }
 
@@ -468,7 +468,7 @@ impl RapierBody {
             return;
         }
         physics_engine.body_set_angular_velocity(
-            self.base.get_space_handle(),
+            self.base.get_space_id(),
             self.base.get_body_handle(),
             angle_to_rapier(self.state.angular_velocity),
         );
@@ -480,10 +480,8 @@ impl RapierBody {
             return self.state.angular_velocity;
         }
         angle_to_godot(
-            physics_engine.body_get_angular_velocity(
-                self.base.get_space_handle(),
-                self.base.get_body_handle(),
-            ),
+            physics_engine
+                .body_get_angular_velocity(self.base.get_space_id(), self.base.get_body_handle()),
         )
     }
 
@@ -838,7 +836,7 @@ impl RapierBody {
         }
         let gravity_impulse = self.state.total_gravity * self.state.mass * p_step;
         physics_engine.body_apply_impulse(
-            self.base.get_space_handle(),
+            self.base.get_space_id(),
             self.base.get_body_handle(),
             vector_to_rapier(gravity_impulse),
         );
@@ -965,7 +963,7 @@ impl RapierBody {
             return;
         }
         physics_engine.body_apply_impulse(
-            self.base.get_space_handle(),
+            self.base.get_space_id(),
             self.base.get_body_handle(),
             vector_to_rapier(p_impulse),
         );
@@ -984,7 +982,7 @@ impl RapierBody {
             return;
         }
         physics_engine.body_apply_impulse_at_point(
-            self.base.get_space_handle(),
+            self.base.get_space_id(),
             self.base.get_body_handle(),
             vector_to_rapier(p_impulse),
             vector_to_rapier(p_position),
@@ -999,7 +997,7 @@ impl RapierBody {
             return;
         }
         physics_engine.body_apply_torque_impulse(
-            self.base.get_space_handle(),
+            self.base.get_space_id(),
             self.base.get_body_handle(),
             angle_to_rapier(p_torque),
         );
@@ -1014,7 +1012,7 @@ impl RapierBody {
             return;
         }
         physics_engine.body_apply_impulse(
-            self.base.get_space_handle(),
+            self.base.get_space_id(),
             self.base.get_body_handle(),
             vector_to_rapier(p_force * last_delta),
         );
@@ -1036,7 +1034,7 @@ impl RapierBody {
             return;
         }
         physics_engine.body_apply_impulse_at_point(
-            self.base.get_space_handle(),
+            self.base.get_space_id(),
             self.base.get_body_handle(),
             vector_to_rapier(p_force * last_delta),
             vector_to_rapier(p_position),
@@ -1053,7 +1051,7 @@ impl RapierBody {
             return;
         }
         physics_engine.body_apply_torque_impulse(
-            self.base.get_space_handle(),
+            self.base.get_space_id(),
             self.base.get_body_handle(),
             angle_to_rapier(p_torque * last_delta),
         );
@@ -1070,7 +1068,7 @@ impl RapierBody {
             return;
         }
         physics_engine.body_add_force(
-            self.base.get_space_handle(),
+            self.base.get_space_id(),
             self.base.get_body_handle(),
             vector_to_rapier(p_force),
         );
@@ -1088,7 +1086,7 @@ impl RapierBody {
             return;
         }
         physics_engine.body_add_force_at_point(
-            self.base.get_space_handle(),
+            self.base.get_space_id(),
             self.base.get_body_handle(),
             vector_to_rapier(p_force),
             vector_to_rapier(p_position),
@@ -1101,7 +1099,7 @@ impl RapierBody {
             return;
         }
         physics_engine.body_add_torque(
-            self.base.get_space_handle(),
+            self.base.get_space_id(),
             self.base.get_body_handle(),
             angle_to_rapier(p_torque),
         );
@@ -1112,9 +1110,9 @@ impl RapierBody {
         if !self.base.is_valid() {
             return;
         }
-        physics_engine.body_reset_forces(self.base.get_space_handle(), self.base.get_body_handle());
+        physics_engine.body_reset_forces(self.base.get_space_id(), self.base.get_body_handle());
         physics_engine.body_add_force(
-            self.base.get_space_handle(),
+            self.base.get_space_id(),
             self.base.get_body_handle(),
             vector_to_rapier(p_force),
         );
@@ -1125,7 +1123,7 @@ impl RapierBody {
             return self.state.constant_force;
         }
         let force = physics_engine
-            .body_get_constant_force(self.base.get_space_handle(), self.base.get_body_handle());
+            .body_get_constant_force(self.base.get_space_id(), self.base.get_body_handle());
         vector_to_godot(force)
     }
 
@@ -1134,10 +1132,9 @@ impl RapierBody {
         if !self.base.is_valid() {
             return;
         }
-        physics_engine
-            .body_reset_torques(self.base.get_space_handle(), self.base.get_body_handle());
+        physics_engine.body_reset_torques(self.base.get_space_id(), self.base.get_body_handle());
         physics_engine.body_add_torque(
-            self.base.get_space_handle(),
+            self.base.get_space_id(),
             self.base.get_body_handle(),
             angle_to_rapier(p_torque),
         );
@@ -1148,10 +1145,8 @@ impl RapierBody {
             return self.state.constant_torque;
         }
         angle_to_godot(
-            physics_engine.body_get_constant_torque(
-                self.base.get_space_handle(),
-                self.base.get_body_handle(),
-            ),
+            physics_engine
+                .body_get_constant_torque(self.base.get_space_id(), self.base.get_body_handle()),
         )
     }
 
@@ -1185,7 +1180,7 @@ impl RapierBody {
             return;
         }
         physics_engine.body_set_can_sleep(
-            self.base.get_space_handle(),
+            self.base.get_space_id(),
             self.base.get_body_handle(),
             p_can_sleep,
             self.base.activation_angular_threshold,
@@ -1246,11 +1241,7 @@ impl RapierBody {
         if !self.base.is_valid() {
             return;
         }
-        physics_engine.body_wake_up(
-            self.base.get_space_handle(),
-            self.base.get_body_handle(),
-            true,
-        );
+        physics_engine.body_wake_up(self.base.get_space_id(), self.base.get_body_handle(), true);
     }
 
     pub fn force_sleep(&mut self, physics_engine: &mut PhysicsEngine) {
@@ -1258,7 +1249,7 @@ impl RapierBody {
         if !self.base.is_valid() {
             return;
         }
-        physics_engine.body_force_sleep(self.base.get_space_handle(), self.base.get_body_handle());
+        physics_engine.body_force_sleep(self.base.get_space_id(), self.base.get_body_handle());
     }
 
     pub fn set_param(
@@ -1286,7 +1277,7 @@ impl RapierBody {
                 }
                 let mat = self.init_material();
                 physics_engine.body_update_material(
-                    self.base.get_space_handle(),
+                    self.base.get_space_id(),
                     self.base.get_body_handle(),
                     &mat,
                 );
@@ -1498,7 +1489,7 @@ impl RapierBody {
                 self.contact_skin = variant_to_float(&p_value);
                 let mat = self.init_material();
                 let body_handle = self.base.get_body_handle();
-                let space_handle = self.base.get_space_handle();
+                let space_handle = self.base.get_space_id();
                 if self.base.is_valid() {
                     physics_engine.body_update_material(space_handle, body_handle, &mat);
                 }
@@ -1529,7 +1520,7 @@ impl RapierBody {
             match p_mode {
                 BodyMode::KINEMATIC => {
                     physics_engine.body_change_mode(
-                        space.get_state().get_handle(),
+                        space.get_state().get_id(),
                         self.base.get_body_handle(),
                         BodyType::Kinematic,
                         true,
@@ -1537,7 +1528,7 @@ impl RapierBody {
                 }
                 BodyMode::STATIC => {
                     physics_engine.body_change_mode(
-                        space.get_state().get_handle(),
+                        space.get_state().get_id(),
                         self.base.get_body_handle(),
                         BodyType::Static,
                         true,
@@ -1545,7 +1536,7 @@ impl RapierBody {
                 }
                 BodyMode::RIGID | BodyMode::RIGID_LINEAR => {
                     physics_engine.body_change_mode(
-                        space.get_state().get_handle(),
+                        space.get_state().get_id(),
                         self.base.get_body_handle(),
                         BodyType::Dynamic,
                         true,
@@ -1705,7 +1696,7 @@ impl RapierBody {
             return;
         }
         physics_engine.body_set_ccd_enabled(
-            self.base.get_space_handle(),
+            self.base.get_space_id(),
             self.base.get_body_handle(),
             self.ccd_enabled,
         );
@@ -1726,7 +1717,7 @@ impl RapierBody {
         }
         // compute rigidbody mass properties by changing collider mass. Will get overriden later
         let rigid_body_mass_properties = physics_engine
-            .body_get_mass_properties(self.base.get_space_handle(), self.base.get_body_handle());
+            .body_get_mass_properties(self.base.get_space_id(), self.base.get_body_handle());
         if self.calculate_center_of_mass {
             self.state.center_of_mass =
                 vector_to_godot(rigid_body_mass_properties.0.local_mprops.local_com.coords);
@@ -2034,7 +2025,7 @@ impl RapierBody {
                 self.apply_axis_lock(physics_engine);
                 self.set_continuous_collision_detection_mode(self.ccd_enabled, physics_engine);
                 physics_engine.body_update_material(
-                    self.base.get_space_handle(),
+                    self.base.get_space_id(),
                     self.base.get_body_handle(),
                     &self.init_material(),
                 );
@@ -2089,7 +2080,6 @@ impl IRapierCollisionObject for RapierBody {
     fn add_shape(
         &mut self,
         p_shape_id: RapierId,
-        p_shape: ShapeHandle,
         p_transform: Transform,
         p_disabled: bool,
         physics_engine: &mut PhysicsEngine,
@@ -2100,7 +2090,6 @@ impl IRapierCollisionObject for RapierBody {
         RapierCollisionObjectBase::add_shape(
             self,
             p_shape_id,
-            p_shape,
             p_transform,
             p_disabled,
             physics_engine,
@@ -2222,7 +2211,7 @@ impl IRapierCollisionObject for RapierBody {
         let handle = self
             .base
             .create_shape(shape, p_shape_index, mat, physics_engine);
-        self.init_collider(handle, self.base.get_space_handle(), physics_engine);
+        self.init_collider(handle, self.base.get_space_id(), physics_engine);
         handle
     }
 
@@ -2268,7 +2257,6 @@ impl IRapierCollisionObject for RapierBody {
     fn shape_changed(
         &mut self,
         shape_id: RapierId,
-        shape_handle: ShapeHandle,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_ids: &PhysicsIds,
@@ -2276,7 +2264,6 @@ impl IRapierCollisionObject for RapierBody {
         RapierCollisionObjectBase::shape_changed(
             self,
             shape_id,
-            shape_handle,
             physics_engine,
             physics_spaces,
             physics_ids,

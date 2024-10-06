@@ -6,12 +6,15 @@ use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::bodies::rapier_collision_object::RapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::RapierId;
 use crate::types::*;
 pub struct RapierGrooveJoint2D {
     base: RapierJointBase,
 }
 impl RapierGrooveJoint2D {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
+        id: RapierId,
         rid: Rid,
         p_a_groove1: Vector,
         p_a_groove2: Vector,
@@ -30,7 +33,7 @@ impl RapierGrooveJoint2D {
         }
         if !body_a.get_base().is_valid()
             || !body_b.get_base().is_valid()
-            || body_a.get_base().get_space_handle() != body_b.get_base().get_space_handle()
+            || body_a.get_base().get_space_id() != body_b.get_base().get_space_id()
         {
             return invalid_joint;
         }
@@ -45,7 +48,7 @@ impl RapierGrooveJoint2D {
         let base_b = body_b.get_base();
         let anchor_b = base_b.get_inv_transform() * p_b_anchor;
         let rapier_anchor_b = vector_to_rapier(anchor_b);
-        let space_handle = body_a.get_base().get_space_handle();
+        let space_handle = body_a.get_base().get_space_id();
         let space_id = body_a.get_base().get_space_id();
         let handle = physics_engine.joint_create_prismatic(
             space_handle,
@@ -60,7 +63,7 @@ impl RapierGrooveJoint2D {
             true,
         );
         Self {
-            base: RapierJointBase::new(rid, space_id, space_handle, handle),
+            base: RapierJointBase::new(id, rid, space_id, space_handle, handle),
         }
     }
 }
