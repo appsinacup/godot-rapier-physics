@@ -422,6 +422,8 @@ impl RapierBody {
         }
         if self.base.mode == BodyMode::RIGID_LINEAR {
             self.axis_lock |= LockedAxes::ROTATION_LOCKED.bits();
+        } else {
+            self.axis_lock &= !LockedAxes::ROTATION_LOCKED.bits();
         }
         if let Some(axis_lock) = LockedAxes::from_bits(self.axis_lock) {
             physics_engine.body_set_axis_lock(
