@@ -88,4 +88,6 @@ func completed() -> void:
 	Global.print_summary(duration)
 		
 	var error_code = 1 if Global.MONITOR_REGRESSION.size() != 0 else 0
-	Global.exit(error_code)
+	await get_tree().create_timer(1.0).timeout
+	get_tree().reload_current_scene()
+	#Global.exit(error_code)

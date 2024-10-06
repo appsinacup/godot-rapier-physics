@@ -15,6 +15,7 @@ pub struct RayHitInfo {
     pub normal: Vector<Real>,
     pub collider: ColliderHandle,
     pub user_data: UserData,
+    pub feature: FeatureId,
 }
 impl RayHitInfo {
     pub fn default() -> RayHitInfo {
@@ -23,6 +24,7 @@ impl RayHitInfo {
             normal: zero(),
             collider: ColliderHandle::invalid(),
             user_data: UserData::invalid_user_data(),
+            feature: FeatureId::default(),
         }
     }
 }
@@ -140,6 +142,7 @@ impl PhysicsEngine {
                         hit_info.normal = hit_normal;
                         hit_info.collider = handle;
                         hit_info.user_data = physics_world.get_collider_user_data(handle);
+                        hit_info.feature = intersection.feature;
                     }
                     true // Continue to search.
                 },

@@ -53,6 +53,7 @@ zoom_out={
 [physics]
 
 2d/physics_engine="Rapier2D"
+rapier/logic/ghost_collision_distance_2d=1.0
 
 [rendering]
 

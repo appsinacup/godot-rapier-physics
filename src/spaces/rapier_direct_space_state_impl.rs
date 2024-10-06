@@ -1,6 +1,8 @@
 use godot::builtin::math::ApproxEq;
 use godot::classes::native::*;
 use godot::prelude::*;
+#[cfg(feature = "dim3")]
+use rapier::prelude::FeatureId;
 
 use crate::bodies::rapier_collision_object::*;
 use crate::bodies::rapier_collision_object_base::RapierCollisionObjectBase;
@@ -92,6 +94,13 @@ impl RapierDirectSpaceStateImpl {
                         result.set_collider(object)
                     }
                 }
+            }
+            #[cfg(feature = "dim3")]
+            match hit_info.feature {
+                FeatureId::Face(i) => result.face_index = i as i32,
+                FeatureId::Edge(i) => result.face_index = i as i32,
+                FeatureId::Vertex(i) => result.face_index = i as i32,
+                FeatureId::Unknown => result.face_index = -1,
             }
             return true;
         }

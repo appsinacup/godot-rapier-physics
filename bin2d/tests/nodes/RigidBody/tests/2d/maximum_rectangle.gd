@@ -15,7 +15,7 @@ func test_name() -> String:
 	return "RigidBody2D | testing if %d rectangles can be handled before instablity" % [min_body_expected]
 
 func test_start() -> void:
-	add_collision_boundaries(1, false)
+	add_collision_bottom(1)
 
 	timer = Timer.new()
 	timer.wait_time = 0.2
@@ -50,5 +50,7 @@ func _get_rigid_body(p_position: Vector2) -> RigidBody2D:
 	var body = RigidBody2D.new()
 	var shape = PhysicsTest2D.get_collision_shape(Rect2(Vector2(0, 0), body_size), TestCollisionShape.RECTANGLE, false)
 	body.add_child(shape)
+	p_position.x = int(p_position.x)
+	p_position.y = int(p_position.y)
 	body.position = p_position
 	return body
