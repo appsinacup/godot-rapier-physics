@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3 uid="uid://x40dqk57sgfk"]
+
+[ext_resource type="PackedScene" uid="uid://d2qj82urtqssc" path="res://tests/nodes/Raycast/tests/collision_detection.tscn" id="1_d6q40"]
+[ext_resource type="Script" path="res://base/class/test_scene_child.gd" id="1_r165l"]
+
+[node name="raycast_2d" type="Node2D"]
+script = ExtResource("1_r165l")
+
+[node name="collision_detection" parent="." instance=ExtResource("1_d6q40")]

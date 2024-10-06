@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3 uid="uid://clt6d1xruk034"]
+
+[ext_resource type="Script" path="res://tests/nodes/CharacterBody/tests/character_body_2d/floor_snap_length.gd" id="1_nyh6l"]
+
+[node name="testing_floor_snap" type="Node2D"]
+script = ExtResource("1_nyh6l")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+collision_layer = 65535
+collision_mask = 65535
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D"]
+polygon = PackedVector2Array(0, 0, 80, 0, 80, 496, 318, 496, 478, 383, 547, 383, 700, 496, 944, 496, 944, 0, 1152, 0, 1152, 648, 0, 648)

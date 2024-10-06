@@ -349,6 +349,26 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    fn get_global_id() -> i64 {
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return 0;
+        };
+        return physics_singleton.bind_mut().implementation.id as i64;
+    }
+
+    #[func]
+    fn set_global_id(id: i64) {
+        let Ok(mut physics_singleton) =
+            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        else {
+            return;
+        };
+        physics_singleton.bind_mut().implementation.id = id as u64;
+    }
+
+    #[func]
     fn get_stats() -> Dictionary {
         let mut dictionary = Dictionary::new();
         dictionary.set("ids", physics_data().ids.len() as i64);
