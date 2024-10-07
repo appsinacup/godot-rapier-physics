@@ -1,6 +1,25 @@
-[gd_scene load_steps=4 format=3 uid="uid://b85bo11qbat30"]
+[gd_scene load_steps=4 format=3 uid="uid://dhncj3igus0jp"]
 
-[ext_resource type="Script" path="res://tests/nodes/RigidBody/tests/2d/disable_shape.gd" id="1_r6bof"]
+[sub_resource type="GDScript" id="GDScript_xcroc"]
+script/source = "extends PhysicsUnitTest2D
+
+@onready var collision_shape_1 : CollisionShape2D = $StaticBody2D/CollisionShape2D
+@onready var collision_shape_2 : CollisionShape2D = $StaticBody2D2/CollisionShape2D
+
+func test_description() -> String:
+	return \"\"\"Checks if the Shape Disable is working.
+	\"\"\"
+	
+func test_name() -> String:
+	return \"RigidBody2D | testing Shape Disable\"
+
+var detect_x_collision := false
+var detect_y_collision := false
+
+func test_start() -> void:
+	collision_shape_1.disabled = !collision_shape_1.disabled
+	collision_shape_2.disabled = !collision_shape_2.disabled
+"
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_tqnva"]
 radius = 116.039
@@ -9,7 +28,7 @@ radius = 116.039
 radius = 118.004
 
 [node name="disable_shape" type="Node2D"]
-script = ExtResource("1_r6bof")
+script = SubResource("GDScript_xcroc")
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
 position = Vector2(-162, 30)
