@@ -142,8 +142,9 @@ impl RapierCollisionObjectBase {
                 physics_ids,
             );
         }
-        let shape = &mut collision_object.get_mut_base().state.shapes[p_index];
-        shape.collider_handle = ColliderHandle::invalid();
+        let shape = collision_object.get_mut_base().state.shapes[p_index];
+        collision_object.get_mut_base().state.shapes[p_index].collider_handle =
+            ColliderHandle::invalid();
         if let Some(shape) = physics_shapes.get_mut(&get_id_rid(shape.id, physics_ids)) {
             shape
                 .get_mut_base()
@@ -198,9 +199,10 @@ impl RapierCollisionObjectBase {
                     collision_object.init_material(),
                     physics_engine,
                 );
-            collision_object
-                .get_base()
-                .update_shape_transform(&shape, physics_engine);
+            collision_object.get_base().update_shape_transform(
+                &collision_object.get_base().state.shapes[p_index],
+                physics_engine,
+            );
         }
         if collision_object.get_base().is_space_valid() {
             collision_object.shapes_changed(physics_engine, physics_spaces, physics_ids);
@@ -263,9 +265,10 @@ impl RapierCollisionObjectBase {
                     collision_object.init_material(),
                     physics_engine,
                 );
-            collision_object
-                .get_base()
-                .update_shape_transform(&shape, physics_engine);
+            collision_object.get_base().update_shape_transform(
+                &collision_object.get_base().state.shapes[p_index],
+                physics_engine,
+            );
         }
         if collision_object.get_base().is_space_valid() {
             collision_object.shapes_changed(physics_engine, physics_spaces, physics_ids);

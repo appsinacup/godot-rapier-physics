@@ -1,6 +1,7 @@
 use std::ops::Mul;
 
 use godot::global::godot_error;
+use godot::global::godot_print;
 use nalgebra::zero;
 use rapier::parry;
 use rapier::parry::query::ShapeCastOptions;
@@ -139,7 +140,11 @@ impl PhysicsEngine {
                         let hit_point = ray.point_at(intersection.time_of_impact);
                         let hit_normal = intersection.normal;
                         hit_info.pixel_position = hit_point.coords;
-                        hit_info.normal = hit_normal;
+                        if hit_from_inside && intersection.time_of_impact == 0.0 {
+                            hit_info.normal = zero();
+                        } else {
+                            hit_info.normal = hit_normal;
+                        }
                         hit_info.collider = handle;
                         hit_info.user_data = physics_world.get_collider_user_data(handle);
                         hit_info.feature = intersection.feature;
@@ -313,6 +318,7 @@ impl PhysicsEngine {
                 filter.predicate = Some(&predicate);
                 let shape_cast_options = ShapeCastOptions {
                     max_time_of_impact: 1.0,
+                    stop_at_penetration: false,
                     ..Default::default()
                 };
                 if let Some((collider_handle, hit)) =

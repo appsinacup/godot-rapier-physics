@@ -49,6 +49,7 @@ func test_start() -> void:
 			body_query.transform = Transform2D(0, CENTER_RIGHT)
 			body_query.motion = Vector2(mid_screen_width / 0.016, 0)
 			var result = d_space.cast_motion(body_query)
+			print(d_space.get_rest_info(body_query))
 			p_monitor.add_test_result(!result.is_empty() and is_eq(result, [1,1]))
 			
 		if true: # limit the scope

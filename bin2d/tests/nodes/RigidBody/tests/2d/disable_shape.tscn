@@ -1,0 +1,41 @@
+[gd_scene load_steps=4 format=3 uid="uid://b85bo11qbat30"]
+
+[ext_resource type="Script" path="res://tests/nodes/RigidBody/tests/2d/disable_shape.gd" id="1_r6bof"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_tqnva"]
+radius = 116.039
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_r0cw7"]
+radius = 118.004
+
+[node name="disable_shape" type="Node2D"]
+script = ExtResource("1_r6bof")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+position = Vector2(-162, 30)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(400, 0)
+shape = SubResource("CircleShape2D_tqnva")
+
+[node name="StaticBody2D2" type="StaticBody2D" parent="."]
+position = Vector2(-144, 270)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D2"]
+position = Vector2(396, -2)
+shape = SubResource("CircleShape2D_tqnva")
+disabled = true
+
+[node name="RigidBody2D" type="RigidBody2D" parent="."]
+position = Vector2(198, -384)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D"]
+shape = SubResource("CircleShape2D_r0cw7")
+
+[node name="RigidBody2D2" type="RigidBody2D" parent="."]
+position = Vector2(-164, -384)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D2"]
+shape = SubResource("CircleShape2D_r0cw7")
+
+[node name="Camera2D" type="Camera2D" parent="."]
