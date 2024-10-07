@@ -1,0 +1,21 @@
+[gd_scene load_steps=6 format=3 uid="uid://du31nbhldjjtp"]
+
+[ext_resource type="PackedScene" uid="uid://c8jq3yssvlovo" path="res://tests/nodes/DirectSpaceState/tests/2d/intersect_ray.tscn" id="1_0n16d"]
+[ext_resource type="PackedScene" uid="uid://byf328f57nfhv" path="res://tests/nodes/DirectSpaceState/tests/2d/intersect_point.tscn" id="2_la0b3"]
+[ext_resource type="PackedScene" uid="uid://bom2b1633g6fb" path="res://tests/nodes/DirectSpaceState/tests/2d/intersect_shape.tscn" id="3_wf6g0"]
+[ext_resource type="PackedScene" uid="uid://o8o38bifkam6" path="res://tests/nodes/DirectSpaceState/tests/2d/cast_motion.tscn" id="4_a0mm1"]
+
+[sub_resource type="GDScript" id="GDScript_weqxb"]
+script/source = "extends TestScene
+"
+
+[node name="direct_space_state_2d" type="Node2D"]
+script = SubResource("GDScript_weqxb")
+
+[node name="intersect_ray" parent="." instance=ExtResource("1_0n16d")]
+
+[node name="intersect_point" parent="." instance=ExtResource("2_la0b3")]
+
+[node name="intersect_shape" parent="." instance=ExtResource("3_wf6g0")]
+
+[node name="cast_motion" parent="." instance=ExtResource("4_a0mm1")]

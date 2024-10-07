@@ -1,5 +1,4 @@
 use servers::rapier_physics_singleton::get_id_rid;
-use servers::rapier_physics_singleton::next_id;
 use servers::rapier_physics_singleton::PhysicsIds;
 use servers::rapier_physics_singleton::RapierId;
 
@@ -25,6 +24,7 @@ pub struct RapierJointBase {
 impl Default for RapierJointBase {
     fn default() -> Self {
         Self::new(
+            RapierId::default(),
             Rid::Invalid,
             RapierId::default(),
             WorldHandle::default(),
@@ -34,6 +34,7 @@ impl Default for RapierJointBase {
 }
 impl RapierJointBase {
     pub fn new(
+        id: RapierId,
         rid: Rid,
         space_id: RapierId,
         space_handle: WorldHandle,
@@ -44,7 +45,7 @@ impl RapierJointBase {
             max_force: f32::MAX,
             disabled_collisions_between_bodies: true,
             state: RapierJointBaseState {
-                id: next_id(),
+                id,
                 handle,
                 space_handle,
                 space_id,
@@ -64,7 +65,7 @@ impl RapierJointBase {
         self.rid
     }
 
-    pub fn get_space_handle(&self) -> WorldHandle {
+    pub fn get_space_id(&self) -> WorldHandle {
         self.state.space_handle
     }
 

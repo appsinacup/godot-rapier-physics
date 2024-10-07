@@ -6,6 +6,7 @@ use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::bodies::rapier_collision_object::RapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::RapierId;
 use crate::types::*;
 pub struct RapierDampedSpringJoint2D {
     rest_length: real,
@@ -15,6 +16,7 @@ pub struct RapierDampedSpringJoint2D {
 }
 impl RapierDampedSpringJoint2D {
     pub fn new(
+        id: RapierId,
         rid: Rid,
         p_anchor_a: Vector,
         p_anchor_b: Vector,
@@ -35,14 +37,14 @@ impl RapierDampedSpringJoint2D {
         }
         if !body_a.get_base().is_valid()
             || !body_b.get_base().is_valid()
-            || body_a.get_base().get_space_handle() != body_b.get_base().get_space_handle()
+            || body_a.get_base().get_space_id() != body_b.get_base().get_space_id()
         {
             return invalid_joint;
         }
         let rapier_anchor_a = body_a.get_base().get_inv_transform() * p_anchor_a;
         let rapier_anchor_b = body_b.get_base().get_inv_transform() * p_anchor_b;
         let rest_length = (p_anchor_a - p_anchor_b).length();
-        let space_handle = body_a.get_base().get_space_handle();
+        let space_handle = body_a.get_base().get_space_id();
         let space_id = body_a.get_base().get_space_id();
         let handle = physics_engine.joint_create_spring(
             space_handle,
@@ -61,7 +63,7 @@ impl RapierDampedSpringJoint2D {
             rest_length,
             stiffness: 20.0,
             damping: 1.0,
-            base: RapierJointBase::new(rid, space_id, space_handle, handle),
+            base: RapierJointBase::new(id, rid, space_id, space_handle, handle),
         }
     }
 
@@ -87,7 +89,7 @@ impl RapierDampedSpringJoint2D {
             return;
         }
         physics_engine.joint_change_spring_params(
-            self.base.get_space_handle(),
+            self.base.get_space_id(),
             self.base.get_handle(),
             self.stiffness,
             self.damping,

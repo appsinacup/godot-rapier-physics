@@ -1,0 +1,23 @@
+[gd_scene load_steps=3 format=3 uid="uid://cva7hlmrkcm3m"]
+
+[ext_resource type="PackedScene" uid="uid://f833p245gj24" path="res://tests/performance/collisions/tests/3d/convex_fps_performance.tscn" id="1_myy22"]
+
+[sub_resource type="GDScript" id="GDScript_n4cxb"]
+script/source = "extends TestScene
+"
+
+[node name="collisions_3d" type="Node3D"]
+script = SubResource("GDScript_n4cxb")
+
+[node name="convex 1026v" parent="." instance=ExtResource("1_myy22")]
+shape1 = 100
+shape2 = 100
+NB_BODY_FOR_ONE_STEP = 50
+
+[node name="convex 8v plus convex 8v" parent="." instance=ExtResource("1_myy22")]
+shape2 = 6
+NB_BODY_FOR_ONE_STEP = 25
+
+[node name="convex 8v plus convex 24v" parent="." instance=ExtResource("1_myy22")]
+NB_BODY_FOR_ONE_STEP = 10
+NUMBER_BODIES_PER_SPAWN = 2

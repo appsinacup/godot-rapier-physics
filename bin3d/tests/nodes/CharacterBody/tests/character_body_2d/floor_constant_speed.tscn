@@ -1,0 +1,19 @@
+[gd_scene load_steps=2 format=3 uid="uid://b8c3ipxt4fjlo"]
+
+[ext_resource type="Script" path="res://tests/nodes/CharacterBody/tests/character_body_2d/floor_constant_speed.gd" id="1_bcupp"]
+
+[node name="constant_speed" type="Node2D"]
+script = ExtResource("1_bcupp")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+collision_layer = 65535
+collision_mask = 65535
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D"]
+polygon = PackedVector2Array(0, 507, 0, 0, 64, 0, 64, 507, 502, 155, 502, 0, 634, 0, 634, 155, 1072, 507, 1072, 0, 1152, 0, 1152, 648, 0, 648)
+
+[node name="SpawnBottom" type="Marker2D" parent="."]
+position = Vector2(120, 314)
+
+[node name="SpawnTop" type="Marker2D" parent="."]
+position = Vector2(680, 70)

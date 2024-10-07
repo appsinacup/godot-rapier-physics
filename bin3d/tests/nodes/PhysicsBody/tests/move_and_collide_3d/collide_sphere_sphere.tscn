@@ -1,0 +1,25 @@
+[gd_scene load_steps=4 format=3 uid="uid://dxosfcvftax0d"]
+
+[ext_resource type="Script" path="res://tests/nodes/PhysicsBody/tests/move_and_collide_3d/collide_sphere_sphere.gd" id="1_de8s5"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_c7khe"]
+radius = 1.0
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_1kwa5"]
+radius = 100.0
+
+[node name="collide_sphere_sphere" type="Node3D"]
+script = ExtResource("1_de8s5")
+
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(0.996195, -0.00759612, 0.0868241, 0, 0.996195, 0.0871557, -0.0871557, -0.0868241, 0.992404, 20, 30, 180)
+
+[node name="Tested" type="CharacterBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Tested"]
+shape = SubResource("SphereShape3D_c7khe")
+
+[node name="Static" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Static"]
+shape = SubResource("SphereShape3D_1kwa5")

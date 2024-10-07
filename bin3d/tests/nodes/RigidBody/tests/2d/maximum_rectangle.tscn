@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://3o0nkl6b4h10"]
+
+[ext_resource type="Script" path="res://tests/nodes/RigidBody/tests/2d/maximum_rectangle.gd" id="1_rq8tb"]
+
+[node name="maximum_rectangle" type="Node2D"]
+script = ExtResource("1_rq8tb")

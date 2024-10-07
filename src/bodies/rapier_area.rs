@@ -83,7 +83,7 @@ pub struct RapierArea {
     base: RapierCollisionObjectBase,
 }
 impl RapierArea {
-    pub fn new(rid: Rid) -> Self {
+    pub fn new(id: RapierId, rid: Rid) -> Self {
         Self {
             gravity_override_mode: AreaSpaceOverrideMode::DISABLED,
             linear_damping_override_mode: AreaSpaceOverrideMode::DISABLED,
@@ -99,7 +99,7 @@ impl RapierArea {
             monitor_callback: None,
             area_monitor_callback: None,
             state: RapierAreaState::default(),
-            base: RapierCollisionObjectBase::new(rid, CollisionObjectType::Area),
+            base: RapierCollisionObjectBase::new(id, rid, CollisionObjectType::Area),
         }
     }
 
@@ -823,7 +823,6 @@ impl IRapierCollisionObject for RapierArea {
     fn add_shape(
         &mut self,
         p_shape_id: RapierId,
-        p_shape: ShapeHandle,
         p_transform: Transform,
         p_disabled: bool,
         physics_engine: &mut PhysicsEngine,
@@ -834,7 +833,6 @@ impl IRapierCollisionObject for RapierArea {
         RapierCollisionObjectBase::add_shape(
             self,
             p_shape_id,
-            p_shape,
             p_transform,
             p_disabled,
             physics_engine,
@@ -981,7 +979,6 @@ impl IRapierCollisionObject for RapierArea {
     fn shape_changed(
         &mut self,
         p_shape_id: RapierId,
-        p_shape_handle: ShapeHandle,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_ids: &PhysicsIds,
@@ -989,7 +986,6 @@ impl IRapierCollisionObject for RapierArea {
         RapierCollisionObjectBase::shape_changed(
             self,
             p_shape_id,
-            p_shape_handle,
             physics_engine,
             physics_spaces,
             physics_ids,

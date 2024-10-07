@@ -15,6 +15,7 @@ pub struct RayHitInfo {
     pub normal: Vector<Real>,
     pub collider: ColliderHandle,
     pub user_data: UserData,
+    pub feature: FeatureId,
 }
 impl RayHitInfo {
     pub fn default() -> RayHitInfo {
@@ -23,6 +24,7 @@ impl RayHitInfo {
             normal: zero(),
             collider: ColliderHandle::invalid(),
             user_data: UserData::invalid_user_data(),
+            feature: FeatureId::default(),
         }
     }
 }
@@ -137,9 +139,14 @@ impl PhysicsEngine {
                         let hit_point = ray.point_at(intersection.time_of_impact);
                         let hit_normal = intersection.normal;
                         hit_info.pixel_position = hit_point.coords;
-                        hit_info.normal = hit_normal;
+                        if hit_from_inside && intersection.time_of_impact == 0.0 {
+                            hit_info.normal = zero();
+                        } else {
+                            hit_info.normal = hit_normal;
+                        }
                         hit_info.collider = handle;
                         hit_info.user_data = physics_world.get_collider_user_data(handle);
+                        hit_info.feature = intersection.feature;
                     }
                     true // Continue to search.
                 },
@@ -310,6 +317,7 @@ impl PhysicsEngine {
                 filter.predicate = Some(&predicate);
                 let shape_cast_options = ShapeCastOptions {
                     max_time_of_impact: 1.0,
+                    stop_at_penetration: false,
                     ..Default::default()
                 };
                 if let Some((collider_handle, hit)) =

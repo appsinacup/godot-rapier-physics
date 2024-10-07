@@ -1,0 +1,34 @@
+[gd_scene load_steps=3 format=3 uid="uid://djxhn3pbk5v4y"]
+
+[ext_resource type="Script" path="res://test/integration/test_body_delete.gd" id="1_ugpgq"]
+
+[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_iv2fb"]
+
+[node name="TestDelete" type="Node2D"]
+script = ExtResource("1_ugpgq")
+
+[node name="RigidBody2D" type="StaticBody2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D"]
+position = Vector2(-2, 380)
+shape = SubResource("WorldBoundaryShape2D_iv2fb")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="RigidBody2D"]
+position = Vector2(-153, 380)
+rotation = 1.36242
+shape = SubResource("WorldBoundaryShape2D_iv2fb")
+
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="RigidBody2D"]
+position = Vector2(109, 368)
+rotation = -1.35781
+shape = SubResource("WorldBoundaryShape2D_iv2fb")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(0, 122)
+zoom = Vector2(2, 2)
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 0.005
+autostart = true
+
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]

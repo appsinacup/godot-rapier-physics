@@ -1,0 +1,60 @@
+[gd_scene load_steps=4 format=3 uid="uid://dhncj3igus0jp"]
+
+[sub_resource type="GDScript" id="GDScript_xcroc"]
+script/source = "extends PhysicsUnitTest2D
+
+@onready var collision_shape_1 : CollisionShape2D = $StaticBody2D/CollisionShape2D
+@onready var collision_shape_2 : CollisionShape2D = $StaticBody2D2/CollisionShape2D
+
+func test_description() -> String:
+	return \"\"\"Checks if the Shape Disable is working.
+	\"\"\"
+	
+func test_name() -> String:
+	return \"RigidBody2D | testing Shape Disable\"
+
+var detect_x_collision := false
+var detect_y_collision := false
+
+func test_start() -> void:
+	collision_shape_1.disabled = !collision_shape_1.disabled
+	collision_shape_2.disabled = !collision_shape_2.disabled
+"
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_tqnva"]
+radius = 116.039
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_r0cw7"]
+radius = 118.004
+
+[node name="disable_shape" type="Node2D"]
+script = SubResource("GDScript_xcroc")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+position = Vector2(-162, 30)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(400, 0)
+shape = SubResource("CircleShape2D_tqnva")
+
+[node name="StaticBody2D2" type="StaticBody2D" parent="."]
+position = Vector2(-144, 270)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D2"]
+position = Vector2(396, -2)
+shape = SubResource("CircleShape2D_tqnva")
+disabled = true
+
+[node name="RigidBody2D" type="RigidBody2D" parent="."]
+position = Vector2(198, -384)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D"]
+shape = SubResource("CircleShape2D_r0cw7")
+
+[node name="RigidBody2D2" type="RigidBody2D" parent="."]
+position = Vector2(-164, -384)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D2"]
+shape = SubResource("CircleShape2D_r0cw7")
+
+[node name="Camera2D" type="Camera2D" parent="."]

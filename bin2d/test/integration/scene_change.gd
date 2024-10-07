@@ -15,7 +15,8 @@ func _ready() -> void:
 	else:
 		var state = JSON.parse_string(FileAccess.open("user://save.json", FileAccess.READ).get_as_text())
 		rapier_state.state = state
-		rapier_state.load_state()
+		print(rapier_state.load_state())
+		print(rapier_state.save_state(false))
 	print("After")
 	print(RapierPhysicsServer2D.get_stats())
 	await get_tree().create_timer(1.0).timeout

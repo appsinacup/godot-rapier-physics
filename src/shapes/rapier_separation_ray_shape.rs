@@ -16,15 +16,13 @@ pub struct RapierSeparationRayShape {
     base: RapierShapeBase,
 }
 impl RapierSeparationRayShape {
-    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) -> RapierId {
+    pub fn create(id: RapierId, rid: Rid, physics_shapes: &mut PhysicsShapes) {
         let shape = Self {
             length: 0.0,
             slide_on_slope: false,
-            base: RapierShapeBase::new(rid),
+            base: RapierShapeBase::new(id, rid),
         };
-        let id = shape.base.get_id();
         physics_shapes.insert(rid, RapierShape::RapierSeparationRayShape(shape));
-        id
     }
 }
 impl IRapierShape for RapierSeparationRayShape {

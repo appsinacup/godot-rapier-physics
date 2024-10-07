@@ -39,24 +39,16 @@ func save_state(save_json: bool = false) -> int:
 			for owner_id in node.get_shape_owners():
 				for owner_shape_id in node.shape_owner_get_shape_count(owner_id):
 					var shape_rid = node.shape_owner_get_shape(owner_id, owner_shape_id).get_rid()
-					state[node_path + "/" + str(owner_id) + "/" + str(owner_shape_id)] = {
-						"state" : save_node(shape_rid, save_json),
-						"id": RapierPhysicsServer2D.get_rapier_id(shape_rid)
-					}
+					state[node_path + "/" + str(owner_id) + "/" + str(owner_shape_id)] = save_node(shape_rid, save_json)
 		if node is Joint2D:
 			rid = node.get_rid()
-		state[node_path] = {
-			"state" : save_node(rid, save_json),
-			"id": RapierPhysicsServer2D.get_rapier_id(rid)
-		}
+		state[node_path] = save_node(rid, save_json)
 	var space_rid = get_viewport().world_2d.space
-	state["space"] = {
-		"state" : save_node(space_rid, save_json),
-		"id": RapierPhysicsServer2D.get_rapier_id(space_rid)
-	}
+	state["space"] = save_node(space_rid, save_json)
+	state["id"] = RapierPhysicsServer2D.get_global_id()
 	return hash(state)
 
-func load_state():
+func load_state() -> int:
 	var physics_nodes := get_all_physics_nodes(get_tree().current_scene)
 	for node_path in physics_nodes:
 		var node := get_node(node_path)
@@ -67,10 +59,12 @@ func load_state():
 				for owner_shape_id in node.shape_owner_get_shape_count(owner_id):
 					var shape_rid = node.shape_owner_get_shape(owner_id, owner_shape_id).get_rid()
 					var shape_state = state[node_path + "/" + str(owner_id) + "/" + str(owner_shape_id)]
-					load_node(shape_rid, JSON.parse_string(shape_state.state))
+					load_node(shape_rid, JSON.parse_string(shape_state))
 		if node is Joint2D:
 			rid = node.get_rid()
 		var node_state = state[node_path]
-		load_node(rid, JSON.parse_string(node_state.state))
+		load_node(rid, JSON.parse_string(node_state))
 	var space_rid = get_viewport().world_2d.space
-	load_node(space_rid, JSON.parse_string(state["space"].state))
+	load_node(space_rid, JSON.parse_string(state["space"]))
+	RapierPhysicsServer2D.set_global_id(int(state["id"]))
+	return hash(state)

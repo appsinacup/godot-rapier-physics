@@ -1,7 +1,7 @@
 extends PhysicsUnitTest2D
 
 @export var body_shape: PhysicsTest2D.TestCollisionShape = TestCollisionShape.CIRCLE
-var simulation_duration := 4
+var simulation_duration := 3
 var speed := 50000
 
 func test_description() -> String:

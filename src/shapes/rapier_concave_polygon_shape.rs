@@ -15,13 +15,11 @@ pub struct RapierConcavePolygonShape {
     base: RapierShapeBase,
 }
 impl RapierConcavePolygonShape {
-    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) -> RapierId {
+    pub fn create(id: RapierId, rid: Rid, physics_shapes: &mut PhysicsShapes) {
         let shape = Self {
-            base: RapierShapeBase::new(rid),
+            base: RapierShapeBase::new(id, rid),
         };
-        let id = shape.base.get_id();
         physics_shapes.insert(rid, RapierShape::RapierConcavePolygonShape(shape));
-        id
     }
 }
 impl RapierConcavePolygonShape {
@@ -29,7 +27,7 @@ impl RapierConcavePolygonShape {
         &mut self,
         physics_engine: &mut PhysicsEngine,
         points: &PackedVectorArray,
-    ) -> ShapeHandle {
+    ) {
         let point_count = points.len();
         let mut rapier_points = Vec::with_capacity(point_count);
         for i in 0..point_count {
@@ -46,7 +44,11 @@ impl RapierConcavePolygonShape {
             let s = [(i) as u32, (i + 1) as u32, (i + 2) as u32];
             segments.push(s);
         }
-        physics_engine.shape_create_concave_polyline(&rapier_points, Some(segments))
+        physics_engine.shape_create_concave_polyline(
+            &rapier_points,
+            Some(segments),
+            self.base.get_id(),
+        );
     }
 }
 impl IRapierShape for RapierConcavePolygonShape {
@@ -116,13 +118,13 @@ impl IRapierShape for RapierConcavePolygonShape {
                 return;
             }
         }
-        let handle = self.create_rapier_shape(physics_engine, &points_local);
-        self.base.set_handle_and_reset_aabb(handle, physics_engine);
+        self.create_rapier_shape(physics_engine, &points_local);
+        self.base.reset_aabb(physics_engine);
     }
 
     #[cfg(feature = "dim2")]
     fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
-        let (points, indices) = physics_engine.shape_get_concave_polyline(self.base.get_handle());
+        let (points, indices) = physics_engine.shape_get_concave_polyline(self.base.get_id());
         let mut arr = PackedVectorArray::new();
         for ind in indices {
             if let Some(point) = points.get(ind[0] as usize) {
@@ -145,7 +147,7 @@ impl IRapierShape for RapierConcavePolygonShape {
 
     #[cfg(feature = "dim3")]
     fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
-        let (points, indices) = physics_engine.shape_get_concave_polyline(self.base.get_handle());
+        let (points, indices) = physics_engine.shape_get_concave_polyline(self.base.get_id());
         let mut arr = PackedVectorArray::new();
         for ind in indices {
             if let Some(point) = points.get(ind[0] as usize) {
@@ -191,7 +193,7 @@ mod tests {
         fn test_create() {
             let mut physics_shapes = PhysicsShapes::new();
             let rid = Rid::new(123);
-            RapierConcavePolygonShape::create(rid, &mut physics_shapes);
+            RapierConcavePolygonShape::create(0, rid, &mut physics_shapes);
             assert!(physics_shapes.contains_key(&rid));
             match physics_shapes.get(&rid) {
                 Some(RapierShape::RapierConcavePolygonShape(_)) => {}
@@ -206,7 +208,7 @@ mod tests {
         #[func]
         fn test_set_data() {
             let mut concave_shape = RapierConcavePolygonShape {
-                base: RapierShapeBase::new(Rid::Invalid),
+                base: RapierShapeBase::new(RapierId::default(), Rid::Invalid),
             };
             let arr = PackedVectorArray::from(vec![
                 Vector::splat(0.0),
@@ -215,7 +217,6 @@ mod tests {
                 Vector::splat(4.0),
             ]);
             concave_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
-            assert!(concave_shape.get_base().is_valid());
             let data: PackedVectorArray = concave_shape
                 .get_data(&physics_data().physics_engine)
                 .try_to()
@@ -228,14 +229,13 @@ mod tests {
             concave_shape
                 .get_mut_base()
                 .destroy_shape(&mut physics_data().physics_engine);
-            assert!(!concave_shape.get_base().is_valid());
         }
 
         #[cfg(feature = "dim3")]
         #[func]
         fn test_set_data() {
             let mut concave_shape = RapierConcavePolygonShape {
-                base: RapierShapeBase::new(Rid::Invalid),
+                base: RapierShapeBase::new(RapierId::default(), Rid::Invalid),
             };
             let mut dict = Dictionary::new();
             let arr = PackedVectorArray::from(vec![
@@ -259,11 +259,9 @@ mod tests {
             assert_eq!(data[3], Vector::splat(3.0));
             assert_eq!(data[4], Vector::splat(4.0));
             assert_eq!(data[5], Vector::splat(5.0));
-            assert!(concave_shape.get_base().is_valid());
             concave_shape
                 .get_mut_base()
                 .destroy_shape(&mut physics_data().physics_engine);
-            assert!(!concave_shape.get_base().is_valid());
         }
     }
 }

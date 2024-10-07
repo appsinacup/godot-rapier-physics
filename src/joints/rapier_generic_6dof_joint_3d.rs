@@ -6,11 +6,13 @@ use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::bodies::rapier_collision_object::RapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::RapierId;
 pub struct RapierGeneric6DOFJoint3D {
     base: RapierJointBase,
 }
 impl RapierGeneric6DOFJoint3D {
     pub fn new(
+        id: RapierId,
         rid: Rid,
         anchor_a: Vector3,
         anchor_b: Vector3,
@@ -28,13 +30,13 @@ impl RapierGeneric6DOFJoint3D {
         }
         if !body_a.get_base().is_valid()
             || !body_b.get_base().is_valid()
-            || body_a.get_base().get_space_handle() != body_b.get_base().get_space_handle()
+            || body_a.get_base().get_space_id() != body_b.get_base().get_space_id()
         {
             return invalid_joint;
         }
         let rapier_anchor_a = vector_to_rapier(anchor_a);
         let rapier_anchor_b = vector_to_rapier(anchor_b);
-        let space_handle = body_a.get_base().get_space_handle();
+        let space_handle = body_a.get_base().get_space_id();
         let space_id = body_a.get_base().get_space_id();
         let handle = physics_engine.joint_create_spherical(
             space_handle,
@@ -47,7 +49,7 @@ impl RapierGeneric6DOFJoint3D {
             true,
         );
         Self {
-            base: RapierJointBase::new(rid, space_id, space_handle, handle),
+            base: RapierJointBase::new(id, rid, space_id, space_handle, handle),
         }
     }
 }

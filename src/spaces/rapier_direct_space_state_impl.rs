@@ -1,6 +1,8 @@
 use godot::builtin::math::ApproxEq;
 use godot::classes::native::*;
 use godot::prelude::*;
+#[cfg(feature = "dim3")]
+use rapier::prelude::FeatureId;
 
 use crate::bodies::rapier_collision_object::*;
 use crate::bodies::rapier_collision_object_base::RapierCollisionObjectBase;
@@ -41,9 +43,6 @@ impl RapierDirectSpaceStateImpl {
         let Some(space) = physics_data.spaces.get(&self.space) else {
             return false;
         };
-        if !space.get_state().is_valid() {
-            return false;
-        }
         // if we don't do this, we end up having a zero size ray which crashes sometimes.
         // it cannot compute 0 size aabb.
         let mut to: Vector = to;
@@ -59,7 +58,7 @@ impl RapierDirectSpaceStateImpl {
         };
         let mut hit_info = RayHitInfo::default();
         let collide = physics_data.physics_engine.intersect_ray(
-            space.get_state().get_handle(),
+            space.get_state().get_id(),
             vector_to_rapier(from),
             vector_to_rapier(dir),
             end.length(),
@@ -93,6 +92,13 @@ impl RapierDirectSpaceStateImpl {
                     }
                 }
             }
+            #[cfg(feature = "dim3")]
+            match hit_info.feature {
+                FeatureId::Face(i) => result.face_index = i as i32,
+                FeatureId::Edge(i) => result.face_index = i as i32,
+                FeatureId::Vertex(i) => result.face_index = i as i32,
+                FeatureId::Unknown => result.face_index = -1,
+            }
             return true;
         }
         false
@@ -117,9 +123,6 @@ impl RapierDirectSpaceStateImpl {
         let Some(space) = physics_data.spaces.get(&self.space) else {
             return 0;
         };
-        if !space.get_state().is_valid() {
-            return 0;
-        }
         // Allocate memory for hit_info_array
         let mut hit_info_array = Vec::new();
         hit_info_array.resize_with(max_results, Default::default);
@@ -132,7 +135,7 @@ impl RapierDirectSpaceStateImpl {
         };
         // Perform intersection
         let mut result_count = physics_data.physics_engine.intersect_point(
-            space.get_state().get_handle(),
+            space.get_state().get_id(),
             vector_to_rapier(position),
             collide_with_bodies,
             collide_with_areas,
@@ -193,10 +196,7 @@ impl RapierDirectSpaceStateImpl {
         let Some(space) = physics_data.spaces.get(&self.space) else {
             return 0;
         };
-        if !space.get_state().is_valid() {
-            return 0;
-        }
-        let shape_info = shape_info_from_body_shape(shape.get_base().get_handle(), transform);
+        let shape_info = shape_info_from_body_shape(shape.get_base().get_id(), transform);
         let mut query_excluded_info = QueryExcludedInfo {
             query_collision_layer_mask: collision_mask,
             ..Default::default()
@@ -210,7 +210,7 @@ impl RapierDirectSpaceStateImpl {
             unsafe { std::slice::from_raw_parts_mut(results, max_results) };
         while cpt < max_results {
             let result = physics_data.physics_engine.shape_casting(
-                space.get_state().get_handle(),
+                space.get_state().get_id(),
                 vector_to_rapier(motion),
                 shape_info,
                 collide_with_bodies,
@@ -271,11 +271,8 @@ impl RapierDirectSpaceStateImpl {
         let Some(space) = physics_data.spaces.get(&self.space) else {
             return false;
         };
-        if !space.get_state().is_valid() {
-            return false;
-        }
         let rapier_motion = vector_to_rapier(motion);
-        let shape_info = shape_info_from_body_shape(shape.get_base().get_handle(), transform);
+        let shape_info = shape_info_from_body_shape(shape.get_base().get_id(), transform);
         let query_excluded_info = QueryExcludedInfo {
             query_collision_layer_mask: collision_mask,
             ..Default::default()
@@ -283,7 +280,7 @@ impl RapierDirectSpaceStateImpl {
         let hit = physics_data
             .physics_engine
             .shape_casting(
-                space.get_state().get_handle(),
+                space.get_state().get_id(),
                 rapier_motion,
                 shape_info,
                 collide_with_bodies,
@@ -324,11 +321,8 @@ impl RapierDirectSpaceStateImpl {
         let Some(space) = physics_data.spaces.get(&self.space) else {
             return false;
         };
-        if !space.get_state().is_valid() {
-            return false;
-        }
         let results_out = results as *mut Vector;
-        let shape_info = shape_info_from_body_shape(shape.get_base().get_handle(), transform);
+        let shape_info = shape_info_from_body_shape(shape.get_base().get_id(), transform);
         let mut query_excluded_info = QueryExcludedInfo {
             query_collision_layer_mask: collision_mask,
             ..Default::default()
@@ -341,7 +335,7 @@ impl RapierDirectSpaceStateImpl {
         let mut cpt = 0;
         while cpt < max_results {
             let result = physics_data.physics_engine.shape_casting(
-                space.get_state().get_handle(),
+                space.get_state().get_id(),
                 vector_to_rapier(motion),
                 shape_info,
                 collide_with_bodies,
@@ -387,17 +381,14 @@ impl RapierDirectSpaceStateImpl {
         let Some(space) = physics_data.spaces.get(&self.space) else {
             return false;
         };
-        if !space.get_state().is_valid() {
-            return false;
-        }
         let rapier_motion = vector_to_rapier(motion);
-        let shape_info = shape_info_from_body_shape(shape.get_base().get_handle(), transform);
+        let shape_info = shape_info_from_body_shape(shape.get_base().get_id(), transform);
         let query_excluded_info = QueryExcludedInfo {
             query_collision_layer_mask: collision_mask,
             ..Default::default()
         };
         let result = physics_data.physics_engine.shape_casting(
-            space.get_state().get_handle(),
+            space.get_state().get_id(),
             rapier_motion,
             shape_info,
             collide_with_bodies,

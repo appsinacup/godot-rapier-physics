@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bi8fhkhrlsbc6"]
+
+[ext_resource type="Script" path="res://tests/nodes/Area/tests/2d/basic_api.gd" id="1_yxddu"]
+
+[node name="basic_api" type="Node2D"]
+script = ExtResource("1_yxddu")

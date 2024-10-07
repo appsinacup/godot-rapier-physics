@@ -54,10 +54,11 @@ pub struct RapierSpace {
 }
 impl RapierSpace {
     pub fn create(
+        id: RapierId,
         rid: Rid,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
-    ) -> RapierId {
+    ) {
         let mut direct_access = RapierDirectSpaceState::new_alloc();
         direct_access.bind_mut().set_space(rid);
         let project_settings = ProjectSettings::singleton();
@@ -77,11 +78,9 @@ impl RapierSpace {
             contact_debug: PackedVectorArray::new(),
             contact_debug_count: 0,
             ghost_collision_distance: RapierProjectSettings::get_ghost_collision_distance(),
-            state: RapierSpaceState::new(physics_engine, &Self::get_world_settings()),
+            state: RapierSpaceState::new(id, physics_engine, &Self::get_world_settings()),
         };
-        let id = space.get_state().get_id();
         physics_spaces.insert(rid, space);
-        id
     }
 
     pub fn get_state(&self) -> &RapierSpaceState {
@@ -203,7 +202,7 @@ impl RapierSpace {
             .get_default_area_param(AreaParameter::GRAVITY_VECTOR)
             .try_to()
             .unwrap_or_default();
-        let space_handle = space.get_state().get_handle();
+        let space_handle = space.get_state().get_id();
         space.before_step();
         for body in space.get_state().get_active_list() {
             if let Some(body) = physics_data
@@ -342,7 +341,7 @@ impl RapierSpace {
         // Needed only for one physics step to retrieve lost info
         self.state.reset_removed_colliders();
         self.state.set_active_objects(
-            physics_engine.world_get_active_objects_count(self.state.get_handle()) as i32,
+            physics_engine.world_get_active_objects_count(self.state.get_id()) as i32,
         );
         for body in self.state.get_active_list().clone() {
             if let Some(body) = physics_collision_objects.get_mut(&get_id_rid(body, physics_ids)) {
@@ -371,7 +370,7 @@ impl RapierSpace {
 
     #[cfg(feature = "serde-serialize")]
     pub fn export_json(&self, physics_engine: &mut PhysicsEngine) -> String {
-        if let Some(inner) = physics_engine.world_export(self.state.get_handle()) {
+        if let Some(inner) = physics_engine.world_export(self.state.get_id()) {
             let export = SpaceExport {
                 space: &self.state,
                 world: inner,
@@ -401,7 +400,7 @@ impl RapierSpace {
     #[cfg(feature = "serde-serialize")]
     pub fn export_binary(&self, physics_engine: &mut PhysicsEngine) -> PackedByteArray {
         let mut buf = PackedByteArray::new();
-        if let Some(inner) = physics_engine.world_export(self.state.get_handle()) {
+        if let Some(inner) = physics_engine.world_export(self.state.get_id()) {
             let export = SpaceExport {
                 space: &self.state,
                 world: inner,
@@ -433,7 +432,7 @@ impl RapierSpace {
                     counters_enabled: false,
                 };
                 physics_engine.world_import(
-                    self.get_state().get_handle(),
+                    self.get_state().get_id(),
                     &world_settings,
                     physics_objects,
                 );
@@ -446,12 +445,5 @@ impl RapierSpace {
 
     pub fn get_ghost_collision_distance(&self) -> real {
         self.ghost_collision_distance
-    }
-}
-impl Drop for RapierSpace {
-    fn drop(&mut self) {
-        if self.get_state().is_valid() {
-            godot_error!("RapierSpace leaked");
-        }
     }
 }

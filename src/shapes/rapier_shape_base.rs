@@ -5,7 +5,6 @@ use rapier::prelude::SharedShape;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::get_id_rid;
-use crate::servers::rapier_physics_singleton::next_id;
 use crate::servers::rapier_physics_singleton::PhysicsData;
 use crate::servers::rapier_physics_singleton::RapierId;
 use crate::types::*;
@@ -34,7 +33,6 @@ pub struct RapierShapeState {
         )
     )]
     owners: HashMap<RapierId, i32>,
-    handle: ShapeHandle,
     id: RapierId,
 }
 pub struct RapierShapeBase {
@@ -50,51 +48,28 @@ impl Default for RapierShapeBase {
     }
 }
 impl RapierShapeBase {
-    pub(super) fn new(rid: Rid) -> Self {
+    pub(super) fn new(id: RapierId, rid: Rid) -> Self {
         Self {
             rid,
             state: RapierShapeState {
-                id: next_id(),
+                id,
                 ..Default::default()
             },
         }
     }
 
-    pub(super) fn set_handle_and_reset_aabb(
-        &mut self,
-        handle: ShapeHandle,
-        physics_engine: &mut PhysicsEngine,
-    ) {
-        // new handle has to be valid
-        if handle == ShapeHandle::default() {
-            godot_error!("Invalid shape handle");
-            return;
-        }
-        // destroy previous shape
-        if self.state.handle != ShapeHandle::default() {
-            self.destroy_shape(physics_engine);
-        }
-        let rapier_aabb = physics_engine.shape_get_aabb(handle);
+    pub(super) fn reset_aabb(&mut self, physics_engine: &mut PhysicsEngine) {
+        let rapier_aabb = physics_engine.shape_get_aabb(self.get_id());
         let vertices = rapier_aabb.vertices();
         self.state.aabb = Rect::new(
             vector_to_godot(vertices[0].coords),
             vector_to_godot(rapier_aabb.extents()),
         );
-        self.state.handle = handle;
-    }
-
-    pub fn get_handle(&self) -> ShapeHandle {
-        self.state.handle
-    }
-
-    pub fn is_valid(&self) -> bool {
-        self.state.handle != ShapeHandle::default()
     }
 
     pub fn call_shape_changed(
         owners: HashMap<RapierId, i32>,
         shape_id: RapierId,
-        shape_handle: ShapeHandle,
         physics_data: &mut PhysicsData,
     ) {
         for (owner, _) in owners {
@@ -104,7 +79,6 @@ impl RapierShapeBase {
             {
                 owner.shape_changed(
                     shape_id,
-                    shape_handle,
                     &mut physics_data.physics_engine,
                     &mut physics_data.spaces,
                     &physics_data.ids,
@@ -145,10 +119,7 @@ impl RapierShapeBase {
     }
 
     pub fn destroy_shape(&mut self, physics_engine: &mut PhysicsEngine) {
-        if self.state.handle != ShapeHandle::default() {
-            physics_engine.shape_destroy(self.state.handle);
-            self.state.handle = ShapeHandle::default();
-        }
+        physics_engine.shape_destroy(self.get_id());
     }
 
     #[cfg(feature = "serde-serialize")]
@@ -165,7 +136,7 @@ impl RapierShapeBase {
     #[cfg(feature = "serde-serialize")]
     pub fn export_binary(&self, physics_engine: &mut PhysicsEngine) -> PackedByteArray {
         let mut buf = PackedByteArray::new();
-        if let Some(inner) = physics_engine.get_shape(self.get_handle()) {
+        if let Some(inner) = physics_engine.get_shape(self.get_id()) {
             let export = ShapeExport {
                 state: &self.state,
                 shape: inner,
@@ -190,7 +161,7 @@ impl RapierShapeBase {
         match bincode::deserialize::<ShapeImport>(data.as_slice()) {
             Ok(import) => {
                 self.state = import.state;
-                physics_engine.import_shape(import.shape, self.get_handle());
+                physics_engine.insert_shape(import.shape, self.get_id());
             }
             Err(e) => {
                 godot_error!("Failed to deserialize shape from binary: {}", e);
@@ -203,40 +174,30 @@ impl Drop for RapierShapeBase {
         if !self.state.owners.is_empty() {
             godot_error!("RapierShapeBase leaked {} owners", self.state.owners.len());
         }
-        if self.is_valid() {
-            godot_error!("RapierShapeBase leaked");
-        }
     }
 }
 #[cfg(test)]
 mod tests {
     use super::*;
-    fn create_test_shape_handle() -> ShapeHandle {
-        ShapeHandle::from_raw_parts(1, 0)
-    }
     #[test]
     fn test_new_rapier_shape_base() {
         let rid = Rid::new(123);
-        let shape_base = RapierShapeBase::new(rid);
+        let shape_base = RapierShapeBase::new(0, rid);
         assert_eq!(shape_base.get_rid(), rid);
-        assert!(!shape_base.is_valid());
         assert!(shape_base.get_owners().is_empty());
     }
     #[test]
-    fn test_set_handle_and_reset_aabb() {
+    fn test_reset_aabb() {
         let rid = Rid::new(123);
-        let mut shape_base = RapierShapeBase::new(rid);
+        let mut shape_base = RapierShapeBase::new(0, rid);
         let mut physics_engine = PhysicsEngine::default();
-        let handle = create_test_shape_handle();
-        shape_base.set_handle_and_reset_aabb(handle, &mut physics_engine);
-        assert_eq!(shape_base.get_handle(), handle);
-        assert!(shape_base.is_valid());
+        shape_base.reset_aabb(&mut physics_engine);
     }
     #[test]
     fn test_add_and_remove_owner() {
         let rid = Rid::new(123);
-        let mut shape_base = RapierShapeBase::new(rid);
-        let rb_id = next_id();
+        let mut shape_base = RapierShapeBase::new(0, rid);
+        let rb_id = 1;
         shape_base.add_owner(rb_id);
         assert_eq!(shape_base.get_owners().get(&rb_id), Some(&1));
         shape_base.add_owner(rb_id);
@@ -249,12 +210,9 @@ mod tests {
     #[test]
     fn test_destroy_shape() {
         let rid = Rid::new(123);
-        let mut shape_base = RapierShapeBase::new(rid);
+        let mut shape_base = RapierShapeBase::new(0, rid);
         let mut physics_engine = PhysicsEngine::default();
-        let handle = create_test_shape_handle();
-        shape_base.set_handle_and_reset_aabb(handle, &mut physics_engine);
-        assert!(shape_base.is_valid());
+        shape_base.reset_aabb(&mut physics_engine);
         shape_base.destroy_shape(&mut physics_engine);
-        assert!(!shape_base.is_valid());
     }
 }

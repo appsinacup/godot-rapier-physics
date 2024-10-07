@@ -15,13 +15,11 @@ pub struct RapierCircleShape {
     base: RapierShapeBase,
 }
 impl RapierCircleShape {
-    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) -> RapierId {
+    pub fn create(id: RapierId, rid: Rid, physics_shapes: &mut PhysicsShapes) {
         let shape = Self {
-            base: RapierShapeBase::new(rid),
+            base: RapierShapeBase::new(id, rid),
         };
-        let id = shape.base.get_id();
         physics_shapes.insert(rid, RapierShape::RapierCircleShape(shape));
-        id
     }
 }
 impl IRapierShape for RapierCircleShape {
@@ -53,13 +51,13 @@ impl IRapierShape for RapierCircleShape {
             godot_error!("RapierCircleShape radius must be positive. Got {}", radius);
             return;
         }
-        let handle = physics_engine.shape_create_circle(radius);
-        self.base.set_handle_and_reset_aabb(handle, physics_engine);
+        physics_engine.shape_create_circle(radius, self.base.get_id());
+        self.base.reset_aabb(physics_engine)
     }
 
     fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
         physics_engine
-            .shape_circle_get_radius(self.base.get_handle())
+            .shape_circle_get_radius(self.base.get_id())
             .to_variant()
     }
 }
@@ -80,7 +78,7 @@ mod tests {
         fn test_create() {
             let mut physics_shapes = PhysicsShapes::new();
             let rid = Rid::new(123);
-            RapierCircleShape::create(rid, &mut physics_shapes);
+            RapierCircleShape::create(0, rid, &mut physics_shapes);
             assert!(physics_shapes.contains_key(&rid));
             match physics_shapes.get(&rid) {
                 Some(RapierShape::RapierCircleShape(_)) => {}
@@ -97,11 +95,10 @@ mod tests {
         #[func]
         fn test_set_data() {
             let mut circle_shape = RapierCircleShape {
-                base: RapierShapeBase::new(Rid::Invalid),
+                base: RapierShapeBase::new(RapierId::default(), Rid::Invalid),
             };
             let data = Variant::from(1.5);
             circle_shape.set_data(data, &mut physics_data().physics_engine);
-            assert!(circle_shape.get_base().is_valid());
             assert_eq!(
                 circle_shape.get_data(&physics_data().physics_engine),
                 1.5.to_variant()
@@ -109,7 +106,6 @@ mod tests {
             circle_shape
                 .get_mut_base()
                 .destroy_shape(&mut physics_data().physics_engine);
-            assert!(!circle_shape.get_base().is_valid());
         }
     }
 }

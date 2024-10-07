@@ -12,15 +12,11 @@ use crate::*;
 pub struct RapierEmptyJoint {
     base: RapierJointBase,
 }
-impl Default for RapierEmptyJoint {
-    fn default() -> Self {
-        Self::new()
-    }
-}
 impl RapierEmptyJoint {
-    pub fn new() -> Self {
+    pub fn new(id: RapierId) -> Self {
         Self {
             base: RapierJointBase::new(
+                id,
                 Rid::Invalid,
                 RapierId::default(),
                 WorldHandle::default(),

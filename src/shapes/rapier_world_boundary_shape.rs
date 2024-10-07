@@ -14,13 +14,11 @@ pub struct RapierWorldBoundaryShape {
     base: RapierShapeBase,
 }
 impl RapierWorldBoundaryShape {
-    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) -> RapierId {
+    pub fn create(id: RapierId, rid: Rid, physics_shapes: &mut PhysicsShapes) {
         let shape = Self {
-            base: RapierShapeBase::new(rid),
+            base: RapierShapeBase::new(id, rid),
         };
-        let id = shape.base.get_id();
         physics_shapes.insert(rid, RapierShape::RapierWorldBoundaryShape(shape));
-        id
     }
 }
 impl IRapierShape for RapierWorldBoundaryShape {
@@ -64,8 +62,8 @@ impl IRapierShape for RapierWorldBoundaryShape {
         }
         let normal = arr.at(0).try_to().unwrap_or_default();
         let d = variant_to_float(&arr.at(1));
-        let handle = physics_engine.shape_create_halfspace(vector_to_rapier(normal), d);
-        self.base.set_handle_and_reset_aabb(handle, physics_engine);
+        physics_engine.shape_create_halfspace(vector_to_rapier(normal), d, self.base.get_id());
+        self.base.reset_aabb(physics_engine);
     }
 
     #[cfg(feature = "dim3")]
@@ -77,13 +75,13 @@ impl IRapierShape for RapierWorldBoundaryShape {
         let plane: Plane = data.try_to().unwrap_or(Plane::invalid());
         let normal = plane.normal;
         let d = plane.d;
-        let handle = physics_engine.shape_create_halfspace(vector_to_rapier(normal), d);
-        self.base.set_handle_and_reset_aabb(handle, physics_engine);
+        physics_engine.shape_create_halfspace(vector_to_rapier(normal), d, self.base.get_id());
+        self.base.reset_aabb(physics_engine);
     }
 
     #[cfg(feature = "dim2")]
     fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
-        let (normal, d) = physics_engine.shape_get_halfspace(self.base.get_handle());
+        let (normal, d) = physics_engine.shape_get_halfspace(self.base.get_id());
         let mut arr = Array::<Variant>::new();
         arr.push(vector_to_godot(normal).to_variant());
         arr.push(d.to_variant());
@@ -92,7 +90,7 @@ impl IRapierShape for RapierWorldBoundaryShape {
 
     #[cfg(feature = "dim3")]
     fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
-        let (normal, d) = physics_engine.shape_get_halfspace(self.base.get_handle());
+        let (normal, d) = physics_engine.shape_get_halfspace(self.base.get_id());
         let plane = Plane::new(vector_to_godot(normal), d);
         plane.to_variant()
     }

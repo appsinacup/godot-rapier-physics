@@ -15,13 +15,11 @@ pub struct RapierHeightMapShape3D {
     base: RapierShapeBase,
 }
 impl RapierHeightMapShape3D {
-    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) -> RapierId {
+    pub fn create(id: RapierId, rid: Rid, physics_shapes: &mut PhysicsShapes) {
         let shape = Self {
-            base: RapierShapeBase::new(rid),
+            base: RapierShapeBase::new(id, rid),
         };
-        let id = shape.base.get_id();
         physics_shapes.insert(rid, RapierShape::RapierHeightMapShape3D(shape));
-        id
     }
 }
 impl IRapierShape for RapierHeightMapShape3D {
@@ -100,13 +98,13 @@ impl IRapierShape for RapierHeightMapShape3D {
             godot_error!("Heightmap must have width and depth at least 2");
             return;
         }
-        let handle = physics_engine.shape_create_heightmap(heights.as_slice(), width, depth);
-        self.base.set_handle_and_reset_aabb(handle, physics_engine);
+        physics_engine.shape_create_heightmap(heights.as_slice(), width, depth, self.base.get_id());
+        self.base.reset_aabb(physics_engine);
     }
 
     fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
         let mut dictionary = Dictionary::new();
-        let (heights, depth, width) = physics_engine.shape_get_heightmap(self.base.get_handle());
+        let (heights, depth, width) = physics_engine.shape_get_heightmap(self.base.get_id());
         let _ = dictionary.insert("width", width);
         let _ = dictionary.insert("depth", depth);
         let mut packed_heights = PackedFloatArray::default();

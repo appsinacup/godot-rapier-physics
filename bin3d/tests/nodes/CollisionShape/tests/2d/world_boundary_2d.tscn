@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://cwjsl5we6olkq"]
+
+[ext_resource type="Script" path="res://tests/nodes/CollisionShape/tests/2d/world_boundary_2d.gd" id="1_jtm1r"]
+
+[node name="world_boundary_2d" type="Node2D"]
+script = ExtResource("1_jtm1r")

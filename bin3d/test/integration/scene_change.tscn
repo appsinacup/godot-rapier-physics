@@ -1,0 +1,33 @@
+[gd_scene load_steps=5 format=3 uid="uid://clemidbbr2cib"]
+
+[ext_resource type="Script" path="res://test/integration/scene_change.gd" id="1_crxgh"]
+[ext_resource type="Script" path="res://addons/godot-rapier2d/rapier_state_2d.gd" id="2_6kmg0"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_uteag"]
+radius = 31.0161
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_l14l6"]
+size = Vector2(460, 74)
+
+[node name="SceneChange" type="Node2D" node_paths=PackedStringArray("rapier_state")]
+script = ExtResource("1_crxgh")
+rapier_state = NodePath("Rapier2DState")
+save_state = false
+
+[node name="RigidBody2D" type="RigidBody2D" parent="."]
+position = Vector2(122, 81)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D"]
+shape = SubResource("CircleShape2D_uteag")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(192, 219)
+shape = SubResource("RectangleShape2D_l14l6")
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D"]
+polygon = PackedVector2Array(221, -20, 172, 65, 243, 126, 661, 32, 341, 64)
+
+[node name="Rapier2DState" type="Node" parent="."]
+script = ExtResource("2_6kmg0")

@@ -11,13 +11,11 @@ pub struct RapierSegmentShape2D {
     base: RapierShapeBase,
 }
 impl RapierSegmentShape2D {
-    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) -> RapierId {
+    pub fn create(id: RapierId, rid: Rid, physics_shapes: &mut PhysicsShapes) {
         let shape = Self {
-            base: RapierShapeBase::new(rid),
+            base: RapierShapeBase::new(id, rid),
         };
-        let id = shape.base.get_id();
         physics_shapes.insert(rid, RapierShape::RapierSegmentShape2D(shape));
-        id
     }
 }
 impl IRapierShape for RapierSegmentShape2D {
@@ -46,12 +44,16 @@ impl IRapierShape for RapierSegmentShape2D {
         let p1 = r.position;
         let p2 = r.size;
         let rapier_points = [vector_to_rapier(p1), vector_to_rapier(p2)];
-        let handle = physics_engine.shape_create_concave_polyline(&rapier_points.to_vec(), None);
-        self.base.set_handle_and_reset_aabb(handle, physics_engine);
+        physics_engine.shape_create_concave_polyline(
+            &rapier_points.to_vec(),
+            None,
+            self.base.get_id(),
+        );
+        self.base.reset_aabb(physics_engine);
     }
 
     fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
-        let (points, _) = physics_engine.shape_get_concave_polyline(self.base.get_handle());
+        let (points, _) = physics_engine.shape_get_concave_polyline(self.base.get_id());
         if points.len() != 2 {
             godot_error!(
                 "RapierSegmentShape data must be a Rect2. Got length {}",

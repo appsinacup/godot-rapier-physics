@@ -17,13 +17,11 @@ pub struct RapierConvexPolygonShape {
     base: RapierShapeBase,
 }
 impl RapierConvexPolygonShape {
-    pub fn create(rid: Rid, physics_shapes: &mut PhysicsShapes) -> RapierId {
+    pub fn create(id: RapierId, rid: Rid, physics_shapes: &mut PhysicsShapes) {
         let shape = Self {
-            base: RapierShapeBase::new(rid),
+            base: RapierShapeBase::new(id, rid),
         };
-        let id = shape.base.get_id();
         physics_shapes.insert(rid, RapierShape::RapierConvexPolygonShape(shape));
-        id
     }
 }
 impl RapierConvexPolygonShape {
@@ -31,16 +29,15 @@ impl RapierConvexPolygonShape {
         &mut self,
         physics_engine: &mut PhysicsEngine,
         points: &PackedVectorArray,
-    ) -> ShapeHandle {
+    ) {
         if points.len() >= 3 {
             let mut rapier_points = Vec::with_capacity(points.len());
             for point in points.as_slice() {
                 rapier_points.push(vector_to_rapier(*point));
             }
-            physics_engine.shape_create_convex_polyline(&rapier_points)
+            physics_engine.shape_create_convex_polyline(&rapier_points, self.base.get_id())
         } else {
             godot_error!("ConvexPolygon must have at least three point");
-            ShapeHandle::default()
         }
     }
 }
@@ -108,12 +105,8 @@ impl IRapierShape for RapierConvexPolygonShape {
             godot_error!("ConvexPolygon must have at least three point");
             return;
         }
-        let handle = self.create_rapier_shape(physics_engine, &points);
-        if handle == ShapeHandle::default() {
-            godot_error!("ConvexPolygon failed to create shape");
-            return;
-        }
-        let new_points = physics_engine.shape_get_convex_polyline_points(handle);
+        self.create_rapier_shape(physics_engine, &points);
+        let new_points = physics_engine.shape_get_convex_polyline_points(self.base.get_id());
         if new_points.len() != points.len() {
             godot_warn!(
                 "ConvexPolygon shape points changed from size {} to {}",
@@ -121,11 +114,11 @@ impl IRapierShape for RapierConvexPolygonShape {
                 new_points.len(),
             );
         }
-        self.base.set_handle_and_reset_aabb(handle, physics_engine);
+        self.base.reset_aabb(physics_engine);
     }
 
     fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
-        let points = physics_engine.shape_get_convex_polyline_points(self.base.get_handle());
+        let points = physics_engine.shape_get_convex_polyline_points(self.base.get_id());
         let mut result_points = PackedVectorArray::new();
         for point in points.iter() {
             result_points.push(vector_to_godot(*point));
@@ -151,7 +144,7 @@ mod tests {
         fn test_create() {
             let mut physics_shapes = PhysicsShapes::new();
             let rid = Rid::new(123);
-            RapierConvexPolygonShape::create(rid, &mut physics_shapes);
+            RapierConvexPolygonShape::create(0, rid, &mut physics_shapes);
             assert!(physics_shapes.contains_key(&rid));
             match physics_shapes.get(&rid) {
                 Some(RapierShape::RapierConvexPolygonShape(_)) => {}
@@ -167,7 +160,7 @@ mod tests {
         fn test_set_data() {
             let rid = Rid::new(123);
             let mut convex_shape = RapierConvexPolygonShape {
-                base: RapierShapeBase::new(rid),
+                base: RapierShapeBase::new(0, rid),
             };
             let arr = PackedVectorArray::from(vec![
                 Vector::new(1.0, 1.0),
@@ -176,7 +169,6 @@ mod tests {
                 Vector::new(3.0, 5.0),
             ]);
             convex_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
-            assert!(convex_shape.get_base().is_valid());
             let data: PackedVectorArray = convex_shape
                 .get_data(&physics_data().physics_engine)
                 .try_to()
@@ -189,7 +181,6 @@ mod tests {
             convex_shape
                 .get_mut_base()
                 .destroy_shape(&mut physics_data().physics_engine);
-            assert!(!convex_shape.get_base().is_valid());
         }
 
         #[cfg(feature = "dim3")]
@@ -197,7 +188,7 @@ mod tests {
         fn test_set_data() {
             let rid = Rid::new(123);
             let mut convex_shape = RapierConvexPolygonShape {
-                base: RapierShapeBase::new(rid),
+                base: RapierShapeBase::new(0, rid),
             };
             let arr = PackedVectorArray::from(vec![
                 Vector3::new(0.0, 0.0, 0.0),
@@ -214,11 +205,9 @@ mod tests {
             assert_eq!(data[1], Vector::splat(0.0));
             assert_eq!(data[2], Vector3::new(1.0, 0.0, 0.0));
             assert_eq!(data[0], Vector3::new(2.0, 2.0, 2.0));
-            assert!(convex_shape.get_base().is_valid());
             convex_shape
                 .get_mut_base()
                 .destroy_shape(&mut physics_data().physics_engine);
-            assert!(!convex_shape.get_base().is_valid());
         }
     }
 }

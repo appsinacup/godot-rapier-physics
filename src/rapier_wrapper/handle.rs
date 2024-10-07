@@ -1,6 +1,7 @@
-use rapier::data::Index;
 use salva::object::ContiguousArenaIndex;
 use salva::object::FluidHandle;
+
+use crate::servers::rapier_physics_singleton::RapierId;
 #[derive(Debug, Copy, Clone, Eq, Hash, PartialEq)]
 #[cfg_attr(
     feature = "serde-serialize",
@@ -18,8 +19,8 @@ impl Default for HandleDouble {
         }
     }
 }
-pub type WorldHandle = Index;
-pub type ShapeHandle = Index;
+pub type WorldHandle = RapierId;
+pub type ShapeHandle = RapierId;
 impl HandleDouble {
     pub fn is_valid(&self) -> bool {
         (self.id != usize::MAX) && (self.generation != u64::MAX)

@@ -10,6 +10,7 @@ use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::bodies::rapier_collision_object::RapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::RapierId;
 use crate::types::Vector;
 pub struct RapierRevoluteJoint {
     angular_limit_lower: f32,
@@ -21,6 +22,7 @@ pub struct RapierRevoluteJoint {
 }
 impl RapierRevoluteJoint {
     pub fn new(
+        id: RapierId,
         rid: Rid,
         anchor_a: Vector,
         anchor_b: Vector,
@@ -43,7 +45,7 @@ impl RapierRevoluteJoint {
         }
         if !body_a.get_base().is_valid()
             || !body_b.get_base().is_valid()
-            || body_a.get_base().get_space_handle() != body_b.get_base().get_space_handle()
+            || body_a.get_base().get_space_id() != body_b.get_base().get_space_id()
         {
             return invalid_joint;
         }
@@ -51,7 +53,7 @@ impl RapierRevoluteJoint {
         let anchor_b = body_b.get_base().get_inv_transform() * anchor_b;
         let rapier_anchor_a = vector_to_rapier(anchor_a);
         let rapier_anchor_b = vector_to_rapier(anchor_b);
-        let space_handle = body_a.get_base().get_space_handle();
+        let space_handle = body_a.get_base().get_space_id();
         let space_id = body_a.get_base().get_space_id();
         let handle = physics_engine.joint_create_revolute(
             space_handle,
@@ -74,7 +76,7 @@ impl RapierRevoluteJoint {
             motor_target_velocity: 0.0,
             motor_enabled: false,
             angular_limit_enabled: false,
-            base: RapierJointBase::new(rid, space_id, space_handle, handle),
+            base: RapierJointBase::new(id, rid, space_id, space_handle, handle),
         }
     }
 
@@ -101,7 +103,7 @@ impl RapierRevoluteJoint {
             return;
         }
         physics_engine.joint_change_revolute_params(
-            self.base.get_space_handle(),
+            self.base.get_space_id(),
             self.base.get_handle(),
             self.angular_limit_lower,
             self.angular_limit_upper,
@@ -134,7 +136,7 @@ impl RapierRevoluteJoint {
             return;
         }
         physics_engine.joint_change_revolute_params(
-            self.base.get_space_handle(),
+            self.base.get_space_id(),
             self.base.get_handle(),
             self.angular_limit_lower,
             self.angular_limit_upper,
@@ -184,7 +186,7 @@ impl RapierRevoluteJoint {
             return;
         }
         physics_engine.joint_change_revolute_params(
-            self.base.get_space_handle(),
+            self.base.get_space_id(),
             self.base.get_handle(),
             self.angular_limit_lower,
             self.angular_limit_upper,
@@ -214,7 +216,7 @@ impl RapierRevoluteJoint {
             return;
         }
         physics_engine.joint_change_revolute_params(
-            self.base.get_space_handle(),
+            self.base.get_space_id(),
             self.base.get_handle(),
             self.angular_limit_lower,
             self.angular_limit_upper,
