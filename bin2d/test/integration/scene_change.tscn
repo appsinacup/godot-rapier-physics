@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://clemidbbr2cib"]
+[gd_scene load_steps=6 format=3 uid="uid://clemidbbr2cib"]
 
 [ext_resource type="Script" path="res://test/integration/scene_change.gd" id="1_crxgh"]
 [ext_resource type="Script" path="res://addons/godot-rapier2d/rapier_state_2d.gd" id="2_6kmg0"]
@@ -8,6 +8,8 @@ radius = 31.0161
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_l14l6"]
 size = Vector2(460, 74)
+
+[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_86sbr"]
 
 [node name="SceneChange" type="Node2D" node_paths=PackedStringArray("rapier_state")]
 script = ExtResource("1_crxgh")
@@ -31,3 +33,11 @@ polygon = PackedVector2Array(221, -20, 172, 65, 243, 126, 661, 32, 341, 64)
 
 [node name="Rapier2DState" type="Node" parent="."]
 script = ExtResource("2_6kmg0")
+
+[node name="PinJoint2D" type="PinJoint2D" parent="."]
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("WorldBoundaryShape2D_86sbr")
+disabled = true

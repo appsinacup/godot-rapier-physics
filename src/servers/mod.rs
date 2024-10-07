@@ -98,6 +98,6 @@ fn print_version() {
     }
 }
 pub fn register_scene() {
-    print_version();
     RapierProjectSettings::register_settings();
+    print_version();
 }

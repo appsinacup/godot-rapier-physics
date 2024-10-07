@@ -53,6 +53,7 @@ zoom_out={
 [physics]
 
 2d/physics_engine="Rapier2D"
+3d/physics_engine="Rapier3D"
 
 [rendering]
 
