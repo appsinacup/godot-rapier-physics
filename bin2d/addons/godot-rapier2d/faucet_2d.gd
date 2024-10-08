@@ -1,12 +1,14 @@
 class_name Faucet2D
 extends Fluid2D
 
-var points_new: PackedVector2Array
 @export var interval := 0.06
-var velocities_new: PackedVector2Array
 @export var max_particles: int = 1000
 @export var width: int = 4
 @export var height: int = 2
+
+var points_new: PackedVector2Array
+var velocities_new: PackedVector2Array
+
 
 func _ready():
 	points_new = create_rectangle_points(width, height)
@@ -16,6 +18,7 @@ func _ready():
 	var dir = global_transform.basis_xform(gravity_dir * gravity_value)
 	velocities_new.fill(dir)
 	get_tree().create_timer(interval).timeout.connect(_on_timer_timeout)
+
 
 func _on_timer_timeout():
 	get_tree().create_timer(interval).timeout.connect(_on_timer_timeout)
