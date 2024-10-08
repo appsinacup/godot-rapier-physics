@@ -20,8 +20,8 @@
 
 <p align = "center">
 <b>2D and 3D physics engine</b>
-<i>for the Godot 4.3 game engine.</i>
-with better <b>stability</b>, <b>performance</b>, <b>no ghost collisions</b> and <b>liquids</b>
+<i>for the Godot game engine.</i>
+with better <b>stability</b>, <b>performance</b>, <b>liquids</b>, <b>determinism</b>, <b>state serialization</b> and <b>no ghost collisions</b>.
 </p>
 
 -----
@@ -38,7 +38,10 @@ Stability|Ghost Collisions
 Fluids 2D| Fluids 3D
 -|-
 ![](docs/fluid_shader.gif)|![](docs/water_3d.gif)
-
+**Serialization**|**Deserialization**
+Save Physics State|Load Physics State
+**Locally Deterministic**|***Optionally Cross Platform Deterministic**
+Exact simulation every time (on same platform)|Exact simulation on multiple platforms
 # Installation
 
 - Automatic (Recommended): Download the plugin from the official [Godot Asset Store](https://godotengine.org/asset-library/asset/2267) using the `AssetLib` tab in Godot:

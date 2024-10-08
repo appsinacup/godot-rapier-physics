@@ -349,6 +349,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Get the global id of the physics server.
     fn get_global_id() -> i64 {
         let Ok(mut physics_singleton) =
             PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
@@ -359,6 +360,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Set the global id of the physics server.
     fn set_global_id(id: i64) {
         let Ok(mut physics_singleton) =
             PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
@@ -369,6 +371,7 @@ impl RapierPhysicsServer {
     }
 
     #[func]
+    /// Get the stats of the physics server.
     fn get_stats() -> Dictionary {
         let mut dictionary = Dictionary::new();
         dictionary.set("ids", physics_data().ids.len() as i64);

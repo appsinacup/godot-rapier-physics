@@ -4,7 +4,8 @@ extends MultiMeshInstance2D
 
 @export var fluid: Fluid2D
 @export var color: Color = Color(0.8, 0.8, 0.8, 0.3)
-@export var mesh_scale: Vector2 = Vector2(5,5)
+@export var mesh_scale: Vector2 = Vector2(5, 5)
+
 
 func _ready():
 	if multimesh == null:
@@ -13,6 +14,7 @@ func _ready():
 		multimesh.use_colors = true
 	if texture == null:
 		texture = load("res://addons/godot-rapier2d/Radial2D.svg")
+
 
 func _process(_delta):
 	if fluid == null:

@@ -10,13 +10,16 @@ func _ready() -> void:
 	print("Before")
 	print(RapierPhysicsServer2D.get_stats())
 	if save_state:
-		print(rapier_state.save_state(false))
-		FileAccess.open("user://save.json", FileAccess.WRITE).store_string(JSON.stringify(rapier_state.state, " "))
+		rapier_state.export_state()
+		print(rapier_state.save_state(true))
+		FileAccess.open("user://save.debug.json", FileAccess.WRITE).store_string(JSON.stringify(rapier_state.state, " "))
 	else:
-		var state = JSON.parse_string(FileAccess.open("user://save.json", FileAccess.READ).get_as_text())
-		rapier_state.state = state
-		print(rapier_state.load_state())
+		rapier_state.import_state()
+		FileAccess.open("user://load.json", FileAccess.WRITE).store_string(JSON.stringify(rapier_state.state, " "))
 		print(rapier_state.save_state(false))
+		FileAccess.open("user://load.save.json", FileAccess.WRITE).store_string(JSON.stringify(rapier_state.state, " "))
+		print(rapier_state.save_state(true))
+		FileAccess.open("user://load.save.debug.json", FileAccess.WRITE).store_string(JSON.stringify(rapier_state.state, " "))
 	print("After")
 	print(RapierPhysicsServer2D.get_stats())
 	await get_tree().create_timer(1.0).timeout

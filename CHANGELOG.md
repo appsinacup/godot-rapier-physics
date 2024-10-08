@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.8.7
+
+- Add demo for state reload.
+
 ## v0.8.6
 
 - Fix rapier math name clash.
