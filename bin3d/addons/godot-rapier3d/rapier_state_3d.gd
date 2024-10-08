@@ -3,14 +3,15 @@
 class_name Rapier3DState
 extends Node
 
-var state : Dictionary = {}
+var state: Dictionary = {}
+
 
 func _is_physics_object(node: Node) -> bool:
-	return node is CollisionObject3D or \
-		node is Joint3D
+	return node is CollisionObject3D or node is Joint3D
+
 
 func _get_all_physics_nodes(p_node: Node, path: String = "/root/") -> Array[String]:
-	var results : Array[String] = []
+	var results: Array[String] = []
 	if path == "/root/" && _is_physics_object(p_node):
 		results.append(path + p_node.name)
 	path += p_node.name + "/"
@@ -21,29 +22,33 @@ func _get_all_physics_nodes(p_node: Node, path: String = "/root/") -> Array[Stri
 			results.append_array(_get_all_physics_nodes(node, path))
 	return results
 
+
 ## Save a node's physics state
 func save_node(rid: RID, save_json: bool):
 	if save_json:
 		return JSON.parse_string(RapierPhysicsServer3D.export_json(rid))
-	else:
-		return RapierPhysicsServer3D.export_binary(rid)
+	return RapierPhysicsServer3D.export_binary(rid)
+
 
 ## Load a node's physics state
 func load_node(rid: RID, data: PackedByteArray):
 	RapierPhysicsServer3D.import_binary(rid, data)
+
 
 ## Save the state of whole world (single space)
 func save_state(save_json: bool = false) -> int:
 	var physics_nodes := _get_all_physics_nodes(get_tree().current_scene)
 	for node_path in physics_nodes:
 		var node := get_node(node_path)
-		var rid : RID
+		var rid: RID
 		if node is CollisionObject3D:
 			rid = node.get_rid()
 			for owner_id in node.get_shape_owners():
 				for owner_shape_id in node.shape_owner_get_shape_count(owner_id):
 					var shape_rid = node.shape_owner_get_shape(owner_id, owner_shape_id).get_rid()
-					state[node_path + "/" + str(owner_id) + "/" + str(owner_shape_id)] = save_node(shape_rid, save_json)
+					state[node_path + "/" + str(owner_id) + "/" + str(owner_shape_id)] = save_node(
+						shape_rid, save_json
+					)
 		if node is Joint3D:
 			rid = node.get_rid()
 		state[node_path] = save_node(rid, save_json)
@@ -52,18 +57,21 @@ func save_state(save_json: bool = false) -> int:
 	state["id"] = RapierPhysicsServer3D.get_global_id()
 	return hash(JSON.stringify(state))
 
+
 ## Load the state of whole world (single space)
 func load_state() -> int:
 	var physics_nodes := _get_all_physics_nodes(get_tree().current_scene)
 	for node_path in physics_nodes:
 		var node := get_node(node_path)
-		var rid : RID
+		var rid: RID
 		if node is CollisionObject3D:
 			rid = node.get_rid()
 			for owner_id in node.get_shape_owners():
 				for owner_shape_id in node.shape_owner_get_shape_count(owner_id):
 					var shape_rid = node.shape_owner_get_shape(owner_id, owner_shape_id).get_rid()
-					var shape_state = state[node_path + "/" + str(owner_id) + "/" + str(owner_shape_id)]
+					var shape_state = state[
+						node_path + "/" + str(owner_id) + "/" + str(owner_shape_id)
+					]
 					load_node(shape_rid, JSON.parse_string(shape_state))
 		if node is Joint3D:
 			rid = node.get_rid()
@@ -74,19 +82,24 @@ func load_state() -> int:
 	RapierPhysicsServer3D.set_global_id(int(state["id"]))
 	return hash(JSON.stringify(state))
 
+
 ## Export the state to file
 func export_state(file_name: String = "user://state.json"):
 	save_state(false)
 	FileAccess.open(file_name, FileAccess.WRITE).store_string(JSON.stringify(state, " "))
+
 
 ## Import the state from file
 func import_state(file_name: String = "user://state.json"):
 	state = JSON.parse_string(FileAccess.open(file_name, FileAccess.READ).get_as_text())
 	load_state()
 
+
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_ENTER_TREE:
 		print("enter tree")
 	if what == NOTIFICATION_EXIT_TREE:
 		save_state(false)
-		FileAccess.open("user://save.json", FileAccess.WRITE).store_string(JSON.stringify(state, " "))
+		FileAccess.open("user://save.json", FileAccess.WRITE).store_string(
+			JSON.stringify(state, " ")
+		)

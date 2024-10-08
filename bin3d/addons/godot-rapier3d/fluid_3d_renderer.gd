@@ -16,6 +16,7 @@ func _ready():
 		#multimesh.mesh = load("res://addons/godot-rapier2d/circle_mesh.tres").duplicate()
 		multimesh.use_colors = true
 
+
 func _process(_delta):
 	if fluid == null || multimesh == null || multimesh.mesh == null:
 		return
