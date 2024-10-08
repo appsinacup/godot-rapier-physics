@@ -20,7 +20,7 @@
 
 <p align = "center">
 <b>2D and 3D physics engine</b>
-<i>for the Godot 4.3 game engine.</i>
+<i>for the Godot game engine.</i>
 with better <b>stability</b>, <b>performance</b>, <b>liquids</b>, <b>determinism</b>, <b>state serialization</b> and <b>no ghost collisions</b>.
 </p>
 
