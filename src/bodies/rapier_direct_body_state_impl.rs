@@ -503,9 +503,12 @@ impl RapierDirectBodyStateImpl {
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             if let Some(body) = body.get_body() {
                 if let Some(contact) = body.contacts().get(contact_idx as usize) {
-                    return Some(Gd::from_instance_id(InstanceId::from_i64(
+                    match Gd::try_from_instance_id(InstanceId::from_i64(
                         contact.collider_instance_id as i64,
-                    )));
+                    )) {
+                        Ok(object) => return Some(object),
+                        Err(_) => return None,
+                    }
                 }
             }
         }
