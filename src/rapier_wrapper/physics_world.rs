@@ -67,17 +67,12 @@ pub struct ContactForceEventInfo {
     derive(serde::Serialize, serde::Deserialize)
 )]
 pub struct PhysicsObjects {
-    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     pub query_pipeline: QueryPipeline,
-    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     pub island_manager: IslandManager,
-    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     pub broad_phase: BroadPhaseMultiSap,
-    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     pub narrow_phase: NarrowPhase,
     pub impulse_joint_set: ImpulseJointSet,
     pub multibody_joint_set: MultibodyJointSet,
-    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     pub ccd_solver: CCDSolver,
 
     pub collider_set: ColliderSet,
