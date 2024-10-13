@@ -181,7 +181,7 @@ impl RapierDirectSpaceStateImpl {
         shape_rid: Rid,
         transform: Transform,
         motion: Vector,
-        _margin: f32,
+        margin: f32,
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
@@ -213,12 +213,14 @@ impl RapierDirectSpaceStateImpl {
                 space.get_state().get_id(),
                 vector_to_rapier(motion),
                 shape_info,
+                margin,
                 collide_with_bodies,
                 collide_with_areas,
                 &query_excluded_info,
                 &physics_data.collision_objects,
                 &physics_data.ids,
                 space,
+                false,
             );
             if !result.collided {
                 break;
@@ -257,7 +259,7 @@ impl RapierDirectSpaceStateImpl {
         shape_rid: Rid,
         transform: Transform,
         motion: Vector,
-        _margin: f32,
+        margin: f32,
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
@@ -277,25 +279,24 @@ impl RapierDirectSpaceStateImpl {
             query_collision_layer_mask: collision_mask,
             ..Default::default()
         };
-        let hit = physics_data
-            .physics_engine
-            .shape_casting(
-                space.get_state().get_id(),
-                rapier_motion,
-                shape_info,
-                collide_with_bodies,
-                collide_with_areas,
-                &query_excluded_info,
-                &physics_data.collision_objects,
-                &physics_data.ids,
-                space,
-            )
-            .toi;
+        let result = physics_data.physics_engine.shape_casting(
+            space.get_state().get_id(),
+            rapier_motion,
+            shape_info,
+            margin,
+            collide_with_bodies,
+            collide_with_areas,
+            &query_excluded_info,
+            &physics_data.collision_objects,
+            &physics_data.ids,
+            space,
+            true,
+        );
         // TODO compute actual safe and unsafe
         let closest_safe = closest_safe as *mut real;
-        *closest_safe = hit;
+        *closest_safe = result.toi;
         let closest_unsafe = closest_unsafe as *mut real;
-        *closest_unsafe = hit;
+        *closest_unsafe = result.toi_unsafe;
         true
     }
 
@@ -305,7 +306,7 @@ impl RapierDirectSpaceStateImpl {
         shape_rid: Rid,
         transform: Transform,
         motion: Vector,
-        _margin: f32,
+        margin: f32,
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
@@ -338,12 +339,14 @@ impl RapierDirectSpaceStateImpl {
                 space.get_state().get_id(),
                 vector_to_rapier(motion),
                 shape_info,
+                margin,
                 collide_with_bodies,
                 collide_with_areas,
                 &query_excluded_info,
                 &physics_data.collision_objects,
                 &physics_data.ids,
                 space,
+                false,
             );
             if !result.collided {
                 break;
@@ -368,7 +371,7 @@ impl RapierDirectSpaceStateImpl {
         shape_rid: Rid,
         transform: Transform,
         motion: Vector,
-        _margin: f32,
+        margin: f32,
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
@@ -391,12 +394,14 @@ impl RapierDirectSpaceStateImpl {
             space.get_state().get_id(),
             rapier_motion,
             shape_info,
+            margin,
             collide_with_bodies,
             collide_with_areas,
             &query_excluded_info,
             &physics_data.collision_objects,
             &physics_data.ids,
             space,
+            false,
         );
         if !result.collided {
             return false;
