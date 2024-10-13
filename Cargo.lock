@@ -49,9 +49,9 @@ dependencies = [
 
 [[package]]
 name = "autocfg"
-version = "1.3.0"
+version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c4b4d0bd25bd0b74681c0ad21497610ce1b7c91b1022cd21c80c6fbdd9476b0"
+checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
 
 [[package]]
 name = "bincode"
@@ -224,7 +224,7 @@ checksum = "779ae4bf7e8421cf91c0b3b64e7e8b40b862fba4d393f59150042de7c4965a94"
 [[package]]
 name = "godot"
 version = "0.1.3"
-source = "git+https://github.com/godot-rust/gdext?branch=master#6e46fa49bd4b434ebb77e76bcd2e9d5a53ad60b7"
+source = "git+https://github.com/godot-rust/gdext?branch=master#a0d579900308b87358b646df43c9100b36cc5ba6"
 dependencies = [
  "godot-core",
  "godot-macros",
@@ -233,7 +233,7 @@ dependencies = [
 [[package]]
 name = "godot-bindings"
 version = "0.1.3"
-source = "git+https://github.com/godot-rust/gdext?branch=master#6e46fa49bd4b434ebb77e76bcd2e9d5a53ad60b7"
+source = "git+https://github.com/godot-rust/gdext?branch=master#a0d579900308b87358b646df43c9100b36cc5ba6"
 dependencies = [
  "gdextension-api",
 ]
@@ -241,12 +241,12 @@ dependencies = [
 [[package]]
 name = "godot-cell"
 version = "0.1.3"
-source = "git+https://github.com/godot-rust/gdext?branch=master#6e46fa49bd4b434ebb77e76bcd2e9d5a53ad60b7"
+source = "git+https://github.com/godot-rust/gdext?branch=master#a0d579900308b87358b646df43c9100b36cc5ba6"
 
 [[package]]
 name = "godot-codegen"
 version = "0.1.3"
-source = "git+https://github.com/godot-rust/gdext?branch=master#6e46fa49bd4b434ebb77e76bcd2e9d5a53ad60b7"
+source = "git+https://github.com/godot-rust/gdext?branch=master#a0d579900308b87358b646df43c9100b36cc5ba6"
 dependencies = [
  "godot-bindings",
  "heck",
@@ -259,7 +259,7 @@ dependencies = [
 [[package]]
 name = "godot-core"
 version = "0.1.3"
-source = "git+https://github.com/godot-rust/gdext?branch=master#6e46fa49bd4b434ebb77e76bcd2e9d5a53ad60b7"
+source = "git+https://github.com/godot-rust/gdext?branch=master#a0d579900308b87358b646df43c9100b36cc5ba6"
 dependencies = [
  "glam",
  "godot-bindings",
@@ -272,7 +272,7 @@ dependencies = [
 [[package]]
 name = "godot-ffi"
 version = "0.1.3"
-source = "git+https://github.com/godot-rust/gdext?branch=master#6e46fa49bd4b434ebb77e76bcd2e9d5a53ad60b7"
+source = "git+https://github.com/godot-rust/gdext?branch=master#a0d579900308b87358b646df43c9100b36cc5ba6"
 dependencies = [
  "gensym",
  "godot-bindings",
@@ -284,7 +284,7 @@ dependencies = [
 [[package]]
 name = "godot-macros"
 version = "0.1.3"
-source = "git+https://github.com/godot-rust/gdext?branch=master#6e46fa49bd4b434ebb77e76bcd2e9d5a53ad60b7"
+source = "git+https://github.com/godot-rust/gdext?branch=master#a0d579900308b87358b646df43c9100b36cc5ba6"
 dependencies = [
  "godot-bindings",
  "markdown",
@@ -299,7 +299,7 @@ version = "0.8.0"
 dependencies = [
  "bincode",
  "godot",
- "hashbrown",
+ "hashbrown 0.14.5",
  "rapier2d",
  "rapier2d-f64",
  "rapier3d",
@@ -331,6 +331,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "hashbrown"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e087f84d4f86bf4b218b927129862374b72199ae7d8657835f1e89000eea4fb"
+
+[[package]]
 name = "heapless"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -348,12 +354,12 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
 name = "indexmap"
-version = "2.5.0"
+version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "68b900aa2f7301e21c36462b170ee99994de34dff39a4a6a528e80e7376d07e5"
+checksum = "707907fe3c25f5424cce2cb7e1cbcafee6bdbe735ca90ef77c29e84591e5b9da"
 dependencies = [
  "equivalent",
- "hashbrown",
+ "hashbrown 0.15.0",
  "serde",
 ]
 
@@ -530,9 +536,9 @@ dependencies = [
 
 [[package]]
 name = "once_cell"
-version = "1.19.0"
+version = "1.20.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3fdb12b2476b595f9358c5161aa467c2438859caa136dec86c26fdd2efe17b92"
+checksum = "1261fe7e33c73b354eab43b1273a57c8f967d0391e80353e51f764ac02cf6775"
 
 [[package]]
 name = "ordered-float"
@@ -545,8 +551,8 @@ dependencies = [
 
 [[package]]
 name = "parry2d"
-version = "0.17.0"
-source = "git+https://github.com/ughuuu/parry?branch=custom-changes#1de61d7fd8e42a3311a6e8f2a42ef79ac10692f1"
+version = "0.17.1"
+source = "git+https://github.com/ughuuu/parry?branch=custom-changes#4eb05f7b4267b0b8ce8508ef1f8d1ae44ef56360"
 dependencies = [
  "approx",
  "arrayvec",
@@ -570,8 +576,8 @@ dependencies = [
 
 [[package]]
 name = "parry2d-f64"
-version = "0.17.0"
-source = "git+https://github.com/ughuuu/parry?branch=custom-changes#1de61d7fd8e42a3311a6e8f2a42ef79ac10692f1"
+version = "0.17.1"
+source = "git+https://github.com/ughuuu/parry?branch=custom-changes#4eb05f7b4267b0b8ce8508ef1f8d1ae44ef56360"
 dependencies = [
  "approx",
  "arrayvec",
@@ -595,8 +601,8 @@ dependencies = [
 
 [[package]]
 name = "parry3d"
-version = "0.17.0"
-source = "git+https://github.com/ughuuu/parry?branch=custom-changes#1de61d7fd8e42a3311a6e8f2a42ef79ac10692f1"
+version = "0.17.1"
+source = "git+https://github.com/ughuuu/parry?branch=custom-changes#4eb05f7b4267b0b8ce8508ef1f8d1ae44ef56360"
 dependencies = [
  "approx",
  "arrayvec",
@@ -621,8 +627,8 @@ dependencies = [
 
 [[package]]
 name = "parry3d-f64"
-version = "0.17.0"
-source = "git+https://github.com/ughuuu/parry?branch=custom-changes#1de61d7fd8e42a3311a6e8f2a42ef79ac10692f1"
+version = "0.17.1"
+source = "git+https://github.com/ughuuu/parry?branch=custom-changes#4eb05f7b4267b0b8ce8508ef1f8d1ae44ef56360"
 dependencies = [
  "approx",
  "arrayvec",
@@ -653,9 +659,9 @@ checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.86"
+version = "1.0.87"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e719e8df665df0d1c8fbfd238015744736151d4445ec0836b8e628aae103b77"
+checksum = "b3e4daa0dcf6feba26f985457cdf104d4b4256fc5a09547140f3631bb076b19a"
 dependencies = [
  "unicode-ident",
 ]
@@ -672,7 +678,7 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.22.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#b8b38b1b1fc279d8aaa0efc6749c4ddf8bd036fb"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#d0ffd2a8a17901bd836b8aa98a107d7cb12b9249"
 dependencies = [
  "approx",
  "arrayvec",
@@ -697,7 +703,7 @@ dependencies = [
 [[package]]
 name = "rapier2d-f64"
 version = "0.22.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#b8b38b1b1fc279d8aaa0efc6749c4ddf8bd036fb"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#d0ffd2a8a17901bd836b8aa98a107d7cb12b9249"
 dependencies = [
  "approx",
  "arrayvec",
@@ -722,7 +728,7 @@ dependencies = [
 [[package]]
 name = "rapier3d"
 version = "0.22.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#b8b38b1b1fc279d8aaa0efc6749c4ddf8bd036fb"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#d0ffd2a8a17901bd836b8aa98a107d7cb12b9249"
 dependencies = [
  "approx",
  "arrayvec",
@@ -747,7 +753,7 @@ dependencies = [
 [[package]]
 name = "rapier3d-f64"
 version = "0.22.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#b8b38b1b1fc279d8aaa0efc6749c4ddf8bd036fb"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#d0ffd2a8a17901bd836b8aa98a107d7cb12b9249"
 dependencies = [
  "approx",
  "arrayvec",
@@ -797,9 +803,9 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.10.6"
+version = "1.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4219d74c6b67a3654a9fbebc4b419e22126d13d2f3c4a07ee0cb61ff79a79619"
+checksum = "38200e5ee88914975b69f657f0801b6f6dccafd44fd9326302a4aaeecfacb1d8"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -809,9 +815,9 @@ dependencies = [
 
 [[package]]
 name = "regex-automata"
-version = "0.4.7"
+version = "0.4.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "38caf58cc5ef2fed281f89292ef23f6365465ed9a41b7a7754eb4e26496c92df"
+checksum = "368758f23274712b504848e9d5a6f010445cc8b87a7cdb4d7cbee666c1288da3"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -820,9 +826,9 @@ dependencies = [
 
 [[package]]
 name = "regex-syntax"
-version = "0.8.4"
+version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7a66a03ae7c801facd77a29370b4faec201768915ac14a721ba36f20bc9c209b"
+checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 
 [[package]]
 name = "robust"
@@ -961,7 +967,7 @@ version = "2.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "93f5ef1f863aca7d1d7dda7ccfc36a0a4279bd6d3c375176e5e0712e25cb4889"
 dependencies = [
- "hashbrown",
+ "hashbrown 0.14.5",
  "num-traits",
  "robust",
  "smallvec",
@@ -975,9 +981,9 @@ checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
 
 [[package]]
 name = "syn"
-version = "2.0.77"
+version = "2.0.79"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f35bcdf61fd8e7be6caf75f429fdca8beb3ed76584befb503b1569faee373ed"
+checksum = "89132cd0bf050864e1d38dc3bbc07a0eb8e7530af26344d3d2bbbef83499f590"
 dependencies = [
  "proc-macro2",
  "quote",

@@ -67,17 +67,12 @@ pub struct ContactForceEventInfo {
     derive(serde::Serialize, serde::Deserialize)
 )]
 pub struct PhysicsObjects {
-    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     pub query_pipeline: QueryPipeline,
-    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     pub island_manager: IslandManager,
-    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     pub broad_phase: BroadPhaseMultiSap,
-    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     pub narrow_phase: NarrowPhase,
     pub impulse_joint_set: ImpulseJointSet,
     pub multibody_joint_set: MultibodyJointSet,
-    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     pub ccd_solver: CCDSolver,
 
     pub collider_set: ColliderSet,
@@ -186,10 +181,16 @@ impl PhysicsWorld {
             &mut self.physics_objects.impulse_joint_set,
             &mut self.physics_objects.multibody_joint_set,
             &mut self.physics_objects.ccd_solver,
-            Some(&mut self.physics_objects.query_pipeline),
+            // TODO for now incremental update increases memory usage forever
+            // https://github.com/appsinacup/godot-rapier-physics/issues/248
+            //Some(&mut self.physics_objects.query_pipeline),
+            None,
             &physics_hooks,
             &event_handler,
         );
+        self.physics_objects
+            .query_pipeline
+            .update(&self.physics_objects.collider_set);
         if self.fluids_pipeline.liquid_world.fluids().len() > 0 {
             self.fluids_pipeline.step(
                 &liquid_gravity,

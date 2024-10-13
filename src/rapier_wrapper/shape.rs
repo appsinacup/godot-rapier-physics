@@ -260,7 +260,7 @@ impl PhysicsEngine {
             indices.unwrap(),
             TriMeshFlags::FIX_INTERNAL_EDGES,
         );
-        self.insert_shape(shape, handle)
+        self.insert_shape(shape.unwrap(), handle)
     }
 
     #[cfg(feature = "dim2")]
