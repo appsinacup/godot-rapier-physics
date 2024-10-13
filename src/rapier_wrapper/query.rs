@@ -229,14 +229,6 @@ impl PhysicsEngine {
         shape_vel2: Vector<Real>,
         shape_info2: ShapeInfo,
     ) -> ShapeCastResult {
-        let mut shape_vel1 = shape_vel1;
-        if shape_vel1 == Vector::zeros() {
-            shape_vel1 = Vector::identity() * 1e-3;
-        }
-        let mut shape_vel2 = shape_vel2;
-        if shape_vel2 == Vector::zeros() {
-            shape_vel2 = -Vector::identity() * 1e-3;
-        }
         let mut result = ShapeCastResult::new();
         if let Some(raw_shared_shape1) = self.get_shape(shape_info1.handle) {
             let shared_shape1 = scale_shape(raw_shared_shape1, shape_info1);
@@ -246,6 +238,7 @@ impl PhysicsEngine {
                 let shape_transform2 = shape_info2.transform;
                 let shape_cast_options = ShapeCastOptions {
                     max_time_of_impact: 1.0,
+                    stop_at_penetration: true,
                     ..Default::default()
                 };
                 let toi_result = parry::query::cast_shapes(
@@ -289,10 +282,6 @@ impl PhysicsEngine {
         physics_ids: &PhysicsIds,
         space: &RapierSpace,
     ) -> ShapeCastResult {
-        let mut shape_vel = shape_vel;
-        if shape_vel == Vector::zeros() {
-            shape_vel = Vector::identity() * 1e-3;
-        }
         let mut result = ShapeCastResult::new();
         if let Some(raw_shared_shape) = self.get_shape(shape_info.handle) {
             let shared_shape = scale_shape(raw_shared_shape, shape_info);
@@ -317,7 +306,7 @@ impl PhysicsEngine {
                 filter.predicate = Some(&predicate);
                 let shape_cast_options = ShapeCastOptions {
                     max_time_of_impact: 1.0,
-                    stop_at_penetration: false,
+                    stop_at_penetration: true,
                     ..Default::default()
                 };
                 if let Some((collider_handle, hit)) =
