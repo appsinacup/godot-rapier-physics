@@ -1,9 +1,11 @@
 use std::ops::Mul;
 
 use godot::global::godot_error;
+use godot::global::godot_warn;
 use nalgebra::zero;
 use rapier::parry;
 use rapier::parry::query::ShapeCastOptions;
+use rapier::parry::query::ShapeCastStatus;
 use rapier::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
@@ -239,6 +241,7 @@ impl PhysicsEngine {
                 let shape_cast_options = ShapeCastOptions {
                     max_time_of_impact: 1.0,
                     stop_at_penetration: true,
+                    compute_impact_geometry_on_penetration: true,
                     ..Default::default()
                 };
                 let toi_result = parry::query::cast_shapes(
@@ -253,12 +256,19 @@ impl PhysicsEngine {
                 match toi_result {
                     Ok(None) => {}
                     Ok(Some(hit)) => {
+                        if hit.status == ShapeCastStatus::Failed
+                            || hit.status == ShapeCastStatus::OutOfIterations
+                        {
+                            godot_warn!("shape collide status warn: {:?}", hit.status);
+                        }
                         result.collided = true;
                         result.toi = hit.time_of_impact;
                         result.normal1 = hit.normal1.into_inner();
                         result.normal2 = hit.normal2.into_inner();
-                        result.pixel_witness1 = hit.witness1.coords;
-                        result.pixel_witness2 = hit.witness2.coords;
+                        result.pixel_witness1 =
+                            hit.witness1.coords + shape_info1.transform.translation.vector;
+                        result.pixel_witness2 =
+                            hit.witness2.coords + shape_info2.transform.translation.vector;
                     }
                     Err(err) => {
                         godot_error!("toi error: {:?}", err);
@@ -307,6 +317,7 @@ impl PhysicsEngine {
                 let shape_cast_options = ShapeCastOptions {
                     max_time_of_impact: 1.0,
                     stop_at_penetration: true,
+                    compute_impact_geometry_on_penetration: true,
                     ..Default::default()
                 };
                 if let Some((collider_handle, hit)) =
@@ -320,6 +331,11 @@ impl PhysicsEngine {
                         filter,
                     )
                 {
+                    if hit.status == ShapeCastStatus::Failed
+                        || hit.status == ShapeCastStatus::OutOfIterations
+                    {
+                        godot_warn!("shape casting status warn: {:?}", hit.status);
+                    }
                     result.collided = true;
                     result.toi = hit.time_of_impact;
                     result.normal1 = hit.normal1.into_inner();
