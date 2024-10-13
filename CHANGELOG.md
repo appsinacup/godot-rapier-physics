@@ -2,7 +2,12 @@
 
 ## v0.8.7
 
-- Add demo for state reload.
+- Update state reload test. Also add gdlint to ghactions step.
+- Fix crash in get_contact
+- Fix point warning and raycast slowdown
+- Fix shapecast at start not being detected
+- Fix case where contacts are missed
+- Finally implement unsafe fraction for all. 
 
 ## v0.8.6
 
