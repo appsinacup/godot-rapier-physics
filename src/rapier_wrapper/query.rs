@@ -35,10 +35,11 @@ pub struct PointHitInfo {
     pub collider: ColliderHandle,
     pub user_data: UserData,
 }
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct ShapeCastResult {
     pub collided: bool,
     pub toi: Real,
+    pub toi_unsafe: Real,
     pub pixel_witness1: Vector<Real>,
     pub pixel_witness2: Vector<Real>,
     pub normal1: Vector<Real>,
@@ -51,6 +52,7 @@ impl ShapeCastResult {
         ShapeCastResult {
             collided: false,
             toi: 1.0,
+            toi_unsafe: 1.0,
             collider: ColliderHandle::invalid(),
             pixel_witness1: zero(),
             pixel_witness2: zero(),
@@ -285,12 +287,14 @@ impl PhysicsEngine {
         world_handle: WorldHandle,
         shape_vel: Vector<Real>,
         shape_info: ShapeInfo,
+        margin: Real,
         collide_with_body: bool,
         collide_with_area: bool,
         handle_excluded_info: &QueryExcludedInfo,
         physics_collision_objects: &PhysicsCollisionObjects,
         physics_ids: &PhysicsIds,
         space: &RapierSpace,
+        needs_exact: bool,
     ) -> ShapeCastResult {
         let mut result = ShapeCastResult::new();
         if let Some(raw_shared_shape) = self.get_shape(shape_info.handle) {
@@ -314,49 +318,111 @@ impl PhysicsEngine {
                     )
                 };
                 filter.predicate = Some(&predicate);
-                let shape_cast_options = ShapeCastOptions {
-                    max_time_of_impact: 1.0,
-                    stop_at_penetration: true,
-                    compute_impact_geometry_on_penetration: true,
-                    ..Default::default()
-                };
-                if let Some((collider_handle, hit)) =
-                    physics_world.physics_objects.query_pipeline.cast_shape(
-                        &physics_world.physics_objects.rigid_body_set,
-                        &physics_world.physics_objects.collider_set,
-                        &shape_transform,
-                        &shape_vel,
-                        shared_shape.as_ref(),
-                        shape_cast_options,
-                        filter,
-                    )
-                {
-                    if hit.status == ShapeCastStatus::Failed
-                        || hit.status == ShapeCastStatus::OutOfIterations
-                    {
-                        godot_warn!("shape casting status warn: {:?}", hit.status);
-                    }
-                    result.collided = true;
-                    result.toi = hit.time_of_impact;
-                    result.normal1 = hit.normal1.into_inner();
-                    result.normal2 = hit.normal2.into_inner();
-                    result.collider = collider_handle;
-                    result.user_data = physics_world.get_collider_user_data(collider_handle);
-                    // first is in world space
-                    let witness1 = hit.witness1;
-                    // second is translated by collider transform
-                    let mut witness2 = hit.witness2;
-                    if let Some(collider) = physics_world
+                let velocity_size = shape_vel.magnitude();
+                if velocity_size < DEFAULT_EPSILON {
+                    if let Some(collider_handle) = physics_world
                         .physics_objects
-                        .collider_set
-                        .get(collider_handle)
+                        .query_pipeline
+                        .intersection_with_shape(
+                            &physics_world.physics_objects.rigid_body_set,
+                            &physics_world.physics_objects.collider_set,
+                            &shape_transform,
+                            shared_shape.as_ref(),
+                            filter,
+                        )
                     {
-                        witness2 += collider.position().translation.vector;
-                    } else {
-                        godot_error!("collider not found");
+                        result.collided = true;
+                        result.toi = 0.0;
+                        result.collider = collider_handle;
+                        result.user_data = physics_world.get_collider_user_data(collider_handle);
+                        if let Some(collider) = physics_world
+                            .physics_objects
+                            .collider_set
+                            .get(collider_handle)
+                        {
+                            let pos12 = shape_transform.inv_mul(collider.position());
+                            if let Ok(contact) = physics_world
+                                .physics_objects
+                                .query_pipeline
+                                .query_dispatcher()
+                                .contact(&pos12, shared_shape.as_ref(), collider.shape(), margin)
+                                && let Some(contact) = contact
+                            {
+                                result.normal1 = contact.normal1.into_inner();
+                                result.normal2 = contact.normal2.into_inner();
+                                result.pixel_witness1 = contact.point1.coords;
+                                result.pixel_witness2 =
+                                    contact.point2.coords + collider.position().translation.vector;
+                                //witness2 += collider.position().translation.vector;
+                            } else {
+                                godot_error!("contact error");
+                            }
+                        } else {
+                            godot_error!("collider not found");
+                        }
                     }
-                    result.pixel_witness1 = witness1.coords;
-                    result.pixel_witness2 = witness2.coords;
+                } else {
+                    let shape_cast_options = ShapeCastOptions {
+                        max_time_of_impact: 1.0,
+                        stop_at_penetration: true,
+                        compute_impact_geometry_on_penetration: true,
+                        target_distance: margin,
+                    };
+                    if let Some((collider_handle, hit)) =
+                        physics_world.physics_objects.query_pipeline.cast_shape(
+                            &physics_world.physics_objects.rigid_body_set,
+                            &physics_world.physics_objects.collider_set,
+                            &shape_transform,
+                            &shape_vel,
+                            shared_shape.as_ref(),
+                            shape_cast_options,
+                            filter,
+                        )
+                    {
+                        if hit.status == ShapeCastStatus::Failed
+                            || hit.status == ShapeCastStatus::OutOfIterations
+                        {
+                            godot_warn!("shape casting status warn: {:?}", hit.status);
+                        }
+                        result.collided = true;
+                        result.toi = hit.time_of_impact;
+                        result.toi_unsafe = hit.time_of_impact;
+                        result.normal1 = hit.normal1.into_inner();
+                        result.normal2 = hit.normal2.into_inner();
+                        result.collider = collider_handle;
+                        result.user_data = physics_world.get_collider_user_data(collider_handle);
+                        // first is in world space
+                        let witness1 = hit.witness1;
+                        // second is translated by collider transform
+                        let mut witness2 = hit.witness2;
+                        if let Some(collider) = physics_world
+                            .physics_objects
+                            .collider_set
+                            .get(collider_handle)
+                        {
+                            result.pixel_witness1 = witness1.coords;
+                            result.pixel_witness2 = witness2.coords;
+                            // the time of impact isn't exact. Compute unsafe time of impact.
+                            if needs_exact {
+                                let mut hit_transform = shape_transform;
+                                hit_transform.translation.vector += shape_vel * hit.time_of_impact;
+                                let pos12 = hit_transform.inv_mul(collider.position());
+                                // They are separated.
+                                if let Ok(distance) = physics_world
+                                    .physics_objects
+                                    .query_pipeline
+                                    .query_dispatcher()
+                                    .distance(&pos12, shared_shape.as_ref(), collider.shape())
+                                    && distance > DEFAULT_EPSILON
+                                {
+                                    result.toi_unsafe += distance / velocity_size;
+                                }
+                            }
+                            witness2 += collider.position().translation.vector;
+                        } else {
+                            godot_error!("collider not found");
+                        }
+                    }
                 }
             }
         }
