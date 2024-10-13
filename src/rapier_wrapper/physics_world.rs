@@ -181,6 +181,8 @@ impl PhysicsWorld {
             &mut self.physics_objects.impulse_joint_set,
             &mut self.physics_objects.multibody_joint_set,
             &mut self.physics_objects.ccd_solver,
+            // TODO for now incremental update increases memory usage forever
+            // https://github.com/appsinacup/godot-rapier-physics/issues/248
             //Some(&mut self.physics_objects.query_pipeline),
             None,
             &physics_hooks,
