@@ -224,7 +224,7 @@ checksum = "779ae4bf7e8421cf91c0b3b64e7e8b40b862fba4d393f59150042de7c4965a94"
 [[package]]
 name = "godot"
 version = "0.1.3"
-source = "git+https://github.com/godot-rust/gdext?branch=master#8ad9cb0ea877ccf7d4f34b17d87f0a1eb7c47f56"
+source = "git+https://github.com/godot-rust/gdext?branch=master#a0d579900308b87358b646df43c9100b36cc5ba6"
 dependencies = [
  "godot-core",
  "godot-macros",
@@ -233,7 +233,7 @@ dependencies = [
 [[package]]
 name = "godot-bindings"
 version = "0.1.3"
-source = "git+https://github.com/godot-rust/gdext?branch=master#8ad9cb0ea877ccf7d4f34b17d87f0a1eb7c47f56"
+source = "git+https://github.com/godot-rust/gdext?branch=master#a0d579900308b87358b646df43c9100b36cc5ba6"
 dependencies = [
  "gdextension-api",
 ]
@@ -241,12 +241,12 @@ dependencies = [
 [[package]]
 name = "godot-cell"
 version = "0.1.3"
-source = "git+https://github.com/godot-rust/gdext?branch=master#8ad9cb0ea877ccf7d4f34b17d87f0a1eb7c47f56"
+source = "git+https://github.com/godot-rust/gdext?branch=master#a0d579900308b87358b646df43c9100b36cc5ba6"
 
 [[package]]
 name = "godot-codegen"
 version = "0.1.3"
-source = "git+https://github.com/godot-rust/gdext?branch=master#8ad9cb0ea877ccf7d4f34b17d87f0a1eb7c47f56"
+source = "git+https://github.com/godot-rust/gdext?branch=master#a0d579900308b87358b646df43c9100b36cc5ba6"
 dependencies = [
  "godot-bindings",
  "heck",
@@ -259,7 +259,7 @@ dependencies = [
 [[package]]
 name = "godot-core"
 version = "0.1.3"
-source = "git+https://github.com/godot-rust/gdext?branch=master#8ad9cb0ea877ccf7d4f34b17d87f0a1eb7c47f56"
+source = "git+https://github.com/godot-rust/gdext?branch=master#a0d579900308b87358b646df43c9100b36cc5ba6"
 dependencies = [
  "glam",
  "godot-bindings",
@@ -272,7 +272,7 @@ dependencies = [
 [[package]]
 name = "godot-ffi"
 version = "0.1.3"
-source = "git+https://github.com/godot-rust/gdext?branch=master#8ad9cb0ea877ccf7d4f34b17d87f0a1eb7c47f56"
+source = "git+https://github.com/godot-rust/gdext?branch=master#a0d579900308b87358b646df43c9100b36cc5ba6"
 dependencies = [
  "gensym",
  "godot-bindings",
@@ -284,7 +284,7 @@ dependencies = [
 [[package]]
 name = "godot-macros"
 version = "0.1.3"
-source = "git+https://github.com/godot-rust/gdext?branch=master#8ad9cb0ea877ccf7d4f34b17d87f0a1eb7c47f56"
+source = "git+https://github.com/godot-rust/gdext?branch=master#a0d579900308b87358b646df43c9100b36cc5ba6"
 dependencies = [
  "godot-bindings",
  "markdown",
@@ -678,7 +678,7 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.22.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#e915ed05b37d90271fcd677f626b02a0680b62ae"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#d0ffd2a8a17901bd836b8aa98a107d7cb12b9249"
 dependencies = [
  "approx",
  "arrayvec",
@@ -703,7 +703,7 @@ dependencies = [
 [[package]]
 name = "rapier2d-f64"
 version = "0.22.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#e915ed05b37d90271fcd677f626b02a0680b62ae"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#d0ffd2a8a17901bd836b8aa98a107d7cb12b9249"
 dependencies = [
  "approx",
  "arrayvec",
@@ -728,7 +728,7 @@ dependencies = [
 [[package]]
 name = "rapier3d"
 version = "0.22.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#e915ed05b37d90271fcd677f626b02a0680b62ae"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#d0ffd2a8a17901bd836b8aa98a107d7cb12b9249"
 dependencies = [
  "approx",
  "arrayvec",
@@ -753,7 +753,7 @@ dependencies = [
 [[package]]
 name = "rapier3d-f64"
 version = "0.22.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#e915ed05b37d90271fcd677f626b02a0680b62ae"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes#d0ffd2a8a17901bd836b8aa98a107d7cb12b9249"
 dependencies = [
  "approx",
  "arrayvec",

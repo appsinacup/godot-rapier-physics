@@ -181,10 +181,14 @@ impl PhysicsWorld {
             &mut self.physics_objects.impulse_joint_set,
             &mut self.physics_objects.multibody_joint_set,
             &mut self.physics_objects.ccd_solver,
-            Some(&mut self.physics_objects.query_pipeline),
+            //Some(&mut self.physics_objects.query_pipeline),
+            None,
             &physics_hooks,
             &event_handler,
         );
+        self.physics_objects
+            .query_pipeline
+            .update(&self.physics_objects.collider_set);
         if self.fluids_pipeline.liquid_world.fluids().len() > 0 {
             self.fluids_pipeline.step(
                 &liquid_gravity,
