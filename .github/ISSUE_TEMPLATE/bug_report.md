@@ -23,9 +23,9 @@ A clear and concise description of what you expected to happen.
 
 **Environment:**
  - OS: [e.g. Windows]
- - Version [e.g. latest or v0.x]
- - Godot Version [e.g. v4.x]
- - Type [e.g. simd single 2d]
+ - Version: [e.g. latest or v0.x]
+ - Godot Version: [e.g. v4.x]
+ - Type: [e.g. simd single 2d]
 
 **Example project(zip)**
 
