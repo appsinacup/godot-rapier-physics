@@ -11,7 +11,7 @@ jobs:
       matrix:
         # disabled_arch: ["armv7-linux-androideabi"]
         arch: ["x86_64-linux-android", "aarch64-linux-android", "i686-linux-android"]
-        precision: [single]
+        precision: [single, double]
         dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
         features: [{"feature":"simd-stable,serde-serialize,experimental-threads", "name": "simd-parallel"}, {"feature":"enhanced-determinism,serde-serialize,experimental-threads", "name": "enhanced-determinism"}]
 

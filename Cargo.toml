@@ -14,6 +14,8 @@ default = ["build2d", "test"]
 test = []
 build2d = ["single-dim2", "serde-serialize", "simd-stable"]
 build3d = ["single-dim3", "serde-serialize", "simd-stable"]
+build2d-f64 = ["double-dim2", "serde-serialize", "simd-stable"]
+build3d-f64 = ["double-dim3", "serde-serialize", "simd-stable"]
 dim2 = []
 dim3 = []
 single = []
@@ -27,9 +29,9 @@ experimental-wasm-nothreads = ["godot/experimental-wasm-nothreads", "godot/lazy-
 experimental-wasm = ["godot/experimental-wasm", "godot/lazy-function-tables"]
 experimental-threads = ["godot/experimental-threads"]
 single-dim2 = ["single", "dim2", "rapier2d", "salva2d"]
-double-dim2 = ["double", "dim2", "rapier2d-f64", "salva2d"]
+double-dim2 = ["double", "dim2", "rapier2d-f64", "salva2d-f64"]
 single-dim3 = ["single", "dim3", "rapier3d", "salva3d"]
-double-dim3 = ["double", "dim3", "rapier3d-f64", "salva3d"]
+double-dim3 = ["double", "dim3", "rapier3d-f64", "salva3d-f64"]
 
 [dependencies]
 bincode = { version = "1", optional = true }
@@ -42,8 +44,10 @@ rapier2d = { git = "https://github.com/ughuuu/rapier", branch = "custom-changes"
 rapier2d-f64 = { git = "https://github.com/ughuuu/rapier", branch = "custom-changes", optional = true}
 rapier3d = { git = "https://github.com/ughuuu/rapier", branch = "custom-changes", optional = true}
 rapier3d-f64 = { git = "https://github.com/ughuuu/rapier", branch = "custom-changes", optional = true}
-salva2d = { git = "https://github.com/ughuuu/salva", branch = "use-rapier-master", features = ["rapier"], optional = true }
-salva3d = { git = "https://github.com/ughuuu/salva", branch = "use-rapier-master", features = ["rapier"], optional = true }
+salva2d = { git = "https://github.com/ughuuu/salva", branch = "custom-changes", features = ["rapier"], optional = true }
+salva2d-f64 = { git = "https://github.com/ughuuu/salva", branch = "custom-changes", features = ["rapier"], optional = true }
+salva3d = { git = "https://github.com/ughuuu/salva", branch = "custom-changes", features = ["rapier"], optional = true }
+salva3d-f64 = { git = "https://github.com/ughuuu/salva", branch = "custom-changes", features = ["rapier"], optional = true }
 serde = { version = "1.0", features = ["derive"], optional = true }
 serde_json = { version = "1.0", optional = true }
 
