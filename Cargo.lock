@@ -305,7 +305,9 @@ dependencies = [
  "rapier3d",
  "rapier3d-f64",
  "salva2d",
+ "salva2d-f64",
  "salva3d",
+ "salva3d-f64",
  "serde",
  "serde_json",
 ]
@@ -871,7 +873,7 @@ dependencies = [
 [[package]]
 name = "salva2d"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=use-rapier-master#24267a9c9fa1f3a6281b566db10288b6cf532528"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#976a349989c6c146906ca31c6ca1909140b17e49"
 dependencies = [
  "approx",
  "fnv",
@@ -885,9 +887,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "salva2d-f64"
+version = "0.9.0"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#976a349989c6c146906ca31c6ca1909140b17e49"
+dependencies = [
+ "approx",
+ "fnv",
+ "generational-arena",
+ "instant",
+ "itertools",
+ "nalgebra",
+ "num-traits",
+ "parry2d-f64",
+ "rapier2d-f64",
+]
+
+[[package]]
 name = "salva3d"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=use-rapier-master#24267a9c9fa1f3a6281b566db10288b6cf532528"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#976a349989c6c146906ca31c6ca1909140b17e49"
 dependencies = [
  "approx",
  "fnv",
@@ -898,6 +916,22 @@ dependencies = [
  "num-traits",
  "parry3d",
  "rapier3d",
+]
+
+[[package]]
+name = "salva3d-f64"
+version = "0.9.0"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#976a349989c6c146906ca31c6ca1909140b17e49"
+dependencies = [
+ "approx",
+ "fnv",
+ "generational-arena",
+ "instant",
+ "itertools",
+ "nalgebra",
+ "num-traits",
+ "parry3d-f64",
+ "rapier3d-f64",
 ]
 
 [[package]]
