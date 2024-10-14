@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.8.8
+
+- Fix points getting removed and empty points warning.
+
 ## v0.8.7
 
 - Update state reload test. Also add gdlint to ghactions step.
