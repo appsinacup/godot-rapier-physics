@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://d2qj82urtqssc"]
-
-[ext_resource type="Script" path="res://tests/nodes/Raycast/tests/collision_detection.gd" id="1_b4kw5"]
-
-[node name="collision_detection" type="Node2D"]
-script = ExtResource("1_b4kw5")
