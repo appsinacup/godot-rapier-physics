@@ -23,16 +23,6 @@ jobs:
         run: |
           cargo clippy --all-targets --features="build2d" --no-default-features -- -D warnings
 
-  clippy-2d-f64:
-    name: Clippy 2D
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Clippy 2D
-        shell: sh
-        run: |
-          cargo clippy --all-targets --features="build2d-f64" --no-default-features -- -D warnings
-
   clippy-3d:
     name: Clippy 3D
     runs-on: ubuntu-latest
@@ -43,16 +33,6 @@ jobs:
         run: |
           cargo clippy --all-targets --features="build3d" --no-default-features -- -D warnings
 
-  clippy-3d-f64:
-    name: Clippy 3D
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Clippy 3D
-        shell: sh
-        run: |
-          cargo clippy --all-targets --features="build3d-f64" --no-default-features -- -D warnings
-          
   gdlint:
     name: GDLint
     runs-on: ubuntu-latest

@@ -18,8 +18,8 @@ build2d-f64 = ["double-dim2", "serde-serialize", "simd-stable"]
 build3d-f64 = ["double-dim3", "serde-serialize", "simd-stable"]
 dim2 = []
 dim3 = []
-single = []
-double = ["godot/double-precision"]
+single = ["godot/api-4-3"]
+double = ["godot/double-precision", "godot/api-custom"]
 enhanced-determinism = ["rapier2d/enhanced-determinism", "rapier2d-f64/enhanced-determinism", "rapier3d/enhanced-determinism", "rapier3d-f64/enhanced-determinism"]
 serde-serialize = ["serde", "hashbrown/serde", "bincode", "serde_json", "godot/serde", "rapier2d/serde-serialize", "rapier2d-f64/serde-serialize", "rapier3d/serde-serialize", "rapier3d-f64/serde-serialize" ]
 simd-stable = ["rapier2d/simd-stable", "rapier2d-f64/simd-stable", "rapier3d/simd-stable", "rapier3d-f64/simd-stable"]
@@ -38,7 +38,7 @@ bincode = { version = "1", optional = true }
 hashbrown = { version = "0.14" }
 
 #godot = { git = "https://github.com/Ughuuu/gdext", branch = "remove-hook", features=["api-4-3", "register-docs", "experimental-threads"] }
-godot = { git = "https://github.com/godot-rust/gdext", branch = "master", features=["api-4-3", "register-docs"] }
+godot = { git = "https://github.com/godot-rust/gdext", branch = "master", features=["register-docs"] }
 
 rapier2d = { git = "https://github.com/ughuuu/rapier", branch = "custom-changes", optional = true }
 rapier2d-f64 = { git = "https://github.com/ughuuu/rapier", branch = "custom-changes", optional = true}
