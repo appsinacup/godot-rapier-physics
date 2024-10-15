@@ -411,7 +411,6 @@ impl RapierBody {
         } else {
             self.axis_lock & (!axis.ord() as u8)
         };
-        #[cfg(feature = "dim3")]
         self.apply_axis_lock(physics_engine);
     }
 
@@ -419,11 +418,6 @@ impl RapierBody {
     fn apply_axis_lock(&mut self, physics_engine: &mut PhysicsEngine) {
         if !self.base.is_valid() {
             return;
-        }
-        if self.base.mode == BodyMode::RIGID_LINEAR {
-            self.axis_lock |= LockedAxes::ROTATION_LOCKED.bits();
-        } else {
-            self.axis_lock &= !LockedAxes::ROTATION_LOCKED.bits();
         }
         if let Some(axis_lock) = LockedAxes::from_bits(self.axis_lock) {
             physics_engine.body_set_axis_lock(
