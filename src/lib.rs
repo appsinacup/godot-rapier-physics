@@ -12,11 +12,11 @@ extern crate rapier3d_f64 as rapier;
 #[cfg(all(feature = "single", feature = "dim2"))]
 extern crate salva2d as salva;
 #[cfg(all(feature = "double", feature = "dim2"))]
-extern crate salva2d as salva;
+extern crate salva2d_f64 as salva;
 #[cfg(all(feature = "single", feature = "dim3"))]
 extern crate salva3d as salva;
 #[cfg(all(feature = "double", feature = "dim3"))]
-extern crate salva3d as salva;
+extern crate salva3d_f64 as salva;
 mod bodies;
 mod fluids;
 mod joints;

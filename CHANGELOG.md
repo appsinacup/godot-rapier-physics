@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.8.9
+
+- Reduce size of builds
+
 ## v0.8.8
 
 - Fix points getting removed and empty points warning.

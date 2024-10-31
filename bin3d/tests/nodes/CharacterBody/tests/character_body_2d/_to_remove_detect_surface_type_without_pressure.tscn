@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://dnhgqjtnu71n"]
-
-[ext_resource type="Script" path="res://tests/nodes/CharacterBody/tests/character_body_2d/_to_remove_detect_surface_type_without_pressure.gd" id="1_qjnxc"]
-
-[node name="detect_wall_type_without_pressure" type="Node2D"]
-script = ExtResource("1_qjnxc")
