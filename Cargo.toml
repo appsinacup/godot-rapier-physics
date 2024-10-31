@@ -63,15 +63,15 @@ parry3d = {git = "https://github.com/ughuuu/parry", branch = "custom-changes"}
 parry3d-f64 = {git = "https://github.com/ughuuu/parry", branch = "custom-changes"}
 
 [profile.release]
-opt-level = 3
-debug = 2
+#opt-level = 3
+opt-level = "z"
+#debug = 2
 strip = "debuginfo"
 lto = "fat"
 codegen-units = 1
 
 [target.wasm32-unknown-emscripten.profile.release]
 opt-level = "z"
-debug = 0
 lto = "thin"
 strip = "symbols"
 codegen-units = 1
