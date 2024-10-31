@@ -666,7 +666,7 @@ dependencies = [
 [[package]]
 name = "parry2d"
 version = "0.17.1"
-source = "git+https://github.com/ughuuu/parry?branch=custom-changes#d1740e893f04f74fc767fe7d2311ed4acbae162a"
+source = "git+https://github.com/ughuuu/parry?branch=custom-changes#ced7f47a792fd9aa25217f3cfeabb64b89a3140c"
 dependencies = [
  "approx",
  "arrayvec",
@@ -691,7 +691,7 @@ dependencies = [
 [[package]]
 name = "parry2d-f64"
 version = "0.17.1"
-source = "git+https://github.com/ughuuu/parry?branch=custom-changes#d1740e893f04f74fc767fe7d2311ed4acbae162a"
+source = "git+https://github.com/ughuuu/parry?branch=custom-changes#ced7f47a792fd9aa25217f3cfeabb64b89a3140c"
 dependencies = [
  "approx",
  "arrayvec",
@@ -716,7 +716,7 @@ dependencies = [
 [[package]]
 name = "parry3d"
 version = "0.17.1"
-source = "git+https://github.com/ughuuu/parry?branch=custom-changes#d1740e893f04f74fc767fe7d2311ed4acbae162a"
+source = "git+https://github.com/ughuuu/parry?branch=custom-changes#ced7f47a792fd9aa25217f3cfeabb64b89a3140c"
 dependencies = [
  "approx",
  "arrayvec",
@@ -742,7 +742,7 @@ dependencies = [
 [[package]]
 name = "parry3d-f64"
 version = "0.17.1"
-source = "git+https://github.com/ughuuu/parry?branch=custom-changes#d1740e893f04f74fc767fe7d2311ed4acbae162a"
+source = "git+https://github.com/ughuuu/parry?branch=custom-changes#ced7f47a792fd9aa25217f3cfeabb64b89a3140c"
 dependencies = [
  "approx",
  "arrayvec",
