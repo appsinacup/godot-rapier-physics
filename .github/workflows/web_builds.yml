@@ -10,7 +10,7 @@ jobs:
       fail-fast: false
       matrix:
         arch: ["wasm32-unknown-emscripten"]
-        precision: [single] #, double]
+        precision: [single, double]
         build_param: [
           { "feature": "experimental-wasm", "folder": "" },
           { "feature": "experimental-wasm,experimental-wasm-nothreads", "folder": "wasm-nothreads" } ]
@@ -59,3 +59,10 @@ jobs:
             bin${{ matrix.dimensions.short }}/**/*.wasm
           if-no-files-found: error
     
+      - name: Upload Static
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch }}-${{ matrix.build_param.folder }}
+          path: |
+            bin${{ matrix.dimensions.short }}/**/*.wasm
+          if-no-files-found: error

@@ -11,7 +11,7 @@ jobs:
       matrix:
         #arch: ["i686-unknown-linux-gnu", "aarch64-unknown-linux-gnu"]
         arch: ["x86_64-unknown-linux-gnu"]
-        precision: [single] #, double]
+        precision: [single, double]
         dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
         features: [{"feature":"simd-stable,serde-serialize,experimental-threads", "name": "simd-parallel"}, {"feature":"enhanced-determinism,serde-serialize,experimental-threads", "name": "enhanced-determinism"}]
 
@@ -41,5 +41,12 @@ jobs:
           name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch}}
           path: |
             bin${{ matrix.dimensions.short }}/**/*.so
+          if-no-files-found: error
+      - name: Upload Static
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch}}
+          path: |
+            bin${{ matrix.dimensions.short }}/**/*.a
           if-no-files-found: error
     

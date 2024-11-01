@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        precision: [single] #, double]
+        precision: [single, double]
         dimensions: ["2d", "3d"]
         features: ["simd-parallel", "enhanced-determinism"]
 
