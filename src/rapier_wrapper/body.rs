@@ -266,13 +266,23 @@ impl PhysicsEngine {
                     .collider_set
                     .get_mut(*collider)
                 {
-                    col.set_friction(mat.friction);
-                    col.set_restitution(mat.restitution);
-                    col.set_contact_skin(mat.contact_skin);
-                    col.set_collision_groups(InteractionGroups {
-                        memberships: Group::from(mat.collision_layer),
-                        filter: Group::from(mat.collision_mask),
-                    });
+                    if let Some(friction) = mat.friction {
+                        col.set_friction(friction);
+                    }
+                    if let Some(restitution) = mat.restitution {
+                        col.set_restitution(restitution);
+                    }
+                    if let Some(contact_skin) = mat.contact_skin {
+                        col.set_contact_skin(contact_skin);
+                    }
+                    if let Some(collision_mask) = mat.collision_mask
+                        && let Some(collision_layer) = mat.collision_layer
+                    {
+                        col.set_collision_groups(InteractionGroups {
+                            memberships: Group::from(collision_layer),
+                            filter: Group::from(collision_mask),
+                        });
+                    }
                 }
             }
             body.wake_up(false);

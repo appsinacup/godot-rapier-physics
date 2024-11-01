@@ -2228,11 +2228,11 @@ impl IRapierCollisionObject for RapierBody {
 
     fn init_material(&self) -> Material {
         Material {
-            friction: self.friction,
-            restitution: self.bounce,
-            contact_skin: self.contact_skin,
-            collision_layer: self.base.get_collision_layer(),
-            collision_mask: self.base.get_collision_mask(),
+            friction: Some(self.friction),
+            restitution: Some(self.bounce),
+            contact_skin: Some(self.contact_skin),
+            collision_layer: Some(self.base.get_collision_layer()),
+            collision_mask: Some(self.base.get_collision_mask()),
         }
     }
 
