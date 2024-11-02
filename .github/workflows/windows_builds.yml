@@ -37,7 +37,7 @@ jobs:
       - name: Upload Static
         uses: actions/upload-artifact@v4
         with:
-          name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch }}
+          name: static-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch }}
           path: |
             bin${{ matrix.dimensions.short }}/**/*.a
           if-no-files-found: error
