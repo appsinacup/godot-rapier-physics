@@ -26,6 +26,7 @@ jobs:
         run: |
           ls target/release
           mv target/release/godot_rapier.dll bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.windows.${{ matrix.arch }}.dll
+          mv target/release/godot_rapier.a bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.windows.${{ matrix.arch }}.a
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
@@ -38,5 +39,5 @@ jobs:
         with:
           name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch }}
           path: |
-            bin${{ matrix.dimensions.short }}/**/*.lib
+            bin${{ matrix.dimensions.short }}/**/*.a
           if-no-files-found: error

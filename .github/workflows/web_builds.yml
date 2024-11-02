@@ -62,7 +62,7 @@ jobs:
       - name: Upload Static
         uses: actions/upload-artifact@v4
         with:
-          name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch }}-${{ matrix.build_param.folder }}
+          name: static-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch }}-${{ matrix.build_param.folder }}
           path: |
-            bin${{ matrix.dimensions.short }}/**/*.wasm
+            bin${{ matrix.dimensions.short }}/**/*.a
           if-no-files-found: error

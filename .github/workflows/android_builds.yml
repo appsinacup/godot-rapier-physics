@@ -9,7 +9,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # disabled_arch: ["armv7-linux-androideabi"]
         arch: ["x86_64-linux-android", "aarch64-linux-android", "i686-linux-android"]
         precision: [single, double]
         dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
@@ -52,6 +51,7 @@ jobs:
         shell: sh
         run: |
           mv target/release/libgodot_rapier.so bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.android.${{ matrix.arch }}.so
+          mv target/release/libgodot_rapier.a bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.android.${{ matrix.arch }}.a
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
@@ -62,7 +62,7 @@ jobs:
       - name: Upload Static
         uses: actions/upload-artifact@v4
         with:
-          name: godot-static-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch }}
+          name: static-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch }}
           path: |
             bin${{ matrix.dimensions.short }}/**/*.a
           if-no-files-found: error
