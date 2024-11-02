@@ -25,6 +25,7 @@ jobs:
       - name: 🔬 Verify Setup
         run: |
           godot --version
+          which godot
       - name: "Install dependencies"
         shell: sh
         run: |

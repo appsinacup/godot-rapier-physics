@@ -24,6 +24,7 @@ jobs:
       - name: 🔬 Verify Setup
         run: |
           godot --version
+          which godot
       - name: Build
         uses: ./.github/actions/build
         with:
