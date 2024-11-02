@@ -26,7 +26,7 @@ jobs:
         run: |
           ls target/release
           mv target/release/godot_rapier.dll bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.windows.${{ matrix.arch }}.dll
-          mv target/release/godot_rapier.a bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.windows.${{ matrix.arch }}.a
+          mv target/release/godot_rapier.lib bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.windows.${{ matrix.arch }}.a
       - name: Upload
         uses: actions/upload-artifact@v4
         with:

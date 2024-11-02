@@ -51,6 +51,7 @@ jobs:
         shell: sh
         run: |
           mv target/release/godot_rapier.wasm bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/${{ matrix.build_param.folder }}/godot_rapier.wasm
+          mv target/release/godot_rapier.a bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/${{ matrix.build_param.folder }}/godot_rapier.a
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
