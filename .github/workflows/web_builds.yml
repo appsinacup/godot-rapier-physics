@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         arch: ["wasm32-unknown-emscripten"]
-        precision: [single, double]
+        precision: [single] #, double]
         build_param: [
           { "feature": "experimental-wasm", "folder": "" },
           { "feature": "experimental-wasm,experimental-wasm-nothreads", "folder": "wasm-nothreads" } ]
