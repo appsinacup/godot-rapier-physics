@@ -3,7 +3,7 @@ on:
   workflow_call:
 
 env:
-  GODOT4_BIN: godot
+  GODOT4_BIN: C:\Users\runneradmin\bin\godot.exe
 
 jobs:
   build-windows:
@@ -27,6 +27,9 @@ jobs:
       - name: 🔬 Verify Setup
         run: |
           godot --version
+          godot.exe --version
+          echo "version"
+          C:\Users\runneradmin\bin\godot.exe --version
           which godot
           choco install llvm
       - name: Build
