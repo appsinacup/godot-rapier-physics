@@ -27,9 +27,9 @@ jobs:
       - name: 🔬 Verify Setup
         run: |
           godot --version
-          godot.exe --version
           echo "version"
           C:\Users\runneradmin\bin\godot.exe --version
+          echo "version"
           which godot
           choco install llvm
       - name: Build
