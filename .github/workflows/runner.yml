@@ -53,6 +53,7 @@ jobs:
     name: Merge
     needs: [android-build, ios-build, linux-build, macos-build, windows-build, godot-build, web-build]
     steps:
+      # dynamic
       - uses: actions/upload-artifact/merge@v4
         with:
           name: godot-rapier-2d-single-simd-parallel
@@ -69,6 +70,23 @@ jobs:
         with:
           name: godot-rapier-3d-single-enhanced-determinism
           pattern: godot-rapier-3d-single-enhanced-determinism-*
+      # static
+      - uses: actions/upload-artifact/merge@v4
+        with:
+          name: static-rapier-2d-single-simd-parallel
+          path: static-rapier-2d-single-simd-parallel
+      - uses: actions/upload-artifact/merge@v4
+        with:
+          name: static-rapier-2d-single-enhanced-determinism
+          path: static-rapier-2d-single-enhanced-determinism
+      - uses: actions/upload-artifact/merge@v4
+        with:
+          name: static-rapier-3d-single-simd-parallel
+          path: static-rapier-3d-single-simd-parallel
+      - uses: actions/upload-artifact/merge@v4
+        with:
+          name: static-rapier-3d-single-enhanced-determinism
+          path: static-rapier-3d-single-enhanced-determinism
 
   release:
     name: Create Release
