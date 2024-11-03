@@ -25,6 +25,7 @@ jobs:
         run: |
           godot --version
           which godot
+          GODOT4_BIN=godot
       - name: Build
         uses: ./.github/actions/build
         with:

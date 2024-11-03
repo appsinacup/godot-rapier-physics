@@ -26,6 +26,7 @@ jobs:
         run: |
           godot --version
           which godot
+          GODOT4_BIN=godot
       - name: "Install dependencies"
         shell: sh
         run: |
