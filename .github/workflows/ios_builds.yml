@@ -4,6 +4,7 @@ on:
 
 env:
   GODOT4_BIN: godot
+  LLVM_PATH: /opt/homebrew/opt/llvm/bin
 
 jobs:
   ios:
