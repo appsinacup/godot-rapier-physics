@@ -74,19 +74,19 @@ jobs:
       - uses: actions/upload-artifact/merge@v4
         with:
           name: static-rapier-2d-single-simd-parallel
-          pattern: static-rapier-2d-single-simd-parallel
+          pattern: static-rapier-2d-single-simd-parallel-*
       - uses: actions/upload-artifact/merge@v4
         with:
           name: static-rapier-2d-single-enhanced-determinism
-          pattern: static-rapier-2d-single-enhanced-determinism
+          pattern: static-rapier-2d-single-enhanced-determinism-*
       - uses: actions/upload-artifact/merge@v4
         with:
           name: static-rapier-3d-single-simd-parallel
-          pattern: static-rapier-3d-single-simd-parallel
+          pattern: static-rapier-3d-single-simd-parallel-*
       - uses: actions/upload-artifact/merge@v4
         with:
           name: static-rapier-3d-single-enhanced-determinism
-          pattern: static-rapier-3d-single-enhanced-determinism
+          pattern: static-rapier-3d-single-enhanced-determinism-*
 
   release:
     name: Create Release
