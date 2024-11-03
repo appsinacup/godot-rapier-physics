@@ -1,0 +1,24 @@
+name: Module Builds
+on:
+  workflow_call:
+
+jobs:
+  godot:
+    runs-on: "ubuntu-latest"
+    name: ${{ matrix.dimensions }} ${{ matrix.precision }} ${{ matrix.features }}
+    strategy:
+      fail-fast: false
+      matrix:
+        precision: [single] #, double]
+        dimensions: ["2d", "3d"]
+        features: ["simd-parallel", "enhanced-determinism"]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-rapier-${{ matrix.dimensions }}-${{ matrix.precision }}-${{ matrix.features }}-module
+          path: |
+            module
+          if-no-files-found: error
