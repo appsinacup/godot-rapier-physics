@@ -2,6 +2,9 @@ name: 🌐 Web Builds
 on:
   workflow_call:
 
+env:
+  GODOT4_BIN: godot
+
 jobs:
   web:
     runs-on: ubuntu-20.04

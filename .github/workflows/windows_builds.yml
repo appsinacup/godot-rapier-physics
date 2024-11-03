@@ -2,6 +2,9 @@ name: 🏁 Windows Builds
 on:
   workflow_call:
 
+env:
+  GODOT4_BIN: godot
+
 jobs:
   build-windows:
     runs-on: "windows-latest"
@@ -25,7 +28,6 @@ jobs:
         run: |
           godot --version
           which godot
-          GODOT4_BIN=godot
       - name: Build
         uses: ./.github/actions/build
         with:

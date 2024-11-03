@@ -2,6 +2,9 @@ name: 🍎 macOS Builds
 on:
   workflow_call:
 
+env:
+  GODOT4_BIN: godot
+
 jobs:
   macos:
     runs-on: "macos-latest"

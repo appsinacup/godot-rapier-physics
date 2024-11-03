@@ -2,6 +2,9 @@ name: 🤖 Android Builds
 on:
   workflow_call:
 
+env:
+  GODOT4_BIN: godot
+
 jobs:
   android:
     runs-on: "ubuntu-20.04"
