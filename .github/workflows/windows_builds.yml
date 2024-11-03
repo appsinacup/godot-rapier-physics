@@ -19,19 +19,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: chickensoft-games/setup-godot@v1
-        name: 🤖 Setup Godot
-        with:
-          version: 4.3.0
-          use-dotnet: false
-      - name: 🔬 Verify Setup
-        run: |
-          godot --version
-          echo "version"
-          C:\Users\runneradmin\bin\godot.exe --version
-          echo "version"
-          which godot
-          choco install llvm
+      #- name: 🔬 Verify Setup
+      #  run: |
+      #    choco install llvm
       - name: Build
         uses: ./.github/actions/build
         with:

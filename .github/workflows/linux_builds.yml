@@ -20,16 +20,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: chickensoft-games/setup-godot@v1
-        name: 🤖 Setup Godot
-        with:
-          version: 4.3.0
-          use-dotnet: false
-      - name: 🔬 Verify Setup
-        run: |
-          godot --version
-          which godot
-          GODOT4_BIN=godot
+      #- uses: chickensoft-games/setup-godot@v1
+      #  name: 🤖 Setup Godot
+      #  with:
+      #    version: 4.3.0
+      #    use-dotnet: false
+      #- name: 🔬 Verify Setup
+      #  run: |
+      #    godot --version
+      #    which godot
+      #    GODOT4_BIN=godot
       - name: "Install dependencies"
         shell: sh
         run: |
