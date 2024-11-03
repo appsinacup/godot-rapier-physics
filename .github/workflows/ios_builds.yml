@@ -30,6 +30,7 @@ jobs:
           which godot
           GODOT4_BIN=godot
           brew install llvm
+          brew link llvm
       - name: Build
         uses: ./.github/actions/build
         with:
