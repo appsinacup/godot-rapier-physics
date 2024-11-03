@@ -28,6 +28,7 @@ jobs:
         run: |
           godot --version
           which godot
+          choco install llvm
       - name: Build
         uses: ./.github/actions/build
         with:
