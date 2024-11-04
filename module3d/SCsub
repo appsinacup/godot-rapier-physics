@@ -17,17 +17,17 @@ def get_sufix():
 
 # Libraries
 if env["platform"] == "macos" or env["platform"] == "ios":
-    base_path = "#modules/rapier/bin/addons/my_library/bin/libmy_library{}.framework".format(get_sufix())
+    base_path = "#modules/rapier_3d/bin/addons/rapier_3d/bin/librapier_3d{}.framework".format(get_sufix())
     base_file = "libgodot_riscv{}".format(get_sufix())
 else:
-    base_path = "#modules/rapier/bin/addons/my_library/bin"
+    base_path = "#modules/rapier_3d/bin/addons/rapier_3d/bin"
     base_file = "libgodot_riscv{}".format(get_sufix())
 
 env.Append(LIBS=[base_file])
 env.Append(LIBPATH=[base_path])
 
 # Godot-cpp
-base_path = "#modules/rapier/ext/godot-cpp/bin"
+base_path = "#modules/rapier_3d/ext/godot-cpp/bin"
 base_file = "libgodot-cpp{}".format(get_sufix())
 
 env.Append(LIBS=[base_file])

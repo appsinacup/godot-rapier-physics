@@ -21,7 +21,7 @@ void initialize_sandbox_module(ModuleInitializationLevel p_level) {
 	Ref<GDExtensionStaticLibraryLoader> loader;
 	loader.instantiate();
 	loader->set_entry_funcptr((void*)&gdext_rust_init);
-	GDExtensionManager::get_singleton()->load_extension_with_loader("rapier", loader);
+	GDExtensionManager::get_singleton()->load_extension_with_loader("rapier_3d", loader);
 }
 
 void uninitialize_sandbox_module(ModuleInitializationLevel p_level) {
