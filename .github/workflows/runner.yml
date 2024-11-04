@@ -44,6 +44,10 @@ jobs:
     name:  Godot
     uses: ./.github/workflows/godot_builds.yml
 
+  module-build:
+    name:  Module
+    uses: ./.github/workflows/module_builds.yml
+
   web-build:
     name: 🌐 Web Builds
     uses: ./.github/workflows/web_builds.yml
@@ -51,8 +55,9 @@ jobs:
   merge:
     runs-on: ubuntu-latest
     name: Merge
-    needs: [android-build, ios-build, linux-build, macos-build, windows-build, godot-build, web-build]
+    needs: [android-build, ios-build, linux-build, macos-build, windows-build, godot-build, module-build, web-build]
     steps:
+      # dynamic
       - uses: actions/upload-artifact/merge@v4
         with:
           name: godot-rapier-2d-single-simd-parallel
@@ -69,6 +74,23 @@ jobs:
         with:
           name: godot-rapier-3d-single-enhanced-determinism
           pattern: godot-rapier-3d-single-enhanced-determinism-*
+      # static
+      - uses: actions/upload-artifact/merge@v4
+        with:
+          name: static-rapier-2d-single-simd-parallel
+          pattern: static-rapier-2d-single-simd-parallel-*
+      - uses: actions/upload-artifact/merge@v4
+        with:
+          name: static-rapier-2d-single-enhanced-determinism
+          pattern: static-rapier-2d-single-enhanced-determinism-*
+      - uses: actions/upload-artifact/merge@v4
+        with:
+          name: static-rapier-3d-single-simd-parallel
+          pattern: static-rapier-3d-single-simd-parallel-*
+      - uses: actions/upload-artifact/merge@v4
+        with:
+          name: static-rapier-3d-single-enhanced-determinism
+          pattern: static-rapier-3d-single-enhanced-determinism-*
 
   release:
     name: Create Release
@@ -77,8 +99,3 @@ jobs:
     needs: [merge]
     uses: ./.github/workflows/release.yml
     if: github.ref == 'refs/heads/main'
-  
-  deploy:
-    name: Deploy Release to Godot Asset Library
-    uses: ./.github/workflows/deploy.yml
-    if: startsWith(github.event.ref, 'refs/tags/v')

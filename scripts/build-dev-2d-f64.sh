@@ -1,5 +1,7 @@
 cargo fmt -- --config-path rustfmt.toml
 cargo clippy --fix --allow-dirty
+export GODOT4_BIN=godot
+export LLVM_PATH=/opt/homebrew/opt/llvm/bin
 if [ "${OSTYPE#darwin}" != "$OSTYPE" ]; then
     cargo build --features="build2d-f64,test" --no-default-features
     echo "Running on macOS"

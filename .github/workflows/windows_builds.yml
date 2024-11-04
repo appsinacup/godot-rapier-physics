@@ -2,6 +2,9 @@ name: 🏁 Windows Builds
 on:
   workflow_call:
 
+env:
+  GODOT4_BIN: C:\Users\runneradmin\bin\godot.exe
+
 jobs:
   build-windows:
     runs-on: "windows-latest"
@@ -16,6 +19,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      #- name: 🔬 Verify Setup
+      #  run: |
+      #    choco install llvm
       - name: Build
         uses: ./.github/actions/build
         with:
@@ -26,10 +32,18 @@ jobs:
         run: |
           ls target/release
           mv target/release/godot_rapier.dll bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.windows.${{ matrix.arch }}.dll
+          mv target/release/godot_rapier.lib bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.windows.${{ matrix.arch }}.a
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch }}
           path: |
             bin${{ matrix.dimensions.short }}/**/*.dll
+          if-no-files-found: error
+      - name: Upload Static
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch }}
+          path: |
+            bin${{ matrix.dimensions.short }}/**/*.a
           if-no-files-found: error

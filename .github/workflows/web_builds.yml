@@ -2,6 +2,9 @@ name: 🌐 Web Builds
 on:
   workflow_call:
 
+env:
+  GODOT4_BIN: godot
+
 jobs:
   web:
     runs-on: ubuntu-20.04
@@ -19,7 +22,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
+      #- uses: chickensoft-games/setup-godot@v1
+      #  name: 🤖 Setup Godot
+      #  with:
+      #    version: 4.3.0
+      #    use-dotnet: false
+      #- name: 🔬 Verify Setup
+      #  run: |
+      #    godot --version
+      #    which godot
+      #    GODOT4_BIN=godot
       - name: Set up Emscripten latest
         uses: mymindstorm/setup-emsdk@v14
         with:
@@ -50,7 +62,9 @@ jobs:
       - name: Copy to bin
         shell: sh
         run: |
+          ls target/release
           mv target/release/godot_rapier.wasm bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/${{ matrix.build_param.folder }}/godot_rapier.wasm
+          mv target/release/libgodot_rapier.a bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/${{ matrix.build_param.folder }}/libgodot_rapier.a
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
@@ -59,3 +73,10 @@ jobs:
             bin${{ matrix.dimensions.short }}/**/*.wasm
           if-no-files-found: error
     
+      - name: Upload Static
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch }}-${{ matrix.build_param.folder }}
+          path: |
+            bin${{ matrix.dimensions.short }}/**/*.a
+          if-no-files-found: error

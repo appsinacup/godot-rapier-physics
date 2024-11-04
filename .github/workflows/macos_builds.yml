@@ -2,6 +2,10 @@ name: 🍎 macOS Builds
 on:
   workflow_call:
 
+env:
+  GODOT4_BIN: godot
+  LLVM_PATH: /opt/homebrew/opt/llvm/bin
+
 jobs:
   macos:
     runs-on: "macos-latest"
@@ -16,6 +20,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      #- uses: chickensoft-games/setup-godot@v1
+      #  name: 🤖 Setup Godot
+      #  with:
+      #    version: 4.3.0
+      #    use-dotnet: false
+      #- name: 🔬 Verify Setup
+      #  run: |
+      #    godot --version
+      #    which godot
+      #    GODOT4_BIN=godot
+      #    brew install llvm
+      #    brew link llvm
       - name: Build
         uses: ./.github/actions/build
         with:
@@ -25,6 +41,8 @@ jobs:
         shell: sh
         run: |
           mv target/release/libgodot_rapier.dylib bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
+          mv target/release/libgodot_rapier.arm64.a bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.arm64.a
+          mv target/release/libgodot_rapier.x86_64.a bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.x86_64.a
       - name: Mac Sign
         uses: ughuuu/godot-cpp-template/.github/actions/sign@add-more-stuff/options-to-build
         with:
@@ -44,4 +62,12 @@ jobs:
           path: |
             bin${{ matrix.dimensions.short }}/**/*.dylib
             bin${{ matrix.dimensions.short }}/**/CodeResources
+          if-no-files-found: error
+
+      - name: Upload Static
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch}}
+          path: |
+            bin${{ matrix.dimensions.short }}/**/*.a
           if-no-files-found: error

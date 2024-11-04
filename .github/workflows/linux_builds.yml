@@ -2,6 +2,9 @@ name: 🐧 Linux Builds
 on:
   workflow_call:
 
+env:
+  GODOT4_BIN: godot
+
 jobs:
   linux:
     runs-on: ubuntu-20.04
@@ -17,6 +20,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      #- uses: chickensoft-games/setup-godot@v1
+      #  name: 🤖 Setup Godot
+      #  with:
+      #    version: 4.3.0
+      #    use-dotnet: false
+      #- name: 🔬 Verify Setup
+      #  run: |
+      #    godot --version
+      #    which godot
+      #    GODOT4_BIN=godot
       - name: "Install dependencies"
         shell: sh
         run: |
@@ -35,11 +48,19 @@ jobs:
         shell: sh
         run: |
           mv target/release/libgodot_rapier.so bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.linux.${{ matrix.arch }}.so
+          mv target/release/libgodot_rapier.a bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.linux.${{ matrix.arch }}.a
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch}}
           path: |
             bin${{ matrix.dimensions.short }}/**/*.so
+          if-no-files-found: error
+      - name: Upload Static
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch}}
+          path: |
+            bin${{ matrix.dimensions.short }}/**/*.a
           if-no-files-found: error
     

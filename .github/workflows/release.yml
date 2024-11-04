@@ -9,6 +9,7 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      # dynamic
       - name: Download artifacts 2d enchanced
         uses: actions/download-artifact@v4
         with:
@@ -37,6 +38,35 @@ jobs:
           merge-multiple: true
           path: godot-rapier-3d-single-simd-parallel
           name: godot-rapier-3d-single-simd-parallel
+      # static
+      - name: Download artifacts 2d enchanced static
+        uses: actions/download-artifact@v4
+        with:
+          pattern: static-rapier-2d-single-enhanced-determinism-*
+          merge-multiple: true
+          path: static-rapier-2d-single-enhanced-determinism
+          name: static-rapier-2d-single-enhanced-determinism
+      - name: Download artifacts 2d parallel 
+        uses: actions/download-artifact@v4
+        with:
+          pattern: static-rapier-2d-single-simd-parallel-*
+          merge-multiple: true
+          path: static-rapier-2d-single-simd-parallel
+          name: static-rapier-2d-single-simd-parallel
+      - name: Download artifacts 3d enchanced static
+        uses: actions/download-artifact@v4
+        with:
+          pattern: static-rapier-3d-single-enhanced-determinism-*
+          merge-multiple: true
+          path: static-rapier-3d-single-enhanced-determinism
+          name: static-rapier-3d-single-enhanced-determinism
+      - name: Download artifacts 3d parallel static
+        uses: actions/download-artifact@v4
+        with:
+          pattern: static-rapier-3d-single-simd-parallel-*
+          merge-multiple: true
+          path: static-rapier-3d-single-simd-parallel
+          name: static-rapier-3d-single-simd-parallel
       - name: Delete draft release(s)
         uses: hugo19941994/delete-draft-releases@v1.0.0
         env:
@@ -45,10 +75,16 @@ jobs:
         shell: sh
         run: |
           ls
+          # dynamic
           zip -r "godot-rapier-2d-single-enhanced-determinism.zip" godot-rapier-2d-single-enhanced-determinism
           zip -r "godot-rapier-2d-single-simd-parallel.zip" godot-rapier-2d-single-simd-parallel
           zip -r "godot-rapier-3d-single-enhanced-determinism.zip" godot-rapier-3d-single-enhanced-determinism
           zip -r "godot-rapier-3d-single-simd-parallel.zip" godot-rapier-3d-single-simd-parallel
+          # static
+          zip -r "static-rapier-2d-single-enhanced-determinism.zip" static-rapier-2d-single-enhanced-determinism
+          zip -r "static-rapier-2d-single-simd-parallel.zip" static-rapier-2d-single-simd-parallel
+          zip -r "static-rapier-3d-single-enhanced-determinism.zip" static-rapier-3d-single-enhanced-determinism
+          zip -r "static-rapier-3d-single-simd-parallel.zip" static-rapier-3d-single-simd-parallel
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
@@ -58,6 +94,10 @@ jobs:
             godot-rapier-2d-single-simd-parallel.zip
             godot-rapier-3d-single-enhanced-determinism.zip
             godot-rapier-3d-single-simd-parallel.zip
+            static-rapier-2d-single-enhanced-determinism.zip
+            static-rapier-2d-single-simd-parallel.zip
+            static-rapier-3d-single-enhanced-determinism.zip
+            static-rapier-3d-single-simd-parallel.zip
           generate_release_notes: true
           draft: true
           prerelease: true

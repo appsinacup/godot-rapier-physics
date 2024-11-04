@@ -7,7 +7,7 @@ rust-version = "1.82"
 publish = false
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "staticlib"]
 
 [features]
 default = ["build2d", "test"]

@@ -40,3 +40,9 @@ runs:
         rustup target add aarch64-apple-darwin
         cargo build --target=aarch64-apple-darwin --release --features="${{ inputs.features }}" --no-default-features
         lipo -create -output target/release/libgodot_rapier.dylib target/aarch64-apple-darwin/release/libgodot_rapier.dylib target/x86_64-apple-darwin/release/libgodot_rapier.dylib
+    - name: Move Static Libs macOS
+      shell: sh
+      if: ${{ inputs.arch == 'x86_64-apple-darwin'}}
+      run: |
+        mv target/x86_64-apple-darwin/release/libgodot_rapier.a target/release/libgodot_rapier.x86_64.a
+        mv target/aarch64-apple-darwin/release/libgodot_rapier.a target/release/libgodot_rapier.arm64.a
