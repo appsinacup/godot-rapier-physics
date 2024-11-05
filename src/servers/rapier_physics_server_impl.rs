@@ -1447,7 +1447,12 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             if let Some(body) = body.get_mut_body() {
-                body.set_max_contacts_reported(amount);
+                body.set_max_contacts_reported(
+                    amount,
+                    &mut physics_data.physics_engine,
+                    &mut physics_data.spaces,
+                    &physics_data.ids,
+                );
             }
         }
     }

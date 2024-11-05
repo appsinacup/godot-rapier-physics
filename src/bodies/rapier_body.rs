@@ -836,11 +836,19 @@ impl RapierBody {
         );
     }
 
-    pub fn set_max_contacts_reported(&mut self, size: i32) {
+    pub fn set_max_contacts_reported(
+        &mut self,
+        size: i32,
+        physics_engine: &mut PhysicsEngine,
+        physics_spaces: &mut PhysicsSpaces,
+        physics_ids: &PhysicsIds,
+    ) {
         self.state
             .contacts
             .resize(size as usize, Contact::default());
         self.state.contact_count = 0;
+        // update all contact forces
+        self.recreate_shapes(physics_engine, physics_spaces, physics_ids);
     }
 
     pub fn reset_contact_count(&mut self) {
