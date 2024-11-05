@@ -20,5 +20,5 @@ jobs:
         with:
           name: static-rapier-${{ matrix.dimensions }}-${{ matrix.precision }}-${{ matrix.features }}-module
           path: |
-            module
+            module${{ matrix.dimensions }}
           if-no-files-found: error
