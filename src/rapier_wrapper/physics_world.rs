@@ -78,6 +78,9 @@ pub struct PhysicsObjects {
     pub collider_set: ColliderSet,
     pub rigid_body_set: RigidBodySet,
 
+    pub removed_rigid_bodies_user_data: HashMap<RigidBodyHandle, UserData>,
+    pub removed_colliders_user_data: HashMap<ColliderHandle, UserData>,
+
     pub handle: WorldHandle,
 }
 pub struct PhysicsWorld {
@@ -103,6 +106,9 @@ impl PhysicsWorld {
 
                 rigid_body_set: RigidBodySet::new(),
                 collider_set: ColliderSet::new(),
+
+                removed_rigid_bodies_user_data: HashMap::new(),
+                removed_colliders_user_data: HashMap::new(),
 
                 handle: WorldHandle::default(),
             },
@@ -293,6 +299,9 @@ impl PhysicsWorld {
                 }
             }
         }
+        // remove all the removed colliders and rigidbodies user data
+        self.physics_objects.removed_rigid_bodies_user_data.clear();
+        self.physics_objects.removed_colliders_user_data.clear();
     }
 
     pub fn insert_collider(
@@ -313,18 +322,30 @@ impl PhysicsWorld {
     }
 
     pub fn remove_collider(&mut self, collider_handle: ColliderHandle) {
-        self.physics_objects.collider_set.remove(
+        if let Some(collider) = self.physics_objects.collider_set.remove(
             collider_handle,
             &mut self.physics_objects.island_manager,
             &mut self.physics_objects.rigid_body_set,
             false,
-        );
+        ) {
+            self.physics_objects
+                .removed_colliders_user_data
+                .insert(collider_handle, UserData::new(collider.user_data));
+        }
     }
 
     pub fn get_collider_user_data(&self, collider_handle: ColliderHandle) -> UserData {
         let collider = self.physics_objects.collider_set.get(collider_handle);
         if let Some(collider) = collider {
             return UserData::new(collider.user_data);
+        }
+        // removed collider
+        if let Some(user_data) = self
+            .physics_objects
+            .removed_colliders_user_data
+            .get(&collider_handle)
+        {
+            return *user_data;
         }
         UserData::invalid_user_data()
     }
@@ -339,20 +360,32 @@ impl PhysicsWorld {
 
     pub fn remove_rigid_body(&mut self, body_handle: RigidBodyHandle) {
         let rigid_body_handle = body_handle;
-        self.physics_objects.rigid_body_set.remove(
+        if let Some(rigid_body) = self.physics_objects.rigid_body_set.remove(
             rigid_body_handle,
             &mut self.physics_objects.island_manager,
             &mut self.physics_objects.collider_set,
             &mut self.physics_objects.impulse_joint_set,
             &mut self.physics_objects.multibody_joint_set,
             true,
-        );
+        ) {
+            self.physics_objects
+                .removed_rigid_bodies_user_data
+                .insert(rigid_body_handle, UserData::new(rigid_body.user_data));
+        }
     }
 
     pub fn get_rigid_body_user_data(&self, rigid_body_handle: RigidBodyHandle) -> UserData {
         let rigid_body = self.physics_objects.rigid_body_set.get(rigid_body_handle);
         if let Some(rigid_body) = rigid_body {
             return UserData::new(rigid_body.user_data);
+        }
+        // removed rigidbody
+        if let Some(user_data) = self
+            .physics_objects
+            .removed_rigid_bodies_user_data
+            .get(&rigid_body_handle)
+        {
+            return *user_data;
         }
         UserData::invalid_user_data()
     }
