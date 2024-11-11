@@ -284,13 +284,12 @@ impl RapierPhysicsServer {
     #[func]
     /// Get the active bodies in the space.
     fn space_get_active_bodies(space: Rid) -> Array<Rid> {
-        let Ok(mut physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
             return Array::default();
         };
         return physics_singleton
-            .bind_mut()
+            .bind()
             .implementation
             .space_get_active_bodies(space);
     }
@@ -298,13 +297,12 @@ impl RapierPhysicsServer {
     #[func]
     /// Get the bodies transform in the space.
     fn space_get_bodies_transform(space: Rid, bodies: Array<Rid>) -> Array<Transform> {
-        let Ok(mut physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
             return Array::default();
         };
         return physics_singleton
-            .bind_mut()
+            .bind()
             .implementation
             .space_get_bodies_transform(space, bodies);
     }
@@ -350,12 +348,12 @@ impl RapierPhysicsServer {
     #[func]
     /// Get the global id of the physics server.
     fn get_global_id() -> i64 {
-        let Ok(mut physics_singleton) =
+        let Ok(physics_singleton) =
             PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
             return 0;
         };
-        return physics_singleton.bind_mut().implementation.id as i64;
+        return physics_singleton.bind().implementation.id as i64;
     }
 
     #[func]
