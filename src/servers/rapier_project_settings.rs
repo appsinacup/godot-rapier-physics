@@ -50,8 +50,8 @@ pub fn register_setting(
     p_hint_string: &str,
 ) {
     let mut project_settings = ProjectSettings::singleton();
-    if !project_settings.has_setting(p_name.to_godot()) {
-        project_settings.set(p_name.into(), &p_value.clone());
+    if !project_settings.has_setting(p_name) {
+        project_settings.set(p_name, &p_value.clone());
     }
     let mut property_info = Dictionary::new();
     let _ = property_info.insert("name", p_name);
@@ -59,11 +59,11 @@ pub fn register_setting(
     let _ = property_info.insert("hint", p_hint);
     let _ = property_info.insert("hint_string", p_hint_string);
     project_settings.add_property_info(&property_info);
-    project_settings.set_initial_value(p_name.into(), &p_value);
-    project_settings.set_restart_if_changed(p_name.into(), p_needs_restart);
+    project_settings.set_initial_value(p_name, &p_value);
+    project_settings.set_restart_if_changed(p_name, p_needs_restart);
     static mut ORDER: i32 = 1000000;
     unsafe {
-        project_settings.set_order(p_name.into(), ORDER);
+        project_settings.set_order(p_name, ORDER);
         ORDER += 1;
     }
 }
@@ -186,13 +186,13 @@ impl RapierProjectSettings {
 
     fn get_setting_int(p_setting: &str) -> i64 {
         let project_settings = ProjectSettings::singleton();
-        let setting_value = project_settings.get_setting_with_override(p_setting.into());
+        let setting_value = project_settings.get_setting_with_override(p_setting);
         setting_value.to::<i64>()
     }
 
     fn get_setting_double(p_setting: &str) -> f64 {
         let project_settings = ProjectSettings::singleton();
-        let setting_value = project_settings.get_setting_with_override(p_setting.into());
+        let setting_value = project_settings.get_setting_with_override(p_setting);
         setting_value.to::<f64>()
     }
 

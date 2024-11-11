@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use godot::classes::ConfigFile;
 use godot::classes::ProjectSettings;
 use godot::global;
@@ -25,7 +23,7 @@ pub fn register_server() {
     let mut manager = PhysicsServer2DManager::singleton();
     let factory =
         crate::servers::rapier_physics_server_2d::RapierPhysicsServerFactory2D::new_alloc();
-    manager.register_server("Rapier2D".into(), factory.callable("create_server"));
+    manager.register_server("Rapier2D", &factory.callable("create_server"));
 }
 #[cfg(feature = "dim3")]
 pub fn register_server() {
@@ -33,24 +31,20 @@ pub fn register_server() {
     let mut manager = PhysicsServer3DManager::singleton();
     let factory =
         crate::servers::rapier_physics_server_3d::RapierPhysicsServerFactory3D::new_alloc();
-    manager.register_server("Rapier3D".into(), factory.callable("create_server"));
+    manager.register_server("Rapier3D", factory.callable("create_server"));
 }
 #[cfg(feature = "dim2")]
 fn print_version() {
     let mut config_file = ConfigFile::new_gd();
-    let err = config_file
-        .load(GString::from_str("res://addons/godot-rapier2d/plugin.info.cfg").unwrap_or_default());
+    let err = config_file.load("res://addons/godot-rapier2d/plugin.info.cfg");
     if err != global::Error::OK {
         godot_error!("Error loading plugin.info.cfg: {:?}", err);
         return;
     }
-    let version = config_file.get_value(
-        GString::from_str("plugin").unwrap_or_default(),
-        GString::from_str("version").unwrap_or_default(),
-    );
+    let version = config_file.get_value("plugin", "version");
     let project_settings = ProjectSettings::singleton();
     let physics_engine: String = project_settings
-        .get_setting(GString::from_str("physics/2d/physics_engine").unwrap_or_default())
+        .get_setting("physics/2d/physics_engine")
         .try_to()
         .unwrap_or_default();
     if physics_engine != "Rapier2D" {

@@ -340,12 +340,11 @@ impl RapierPhysicsServer {
     #[func]
     /// Get the id of the object by rid. The id can be saved and used when reloading the scene.
     fn get_rapier_id(rid: Rid) -> i64 {
-        let Ok(mut physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
             return 0;
         };
-        return physics_singleton.bind_mut().implementation.get_id(rid) as i64;
+        return physics_singleton.bind().implementation.get_id(rid) as i64;
     }
 
     #[func]

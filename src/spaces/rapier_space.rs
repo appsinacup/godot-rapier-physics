@@ -63,11 +63,11 @@ impl RapierSpace {
         direct_access.bind_mut().set_space(rid);
         let project_settings = ProjectSettings::singleton();
         let default_gravity_dir: Vector = project_settings
-            .get_setting_with_override(DEFAULT_GRAVITY_VECTOR.into())
+            .get_setting_with_override(DEFAULT_GRAVITY_VECTOR)
             .try_to()
             .unwrap_or_default();
         let default_gravity_value =
-            variant_to_float(&project_settings.get_setting_with_override(DEFAULT_GRAVITY.into()));
+            variant_to_float(&project_settings.get_setting_with_override(DEFAULT_GRAVITY));
         let space = Self {
             direct_access: Some(direct_access.upcast()),
             contact_max_allowed_penetration: 0.0,
@@ -274,8 +274,8 @@ impl RapierSpace {
 
     pub fn get_last_step() -> real {
         let project_settings = ProjectSettings::singleton();
-        let physics_fps = project_settings
-            .get_setting_with_override("physics/common/physics_ticks_per_second".into());
+        let physics_fps =
+            project_settings.get_setting_with_override("physics/common/physics_ticks_per_second");
         let mut last_step = 1e-3;
         if !physics_fps.is_nil() {
             last_step = 1.0 / (physics_fps.to::<i32>() as f32);
