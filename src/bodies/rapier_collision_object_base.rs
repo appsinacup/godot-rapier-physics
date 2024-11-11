@@ -94,17 +94,17 @@ impl RapierCollisionObjectBase {
         }
         let project_settings = ProjectSettings::singleton();
         let activation_angular_threshold = project_settings
-            .get_setting_with_override(SLEEP_THRESHOLD_ANGULAR.into())
+            .get_setting_with_override(SLEEP_THRESHOLD_ANGULAR)
             .try_to()
             .unwrap_or_default();
         let length_unit = RapierProjectSettings::get_length_unit();
         let mut activation_linear_threshold = project_settings
-            .get_setting_with_override(SLEEP_THRESHOLD_LINEAR.into())
+            .get_setting_with_override(SLEEP_THRESHOLD_LINEAR)
             .try_to()
             .unwrap_or_default();
         activation_linear_threshold /= length_unit;
         let activation_time_until_sleep = project_settings
-            .get_setting_with_override(TIME_BEFORE_SLEEP.into())
+            .get_setting_with_override(TIME_BEFORE_SLEEP)
             .try_to()
             .unwrap_or_default();
         Self {
