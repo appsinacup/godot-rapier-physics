@@ -10,9 +10,8 @@ publish = false
 crate-type = ["cdylib", "staticlib"]
 
 [features]
-default = ["build3d", "test"]
+default = ["build2d", "test"]
 test = []
-function-logs = []
 build2d = ["single-dim2", "serde-serialize", "simd-stable"]
 build3d = ["single-dim3", "serde-serialize", "simd-stable"]
 build2d-f64 = ["double-dim2", "serde-serialize", "simd-stable"]
