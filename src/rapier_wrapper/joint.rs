@@ -144,17 +144,53 @@ impl PhysicsEngine {
     #[allow(clippy::too_many_arguments)]
     pub fn joint_create_slider(
         &mut self,
-        _world_handle: WorldHandle,
-        _body_handle_1: RigidBodyHandle,
-        _body_handle_2: RigidBodyHandle,
-        _anchor_1: Vector<Real>,
-        _anchor_2: Vector<Real>,
-        _multibody: bool,
-        _kinematic: bool,
-        _disable_collision: bool,
+        world_handle: WorldHandle,
+        body_handle_1: RigidBodyHandle,
+        body_handle_2: RigidBodyHandle,
+        anchor_1: Vector<Real>,
+        anchor_2: Vector<Real>,
+        linear_limit_upper: f32,
+        linear_limit_lower: f32,
+        multibody: bool,
+        kinematic: bool,
+        disable_collision: bool,
     ) -> JointHandle {
-        // TODO
+        self.body_wake_up(world_handle, body_handle_1, false);
+        self.body_wake_up(world_handle, body_handle_2, false);
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
+            let axis = anchor_1 - anchor_2;
+            let unit_axis = UnitVector::new_normalize(axis.normalize());
+            let joint = PrismaticJointBuilder::new(unit_axis)
+                .local_anchor1(Point { coords: anchor_1 })
+                .local_anchor2(Point { coords: anchor_2 })
+                .limits([linear_limit_lower, linear_limit_upper])
+                .contacts_enabled(!disable_collision);
+            return physics_world.insert_joint(
+                body_handle_1,
+                body_handle_2,
+                multibody,
+                kinematic,
+                joint,
+            );
+        }
         JointHandle::default()
+    }
+
+    #[cfg(feature = "dim3")]
+    pub fn joint_change_slider(
+        &mut self,
+        world_handle: WorldHandle,
+        joint_handle: JointHandle,
+        linear_limit_lower: Real,
+        linear_limit_upper: Real,
+    ) {
+        self.joint_wake_up_connected_rigidbodies(world_handle, joint_handle);
+        if let Some(physics_world) = self.get_mut_world(world_handle)
+            && let Some(joint) = physics_world.get_mut_joint(joint_handle)
+            && let Some(joint) = joint.as_prismatic_mut()
+        {
+            joint.set_limits([linear_limit_lower, linear_limit_upper]);
+        }
     }
 
     #[cfg(feature = "dim3")]
