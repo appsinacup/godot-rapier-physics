@@ -83,8 +83,8 @@ impl IRapierShape for RapierWorldBoundaryShape {
     fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
         let (normal, d) = physics_engine.shape_get_halfspace(self.base.get_id());
         let mut arr = Array::<Variant>::new();
-        arr.push(vector_to_godot(normal).to_variant());
-        arr.push(d.to_variant());
+        arr.push(&vector_to_godot(normal).to_variant());
+        arr.push(&d.to_variant());
         arr.to_variant()
     }
 

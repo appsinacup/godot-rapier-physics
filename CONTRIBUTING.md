@@ -113,6 +113,12 @@ cp target/release/godot_rapier.dll bin2d/addons/godot-rapier2d/bin/godot_rapier.
 
 For the correct path to use inside the bin folder, look inside the `bin2d/addons/godot-rapier2d.gdextension` or the `bin3d/addons/godot-rapier3d.gdextension`.
 
+## Build script
+
+Optionally, run the build script from `scripts/build-dev-2d.sh` or `scripts/build-dev-3d.sh`. (this also does linting)
+
+Also, if you want to have support for vscode linting and code autocomplete, change the file `Cargo.toml` line 13 from `default = ["build2d", "test"]` to `default = ["build3d", "test"]` in case you develop for 3d.
+
 ### Available features
 
 For features, the following are available:

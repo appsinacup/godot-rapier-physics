@@ -382,7 +382,7 @@ impl RapierPhysicsServerImpl {
         0
     }
 
-    pub(super) fn space_get_active_bodies(&mut self, space: Rid) -> Array<Rid> {
+    pub(super) fn space_get_active_bodies(&self, space: Rid) -> Array<Rid> {
         let physics_data = physics_data();
         if let Some(space) = physics_data.spaces.get_mut(&space) {
             let bodies = space.get_state().get_active_bodies();
@@ -397,7 +397,7 @@ impl RapierPhysicsServerImpl {
     }
 
     pub(super) fn space_get_bodies_transform(
-        &mut self,
+        &self,
         space: Rid,
         bodies: Array<Rid>,
     ) -> Array<Transform> {
