@@ -52,6 +52,7 @@ jobs:
           APPLE_DEV_ID: ${{ secrets.APPLE_DEV_ID }}
           APPLE_DEV_TEAM_ID: ${{ secrets.APPLE_DEV_TEAM_ID }}
           APPLE_DEV_APP_ID: ${{ secrets.APPLE_DEV_APP_ID }}
+        if: github.ref == 'refs/heads/main'
       - name: Copy to bin
         shell: sh
         run: |
