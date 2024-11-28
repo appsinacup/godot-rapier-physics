@@ -348,8 +348,7 @@ impl RapierPhysicsServer {
     #[func]
     /// Get the global id of the physics server.
     fn get_global_id() -> i64 {
-        let Ok(physics_singleton) =
-            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+        let Ok(physics_singleton) = PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
         else {
             return 0;
         };
