@@ -1,8 +1,22 @@
 # Changelog
 
+## v0.8.10
+
+* WIP
+
 ## v0.8.9
 
-- Reduce size of builds
+* Fix web builds. Double builds part 1 impl by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/282
+* fix layer and mask reseting friction by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/294
+* build static libs too. by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/295
+* Fix signal enter bug by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/299
+* move static after dynamic signing by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/301
+* fix removed collider event not triggering by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/304
+* Update godot source file references by @emmanuel-ferdman in https://github.com/appsinacup/godot-rapier-physics/pull/305
+* Don't run mac signing on pr's by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/312
+* Implement basic sliding joint 3D by @Stefan-5422 in https://github.com/appsinacup/godot-rapier-physics/pull/311
+* Update to latest gdext by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/306
+
 
 ## v0.8.8
 
