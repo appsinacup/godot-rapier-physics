@@ -777,7 +777,7 @@ impl PhysicsEngine {
                 .get_base()
                 .is_shape_set_as_one_way_collision(shape_index)
         {
-            let valid_dir = vector_normalized(get_transform_forward(col_shape_transform));
+            let valid_dir = -vector_normalized(get_transform_forward(col_shape_transform));
             let owc_margin = collision_body
                 .get_base()
                 .get_shape_one_way_collision_margin(shape_index);
