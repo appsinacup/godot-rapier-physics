@@ -47,7 +47,7 @@ impl IRapierShape for RapierCircleShape {
 
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         let radius = variant_to_float(&data);
-        if radius <= 0.0 {
+        if radius < 0.0 {
             godot_error!("RapierCircleShape radius must be positive. Got {}", radius);
             return;
         }
