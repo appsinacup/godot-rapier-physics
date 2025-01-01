@@ -10,7 +10,7 @@ impl PhysicsEngine {
         &mut self,
         world_handle: WorldHandle,
         density: Real,
-        interaction_groups: salva2d::object::interaction_groups::InteractionGroups,
+        interaction_groups: salva::object::interaction_groups::InteractionGroups,
     ) -> HandleDouble {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             let particle_radius = physics_world.fluids_pipeline.liquid_world.particle_radius();
