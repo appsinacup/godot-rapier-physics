@@ -246,6 +246,38 @@ impl PhysicsEngine {
                     compute_impact_geometry_on_penetration: true,
                     ..Default::default()
                 };
+                // Stationary shapes
+                if shape_vel1.magnitude_squared() < DEFAULT_EPSILON
+                    && shape_vel2.magnitude_squared() < DEFAULT_EPSILON
+                {
+                    let contact_result = parry::query::contact(
+                        &shape_transform1,
+                        shared_shape1.as_ref(),
+                        &shape_transform2,
+                        shared_shape2.as_ref(),
+                        0.0,
+                    );
+                    match contact_result {
+                        Ok(None) => {}
+                        Ok(Some(contact)) => {
+                            // the distance is negative if there is intersection
+                            if contact.dist <= 0.0 {
+                                result.toi = 0.0;
+                                result.collided = true;
+                                result.normal1 = contact.normal1.into_inner();
+                                result.normal2 = contact.normal2.into_inner();
+                                result.pixel_witness1 = contact.point1.coords
+                                    + shape_info1.transform.translation.vector;
+                                result.pixel_witness2 = contact.point2.coords
+                                    + shape_info2.transform.translation.vector;
+                            }
+                        }
+                        Err(err) => {
+                            godot_error!("contact error: {:?}", err);
+                        }
+                    }
+                    return result;
+                }
                 let toi_result = parry::query::cast_shapes(
                     &shape_transform1,
                     &shape_vel1,
