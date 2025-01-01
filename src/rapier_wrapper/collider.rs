@@ -305,10 +305,14 @@ impl PhysicsEngine {
                 let collider_handle = physics_world.insert_collider(collider, body_handle);
                 // register fluid coupling. Dynamic coupling doens't work for halfspace
                 if !is_shape_halfspace {
-                    let boundary_handle = physics_world
-                        .fluids_pipeline
-                        .liquid_world
-                        .add_boundary(Boundary::new(Vec::new()));
+                    let boundary_handle =
+                        physics_world
+                            .fluids_pipeline
+                            .liquid_world
+                            .add_boundary(Boundary::new(
+                                Vec::new(),
+                                salva::object::interaction_groups::InteractionGroups::all(),
+                            ));
                     physics_world.fluids_pipeline.coupling.register_coupling(
                         boundary_handle,
                         collider_handle,
@@ -379,10 +383,16 @@ impl PhysicsEngine {
 
     pub fn collider_destroy(&mut self, world_handle: WorldHandle, collider_handle: ColliderHandle) {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
-            physics_world
+            if let Some(boundary_handle) = physics_world
                 .fluids_pipeline
                 .coupling
-                .unregister_coupling(collider_handle);
+                .unregister_coupling(collider_handle)
+            {
+                physics_world
+                    .fluids_pipeline
+                    .liquid_world
+                    .remove_boundary(boundary_handle);
+            }
             physics_world.remove_collider(collider_handle);
         }
     }

@@ -246,7 +246,11 @@ impl RapierFluid {
             self.space = p_space;
             self.space_id = space.get_state().get_id();
             if self.space_id != WorldHandle::default() {
-                self.fluid_handle = physics_engine.fluid_create(self.space_id, self.density);
+                self.fluid_handle = physics_engine.fluid_create(
+                    self.space_id,
+                    self.density,
+                    salva::object::interaction_groups::InteractionGroups::all(),
+                );
             }
             self.set_points(self.points.clone(), physics_engine);
             self.set_effects(self.effects.clone(), physics_engine);
