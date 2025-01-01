@@ -6,10 +6,15 @@ use salva::solver::*;
 use super::shape::point_array_to_vec;
 use crate::rapier_wrapper::prelude::*;
 impl PhysicsEngine {
-    pub fn fluid_create(&mut self, world_handle: WorldHandle, density: Real) -> HandleDouble {
+    pub fn fluid_create(
+        &mut self,
+        world_handle: WorldHandle,
+        density: Real,
+        interaction_groups: salva::object::interaction_groups::InteractionGroups,
+    ) -> HandleDouble {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             let particle_radius = physics_world.fluids_pipeline.liquid_world.particle_radius();
-            let fluid = Fluid::new(Vec::new(), particle_radius, density);
+            let fluid = Fluid::new(Vec::new(), particle_radius, density, interaction_groups);
             return fluid_handle_to_handle(
                 physics_world.fluids_pipeline.liquid_world.add_fluid(fluid),
             );
