@@ -20,11 +20,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      #- uses: chickensoft-games/setup-godot@v1
-      #  name: 🤖 Setup Godot
-      #  with:
-      #    version: 4.3.0
-      #    use-dotnet: false
+      - uses: blazium-engine/setup-blazium@master
+        name: 🤖 Setup Blazium
+        with:
+          version: 0.0.14
+          os: Linux
+          use-dotnet: false
       #- name: 🔬 Verify Setup
       #  run: |
       #    godot --version
