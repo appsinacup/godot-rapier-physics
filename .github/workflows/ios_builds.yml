@@ -25,7 +25,6 @@ jobs:
         with:
           version: 0.0.14
           os: Linux
-          use-dotnet: false
       #- name: 🔬 Verify Setup
       #  run: |
       #    godot --version
