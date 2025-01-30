@@ -23,7 +23,7 @@ jobs:
       - uses: blazium-engine/setup-blazium@master
         name: 🤖 Setup Blazium
         with:
-          version: 0.0.14
+          version: 0.1.184
           os: darwin
           arch: arm64
           platform: macos
