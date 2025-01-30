@@ -50,8 +50,7 @@ jobs:
         run: |
           echo "CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER=${{steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android23-clang" >> $GITHUB_ENV
           echo "CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER=${{steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android23-clang" >> $GITHUB_ENV
-          # This is not find when compiling
-          # echo "CARGO_TARGET_ARMV7_LINUX_ANDROID_LINKER=${{steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi23-clang" >> $GITHUB_ENV
+          echo "CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER=${{steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi23-clang" >> $GITHUB_ENV
           echo "CARGO_TARGET_I686_LINUX_ANDROID_LINKER=${{steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin/i686-linux-android23-clang" >> $GITHUB_ENV
           echo "CLANG_PATH=${{steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin/clang" >> $GITHUB_ENV
           echo "LIBCLANG_PATH=${{steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/lib64/libclang.so.12git" >> $GITHUB_ENV
