@@ -24,9 +24,9 @@ jobs:
         name: 🤖 Setup Blazium
         with:
           version: 0.0.14
-          os: Linux
+          os: darwin
           arch: arm64
-          platform: darwin
+          platform: macos
       #- name: 🔬 Verify Setup
       #  run: |
       #    godot --version
