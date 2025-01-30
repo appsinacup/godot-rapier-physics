@@ -40,6 +40,7 @@ jobs:
       - name: Copy to bin
         shell: sh
         run: |
+          ls target/release
           mv target/release/libgodot_rapier.dylib bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.framework/libgodot_rapier
           mv target/release/libgodot_rapier.a bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.framework/libgodot_rapier.a
 
