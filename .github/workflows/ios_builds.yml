@@ -40,8 +40,8 @@ jobs:
       - name: Copy to bin
         shell: sh
         run: |
-          mv target/release/libgodot_rapier.dylib bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.ios.framework/libgodot_rapier.ios
-          mv target/release/libgodot_rapier.a bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.ios.framework/libgodot_rapier.a
+          mv target/release/libgodot_rapier.dylib bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.framework/libgodot_rapier
+          mv target/release/libgodot_rapier.a bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.framework/libgodot_rapier.a
 
       - name: Upload
         uses: actions/upload-artifact@v4

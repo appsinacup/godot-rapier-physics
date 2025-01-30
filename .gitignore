@@ -8,10 +8,10 @@ bin3d/samples/godot-rapier3d/addons/**
 target
 
 !bin2d/addons/godot-rapier2d/bin/libgodot_rapier.macos.framework/Resources/Info.plist
-!bin2d/addons/godot-rapier2d/bin/libgodot_rapier.ios.framework/Info.plist
+!bin2d/addons/godot-rapier2d/bin/libgodot_rapier.framework/Info.plist
 
 !bin3d/addons/godot-rapier3d/bin/libgodot_rapier.macos.framework/Resources/Info.plist
-!bin3d/addons/godot-rapier3d/bin/libgodot_rapier.ios.framework/Info.plist
+!bin3d/addons/godot-rapier3d/bin/libgodot_rapier.framework/Info.plist
 
 # Binaries
 *.os
