@@ -25,6 +25,8 @@ jobs:
         with:
           version: 0.0.14
           os: Linux
+          arch: arm64
+          platform: macos
       #- name: 🔬 Verify Setup
       #  run: |
       #    godot --version
