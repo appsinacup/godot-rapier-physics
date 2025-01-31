@@ -25,7 +25,7 @@ jobs:
         with:
           version: 0.1.184-nightly
           os: darwin
-          arch: arm64
+          arch: macos
           platform: macos
       - name: 🔬 Verify Setup
         run: |
