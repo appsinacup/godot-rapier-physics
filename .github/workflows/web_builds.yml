@@ -22,16 +22,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      #- uses: chickensoft-games/setup-godot@v1
-      #  name: 🤖 Setup Godot
-      #  with:
-      #    version: 4.3.0
-      #    use-dotnet: false
-      #- name: 🔬 Verify Setup
-      #  run: |
-      #    godot --version
-      #    which godot
-      #    GODOT4_BIN=godot
+      - uses: blazium-engine/setup-blazium@master
+        name: 🤖 Setup Blazium
+        with:
+          version: 0.1.184-nightly
+      - name: 🔬 Verify Setup
+        run: |
+          BLAZIUM_EDITOR --version
       - name: Set up Emscripten latest
         uses: mymindstorm/setup-emsdk@v14
         with:

@@ -24,14 +24,9 @@ jobs:
         name: 🤖 Setup Blazium
         with:
           version: 0.1.184-nightly
-          os: darwin
-          arch: macos
-          platform: macos
       - name: 🔬 Verify Setup
         run: |
-          blazium --version
-          which blazium
-          GODOT4_BIN=blazium
+          BLAZIUM_EDITOR --version
       - name: Build
         uses: ./.github/actions/build
         with:

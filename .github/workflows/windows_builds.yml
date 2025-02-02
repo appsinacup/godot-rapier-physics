@@ -19,9 +19,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      #- name: 🔬 Verify Setup
-      #  run: |
-      #    choco install llvm
+      - uses: blazium-engine/setup-blazium@master
+        name: 🤖 Setup Blazium
+        with:
+          version: 0.1.184-nightly
+      - name: 🔬 Verify Setup
+        run: |
+          BLAZIUM_EDITOR --version
       - name: Build
         uses: ./.github/actions/build
         with:
