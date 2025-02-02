@@ -29,7 +29,7 @@ jobs:
       
       - name: 🔬 Verify Setup
         run: |
-          BLAZIUM_EDITOR --version
+          $BLAZIUM_EDITOR --version
       - name: Set up Emscripten latest
         uses: mymindstorm/setup-emsdk@v14
         with:

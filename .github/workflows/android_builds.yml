@@ -25,7 +25,7 @@ jobs:
           version: 0.1.184-nightly
       - name: 🔬 Verify Setup
         run: |
-          BLAZIUM_EDITOR --version
+          $BLAZIUM_EDITOR --version
       - name: Set up Java 11
         uses: actions/setup-java@v4
         with:

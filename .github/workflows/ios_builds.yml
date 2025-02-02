@@ -26,7 +26,7 @@ jobs:
           version: 0.1.184-nightly
       - name: 🔬 Verify Setup
         run: |
-          BLAZIUM_EDITOR --version
+          $BLAZIUM_EDITOR --version
       - name: Build
         uses: ./.github/actions/build
         with:
