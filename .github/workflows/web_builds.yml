@@ -34,7 +34,7 @@ jobs:
         uses: mymindstorm/setup-emsdk@v14
         with:
           version: 3.1.62
-          
+
       - name: Verify Emscripten setup
         run: |
           emcc -v
@@ -50,7 +50,7 @@ jobs:
           mkdir -p bin2d/addons/godot-rapier2d/bin/wasm-nothreads
           mkdir -p bin3d/addons/godot-rapier3d/bin/wasm-nothreads
         if: "${{ matrix.build_param.folder == 'wasm-nothreads' }}"
-
+ 
       - name: Build
         uses: ./.github/actions/build
         with:
