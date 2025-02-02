@@ -20,7 +20,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
       - uses: blazium-engine/setup-blazium@master
         name: 🤖 Setup Blazium
         with:
