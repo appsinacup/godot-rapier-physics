@@ -9,7 +9,7 @@ env:
 jobs:
   ios:
     runs-on: "macos-latest"
-    name: ${{ matrix.dimensions.short }} ${{ matrix.precision }} ${{ matrix.features.name }} ${{ matrix.arch }}
+    name: ${{ matrix.dimensions.short }} ${{ matrix.precision }} ${{ matrix.features.name }} ${{ matrix.arch.name }}
     strategy:
       fail-fast: false
       matrix:
@@ -44,7 +44,7 @@ jobs:
         with:
           name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch.rust}}
           path: |
-            bin${{ matrix.dimensions.short }}/**/*.ios
+            bin${{ matrix.dimensions.short }}/**/libgodot_rapier
           if-no-files-found: error
 
       - name: Upload Static
