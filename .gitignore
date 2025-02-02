@@ -1,6 +1,8 @@
 # Ignore everything in bin folder by default
+bin2d/addons/godot-rapier2d/bin/*
 bin2d/.godot/**
 bin2d/samples/godot-rapier2d/addons/**
+bin3d/addons/godot-rapier3d/bin/*
 bin3d/.godot/**
 bin3d/samples/godot-rapier3d/addons/**
 target
