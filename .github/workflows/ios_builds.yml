@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: ["aarch64-apple-ios", "x86_64-apple-ios"]
+        arch: [{"name" : "arm64", "rust": "aarch64-apple-ios"}, {"name" : "x86_64", "rust": "x86_64-apple-ios"}]
         precision: [single] #, double]
         dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
         features: [{"feature":"simd-stable,serde-serialize,experimental-threads", "name": "simd-parallel"}, {"feature":"enhanced-determinism,serde-serialize,experimental-threads", "name": "enhanced-determinism"}]
@@ -30,19 +30,19 @@ jobs:
       - name: Build
         uses: ./.github/actions/build
         with:
-          arch: ${{ matrix.arch }}
+          arch: ${{ matrix.arch.rust }}
           features: ${{ matrix.features.feature }},${{ matrix.precision }}-${{ matrix.dimensions.feature }}
       - name: Copy to bin
         shell: sh
         run: |
           ls target/release
-          mv target/release/libgodot_rapier.dylib bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.framework/libgodot_rapier
-          mv target/release/libgodot_rapier.a bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.framework/libgodot_rapier.a
+          mv target/release/libgodot_rapier.dylib bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.ios.${{ matrix.arch.name }}.framework/libgodot_rapier
+          mv target/release/libgodot_rapier.a bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.ios.${{ matrix.arch.name }}.framework/libgodot_rapier.a
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch}}
+          name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch.rust}}
           path: |
             bin${{ matrix.dimensions.short }}/**/*.ios
           if-no-files-found: error
@@ -50,7 +50,7 @@ jobs:
       - name: Upload Static
         uses: actions/upload-artifact@v4
         with:
-          name: static-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch}}
+          name: static-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch.rust}}
           path: |
             bin${{ matrix.dimensions.short }}/**/*.a
           if-no-files-found: error
