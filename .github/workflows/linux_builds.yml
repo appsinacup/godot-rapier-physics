@@ -2,9 +2,6 @@ name: 🐧 Linux Builds
 on:
   workflow_call:
 
-env:
-  GODOT4_BIN: godot
-
 jobs:
   linux:
     runs-on: "ubuntu-22.04"

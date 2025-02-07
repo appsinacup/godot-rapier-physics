@@ -2,9 +2,6 @@ name: 🏁 Windows Builds
 on:
   workflow_call:
 
-env:
-  GODOT4_BIN: C:\Users\runneradmin\bin\godot.exe
-
 jobs:
   build-windows:
     runs-on: "windows-latest"
