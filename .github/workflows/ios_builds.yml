@@ -27,6 +27,7 @@ jobs:
       - name: 🔬 Verify Setup
         run: |
           Blazium --version
+          echo "GODOT4_BIN=$BLAZIUM_EDITOR" >> $GITHUB_ENV
       - name: Build
         uses: ./.github/actions/build
         with:
