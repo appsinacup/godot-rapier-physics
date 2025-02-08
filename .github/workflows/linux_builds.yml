@@ -34,6 +34,8 @@ jobs:
           sudo apt-get install pkg-config
           sudo apt-get install libssl-dev
           sudo apt-get install zlib1g-dev
+          # Multi platform build
+          sudo apt-get install gcc-multilib g++-multilib libc6-dev-i386
       - name: Build
         uses: ./.github/actions/build
         with:
