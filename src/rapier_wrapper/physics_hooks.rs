@@ -87,7 +87,7 @@ pub fn update_as_oneway_platform(
         _ => unreachable!(),
     }
 }
-impl<'a> PhysicsHooks for PhysicsHooksCollisionFilter<'a> {
+impl PhysicsHooks for PhysicsHooksCollisionFilter<'_> {
     fn filter_contact_pair(&self, context: &PairFilterContext) -> Option<SolverFlags> {
         let result = Some(SolverFlags::COMPUTE_IMPULSES);
         let Some(collider1) = context.colliders.get(context.collider1) else {

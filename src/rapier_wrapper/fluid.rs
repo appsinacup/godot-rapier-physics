@@ -55,8 +55,7 @@ impl PhysicsEngine {
         {
             let points = point_array_to_vec(points);
             let points_len = points.len();
-            let mut accelerations: Vec<_> = std::iter::repeat(SalvaVector::zeros())
-                .take(points_len)
+            let mut accelerations: Vec<_> = std::iter::repeat_n(SalvaVector::zeros(), points_len)
                 .collect();
             fluid.positions = points;
             // copy back the accelerations that were before, if they exist
@@ -67,8 +66,7 @@ impl PhysicsEngine {
             }
             fluid.velocities = velocity_points.to_owned();
             fluid.accelerations = accelerations;
-            fluid.volumes = std::iter::repeat(fluid.default_particle_volume())
-                .take(points_len)
+            fluid.volumes = std::iter::repeat_n(fluid.default_particle_volume(), points_len)
                 .collect();
         }
     }
@@ -88,11 +86,9 @@ impl PhysicsEngine {
         {
             let points = point_array_to_vec(points);
             let point_count = points.len();
-            let mut velocities: Vec<_> = std::iter::repeat(SalvaVector::zeros())
-                .take(point_count)
+            let mut velocities: Vec<_> = std::iter::repeat_n(SalvaVector::zeros(), point_count)
                 .collect();
-            let mut accelerations: Vec<_> = std::iter::repeat(SalvaVector::zeros())
-                .take(point_count)
+            let mut accelerations: Vec<_> = std::iter::repeat_n(SalvaVector::zeros(), point_count)
                 .collect();
             fluid.positions = points;
             // copy back the velocities and accelerations that were before, if they exist
@@ -106,8 +102,7 @@ impl PhysicsEngine {
             }
             fluid.velocities = velocities;
             fluid.accelerations = accelerations;
-            fluid.volumes = std::iter::repeat(fluid.default_particle_volume())
-                .take(point_count)
+            fluid.volumes = std::iter::repeat_n(fluid.default_particle_volume(), point_count)
                 .collect();
         }
     }
@@ -180,14 +175,12 @@ impl PhysicsEngine {
             fluid.positions.extend_from_slice(&points);
             fluid.velocities.extend_from_slice(velocity_points);
             let new_point_count = fluid.positions.len();
-            let mut accelerations: Vec<_> = std::iter::repeat(SalvaVector::zeros())
-                .take(new_point_count)
+            let mut accelerations: Vec<_> = std::iter::repeat_n(SalvaVector::zeros(), new_point_count)
                 .collect();
             // copy back the accelerations that were before, if they exist
             accelerations[..fluid.accelerations.len()].copy_from_slice(&fluid.accelerations[..]);
             fluid.accelerations = accelerations;
-            fluid.volumes = std::iter::repeat(fluid.default_particle_volume())
-                .take(new_point_count)
+            fluid.volumes = std::iter::repeat_n(fluid.default_particle_volume(), new_point_count)
                 .collect();
         }
     }
