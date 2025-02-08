@@ -17,6 +17,10 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Show targets
+      shell: sh
+      run: |
+        rustc --print=target-list
     - name: Rust Add target
       shell: sh
       run: |
