@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleExecutable</key>
-	<string>libgodot_rapier.ios</string>
+	<string>libgodot_rapier</string>
 	<key>CFBundleName</key>
 	<string>Godot Rapier3D</string>
 	<key>CFBundleDisplayName</key>
@@ -28,5 +28,15 @@
 	<string>iphoneos</string>
 	<key>MinimumOSVersion</key>
 	<string>12.0</string>
+	<!--
+	    From https://github.com/godot-jolt/godot-jolt/
+	-->
+	<key>AvailableLibraries</key>
+	<array>
+		<dict>
+			<key>BinaryPath</key>
+			<string>libgodot_rapier.dylib</string>
+		</dict>
+	</array>
 </dict>
 </plist>

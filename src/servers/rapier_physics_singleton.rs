@@ -45,7 +45,7 @@ pub fn physics_data() -> &'static mut PhysicsData {
     }
 }
 pub fn get_id_rid(id: RapierId, physics_ids: &PhysicsIds) -> Rid {
-    return *physics_ids.get(&id).unwrap_or(&Rid::Invalid);
+    *physics_ids.get(&id).unwrap_or(&Rid::Invalid)
 }
 pub fn insert_id_rid(id: RapierId, rid: Rid, physics_ids: &mut PhysicsIds) {
     if id == RapierId::default() {

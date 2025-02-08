@@ -3,58 +3,54 @@ on:
   workflow_call:
 
 env:
-  GODOT4_BIN: godot
   LLVM_PATH: /opt/homebrew/opt/llvm/bin
 
 jobs:
   ios:
     runs-on: "macos-latest"
-    name: ${{ matrix.dimensions.short }} ${{ matrix.precision }} ${{ matrix.features.name }} ${{ matrix.arch }}
+    name: ${{ matrix.dimensions.short }} ${{ matrix.precision }} ${{ matrix.features.name }} ${{ matrix.arch.name }}
     strategy:
       fail-fast: false
       matrix:
-        arch: ["aarch64-apple-ios"]
+        arch: [{"name" : "arm64", "rust": "aarch64-apple-ios"}, {"name" : "x86_64", "rust": "x86_64-apple-ios"}]
         precision: [single] #, double]
         dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
         features: [{"feature":"simd-stable,serde-serialize,experimental-threads", "name": "simd-parallel"}, {"feature":"enhanced-determinism,serde-serialize,experimental-threads", "name": "enhanced-determinism"}]
 
     steps:
       - uses: actions/checkout@v4
-      #- uses: chickensoft-games/setup-godot@v1
-      #  name: 🤖 Setup Godot
-      #  with:
-      #    version: 4.3.0
-      #    use-dotnet: false
-      #- name: 🔬 Verify Setup
-      #  run: |
-      #    godot --version
-      #    which godot
-      #    GODOT4_BIN=godot
-      #    brew install llvm
-      #    brew link llvm
+      - uses: blazium-engine/setup-blazium@master
+        name: 🤖 Setup Blazium
+        with:
+          version: 0.1.184-nightly
+      - name: 🔬 Verify Setup
+        run: |
+          Blazium --version
+          echo "GODOT4_BIN=$BLAZIUM_EDITOR" >> $GITHUB_ENV
       - name: Build
         uses: ./.github/actions/build
         with:
-          arch: ${{ matrix.arch }}
+          arch: ${{ matrix.arch.rust }}
           features: ${{ matrix.features.feature }},${{ matrix.precision }}-${{ matrix.dimensions.feature }}
       - name: Copy to bin
         shell: sh
         run: |
-          mv target/release/libgodot_rapier.dylib bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.ios.framework/libgodot_rapier.ios
-          mv target/release/libgodot_rapier.a bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.ios.framework/libgodot_rapier.a
+          ls target/release
+          mv target/release/libgodot_rapier.dylib bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.ios.${{ matrix.arch.name }}.framework/libgodot_rapier
+          mv target/release/libgodot_rapier.a bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.ios.${{ matrix.arch.name }}.framework/libgodot_rapier.a
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch}}
+          name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch.rust}}
           path: |
-            bin${{ matrix.dimensions.short }}/**/*.ios
+            bin${{ matrix.dimensions.short }}/**/libgodot_rapier
           if-no-files-found: error
 
       - name: Upload Static
         uses: actions/upload-artifact@v4
         with:
-          name: static-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch}}
+          name: static-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch.rust}}
           path: |
             bin${{ matrix.dimensions.short }}/**/*.a
           if-no-files-found: error

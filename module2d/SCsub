@@ -6,6 +6,11 @@ Import("env_modules")
 
 def get_sufix():
     suffix = ".{}.{}".format(env["platform"], env["target"])
+    # In godot it's "linuxbsd"
+    suffix = suffix.replace("linuxbsd", "linux")
+    # Only take release
+    suffix = suffix.replace("editor", "template_release")
+    suffix = suffix.replace("template_debug", "template_release")
     if env.dev_build:
         suffix += ".dev"
     if env["precision"] == "double":
@@ -13,15 +18,21 @@ def get_sufix():
     suffix += "." + env["arch"]
     if not env["threads"]:
         suffix += ".nothreads"
-    return suffix.replace("editor", "template_release")
+    return suffix
 
 # Libraries
-if env["platform"] == "macos" or env["platform"] == "ios":
-    base_path = "#modules/rapier_2d/bin/addons/rapier_2d/bin/librapier_2d{}.framework".format(get_sufix())
-    base_file = "libgodot_riscv{}".format(get_sufix())
-else:
-    base_path = "#modules/rapier_2d/bin/addons/rapier_2d/bin"
-    base_file = "libgodot_riscv{}".format(get_sufix())
+match env["platform"]:
+    case "macos":
+        base_path = "#modules/rapier_2d/addons/godot-rapier2d/bin/libgodot_rapier.macos.framework"
+        match env["arch"]:
+            case "arm64":
+                base_file = "libgodot_rapier.macos.arm64.a"
+            case "x86_64":
+                base_file = "libgodot_rapier.macos.x86_64.a"
+            case _:
+                raise Exception("Unknown arch: {}".format(env["arch"]))
+    case _:
+        raise Exception("Unknown arch: {}".format(env["arch"]))
 
 env.Append(LIBS=[base_file])
 env.Append(LIBPATH=[base_path])

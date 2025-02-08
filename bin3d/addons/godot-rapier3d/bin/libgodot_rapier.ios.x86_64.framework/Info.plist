@@ -7,13 +7,13 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleExecutable</key>
-	<string>libgodot_rapier.ios</string>
+	<string>libgodot_rapier</string>
 	<key>CFBundleName</key>
-	<string>Godot Rapier2D</string>
+	<string>Godot Rapier3D</string>
 	<key>CFBundleDisplayName</key>
-	<string>Godot Rapier2D</string>
+	<string>Godot Rapier3D</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.godot-rapier2d.godot-rapier2d</string>
+	<string>org.godot-rapier3d.godot-rapier3d</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright (c) 2023-present Fabrice Cipolla, Sp3ctralCat and Dragos Daian.</string>
 	<key>CFBundleVersion</key>
@@ -28,5 +28,15 @@
 	<string>iphoneos</string>
 	<key>MinimumOSVersion</key>
 	<string>12.0</string>
+	<!--
+	    From https://github.com/godot-jolt/godot-jolt/
+	-->
+	<key>AvailableLibraries</key>
+	<array>
+		<dict>
+			<key>BinaryPath</key>
+			<string>libgodot_rapier.dylib</string>
+		</dict>
+	</array>
 </dict>
 </plist>
