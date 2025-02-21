@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleExecutable</key>
-	<string>libgodot_rapier</string>
+	<string>libgodot_rapier.ios.arm64.dylib</string>
 	<key>CFBundleName</key>
 	<string>Godot Rapier3D</string>
 	<key>CFBundleDisplayName</key>
@@ -35,7 +35,7 @@
 	<array>
 		<dict>
 			<key>BinaryPath</key>
-			<string>libgodot_rapier.dylib</string>
+			<string>libgodot_rapier.ios.arm64.dylib</string>
 		</dict>
 	</array>
 </dict>

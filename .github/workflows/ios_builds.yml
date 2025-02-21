@@ -37,8 +37,8 @@ jobs:
         run: |
           ls target/release
           # Change rpath
-          install_name_tool -id @rpath/libgodot_rapier.ios.${{ matrix.arch.name }}.framework/libgodot_rapier.dylib target/release/libgodot_rapier.dylib
-          mv target/release/libgodot_rapier.dylib bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.ios.${{ matrix.arch.name }}.framework/libgodot_rapier
+          install_name_tool -id @rpath/libgodot_rapier.ios.${{ matrix.arch.name }}.framework/libgodot_rapier.ios.${{ matrix.arch.name }}.dylib target/release/libgodot_rapier.dylib
+          mv target/release/libgodot_rapier.dylib bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.ios.${{ matrix.arch.name }}.framework/libgodot_rapier.ios.${{ matrix.arch.name }}.dylib
           mv target/release/libgodot_rapier.a bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.ios.${{ matrix.arch.name }}.framework/libgodot_rapier.a
 
       - name: Upload
@@ -46,7 +46,7 @@ jobs:
         with:
           name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch.rust}}
           path: |
-            bin${{ matrix.dimensions.short }}/**/libgodot_rapier
+            bin${{ matrix.dimensions.short }}/**/*.dylib
           if-no-files-found: error
 
       - name: Upload Static
