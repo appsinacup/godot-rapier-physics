@@ -120,6 +120,7 @@ impl RapierShapeBase {
 
     pub fn destroy_shape(&mut self, physics_engine: &mut PhysicsEngine) {
         physics_engine.shape_destroy(self.get_id());
+        self.state.owners.clear();
     }
 
     #[cfg(feature = "serde-serialize")]
