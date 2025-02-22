@@ -46,7 +46,7 @@ jobs:
         with:
           name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch.rust}}
           path: |
-            bin${{ matrix.dimensions.short }}/**/*.dylib
+            bin${{ matrix.dimensions.short }}/**/*.${{ matrix.arch.name }}
           if-no-files-found: error
 
       - name: Upload Static
