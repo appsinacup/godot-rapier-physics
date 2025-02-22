@@ -37,8 +37,8 @@ jobs:
         run: |
           ls target/release
           # Change rpath
-          install_name_tool -id @rpath/libgodot_rapier.ios.${{ matrix.arch.name }}.framework/libgodot_rapier.ios.${{ matrix.arch.name }}.dylib target/release/libgodot_rapier.dylib
-          mv target/release/libgodot_rapier.dylib bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.ios.${{ matrix.arch.name }}.framework/libgodot_rapier.ios.${{ matrix.arch.name }}.dylib
+          install_name_tool -id @rpath/libgodot_rapier.ios.${{ matrix.arch.name }}.framework/libgodot_rapier.ios.${{ matrix.arch.name }} target/release/libgodot_rapier.dylib
+          mv target/release/libgodot_rapier.dylib bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.ios.${{ matrix.arch.name }}.framework/libgodot_rapier.ios.${{ matrix.arch.name }}
           mv target/release/libgodot_rapier.a bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.ios.${{ matrix.arch.name }}.framework/libgodot_rapier.a
 
       - name: Upload
