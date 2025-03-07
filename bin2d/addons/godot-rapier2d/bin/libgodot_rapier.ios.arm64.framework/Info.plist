@@ -27,7 +27,7 @@
 	<key>DTPlatformName</key>
 	<string>iphoneos</string>
 	<key>MinimumOSVersion</key>
-	<string>12.0</string>
+	<string>13.0</string>
 	<!--
 	    From https://github.com/godot-jolt/godot-jolt/
 	-->
