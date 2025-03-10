@@ -29,7 +29,7 @@ jobs:
           echo "GODOT4_BIN=$BLAZIUM_EDITOR" >> $GITHUB_ENV
       - name: Set IPHONEOS_DEPLOYMENT_TARGET
         run: |
-          echo "IPHONEOS_DEPLOYMENT_TARGET=13.0" >> $GITHUB_ENV
+          echo "IPHONEOS_DEPLOYMENT_TARGET=12.0" >> $GITHUB_ENV
       - name: Build
         uses: ./.github/actions/build
         with:
