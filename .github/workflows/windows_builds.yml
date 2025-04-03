@@ -19,8 +19,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: blazium-engine/setup-blazium@master
         name: 🤖 Setup Blazium
-        with:
-          version: 0.1.184-nightly
       - name: 🔬 Verify Setup
         run: |
           Blazium --version
