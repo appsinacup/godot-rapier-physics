@@ -1,8 +1,23 @@
 # Changelog
 
+## v0.8.12
+
+- Update ios dylib version by @OceanBreezeGames
+- use the android arm 32 bit one by @Ughuuu
+- use latest version of engine by @Ughuuu
+
+## v0.8.11
+
+- fix build for missing platforms by @Ughuuu
+- Fix owner leak in destroy_shape() by @Chubercik
+- Rpath change in actions WIP 1/2 by @OceanBreezeGames
+
 ## v0.8.10
 
-* WIP
+- fix characterbody one way dir bug by @Ughuuu
+- Allow circles to have 0 radius by @Ughuuu
+- fix liquid phantom collisions by @Ughuuu
+- Fix shape contact when velocity is 0 by @Ughuuu
 
 ## v0.8.9
 

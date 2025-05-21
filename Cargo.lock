@@ -363,7 +363,7 @@ dependencies = [
 
 [[package]]
 name = "godot-rapier"
-version = "0.8.10"
+version = "0.8.12"
 dependencies = [
  "bincode",
  "godot",
