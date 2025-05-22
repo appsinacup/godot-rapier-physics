@@ -59,9 +59,9 @@ pub struct RapierCollisionObjectBaseState {
     pub(crate) id: RapierId,
     pub(crate) body_handle: RigidBodyHandle,
     pub(crate) space_id: RapierId,
-    pub(crate) shapes: Vec<CollisionObjectShape>, // Default is empty Vec
-    pub(crate) transform: Transform,              // Will be initialized to IDENTITY
-    pub(crate) inv_transform: Transform,          // Will be initialized to IDENTITY
+    pub(crate) shapes: Vec<CollisionObjectShape>,
+    pub(crate) transform: Transform,
+    pub(crate) inv_transform: Transform,
 }
 impl Default for RapierCollisionObjectBaseState {
     fn default() -> Self {
@@ -131,7 +131,6 @@ impl RapierCollisionObjectBase {
                 shapes: Vec::new(),
                 transform: Transform::IDENTITY,
                 inv_transform: Transform::IDENTITY,
-                // id is already set above by struct update syntax shorthand
             },
             instance_id: 0,
             canvas_instance_id: 0,

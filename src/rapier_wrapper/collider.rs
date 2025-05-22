@@ -411,29 +411,12 @@ impl PhysicsEngine {
                     .collider_set
                     .get_mut(collider_handle)
                 {
-                    // Always set the shape first.
-                    collider.set_shape(new_shape); // new_shape is already scaled by scale_shape
-
-                    if let Some(parent_rb_handle) = collider.parent() {
-                        // If the collider has a parent RigidBody, its position should always be set
-                        // relative to that parent. The parent body's transform (which should be
-                        // correctly set by `body_set_transform`, using teleport for initial setup)
-                        // will determine the collider's final global position.
-                        // `shape_info.transform` is the local offset of the collider from its parent.
-                        if physics_world.physics_objects.rigid_body_set.get(parent_rb_handle).is_none() {
-                            // This case should ideally not happen if the parent handle is valid.
-                            godot_error!("Parent RigidBody (handle {:?}) for Collider {:?} not found in rigid_body_set. Collider position may be incorrect.", parent_rb_handle, collider_handle);
-                        }
+                    collider.set_shape(new_shape);
+                    if collider.parent().is_some() {
                         collider.set_position_wrt_parent(shape_info.transform);
                     } else {
-                        // Collider has no parent RigidBody in Rapier (e.g., a raw collider not attached to a body).
-                        // In this case, shape_info.transform is treated as its global position.
-                        godot_error!("Collider {:?} has no parent. Setting position with shape_info.transform ({:?}) as if it were global.", collider_handle, shape_info.transform);
                         collider.set_position(shape_info.transform);
                     }
-
-                    // Optional: Log the collider's global position after setting, for debugging.
-                    // godot::global::godot_print!("Collider {:?}: global pos after set: {:?}", collider_handle, collider.position());
                 }
             }
         }
