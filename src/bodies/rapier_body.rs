@@ -1980,7 +1980,7 @@ impl RapierBody {
                         physics_spaces,
                         physics_ids,
                     );
-                    self.apply_linear_damping(
+                    self.apply_angular_damping(
                         0.0,
                         false,
                         physics_engine,
@@ -1998,7 +1998,7 @@ impl RapierBody {
                     );
                     self.apply_angular_damping(
                         self.angular_damping,
-                        self.linear_damping_mode == BodyDampMode::COMBINE,
+                        self.angular_damping_mode == BodyDampMode::COMBINE,
                         physics_engine,
                         physics_spaces,
                         physics_ids,
