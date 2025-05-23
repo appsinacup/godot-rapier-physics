@@ -285,7 +285,7 @@ impl PhysicsEngine {
                     }
                 }
             }
-            body.wake_up(false);
+            body.wake_up(true);
         }
         self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
     }

@@ -50,7 +50,7 @@ pub struct CollisionObjectShape {
     pub one_way_collision_margin: real,
     pub collider_handle: ColliderHandle,
 }
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 #[cfg_attr(
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
@@ -62,6 +62,18 @@ pub struct RapierCollisionObjectBaseState {
     pub(crate) shapes: Vec<CollisionObjectShape>,
     pub(crate) transform: Transform,
     pub(crate) inv_transform: Transform,
+}
+impl Default for RapierCollisionObjectBaseState {
+    fn default() -> Self {
+        Self {
+            id: RapierId::default(),
+            body_handle: RigidBodyHandle::invalid(),
+            space_id: RapierId::default(),
+            shapes: Vec::new(),
+            transform: Transform::IDENTITY,
+            inv_transform: Transform::IDENTITY,
+        }
+    }
 }
 #[derive(Debug)]
 pub struct RapierCollisionObjectBase {
@@ -114,7 +126,11 @@ impl RapierCollisionObjectBase {
             rid,
             state: RapierCollisionObjectBaseState {
                 id,
-                ..Default::default()
+                body_handle: RigidBodyHandle::invalid(),
+                space_id: RapierId::default(),
+                shapes: Vec::new(),
+                transform: Transform::IDENTITY,
+                inv_transform: Transform::IDENTITY,
             },
             instance_id: 0,
             canvas_instance_id: 0,

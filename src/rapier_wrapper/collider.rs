@@ -411,8 +411,12 @@ impl PhysicsEngine {
                     .collider_set
                     .get_mut(collider_handle)
                 {
-                    collider.set_position_wrt_parent(shape_info.transform);
                     collider.set_shape(new_shape);
+                    if collider.parent().is_some() {
+                        collider.set_position_wrt_parent(shape_info.transform);
+                    } else {
+                        collider.set_position(shape_info.transform);
+                    }
                 }
             }
         }
