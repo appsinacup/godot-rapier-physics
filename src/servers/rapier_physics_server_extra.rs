@@ -9,11 +9,13 @@ use crate::servers::RapierPhysicsServer;
 use crate::types::*;
 pub enum RapierBodyParam {
     ContactSkin,
+    Dominance,
 }
 impl RapierBodyParam {
     fn from_i32(value: i32) -> RapierBodyParam {
         match value {
             0 => RapierBodyParam::ContactSkin,
+            1 => RapierBodyParam::Dominance,
             _ => RapierBodyParam::ContactSkin,
         }
     }
@@ -22,6 +24,8 @@ impl RapierBodyParam {
 impl RapierPhysicsServer {
     #[func]
     /// Set an extra parameter for a body.
+    /// If [param param] is [code]0[/code], sets the body's contact skin value.
+    /// If [param param] is [code]1[/code], sets the body's dominance value.
     fn body_set_extra_param(body: Rid, param: i32, value: Variant) {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
@@ -37,6 +41,8 @@ impl RapierPhysicsServer {
 
     #[func]
     /// Get an extra parameter for a body.
+    /// If [param param] is [code]0[/code], gets the body's contact skin value.
+    /// If [param param] is [code]1[/code], gets the body's dominance value.
     fn body_get_extra_param(body: Rid, param: i32) -> Variant {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get(&body) {

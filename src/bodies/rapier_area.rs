@@ -959,6 +959,7 @@ impl IRapierCollisionObject for RapierArea {
         Material::new(
             self.base.get_collision_layer(),
             self.base.get_collision_mask(),
+            self.base.get_dominance(),
         )
     }
 

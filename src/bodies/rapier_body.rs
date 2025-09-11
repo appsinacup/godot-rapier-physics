@@ -1496,12 +1496,26 @@ impl RapierBody {
                     physics_engine.body_update_material(space_handle, body_handle, &mat);
                 }
             }
+            RapierBodyParam::Dominance => {
+                if p_value.get_type() != VariantType::INT {
+                    return;
+                }
+                self.base
+                    .set_dominance(variant_to_int(&p_value) as i8, physics_engine);
+                let mat = self.init_material();
+                let body_handle = self.base.get_body_handle();
+                let space_handle = self.base.get_space_id();
+                if self.base.is_valid() {
+                    physics_engine.body_update_material(space_handle, body_handle, &mat);
+                }
+            }
         }
     }
 
     pub fn get_extra_param(&self, p_param: RapierBodyParam) -> Variant {
         match p_param {
             RapierBodyParam::ContactSkin => self.contact_skin.to_variant(),
+            RapierBodyParam::Dominance => self.base.get_dominance().to_variant(),
         }
     }
 
@@ -2241,6 +2255,7 @@ impl IRapierCollisionObject for RapierBody {
             contact_skin: Some(self.contact_skin),
             collision_layer: Some(self.base.get_collision_layer()),
             collision_mask: Some(self.base.get_collision_mask()),
+            dominance: Some(self.base.get_dominance()),
         }
     }
 

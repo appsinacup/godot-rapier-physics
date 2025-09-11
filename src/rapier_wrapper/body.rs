@@ -285,6 +285,9 @@ impl PhysicsEngine {
                     }
                 }
             }
+            if let Some(dominance) = mat.dominance {
+                body.set_dominance_group(dominance);
+            }
             body.wake_up(true);
         }
         self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
