@@ -191,15 +191,17 @@ pub struct Material {
     pub contact_skin: Option<Real>,
     pub collision_mask: Option<u32>,
     pub collision_layer: Option<u32>,
+    pub dominance: Option<i8>,
 }
 impl Material {
-    pub fn new(collision_layer: u32, collision_mask: u32) -> Material {
+    pub fn new(collision_layer: u32, collision_mask: u32, dominance: i8) -> Material {
         Material {
             friction: None,
             restitution: None,
             contact_skin: None,
             collision_layer: Some(collision_layer),
             collision_mask: Some(collision_mask),
+            dominance: Some(dominance),
         }
     }
 }

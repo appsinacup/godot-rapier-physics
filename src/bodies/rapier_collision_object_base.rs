@@ -87,6 +87,7 @@ pub struct RapierCollisionObjectBase {
     pickable: bool,
     collision_mask: u32,
     collision_layer: u32,
+    dominance: i8,
     pub(crate) is_debugging_contacts: bool,
     pub(crate) mode: BodyMode,
     pub(crate) activation_angular_threshold: real,
@@ -137,6 +138,7 @@ impl RapierCollisionObjectBase {
             pickable: true,
             collision_mask: 1,
             collision_layer: 1,
+            dominance: 0,
             is_debugging_contacts: false,
             mode,
             activation_angular_threshold,
@@ -495,7 +497,7 @@ impl RapierCollisionObjectBase {
     pub fn set_collision_mask(&mut self, p_mask: u32, physics_engine: &mut PhysicsEngine) {
         self.collision_mask = p_mask;
         if self.is_valid() {
-            let material = Material::new(self.collision_layer, self.collision_mask);
+            let material = Material::new(self.collision_layer, self.collision_mask, self.dominance);
             physics_engine.body_update_material(
                 self.state.space_id,
                 self.state.body_handle,
@@ -511,7 +513,7 @@ impl RapierCollisionObjectBase {
     pub fn set_collision_layer(&mut self, p_layer: u32, physics_engine: &mut PhysicsEngine) {
         self.collision_layer = p_layer;
         if self.is_valid() {
-            let material = Material::new(self.collision_layer, self.collision_mask);
+            let material = Material::new(self.collision_layer, self.collision_mask, self.dominance);
             physics_engine.body_update_material(
                 self.state.space_id,
                 self.state.body_handle,
@@ -522,6 +524,22 @@ impl RapierCollisionObjectBase {
 
     pub fn get_collision_layer(&self) -> u32 {
         self.collision_layer
+    }
+
+    pub fn set_dominance(&mut self, dominance: i8, physics_engine: &mut PhysicsEngine) {
+        self.dominance = dominance;
+        if self.is_valid() {
+            let material = Material::new(self.collision_layer, self.collision_mask, self.dominance);
+            physics_engine.body_update_material(
+                self.state.space_id,
+                self.state.body_handle,
+                &material,
+            );
+        }
+    }
+
+    pub fn get_dominance(&self) -> i8 {
+        self.dominance
     }
 
     pub fn get_mode(&self) -> BodyMode {

@@ -148,3 +148,9 @@ pub fn variant_to_float(variant: &Variant) -> real {
         _ => 0.0,
     }
 }
+pub fn variant_to_int(variant: &Variant) -> i32 {
+    match variant.get_type() {
+        VariantType::INT => variant.to::<i32>(),
+        _ => 0,
+    }
+}
