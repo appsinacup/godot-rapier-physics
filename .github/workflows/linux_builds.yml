@@ -16,12 +16,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: blazium-engine/setup-blazium@master
-        name: 🤖 Setup Blazium
-      - name: 🔬 Verify Setup
-        run: |
-          Blazium --version
-          echo "GODOT4_BIN=$BLAZIUM_EDITOR" >> $GITHUB_ENV
       - name: "Install dependencies"
         shell: sh
         run: |
