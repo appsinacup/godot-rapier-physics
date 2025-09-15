@@ -16,12 +16,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: blazium-engine/setup-blazium@master
-        name: 🤖 Setup Blazium
-      - name: 🔬 Verify Setup
-        run: |
-          Blazium --version
-          echo "GODOT4_BIN=$BLAZIUM_EDITOR" >> $GITHUB_ENV
       - name: Set up Java 11
         uses: actions/setup-java@v4
         with:
