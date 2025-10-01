@@ -67,9 +67,8 @@ pub struct ContactForceEventInfo {
     derive(serde::Serialize, serde::Deserialize)
 )]
 pub struct PhysicsObjects {
-    pub query_pipeline: QueryPipeline,
     pub island_manager: IslandManager,
-    pub broad_phase: BroadPhaseMultiSap,
+    pub broad_phase: DefaultBroadPhase,
     pub narrow_phase: NarrowPhase,
     pub impulse_joint_set: ImpulseJointSet,
     pub multibody_joint_set: MultibodyJointSet,
@@ -96,7 +95,6 @@ impl PhysicsWorld {
         }
         PhysicsWorld {
             physics_objects: PhysicsObjects {
-                query_pipeline: QueryPipeline::new(),
                 island_manager: IslandManager::new(),
                 broad_phase: DefaultBroadPhase::new(),
                 narrow_phase: NarrowPhase::new(),
@@ -185,16 +183,10 @@ impl PhysicsWorld {
             &mut self.physics_objects.impulse_joint_set,
             &mut self.physics_objects.multibody_joint_set,
             &mut self.physics_objects.ccd_solver,
-            // TODO for now incremental update increases memory usage forever
-            // https://github.com/appsinacup/godot-rapier-physics/issues/248
-            //Some(&mut self.physics_objects.query_pipeline),
-            None,
             &physics_hooks,
             &event_handler,
         );
-        self.physics_objects
-            .query_pipeline
-            .update(&self.physics_objects.collider_set);
+        // TODO do I still need to call query pipeline update manually?
         if self.fluids_pipeline.liquid_world.fluids().len() > 0 {
             self.fluids_pipeline.step(
                 &liquid_gravity,
