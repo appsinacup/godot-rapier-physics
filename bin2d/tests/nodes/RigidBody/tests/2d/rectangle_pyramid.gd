@@ -1,9 +1,9 @@
 extends PhysicsUnitTest2D
 
-@export var height := 40
+@export var height := 20
 @export var box_size := Vector2(20.0, 20.0)
-@export var box_spacing :=  Vector2(0.01,0.01)
-var simulation_duration := 4
+@export var box_spacing :=  Vector2() #0.5,0.5)
+var simulation_duration := 40
 var size_boundary := 20
 var tolerance := Vector2(0.5, 0.5)
 
@@ -49,28 +49,26 @@ func test_start() -> void:
 	
 func create_pyramid():
 	var pos_y = -0.5 * box_size.y - box_spacing.y + Global.WINDOW_SIZE.y - size_boundary
+	
 	var pos_x
 	for level in height:
 		var level_index = height - level - 1
 		var num_boxes = 2 * level_index + 1
 
 		var row_node = Node2D.new()
-		row_node.position = Vector2(0.0, pos_y)
+		row_node.position = Vector2i(0.0, pos_y)
 		row_node.name = "Row%02d" % (level + 1)
 		add_child(row_node)
 		bodies.append(row_node)
 
 		pos_x = -0.5 * (num_boxes - 1) * (box_size.x + box_spacing.x) + Global.WINDOW_SIZE.x/2
-
 		for box_index in range(num_boxes):
 			var box = get_rigid_body()
-			box.position = Vector2(pos_x, 0.0)
+			box.position = Vector2i(pos_x, 0.0)
 			box.name = "Box%02d" % (box_index + 1)
-			box.mass = 10
 			row_node.add_child(box)
 
 			pos_x += box_size.x + box_spacing.x
-
 		pos_y -= box_size.y + box_spacing.y
 	
 	top_last_position = Vector2(pos_x - box_size.x + box_spacing.x,  pos_y +  box_size.y - box_spacing.y)

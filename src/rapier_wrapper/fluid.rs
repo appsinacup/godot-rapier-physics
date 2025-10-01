@@ -39,6 +39,23 @@ impl PhysicsEngine {
         }
     }
 
+    pub fn fluid_change_interaction_groups(
+        &mut self,
+        world_handle: WorldHandle,
+        fluid_handle: HandleDouble,
+        interaction_groups: salva::object::interaction_groups::InteractionGroups,
+    ) {
+        if let Some(physics_world) = self.get_mut_world(world_handle)
+            && let Some(fluid) = physics_world
+                .fluids_pipeline
+                .liquid_world
+                .fluids_mut()
+                .get_mut(handle_to_fluid_handle(fluid_handle))
+        {
+            fluid.interaction_groups = interaction_groups;
+        }
+    }
+
     pub fn fluid_change_points_and_velocities(
         &mut self,
         world_handle: WorldHandle,

@@ -184,4 +184,32 @@ impl FluidImpl {
             FluidImpl::delete_points(fluid, to_remove);
         }
     }
+
+    pub fn set_collision_mask(fluid: &mut Fluid, mask: u32) {
+        if fluid.collision_mask != mask {
+            fluid.collision_mask = mask;
+            let rid = fluid.rid;
+            let guard = fluid.base_mut();
+            RapierPhysicsServer::fluid_set_collision_mask(rid, mask);
+            drop(guard);
+        }
+    }
+
+    pub fn get_collision_mask(fluid: &Fluid) -> u32 {
+        fluid.collision_mask
+    }
+
+    pub fn set_collision_layer(fluid: &mut Fluid, layer: u32) {
+        if fluid.collision_layer != layer {
+            fluid.collision_layer = layer;
+            let rid = fluid.rid;
+            let guard = fluid.base_mut();
+            RapierPhysicsServer::fluid_set_collision_layer(rid, layer);
+            drop(guard);
+        }
+    }
+
+    pub fn get_collision_layer(fluid: &Fluid) -> u32 {
+        fluid.collision_layer
+    }
 }
