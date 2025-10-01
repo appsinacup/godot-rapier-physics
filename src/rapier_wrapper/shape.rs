@@ -64,7 +64,7 @@ impl PhysicsEngine {
         handle: ShapeHandle,
     ) {
         let points_vec = point_array_to_vec(points);
-        if let Some(shape_data) = SharedShape::convex_polyline_from_points_raw(points_vec) {
+        if let Some(shape_data) = SharedShape::convex_polyline_unmodified(points_vec) {
             self.insert_shape(shape_data, handle)
         }
     }

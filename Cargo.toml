@@ -1,9 +1,9 @@
 [package]
 name = "godot-rapier"
 version = "0.8.12"
-edition = "2021"
+edition = "2024"
 license = "MIT"
-rust-version = "1.82"
+rust-version = "1.85"
 publish = false
 
 [lib]
@@ -22,8 +22,11 @@ single = ["godot/api-4-3"]
 double = ["godot/double-precision", "godot/api-custom"]
 enhanced-determinism = ["rapier2d/enhanced-determinism", "rapier2d-f64/enhanced-determinism", "rapier3d/enhanced-determinism", "rapier3d-f64/enhanced-determinism"]
 serde-serialize = ["serde", "hashbrown/serde", "bincode", "serde_json", "godot/serde", "rapier2d/serde-serialize", "rapier2d-f64/serde-serialize", "rapier3d/serde-serialize", "rapier3d-f64/serde-serialize" ]
-simd-stable = ["rapier2d/simd-stable", "rapier2d-f64/simd-stable", "rapier3d/simd-stable", "rapier3d-f64/simd-stable"]
-simd-nightly = ["rapier2d/simd-nightly", "rapier2d-f64/simd-nightly", "rapier3d/simd-nightly", "rapier3d-f64/simd-nightly"]
+# Note: SIMD disabled for f64 builds due to upstream rapier bugs with f64 SIMD implementation
+# simd-stable = ["rapier2d/simd-stable", "rapier2d-f64/simd-stable", "rapier3d/simd-stable", "rapier3d-f64/simd-stable"]
+# simd-nightly = ["rapier2d/simd-nightly", "rapier2d-f64/simd-nightly", "rapier3d/simd-nightly", "rapier3d-f64/simd-nightly"]
+simd-stable = ["rapier2d/simd-stable", "rapier3d/simd-stable"]
+simd-nightly = ["rapier2d/simd-nightly", "rapier3d/simd-nightly"]
 parallel = ["rapier2d/parallel", "rapier2d-f64/parallel", "rapier3d/parallel", "rapier3d-f64/parallel"] #, "experimental-threads"]
 experimental-wasm-nothreads = ["godot/experimental-wasm-nothreads", "godot/lazy-function-tables"]
 experimental-wasm = ["godot/experimental-wasm", "godot/lazy-function-tables"]

@@ -1,8 +1,8 @@
-use godot::classes::physics_server_3d;
-use godot::classes::physics_server_3d::*;
 use godot::classes::IPhysicsServer3DExtension;
 use godot::classes::PhysicsServer3DExtension;
 use godot::classes::PhysicsServer3DRenderingServerHandler;
+use godot::classes::physics_server_3d;
+use godot::classes::physics_server_3d::*;
 use godot::classes::{self};
 use godot::prelude::*;
 

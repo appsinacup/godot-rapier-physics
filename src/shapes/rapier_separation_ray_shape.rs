@@ -52,7 +52,10 @@ impl IRapierShape for RapierSeparationRayShape {
         }
         let dictionary: Dictionary = data.try_to().unwrap_or_default();
         if !dictionary.contains_key("length") && !dictionary.contains_key("slide_on_slope") {
-            godot_error!("RapierSeparationRayShape data must contain 'length' and 'slide_on_slope' keys. Got {}", data);
+            godot_error!(
+                "RapierSeparationRayShape data must contain 'length' and 'slide_on_slope' keys. Got {}",
+                data
+            );
             return;
         }
         self.length = dictionary.get_or_nil("length").try_to().unwrap_or_default();

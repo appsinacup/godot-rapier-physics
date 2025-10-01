@@ -123,7 +123,8 @@ impl PhysicsEngine {
         let mut length_current = Real::MAX;
         physics_world
             .physics_objects
-            .query_pipeline
+            .broad_phase
+            .as_query_pipeline()
             .intersections_with_ray(
                 &physics_world.physics_objects.rigid_body_set,
                 &physics_world.physics_objects.collider_set,
@@ -205,7 +206,8 @@ impl PhysicsEngine {
             if let Some(hit_info_slice) = hit_info_slice_opt {
                 physics_world
                     .physics_objects
-                    .query_pipeline
+                    .broad_phase
+                    .as_query_pipeline()
                     .intersections_with_point(
                         &physics_world.physics_objects.rigid_body_set,
                         &physics_world.physics_objects.collider_set,
@@ -354,7 +356,8 @@ impl PhysicsEngine {
                 if velocity_size < DEFAULT_EPSILON {
                     if let Some(collider_handle) = physics_world
                         .physics_objects
-                        .query_pipeline
+                        .broad_phase
+                        .as_query_pipeline()
                         .intersection_with_shape(
                             &physics_world.physics_objects.rigid_body_set,
                             &physics_world.physics_objects.collider_set,

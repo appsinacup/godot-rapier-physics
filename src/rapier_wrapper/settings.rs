@@ -14,8 +14,6 @@ pub struct SimulationSettings {
 
     /// The number of solver iterations run by the constraints solver for calculating forces (default: `4`).
     pub num_solver_iterations: usize,
-    /// Number of addition friction resolution iteration run during the last solver sub-step (default: `4`).
-    pub num_additional_friction_iterations: usize,
     /// Number of internal Project Gauss Seidel (PGS) iterations run at each solver iteration (default: `1`).
     pub num_internal_pgs_iterations: usize,
     pub pixel_gravity: Vector<Real>,

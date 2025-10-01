@@ -1,15 +1,15 @@
+use godot::classes::ProjectSettings;
 #[cfg(feature = "dim2")]
 use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
 use godot::classes::physics_server_3d::*;
-use godot::classes::ProjectSettings;
 use godot::prelude::*;
 use rapier::dynamics::RigidBodyHandle;
 use rapier::geometry::ColliderHandle;
-use servers::rapier_physics_singleton::get_id_rid;
 use servers::rapier_physics_singleton::PhysicsIds;
 use servers::rapier_physics_singleton::PhysicsSpaces;
 use servers::rapier_physics_singleton::RapierId;
+use servers::rapier_physics_singleton::get_id_rid;
 use servers::rapier_project_settings::RapierProjectSettings;
 use spaces::rapier_space::RapierSpace;
 

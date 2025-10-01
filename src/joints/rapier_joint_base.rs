@@ -1,6 +1,6 @@
-use servers::rapier_physics_singleton::get_id_rid;
 use servers::rapier_physics_singleton::PhysicsIds;
 use servers::rapier_physics_singleton::RapierId;
+use servers::rapier_physics_singleton::get_id_rid;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::*;

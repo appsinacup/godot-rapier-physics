@@ -129,7 +129,7 @@ impl PhysicsWorld {
         physics_collision_objects: &mut PhysicsCollisionObjects,
         physics_ids: &PhysicsIds,
     ) {
-        for handle in self.physics_objects.island_manager.active_dynamic_bodies() {
+        for handle in self.physics_objects.island_manager.active_bodies() {
             if let Some(body) = self.physics_objects.rigid_body_set.get(*handle) {
                 let before_active_body_info = BeforeActiveBodyInfo {
                     body_user_data: self.get_rigid_body_user_data(*handle),
@@ -157,10 +157,8 @@ impl PhysicsWorld {
             ..Default::default()
         };
         if let Some(iterations) = NonZeroUsize::new(settings.num_solver_iterations) {
-            integration_parameters.num_solver_iterations = iterations;
+            integration_parameters.num_solver_iterations = iterations.into();
         }
-        integration_parameters.num_additional_friction_iterations =
-            settings.num_additional_friction_iterations;
         integration_parameters.num_internal_pgs_iterations = settings.num_internal_pgs_iterations;
         let gravity = settings.pixel_gravity;
         let liquid_gravity = settings.pixel_liquid_gravity;
@@ -205,17 +203,7 @@ impl PhysicsWorld {
                 &mut self.physics_objects.rigid_body_set,
             );
         }
-        for handle in self.physics_objects.island_manager.active_dynamic_bodies() {
-            let active_body_info = ActiveBodyInfo {
-                body_user_data: self.get_rigid_body_user_data(*handle),
-            };
-            space.active_body_callback(&active_body_info, physics_collision_objects, physics_ids);
-        }
-        for handle in self
-            .physics_objects
-            .island_manager
-            .active_kinematic_bodies()
-        {
+        for handle in self.physics_objects.island_manager.active_bodies() {
             let active_body_info = ActiveBodyInfo {
                 body_user_data: self.get_rigid_body_user_data(*handle),
             };
@@ -594,7 +582,7 @@ impl PhysicsEngine {
             return physics_world
                 .physics_objects
                 .island_manager
-                .active_dynamic_bodies()
+                .active_bodies()
                 .len();
         }
         0

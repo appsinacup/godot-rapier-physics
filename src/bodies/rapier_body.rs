@@ -13,12 +13,12 @@ use rapier::dynamics::LockedAxes;
 use rapier::geometry::ColliderHandle;
 #[cfg(feature = "dim3")]
 use rapier::math::DEFAULT_EPSILON;
-use servers::rapier_physics_singleton::get_id_rid;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsIds;
 use servers::rapier_physics_singleton::PhysicsShapes;
 use servers::rapier_physics_singleton::PhysicsSpaces;
 use servers::rapier_physics_singleton::RapierId;
+use servers::rapier_physics_singleton::get_id_rid;
 use shapes::rapier_shape::IRapierShape;
 
 use super::rapier_area::RapierArea;
