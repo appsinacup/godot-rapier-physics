@@ -9,13 +9,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: ["x86_64-unknown-linux-gnu", "i686-unknown-linux-gnu", "aarch64-unknown-linux-gnu", "armv7-unknown-linux-gnueabihf"]
+        arch: ["x86_64-unknown-linux-gnu", "aarch64-unknown-linux-gnu", "armv7-unknown-linux-gnueabihf"] #"i686-unknown-linux-gnu"
         precision: [single] #, double]
         dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
         features: [{"feature":"simd-stable,serde-serialize,experimental-threads", "name": "simd-parallel"}, {"feature":"enhanced-determinism,serde-serialize,experimental-threads", "name": "enhanced-determinism"}]
 
     steps:
       - uses: actions/checkout@v4
+      - name: Setup Godot
+        uses: appsinacup/setup-godot-action@main
+        with:
+          version: '4.5-stable'
       - name: "Install dependencies"
         shell: sh
         run: |
@@ -30,6 +34,8 @@ jobs:
           sudo apt-get install gcc-multilib g++-multilib libc6-dev-i386
           # Arm64 and arm32
           sudo apt install gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf
+          # LLVM for godot-rust api-custom bindgen
+          sudo apt-get install llvm-dev libclang-dev clang
       - name: Build
         uses: ./.github/actions/build
         with:

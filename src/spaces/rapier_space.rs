@@ -1,18 +1,18 @@
 use bodies::rapier_area::RapierArea;
 use bodies::rapier_body::RapierBody;
+use godot::classes::ProjectSettings;
 #[cfg(feature = "dim2")]
 use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
 use godot::classes::physics_server_3d::*;
-use godot::classes::ProjectSettings;
 use godot::prelude::*;
 use hashbrown::HashSet;
-use servers::rapier_physics_singleton::get_id_rid;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsData;
 use servers::rapier_physics_singleton::PhysicsIds;
 use servers::rapier_physics_singleton::PhysicsSpaces;
 use servers::rapier_physics_singleton::RapierId;
+use servers::rapier_physics_singleton::get_id_rid;
 use spaces::rapier_space_state::RapierSpaceState;
 
 use super::PhysicsDirectSpaceState;

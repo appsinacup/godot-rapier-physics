@@ -564,4 +564,42 @@ impl RapierDirectBodyStateImpl {
             }
         }
     }
+
+    pub(super) fn set_collision_layer(&mut self, layer: u32) {
+        let physics_data = physics_data();
+        if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
+            if let Some(body) = body.get_mut_body() {
+                body.set_collision_layer(layer, &mut physics_data.physics_engine);
+            }
+        }
+    }
+
+    pub(super) fn get_collision_layer(&self) -> u32 {
+        let physics_data = physics_data();
+        if let Some(body) = physics_data.collision_objects.get(&self.body) {
+            if let Some(body) = body.get_body() {
+                return body.get_collision_layer();
+            }
+        }
+        0
+    }
+
+    pub(super) fn set_collision_mask(&mut self, mask: u32) {
+        let physics_data = physics_data();
+        if let Some(body) = physics_data.collision_objects.get_mut(&self.body) {
+            if let Some(body) = body.get_mut_body() {
+                body.set_collision_mask(mask, &mut physics_data.physics_engine);
+            }
+        }
+    }
+
+    pub(super) fn get_collision_mask(&self) -> u32 {
+        let physics_data = physics_data();
+        if let Some(body) = physics_data.collision_objects.get(&self.body) {
+            if let Some(body) = body.get_body() {
+                return body.get_collision_mask();
+            }
+        }
+        0
+    }
 }

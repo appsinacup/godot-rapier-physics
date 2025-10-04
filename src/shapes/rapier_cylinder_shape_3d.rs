@@ -60,22 +60,34 @@ impl IRapierShape for RapierCylinderShape3D {
                     if let Ok(in_height) = in_height.try_to::<real>() {
                         height = in_height;
                     } else {
-                        godot_error!("RapierCylinderShape data must be a dictionary with 'height' and 'radius' keys. Got {}", data);
+                        godot_error!(
+                            "RapierCylinderShape data must be a dictionary with 'height' and 'radius' keys. Got {}",
+                            data
+                        );
                         return;
                     }
                     if let Ok(in_radius) = in_radius.try_to::<real>() {
                         radius = in_radius;
                     } else {
-                        godot_error!("RapierCylinderShape data must be a dictionary with 'height' and 'radius' keys. Got {}", data);
+                        godot_error!(
+                            "RapierCylinderShape data must be a dictionary with 'height' and 'radius' keys. Got {}",
+                            data
+                        );
                         return;
                     }
                 } else {
-                    godot_error!("RapierCylinderShape data must be a dictionary with 'height' and 'radius' keys. Got {}", data);
+                    godot_error!(
+                        "RapierCylinderShape data must be a dictionary with 'height' and 'radius' keys. Got {}",
+                        data
+                    );
                     return;
                 }
             }
             _ => {
-                godot_error!("RapierCylinderShape data must be a dictionary with 'height' and 'radius' keys. Got {}", data);
+                godot_error!(
+                    "RapierCylinderShape data must be a dictionary with 'height' and 'radius' keys. Got {}",
+                    data
+                );
                 return;
             }
         }
@@ -93,8 +105,8 @@ mod tests {
     use godot::prelude::*;
 
     use super::*;
-    use crate::servers::rapier_physics_singleton::physics_data;
     use crate::servers::rapier_physics_singleton::PhysicsShapes;
+    use crate::servers::rapier_physics_singleton::physics_data;
     use crate::shapes::rapier_shape::IRapierShape;
     #[derive(GodotClass)]
     #[class(base=Object, init)]

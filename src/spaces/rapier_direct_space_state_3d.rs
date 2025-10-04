@@ -29,7 +29,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         }
     }
 
-    unsafe fn intersect_ray(
+    unsafe fn intersect_ray_rawptr(
         &mut self,
         from: Vector,
         to: Vector,
@@ -42,19 +42,21 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         result: *mut PhysicsServerExtensionRayResult,
     ) -> bool {
         let physics_data = physics_data();
-        self.inner.intersect_ray(
-            from,
-            to,
-            collision_mask,
-            collide_with_bodies,
-            collide_with_areas,
-            hit_from_inside,
-            result,
-            physics_data,
-        )
+        unsafe {
+            self.inner.intersect_ray(
+                from,
+                to,
+                collision_mask,
+                collide_with_bodies,
+                collide_with_areas,
+                hit_from_inside,
+                result,
+                physics_data,
+            )
+        }
     }
 
-    unsafe fn intersect_point(
+    unsafe fn intersect_point_rawptr(
         &mut self,
         position: Vector,
         collision_mask: u32,
@@ -64,19 +66,21 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         max_results: i32,
     ) -> i32 {
         let physics_data = physics_data();
-        self.inner.intersect_point(
-            position,
-            0,
-            collision_mask,
-            collide_with_bodies,
-            collide_with_areas,
-            results,
-            max_results,
-            physics_data,
-        )
+        unsafe {
+            self.inner.intersect_point(
+                position,
+                0,
+                collision_mask,
+                collide_with_bodies,
+                collide_with_areas,
+                results,
+                max_results,
+                physics_data,
+            )
+        }
     }
 
-    unsafe fn intersect_shape(
+    unsafe fn intersect_shape_rawptr(
         &mut self,
         shape_rid: Rid,
         transform: Transform,
@@ -89,21 +93,23 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         max_results: i32,
     ) -> i32 {
         let physics_data = physics_data();
-        self.inner.intersect_shape(
-            shape_rid,
-            transform,
-            motion,
-            margin,
-            collision_mask,
-            collide_with_bodies,
-            collide_with_areas,
-            results,
-            max_results,
-            physics_data,
-        )
+        unsafe {
+            self.inner.intersect_shape(
+                shape_rid,
+                transform,
+                motion,
+                margin,
+                collision_mask,
+                collide_with_bodies,
+                collide_with_areas,
+                results,
+                max_results,
+                physics_data,
+            )
+        }
     }
 
-    unsafe fn cast_motion(
+    unsafe fn cast_motion_rawptr(
         &mut self,
         shape_rid: Rid,
         transform: Transform,
@@ -117,21 +123,23 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         _info: *mut PhysicsServerExtensionShapeRestInfo,
     ) -> bool {
         let physics_data = physics_data();
-        self.inner.cast_motion(
-            shape_rid,
-            transform,
-            motion,
-            margin,
-            collision_mask,
-            collide_with_bodies,
-            collide_with_areas,
-            closest_safe,
-            closest_unsafe,
-            physics_data,
-        )
+        unsafe {
+            self.inner.cast_motion(
+                shape_rid,
+                transform,
+                motion,
+                margin,
+                collision_mask,
+                collide_with_bodies,
+                collide_with_areas,
+                closest_safe,
+                closest_unsafe,
+                physics_data,
+            )
+        }
     }
 
-    unsafe fn collide_shape(
+    unsafe fn collide_shape_rawptr(
         &mut self,
         shape_rid: Rid,
         transform: Transform,
@@ -145,22 +153,24 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         result_count: *mut i32,
     ) -> bool {
         let physics_data = physics_data();
-        self.inner.collide_shape(
-            shape_rid,
-            transform,
-            motion,
-            margin,
-            collision_mask,
-            collide_with_bodies,
-            collide_with_areas,
-            results,
-            max_results,
-            result_count,
-            physics_data,
-        )
+        unsafe {
+            self.inner.collide_shape(
+                shape_rid,
+                transform,
+                motion,
+                margin,
+                collision_mask,
+                collide_with_bodies,
+                collide_with_areas,
+                results,
+                max_results,
+                result_count,
+                physics_data,
+            )
+        }
     }
 
-    unsafe fn rest_info(
+    unsafe fn rest_info_rawptr(
         &mut self,
         shape_rid: Rid,
         transform: Transform,
@@ -172,17 +182,19 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         rest_info: *mut PhysicsServerExtensionShapeRestInfo,
     ) -> bool {
         let physics_data = physics_data();
-        self.inner.rest_info(
-            shape_rid,
-            transform,
-            motion,
-            margin,
-            collision_mask,
-            collide_with_bodies,
-            collide_with_areas,
-            rest_info,
-            physics_data,
-        )
+        unsafe {
+            self.inner.rest_info(
+                shape_rid,
+                transform,
+                motion,
+                margin,
+                collision_mask,
+                collide_with_bodies,
+                collide_with_areas,
+                rest_info,
+                physics_data,
+            )
+        }
     }
 
     fn get_closest_point_to_object_volume(&self, _object: Rid, _point: Vector3) -> Vector3 {

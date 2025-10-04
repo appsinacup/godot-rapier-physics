@@ -6,8 +6,6 @@ use rapier::math::Real;
 const SOLVER_NUM_ITERATIONS: &str = "physics/rapier/solver/num_iterations";
 const SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS: &str =
     "physics/rapier/solver/num_internal_stabilization_iterations";
-const SOLVER_NUM_ADDITIONAL_FRICTION_ITERATIONS: &str =
-    "physics/rapier/solver/num_additional_friction_iterations";
 const SOLVER_NUM_INTERNAL_PGS_ITERATIONS: &str =
     "physics/rapier/solver/num_internal_pgs_iterations";
 const SOLVER_MAX_CCD_SUBSTEPS: &str = "physics/rapier/solver/max_ccd_substeps";
@@ -99,14 +97,8 @@ impl RapierProjectSettings {
             false,
         );
         register_setting_ranged(
-            SOLVER_NUM_ADDITIONAL_FRICTION_ITERATIONS,
-            Variant::from(integration_parameters.num_additional_friction_iterations as i32),
-            "0,16,or_greater",
-            false,
-        );
-        register_setting_ranged(
             SOLVER_NUM_ITERATIONS,
-            Variant::from(integration_parameters.num_solver_iterations.get() as i32),
+            Variant::from(integration_parameters.num_solver_iterations as i32),
             "1,16,or_greater",
             false,
         );
@@ -202,10 +194,6 @@ impl RapierProjectSettings {
 
     pub fn get_solver_num_solver_iterations() -> i64 {
         RapierProjectSettings::get_setting_int(SOLVER_NUM_ITERATIONS)
-    }
-
-    pub fn get_solver_num_additional_friction_iterations() -> i64 {
-        RapierProjectSettings::get_setting_int(SOLVER_NUM_ADDITIONAL_FRICTION_ITERATIONS)
     }
 
     pub fn get_solver_num_internal_pgs_iterations() -> i64 {

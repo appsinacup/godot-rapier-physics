@@ -35,7 +35,7 @@ pub struct PointHitInfo {
     pub collider: ColliderHandle,
     pub user_data: UserData,
 }
-#[derive(Default, Debug)]
+#[derive(Copy, Clone, Default, Debug)]
 pub struct ShapeCastResult {
     pub collided: bool,
     pub toi: Real,
@@ -121,40 +121,44 @@ impl PhysicsEngine {
         };
         filter.predicate = Some(&predicate);
         let mut length_current = Real::MAX;
-        physics_world
+        for (handle, _collider, intersection) in physics_world
             .physics_objects
-            .query_pipeline
-            .intersections_with_ray(
+            .broad_phase
+            .as_query_pipeline(
+                physics_world
+                    .physics_objects
+                    .narrow_phase
+                    .query_dispatcher(),
                 &physics_world.physics_objects.rigid_body_set,
                 &physics_world.physics_objects.collider_set,
-                &ray,
-                length,
-                true,
                 filter,
-                |handle, intersection| {
-                    // Find closest intersection
-                    if intersection.time_of_impact > length_current {
-                        return true;
-                    }
-                    // Callback called on each collider hit by the ray.
-                    if hit_from_inside || intersection.time_of_impact != 0.0 {
-                        length_current = intersection.time_of_impact;
-                        result = true;
-                        let hit_point = ray.point_at(intersection.time_of_impact);
-                        let hit_normal = intersection.normal;
-                        hit_info.pixel_position = hit_point.coords;
-                        if hit_from_inside && intersection.time_of_impact == 0.0 {
-                            hit_info.normal = zero();
-                        } else {
-                            hit_info.normal = hit_normal;
-                        }
-                        hit_info.collider = handle;
-                        hit_info.user_data = physics_world.get_collider_user_data(handle);
-                        hit_info.feature = intersection.feature;
-                    }
-                    true // Continue to search.
-                },
-            );
+            )
+            .intersect_ray(ray, length, true)
+        {
+            // Find closest intersection
+            if intersection.time_of_impact > length_current {
+                continue;
+            }
+            if hit_from_inside || intersection.time_of_impact != 0.0 {
+                length_current = intersection.time_of_impact;
+                result = true;
+                let hit_point = ray.point_at(intersection.time_of_impact);
+                let hit_normal = intersection.normal;
+                hit_info.pixel_position = hit_point.coords;
+                if hit_from_inside && intersection.time_of_impact == 0.0 {
+                    hit_info.normal = zero();
+                } else {
+                    hit_info.normal = hit_normal;
+                }
+                hit_info.collider = handle;
+                hit_info.user_data = physics_world.get_collider_user_data(handle);
+                hit_info.feature = intersection.feature;
+                // Early exit if we found a hit at exactly 0.0 (can't get closer)
+                if intersection.time_of_impact == 0.0 {
+                    break;
+                }
+            }
+        }
         result
     }
 
@@ -203,23 +207,30 @@ impl PhysicsEngine {
                 ));
             }
             if let Some(hit_info_slice) = hit_info_slice_opt {
-                physics_world
+                for (handle, _) in physics_world
                     .physics_objects
-                    .query_pipeline
-                    .intersections_with_point(
+                    .broad_phase
+                    .as_query_pipeline(
+                        physics_world
+                            .physics_objects
+                            .narrow_phase
+                            .query_dispatcher(),
                         &physics_world.physics_objects.rigid_body_set,
                         &physics_world.physics_objects.collider_set,
-                        &point,
                         filter,
-                        |handle| {
-                            // Callback called on each collider hit by the ray.
-                            hit_info_slice[cpt_hit].collider = handle;
-                            hit_info_slice[cpt_hit].user_data =
-                                physics_world.get_collider_user_data(handle);
-                            cpt_hit += 1;
-                            cpt_hit < hit_info_length // Continue to search collisions if we still have space for results.
-                        },
-                    );
+                    )
+                    .intersect_point(point)
+                {
+                    // Callback called on each collider hit by the ray.
+                    hit_info_slice[cpt_hit].collider = handle;
+                    hit_info_slice[cpt_hit].user_data =
+                        physics_world.get_collider_user_data(handle);
+                    cpt_hit += 1;
+                    // Stop if we filled the hit info array.
+                    if cpt_hit >= hit_info_length {
+                        break;
+                    }
+                }
             }
         }
         cpt_hit
@@ -352,20 +363,24 @@ impl PhysicsEngine {
                 filter.predicate = Some(&predicate);
                 let velocity_size = shape_vel.magnitude();
                 if velocity_size < DEFAULT_EPSILON {
-                    if let Some(collider_handle) = physics_world
+                    for (collider_handle, _collider) in physics_world
                         .physics_objects
-                        .query_pipeline
-                        .intersection_with_shape(
+                        .broad_phase
+                        .as_query_pipeline(
+                            physics_world
+                                .physics_objects
+                                .narrow_phase
+                                .query_dispatcher(),
                             &physics_world.physics_objects.rigid_body_set,
                             &physics_world.physics_objects.collider_set,
-                            &shape_transform,
-                            shared_shape.as_ref(),
                             filter,
                         )
+                        .intersect_shape(shape_transform, shared_shape.as_ref())
                     {
-                        result.collided = true;
-                        result.toi = 0.0;
-                        result.collider = collider_handle;
+                        let mut collision = ShapeCastResult::new();
+                        collision.collided = true;
+                        collision.toi = 0.0;
+                        collision.collider = collider_handle;
                         result.user_data = physics_world.get_collider_user_data(collider_handle);
                         if let Some(collider) = physics_world
                             .physics_objects
@@ -375,7 +390,7 @@ impl PhysicsEngine {
                             let pos12 = shape_transform.inv_mul(collider.position());
                             if let Ok(contact) = physics_world
                                 .physics_objects
-                                .query_pipeline
+                                .narrow_phase
                                 .query_dispatcher()
                                 .contact(&pos12, shared_shape.as_ref(), collider.shape(), margin)
                                 && let Some(contact) = contact
@@ -385,7 +400,6 @@ impl PhysicsEngine {
                                 result.pixel_witness1 = contact.point1.coords;
                                 result.pixel_witness2 =
                                     contact.point2.coords + collider.position().translation.vector;
-                                //witness2 += collider.position().translation.vector;
                             } else {
                                 godot_error!("contact error");
                             }
@@ -400,15 +414,23 @@ impl PhysicsEngine {
                         compute_impact_geometry_on_penetration: true,
                         target_distance: margin,
                     };
-                    if let Some((collider_handle, hit)) =
-                        physics_world.physics_objects.query_pipeline.cast_shape(
+                    if let Some((collider_handle, hit)) = physics_world
+                        .physics_objects
+                        .broad_phase
+                        .as_query_pipeline(
+                            physics_world
+                                .physics_objects
+                                .narrow_phase
+                                .query_dispatcher(),
                             &physics_world.physics_objects.rigid_body_set,
                             &physics_world.physics_objects.collider_set,
+                            filter,
+                        )
+                        .cast_shape(
                             &shape_transform,
                             &shape_vel,
                             shared_shape.as_ref(),
                             shape_cast_options,
-                            filter,
                         )
                     {
                         if hit.status == ShapeCastStatus::Failed
@@ -442,7 +464,7 @@ impl PhysicsEngine {
                                 // They are separated.
                                 if let Ok(distance) = physics_world
                                     .physics_objects
-                                    .query_pipeline
+                                    .narrow_phase
                                     .query_dispatcher()
                                     .distance(&pos12, shared_shape.as_ref(), collider.shape())
                                     && distance > DEFAULT_EPSILON
@@ -484,39 +506,49 @@ impl PhysicsEngine {
                 mins: aabb_min_point,
                 maxs: aabb_max_point,
             };
-            physics_world
+            for (handle, _) in physics_world
                 .physics_objects
-                .query_pipeline
-                .colliders_with_aabb_intersecting_aabb(&aabb, |handle| {
-                    let mut valid_hit = false;
-                    if let Some(collider) = physics_world.physics_objects.collider_set.get(*handle)
+                .broad_phase
+                .as_query_pipeline(
+                    physics_world
+                        .physics_objects
+                        .narrow_phase
+                        .query_dispatcher(),
+                    &physics_world.physics_objects.rigid_body_set,
+                    &physics_world.physics_objects.collider_set,
+                    QueryFilter::default(),
+                )
+                .intersect_aabb_conservative(aabb)
+            {
+                let mut valid_hit = false;
+                if let Some(collider) = physics_world.physics_objects.collider_set.get(handle) {
+                    // type filter
+                    if (collider.is_sensor() && collide_with_area)
+                        || (!collider.is_sensor() && collide_with_body)
                     {
-                        // type filter
-                        if (collider.is_sensor() && collide_with_area)
-                            || (!collider.is_sensor() && collide_with_body)
-                        {
-                            valid_hit = true;
-                        }
-                        if valid_hit {
-                            valid_hit = !space.is_handle_excluded_callback(
-                                *handle,
-                                &physics_world.get_collider_user_data(*handle),
-                                handle_excluded_info,
-                                physics_collision_objects,
-                                physics_ids,
-                            );
-                        }
+                        valid_hit = true;
                     }
-                    if !valid_hit {
-                        return true; // continue
+                    if valid_hit {
+                        valid_hit = !space.is_handle_excluded_callback(
+                            handle,
+                            &physics_world.get_collider_user_data(handle),
+                            handle_excluded_info,
+                            physics_collision_objects,
+                            physics_ids,
+                        );
                     }
-                    // Callback called on each collider hit by the ray.
-                    hit_info_slice[cpt_hit].collider = *handle;
-                    hit_info_slice[cpt_hit].user_data =
-                        physics_world.get_collider_user_data(*handle);
-                    cpt_hit += 1;
-                    cpt_hit < max_results // Continue to search collisions if we still have space for results.
-                });
+                }
+                if !valid_hit {
+                    continue;
+                }
+                // Callback called on each collider hit by the ray.
+                hit_info_slice[cpt_hit].collider = handle;
+                hit_info_slice[cpt_hit].user_data = physics_world.get_collider_user_data(handle);
+                cpt_hit += 1;
+                if cpt_hit >= max_results {
+                    break;
+                }
+            }
         }
         cpt_hit
     }

@@ -66,8 +66,8 @@ mod tests {
     use godot::prelude::*;
 
     use super::*;
-    use crate::servers::rapier_physics_singleton::physics_data;
     use crate::servers::rapier_physics_singleton::PhysicsShapes;
+    use crate::servers::rapier_physics_singleton::physics_data;
     use crate::shapes::rapier_shape::IRapierShape;
     #[derive(GodotClass)]
     #[class(base = Object, init)]

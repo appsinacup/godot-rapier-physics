@@ -21,7 +21,7 @@ impl RapierDirectSpaceState2D {
 }
 #[godot_api]
 impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
-    #[no_mangle]
+    #[unsafe(no_mangle)]
     fn init(base: Base<PhysicsDirectSpaceState2DExtension>) -> Self {
         Self {
             inner: RapierDirectSpaceStateImpl::default(),
@@ -30,7 +30,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         }
     }
 
-    unsafe fn intersect_ray(
+    unsafe fn intersect_ray_rawptr(
         &mut self,
         from: Vector2,
         to: Vector2,
@@ -41,19 +41,21 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         result: *mut PhysicsServer2DExtensionRayResult,
     ) -> bool {
         let physics_data = physics_data();
-        self.inner.intersect_ray(
-            from,
-            to,
-            collision_mask,
-            collide_with_bodies,
-            collide_with_areas,
-            hit_from_inside,
-            result,
-            physics_data,
-        )
+        unsafe {
+            self.inner.intersect_ray(
+                from,
+                to,
+                collision_mask,
+                collide_with_bodies,
+                collide_with_areas,
+                hit_from_inside,
+                result,
+                physics_data,
+            )
+        }
     }
 
-    unsafe fn intersect_point(
+    unsafe fn intersect_point_rawptr(
         &mut self,
         position: Vector2,
         canvas_instance_id: u64,
@@ -64,19 +66,21 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         max_results: i32,
     ) -> i32 {
         let physics_data = physics_data();
-        self.inner.intersect_point(
-            position,
-            canvas_instance_id,
-            collision_mask,
-            collide_with_bodies,
-            collide_with_areas,
-            results,
-            max_results,
-            physics_data,
-        )
+        unsafe {
+            self.inner.intersect_point(
+                position,
+                canvas_instance_id,
+                collision_mask,
+                collide_with_bodies,
+                collide_with_areas,
+                results,
+                max_results,
+                physics_data,
+            )
+        }
     }
 
-    unsafe fn intersect_shape(
+    unsafe fn intersect_shape_rawptr(
         &mut self,
         shape_rid: Rid,
         transform: Transform2D,
@@ -89,21 +93,23 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         max_results: i32,
     ) -> i32 {
         let physics_data = physics_data();
-        self.inner.intersect_shape(
-            shape_rid,
-            transform,
-            motion,
-            margin,
-            collision_mask,
-            collide_with_bodies,
-            collide_with_areas,
-            results,
-            max_results,
-            physics_data,
-        )
+        unsafe {
+            self.inner.intersect_shape(
+                shape_rid,
+                transform,
+                motion,
+                margin,
+                collision_mask,
+                collide_with_bodies,
+                collide_with_areas,
+                results,
+                max_results,
+                physics_data,
+            )
+        }
     }
 
-    unsafe fn cast_motion(
+    unsafe fn cast_motion_rawptr(
         &mut self,
         shape_rid: Rid,
         transform: Transform2D,
@@ -116,21 +122,23 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         closest_unsafe: *mut f64,
     ) -> bool {
         let physics_data = physics_data();
-        self.inner.cast_motion(
-            shape_rid,
-            transform,
-            motion,
-            margin,
-            collision_mask,
-            collide_with_bodies,
-            collide_with_areas,
-            closest_safe,
-            closest_unsafe,
-            physics_data,
-        )
+        unsafe {
+            self.inner.cast_motion(
+                shape_rid,
+                transform,
+                motion,
+                margin,
+                collision_mask,
+                collide_with_bodies,
+                collide_with_areas,
+                closest_safe,
+                closest_unsafe,
+                physics_data,
+            )
+        }
     }
 
-    unsafe fn collide_shape(
+    unsafe fn collide_shape_rawptr(
         &mut self,
         shape_rid: Rid,
         transform: Transform2D,
@@ -144,22 +152,24 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         result_count: *mut i32,
     ) -> bool {
         let physics_data = physics_data();
-        self.inner.collide_shape(
-            shape_rid,
-            transform,
-            motion,
-            margin,
-            collision_mask,
-            collide_with_bodies,
-            collide_with_areas,
-            results,
-            max_results,
-            result_count,
-            physics_data,
-        )
+        unsafe {
+            self.inner.collide_shape(
+                shape_rid,
+                transform,
+                motion,
+                margin,
+                collision_mask,
+                collide_with_bodies,
+                collide_with_areas,
+                results,
+                max_results,
+                result_count,
+                physics_data,
+            )
+        }
     }
 
-    unsafe fn rest_info(
+    unsafe fn rest_info_rawptr(
         &mut self,
         shape_rid: Rid,
         transform: Transform2D,
@@ -171,16 +181,18 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         rest_info: *mut godot::classes::native::PhysicsServer2DExtensionShapeRestInfo,
     ) -> bool {
         let physics_data = physics_data();
-        self.inner.rest_info(
-            shape_rid,
-            transform,
-            motion,
-            margin,
-            collision_mask,
-            collide_with_bodies,
-            collide_with_areas,
-            rest_info,
-            physics_data,
-        )
+        unsafe {
+            self.inner.rest_info(
+                shape_rid,
+                transform,
+                motion,
+                margin,
+                collision_mask,
+                collide_with_bodies,
+                collide_with_areas,
+                rest_info,
+                physics_data,
+            )
+        }
     }
 }

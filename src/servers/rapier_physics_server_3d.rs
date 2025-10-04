@@ -1,13 +1,14 @@
-use godot::classes::physics_server_3d;
-use godot::classes::physics_server_3d::*;
 use godot::classes::IPhysicsServer3DExtension;
 use godot::classes::PhysicsServer3DExtension;
 use godot::classes::PhysicsServer3DRenderingServerHandler;
+use godot::classes::physics_server_3d;
+use godot::classes::physics_server_3d::*;
 use godot::classes::{self};
 use godot::prelude::*;
 
 use super::rapier_physics_server_impl::RapierPhysicsServerImpl;
 use super::rapier_physics_singleton::physics_data;
+use crate::make_rapier_server_godot_impl;
 use crate::types::*;
 #[derive(GodotClass, Default)]
 #[class(base=Object,init,tool)]
@@ -628,7 +629,43 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         false
     }
 
-    unsafe fn body_test_motion(
+    fn soft_body_set_shrinking_factor(&mut self, _: godot::prelude::Rid, _: f32) {}
+
+    fn soft_body_get_shrinking_factor(&self, _: godot::prelude::Rid) -> f32 {
+        0.0
+    }
+
+    fn soft_body_apply_point_impulse(
+        &mut self,
+        _: godot::prelude::Rid,
+        _: i32,
+        _: godot::prelude::Vector3,
+    ) {
+    }
+
+    fn soft_body_apply_point_force(
+        &mut self,
+        _: godot::prelude::Rid,
+        _: i32,
+        _: godot::prelude::Vector3,
+    ) {
+    }
+
+    fn soft_body_apply_central_impulse(
+        &mut self,
+        _: godot::prelude::Rid,
+        _: godot::prelude::Vector3,
+    ) {
+    }
+
+    fn soft_body_apply_central_force(
+        &mut self,
+        _: godot::prelude::Rid,
+        _: godot::prelude::Vector3,
+    ) {
+    }
+
+    unsafe fn body_test_motion_rawptr(
         &self,
         body: Rid,
         from: Transform3D,
@@ -639,16 +676,18 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         recovery_as_collision: bool,
         result: *mut PhysicsServerExtensionMotionResult,
     ) -> bool {
-        self.implementation.body_test_motion(
-            body,
-            from,
-            motion,
-            margin,
-            max_collisions,
-            collide_separation_ray,
-            recovery_as_collision,
-            result,
-        )
+        unsafe {
+            self.implementation.body_test_motion(
+                body,
+                from,
+                motion,
+                margin,
+                max_collisions,
+                collide_separation_ray,
+                recovery_as_collision,
+                result,
+            )
+        }
     }
 
     fn joint_create(&mut self) -> Rid {
@@ -946,3 +985,4 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         self.implementation.get_process_info(process_info)
     }
 }
+make_rapier_server_godot_impl!(RapierPhysicsServer3D);

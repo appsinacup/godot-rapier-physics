@@ -1,13 +1,14 @@
 use std::ffi::c_void;
 
-use godot::classes::physics_server_2d::*;
 use godot::classes::IPhysicsServer2DExtension;
 use godot::classes::PhysicsServer2DExtension;
+use godot::classes::physics_server_2d::*;
 use godot::classes::{self};
 use godot::prelude::*;
 
 use super::rapier_physics_server_impl::RapierPhysicsServerImpl;
 use super::rapier_physics_singleton::physics_data;
+use crate::make_rapier_server_godot_impl;
 use crate::types::*;
 #[derive(GodotClass, Default)]
 #[class(base=Object,init,tool)]
@@ -88,7 +89,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         self.implementation.shape_get_custom_solver_bias(shape)
     }
 
-    unsafe fn shape_collide(
+    unsafe fn shape_collide_rawptr(
         &mut self,
         shape_a: Rid,
         xform_a: Transform,
@@ -100,17 +101,19 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         result_max: i32,
         result_count: *mut i32,
     ) -> bool {
-        self.implementation.shape_collide(
-            shape_a,
-            xform_a,
-            motion_a,
-            shape_b,
-            xform_b,
-            motion_b,
-            results,
-            result_max,
-            result_count,
-        )
+        unsafe {
+            self.implementation.shape_collide(
+                shape_a,
+                xform_a,
+                motion_a,
+                shape_b,
+                xform_b,
+                motion_b,
+                results,
+                result_max,
+                result_count,
+            )
+        }
     }
 
     fn space_create(&mut self) -> Rid {
@@ -531,7 +534,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             .body_set_force_integration_callback(body, callable, userdata);
     }
 
-    unsafe fn body_collide_shape(
+    unsafe fn body_collide_shape_rawptr(
         &mut self,
         body: Rid,
         body_shape: i32,
@@ -542,16 +545,18 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         result_max: i32,
         result_count: *mut i32,
     ) -> bool {
-        self.implementation.body_collide_shape(
-            body,
-            body_shape,
-            shape,
-            shape_xform,
-            motion,
-            results,
-            result_max,
-            result_count,
-        )
+        unsafe {
+            self.implementation.body_collide_shape(
+                body,
+                body_shape,
+                shape,
+                shape_xform,
+                motion,
+                results,
+                result_max,
+                result_count,
+            )
+        }
     }
 
     fn body_set_pickable(&mut self, body: Rid, pickable: bool) {
@@ -562,7 +567,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         self.implementation.body_get_direct_state(body)
     }
 
-    unsafe fn body_test_motion(
+    unsafe fn body_test_motion_rawptr(
         &self,
         body: Rid,
         from: Transform,
@@ -572,16 +577,18 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         recovery_as_collision: bool,
         result: *mut PhysicsServerExtensionMotionResult,
     ) -> bool {
-        self.implementation.body_test_motion(
-            body,
-            from,
-            motion,
-            margin,
-            1,
-            collide_separation_ray,
-            recovery_as_collision,
-            result,
-        )
+        unsafe {
+            self.implementation.body_test_motion(
+                body,
+                from,
+                motion,
+                margin,
+                1,
+                collide_separation_ray,
+                recovery_as_collision,
+                result,
+            )
+        }
     }
 
     fn joint_create(&mut self) -> Rid {
@@ -735,3 +742,4 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         self.implementation.get_process_info(process_info)
     }
 }
+make_rapier_server_godot_impl!(RapierPhysicsServer2D);

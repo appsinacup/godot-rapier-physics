@@ -4,9 +4,9 @@ use rapier::prelude::SharedShape;
 
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_physics_singleton::get_id_rid;
 use crate::servers::rapier_physics_singleton::PhysicsData;
 use crate::servers::rapier_physics_singleton::RapierId;
+use crate::servers::rapier_physics_singleton::get_id_rid;
 use crate::types::*;
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
 pub struct ShapeExport<'a> {

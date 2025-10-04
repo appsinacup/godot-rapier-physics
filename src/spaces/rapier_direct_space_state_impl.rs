@@ -72,7 +72,7 @@ impl RapierDirectSpaceStateImpl {
             space,
         );
         if collide {
-            let result = &mut *result;
+            let result = unsafe { &mut *result };
             result.position = vector_to_godot(hit_info.pixel_position);
             result.normal = vector_to_godot(hit_info.normal);
             let (rid, shape_index) = RapierCollisionObjectBase::get_collider_user_data(
@@ -294,9 +294,11 @@ impl RapierDirectSpaceStateImpl {
         );
         // TODO compute actual safe and unsafe
         let closest_safe = closest_safe as *mut real;
-        *closest_safe = result.toi;
         let closest_unsafe = closest_unsafe as *mut real;
-        *closest_unsafe = result.toi_unsafe;
+        unsafe {
+            *closest_safe = result.toi;
+            *closest_unsafe = result.toi_unsafe;
+        }
         true
     }
 
@@ -351,7 +353,9 @@ impl RapierDirectSpaceStateImpl {
             if !result.collided {
                 break;
             }
-            *result_count += 1;
+            unsafe {
+                *result_count += 1;
+            }
             query_excluded_info.query_exclude[query_excluded_info.query_exclude_size] =
                 result.collider;
             query_excluded_info.query_exclude_size += 1;
@@ -408,7 +412,7 @@ impl RapierDirectSpaceStateImpl {
         }
         let (rid, shape_index) =
             RapierCollisionObjectBase::get_collider_user_data(&result.user_data, &physics_data.ids);
-        let r_info = &mut *rest_info;
+        let r_info = unsafe { &mut *rest_info };
         if let Some(collision_object_2d) = physics_data.collision_objects.get(&rid) {
             let instance_id = collision_object_2d.get_base().get_instance_id();
             r_info.collider_id = ObjectId { id: instance_id };

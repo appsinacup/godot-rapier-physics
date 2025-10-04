@@ -1,5 +1,3 @@
-#![feature(map_many_mut)]
-#![feature(let_chains)]
 #![feature(try_blocks)]
 #[cfg(all(feature = "single", feature = "dim2"))]
 extern crate rapier2d as rapier;

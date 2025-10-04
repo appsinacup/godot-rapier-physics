@@ -62,7 +62,10 @@ impl IRapierShape for RapierCapsuleShape {
             VariantType::DICTIONARY => {
                 let dictionary: Dictionary = data.try_to().unwrap_or_default();
                 if !dictionary.contains_key("length") && !dictionary.contains_key("height") {
-                    godot_error!("RapierCapsuleShape data must be a dictionary with 'length' and 'height' keys. Got {}", data);
+                    godot_error!(
+                        "RapierCapsuleShape data must be a dictionary with 'length' and 'height' keys. Got {}",
+                        data
+                    );
                     return;
                 }
                 if let Some(in_height) = dictionary.get("height")
@@ -70,7 +73,10 @@ impl IRapierShape for RapierCapsuleShape {
                 {
                     height = in_height;
                 } else {
-                    godot_error!("RapierCapsuleShape data must be a dictionary with 'length' and 'height' keys. Got {}", data);
+                    godot_error!(
+                        "RapierCapsuleShape data must be a dictionary with 'length' and 'height' keys. Got {}",
+                        data
+                    );
                     return;
                 }
                 if let Some(in_radius) = dictionary.get("radius")
@@ -78,7 +84,10 @@ impl IRapierShape for RapierCapsuleShape {
                 {
                     radius = in_radius;
                 } else {
-                    godot_error!("RapierCapsuleShape data must be a dictionary with 'length' and 'height' keys. Got {}", data);
+                    godot_error!(
+                        "RapierCapsuleShape data must be a dictionary with 'length' and 'height' keys. Got {}",
+                        data
+                    );
                     return;
                 }
             }
@@ -112,8 +121,8 @@ mod tests {
     use godot::prelude::*;
 
     use super::*;
-    use crate::servers::rapier_physics_singleton::physics_data;
     use crate::servers::rapier_physics_singleton::PhysicsShapes;
+    use crate::servers::rapier_physics_singleton::physics_data;
     use crate::shapes::rapier_shape::IRapierShape;
     #[derive(GodotClass)]
     #[class(base=Object, init)]

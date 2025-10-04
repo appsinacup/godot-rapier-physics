@@ -22,6 +22,10 @@ jobs:
       - name: Set IPHONEOS_DEPLOYMENT_TARGET
         run: |
           echo "IPHONEOS_DEPLOYMENT_TARGET=12.0" >> $GITHUB_ENV
+      - name: Setup Godot
+        uses: appsinacup/setup-godot-action@main
+        with:
+          version: '4.5-stable'
       - name: Build
         uses: ./.github/actions/build
         with:

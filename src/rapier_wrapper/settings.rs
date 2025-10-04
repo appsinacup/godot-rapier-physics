@@ -3,7 +3,7 @@ pub struct WorldSettings {
     /// - `particle_radius`: the radius of every particle for the fluid simulation.
     pub particle_radius: Real,
     /// - `smoothing_factor`: the smoothing factor used to compute the SPH kernel radius.
-    ///    The kernel radius will be computed as `particle_radius * smoothing_factor * 2.0.
+    ///   The kernel radius will be computed as `particle_radius * smoothing_factor * 2.0.
     pub smoothing_factor: Real,
     pub counters_enabled: bool,
 }
@@ -14,8 +14,6 @@ pub struct SimulationSettings {
 
     /// The number of solver iterations run by the constraints solver for calculating forces (default: `4`).
     pub num_solver_iterations: usize,
-    /// Number of addition friction resolution iteration run during the last solver sub-step (default: `4`).
-    pub num_additional_friction_iterations: usize,
     /// Number of internal Project Gauss Seidel (PGS) iterations run at each solver iteration (default: `1`).
     pub num_internal_pgs_iterations: usize,
     pub pixel_gravity: Vector<Real>,

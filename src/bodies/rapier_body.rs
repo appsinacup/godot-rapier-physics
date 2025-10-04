@@ -13,12 +13,12 @@ use rapier::dynamics::LockedAxes;
 use rapier::geometry::ColliderHandle;
 #[cfg(feature = "dim3")]
 use rapier::math::DEFAULT_EPSILON;
-use servers::rapier_physics_singleton::get_id_rid;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsIds;
 use servers::rapier_physics_singleton::PhysicsShapes;
 use servers::rapier_physics_singleton::PhysicsSpaces;
 use servers::rapier_physics_singleton::RapierId;
+use servers::rapier_physics_singleton::get_id_rid;
 use shapes::rapier_shape::IRapierShape;
 
 use super::rapier_area::RapierArea;
@@ -1798,7 +1798,7 @@ impl RapierBody {
             let inv_inertia = rigid_body_mass_properties
                 .0
                 .local_mprops
-                .inv_principal_inertia_sqrt;
+                .inv_principal_inertia;
             let tb = self.state.principal_inertia_axes;
             let tbt = tb.transposed();
             let diag =
@@ -2046,6 +2046,28 @@ impl RapierBody {
                     &self.init_material(),
                 );
             }
+        }
+    }
+
+    pub fn get_collision_layer(&self) -> u32 {
+        self.base.get_collision_layer()
+    }
+
+    pub fn get_collision_mask(&self) -> u32 {
+        self.base.get_collision_mask()
+    }
+
+    pub fn set_collision_layer(&mut self, layer: u32, physics_engine: &mut PhysicsEngine) {
+        if self.base.get_collision_layer() != layer {
+            self.base.set_collision_layer(layer, physics_engine);
+            self.update_colliders_filters(physics_engine);
+        }
+    }
+
+    pub fn set_collision_mask(&mut self, mask: u32, physics_engine: &mut PhysicsEngine) {
+        if self.base.get_collision_mask() != mask {
+            self.base.set_collision_mask(mask, physics_engine);
+            self.update_colliders_filters(physics_engine);
         }
     }
 }

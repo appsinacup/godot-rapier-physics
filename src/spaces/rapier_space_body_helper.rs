@@ -5,16 +5,16 @@ use godot::classes::native::ObjectId;
 use godot::classes::physics_server_2d::BodyMode;
 use godot::prelude::*;
 use rapier::geometry::ColliderHandle;
-use rapier::math::Real;
 use rapier::math::DEFAULT_EPSILON;
+use rapier::math::Real;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsIds;
 use servers::rapier_physics_singleton::PhysicsShapes;
 use shapes::rapier_shape::IRapierShape;
 use shapes::rapier_shape::RapierShape;
 
-use super::rapier_space::RapierSpace;
 use super::RapierDirectSpaceState;
+use super::rapier_space::RapierSpace;
 use crate::bodies::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
@@ -81,9 +81,9 @@ impl RapierSpace {
     ) -> bool {
         result.travel = Vector::default();
         let mut body_transform = from; // Because body_transform needs to be modified during recovery
-                                       // Step 1: recover motion.
-                                       // Expand the body colliders by the margin (grow) and check if now it collides with a collider,
-                                       // if yes, "recover" / "push" out of this collider
+        // Step 1: recover motion.
+        // Expand the body colliders by the margin (grow) and check if now it collides with a collider,
+        // if yes, "recover" / "push" out of this collider
         let mut recover_motion = Vector::default();
         let margin = Real::max(margin, TEST_MOTION_MARGIN);
         let recovered = self.body_motion_recover(

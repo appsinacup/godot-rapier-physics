@@ -11,11 +11,11 @@ use godot::global::rid_allocate_id;
 use godot::global::rid_from_int64;
 use godot::prelude::*;
 
+use super::rapier_physics_singleton::RapierId;
 use super::rapier_physics_singleton::get_id_rid;
 use super::rapier_physics_singleton::insert_id_rid;
 use super::rapier_physics_singleton::physics_data;
 use super::rapier_physics_singleton::remove_id_rid;
-use super::rapier_physics_singleton::RapierId;
 use super::rapier_project_settings::RapierProjectSettings;
 use crate::bodies::rapier_area::AreaUpdateMode;
 use crate::bodies::rapier_area::RapierArea;
@@ -59,7 +59,6 @@ pub struct RapierPhysicsServerImpl {
     active_objects: i32,
     length_unit: real,
     max_ccd_substeps: usize,
-    num_additional_friction_iterations: usize,
     num_internal_pgs_iterations: usize,
     num_solver_iterations: usize,
     joint_damping_ratio: f32,
@@ -87,8 +86,6 @@ impl RapierPhysicsServerImpl {
             active_objects: 0,
             length_unit: RapierProjectSettings::get_length_unit(),
             max_ccd_substeps: RapierProjectSettings::get_solver_max_ccd_substeps() as usize,
-            num_additional_friction_iterations:
-                RapierProjectSettings::get_solver_num_additional_friction_iterations() as usize,
             num_internal_pgs_iterations:
                 RapierProjectSettings::get_solver_num_internal_pgs_iterations() as usize,
             num_solver_iterations: RapierProjectSettings::get_solver_num_solver_iterations()
@@ -294,7 +291,7 @@ impl RapierPhysicsServerImpl {
             return false;
         }
         if result_max >= 1 {
-            *result_count = 1;
+            unsafe { *result_count = 1 };
             let vector2_slice: &mut [Vector] =
                 unsafe { std::slice::from_raw_parts_mut(results_out, result_max as usize) };
             vector2_slice[0] = vector_to_godot(result.pixel_witness1);
@@ -1564,17 +1561,19 @@ impl RapierPhysicsServerImpl {
                 }
             }
         }
-        self.shape_collide(
-            body_shape_rid,
-            body_transform * body_shape_transform,
-            Vector::ZERO,
-            shape,
-            shape_xform,
-            motion,
-            results,
-            result_max,
-            result_count,
-        )
+        unsafe {
+            self.shape_collide(
+                body_shape_rid,
+                body_transform * body_shape_transform,
+                Vector::ZERO,
+                shape,
+                shape_xform,
+                motion,
+                results,
+                result_max,
+                result_count,
+            )
+        }
     }
 
     #[cfg(feature = "dim2")]
@@ -1626,7 +1625,7 @@ impl RapierPhysicsServerImpl {
                     .spaces
                     .get(&body.get_base().get_space(&physics_data.ids))
                 {
-                    let result: &mut PhysicsServerExtensionMotionResult = &mut *result;
+                    let result: &mut PhysicsServerExtensionMotionResult = unsafe { &mut *result };
                     return space.test_body_motion(
                         body,
                         from,
@@ -2434,7 +2433,6 @@ impl RapierPhysicsServerImpl {
             dt: step,
             length_unit: self.length_unit,
             max_ccd_substeps: self.max_ccd_substeps,
-            num_additional_friction_iterations: self.num_additional_friction_iterations,
             num_internal_pgs_iterations: self.num_internal_pgs_iterations,
             num_solver_iterations: self.num_solver_iterations,
             joint_damping_ratio: self.joint_damping_ratio,

@@ -4,11 +4,11 @@ use super::rapier_collision_object::IRapierCollisionObject;
 use super::rapier_collision_object_base::CollisionObjectShape;
 use super::rapier_collision_object_base::RapierCollisionObjectBase;
 use crate::rapier_wrapper::prelude::PhysicsEngine;
-use crate::servers::rapier_physics_singleton::get_id_rid;
 use crate::servers::rapier_physics_singleton::PhysicsIds;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::servers::rapier_physics_singleton::PhysicsSpaces;
 use crate::servers::rapier_physics_singleton::RapierId;
+use crate::servers::rapier_physics_singleton::get_id_rid;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::types::Transform;
 impl RapierCollisionObjectBase {

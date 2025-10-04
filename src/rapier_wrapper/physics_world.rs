@@ -1,7 +1,7 @@
 use std::num::NonZeroUsize;
+use std::sync::mpsc;
 
 use hashbrown::HashMap;
-use rapier::crossbeam;
 use rapier::data::Index;
 use rapier::prelude::*;
 use salva::integrations::rapier::FluidsPipeline;
@@ -67,9 +67,8 @@ pub struct ContactForceEventInfo {
     derive(serde::Serialize, serde::Deserialize)
 )]
 pub struct PhysicsObjects {
-    pub query_pipeline: QueryPipeline,
     pub island_manager: IslandManager,
-    pub broad_phase: BroadPhaseMultiSap,
+    pub broad_phase: DefaultBroadPhase,
     pub narrow_phase: NarrowPhase,
     pub impulse_joint_set: ImpulseJointSet,
     pub multibody_joint_set: MultibodyJointSet,
@@ -96,7 +95,6 @@ impl PhysicsWorld {
         }
         PhysicsWorld {
             physics_objects: PhysicsObjects {
-                query_pipeline: QueryPipeline::new(),
                 island_manager: IslandManager::new(),
                 broad_phase: DefaultBroadPhase::new(),
                 narrow_phase: NarrowPhase::new(),
@@ -129,7 +127,7 @@ impl PhysicsWorld {
         physics_collision_objects: &mut PhysicsCollisionObjects,
         physics_ids: &PhysicsIds,
     ) {
-        for handle in self.physics_objects.island_manager.active_dynamic_bodies() {
+        for handle in self.physics_objects.island_manager.active_bodies() {
             if let Some(body) = self.physics_objects.rigid_body_set.get(*handle) {
                 let before_active_body_info = BeforeActiveBodyInfo {
                     body_user_data: self.get_rigid_body_user_data(*handle),
@@ -157,10 +155,8 @@ impl PhysicsWorld {
             ..Default::default()
         };
         if let Some(iterations) = NonZeroUsize::new(settings.num_solver_iterations) {
-            integration_parameters.num_solver_iterations = iterations;
+            integration_parameters.num_solver_iterations = iterations.into();
         }
-        integration_parameters.num_additional_friction_iterations =
-            settings.num_additional_friction_iterations;
         integration_parameters.num_internal_pgs_iterations = settings.num_internal_pgs_iterations;
         let gravity = settings.pixel_gravity;
         let liquid_gravity = settings.pixel_liquid_gravity;
@@ -173,8 +169,8 @@ impl PhysicsWorld {
             ghost_collision_distance: space.get_ghost_collision_distance(),
         };
         // Initialize the event collector.
-        let (collision_send, collision_recv) = crossbeam::channel::unbounded();
-        let (contact_force_send, contact_force_recv) = crossbeam::channel::unbounded();
+        let (collision_send, collision_recv) = mpsc::channel();
+        let (contact_force_send, contact_force_recv) = mpsc::channel();
         let event_handler = ContactEventHandler::new(collision_send, contact_force_send);
         self.physics_pipeline.step(
             &gravity,
@@ -187,16 +183,10 @@ impl PhysicsWorld {
             &mut self.physics_objects.impulse_joint_set,
             &mut self.physics_objects.multibody_joint_set,
             &mut self.physics_objects.ccd_solver,
-            // TODO for now incremental update increases memory usage forever
-            // https://github.com/appsinacup/godot-rapier-physics/issues/248
-            //Some(&mut self.physics_objects.query_pipeline),
-            None,
             &physics_hooks,
             &event_handler,
         );
-        self.physics_objects
-            .query_pipeline
-            .update(&self.physics_objects.collider_set);
+        // TODO do I still need to call query pipeline update manually?
         if self.fluids_pipeline.liquid_world.fluids().len() > 0 {
             self.fluids_pipeline.step(
                 &liquid_gravity,
@@ -205,17 +195,7 @@ impl PhysicsWorld {
                 &mut self.physics_objects.rigid_body_set,
             );
         }
-        for handle in self.physics_objects.island_manager.active_dynamic_bodies() {
-            let active_body_info = ActiveBodyInfo {
-                body_user_data: self.get_rigid_body_user_data(*handle),
-            };
-            space.active_body_callback(&active_body_info, physics_collision_objects, physics_ids);
-        }
-        for handle in self
-            .physics_objects
-            .island_manager
-            .active_kinematic_bodies()
-        {
+        for handle in self.physics_objects.island_manager.active_bodies() {
             let active_body_info = ActiveBodyInfo {
                 body_user_data: self.get_rigid_body_user_data(*handle),
             };
@@ -277,12 +257,16 @@ impl PhysicsWorld {
                                 // TODO comment this out for now since it might miss out events
                                 //continue;
                             }
-                            let collider_pos_1 = collider1.position() * contact_point.local_p1;
-                            let collider_pos_2 = collider2.position() * contact_point.local_p2;
-                            let point_velocity_1 = body1.velocity_at_point(&collider_pos_1);
-                            let point_velocity_2 = body2.velocity_at_point(&collider_pos_2);
-                            contact_info.pixel_local_pos_1 = collider_pos_1.coords;
-                            contact_info.pixel_local_pos_2 = collider_pos_2.coords;
+                            let collider_pos_1 = *collider1.position();
+                            let collider_pos_2 = *collider2.position();
+                            let point_velocity_1 = body1
+                                .velocity_at_point(&Point::from(collider_pos_1.translation.vector));
+                            let point_velocity_2 = body2
+                                .velocity_at_point(&Point::from(collider_pos_2.translation.vector));
+                            let pixel_pos_1 = collider_pos_1.translation.vector;
+                            let pixel_pos_2 = collider_pos_2.translation.vector;
+                            contact_info.pixel_local_pos_1 = pixel_pos_1;
+                            contact_info.pixel_local_pos_2 = pixel_pos_2;
                             contact_info.pixel_velocity_pos_1 = point_velocity_1;
                             contact_info.pixel_velocity_pos_2 = point_velocity_2;
                             contact_info.pixel_distance = contact_point.dist;
@@ -501,13 +485,10 @@ impl PhysicsWorld {
     } */
     pub fn get_impulse_joint(&self, handle: JointHandle) -> Option<&ImpulseJoint> {
         match handle.multibody {
-            false => {
-                let joint = self
-                    .physics_objects
-                    .impulse_joint_set
-                    .get(ImpulseJointHandle(handle.index));
-                joint
-            }
+            false => self
+                .physics_objects
+                .impulse_joint_set
+                .get(ImpulseJointHandle(handle.index)),
             true => None,
         }
     }
@@ -594,7 +575,7 @@ impl PhysicsEngine {
             return physics_world
                 .physics_objects
                 .island_manager
-                .active_dynamic_bodies()
+                .active_bodies()
                 .len();
         }
         0

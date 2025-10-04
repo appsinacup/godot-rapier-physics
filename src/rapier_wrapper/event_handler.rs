@@ -1,6 +1,6 @@
-use crossbeam::channel::Sender;
+use std::sync::mpsc::Sender;
+
 use godot::global::godot_error;
-use rapier::crossbeam;
 use rapier::prelude::*;
 pub struct ContactEventHandler {
     collision_send: Sender<CollisionEvent>,

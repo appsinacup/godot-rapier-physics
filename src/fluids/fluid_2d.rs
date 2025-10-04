@@ -1,10 +1,10 @@
-use godot::classes::notify::CanvasItemNotification;
 use godot::classes::Engine;
+use godot::classes::notify::CanvasItemNotification;
 use godot::prelude::*;
 
 use super::fluid_impl::FluidImpl;
-use crate::servers::rapier_project_settings::RapierProjectSettings;
 use crate::servers::RapierPhysicsServer;
+use crate::servers::rapier_project_settings::RapierProjectSettings;
 use crate::types::*;
 #[derive(GodotClass)]
 #[class(base=Node2D)]

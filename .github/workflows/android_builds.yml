@@ -21,6 +21,10 @@ jobs:
         with:
           java-version: 17
           distribution: temurin
+      - name: Setup Godot
+        uses: appsinacup/setup-godot-action@main
+        with:
+          version: '4.5-stable'
       - uses: nttld/setup-ndk@v1
         id: setup-ndk
         with:
