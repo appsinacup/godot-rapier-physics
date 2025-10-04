@@ -8,6 +8,7 @@ use godot::prelude::*;
 
 use super::rapier_physics_server_impl::RapierPhysicsServerImpl;
 use super::rapier_physics_singleton::physics_data;
+use crate::make_rapier_server_godot_impl;
 use crate::types::*;
 #[derive(GodotClass, Default)]
 #[class(base=Object,init,tool)]
@@ -984,3 +985,4 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         self.implementation.get_process_info(process_info)
     }
 }
+make_rapier_server_godot_impl!(RapierPhysicsServer3D);

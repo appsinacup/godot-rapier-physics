@@ -485,13 +485,10 @@ impl PhysicsWorld {
     } */
     pub fn get_impulse_joint(&self, handle: JointHandle) -> Option<&ImpulseJoint> {
         match handle.multibody {
-            false => {
-                let joint = self
-                    .physics_objects
-                    .impulse_joint_set
-                    .get(ImpulseJointHandle(handle.index));
-                joint
-            }
+            false => self
+                .physics_objects
+                .impulse_joint_set
+                .get(ImpulseJointHandle(handle.index)),
             true => None,
         }
     }

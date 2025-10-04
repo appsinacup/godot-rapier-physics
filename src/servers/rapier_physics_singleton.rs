@@ -1,3 +1,5 @@
+use std::cell::UnsafeCell;
+
 use godot::prelude::*;
 use hashbrown::HashMap;
 
@@ -26,11 +28,18 @@ pub struct PhysicsData {
     pub physics_engine: PhysicsEngine,
     pub ids: PhysicsIds,
 }
+struct PhysicsDataCell {
+    data: UnsafeCell<Option<PhysicsData>>,
+}
+unsafe impl Sync for PhysicsDataCell {}
+static PHYSICS_SINGLETON: PhysicsDataCell = PhysicsDataCell {
+    data: UnsafeCell::new(None),
+};
 pub fn physics_data() -> &'static mut PhysicsData {
-    static mut SINGLETON: Option<PhysicsData> = None;
     unsafe {
-        if SINGLETON.is_none() {
-            SINGLETON = Some(PhysicsData {
+        let data_ptr = PHYSICS_SINGLETON.data.get();
+        if (*data_ptr).is_none() {
+            *data_ptr = Some(PhysicsData {
                 shapes: HashMap::default(),
                 spaces: HashMap::default(),
                 active_spaces: HashMap::default(),
@@ -41,7 +50,7 @@ pub fn physics_data() -> &'static mut PhysicsData {
                 ids: HashMap::default(),
             });
         }
-        SINGLETON.as_mut().unwrap()
+        (*data_ptr).as_mut().unwrap()
     }
 }
 pub fn get_id_rid(id: RapierId, physics_ids: &PhysicsIds) -> Rid {

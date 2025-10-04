@@ -43,7 +43,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
     ) -> bool {
         let physics_data = physics_data();
         unsafe {
-            return self.inner.intersect_ray(
+            self.inner.intersect_ray(
                 from,
                 to,
                 collision_mask,
@@ -52,7 +52,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
                 hit_from_inside,
                 result,
                 physics_data,
-            );
+            )
         }
     }
 
@@ -67,7 +67,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
     ) -> i32 {
         let physics_data = physics_data();
         unsafe {
-            return self.inner.intersect_point(
+            self.inner.intersect_point(
                 position,
                 0,
                 collision_mask,
@@ -76,7 +76,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
                 results,
                 max_results,
                 physics_data,
-            );
+            )
         }
     }
 
@@ -94,7 +94,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
     ) -> i32 {
         let physics_data = physics_data();
         unsafe {
-            return self.inner.intersect_shape(
+            self.inner.intersect_shape(
                 shape_rid,
                 transform,
                 motion,
@@ -105,7 +105,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
                 results,
                 max_results,
                 physics_data,
-            );
+            )
         }
     }
 
@@ -124,7 +124,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
     ) -> bool {
         let physics_data = physics_data();
         unsafe {
-            return self.inner.cast_motion(
+            self.inner.cast_motion(
                 shape_rid,
                 transform,
                 motion,
@@ -135,7 +135,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
                 closest_safe,
                 closest_unsafe,
                 physics_data,
-            );
+            )
         }
     }
 
@@ -154,7 +154,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
     ) -> bool {
         let physics_data = physics_data();
         unsafe {
-            return self.inner.collide_shape(
+            self.inner.collide_shape(
                 shape_rid,
                 transform,
                 motion,
@@ -166,7 +166,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
                 max_results,
                 result_count,
                 physics_data,
-            );
+            )
         }
     }
 
@@ -183,7 +183,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
     ) -> bool {
         let physics_data = physics_data();
         unsafe {
-            return self.inner.rest_info(
+            self.inner.rest_info(
                 shape_rid,
                 transform,
                 motion,
@@ -193,7 +193,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
                 collide_with_areas,
                 rest_info,
                 physics_data,
-            );
+            )
         }
     }
 

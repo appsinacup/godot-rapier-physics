@@ -6,8 +6,6 @@ use rapier::math::Real;
 const SOLVER_NUM_ITERATIONS: &str = "physics/rapier/solver/num_iterations";
 const SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS: &str =
     "physics/rapier/solver/num_internal_stabilization_iterations";
-const SOLVER_NUM_ADDITIONAL_FRICTION_ITERATIONS: &str =
-    "physics/rapier/solver/num_additional_friction_iterations";
 const SOLVER_NUM_INTERNAL_PGS_ITERATIONS: &str =
     "physics/rapier/solver/num_internal_pgs_iterations";
 const SOLVER_MAX_CCD_SUBSTEPS: &str = "physics/rapier/solver/max_ccd_substeps";
