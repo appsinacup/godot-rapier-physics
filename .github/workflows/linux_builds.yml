@@ -34,6 +34,8 @@ jobs:
           sudo apt-get install gcc-multilib g++-multilib libc6-dev-i386
           # Arm64 and arm32
           sudo apt install gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf
+          # LLVM for godot-rust api-custom bindgen
+          sudo apt-get install llvm-dev libclang-dev clang
       - name: Build
         uses: ./.github/actions/build
         with:
