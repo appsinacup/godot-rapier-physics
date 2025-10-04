@@ -628,7 +628,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         false
     }
 
-    unsafe fn body_test_motion(
+    unsafe fn body_test_motion_rawptr(
         &self,
         body: Rid,
         from: Transform3D,
