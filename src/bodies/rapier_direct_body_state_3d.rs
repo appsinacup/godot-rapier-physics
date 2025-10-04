@@ -227,4 +227,20 @@ impl IPhysicsDirectBodyState3DExtension for RapierDirectBodyState3D {
         }
         None
     }
+
+    fn set_collision_layer(&mut self, layer: u32) {
+        self.implementation.set_collision_layer(layer);
+    }
+
+    fn get_collision_layer(&self) -> u32 {
+        self.implementation.get_collision_layer()
+    }
+
+    fn set_collision_mask(&mut self, mask: u32) {
+        self.implementation.set_collision_mask(mask);
+    }
+
+    fn get_collision_mask(&self) -> u32 {
+        self.implementation.get_collision_mask()
+    }
 }
