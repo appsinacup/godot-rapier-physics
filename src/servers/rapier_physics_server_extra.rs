@@ -16,11 +16,10 @@ macro_rules! make_rapier_server_godot_impl {
     ($class: ident) => {
         use godot::global::rid_allocate_id;
         use godot::global::rid_from_int64;
-
         use $crate::bodies::rapier_collision_object::IRapierCollisionObject;
-        use crate::fluids::rapier_fluid::RapierFluid;
-        use crate::servers::RapierPhysicsServer;
-        use crate::servers::rapier_physics_server_extra::RapierBodyParam;
+        use $crate::fluids::rapier_fluid::RapierFluid;
+        use $crate::servers::RapierPhysicsServer;
+        use $crate::servers::rapier_physics_server_extra::RapierBodyParam;
         #[godot_api]
         impl $class {
             #[func]
@@ -62,11 +61,11 @@ macro_rules! make_rapier_server_godot_impl {
                 if let Some(body) = physics_data.collision_objects.get(&physics_object) {
                     return body.export_json();
                 }
-                use crate::shapes::rapier_shape::IRapierShape;
+                use $crate::shapes::rapier_shape::IRapierShape;
                 if let Some(shape) = physics_data.shapes.get(&physics_object) {
                     return shape.get_base().export_json();
                 }
-                use crate::joints::rapier_joint::IRapierJoint;
+                use $crate::joints::rapier_joint::IRapierJoint;
                 if let Some(joint) = physics_data.joints.get(&physics_object) {
                     return joint.get_base().export_json();
                 }
@@ -84,13 +83,13 @@ macro_rules! make_rapier_server_godot_impl {
                 if let Some(body) = physics_data.collision_objects.get(&physics_object) {
                     return body.export_binary();
                 }
-                use crate::shapes::rapier_shape::IRapierShape;
+                use $crate::shapes::rapier_shape::IRapierShape;
                 if let Some(shape) = physics_data.shapes.get(&physics_object) {
                     return shape
                         .get_base()
                         .export_binary(&mut physics_data.physics_engine);
                 }
-                use crate::joints::rapier_joint::IRapierJoint;
+                use $crate::joints::rapier_joint::IRapierJoint;
                 if let Some(joint) = physics_data.joints.get(&physics_object) {
                     return joint.get_base().export_binary();
                 }
@@ -104,10 +103,10 @@ macro_rules! make_rapier_server_godot_impl {
             #[func]
             /// Imports the physics object from a binary format.
             fn import_binary(physics_object: Rid, data: PackedByteArray) {
-                use crate::joints::rapier_joint::IRapierJoint;
-                use crate::servers::rapier_physics_singleton::insert_id_rid;
-                use crate::servers::rapier_physics_singleton::remove_id_rid;
-                use crate::shapes::rapier_shape::IRapierShape;
+                use $crate::joints::rapier_joint::IRapierJoint;
+                use $crate::servers::rapier_physics_singleton::insert_id_rid;
+                use $crate::servers::rapier_physics_singleton::remove_id_rid;
+                use $crate::shapes::rapier_shape::IRapierShape;
                 let physics_data = physics_data();
                 if let Some(body) = physics_data.collision_objects.get_mut(&physics_object) {
                     remove_id_rid(body.get_base().get_id(), &mut physics_data.ids);
