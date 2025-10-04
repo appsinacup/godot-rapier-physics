@@ -225,7 +225,8 @@ checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
 [[package]]
 name = "gdextension-api"
 version = "0.3.0"
-source = "git+https://github.com/godot-rust/godot4-prebuilt?branch=release-v0.3#f70baca72747869aaac7781a0cf139f53a2aac19"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e25d88dabe9fdb2e064cb545312178ec4025eefb62d9a3bbce1769088e2c381d"
 
 [[package]]
 name = "generational-arena"
@@ -341,7 +342,8 @@ checksum = "0cc23270f6e1808e30a928bdc84dea0b9b4136a8bc82338574f23baf47bbd280"
 [[package]]
 name = "godot"
 version = "0.4.0"
-source = "git+https://github.com/Ughuuu/gdext?branch=disable-layout-tests#a4064eb8dee3c54c34f97752aa90dee04d6c9be1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "90b20e19a25e45460c4fd2b11b519beea3e9bcda929c1566f8d17a369b41dd82"
 dependencies = [
  "godot-core",
  "godot-macros",
@@ -350,7 +352,8 @@ dependencies = [
 [[package]]
 name = "godot-bindings"
 version = "0.4.0"
-source = "git+https://github.com/Ughuuu/gdext?branch=disable-layout-tests#a4064eb8dee3c54c34f97752aa90dee04d6c9be1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "508d56d01018c16b67a906bda8bcd9ade7f265990e4be7c2dffecbfdebcc3992"
 dependencies = [
  "bindgen",
  "gdextension-api",
@@ -361,12 +364,14 @@ dependencies = [
 [[package]]
 name = "godot-cell"
 version = "0.4.0"
-source = "git+https://github.com/Ughuuu/gdext?branch=disable-layout-tests#a4064eb8dee3c54c34f97752aa90dee04d6c9be1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c1794fbec9934ef375d717d02ec142d9e0c7d7482b24d7da463264b92bc14eaf"
 
 [[package]]
 name = "godot-codegen"
 version = "0.4.0"
-source = "git+https://github.com/Ughuuu/gdext?branch=disable-layout-tests#a4064eb8dee3c54c34f97752aa90dee04d6c9be1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "791e05ae1859028c3a910aaed83e4910ab7701ce32fa663d2dc7cd957287cdf5"
 dependencies = [
  "godot-bindings",
  "heck",
@@ -379,7 +384,8 @@ dependencies = [
 [[package]]
 name = "godot-core"
 version = "0.4.0"
-source = "git+https://github.com/Ughuuu/gdext?branch=disable-layout-tests#a4064eb8dee3c54c34f97752aa90dee04d6c9be1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9b1717ffba78bd2655c9ee1073752ac90d969b8a614800c469f00fc3ddc02439"
 dependencies = [
  "glam 0.30.8",
  "godot-bindings",
@@ -392,7 +398,8 @@ dependencies = [
 [[package]]
 name = "godot-ffi"
 version = "0.4.0"
-source = "git+https://github.com/Ughuuu/gdext?branch=disable-layout-tests#a4064eb8dee3c54c34f97752aa90dee04d6c9be1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "419e46ba92fba076da67f35ad96faaa830c1de4e8175db2bb4251aeb58b14b08"
 dependencies = [
  "godot-bindings",
  "godot-codegen",
@@ -403,7 +410,8 @@ dependencies = [
 [[package]]
 name = "godot-macros"
 version = "0.4.0"
-source = "git+https://github.com/Ughuuu/gdext?branch=disable-layout-tests#a4064eb8dee3c54c34f97752aa90dee04d6c9be1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a464e26854e63825d36655759c24556c970a8777535466ebf4ecc7f8e87a4638"
 dependencies = [
  "godot-bindings",
  "litrs",
