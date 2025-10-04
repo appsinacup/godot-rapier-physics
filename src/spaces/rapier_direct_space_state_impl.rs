@@ -72,7 +72,7 @@ impl RapierDirectSpaceStateImpl {
             space,
         );
         if collide {
-            let result = &mut *result;
+            let result = unsafe { &mut *result };
             result.position = vector_to_godot(hit_info.pixel_position);
             result.normal = vector_to_godot(hit_info.normal);
             let (rid, shape_index) = RapierCollisionObjectBase::get_collider_user_data(

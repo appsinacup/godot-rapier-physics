@@ -257,12 +257,14 @@ impl PhysicsWorld {
                                 // TODO comment this out for now since it might miss out events
                                 //continue;
                             }
-                            let collider_pos_1 = collider1.position() * contact_point.local_p1;
-                            let collider_pos_2 = collider2.position() * contact_point.local_p2;
-                            let point_velocity_1 = body1.velocity_at_point(&collider_pos_1);
-                            let point_velocity_2 = body2.velocity_at_point(&collider_pos_2);
-                            contact_info.pixel_local_pos_1 = collider_pos_1.coords;
-                            contact_info.pixel_local_pos_2 = collider_pos_2.coords;
+                            let collider_pos_1 = *collider1.position();
+                            let collider_pos_2 = *collider2.position();
+                            let point_velocity_1 = body1
+                                .velocity_at_point(&Point::from(collider_pos_1.translation.vector));
+                            let point_velocity_2 = body2
+                                .velocity_at_point(&Point::from(collider_pos_2.translation.vector));
+                            let pixel_pos_1 = collider_pos_1.translation.vector;
+                            let pixel_pos_2 = collider_pos_2.translation.vector;
                             contact_info.pixel_velocity_pos_1 = point_velocity_1;
                             contact_info.pixel_velocity_pos_2 = point_velocity_2;
                             contact_info.pixel_distance = contact_point.dist;

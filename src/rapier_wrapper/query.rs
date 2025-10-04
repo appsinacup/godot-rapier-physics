@@ -545,7 +545,7 @@ impl PhysicsEngine {
                 hit_info_slice[cpt_hit].collider = handle;
                 hit_info_slice[cpt_hit].user_data = physics_world.get_collider_user_data(handle);
                 cpt_hit += 1;
-                if (cpt_hit >= max_results) {
+                if cpt_hit >= max_results {
                     break;
                 }
             }

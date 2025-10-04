@@ -291,7 +291,7 @@ impl RapierPhysicsServerImpl {
             return false;
         }
         if result_max >= 1 {
-            *result_count = 1;
+            unsafe { *result_count = 1 };
             let vector2_slice: &mut [Vector] =
                 unsafe { std::slice::from_raw_parts_mut(results_out, result_max as usize) };
             vector2_slice[0] = vector_to_godot(result.pixel_witness1);
@@ -1561,17 +1561,19 @@ impl RapierPhysicsServerImpl {
                 }
             }
         }
-        self.shape_collide(
-            body_shape_rid,
-            body_transform * body_shape_transform,
-            Vector::ZERO,
-            shape,
-            shape_xform,
-            motion,
-            results,
-            result_max,
-            result_count,
-        )
+        unsafe {
+            self.shape_collide(
+                body_shape_rid,
+                body_transform * body_shape_transform,
+                Vector::ZERO,
+                shape,
+                shape_xform,
+                motion,
+                results,
+                result_max,
+                result_count,
+            )
+        }
     }
 
     #[cfg(feature = "dim2")]
@@ -1623,7 +1625,7 @@ impl RapierPhysicsServerImpl {
                     .spaces
                     .get(&body.get_base().get_space(&physics_data.ids))
                 {
-                    let result: &mut PhysicsServerExtensionMotionResult = &mut *result;
+                    let result: &mut PhysicsServerExtensionMotionResult = unsafe { &mut *result };
                     return space.test_body_motion(
                         body,
                         from,

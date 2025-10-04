@@ -100,17 +100,19 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         result_max: i32,
         result_count: *mut i32,
     ) -> bool {
-        self.implementation.shape_collide(
-            shape_a,
-            xform_a,
-            motion_a,
-            shape_b,
-            xform_b,
-            motion_b,
-            results,
-            result_max,
-            result_count,
-        )
+        unsafe {
+            self.implementation.shape_collide(
+                shape_a,
+                xform_a,
+                motion_a,
+                shape_b,
+                xform_b,
+                motion_b,
+                results,
+                result_max,
+                result_count,
+            )
+        }
     }
 
     fn space_create(&mut self) -> Rid {
