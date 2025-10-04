@@ -1,7 +1,7 @@
 use std::num::NonZeroUsize;
+use std::sync::mpsc;
 
 use hashbrown::HashMap;
-use rapier::crossbeam;
 use rapier::data::Index;
 use rapier::prelude::*;
 use salva::integrations::rapier::FluidsPipeline;
@@ -169,8 +169,8 @@ impl PhysicsWorld {
             ghost_collision_distance: space.get_ghost_collision_distance(),
         };
         // Initialize the event collector.
-        let (collision_send, collision_recv) = crossbeam::channel::unbounded();
-        let (contact_force_send, contact_force_recv) = crossbeam::channel::unbounded();
+        let (collision_send, collision_recv) = mpsc::channel();
+        let (contact_force_send, contact_force_recv) = mpsc::channel();
         let event_handler = ContactEventHandler::new(collision_send, contact_force_send);
         self.physics_pipeline.step(
             &gravity,
@@ -265,6 +265,8 @@ impl PhysicsWorld {
                                 .velocity_at_point(&Point::from(collider_pos_2.translation.vector));
                             let pixel_pos_1 = collider_pos_1.translation.vector;
                             let pixel_pos_2 = collider_pos_2.translation.vector;
+                            contact_info.pixel_local_pos_1 = pixel_pos_1;
+                            contact_info.pixel_local_pos_2 = pixel_pos_2;
                             contact_info.pixel_velocity_pos_1 = point_velocity_1;
                             contact_info.pixel_velocity_pos_2 = point_velocity_2;
                             contact_info.pixel_distance = contact_point.dist;

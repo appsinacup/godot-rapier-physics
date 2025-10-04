@@ -544,16 +544,18 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         result_max: i32,
         result_count: *mut i32,
     ) -> bool {
-        self.implementation.body_collide_shape(
-            body,
-            body_shape,
-            shape,
-            shape_xform,
-            motion,
-            results,
-            result_max,
-            result_count,
-        )
+        unsafe {
+            self.implementation.body_collide_shape(
+                body,
+                body_shape,
+                shape,
+                shape_xform,
+                motion,
+                results,
+                result_max,
+                result_count,
+            )
+        }
     }
 
     fn body_set_pickable(&mut self, body: Rid, pickable: bool) {
@@ -574,16 +576,18 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         recovery_as_collision: bool,
         result: *mut PhysicsServerExtensionMotionResult,
     ) -> bool {
-        self.implementation.body_test_motion(
-            body,
-            from,
-            motion,
-            margin,
-            1,
-            collide_separation_ray,
-            recovery_as_collision,
-            result,
-        )
+        unsafe {
+            self.implementation.body_test_motion(
+                body,
+                from,
+                motion,
+                margin,
+                1,
+                collide_separation_ray,
+                recovery_as_collision,
+                result,
+            )
+        }
     }
 
     fn joint_create(&mut self) -> Rid {
