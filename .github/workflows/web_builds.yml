@@ -37,6 +37,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y gcc-multilib
 
+      - name: Set LLVM_PATH for godot-rust bindgen
+        run: |
+          echo "LLVM_PATH=$EMSDK/upstream/bin" >> $GITHUB_ENV
+
       - name: Rust Install Nightly
         run: |
           rustup component add rust-src
