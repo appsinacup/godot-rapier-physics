@@ -66,7 +66,7 @@ pub type PhysicsServerExtensionRayResult = native::PhysicsServer3DExtensionRayRe
 pub type PhysicsServerExtensionShapeRestInfo = native::PhysicsServer3DExtensionShapeRestInfo;
 #[cfg(feature = "dim3")]
 pub fn transform_scale(transform: &Transform) -> Vector {
-    transform.basis.scale()
+    transform.basis.get_scale()
 }
 #[cfg(feature = "dim2")]
 pub fn transform_scale(transform: &Transform) -> Vector {
@@ -111,7 +111,7 @@ pub fn transform_update(
     use godot::builtin::Basis;
     let quaternion = rotation.quaternion();
     let new_transform = Transform::new(
-        Basis::from_quat(Quaternion::new(
+        Basis::from_quaternion(Quaternion::new(
             quaternion.coords.x,
             quaternion.coords.y,
             quaternion.coords.z,
@@ -119,13 +119,13 @@ pub fn transform_update(
         )),
         origin,
     );
-    let scale = transform.basis.scale();
+    let scale = transform.basis.get_scale();
     new_transform.scaled_local(scale)
 }
 #[cfg(feature = "dim3")]
 pub fn transform_rotation_rapier(transform: &godot::builtin::Transform3D) -> Rotation<Real> {
     use rapier::na::Vector4;
-    let quaternion = transform.basis.to_quat();
+    let quaternion = transform.basis.get_quaternion();
     Rotation::from_quaternion(rapier::na::Quaternion {
         coords: Vector4::new(quaternion.x, quaternion.y, quaternion.z, quaternion.w),
     })

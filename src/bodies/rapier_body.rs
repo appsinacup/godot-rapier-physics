@@ -1798,7 +1798,7 @@ impl RapierBody {
             let inv_inertia = rigid_body_mass_properties
                 .0
                 .local_mprops
-                .inv_principal_inertia_sqrt;
+                .inv_principal_inertia;
             let tb = self.state.principal_inertia_axes;
             let tbt = tb.transposed();
             let diag =

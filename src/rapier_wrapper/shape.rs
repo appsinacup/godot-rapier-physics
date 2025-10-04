@@ -41,7 +41,7 @@ pub fn shape_info_from_body_shape(shape_handle: ShapeHandle, transform: Transfor
     use nalgebra::Isometry3;
     use nalgebra::Quaternion;
     use nalgebra::Translation3;
-    let quaternion = transform.basis.to_quat();
+    let quaternion = transform.basis.get_quaternion();
     let rotation = Rotation::from_quaternion(Quaternion::new(
         quaternion.w,
         quaternion.x,
@@ -53,7 +53,7 @@ pub fn shape_info_from_body_shape(shape_handle: ShapeHandle, transform: Transfor
     ShapeInfo {
         handle: shape_handle,
         transform: isometry,
-        scale: vector_to_rapier(transform.basis.scale()),
+        scale: vector_to_rapier(transform.basis.get_scale()),
     }
 }
 impl PhysicsEngine {

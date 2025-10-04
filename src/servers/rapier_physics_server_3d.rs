@@ -629,11 +629,40 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
     }
 
     fn soft_body_set_shrinking_factor(&mut self, _: godot::prelude::Rid, _: f32) {}
-    fn soft_body_get_shrinking_factor(&self, _: godot::prelude::Rid) -> f32 {0.0}
-    fn soft_body_apply_point_impulse(&mut self, _: godot::prelude::Rid, _: i32, _: godot::prelude::Vector3) {}
-    fn soft_body_apply_point_force(&mut self, _: godot::prelude::Rid, _: i32, _: godot::prelude::Vector3) {}
-    fn soft_body_apply_central_impulse(&mut self, _: godot::prelude::Rid, _: godot::prelude::Vector3) {}
-    fn soft_body_apply_central_force(&mut self, _: godot::prelude::Rid, _: godot::prelude::Vector3) {}
+
+    fn soft_body_get_shrinking_factor(&self, _: godot::prelude::Rid) -> f32 {
+        0.0
+    }
+
+    fn soft_body_apply_point_impulse(
+        &mut self,
+        _: godot::prelude::Rid,
+        _: i32,
+        _: godot::prelude::Vector3,
+    ) {
+    }
+
+    fn soft_body_apply_point_force(
+        &mut self,
+        _: godot::prelude::Rid,
+        _: i32,
+        _: godot::prelude::Vector3,
+    ) {
+    }
+
+    fn soft_body_apply_central_impulse(
+        &mut self,
+        _: godot::prelude::Rid,
+        _: godot::prelude::Vector3,
+    ) {
+    }
+
+    fn soft_body_apply_central_force(
+        &mut self,
+        _: godot::prelude::Rid,
+        _: godot::prelude::Vector3,
+    ) {
+    }
 
     unsafe fn body_test_motion_rawptr(
         &self,
