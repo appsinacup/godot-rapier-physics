@@ -8,6 +8,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Setup Godot
+        uses: appsinacup/setup-godot-action@main
+        with:
+          version: '4.5-stable'
 
       - name: Run Unit Tests for 2D Build
         shell: sh
@@ -18,6 +22,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Setup Godot
+        uses: appsinacup/setup-godot-action@main
+        with:
+          version: '4.5-stable'
 
       - name: Run Unit Tests for 3D Build
         shell: sh
