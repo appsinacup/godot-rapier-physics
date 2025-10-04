@@ -1,6 +1,14 @@
 # Changelog
 
-## v0.8.12
+## v0.8.13 - Oct 4
+
+- Update to latest gdext,rapier,rust,etc by @Ughuuu
+- Add dominance feature by @LeaoLuciano
+- Add support for direct PhysicsServer API access by @Person-of-Hourai
+- fix typo in agular damping mode by @Ughuuu
+- add missing platforms for linux by @Ughuuu
+
+## v0.8.12 - May 21
 
 - Update ios dylib version by @OceanBreezeGames
 - use the android arm 32 bit one by @Ughuuu
