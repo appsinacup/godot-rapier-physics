@@ -30,7 +30,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         }
     }
 
-    unsafe fn intersect_ray(
+    unsafe fn intersect_ray_rawptr(
         &mut self,
         from: Vector2,
         to: Vector2,
@@ -55,7 +55,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         }
     }
 
-    unsafe fn intersect_point(
+    unsafe fn intersect_point_rawptr(
         &mut self,
         position: Vector2,
         canvas_instance_id: u64,
@@ -80,7 +80,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         }
     }
 
-    unsafe fn intersect_shape(
+    unsafe fn intersect_shape_rawptr(
         &mut self,
         shape_rid: Rid,
         transform: Transform2D,
@@ -109,7 +109,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         }
     }
 
-    unsafe fn cast_motion(
+    unsafe fn cast_motion_rawptr(
         &mut self,
         shape_rid: Rid,
         transform: Transform2D,
@@ -138,7 +138,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         }
     }
 
-    unsafe fn collide_shape(
+    unsafe fn collide_shape_rawptr(
         &mut self,
         shape_rid: Rid,
         transform: Transform2D,
@@ -169,7 +169,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         }
     }
 
-    unsafe fn rest_info(
+    unsafe fn rest_info_rawptr(
         &mut self,
         shape_rid: Rid,
         transform: Transform2D,

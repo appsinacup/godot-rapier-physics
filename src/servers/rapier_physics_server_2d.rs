@@ -88,7 +88,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         self.implementation.shape_get_custom_solver_bias(shape)
     }
 
-    unsafe fn shape_collide(
+    unsafe fn shape_collide_rawptr(
         &mut self,
         shape_a: Rid,
         xform_a: Transform,
@@ -533,7 +533,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             .body_set_force_integration_callback(body, callable, userdata);
     }
 
-    unsafe fn body_collide_shape(
+    unsafe fn body_collide_shape_rawptr(
         &mut self,
         body: Rid,
         body_shape: i32,
@@ -566,7 +566,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         self.implementation.body_get_direct_state(body)
     }
 
-    unsafe fn body_test_motion(
+    unsafe fn body_test_motion_rawptr(
         &self,
         body: Rid,
         from: Transform,

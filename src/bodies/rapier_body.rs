@@ -2048,6 +2048,28 @@ impl RapierBody {
             }
         }
     }
+
+    pub fn get_collision_layer(&self) -> u32 {
+        self.base.get_collision_layer()
+    }
+
+    pub fn get_collision_mask(&self) -> u32 {
+        self.base.get_collision_mask()
+    }
+
+    pub fn set_collision_layer(&mut self, layer: u32, physics_engine: &mut PhysicsEngine) {
+        if self.base.get_collision_layer() != layer {
+            self.base.set_collision_layer(layer, physics_engine);
+            self.update_colliders_filters(physics_engine);
+        }
+    }
+
+    pub fn set_collision_mask(&mut self, mask: u32, physics_engine: &mut PhysicsEngine) {
+        if self.base.get_collision_mask() != mask {
+            self.base.set_collision_mask(mask, physics_engine);
+            self.update_colliders_filters(physics_engine);
+        }
+    }
 }
 // We won't use the pointers between threads, so it should be safe.
 unsafe impl Sync for RapierBody {}
