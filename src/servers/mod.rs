@@ -38,7 +38,6 @@ fn print_version() {
     let mut config_file = ConfigFile::new_gd();
     let err = config_file.load("res://addons/godot-rapier2d/plugin.info.cfg");
     if err != global::Error::OK {
-        godot_error!("Error loading plugin.info.cfg: {:?}", err);
         return;
     }
     let version = config_file.get_value("plugin", "version");
@@ -65,7 +64,6 @@ fn print_version() {
     let mut config_file = ConfigFile::new_gd();
     let err = config_file.load("res://addons/godot-rapier3d/plugin.info.cfg");
     if err != global::Error::OK {
-        godot_error!("Error loading plugin.info.cfg: {:?}", err);
         return;
     }
     let version = config_file.get_value("plugin", "version");

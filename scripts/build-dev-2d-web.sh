@@ -1,3 +1,5 @@
+export GODOT4_BIN=/Applications/Godot.app/Contents/MacOS/Godot
+export LLVM_PATH=clang
 cargo fmt -- --config-path rustfmt.toml
 cargo clippy --fix --allow-dirty
 if [ "${OSTYPE#darwin}" != "$OSTYPE" ]; then

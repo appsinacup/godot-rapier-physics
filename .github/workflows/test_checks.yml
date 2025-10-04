@@ -29,12 +29,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      #- uses: chickensoft-games/setup-godot@v1
-      #  name: 🤖 Setup Godot
-      #  with:
-      #    version: 4.3.0
-      #    use-dotnet: false
-      #    include-templates: true
+      - name: Setup Godot
+        uses: appsinacup/setup-godot-action@main
+        with:
+          version: '4.5-stable'
       - name: Run Integration Tests for 2D Build
         if: false
         shell: sh
@@ -60,12 +58,10 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      #- uses: chickensoft-games/setup-godot@v1
-      #  name: 🤖 Setup Godot
-      #  with:
-      #    version: 4.3.0
-      #    use-dotnet: false
-      #    include-templates: true
+      - name: Setup Godot
+        uses: appsinacup/setup-godot-action@main
+        with:
+          version: '4.5-stable'
       - name: Run Integration Tests for 3D Build
         if: false
         shell: sh
