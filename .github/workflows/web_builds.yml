@@ -35,11 +35,12 @@ jobs:
       - name: Install gcc-multilib for cross-compilation
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc-multilib
+          sudo apt-get install -y gcc-multilib llvm-dev libclang-dev clang
 
       - name: Set LLVM_PATH for godot-rust bindgen
         run: |
-          echo "LLVM_PATH=$EMSDK/upstream/bin" >> $GITHUB_ENV
+          echo "LLVM_PATH=/usr/lib/llvm-14" >> $GITHUB_ENV
+          echo "LIBCLANG_PATH=/usr/lib/llvm-14/lib" >> $GITHUB_ENV
 
       - name: Rust Install Nightly
         run: |
