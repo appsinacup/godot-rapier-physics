@@ -32,10 +32,10 @@ pub struct Fluid3D {
     pub(crate) points: PackedVectorArray,
     pub(crate) create_times: PackedFloat32Array,
 
-    #[export]
+    #[export(flags_2d_physics)]
     #[var(get = get_collision_mask, set = set_collision_mask)]
     pub(crate) collision_mask: u32,
-    #[export]
+    #[export(flags_2d_physics)]
     #[var(get = get_collision_layer, set = set_collision_layer)]
     pub(crate) collision_layer: u32,
     base: Base<Node3D>,

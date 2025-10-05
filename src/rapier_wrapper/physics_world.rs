@@ -265,8 +265,8 @@ impl PhysicsWorld {
                                 .velocity_at_point(&Point::from(collider_pos_2.translation.vector));
                             let pixel_pos_1 = collider_pos_1.translation.vector;
                             let pixel_pos_2 = collider_pos_2.translation.vector;
-                            contact_info.pixel_local_pos_1 = pixel_pos_1;
-                            contact_info.pixel_local_pos_2 = pixel_pos_2;
+                            contact_info.pixel_local_pos_1 = contact_point.local_p1.coords;
+                            contact_info.pixel_local_pos_2 = contact_point.local_p2.coords;
                             contact_info.pixel_velocity_pos_1 = point_velocity_1;
                             contact_info.pixel_velocity_pos_2 = point_velocity_2;
                             contact_info.pixel_distance = contact_point.dist;
