@@ -249,11 +249,11 @@ macro_rules! make_rapier_server_godot_impl {
                 let physics_data = physics_data();
                 if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
                     let mut interaction_groups = fluid.get_interaction_groups();
-                    interaction_groups.set_memberships(mask);
-                    fluid.interaction_groups = interaction_groups;
-                    physics_data
-                        .physics_engine
-                        .update_fluid_interaction_groups(fluid);
+                    interaction_groups.memberships = mask.into();
+                    fluid.set_interaction_groups(
+                        interaction_groups,
+                        &mut physics_data.physics_engine,
+                    );
                 }
             }
 
@@ -272,11 +272,11 @@ macro_rules! make_rapier_server_godot_impl {
                 let physics_data = physics_data();
                 if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
                     let mut interaction_groups = fluid.get_interaction_groups();
-                    interaction_groups.set_filter(layer);
-                    fluid.interaction_groups = interaction_groups;
-                    physics_data
-                        .physics_engine
-                        .update_fluid_interaction_groups(fluid);
+                    interaction_groups.filter = layer.into();
+                    fluid.set_interaction_groups(
+                        interaction_groups,
+                        &mut physics_data.physics_engine,
+                    );
                 }
             }
 

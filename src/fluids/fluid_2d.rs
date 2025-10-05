@@ -33,10 +33,10 @@ pub struct Fluid2D {
     pub(crate) create_times: PackedFloat32Array,
 
     #[export]
-    #[var(get = get_collision_mask, set_collision_mask)]
+    #[var(get = get_collision_mask, set = set_collision_mask)]
     pub(crate) collision_mask: u32,
     #[export]
-    #[var(get = get_collision_layer, set_collision_layer)]
+    #[var(get = get_collision_layer, set = set_collision_layer)]
     pub(crate) collision_layer: u32,
     base: Base<Node2D>,
 }
