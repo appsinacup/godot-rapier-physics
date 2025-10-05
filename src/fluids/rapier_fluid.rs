@@ -35,7 +35,7 @@ impl RapierFluid {
             accelerations: Vec::new(),
             interaction_groups: salva::object::interaction_groups::InteractionGroups::new(
                 salva::object::interaction_groups::Group::GROUP_1,
-                salva::object::interaction_groups::Group::GROUP_1
+                salva::object::interaction_groups::Group::GROUP_1,
             ),
         }
     }
