@@ -31,6 +31,13 @@ pub struct Fluid3D {
     #[var(get = get_points, set = set_points)]
     pub(crate) points: PackedVectorArray,
     pub(crate) create_times: PackedFloat32Array,
+
+    #[export(flags_2d_physics)]
+    #[var(get = get_collision_mask, set = set_collision_mask)]
+    pub(crate) collision_mask: u32,
+    #[export(flags_2d_physics)]
+    #[var(get = get_collision_layer, set = set_collision_layer)]
+    pub(crate) collision_layer: u32,
     base: Base<Node3D>,
 }
 #[godot_api]
@@ -152,6 +159,30 @@ impl Fluid3D {
     fn set_effects(&mut self, effects: Array<Option<Gd<Resource>>>) {
         FluidImpl::set_effects(self, effects);
     }
+
+    #[func]
+    /// Get the collision mask of the fluid particles.
+    fn get_collision_mask(&self) -> u32 {
+        FluidImpl::get_collision_mask(self)
+    }
+
+    #[func]
+    /// Set the collision mask of the fluid particles.
+    fn set_collision_mask(&mut self, mask: u32) {
+        FluidImpl::set_collision_mask(self, mask);
+    }
+
+    #[func]
+    /// Get the collision layer of the fluid particles.
+    fn get_collision_layer(&self) -> u32 {
+        FluidImpl::get_collision_layer(self)
+    }
+
+    #[func]
+    /// Set the collision layer of the fluid particles.
+    fn set_collision_layer(&mut self, layer: u32) {
+        FluidImpl::set_collision_layer(self, layer);
+    }
 }
 #[godot_api]
 impl INode3D for Fluid3D {
@@ -165,6 +196,8 @@ impl INode3D for Fluid3D {
             effects: Array::new(),
             points: PackedVectorArray::new(),
             create_times: PackedFloat32Array::new(),
+            collision_mask: 1,
+            collision_layer: 1,
             base,
         }
     }

@@ -233,6 +233,54 @@ macro_rules! make_rapier_server_godot_impl {
             }
 
             #[func]
+            /// Get interaction groups mask.
+            pub(crate) fn fluid_get_collision_mask(fluid_rid: Rid) -> u32 {
+                let physics_data = physics_data();
+                if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
+                    let interaction_groups = fluid.get_interaction_groups();
+                    return interaction_groups.memberships.bits();
+                }
+                0
+            }
+
+            #[func]
+            /// Set interaction groups mask.
+            pub(crate) fn fluid_set_collision_mask(fluid_rid: Rid, mask: u32) {
+                let physics_data = physics_data();
+                if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
+                    let mut interaction_groups = fluid.get_interaction_groups();
+                    interaction_groups.memberships = mask.into();
+                    fluid.set_interaction_groups(
+                        interaction_groups,
+                        &mut physics_data.physics_engine,
+                    );
+                }
+            }
+
+            #[func]
+            /// Get interaction groups layer.
+            pub(crate) fn fluid_get_collision_layer(fluid_rid: Rid) -> u32 {
+                let physics_data = physics_data();
+                if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
+                    let interaction_groups = fluid.get_interaction_groups();
+                    return interaction_groups.filter.bits();
+                }
+                0
+            }
+
+            pub(crate) fn fluid_set_collision_layer(fluid_rid: Rid, layer: u32) {
+                let physics_data = physics_data();
+                if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
+                    let mut interaction_groups = fluid.get_interaction_groups();
+                    interaction_groups.filter = layer.into();
+                    fluid.set_interaction_groups(
+                        interaction_groups,
+                        &mut physics_data.physics_engine,
+                    );
+                }
+            }
+
+            #[func]
             /// Set the points of the fluid particles.
             pub(crate) fn fluid_set_points(fluid_rid: Rid, points: PackedVectorArray) {
                 let physics_data = physics_data();

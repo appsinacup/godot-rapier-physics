@@ -18,6 +18,7 @@ pub struct RapierFluid {
     points: Vec<Vector>,
     velocities: Vec<Vector>,
     accelerations: Vec<Vector>,
+    interaction_groups: salva::object::interaction_groups::InteractionGroups,
 }
 impl RapierFluid {
     pub fn new(id: RapierId) -> Self {
@@ -31,6 +32,10 @@ impl RapierFluid {
             points: Vec::new(),
             velocities: Vec::new(),
             accelerations: Vec::new(),
+            interaction_groups: salva::object::interaction_groups::InteractionGroups::new(
+                salva::object::interaction_groups::Group::GROUP_1,
+                salva::object::interaction_groups::Group::GROUP_1,
+            ),
         }
     }
 
@@ -51,6 +56,24 @@ impl RapierFluid {
                 .collect::<Vec<_>>();
             physics_engine.fluid_change_points(self.space_id, self.fluid_handle, &rapier_points);
         }
+    }
+
+    pub fn set_interaction_groups(
+        &mut self,
+        groups: salva::object::interaction_groups::InteractionGroups,
+        physics_engine: &mut PhysicsEngine,
+    ) {
+        if self.is_valid() {
+            physics_engine.fluid_change_interaction_groups(
+                self.space_id,
+                self.fluid_handle,
+                groups,
+            );
+        }
+    }
+
+    pub fn get_interaction_groups(&self) -> salva::object::interaction_groups::InteractionGroups {
+        self.interaction_groups
     }
 
     pub fn set_points_and_velocities(

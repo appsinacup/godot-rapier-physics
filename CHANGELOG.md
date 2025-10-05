@@ -7,6 +7,7 @@
 - Add support for direct PhysicsServer API access by @Person-of-Hourai
 - fix typo in agular damping mode by @Ughuuu
 - add missing platforms for linux by @Ughuuu
+- add liquid layer and mask by @Ughuuu
 
 ## v0.8.12 - May 21
 
