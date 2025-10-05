@@ -35,9 +35,9 @@ Stability|No Vibrations
 -|-
 ![](docs/rapier-vid.gif)|![](docs/stability-comparison.gif)
 
-No Ghost Collisions|No CCD Issues
+No Ghost Collisions|Improved Stacking
 -|-
-![](docs/ghost_collisions.gif)|![](docs/ccd-comparison.gif)
+![](docs/ghost_collisions.gif)|![](docs/stacking.png)
 
 Fluids 2D| Fluids 3D
 -|-
