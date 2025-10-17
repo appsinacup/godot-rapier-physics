@@ -137,6 +137,24 @@ impl PhysicsEngine {
         physics_world.remove_rigid_body(body_handle);
     }
 
+    pub fn body_predict_next_frame_position(
+        &self,
+        timestep: f64,
+        world_handle: WorldHandle,
+        body_handle: RigidBodyHandle,
+    ) -> Vector<Real> {
+        if let Some(physics_world) = self.get_world(world_handle)
+            && let Some(body) = physics_world
+                .physics_objects
+                .rigid_body_set
+                .get(body_handle)
+        {
+            let transform = body.predict_position_using_velocity_and_forces(timestep as f32);
+            return transform.translation.vector;
+        }
+        Vector::default()
+    }
+
     pub fn body_get_position(
         &self,
         world_handle: WorldHandle,
