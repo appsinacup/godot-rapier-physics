@@ -242,7 +242,7 @@ impl PhysicsEngine {
         indices: Option<Vec<[u32; 2]>>,
         handle: ShapeHandle,
     ) {
-        if points.len() == 0 {
+        if points.is_empty() {
             self.remove_shape(handle);
             return;
         }
