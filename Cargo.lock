@@ -89,6 +89,7 @@ dependencies = [
 [[package]]
 name = "bytemuck"
 version = "1.24.0"
+version = "1.24.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1fbdf580320f38b612e485521afda1ee26d10cc9884efaaa750d383e13e3c5f4"
 
@@ -522,9 +523,9 @@ checksum = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
 
 [[package]]
 name = "libc"
-version = "0.2.178"
+version = "0.2.177"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "37c93d8daa9d8a012fd8ab92f088405fb202ea0b6ab73ee2482ae66af4f42091"
+checksum = "2874a2af47a2325c2001a6e6fad9b16a53b802102b528163885171cf92b15976"
 
 [[package]]
 name = "libloading"
@@ -596,6 +597,22 @@ checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
 
 [[package]]
 name = "nalgebra"
+version = "0.33.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "26aecdf64b707efd1310e3544d709c5c0ac61c13756046aaaba41be5c4f66a3b"
+dependencies = [
+ "approx",
+ "matrixmultiply",
+ "nalgebra-macros 0.2.2",
+ "num-complex",
+ "num-rational",
+ "num-traits",
+ "simba",
+ "typenum",
+]
+
+[[package]]
+name = "nalgebra"
 version = "0.34.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c4d5b3eff5cd580f93da45e64715e8c20a3996342f1e466599cf7a267a0c2f5f"
@@ -618,13 +635,24 @@ dependencies = [
  "glam 0.29.3",
  "glam 0.30.9",
  "matrixmultiply",
- "nalgebra-macros",
+ "nalgebra-macros 0.3.0",
  "num-complex",
  "num-rational",
  "num-traits",
  "serde",
  "simba",
  "typenum",
+]
+
+[[package]]
+name = "nalgebra-macros"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "254a5372af8fc138e36684761d3c0cdb758a4410e938babcff1c860ce14ddbfc"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -757,7 +785,7 @@ dependencies = [
  "hashbrown 0.16.1",
  "indexmap",
  "log",
- "nalgebra",
+ "nalgebra 0.34.1",
  "num-derive",
  "num-traits",
  "ordered-float",
@@ -784,7 +812,7 @@ dependencies = [
  "hashbrown 0.16.0",
  "indexmap",
  "log",
- "nalgebra",
+ "nalgebra 0.34.1",
  "num-derive",
  "num-traits",
  "ordered-float",
@@ -813,7 +841,7 @@ dependencies = [
  "hashbrown 0.16.0",
  "indexmap",
  "log",
- "nalgebra",
+ "nalgebra 0.34.1",
  "num-derive",
  "num-traits",
  "ordered-float",
@@ -956,6 +984,7 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.29.0"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes-v29#15dee20b535317d30614aafbeb378173a7675190"
 dependencies = [
  "approx",
  "arrayvec",
@@ -963,7 +992,7 @@ dependencies = [
  "bitflags",
  "downcast-rs",
  "log",
- "nalgebra",
+ "nalgebra 0.34.1",
  "num-derive",
  "num-traits",
  "ordered-float",
@@ -990,7 +1019,7 @@ dependencies = [
  "bitflags",
  "downcast-rs",
  "log",
- "nalgebra",
+ "nalgebra 0.34.1",
  "num-derive",
  "num-traits",
  "ordered-float",
@@ -1016,7 +1045,7 @@ dependencies = [
  "bitflags",
  "downcast-rs",
  "log",
- "nalgebra",
+ "nalgebra 0.34.1",
  "num-derive",
  "num-traits",
  "ordered-float",
@@ -1034,8 +1063,8 @@ dependencies = [
 
 [[package]]
 name = "rapier3d-f64"
-version = "0.30.1"
-source = "git+https://github.com/ughuuu/rapier?branch=master#57c4e912a60952ed5c04e761da11b8fb155d2738"
+version = "0.29.0"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes-v29#15dee20b535317d30614aafbeb378173a7675190"
 dependencies = [
  "approx",
  "arrayvec",
@@ -1196,7 +1225,7 @@ dependencies = [
  "fnv",
  "generational-arena",
  "itertools 0.14.0",
- "nalgebra",
+ "nalgebra 0.34.1",
  "num-traits",
  "parry2d",
  "rapier2d",
@@ -1206,13 +1235,13 @@ dependencies = [
 [[package]]
 name = "salva2d-f64"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=custom-changes#3c0a04b6bd444ce0516cbfe9ec6faa738a6d3866"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#13b2b4ce3db1fdf0a325f308afe00b89df772ddb"
 dependencies = [
  "approx",
  "fnv",
  "generational-arena",
  "itertools 0.13.0",
- "nalgebra",
+ "nalgebra 0.33.2",
  "num-traits",
  "parry2d-f64",
  "rapier2d-f64",
@@ -1221,14 +1250,14 @@ dependencies = [
 [[package]]
 name = "salva3d"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=custom-changes#3c0a04b6bd444ce0516cbfe9ec6faa738a6d3866"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#13b2b4ce3db1fdf0a325f308afe00b89df772ddb"
 dependencies = [
  "approx",
  "bitflags",
  "fnv",
  "generational-arena",
  "itertools 0.14.0",
- "nalgebra",
+ "nalgebra 0.33.2",
  "num-traits",
  "parry3d 0.25.1",
  "rapier3d 0.30.1",
@@ -1237,7 +1266,7 @@ dependencies = [
 [[package]]
 name = "salva3d-f64"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=custom-changes#3c0a04b6bd444ce0516cbfe9ec6faa738a6d3866"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#13b2b4ce3db1fdf0a325f308afe00b89df772ddb"
 dependencies = [
  "approx",
  "fnv",
