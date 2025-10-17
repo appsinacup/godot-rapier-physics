@@ -1308,10 +1308,9 @@ dependencies = [
  "instant",
  "itertools 0.13.0",
  "nalgebra 0.33.2",
- "nalgebra 0.33.2",
  "num-traits",
- "parry3d-f64 0.25.1",
- "rapier3d-f64 0.30.1",
+ "parry3d-f64",
+ "rapier3d-f64",
 ]
 
 [[package]]
