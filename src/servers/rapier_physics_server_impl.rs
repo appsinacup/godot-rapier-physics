@@ -774,6 +774,16 @@ impl RapierPhysicsServerImpl {
         }
     }
 
+    pub(super) fn body_predict_next_frame_position(&self, body: Rid, timestep: f64) -> Vector {
+        let physics_data = physics_data();
+        if let Some(body) = physics_data.collision_objects.get(&body) {
+            if let Some(body) = body.get_body() {
+                return body.predict_next_frame_position(timestep, &mut physics_data.physics_engine);
+            }
+        }
+        Vector::default()
+    }
+
     pub(super) fn body_create(&mut self) -> Rid {
         let physics_data = physics_data();
         let rid = rid_from_int64(rid_allocate_id());
