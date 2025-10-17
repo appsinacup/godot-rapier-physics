@@ -108,8 +108,5 @@ opt-level = 0
 [package.metadata.docs.rs]
 license-file = "../LICENSE"
 
-# [patch."https://github.com/ughuuu/rapier"]
-# rapier2d = { path = "E:/Repos/ughuuu_forks/rapier/crates/rapier2d" }
-
-# [patch."https://github.com/ughuuu/parry"]
-# parry2d = { path = "E:/Repos/ughuuu_forks/parry/crates/parry2d" }
+[patch."https://github.com/ughuuu/salva"]
+salva2d = { path = "E:/Repos/salva/build/salva2d" }
