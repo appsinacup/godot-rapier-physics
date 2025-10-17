@@ -242,6 +242,10 @@ impl PhysicsEngine {
         indices: Option<Vec<[u32; 2]>>,
         handle: ShapeHandle,
     ) {
+        if points.is_empty() {
+            self.remove_shape(handle);
+            return;
+        }
         let points_vec = point_array_to_vec(points);
         let shape = SharedShape::polyline(points_vec, indices);
         self.insert_shape(shape, handle);
