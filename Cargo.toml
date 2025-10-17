@@ -76,3 +76,6 @@ opt-level = 1
 
 [package.metadata.docs.rs]
 license-file = "../LICENSE"
+
+[patch."https://github.com/ughuuu/salva"]
+salva2d = { path = "E:/Repos/salva/build/salva2d" }
