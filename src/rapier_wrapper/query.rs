@@ -1,6 +1,7 @@
 use std::ops::Mul;
 
 use godot::global::godot_error;
+use godot::global::godot_print;
 use godot::global::godot_warn;
 use nalgebra::zero;
 use rapier::parry;
@@ -377,10 +378,9 @@ impl PhysicsEngine {
                         )
                         .intersect_shape(shape_transform, shared_shape.as_ref())
                     {
-                        let mut collision = ShapeCastResult::new();
-                        collision.collided = true;
-                        collision.toi = 0.0;
-                        collision.collider = collider_handle;
+                        result.collided = true;
+                        result.toi = 0.0;
+                        result.collider = collider_handle;
                         result.user_data = physics_world.get_collider_user_data(collider_handle);
                         if let Some(collider) = physics_world
                             .physics_objects
@@ -388,20 +388,22 @@ impl PhysicsEngine {
                             .get(collider_handle)
                         {
                             let pos12 = shape_transform.inv_mul(collider.position());
-                            if let Ok(contact) = physics_world
+                            if let Ok(opt_contact) = physics_world
                                 .physics_objects
                                 .narrow_phase
                                 .query_dispatcher()
                                 .contact(&pos12, shared_shape.as_ref(), collider.shape(), margin)
-                                && let Some(contact) = contact
                             {
-                                result.normal1 = contact.normal1.into_inner();
-                                result.normal2 = contact.normal2.into_inner();
-                                result.pixel_witness1 = contact.point1.coords;
-                                result.pixel_witness2 =
-                                    contact.point2.coords + collider.position().translation.vector;
-                            } else {
-                                godot_error!("contact error");
+                                if let Some(contact) = opt_contact {
+                                    result.normal1 = contact.normal1.into_inner();
+                                    result.normal2 = contact.normal2.into_inner();
+                                    result.pixel_witness1 = contact.point1.coords;
+                                    result.pixel_witness2 =
+                                        contact.point2.coords + collider.position().translation.vector;
+                                }                                
+                                else {
+                                    godot_error!("contact error");
+                                }
                             }
                         } else {
                             godot_error!("collider not found");
