@@ -427,7 +427,7 @@ impl RapierDirectSpaceStateImpl {
             } else {
                 r_info.linear_velocity = Vector::default();
             }
-            r_info.normal = vector_to_godot(result.normal1);
+            r_info.normal = vector_to_godot(result.normal2);
             r_info.rid = rid;
             r_info.shape = shape_index as i32;
             r_info.point = vector_to_godot(result.pixel_witness1);
