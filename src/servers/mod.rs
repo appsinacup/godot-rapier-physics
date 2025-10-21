@@ -1,6 +1,4 @@
-use godot::classes::ConfigFile;
 use godot::classes::ProjectSettings;
-use godot::global;
 use godot::prelude::*;
 
 use crate::servers::rapier_project_settings::RapierProjectSettings;
@@ -35,12 +33,6 @@ pub fn register_server() {
 }
 #[cfg(feature = "dim2")]
 fn print_version() {
-    let mut config_file = ConfigFile::new_gd();
-    let err = config_file.load("res://addons/godot-rapier2d/plugin.info.cfg");
-    if err != global::Error::OK {
-        return;
-    }
-    let version = config_file.get_value("plugin", "version");
     let project_settings = ProjectSettings::singleton();
     let physics_engine: String = project_settings
         .get_setting("physics/2d/physics_engine")
@@ -53,20 +45,13 @@ fn print_version() {
         );
     } else {
         godot_print_rich!(
-            "[color=green]PHYSICS ENGINE 2D: {} v{}[/color]",
-            physics_engine,
-            version
+            "[color=green]PHYSICS ENGINE 2D: {} v0.8.14[/color]",
+            physics_engine
         );
     }
 }
 #[cfg(feature = "dim3")]
 fn print_version() {
-    let mut config_file = ConfigFile::new_gd();
-    let err = config_file.load("res://addons/godot-rapier3d/plugin.info.cfg");
-    if err != global::Error::OK {
-        return;
-    }
-    let version = config_file.get_value("plugin", "version");
     let project_settings = ProjectSettings::singleton();
     let physics_engine: String = project_settings
         .get_setting("physics/3d/physics_engine")
@@ -79,9 +64,8 @@ fn print_version() {
         );
     } else {
         godot_print_rich!(
-            "[color=green]PHYSICS ENGINE 3D: {} v{}[/color]",
-            physics_engine,
-            version
+            "[color=green]PHYSICS ENGINE 3D: {} v0.8.14[/color]",
+            physics_engine
         );
     }
 }

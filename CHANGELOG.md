@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.8.14 - Oct 20
+
+### What's Changed
+* Fix: Android 16KB page alignment for Play Store compliance by @akj-07 in https://github.com/appsinacup/godot-rapier-physics/pull/391
+* Implements a fix to allow setting ConcavePolygonShape2Ds with empty point data by @dog-molecule in https://github.com/appsinacup/godot-rapier-physics/pull/393
+* Stationary shapecast detection fix by @dog-molecule in https://github.com/appsinacup/godot-rapier-physics/pull/395
+
+### New Contributors
+* @akj-07 made their first contribution in https://github.com/appsinacup/godot-rapier-physics/pull/391
+* @dog-molecule made their first contribution in https://github.com/appsinacup/godot-rapier-physics/pull/393
+
 ## v0.8.13 - Oct 4
 
 - Update to latest gdext,rapier,rust,etc by @Ughuuu

@@ -392,17 +392,16 @@ impl PhysicsEngine {
                                 .narrow_phase
                                 .query_dispatcher()
                                 .contact(&pos12, shared_shape.as_ref(), collider.shape(), margin)
-								&& let Some(contact) = contact
+                                && let Some(contact) = contact
                             {
                                 result.normal1 = contact.normal1.into_inner();
-								result.normal2 = contact.normal2.into_inner();
-								result.pixel_witness1 = contact.point1.coords;
-								result.pixel_witness2 =
-									contact.point2.coords + collider.position().translation.vector;
-                            }                                
-							else {
-								godot_error!("contact error");
-							}
+                                result.normal2 = contact.normal2.into_inner();
+                                result.pixel_witness1 = contact.point1.coords;
+                                result.pixel_witness2 =
+                                    contact.point2.coords + collider.position().translation.vector;
+                            } else {
+                                godot_error!("contact error");
+                            }
                         } else {
                             godot_error!("collider not found");
                         }
