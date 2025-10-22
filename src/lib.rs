@@ -30,7 +30,7 @@ use godot::prelude::*;
 /// Used to register the Rapier 2D extension library.
 pub struct RapierPhysics2DExtensionLibrary {}
 #[cfg(feature = "dim2")]
-#[gdextension]
+#[gdextension(entry_symbol = "rapier_2d_init")]
 unsafe impl ExtensionLibrary for RapierPhysics2DExtensionLibrary {
     fn min_level() -> InitLevel {
         InitLevel::Servers
@@ -56,7 +56,7 @@ unsafe impl ExtensionLibrary for RapierPhysics2DExtensionLibrary {
 /// Used to register the Rapier 3D extension library.
 pub struct RapierPhysics3DExtensionLibrary {}
 #[cfg(feature = "dim3")]
-#[gdextension]
+#[gdextension(entry_symbol = "rapier_3d_init")]
 unsafe impl ExtensionLibrary for RapierPhysics3DExtensionLibrary {
     fn min_level() -> InitLevel {
         InitLevel::Servers

@@ -6,7 +6,7 @@
 #include "core/object/ref_counted.h"
 
 extern "C" {
-    GDExtensionBool gdext_rust_init(
+    GDExtensionBool rapier_3d_init(
         GDExtensionInterfaceGetProcAddress p_get_proc_address,
         GDExtensionClassLibraryPtr p_library,
         GDExtensionInitialization *r_initialization
@@ -20,7 +20,7 @@ void initialize_sandbox_module(ModuleInitializationLevel p_level) {
 
 	Ref<GDExtensionStaticLibraryLoader> loader;
 	loader.instantiate();
-	loader->set_entry_funcptr((void*)&gdext_rust_init);
+	loader->set_entry_funcptr((void*)&rapier_3d_init);
 	GDExtensionManager::get_singleton()->load_extension_with_loader("rapier_3d", loader);
 }
 
