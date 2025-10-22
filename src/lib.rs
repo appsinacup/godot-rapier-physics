@@ -56,7 +56,7 @@ unsafe impl ExtensionLibrary for RapierPhysics2DExtensionLibrary {
 /// Used to register the Rapier 3D extension library.
 pub struct RapierPhysics3DExtensionLibrary {}
 #[cfg(feature = "dim3")]
-#[gdextension(entry_symbol = "rapier_3d_init")]
+#[gdextension(entry_symbol = rapier_3d_init)]
 unsafe impl ExtensionLibrary for RapierPhysics3DExtensionLibrary {
     fn min_level() -> InitLevel {
         InitLevel::Servers
