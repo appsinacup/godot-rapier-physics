@@ -293,7 +293,6 @@ impl PhysicsEngine {
         if let Some(shape) = self.get_shape(handle) {
             return shape.compute_local_aabb();
         }
-        godot_error!("Shape not found");
         rapier::prelude::Aabb::new_invalid()
     }
 
