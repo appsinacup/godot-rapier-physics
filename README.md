@@ -62,10 +62,16 @@ After installing, go to `Advanced Settings` -> `Physics` -> `2D` or `3D`. Change
 
 # Implementation Progress
 
-This plugin is still being developed. See the [Implementation Progress](https://godot.rapier.rs/docs/progress/) to get an idea of what status it is in and what features it has.
+The 2D part is pretty stable, though there are some issues, the 3D part is still missing some things. See the [Implementation Progress](https://godot.rapier.rs/docs/progress/) to get an idea of what status it is in and what features it has.
 
 # Limitations
 
 - Pin Softness is not supported
 - Double builds are disabled for now (until salva supports double builds)
 - No support for asymmetric collisions (eg. object 1 hitting object 2 but object 2 not hitting object 1). This is the exact check rapier does: `(A.layer & B.mask) != 0 || (B.layer & A.mask) != 0`
+
+# Module build
+
+In order to build it as a module, go to:
+- [Godot Rapier Physics Module 2D](https://github.com/appsinacup/godot-rapier-physics-module-2d)
+- [Godot Rapier Physics Module 3D](https://github.com/appsinacup/godot-rapier-physics-module-3d)
