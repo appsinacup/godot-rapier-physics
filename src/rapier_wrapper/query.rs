@@ -338,8 +338,13 @@ impl PhysicsEngine {
         physics_ids: &PhysicsIds,
         space: &RapierSpace,
         needs_exact: bool,
-    ) -> ShapeCastResult {
-        let mut result = ShapeCastResult::new();
+        results: &mut [ShapeCastResult],
+        max_results: usize,
+    ) -> usize {
+        let mut result_count = 0;
+        if max_results == 0 {
+            return result_count;
+        }
         if let Some(raw_shared_shape) = self.get_shape(shape_info.handle) {
             let shared_shape = scale_shape(raw_shared_shape, shape_info);
             if let Some(physics_world) = self.get_world(world_handle) {
@@ -377,6 +382,7 @@ impl PhysicsEngine {
                         )
                         .intersect_shape(shape_transform, shared_shape.as_ref())
                     {
+                        let mut result = ShapeCastResult::new();
                         result.collided = true;
                         result.toi = 0.0;
                         result.collider = collider_handle;
@@ -404,6 +410,11 @@ impl PhysicsEngine {
                             }
                         } else {
                             godot_error!("collider not found");
+                        }
+                        results[result_count] = result;
+                        result_count += 1;
+                        if result_count >= max_results {
+                            break;
                         }
                     }
                 } else {
@@ -437,6 +448,7 @@ impl PhysicsEngine {
                         {
                             godot_warn!("shape casting status warn: {:?}", hit.status);
                         }
+                        let mut result = ShapeCastResult::new();
                         result.collided = true;
                         result.toi = hit.time_of_impact;
                         result.toi_unsafe = hit.time_of_impact;
@@ -475,11 +487,13 @@ impl PhysicsEngine {
                         } else {
                             godot_error!("collider not found");
                         }
+                        results[result_count] = result;
+                        result_count += 1;
                     }
                 }
             }
         }
-        result
+        result_count
     }
 
     #[allow(clippy::too_many_arguments)]

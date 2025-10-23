@@ -208,26 +208,24 @@ impl RapierDirectSpaceStateImpl {
         let mut cpt = 0;
         let results_slice: &mut [PhysicsServerExtensionShapeResult] =
             unsafe { std::slice::from_raw_parts_mut(results, max_results) };
-        while cpt < max_results {
-            let result = physics_data.physics_engine.shape_casting(
-                space.get_state().get_id(),
-                vector_to_rapier(motion),
-                shape_info,
-                margin,
-                collide_with_bodies,
-                collide_with_areas,
-                &query_excluded_info,
-                &physics_data.collision_objects,
-                &physics_data.ids,
-                space,
-                false,
-            );
-            if !result.collided {
-                break;
-            }
-            query_excluded_info.query_exclude[query_excluded_info.query_exclude_size] =
-                result.collider;
-            query_excluded_info.query_exclude_size += 1;
+        let mut shape_results = Vec::new();
+        shape_results.resize_with(max_results, Default::default);
+        let result_count = physics_data.physics_engine.shape_casting(
+            space.get_state().get_id(),
+            vector_to_rapier(motion),
+            shape_info,
+            margin,
+            collide_with_bodies,
+            collide_with_areas,
+            &query_excluded_info,
+            &physics_data.collision_objects,
+            &physics_data.ids,
+            space,
+            false,
+            &mut shape_results,
+            max_results,
+        );
+        for result in shape_results.iter().take(result_count) {
             if !result.user_data.is_valid() {
                 continue;
             }
@@ -279,7 +277,8 @@ impl RapierDirectSpaceStateImpl {
             query_collision_layer_mask: collision_mask,
             ..Default::default()
         };
-        let result = physics_data.physics_engine.shape_casting(
+        let mut shape_results = vec![ShapeCastResult::default(); 1];
+        let result_count = physics_data.physics_engine.shape_casting(
             space.get_state().get_id(),
             rapier_motion,
             shape_info,
@@ -291,13 +290,23 @@ impl RapierDirectSpaceStateImpl {
             &physics_data.ids,
             space,
             true,
+            &mut shape_results,
+            1,
         );
         // TODO compute actual safe and unsafe
         let closest_safe = closest_safe as *mut real;
         let closest_unsafe = closest_unsafe as *mut real;
-        unsafe {
-            *closest_safe = result.toi;
-            *closest_unsafe = result.toi_unsafe;
+        if result_count > 0 {
+            let result = &shape_results[0];
+            unsafe {
+                *closest_safe = result.toi;
+                *closest_unsafe = result.toi_unsafe;
+            }
+        } else {
+            unsafe {
+                *closest_safe = 1.0;
+                *closest_unsafe = 1.0;
+            }
         }
         true
     }
@@ -335,36 +344,32 @@ impl RapierDirectSpaceStateImpl {
         query_excluded_info.query_exclude = query_exclude;
         query_excluded_info.query_exclude_size = 0;
         let mut array_idx = 0;
-        let mut cpt = 0;
-        while cpt < max_results {
-            let result = physics_data.physics_engine.shape_casting(
-                space.get_state().get_id(),
-                vector_to_rapier(motion),
-                shape_info,
-                margin,
-                collide_with_bodies,
-                collide_with_areas,
-                &query_excluded_info,
-                &physics_data.collision_objects,
-                &physics_data.ids,
-                space,
-                false,
-            );
-            if !result.collided {
-                break;
-            }
+        let mut shape_results = Vec::new();
+        shape_results.resize_with(max_results, Default::default);
+        let num_results = physics_data.physics_engine.shape_casting(
+            space.get_state().get_id(),
+            vector_to_rapier(motion),
+            shape_info,
+            margin,
+            collide_with_bodies,
+            collide_with_areas,
+            &query_excluded_info,
+            &physics_data.collision_objects,
+            &physics_data.ids,
+            space,
+            false,
+            &mut shape_results,
+            max_results,
+        );
+        for result in shape_results.iter().take(num_results) {
             unsafe {
                 *result_count += 1;
             }
-            query_excluded_info.query_exclude[query_excluded_info.query_exclude_size] =
-                result.collider;
-            query_excluded_info.query_exclude_size += 1;
             unsafe {
                 (*results_out.add(array_idx)) = vector_to_godot(result.pixel_witness2);
                 (*results_out.add(array_idx + 1)) = vector_to_godot(result.pixel_witness1);
             }
             array_idx += 2;
-            cpt += 1;
         }
         array_idx > 0
     }
@@ -394,7 +399,8 @@ impl RapierDirectSpaceStateImpl {
             query_collision_layer_mask: collision_mask,
             ..Default::default()
         };
-        let result = physics_data.physics_engine.shape_casting(
+        let mut shape_results = vec![ShapeCastResult::default(); 1];
+        let result_count = physics_data.physics_engine.shape_casting(
             space.get_state().get_id(),
             rapier_motion,
             shape_info,
@@ -406,10 +412,13 @@ impl RapierDirectSpaceStateImpl {
             &physics_data.ids,
             space,
             false,
+            &mut shape_results,
+            1,
         );
-        if !result.collided {
+        if result_count == 0 {
             return false;
         }
+        let result = &shape_results[0];
         let (rid, shape_index) =
             RapierCollisionObjectBase::get_collider_user_data(&result.user_data, &physics_data.ids);
         let r_info = unsafe { &mut *rest_info };
