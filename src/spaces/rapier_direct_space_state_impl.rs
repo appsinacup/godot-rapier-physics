@@ -205,34 +205,39 @@ impl RapierDirectSpaceStateImpl {
         query_exclude.resize_with(max_results, Default::default);
         query_excluded_info.query_exclude = query_exclude;
         query_excluded_info.query_exclude_size = 0;
-        let mut cpt = 0;
+        
         let results_slice: &mut [PhysicsServerExtensionShapeResult] =
             unsafe { std::slice::from_raw_parts_mut(results, max_results) };
-        while cpt < max_results {
-            let result = physics_data.physics_engine.shape_casting(
-                space.get_state().get_id(),
-                vector_to_rapier(motion),
-                shape_info,
-                margin,
-                collide_with_bodies,
-                collide_with_areas,
-                &query_excluded_info,
-                &physics_data.collision_objects,
-                &physics_data.ids,
-                space,
-                false,
-            );
-            if !result.collided {
-                break;
+        
+        let results: Vec<ShapeCastResult> = physics_data.physics_engine.shape_casting(
+            space.get_state().get_id(),
+            vector_to_rapier(motion),
+            shape_info,
+            margin,
+            collide_with_bodies,
+            collide_with_areas,
+            &query_excluded_info,
+            &physics_data.collision_objects,
+            &physics_data.ids,
+            space,
+            false,
+        );
+        
+        let mut cpt = 0;
+        for collision in results {
+
+            if !collision.collided {
+                continue;
             }
+
             query_excluded_info.query_exclude[query_excluded_info.query_exclude_size] =
-                result.collider;
+                collision.collider;
             query_excluded_info.query_exclude_size += 1;
-            if !result.user_data.is_valid() {
+            if !collision.user_data.is_valid() {
                 continue;
             }
             let (rid, shape_index) = RapierCollisionObjectBase::get_collider_user_data(
-                &result.user_data,
+                &collision.user_data,
                 &physics_data.ids,
             );
             if let Some(collision_object_2d) = physics_data.collision_objects.get(&rid) {
@@ -247,9 +252,10 @@ impl RapierDirectSpaceStateImpl {
                         results_slice[cpt].set_collider(object)
                     }
                 }
-                cpt += 1;
             }
+            cpt += 1;
         }
+
         cpt as i32
     }
 
@@ -273,15 +279,15 @@ impl RapierDirectSpaceStateImpl {
         let Some(space) = physics_data.spaces.get(&self.space) else {
             return false;
         };
-        let rapier_motion = vector_to_rapier(motion);
         let shape_info = shape_info_from_body_shape(shape.get_base().get_id(), transform);
         let query_excluded_info = QueryExcludedInfo {
             query_collision_layer_mask: collision_mask,
             ..Default::default()
         };
-        let result = physics_data.physics_engine.shape_casting(
+
+        let results: Vec<ShapeCastResult> = physics_data.physics_engine.shape_casting(
             space.get_state().get_id(),
-            rapier_motion,
+            vector_to_rapier(motion),
             shape_info,
             margin,
             collide_with_bodies,
@@ -290,15 +296,26 @@ impl RapierDirectSpaceStateImpl {
             &physics_data.collision_objects,
             &physics_data.ids,
             space,
-            true,
+            false,
         );
-        // TODO compute actual safe and unsafe
+
+        let mut closest_located_safe = results[0].toi;
+        let mut closest_located_unsafe = results[0].toi_unsafe;
+
+        for result in results
+        {
+            closest_located_safe = f32::min(closest_located_safe, result.toi);
+            closest_located_unsafe = f32::min(closest_located_unsafe, result.toi_unsafe);
+        }
+
         let closest_safe = closest_safe as *mut real;
         let closest_unsafe = closest_unsafe as *mut real;
+
         unsafe {
-            *closest_safe = result.toi;
-            *closest_unsafe = result.toi_unsafe;
+            *closest_safe = closest_located_safe;
+            *closest_unsafe = closest_located_unsafe;
         }
+
         true
     }
 
@@ -307,7 +324,7 @@ impl RapierDirectSpaceStateImpl {
         &mut self,
         shape_rid: Rid,
         transform: Transform,
-        motion: Vector,
+        motion: Vector, // Currently dunno how to account for motion
         margin: f32,
         collision_mask: u32,
         collide_with_bodies: bool,
@@ -318,13 +335,13 @@ impl RapierDirectSpaceStateImpl {
         physics_data: &PhysicsData,
     ) -> bool {
         let max_results = max_results as usize;
+        let results_out = results as *mut Vector;
         let Some(shape) = physics_data.shapes.get(&shape_rid) else {
             return false;
         };
         let Some(space) = physics_data.spaces.get(&self.space) else {
             return false;
         };
-        let results_out = results as *mut Vector;
         let shape_info = shape_info_from_body_shape(shape.get_base().get_id(), transform);
         let mut query_excluded_info = QueryExcludedInfo {
             query_collision_layer_mask: collision_mask,
@@ -334,39 +351,43 @@ impl RapierDirectSpaceStateImpl {
         query_exclude.resize_with(max_results, Default::default);
         query_excluded_info.query_exclude = query_exclude;
         query_excluded_info.query_exclude_size = 0;
-        let mut array_idx = 0;
-        let mut cpt = 0;
-        while cpt < max_results {
-            let result = physics_data.physics_engine.shape_casting(
-                space.get_state().get_id(),
-                vector_to_rapier(motion),
-                shape_info,
-                margin,
-                collide_with_bodies,
-                collide_with_areas,
-                &query_excluded_info,
-                &physics_data.collision_objects,
-                &physics_data.ids,
-                space,
-                false,
-            );
-            if !result.collided {
-                break;
-            }
-            unsafe {
-                *result_count += 1;
-            }
-            query_excluded_info.query_exclude[query_excluded_info.query_exclude_size] =
-                result.collider;
-            query_excluded_info.query_exclude_size += 1;
-            unsafe {
-                (*results_out.add(array_idx)) = vector_to_godot(result.pixel_witness2);
-                (*results_out.add(array_idx + 1)) = vector_to_godot(result.pixel_witness1);
-            }
-            array_idx += 2;
-            cpt += 1;
+
+        let mut intersecting_points: Vec<WitnessPair> = Vec::with_capacity(max_results);
+
+        let results_count = physics_data.physics_engine.shape_find_intersections(
+            space.get_state().get_id(), 
+            shape_info, 
+            margin, 
+            collide_with_bodies, 
+            collide_with_areas, 
+            &query_excluded_info, 
+            &physics_data.collision_objects, 
+            &physics_data.ids, 
+            space, 
+            &mut intersecting_points, 
+            max_results);
+        
+        unsafe {
+            *result_count = results_count as i32;
         }
-        array_idx > 0
+        
+        
+        if results_count == 0
+        {
+            return false;
+        }
+
+        let mut i:usize = 0;
+        while i < results_count
+        {
+            unsafe {
+                (*results_out.add(i*2)) = vector_to_godot(intersecting_points[i].pixel_witness1);
+                (*results_out.add((i*2) + 1)) = vector_to_godot(intersecting_points[i].pixel_witness2);
+            }
+            i+=1;
+        }
+
+        return true;
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -394,7 +415,7 @@ impl RapierDirectSpaceStateImpl {
             query_collision_layer_mask: collision_mask,
             ..Default::default()
         };
-        let result = physics_data.physics_engine.shape_casting(
+        let results = physics_data.physics_engine.shape_casting(
             space.get_state().get_id(),
             rapier_motion,
             shape_info,
@@ -407,31 +428,64 @@ impl RapierDirectSpaceStateImpl {
             space,
             false,
         );
-        if !result.collided {
+
+        if results.len() == 0
+        {
             return false;
         }
-        let (rid, shape_index) =
-            RapierCollisionObjectBase::get_collider_user_data(&result.user_data, &physics_data.ids);
-        let r_info = unsafe { &mut *rest_info };
-        if let Some(collision_object_2d) = physics_data.collision_objects.get(&rid) {
-            let instance_id = collision_object_2d.get_base().get_instance_id();
-            r_info.collider_id = ObjectId { id: instance_id };
-            if let Some(body) = collision_object_2d.get_body() {
-                let rel_vec = r_info.point
-                    - (body.get_base().get_transform().origin + body.get_center_of_mass());
-                r_info.linear_velocity = body.get_linear_velocity(&physics_data.physics_engine)
-                    + cross_product(
-                        body.get_angular_velocity(&physics_data.physics_engine),
-                        rel_vec,
-                    );
-            } else {
-                r_info.linear_velocity = Vector::default();
+
+        let mut found_collision: bool = false;
+        let shape_position = shape_info.transform.translation.vector;
+        let mut deepest_collision_index: Option<usize> = None;
+        let mut deepest_collision_distance: Option<f32> = None;
+        for (i, result) in results.iter().enumerate()
+        {
+            if !result.collided {
+                continue
             }
-            r_info.normal = vector_to_godot(result.normal1);
-            r_info.rid = rid;
-            r_info.shape = shape_index as i32;
-            r_info.point = vector_to_godot(result.pixel_witness1);
+
+            found_collision = true;
+            let collision_distance: f32 = (result.pixel_witness2 - shape_position).norm();
+
+            if deepest_collision_distance.map_or(true, |d| collision_distance < d) {
+                deepest_collision_distance = Some(collision_distance);
+                deepest_collision_index = Some(i);
+            }
         }
-        true
+
+        if !found_collision {
+            return false;
+        }
+
+        if let Some(i) = deepest_collision_index {            
+            let deepest_collision: &ShapeCastResult = &results[i];
+
+            let (rid, shape_index) =
+            RapierCollisionObjectBase::get_collider_user_data(&deepest_collision.user_data, &physics_data.ids);
+            let r_info = unsafe { &mut *rest_info };
+            if let Some(collision_object_2d) = physics_data.collision_objects.get(&rid) {
+                let instance_id = collision_object_2d.get_base().get_instance_id();
+                r_info.collider_id = ObjectId { id: instance_id };
+                if let Some(body) = collision_object_2d.get_body() {
+                    let rel_vec = r_info.point
+                        - (body.get_base().get_transform().origin + body.get_center_of_mass());
+                    r_info.linear_velocity = body.get_linear_velocity(&physics_data.physics_engine)
+                        + cross_product(
+                            body.get_angular_velocity(&physics_data.physics_engine),
+                            rel_vec,
+                        );
+                } else {
+                    r_info.linear_velocity = Vector::default();
+                }
+                r_info.normal = vector_to_godot(deepest_collision.normal2);
+                r_info.rid = rid;
+                r_info.shape = shape_index as i32;
+                r_info.point = vector_to_godot(deepest_collision.pixel_witness1);
+            }
+            return true
+        }
+
+        false
+
     }
 }
