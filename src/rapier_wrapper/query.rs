@@ -1,6 +1,7 @@
 use std::ops::Mul;
 
 use godot::global::godot_error;
+use godot::global::godot_print;
 use godot::global::godot_warn;
 use nalgebra::zero;
 use rapier::parry;
