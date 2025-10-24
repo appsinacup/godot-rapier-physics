@@ -256,6 +256,7 @@ impl RapierDirectSpaceStateImpl {
             {
                 break;
             }
+            cpt += 1;
         }
 
         cpt as i32
@@ -331,7 +332,7 @@ impl RapierDirectSpaceStateImpl {
         &mut self,
         shape_rid: Rid,
         transform: Transform,
-        motion: Vector,
+        motion: Vector, // Currently dunno how to account for motion
         margin: f32,
         collision_mask: u32,
         collide_with_bodies: bool,
