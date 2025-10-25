@@ -256,7 +256,6 @@ impl RapierDirectSpaceStateImpl {
             {
                 break;
             }
-            cpt += 1;
         }
 
         cpt as i32
