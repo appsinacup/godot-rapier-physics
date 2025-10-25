@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.8.15 - Oct 25
+
+## What's Changed
+* Remove "shape not found!" error by @dog-molecule in https://github.com/appsinacup/godot-rapier-physics/pull/400
+* change the entrypoint to be different between 2d and 3d by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/399
+
+
 ## v0.8.14 - Oct 20
 
 ### What's Changed
