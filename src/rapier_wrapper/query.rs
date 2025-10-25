@@ -1,7 +1,6 @@
 use std::ops::Mul;
 
 use godot::global::godot_error;
-use godot::global::godot_print;
 use godot::global::godot_warn;
 use nalgebra::zero;
 use rapier::parry;
@@ -337,7 +336,7 @@ impl PhysicsEngine {
         }
         result
     }
-    
+
     #[allow(clippy::too_many_arguments)]
     pub fn shape_find_intersections(
         &self,
@@ -621,10 +620,9 @@ impl PhysicsEngine {
                         result.normal2 = hit.normal2.into_inner();
                         result.collider = collider_handle;
                         result.user_data = physics_world.get_collider_user_data(collider_handle);
-                        // first is in world space
+                        // Witnesses are both in worldspace
                         let witness1 = hit.witness1;
-                        // second is translated by collider transform
-                        let mut witness2 = hit.witness2;
+                        let witness2 = hit.witness2;
                         if let Some(collider) = physics_world
                             .physics_objects
                             .collider_set
