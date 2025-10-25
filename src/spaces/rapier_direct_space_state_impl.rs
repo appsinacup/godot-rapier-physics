@@ -324,7 +324,7 @@ impl RapierDirectSpaceStateImpl {
         &mut self,
         shape_rid: Rid,
         transform: Transform,
-        motion: Vector, // Currently dunno how to account for motion
+        motion: Vector,
         margin: f32,
         collision_mask: u32,
         collide_with_bodies: bool,
@@ -356,6 +356,7 @@ impl RapierDirectSpaceStateImpl {
 
         let results_count = physics_data.physics_engine.shape_find_intersections(
             space.get_state().get_id(), 
+            vector_to_rapier(motion),
             shape_info, 
             margin, 
             collide_with_bodies, 
@@ -370,8 +371,7 @@ impl RapierDirectSpaceStateImpl {
         unsafe {
             *result_count = results_count as i32;
         }
-        
-        
+                
         if results_count == 0
         {
             return false;

@@ -337,17 +337,12 @@ impl PhysicsEngine {
         }
         result
     }
-
-
-
-
-
-    // Get 
+    
     #[allow(clippy::too_many_arguments)]
     pub fn shape_find_intersections(
         &self,
         world_handle: WorldHandle,
-        //shape_vel: Vector<Real>, I don't yet know how to account for motion with this.
+        shape_vel: Vector<Real>,
         shape_info: ShapeInfo,
         margin: Real,
         collide_with_body: bool,
@@ -365,99 +360,138 @@ impl PhysicsEngine {
             return result_count;
         }
 
-        if let Some(raw_shared_shape) = self.get_shape(shape_info.handle) 
-        {
-            let shared_shape = scale_shape(raw_shared_shape, shape_info);
-            if let Some(physics_world) = self.get_world(world_handle) 
-            {
-                let shape_transform = shape_info.transform;
-                let mut filter = QueryFilter::new();
-                if !collide_with_body {
-                    filter = filter.exclude_solids();
-                }
-                if !collide_with_area {
-                    filter = filter.exclude_sensors();
-                }
-                let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
-                    !space.is_handle_excluded_callback(
-                        handle,
-                        &physics_world.get_collider_user_data(handle),
-                        handle_excluded_info,
-                        physics_collision_objects,
-                        physics_ids,
-                    )
-                };
-                filter.predicate = Some(&predicate);     
-                // Is intersect_shape the best check here?
-                for (collider_handle, _collider) in physics_world
-                    .physics_objects
-                    .broad_phase
-                    .as_query_pipeline(
-                        physics_world
-                            .physics_objects
-                            .narrow_phase
-                            .query_dispatcher(),
-                        &physics_world.physics_objects.rigid_body_set,
-                        &physics_world.physics_objects.collider_set,
-                        filter,
-                    )
-                    .intersect_shape(shape_transform, shared_shape.as_ref())
-                {
-                    if let Some(collider) = physics_world
-                        .physics_objects
-                        .collider_set
-                        .get(collider_handle)
-                    {
-                        let mut manifolds: Vec<ContactManifold> = vec![];
-                        let pos12 = shape_transform.inv_mul(collider.position());
+        let Some(raw_shared_shape) = self.get_shape(shape_info.handle) else {
+            return result_count;
+        };
 
-                        let rot = pos12.rotation.angle().to_degrees();
-                        godot_print!("{rot}");
+        let Some(physics_world) = self.get_world(world_handle) else {
+            return result_count;
+        };
 
-                        let _ = physics_world
+        let shared_shape = scale_shape(raw_shared_shape, shape_info);
+
+        let shape_transform = shape_info.transform;
+        let mut filter = QueryFilter::new();
+        if !collide_with_body {
+            filter = filter.exclude_solids();
+        }
+        if !collide_with_area {
+            filter = filter.exclude_sensors();
+        }
+        let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
+            !space.is_handle_excluded_callback(
+                handle,
+                &physics_world.get_collider_user_data(handle),
+                handle_excluded_info,
+                physics_collision_objects,
+                physics_ids,
+            )
+        };
+        filter.predicate = Some(&predicate);    
+
+        let velocity_size = shape_vel.magnitude();
+        let mut shape_transform_with_motion = shape_transform;
+
+        // If we have velocity, then we cast our shape forward; shape_transform_with_motion will be updated 
+        // to match the position it will occupy at the end of the tick, or its hit location if it hits something this tick.
+        if velocity_size > DEFAULT_EPSILON {
+            let shape_cast_options = ShapeCastOptions {
+                max_time_of_impact: 1.0,
+                stop_at_penetration: true,
+                compute_impact_geometry_on_penetration: true,
+                target_distance: margin,
+            };
+            if let Some((_, hit)) = physics_world
+                .physics_objects
+                .broad_phase
+                .as_query_pipeline(
+                    physics_world
                         .physics_objects
                         .narrow_phase
-                        .query_dispatcher().contact_manifolds(
-                            &pos12,
-                            shared_shape.as_ref(),
-                            collider.shape(),
-                            margin,
-                            &mut manifolds,
-                            &mut None,
-                        );
+                        .query_dispatcher(),
+                    &physics_world.physics_objects.rigid_body_set,
+                    &physics_world.physics_objects.collider_set,
+                    filter,
+                )
+                .cast_shape(
+                    &shape_transform,
+                    &shape_vel,
+                    shared_shape.as_ref(),
+                    shape_cast_options,
+                )
+            {
+                if hit.status == ShapeCastStatus::Failed
+                    || hit.status == ShapeCastStatus::OutOfIterations
+                {
+                    godot_warn!("shape casting status warn: {:?}", hit.status);
+                }
 
-                        for m in &manifolds 
-                        {
-                            if result_count >= max_results {
-                                break;
-                            }
+                shape_transform_with_motion.translation.vector += shape_vel * hit.time_of_impact;
+            }
+        }
+       
+        // Is intersect_shape the best check here?
+        for (collider_handle, _collider) in physics_world
+            .physics_objects
+            .broad_phase
+            .as_query_pipeline(
+                physics_world
+                    .physics_objects
+                    .narrow_phase
+                    .query_dispatcher(),
+                &physics_world.physics_objects.rigid_body_set,
+                &physics_world.physics_objects.collider_set,
+                filter,
+            )
+            .intersect_shape(shape_transform_with_motion, shared_shape.as_ref())
+        {
+            if let Some(collider) = physics_world
+                .physics_objects
+                .collider_set
+                .get(collider_handle)
+            {
+                let mut manifolds: Vec<ContactManifold> = vec![];
+                let pos12 = shape_transform_with_motion.inv_mul(collider.position());
 
-                            for contact in &m.points 
-                            {
-                                let contact_p1 = (shape_transform * contact.local_p1).coords;                                
-                                let contact_p2 = (collider.position() * contact.local_p2).coords;
-                                
-                                let mut this_contact: WitnessPair = WitnessPair::new();
-                                this_contact.pixel_witness1 = contact_p1;
-                                this_contact.pixel_witness2 = contact_p2;
+                let _ = physics_world
+                .physics_objects
+                .narrow_phase
+                .query_dispatcher().contact_manifolds(
+                    &pos12,
+                    shared_shape.as_ref(),
+                    collider.shape(),
+                    margin,
+                    &mut manifolds,
+                    &mut None,
+                );
 
-                                results.push(this_contact);
-                                result_count += 1;
-                                if result_count >= max_results {
-                                    break;
-                                }
-                            }
+                for m in &manifolds 
+                {
+                    if result_count >= max_results {
+                        break;
+                    }
+
+                    for contact in &m.points 
+                    {
+                        let contact_p1 = (shape_transform_with_motion * contact.local_p1).coords;                                
+                        let contact_p2 = (collider.position() * contact.local_p2).coords;
+                        
+                        let mut this_contact: WitnessPair = WitnessPair::new();
+                        this_contact.pixel_witness1 = contact_p1;
+                        this_contact.pixel_witness2 = contact_p2;
+
+                        results.push(this_contact);
+                        result_count += 1;
+                        if result_count >= max_results {
+                            break;
                         }
                     }
                 }
             }
         }
-
+            
         result_count
-    }        
-    
-
-
+    }  
 
     #[allow(clippy::too_many_arguments)]
     pub fn shape_casting(
