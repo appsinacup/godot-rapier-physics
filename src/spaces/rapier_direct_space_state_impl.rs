@@ -254,6 +254,11 @@ impl RapierDirectSpaceStateImpl {
                 }
             }
             cpt += 1;
+            
+            if cpt == max_results
+            {
+                break;
+            }
         }
 
         cpt as i32
