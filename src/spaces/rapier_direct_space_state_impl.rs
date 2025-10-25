@@ -332,7 +332,7 @@ impl RapierDirectSpaceStateImpl {
         &mut self,
         shape_rid: Rid,
         transform: Transform,
-        motion: Vector, // Currently dunno how to account for motion
+        motion: Vector,
         margin: f32,
         collision_mask: u32,
         collide_with_bodies: bool,
