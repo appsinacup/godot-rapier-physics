@@ -384,14 +384,12 @@ impl RapierDirectSpaceStateImpl {
             return false;
         }
 
-        let mut i:usize = 0;
-        while i < results_count
+        for i in 0..results_count
         {
             unsafe {
                 (*results_out.add(i*2)) = vector_to_godot(intersecting_points[i].pixel_witness1);
                 (*results_out.add((i*2) + 1)) = vector_to_godot(intersecting_points[i].pixel_witness2);
             }
-            i+=1;
         }
 
         true
@@ -454,7 +452,12 @@ impl RapierDirectSpaceStateImpl {
             found_collision = true;
             let collision_distance: f32 = (result.pixel_witness2 - shape_position).norm();
 
-            if deepest_collision_distance.map_or(true, |d| collision_distance < d) {
+            if let Some(current) = deepest_collision_distance {
+                if collision_distance < current {
+                    deepest_collision_distance = Some(collision_distance);
+                    deepest_collision_index = Some(i);
+                }
+            } else {
                 deepest_collision_distance = Some(collision_distance);
                 deepest_collision_index = Some(i);
             }

@@ -429,7 +429,6 @@ impl PhysicsEngine {
             }
         }
        
-        // Is intersect_shape the best check here?
         for (collider_handle, _collider) in physics_world
             .physics_objects
             .broad_phase
