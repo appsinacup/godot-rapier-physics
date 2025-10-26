@@ -301,7 +301,7 @@ impl RapierDirectSpaceStateImpl {
             false,
         );
 
-        if results.is_empty() == 0
+        if results.is_empty()
         {
             return false;
         }
@@ -436,7 +436,7 @@ impl RapierDirectSpaceStateImpl {
             false,
         );
 
-        if results.is_empty() == 0
+        if results.is_empty()
         {
             return false;
         }
@@ -454,7 +454,7 @@ impl RapierDirectSpaceStateImpl {
             found_collision = true;
             let collision_distance: f32 = (result.pixel_witness2 - shape_position).norm();
 
-            if deepest_collision_distance.is_none_or(|d| collision_distance < d) {
+            if deepest_collision_distance.map_or(true, |d| collision_distance < d) {
                 deepest_collision_distance = Some(collision_distance);
                 deepest_collision_index = Some(i);
             }
