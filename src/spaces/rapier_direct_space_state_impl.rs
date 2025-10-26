@@ -485,7 +485,7 @@ impl RapierDirectSpaceStateImpl {
                 r_info.normal = vector_to_godot(deepest_collision.normal2);
                 r_info.rid = rid;
                 r_info.shape = shape_index as i32;
-                r_info.point = vector_to_godot(deepest_collision.pixel_witness1);
+                r_info.point = vector_to_godot(deepest_collision.pixel_witness2);
             }
             return true
         }
