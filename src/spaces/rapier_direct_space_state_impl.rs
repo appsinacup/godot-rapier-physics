@@ -384,11 +384,11 @@ impl RapierDirectSpaceStateImpl {
             return false;
         }
 
-        for i in 0..results_count
+        for (i, point) in intersecting_points.iter().enumerate().take(results_count)
         {
             unsafe {
-                (*results_out.add(i*2)) = vector_to_godot(intersecting_points[i].pixel_witness1);
-                (*results_out.add((i*2) + 1)) = vector_to_godot(intersecting_points[i].pixel_witness2);
+                (*results_out.add(i*2)) = vector_to_godot(point.pixel_witness1);
+                (*results_out.add((i*2) + 1)) = vector_to_godot(point.pixel_witness2);
             }
         }
 
