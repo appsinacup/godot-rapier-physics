@@ -230,9 +230,6 @@ impl RapierDirectSpaceStateImpl {
                 continue;
             }
 
-            query_excluded_info.query_exclude[query_excluded_info.query_exclude_size] =
-                collision.collider;
-            query_excluded_info.query_exclude_size += 1;
             if !collision.user_data.is_valid() {
                 continue;
             }
@@ -255,7 +252,7 @@ impl RapierDirectSpaceStateImpl {
             }
             cpt += 1;
             
-            if cpt == max_results
+            if cpt >= max_results
             {
                 break;
             }
@@ -303,6 +300,11 @@ impl RapierDirectSpaceStateImpl {
             space,
             false,
         );
+
+        if results.len() == 0
+        {
+            return false;
+        }
 
         let mut closest_located_safe = results[0].toi;
         let mut closest_located_unsafe = results[0].toi_unsafe;

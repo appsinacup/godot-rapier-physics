@@ -507,9 +507,6 @@ impl PhysicsEngine {
         space: &RapierSpace,
         needs_exact: bool,
     ) -> Vec<ShapeCastResult> {
-
-        // NOTE: This still needs some work because it needs to be sorted (maybe it inherently is, I don't know).
-        // But if get_rest_info calls this with a max_results of 1, it needs to return the closest result.
         let mut results: Vec<ShapeCastResult> = Vec::new();
 
         if let Some(raw_shared_shape) = self.get_shape(shape_info.handle) {
@@ -550,6 +547,7 @@ impl PhysicsEngine {
                         )
                         .intersect_shape(shape_transform, shared_shape.as_ref())
                     {
+                        let mut result = ShapeCastResult::new();
                         result.collided = true;
                         result.toi = 0.0;
                         result.collider = collider_handle;
