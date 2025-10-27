@@ -403,7 +403,7 @@ dependencies = [
 
 [[package]]
 name = "godot-rapier"
-version = "0.8.25"
+version = "0.8.15"
 dependencies = [
  "bincode",
  "godot",
@@ -950,8 +950,7 @@ dependencies = [
 
 [[package]]
 name = "rapier2d"
-version = "0.30.1"
-source = "git+https://github.com/ughuuu/rapier?branch=master#68a553e0839c86207ce1d26df4fbfa44e2f41791"
+version = "0.29.0"
 dependencies = [
  "approx",
  "arrayvec",
