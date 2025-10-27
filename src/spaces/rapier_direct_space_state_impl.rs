@@ -306,13 +306,16 @@ impl RapierDirectSpaceStateImpl {
             return false;
         }
 
-        let mut closest_located_safe = results[0].toi;
-        let mut closest_located_unsafe = results[0].toi_unsafe;
+        let mut closest_located_safe = 1.0;
+        let mut closest_located_unsafe = 1.0;
 
         for result in results
         {
-            closest_located_safe = f32::min(closest_located_safe, result.toi);
-            closest_located_unsafe = f32::min(closest_located_unsafe, result.toi_unsafe);
+            if result.toi < closest_located_safe
+            {
+                closest_located_safe = result.toi;
+                closest_located_unsafe = result.toi_unsafe;
+            }
         }
 
         let closest_safe = closest_safe as *mut real;
