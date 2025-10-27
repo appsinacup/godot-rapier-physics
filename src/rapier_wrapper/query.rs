@@ -62,6 +62,19 @@ impl ShapeCastResult {
         }
     }
 }
+#[derive(Copy, Clone, Default, Debug)]
+pub struct WitnessPair {
+    pub pixel_witness1: Vector<Real>,
+    pub pixel_witness2: Vector<Real>,
+}
+impl WitnessPair {
+    fn new() -> WitnessPair {
+        WitnessPair {
+            pixel_witness1: zero(),
+            pixel_witness2: zero(),
+        }
+    }
+}
 #[derive(Default)]
 pub struct ContactResult {
     pub collided: bool,
@@ -325,6 +338,160 @@ impl PhysicsEngine {
     }
 
     #[allow(clippy::too_many_arguments)]
+    pub fn shape_find_intersections(
+        &self,
+        world_handle: WorldHandle,
+        shape_vel: Vector<Real>,
+        shape_info: ShapeInfo,
+        margin: Real,
+        collide_with_body: bool,
+        collide_with_area: bool,
+        handle_excluded_info: &QueryExcludedInfo,
+        physics_collision_objects: &PhysicsCollisionObjects,
+        physics_ids: &PhysicsIds,
+        space: &RapierSpace,
+        results: &mut Vec<WitnessPair>,
+        max_results: usize,
+    ) -> usize {
+
+        let mut result_count = 0;
+        if max_results == 0 {
+            return result_count;
+        }
+
+        let Some(raw_shared_shape) = self.get_shape(shape_info.handle) else {
+            return result_count;
+        };
+
+        let Some(physics_world) = self.get_world(world_handle) else {
+            return result_count;
+        };
+
+        let shared_shape = scale_shape(raw_shared_shape, shape_info);
+
+        let shape_transform = shape_info.transform;
+        let mut filter = QueryFilter::new();
+        if !collide_with_body {
+            filter = filter.exclude_solids();
+        }
+        if !collide_with_area {
+            filter = filter.exclude_sensors();
+        }
+        let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
+            !space.is_handle_excluded_callback(
+                handle,
+                &physics_world.get_collider_user_data(handle),
+                handle_excluded_info,
+                physics_collision_objects,
+                physics_ids,
+            )
+        };
+        filter.predicate = Some(&predicate);    
+
+        let velocity_size = shape_vel.magnitude();
+        let mut shape_transform_with_motion = shape_transform;
+
+        // If we have velocity, then we cast our shape forward; shape_transform_with_motion will be updated 
+        // to match the position it will occupy at the end of the tick, or its hit location if it hits something this tick.
+        if velocity_size > DEFAULT_EPSILON {
+            let shape_cast_options = ShapeCastOptions {
+                max_time_of_impact: 1.0,
+                stop_at_penetration: true,
+                compute_impact_geometry_on_penetration: true,
+                target_distance: margin,
+            };
+            if let Some((_, hit)) = physics_world
+                .physics_objects
+                .broad_phase
+                .as_query_pipeline(
+                    physics_world
+                        .physics_objects
+                        .narrow_phase
+                        .query_dispatcher(),
+                    &physics_world.physics_objects.rigid_body_set,
+                    &physics_world.physics_objects.collider_set,
+                    filter,
+                )
+                .cast_shape(
+                    &shape_transform,
+                    &shape_vel,
+                    shared_shape.as_ref(),
+                    shape_cast_options,
+                )
+            {
+                if hit.status == ShapeCastStatus::Failed
+                    || hit.status == ShapeCastStatus::OutOfIterations
+                {
+                    godot_warn!("shape casting status warn: {:?}", hit.status);
+                }
+
+                shape_transform_with_motion.translation.vector += shape_vel * hit.time_of_impact;
+            }
+        }
+       
+        for (collider_handle, _collider) in physics_world
+            .physics_objects
+            .broad_phase
+            .as_query_pipeline(
+                physics_world
+                    .physics_objects
+                    .narrow_phase
+                    .query_dispatcher(),
+                &physics_world.physics_objects.rigid_body_set,
+                &physics_world.physics_objects.collider_set,
+                filter,
+            )
+            .intersect_shape(shape_transform_with_motion, shared_shape.as_ref())
+        {
+            if let Some(collider) = physics_world
+                .physics_objects
+                .collider_set
+                .get(collider_handle)
+            {
+                let mut manifolds: Vec<ContactManifold> = vec![];
+                let pos12 = shape_transform_with_motion.inv_mul(collider.position());
+
+                let _ = physics_world
+                .physics_objects
+                .narrow_phase
+                .query_dispatcher().contact_manifolds(
+                    &pos12,
+                    shared_shape.as_ref(),
+                    collider.shape(),
+                    margin,
+                    &mut manifolds,
+                    &mut None,
+                );
+
+                for m in &manifolds 
+                {
+                    if result_count >= max_results {
+                        break;
+                    }
+
+                    for contact in &m.points 
+                    {
+                        let contact_p1 = (shape_transform_with_motion * contact.local_p1).coords;                                
+                        let contact_p2 = (collider.position() * contact.local_p2).coords;
+                        
+                        let mut this_contact: WitnessPair = WitnessPair::new();
+                        this_contact.pixel_witness1 = contact_p1;
+                        this_contact.pixel_witness2 = contact_p2;
+
+                        results.push(this_contact);
+                        result_count += 1;
+                        if result_count >= max_results {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+            
+        result_count
+    }  
+
+    #[allow(clippy::too_many_arguments)]
     pub fn shape_casting(
         &self,
         world_handle: WorldHandle,
@@ -338,8 +505,9 @@ impl PhysicsEngine {
         physics_ids: &PhysicsIds,
         space: &RapierSpace,
         needs_exact: bool,
-    ) -> ShapeCastResult {
-        let mut result = ShapeCastResult::new();
+    ) -> Vec<ShapeCastResult> {
+        let mut results: Vec<ShapeCastResult> = Vec::new();
+
         if let Some(raw_shared_shape) = self.get_shape(shape_info.handle) {
             let shared_shape = scale_shape(raw_shared_shape, shape_info);
             if let Some(physics_world) = self.get_world(world_handle) {
@@ -362,6 +530,7 @@ impl PhysicsEngine {
                 };
                 filter.predicate = Some(&predicate);
                 let velocity_size = shape_vel.magnitude();
+
                 if velocity_size < DEFAULT_EPSILON {
                     for (collider_handle, _collider) in physics_world
                         .physics_objects
@@ -377,6 +546,7 @@ impl PhysicsEngine {
                         )
                         .intersect_shape(shape_transform, shared_shape.as_ref())
                     {
+                        let mut result = ShapeCastResult::new();
                         result.collided = true;
                         result.toi = 0.0;
                         result.collider = collider_handle;
@@ -392,20 +562,22 @@ impl PhysicsEngine {
                                 .narrow_phase
                                 .query_dispatcher()
                                 .contact(&pos12, shared_shape.as_ref(), collider.shape(), margin)
-                                && let Some(contact) = contact
+								&& let Some(contact) = contact
                             {
                                 result.normal1 = contact.normal1.into_inner();
-                                result.normal2 = contact.normal2.into_inner();
-                                result.pixel_witness1 = contact.point1.coords;
-                                result.pixel_witness2 =
-                                    contact.point2.coords + collider.position().translation.vector;
-                            } else {
-                                godot_error!("contact error");
-                            }
+								result.normal2 = contact.normal2.into_inner();
+                                result.pixel_witness1 = contact.point1.coords + shape_transform.translation.vector;
+								result.pixel_witness2 = contact.point2.coords + collider.position().translation.vector;
+                            }                                
+							else {
+								godot_error!("contact error");
+							}
                         } else {
                             godot_error!("collider not found");
                         }
-                    }
+
+                        results.push(result);
+                    }                    
                 } else {
                     let shape_cast_options = ShapeCastOptions {
                         max_time_of_impact: 1.0,
@@ -437,6 +609,7 @@ impl PhysicsEngine {
                         {
                             godot_warn!("shape casting status warn: {:?}", hit.status);
                         }
+                        let mut result = ShapeCastResult::new();
                         result.collided = true;
                         result.toi = hit.time_of_impact;
                         result.toi_unsafe = hit.time_of_impact;
@@ -444,10 +617,9 @@ impl PhysicsEngine {
                         result.normal2 = hit.normal2.into_inner();
                         result.collider = collider_handle;
                         result.user_data = physics_world.get_collider_user_data(collider_handle);
-                        // first is in world space
+                        // Witnesses are both in worldspace
                         let witness1 = hit.witness1;
-                        // second is translated by collider transform
-                        let mut witness2 = hit.witness2;
+                        let witness2 = hit.witness2;
                         if let Some(collider) = physics_world
                             .physics_objects
                             .collider_set
@@ -471,15 +643,15 @@ impl PhysicsEngine {
                                     result.toi_unsafe += distance / velocity_size;
                                 }
                             }
-                            witness2 += collider.position().translation.vector;
                         } else {
                             godot_error!("collider not found");
                         }
+                        results.push(result);
                     }
                 }
-            }
+            }                
         }
-        result
+        results
     }
 
     #[allow(clippy::too_many_arguments)]
