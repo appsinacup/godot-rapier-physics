@@ -46,6 +46,9 @@ godot = { git = "https://github.com/godot-rust/gdext", branch = "master", featur
 rapier2d = { path = "E:/Repos/ughuuu_forks/rapier/crates/rapier2d", optional = true }
 salva2d = { path = "E:/Repos/ughuuu_forks/salva/build/salva2d", features = ["rapier"], optional = true }
 
+rapier2d = { path = "E:/Repos/ughuuu_forks/rapier/crates/rapier2d", optional = true }
+salva2d = { path = "E:/Repos/ughuuu_forks/salva/build/salva2d", features = ["rapier"], optional = true }
+
 # rapier2d = { git = "https://github.com/ughuuu/rapier", branch = "custom-changes-v29", optional = true }
 # rapier2d = { version = "*", optional = true }
 rapier2d-f64 = { git = "https://github.com/ughuuu/rapier", branch = "custom-changes-v29", optional = true}
@@ -62,6 +65,11 @@ serde_json = { version = "1.0", optional = true }
 
 
 [patch.crates-io]
+parry2d = { path = "E:/Repos/ughuuu_forks/parry/crates/parry2d" }
+
+
+
+# rapier2d = {git = "https://github.com/ughuuu/rapier", branch = "custom-changes-v29"}
 parry2d = { path = "E:/Repos/ughuuu_forks/parry/crates/parry2d" }
 
 
@@ -104,9 +112,13 @@ codegen-units = 1
 
 [profile.dev]
 opt-level = 0
+opt-level = 0
 
 [package.metadata.docs.rs]
 license-file = "../LICENSE"
 
-[patch."https://github.com/ughuuu/salva"]
-salva2d = { path = "E:/Repos/salva/build/salva2d" }
+# [patch."https://github.com/ughuuu/rapier"]
+# rapier2d = { path = "E:/Repos/ughuuu_forks/rapier/crates/rapier2d" }
+
+# [patch."https://github.com/ughuuu/parry"]
+# parry2d = { path = "E:/Repos/ughuuu_forks/parry/crates/parry2d" }
