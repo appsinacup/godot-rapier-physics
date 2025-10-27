@@ -640,7 +640,8 @@ impl PhysicsEngine {
                                     .distance(&pos12, shared_shape.as_ref(), collider.shape())
                                     && distance > DEFAULT_EPSILON
                                 {
-                                    result.toi_unsafe += distance / velocity_size;
+                                    // Distance increased by an arbitrary 0.001 amount so that Godot's Shapecast2D node returns more reliable hits.
+                                    result.toi_unsafe += (distance + 0.001) / velocity_size;
                                 }
                             }
                         } else {
