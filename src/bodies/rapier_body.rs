@@ -320,6 +320,11 @@ impl RapierBody {
                 collider_handle,
                 send_contacts,
             );
+            physics_engine.collider_set_collision_events_enabled(
+                space_handle,
+                collider_handle,
+                send_contacts,
+            );
         }
         self.update_collider_filters(collider_handle, space_handle, physics_engine, false);
     }

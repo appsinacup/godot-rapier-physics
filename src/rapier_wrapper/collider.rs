@@ -446,4 +446,27 @@ impl PhysicsEngine {
             }
         }
     }
+
+    pub fn collider_set_collision_events_enabled(
+        &mut self,
+        world_handle: WorldHandle,
+        collider_handle: ColliderHandle,
+        enable: bool,
+    ) {
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
+            if let Some(collider) = physics_world
+                .physics_objects
+                .collider_set
+                .get_mut(collider_handle)
+            {
+                let mut active_events = collider.active_events();
+                if enable {
+                    active_events |= ActiveEvents::COLLISION_EVENTS;
+                } else {
+                    active_events &= !ActiveEvents::COLLISION_EVENTS;
+                }
+                collider.set_active_events(active_events);
+            }
+        }
+    }
 }
