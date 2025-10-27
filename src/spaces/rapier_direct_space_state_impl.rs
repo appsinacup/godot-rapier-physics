@@ -298,7 +298,7 @@ impl RapierDirectSpaceStateImpl {
             &physics_data.collision_objects,
             &physics_data.ids,
             space,
-            false,
+            true,
         );
 
         if results.is_empty()
