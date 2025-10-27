@@ -12,7 +12,7 @@ jobs:
         shell: sh
         run: |
           rustup component add --toolchain nightly-2025-08-30-x86_64-unknown-linux-gnu rustfmt
-          cargo fmt --all -- --config-path ./rustfmt.toml
+          cargo fmt --all -- --config-path ./rustfmt.toml --check
 
   clippy-2d:
     name: Clippy 2D
