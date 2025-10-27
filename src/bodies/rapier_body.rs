@@ -320,11 +320,6 @@ impl RapierBody {
                 collider_handle,
                 send_contacts,
             );
-            physics_engine.collider_set_collision_events_enabled(
-                space_handle,
-                collider_handle,
-                send_contacts,
-            );
         }
         self.update_collider_filters(collider_handle, space_handle, physics_engine, false);
     }
@@ -346,6 +341,26 @@ impl RapierBody {
                 self.base.get_space_id(),
                 physics_engine,
                 override_modify_contacts,
+            );
+        }
+    }
+
+    fn update_colliders_contact_events(&self, physics_engine: &mut PhysicsEngine) {
+        if self.base.mode.ord() < BodyMode::KINEMATIC.ord() {
+            return;
+        }
+        let colliders = physics_engine
+            .body_get_colliders(self.base.get_space_id(), self.base.get_body_handle())
+            .to_vec();
+        let mut send_contacts = self.can_report_contacts();
+        if self.base.is_debugging_contacts && godot::classes::Os::singleton().is_debug_build() {
+            send_contacts = true;
+        }
+        for collider in colliders {
+            physics_engine.collider_set_contact_force_events_enabled(
+                self.base.get_space_id(),
+                collider,
+                send_contacts,
             );
         }
     }
@@ -1585,6 +1600,7 @@ impl RapierBody {
             }
         }
         self.update_colliders_filters(physics_engine);
+        self.update_colliders_contact_events(physics_engine);
         if p_mode.ord() >= BodyMode::RIGID.ord() {
             self.mass_properties_changed(physics_engine, physics_spaces, physics_ids);
         }
