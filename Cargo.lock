@@ -423,7 +423,7 @@ dependencies = [
 
 [[package]]
 name = "godot-rapier"
-version = "0.8.15"
+version = "0.8.13"
 dependencies = [
  "bincode",
  "godot",
@@ -791,7 +791,6 @@ dependencies = [
 [[package]]
 name = "parry2d"
 version = "0.24.0"
-source = "git+https://github.com/ughuuu/parry?branch=custom-changes-v24#fcdf70496bec7cde17bdaacb6b081f83cd91e484"
 dependencies = [
  "approx",
  "arrayvec",
@@ -946,7 +945,6 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.29.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes-v29#15dee20b535317d30614aafbeb378173a7675190"
 dependencies = [
  "approx",
  "arrayvec",
