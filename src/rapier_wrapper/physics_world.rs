@@ -1,9 +1,11 @@
 use std::num::NonZeroUsize;
 use std::sync::mpsc;
 
+use godot::global::godot_print;
 use hashbrown::HashMap;
 use rapier::data::Index;
 use rapier::prelude::*;
+use rapier2d::parry::utils::IsometryOpt;
 use salva::integrations::rapier::FluidsPipeline;
 
 use crate::rapier_wrapper::prelude::*;
@@ -247,43 +249,51 @@ impl PhysicsWorld {
                     for manifold in &contact_pair.manifolds {
                         let manifold_normal = manifold.data.normal;
                         contact_info.normal = manifold_normal;
-                        // Read the geometric contacts.
+                        
                         for contact_point in &manifold.points {
-                            if contact_point.dist
-                                > DEFAULT_EPSILON
-                                    + collider1.contact_skin()
-                                    + collider2.contact_skin()
+                            // Any given "contact point" may actually be a predictive point-- these points do not actually represent a contact for this frame.
+                            // To prune out these false contacts, the below is a direct port of Rapier's own logic (from src/geometry/narrow_phase.rs).
+                            // This ensures that we prune out the same contacts that Rapier's contact solving prunes.
+                            // However, ideally we wouldn't have to duplicate this logic, and instead Rapier would expose some mechanism to only push the verified contacts.
+                            let effective_contact_dist = contact_point.dist - collider1.contact_skin() - collider2.contact_skin();
+                                                    
+                            let world_pos1 = manifold.subshape_pos1.prepend_to(&collider1.position());
+                            let world_pos2 = manifold.subshape_pos2.prepend_to(&collider2.position());
+
+                            let keep_solver_contact = effective_contact_dist < settings.normalized_prediction_distance * settings.length_unit || {
+                                let world_pt1 = world_pos1 * contact_point.local_p1;
+                                let world_pt2 = world_pos2 * contact_point.local_p2;
+                                let vel1 = self.get_collider_rigid_body(collider1).map(|rb| rb.velocity_at_point(&world_pt1)).unwrap_or_default();
+                                let vel2 = self.get_collider_rigid_body(collider2).map(|rb| rb.velocity_at_point(&world_pt2)).unwrap_or_default();
+                                effective_contact_dist + (vel2 - vel1).dot(&manifold.data.normal) * settings.dt < settings.normalized_prediction_distance * settings.length_unit
+                            };
+
+                            if keep_solver_contact
                             {
-                                // TODO comment this out for now since it might miss out events
-                                //continue;
+                                let collider_pos_1 = *collider1.position();
+                                let collider_pos_2 = *collider2.position();
+                                let point_velocity_1 = body1
+                                    .velocity_at_point(&Point::from(collider_pos_1.translation.vector));
+                                let point_velocity_2 = body2
+                                    .velocity_at_point(&Point::from(collider_pos_2.translation.vector));
+                                let pixel_pos_1 = collider_pos_1.translation.vector;
+                                let pixel_pos_2 = collider_pos_2.translation.vector;
+                                contact_info.pixel_local_pos_1 =
+                                    pixel_pos_1 + (body1.rotation().transform_vector(&contact_point.local_p1.coords));
+                                contact_info.pixel_local_pos_2 =
+                                    pixel_pos_2 + (body2.rotation().transform_vector(&contact_point.local_p2.coords));
+                                contact_info.pixel_velocity_pos_1 = point_velocity_1;
+                                contact_info.pixel_velocity_pos_2 = point_velocity_2;
+                                contact_info.pixel_distance = contact_point.dist;
+                                contact_info.pixel_impulse = contact_point.data.impulse;
+                                contact_info.pixel_tangent_impulse = contact_point.data.tangent_impulse;
+                                space.contact_point_callback(
+                                    &contact_info,
+                                    &event_info,
+                                    physics_collision_objects,
+                                    physics_ids,
+                                );
                             }
-                            let collider_pos_1 = *collider1.position();
-                            let collider_pos_2 = *collider2.position();
-                            let point_velocity_1 = body1
-                                .velocity_at_point(&Point::from(collider_pos_1.translation.vector));
-                            let point_velocity_2 = body2
-                                .velocity_at_point(&Point::from(collider_pos_2.translation.vector));
-                            let pixel_pos_1 = collider_pos_1.translation.vector;
-                            let pixel_pos_2 = collider_pos_2.translation.vector;
-                            contact_info.pixel_local_pos_1 = pixel_pos_1
-                                + (body1
-                                    .rotation()
-                                    .transform_vector(&contact_point.local_p1.coords));
-                            contact_info.pixel_local_pos_2 = pixel_pos_2
-                                + (body2
-                                    .rotation()
-                                    .transform_vector(&contact_point.local_p2.coords));
-                            contact_info.pixel_velocity_pos_1 = point_velocity_1;
-                            contact_info.pixel_velocity_pos_2 = point_velocity_2;
-                            contact_info.pixel_distance = contact_point.dist;
-                            contact_info.pixel_impulse = contact_point.data.impulse;
-                            contact_info.pixel_tangent_impulse = contact_point.data.tangent_impulse;
-                            space.contact_point_callback(
-                                &contact_info,
-                                &event_info,
-                                physics_collision_objects,
-                                physics_ids,
-                            );
                         }
                     }
                 }
