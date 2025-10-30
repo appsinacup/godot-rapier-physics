@@ -1,7 +1,6 @@
 use std::num::NonZeroUsize;
 use std::sync::mpsc;
 
-use godot::global::godot_print;
 use hashbrown::HashMap;
 use rapier::data::Index;
 use rapier::prelude::*;
