@@ -43,10 +43,10 @@ hashbrown = { version = "0.14" }
 
 godot = { version = "0.4.0", features=["register-docs"] }
 
-rapier2d = { git = "https://github.com/ughuuu/rapier", branch = "custom-changes-v29", optional = true }
-rapier2d-f64 = { git = "https://github.com/ughuuu/rapier", branch = "custom-changes-v29", optional = true}
-rapier3d = { git = "https://github.com/ughuuu/rapier", branch = "custom-changes-v29", optional = true}
-rapier3d-f64 = { git = "https://github.com/ughuuu/rapier", branch = "custom-changes-v29", optional = true}
+rapier2d = { git = "https://github.com/ughuuu/rapier", branch = "master", optional = true }
+rapier2d-f64 = { git = "https://github.com/ughuuu/rapier", branch = "master", optional = true}
+rapier3d = { git = "https://github.com/ughuuu/rapier", branch = "master", optional = true}
+rapier3d-f64 = { git = "https://github.com/ughuuu/rapier", branch = "master", optional = true}
 salva2d = { git = "https://github.com/ughuuu/salva", branch = "custom-changes", features = ["rapier"], optional = true }
 salva2d-f64 = { git = "https://github.com/ughuuu/salva", branch = "custom-changes", features = ["rapier"], optional = true }
 salva3d = { git = "https://github.com/ughuuu/salva", branch = "custom-changes", features = ["rapier"], optional = true }
@@ -55,15 +55,15 @@ serde = { version = "1.0", features = ["derive"], optional = true }
 serde_json = { version = "1.0", optional = true }
 
 [patch.crates-io]
-rapier2d = {git = "https://github.com/ughuuu/rapier", branch = "custom-changes-v29"}
-rapier2d-f64 = {git = "https://github.com/ughuuu/rapier", branch = "custom-changes-v29"}
-parry2d = {git = "https://github.com/ughuuu/parry", branch = "custom-changes-v24"}
-parry2d-f64 = {git = "https://github.com/ughuuu/parry", branch = "custom-changes-v24"}
+rapier2d = {git = "https://github.com/ughuuu/rapier", branch = "master"}
+rapier2d-f64 = {git = "https://github.com/ughuuu/rapier", branch = "master"}
+parry2d = {git = "https://github.com/ughuuu/parry", branch = "master"}
+parry2d-f64 = {git = "https://github.com/ughuuu/parry", branch = "master"}
 
-rapier3d = {git = "https://github.com/ughuuu/rapier", branch = "custom-changes-v29"}
-rapier3d-f64 = {git = "https://github.com/ughuuu/rapier", branch = "custom-changes-v29"}
-parry3d = {git = "https://github.com/ughuuu/parry", branch = "custom-changes-v24"}
-parry3d-f64 = {git = "https://github.com/ughuuu/parry", branch = "custom-changes-v24"}
+rapier3d = {git = "https://github.com/ughuuu/rapier", branch = "master"}
+rapier3d-f64 = {git = "https://github.com/ughuuu/rapier", branch = "master"}
+parry3d = {git = "https://github.com/ughuuu/parry", branch = "master"}
+parry3d-f64 = {git = "https://github.com/ughuuu/parry", branch = "master"}
 
 [profile.release]
 opt-level = 3
