@@ -100,9 +100,9 @@ dependencies = [
 
 [[package]]
 name = "bytemuck"
-version = "1.24.0"
+version = "1.23.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1fbdf580320f38b612e485521afda1ee26d10cc9884efaaa750d383e13e3c5f4"
+checksum = "3995eaeebcdf32f91f980d360f78732ddc061097ab4e39991ae7a6ace9194677"
 
 [[package]]
 name = "byteorder"
@@ -121,9 +121,9 @@ dependencies = [
 
 [[package]]
 name = "cfg-if"
-version = "1.0.4"
+version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
+checksum = "2fd1289c04a9ea8cb22300a459a72a385d7c73d3259e2ed7dcb2af674838cfa9"
 
 [[package]]
 name = "clang-sys"
@@ -423,7 +423,7 @@ dependencies = [
 
 [[package]]
 name = "godot-rapier"
-version = "0.8.13"
+version = "0.8.16"
 dependencies = [
  "bincode",
  "godot",
@@ -544,9 +544,9 @@ checksum = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
 
 [[package]]
 name = "libc"
-version = "0.2.177"
+version = "0.2.176"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2874a2af47a2325c2001a6e6fad9b16a53b802102b528163885171cf92b15976"
+checksum = "58f929b4d672ea937a23a1ab494143d968337a5f47e56d0815df1e0890ddf174"
 
 [[package]]
 name = "libloading"
@@ -618,22 +618,6 @@ checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
 
 [[package]]
 name = "nalgebra"
-version = "0.33.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26aecdf64b707efd1310e3544d709c5c0ac61c13756046aaaba41be5c4f66a3b"
-dependencies = [
- "approx",
- "matrixmultiply",
- "nalgebra-macros 0.2.2",
- "num-complex",
- "num-rational",
- "num-traits",
- "simba",
- "typenum",
-]
-
-[[package]]
-name = "nalgebra"
 version = "0.34.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c4d5b3eff5cd580f93da45e64715e8c20a3996342f1e466599cf7a267a0c2f5f"
@@ -656,24 +640,13 @@ dependencies = [
  "glam 0.29.3",
  "glam 0.30.8",
  "matrixmultiply",
- "nalgebra-macros 0.3.0",
+ "nalgebra-macros",
  "num-complex",
  "num-rational",
  "num-traits",
  "serde",
  "simba",
  "typenum",
-]
-
-[[package]]
-name = "nalgebra-macros"
-version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "254a5372af8fc138e36684761d3c0cdb758a4410e938babcff1c860ce14ddbfc"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]
@@ -791,6 +764,7 @@ dependencies = [
 [[package]]
 name = "parry2d"
 version = "0.24.0"
+source = "git+https://github.com/ughuuu/parry?branch=custom-changes-v24#fcdf70496bec7cde17bdaacb6b081f83cd91e484"
 dependencies = [
  "approx",
  "arrayvec",
@@ -802,7 +776,7 @@ dependencies = [
  "hashbrown 0.16.0",
  "indexmap",
  "log",
- "nalgebra 0.34.1",
+ "nalgebra",
  "num-derive",
  "num-traits",
  "ordered-float",
@@ -829,7 +803,7 @@ dependencies = [
  "hashbrown 0.16.0",
  "indexmap",
  "log",
- "nalgebra 0.34.1",
+ "nalgebra",
  "num-derive",
  "num-traits",
  "ordered-float",
@@ -857,7 +831,7 @@ dependencies = [
  "hashbrown 0.16.0",
  "indexmap",
  "log",
- "nalgebra 0.34.1",
+ "nalgebra",
  "num-derive",
  "num-traits",
  "ordered-float",
@@ -886,7 +860,7 @@ dependencies = [
  "hashbrown 0.16.0",
  "indexmap",
  "log",
- "nalgebra 0.34.1",
+ "nalgebra",
  "num-derive",
  "num-traits",
  "ordered-float",
@@ -945,6 +919,7 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.29.0"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes-v29#394cd2d729f4f0db0ed4e534367d3c354a9752be"
 dependencies = [
  "approx",
  "arrayvec",
@@ -952,7 +927,7 @@ dependencies = [
  "bitflags",
  "downcast-rs",
  "log",
- "nalgebra 0.34.1",
+ "nalgebra",
  "num-derive",
  "num-traits",
  "ordered-float",
@@ -971,7 +946,7 @@ dependencies = [
 [[package]]
 name = "rapier2d-f64"
 version = "0.29.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes-v29#15dee20b535317d30614aafbeb378173a7675190"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes-v29#394cd2d729f4f0db0ed4e534367d3c354a9752be"
 dependencies = [
  "approx",
  "arrayvec",
@@ -979,7 +954,7 @@ dependencies = [
  "bitflags",
  "downcast-rs",
  "log",
- "nalgebra 0.34.1",
+ "nalgebra",
  "num-derive",
  "num-traits",
  "ordered-float",
@@ -997,7 +972,7 @@ dependencies = [
 [[package]]
 name = "rapier3d"
 version = "0.29.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes-v29#15dee20b535317d30614aafbeb378173a7675190"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes-v29#394cd2d729f4f0db0ed4e534367d3c354a9752be"
 dependencies = [
  "approx",
  "arrayvec",
@@ -1005,7 +980,7 @@ dependencies = [
  "bitflags",
  "downcast-rs",
  "log",
- "nalgebra 0.34.1",
+ "nalgebra",
  "num-derive",
  "num-traits",
  "ordered-float",
@@ -1024,7 +999,7 @@ dependencies = [
 [[package]]
 name = "rapier3d-f64"
 version = "0.29.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes-v29#15dee20b535317d30614aafbeb378173a7675190"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes-v29#394cd2d729f4f0db0ed4e534367d3c354a9752be"
 dependencies = [
  "approx",
  "arrayvec",
@@ -1032,7 +1007,7 @@ dependencies = [
  "bitflags",
  "downcast-rs",
  "log",
- "nalgebra 0.34.1",
+ "nalgebra",
  "num-derive",
  "num-traits",
  "ordered-float",
@@ -1075,9 +1050,9 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.12.2"
+version = "1.11.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "843bc0191f75f3e22651ae5f1e72939ab2f72a4bc30fa80a066bd66edefc24d4"
+checksum = "8b5288124840bee7b386bc413c487869b360b2b4ec421ea56425128692f2a82c"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -1087,9 +1062,9 @@ dependencies = [
 
 [[package]]
 name = "regex-automata"
-version = "0.4.13"
+version = "0.4.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5276caf25ac86c8d810222b3dbb938e512c55c6831a10f3e6ed1c93b84041f1c"
+checksum = "833eb9ce86d40ef33cb1306d8accf7bc8ec2bfea4355cbdebb3df68b40925cad"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -1098,9 +1073,9 @@ dependencies = [
 
 [[package]]
 name = "regex-syntax"
-version = "0.8.8"
+version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7a2d987857b319362043e95f5353c0535c1f58eec5336fdfcf626430af7def58"
+checksum = "caf4aa5b0f434c91fe5c7f1ecb6a5ece2130b02ad2a590589dda5146df959001"
 
 [[package]]
 name = "robust"
@@ -1156,6 +1131,7 @@ dependencies = [
 [[package]]
 name = "salva2d"
 version = "0.9.0"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#7ffe0d16d03b9afd3865f583298f9a218fe603f2"
 dependencies = [
  "approx",
  "bitflags",
@@ -1163,7 +1139,7 @@ dependencies = [
  "generational-arena",
  "instant",
  "itertools 0.14.0",
- "nalgebra 0.34.1",
+ "nalgebra",
  "num-traits",
  "parry2d",
  "rapier2d",
@@ -1172,14 +1148,14 @@ dependencies = [
 [[package]]
 name = "salva2d-f64"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=custom-changes#13b2b4ce3db1fdf0a325f308afe00b89df772ddb"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#7ffe0d16d03b9afd3865f583298f9a218fe603f2"
 dependencies = [
  "approx",
  "fnv",
  "generational-arena",
  "instant",
  "itertools 0.13.0",
- "nalgebra 0.33.2",
+ "nalgebra",
  "num-traits",
  "parry2d-f64",
  "rapier2d-f64",
@@ -1188,7 +1164,7 @@ dependencies = [
 [[package]]
 name = "salva3d"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=custom-changes#13b2b4ce3db1fdf0a325f308afe00b89df772ddb"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#7ffe0d16d03b9afd3865f583298f9a218fe603f2"
 dependencies = [
  "approx",
  "bitflags",
@@ -1196,7 +1172,7 @@ dependencies = [
  "generational-arena",
  "instant",
  "itertools 0.14.0",
- "nalgebra 0.33.2",
+ "nalgebra",
  "num-traits",
  "parry3d",
  "rapier3d",
@@ -1205,14 +1181,14 @@ dependencies = [
 [[package]]
 name = "salva3d-f64"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=custom-changes#13b2b4ce3db1fdf0a325f308afe00b89df772ddb"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#7ffe0d16d03b9afd3865f583298f9a218fe603f2"
 dependencies = [
  "approx",
  "fnv",
  "generational-arena",
  "instant",
  "itertools 0.13.0",
- "nalgebra 0.33.2",
+ "nalgebra",
  "num-traits",
  "parry3d-f64",
  "rapier3d-f64",
@@ -1308,9 +1284,9 @@ dependencies = [
 
 [[package]]
 name = "stable_deref_trait"
-version = "1.2.1"
+version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6ce2be8dc25455e1f91df71bfa12ad37d7af1092ae736f3a6cd0e37bc7810596"
+checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
 
 [[package]]
 name = "static_assertions"
@@ -1351,9 +1327,9 @@ dependencies = [
 
 [[package]]
 name = "typenum"
-version = "1.19.0"
+version = "1.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "562d481066bde0658276a35467c4af00bdc6ee726305698a55b86e61d7ad82bb"
+checksum = "1dccffe3ce07af9386bfd29e80c0ab1a8205a2fc34e4bcd40364df902cfa8f3f"
 
 [[package]]
 name = "unicode-id"

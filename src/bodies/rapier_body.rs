@@ -470,12 +470,6 @@ impl RapierBody {
         }
         Vector::default()
     }
-    
-    pub fn predict_next_frame_position(&self, timestep: f64, physics_engine: &mut PhysicsEngine) -> Vector {
-        let vel = physics_engine
-            .body_predict_next_frame_position(timestep, self.base.get_space_id(), self.base.get_body_handle());
-        vector_to_godot(vel)
-    }
 
     pub fn set_angular_velocity(
         &mut self,
