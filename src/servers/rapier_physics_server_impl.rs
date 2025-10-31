@@ -1760,10 +1760,21 @@ impl RapierPhysicsServerImpl {
     }
 
     #[cfg(feature = "dim3")]
-    pub(super) fn pin_joint_set_param(&mut self, _joint: Rid, _param: PinJointParam, _value: f32) {}
+    pub(super) fn pin_joint_set_param(&mut self, joint: Rid, param: PinJointParam, value: f32) {
+        let physics_data = physics_data();
+        if let Some(RapierJoint::RapierSphericalJoint3D(joint)) =
+            physics_data.joints.get_mut(&joint)
+        {
+            joint.set_param(param, value, &mut physics_data.physics_engine);
+        }
+    }
 
     #[cfg(feature = "dim3")]
-    pub(super) fn pin_joint_get_param(&self, _joint: Rid, _param: PinJointParam) -> f32 {
+    pub(super) fn pin_joint_get_param(&self, joint: Rid, param: PinJointParam) -> f32 {
+        let physics_data = physics_data();
+        if let Some(RapierJoint::RapierSphericalJoint3D(joint)) = physics_data.joints.get(&joint) {
+            return joint.get_param(param);
+        }
         0.0
     }
 
@@ -2007,6 +2018,8 @@ impl RapierPhysicsServerImpl {
                 rid,
                 local_ref_a.origin,
                 local_ref_b.origin,
+                local_ref_a.basis,
+                local_ref_b.basis,
                 body_a,
                 body_b,
                 &mut physics_data.physics_engine,
@@ -2029,18 +2042,28 @@ impl RapierPhysicsServerImpl {
     #[cfg(feature = "dim3")]
     pub(super) fn cone_twist_joint_set_param(
         &mut self,
-        _joint: Rid,
-        _param: physics_server_3d::ConeTwistJointParam,
-        _value: f32,
+        joint: Rid,
+        param: physics_server_3d::ConeTwistJointParam,
+        value: f32,
     ) {
+        let physics_data = physics_data();
+        if let Some(RapierJoint::RapierConeTwistJoint3D(joint)) =
+            physics_data.joints.get_mut(&joint)
+        {
+            joint.set_param(param, value, &mut physics_data.physics_engine);
+        }
     }
 
     #[cfg(feature = "dim3")]
     pub(super) fn cone_twist_joint_get_param(
         &self,
-        _joint: Rid,
-        _param: physics_server_3d::ConeTwistJointParam,
+        joint: Rid,
+        param: physics_server_3d::ConeTwistJointParam,
     ) -> f32 {
+        let physics_data = physics_data();
+        if let Some(RapierJoint::RapierConeTwistJoint3D(joint)) = physics_data.joints.get(&joint) {
+            return joint.get_param(param);
+        }
         0.0
     }
 
@@ -2065,6 +2088,8 @@ impl RapierPhysicsServerImpl {
                 rid,
                 local_ref_a.origin,
                 local_ref_b.origin,
+                local_ref_a.basis,
+                local_ref_b.basis,
                 body_a,
                 body_b,
                 &mut physics_data.physics_engine,
@@ -2087,40 +2112,136 @@ impl RapierPhysicsServerImpl {
     #[cfg(feature = "dim3")]
     pub(super) fn generic_6dof_joint_set_param(
         &mut self,
-        _joint: Rid,
-        _axis: Vector3Axis,
-        _param: physics_server_3d::G6dofJointAxisParam,
-        _value: f32,
+        joint: Rid,
+        axis: Vector3Axis,
+        param: physics_server_3d::G6dofJointAxisParam,
+        value: f32,
     ) {
+        use rapier::prelude::JointAxis;
+        let physics_data = physics_data();
+        if let Some(joint_data) = physics_data.joints.get(&joint) {
+            // Determine if this is a linear or angular parameter
+            let is_angular = matches!(
+                param,
+                physics_server_3d::G6dofJointAxisParam::ANGULAR_LOWER_LIMIT
+                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_UPPER_LIMIT
+                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_LIMIT_SOFTNESS
+                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_RESTITUTION
+                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_DAMPING
+                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_MOTOR_TARGET_VELOCITY
+                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_MOTOR_FORCE_LIMIT
+                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_SPRING_STIFFNESS
+                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_SPRING_DAMPING
+                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_SPRING_EQUILIBRIUM_POINT
+            );
+            let rapier_axis = if is_angular {
+                match axis {
+                    Vector3Axis::X => JointAxis::AngX,
+                    Vector3Axis::Y => JointAxis::AngY,
+                    Vector3Axis::Z => JointAxis::AngZ,
+                }
+            } else {
+                match axis {
+                    Vector3Axis::X => JointAxis::LinX,
+                    Vector3Axis::Y => JointAxis::LinY,
+                    Vector3Axis::Z => JointAxis::LinZ,
+                }
+            };
+            physics_data
+                .physics_engine
+                .joint_change_generic_6dof_axis_param(
+                    joint_data.get_base().get_space_id(),
+                    joint_data.get_base().get_handle(),
+                    rapier_axis,
+                    param,
+                    value,
+                );
+            // Store the parameter in the joint struct
+            if let RapierJoint::RapierGeneric6DOFJoint3D(joint_6dof) =
+                physics_data.joints.get_mut(&joint).unwrap()
+            {
+                joint_6dof.set_param(axis, param, value);
+            }
+        }
     }
 
     #[cfg(feature = "dim3")]
     pub(super) fn generic_6dof_joint_get_param(
         &self,
-        _joint: Rid,
-        _axis: Vector3Axis,
-        _param: physics_server_3d::G6dofJointAxisParam,
+        joint: Rid,
+        axis: Vector3Axis,
+        param: physics_server_3d::G6dofJointAxisParam,
     ) -> f32 {
+        let physics_data = physics_data();
+        if let Some(RapierJoint::RapierGeneric6DOFJoint3D(joint_6dof)) =
+            physics_data.joints.get(&joint)
+        {
+            return joint_6dof.get_param(axis, param);
+        }
         0.0
     }
 
     #[cfg(feature = "dim3")]
     pub(super) fn generic_6dof_joint_set_flag(
         &mut self,
-        _joint: Rid,
-        _axis: Vector3Axis,
-        _flag: physics_server_3d::G6dofJointAxisFlag,
-        _enable: bool,
+        joint: Rid,
+        axis: Vector3Axis,
+        flag: physics_server_3d::G6dofJointAxisFlag,
+        enable: bool,
     ) {
+        use rapier::prelude::JointAxis;
+        let physics_data = physics_data();
+        if let Some(joint_data) = physics_data.joints.get(&joint) {
+            // Determine if this is a linear or angular flag
+            let is_angular = matches!(
+                flag,
+                physics_server_3d::G6dofJointAxisFlag::ENABLE_ANGULAR_LIMIT
+                    | physics_server_3d::G6dofJointAxisFlag::ENABLE_ANGULAR_SPRING
+            );
+            let rapier_axis = if is_angular {
+                match axis {
+                    Vector3Axis::X => JointAxis::AngX,
+                    Vector3Axis::Y => JointAxis::AngY,
+                    Vector3Axis::Z => JointAxis::AngZ,
+                }
+            } else {
+                match axis {
+                    Vector3Axis::X => JointAxis::LinX,
+                    Vector3Axis::Y => JointAxis::LinY,
+                    Vector3Axis::Z => JointAxis::LinZ,
+                }
+            };
+            physics_data
+                .physics_engine
+                .joint_change_generic_6dof_axis_flag(
+                    joint_data.get_base().get_space_id(),
+                    joint_data.get_base().get_handle(),
+                    rapier_axis,
+                    flag,
+                    enable,
+                );
+            // Store the flag in the joint struct
+            if let RapierJoint::RapierGeneric6DOFJoint3D(joint_6dof) =
+                physics_data.joints.get_mut(&joint).unwrap()
+            {
+                joint_6dof.set_flag(axis, flag, enable);
+            }
+        }
     }
 
     #[cfg(feature = "dim3")]
     pub(super) fn generic_6dof_joint_get_flag(
         &self,
-        _joint: Rid,
-        _axis: Vector3Axis,
-        _flag: physics_server_3d::G6dofJointAxisFlag,
+        joint: Rid,
+        axis: Vector3Axis,
+        flag: physics_server_3d::G6dofJointAxisFlag,
     ) -> bool {
+        let physics_data = physics_data();
+        if let Some(RapierJoint::RapierGeneric6DOFJoint3D(joint_6dof)) =
+            physics_data.joints.get(&joint)
+        {
+            return joint_6dof.get_flag(axis, flag);
+        }
         false
     }
 

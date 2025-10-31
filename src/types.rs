@@ -135,6 +135,14 @@ pub fn transform_rotation_rapier(transform: &godot::builtin::Transform2D) -> Rot
     let angle = transform.rotation();
     Rotation::from_angle(angle)
 }
+#[cfg(feature = "dim3")]
+pub fn basis_to_rapier(basis: godot::builtin::Basis) -> Rotation<Real> {
+    use rapier::na::Vector4;
+    let quaternion = basis.get_quaternion();
+    Rotation::from_quaternion(rapier::na::Quaternion {
+        coords: Vector4::new(quaternion.x, quaternion.y, quaternion.z, quaternion.w),
+    })
+}
 pub fn vector_normalized(vector: Vector) -> Vector {
     if vector != Vector::ZERO {
         return vector.normalized();
