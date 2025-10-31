@@ -74,6 +74,7 @@ pub struct RapierGeneric6DOFJoint3D {
     axis_data: [AxisParams; 3], // X, Y, Z axes
 }
 impl RapierGeneric6DOFJoint3D {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         id: RapierId,
         rid: Rid,
