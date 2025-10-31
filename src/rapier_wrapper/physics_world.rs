@@ -3,11 +3,8 @@ use std::sync::mpsc;
 
 use hashbrown::HashMap;
 use rapier::data::Index;
+use rapier::parry::utils::IsometryOpt;
 use rapier::prelude::*;
-#[cfg(feature = "dim2")]
-use rapier2d::parry::utils::IsometryOpt;
-#[cfg(feature = "dim3")]
-use rapier3d::parry::utils::IsometryOpt;
 use salva::integrations::rapier::FluidsPipeline;
 
 use crate::rapier_wrapper::prelude::*;
