@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.8.17 - Oct 31
+
+## What's Changed
+* Predictive contact culling by @dog-molecule in https://github.com/appsinacup/godot-rapier-physics/pull/412
+
 ## v0.8.16 - Oct 29
 
 ## What's Changed
