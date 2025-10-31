@@ -790,8 +790,7 @@ dependencies = [
 
 [[package]]
 name = "parry2d"
-version = "0.25.1"
-source = "git+https://github.com/ughuuu/parry?branch=master#9db68641adf69e1f307ac9199d34d82b6d049219"
+version = "0.24.0"
 dependencies = [
  "approx",
  "arrayvec",
@@ -1000,8 +999,7 @@ dependencies = [
 
 [[package]]
 name = "rapier2d"
-version = "0.30.1"
-source = "git+https://github.com/ughuuu/rapier?branch=master#57c4e912a60952ed5c04e761da11b8fb155d2738"
+version = "0.29.0"
 dependencies = [
  "approx",
  "arrayvec",
@@ -1027,8 +1025,8 @@ dependencies = [
 
 [[package]]
 name = "rapier2d-f64"
-version = "0.30.1"
-source = "git+https://github.com/ughuuu/rapier?branch=master#57c4e912a60952ed5c04e761da11b8fb155d2738"
+version = "0.29.0"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes-v29#15dee20b535317d30614aafbeb378173a7675190"
 dependencies = [
  "approx",
  "arrayvec",
@@ -1053,8 +1051,8 @@ dependencies = [
 
 [[package]]
 name = "rapier3d"
-version = "0.30.1"
-source = "git+https://github.com/ughuuu/rapier?branch=master#57c4e912a60952ed5c04e761da11b8fb155d2738"
+version = "0.29.0"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes-v29#15dee20b535317d30614aafbeb378173a7675190"
 dependencies = [
  "approx",
  "arrayvec",
@@ -1104,8 +1102,8 @@ dependencies = [
 
 [[package]]
 name = "rapier3d-f64"
-version = "0.30.1"
-source = "git+https://github.com/ughuuu/rapier?branch=master#57c4e912a60952ed5c04e761da11b8fb155d2738"
+version = "0.29.0"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes-v29#15dee20b535317d30614aafbeb378173a7675190"
 dependencies = [
  "approx",
  "arrayvec",
@@ -1260,7 +1258,6 @@ dependencies = [
 [[package]]
 name = "salva2d"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=custom-changes#5dc0e34843908d4189a0ea52971fdb4310e637f1"
 dependencies = [
  "approx",
  "bitflags",
