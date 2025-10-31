@@ -2007,6 +2007,8 @@ impl RapierPhysicsServerImpl {
                 rid,
                 local_ref_a.origin,
                 local_ref_b.origin,
+                local_ref_a.basis,
+                local_ref_b.basis,
                 body_a,
                 body_b,
                 &mut physics_data.physics_engine,
@@ -2029,18 +2031,28 @@ impl RapierPhysicsServerImpl {
     #[cfg(feature = "dim3")]
     pub(super) fn cone_twist_joint_set_param(
         &mut self,
-        _joint: Rid,
-        _param: physics_server_3d::ConeTwistJointParam,
-        _value: f32,
+        joint: Rid,
+        param: physics_server_3d::ConeTwistJointParam,
+        value: f32,
     ) {
+        let physics_data = physics_data();
+        if let Some(RapierJoint::RapierConeTwistJoint3D(joint)) =
+            physics_data.joints.get_mut(&joint)
+        {
+            joint.set_param(param, value, &mut physics_data.physics_engine);
+        }
     }
 
     #[cfg(feature = "dim3")]
     pub(super) fn cone_twist_joint_get_param(
         &self,
-        _joint: Rid,
-        _param: physics_server_3d::ConeTwistJointParam,
+        joint: Rid,
+        param: physics_server_3d::ConeTwistJointParam,
     ) -> f32 {
+        let physics_data = physics_data();
+        if let Some(RapierJoint::RapierConeTwistJoint3D(joint)) = physics_data.joints.get(&joint) {
+            return joint.get_param(param);
+        }
         0.0
     }
 

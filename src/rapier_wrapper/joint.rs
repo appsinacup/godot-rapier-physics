@@ -388,6 +388,74 @@ impl PhysicsEngine {
     }
 
     #[cfg(feature = "dim3")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn joint_create_cone_twist(
+        &mut self,
+        world_handle: WorldHandle,
+        body_handle_1: RigidBodyHandle,
+        body_handle_2: RigidBodyHandle,
+        anchor_1: Vector<Real>,
+        anchor_2: Vector<Real>,
+        axis_1: Rotation<Real>,
+        axis_2: Rotation<Real>,
+        swing_span: Real,
+        twist_span: Real,
+        multibody: bool,
+        kinematic: bool,
+        disable_collision: bool,
+    ) -> JointHandle {
+        self.body_wake_up(world_handle, body_handle_1, false);
+        self.body_wake_up(world_handle, body_handle_2, false);
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
+            // Approximate cone: limit swing on X and Y to create a "box" that fits inside the cone
+            // Use swing_span / sqrt(2) to get the per-axis limit
+            let swing_limit = swing_span / 2.0f32.sqrt();
+            let twist_limit = twist_span / 2.0;
+            // Extract the X axis from the rotation as UnitVector
+            let axis1_vec = axis_1 * Vector::x_axis();
+            let axis2_vec = axis_2 * Vector::x_axis();
+            // Create a generic joint with locked translations and limited rotations
+            let joint = GenericJointBuilder::new(JointAxesMask::LOCKED_SPHERICAL_AXES)
+                .local_anchor1(Point { coords: anchor_1 })
+                .local_anchor2(Point { coords: anchor_2 })
+                .local_axis1(axis1_vec)
+                .local_axis2(axis2_vec)
+                .limits(JointAxis::AngX, [-swing_limit, swing_limit])
+                .limits(JointAxis::AngY, [-swing_limit, swing_limit])
+                .limits(JointAxis::AngZ, [-twist_limit, twist_limit])
+                .contacts_enabled(!disable_collision);
+            return physics_world.insert_joint(
+                body_handle_1,
+                body_handle_2,
+                multibody,
+                kinematic,
+                joint,
+            );
+        }
+        JointHandle::default()
+    }
+
+    #[cfg(feature = "dim3")]
+    pub fn joint_change_cone_twist_params(
+        &mut self,
+        world_handle: WorldHandle,
+        joint_handle: JointHandle,
+        swing_span: Real,
+        twist_span: Real,
+    ) {
+        self.joint_wake_up_connected_rigidbodies(world_handle, joint_handle);
+        if let Some(physics_world) = self.get_mut_world(world_handle)
+            && let Some(joint) = physics_world.get_mut_joint(joint_handle)
+        {
+            let swing_limit = swing_span / 2.0f32.sqrt();
+            let twist_limit = twist_span / 2.0;
+            joint.set_limits(JointAxis::AngX, [-swing_limit, swing_limit]);
+            joint.set_limits(JointAxis::AngY, [-swing_limit, swing_limit]);
+            joint.set_limits(JointAxis::AngZ, [-twist_limit, twist_limit]);
+        }
+    }
+
+    #[cfg(feature = "dim3")]
     pub fn joint_change_generic_6dof_axis_param(
         &mut self,
         world_handle: WorldHandle,
