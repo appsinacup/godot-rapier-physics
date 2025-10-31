@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.8.17 - Oct 31
+
+## What's Changed
+* Predictive contact culling by @dog-molecule in https://github.com/appsinacup/godot-rapier-physics/pull/412
+
+## v0.8.16 - Oct 29
+
+## What's Changed
+* Rough sketch of some potential shape collision implementations by @dog-molecule in https://github.com/appsinacup/godot-rapier-physics/pull/402
+* Shape rotation contact fix by @dog-molecule in https://github.com/appsinacup/godot-rapier-physics/pull/405
+* Shapecast unsafe time fix by @dog-molecule in https://github.com/appsinacup/godot-rapier-physics/pull/406
+* call set collision events enabled in init collider also by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/408
+* disable custom api for local builds. by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/409
+* run lint and format on ci/cd by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/410
+
 ## v0.8.15 - Oct 25
 
 ## What's Changed

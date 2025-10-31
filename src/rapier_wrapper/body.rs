@@ -299,6 +299,7 @@ impl PhysicsEngine {
                         col.set_collision_groups(InteractionGroups {
                             memberships: Group::from(collision_layer),
                             filter: Group::from(collision_mask),
+                            test_mode: InteractionTestMode::Or,
                         });
                     }
                 }

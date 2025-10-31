@@ -285,18 +285,20 @@ impl PhysicsEngine {
                 collider.set_restitution(restitution);
             }
             collider.set_friction_combine_rule(CoefficientCombineRule::Min);
-            collider.set_restitution_combine_rule(CoefficientCombineRule::Sum);
+            collider.set_restitution_combine_rule(CoefficientCombineRule::ClampedSum);
             if let Some(collision_mask) = mat.collision_mask
                 && let Some(collision_layer) = mat.collision_layer
             {
                 collider.set_collision_groups(InteractionGroups {
                     memberships: Group::from(collision_layer),
                     filter: Group::from(collision_mask),
+                    test_mode: InteractionTestMode::Or,
                 });
             }
             collider.set_solver_groups(InteractionGroups {
                 memberships: Group::GROUP_1,
                 filter: Group::GROUP_1,
+                test_mode: InteractionTestMode::Or,
             });
             if let Some(contact_skin) = mat.contact_skin {
                 collider.set_contact_skin(contact_skin);
@@ -362,11 +364,13 @@ impl PhysicsEngine {
                 collider.set_collision_groups(InteractionGroups {
                     memberships: Group::from(collision_layer),
                     filter: Group::from(collision_mask),
+                    test_mode: InteractionTestMode::Or,
                 });
             }
             collider.set_solver_groups(InteractionGroups {
                 memberships: Group::GROUP_1,
                 filter: Group::GROUP_1,
+                test_mode: InteractionTestMode::Or,
             });
             let mut collision_types = collider.active_collision_types();
             // Area vs Area

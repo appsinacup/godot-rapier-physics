@@ -1,6 +1,6 @@
 [package]
 name = "godot-rapier"
-version = "0.8.13"
+version = "0.8.17"
 edition = "2024"
 license = "MIT"
 rust-version = "1.85"
@@ -18,8 +18,9 @@ build2d-f64 = ["double-dim2", "serde-serialize", "simd-stable"]
 build3d-f64 = ["double-dim3", "serde-serialize", "simd-stable"]
 dim2 = []
 dim3 = []
-single = ["godot/api-custom"]
-double = ["godot/double-precision", "godot/api-custom"]
+single = []
+double = ["godot/double-precision"]
+api-custom = ["godot/api-custom"]
 enhanced-determinism = ["rapier2d/enhanced-determinism", "rapier2d-f64/enhanced-determinism", "rapier3d/enhanced-determinism", "rapier3d-f64/enhanced-determinism"]
 serde-serialize = ["serde", "hashbrown/serde", "bincode", "serde_json", "godot/serde", "rapier2d/serde-serialize", "rapier2d-f64/serde-serialize", "rapier3d/serde-serialize", "rapier3d-f64/serde-serialize" ]
 # Note: SIMD disabled for f64 builds due to upstream rapier bugs with f64 SIMD implementation
@@ -40,7 +41,6 @@ double-dim3 = ["double", "dim3", "rapier3d-f64", "salva3d-f64"]
 bincode = { version = "1", optional = true }
 hashbrown = { version = "0.14" }
 
-#godot = { git = "https://github.com/Ughuuu/gdext", branch = "disable-layout-tests", features=["register-docs"] }
 godot = { version = "0.4.0", features=["register-docs"] }
 
 rapier2d = { path = "E:/Repos/ughuuu_forks/rapier/crates/rapier2d", optional = true }
@@ -71,10 +71,10 @@ rapier2d-f64 = {git = "https://github.com/ughuuu/rapier", branch = "custom-chang
 # parry2d = {git = "https://github.com/ughuuu/parry", branch = "custom-changes-v24"}
 parry2d-f64 = {git = "https://github.com/ughuuu/parry", branch = "custom-changes-v24"}
 
-rapier3d = {git = "https://github.com/ughuuu/rapier", branch = "custom-changes-v29"}
-rapier3d-f64 = {git = "https://github.com/ughuuu/rapier", branch = "custom-changes-v29"}
-parry3d = {git = "https://github.com/ughuuu/parry", branch = "custom-changes-v24"}
-parry3d-f64 = {git = "https://github.com/ughuuu/parry", branch = "custom-changes-v24"}
+rapier3d = {git = "https://github.com/ughuuu/rapier", branch = "master"}
+rapier3d-f64 = {git = "https://github.com/ughuuu/rapier", branch = "master"}
+parry3d = {git = "https://github.com/ughuuu/parry", branch = "master"}
+parry3d-f64 = {git = "https://github.com/ughuuu/parry", branch = "master"}
 
 [profile.release]
 opt-level = 3

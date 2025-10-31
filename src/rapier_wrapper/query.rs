@@ -353,22 +353,17 @@ impl PhysicsEngine {
         results: &mut Vec<WitnessPair>,
         max_results: usize,
     ) -> usize {
-
         let mut result_count = 0;
         if max_results == 0 {
             return result_count;
         }
-
         let Some(raw_shared_shape) = self.get_shape(shape_info.handle) else {
             return result_count;
         };
-
         let Some(physics_world) = self.get_world(world_handle) else {
             return result_count;
         };
-
         let shared_shape = scale_shape(raw_shared_shape, shape_info);
-
         let shape_transform = shape_info.transform;
         let mut filter = QueryFilter::new();
         if !collide_with_body {
@@ -386,12 +381,10 @@ impl PhysicsEngine {
                 physics_ids,
             )
         };
-        filter.predicate = Some(&predicate);    
-
+        filter.predicate = Some(&predicate);
         let velocity_size = shape_vel.magnitude();
         let mut shape_transform_with_motion = shape_transform;
-
-        // If we have velocity, then we cast our shape forward; shape_transform_with_motion will be updated 
+        // If we have velocity, then we cast our shape forward; shape_transform_with_motion will be updated
         // to match the position it will occupy at the end of the tick, or its hit location if it hits something this tick.
         if velocity_size > DEFAULT_EPSILON {
             let shape_cast_options = ShapeCastOptions {
@@ -424,11 +417,9 @@ impl PhysicsEngine {
                 {
                     godot_warn!("shape casting status warn: {:?}", hit.status);
                 }
-
                 shape_transform_with_motion.translation.vector += shape_vel * hit.time_of_impact;
             }
         }
-       
         for (collider_handle, _collider) in physics_world
             .physics_objects
             .broad_phase
@@ -450,34 +441,28 @@ impl PhysicsEngine {
             {
                 let mut manifolds: Vec<ContactManifold> = vec![];
                 let pos12 = shape_transform_with_motion.inv_mul(collider.position());
-
                 let _ = physics_world
-                .physics_objects
-                .narrow_phase
-                .query_dispatcher().contact_manifolds(
-                    &pos12,
-                    shared_shape.as_ref(),
-                    collider.shape(),
-                    margin,
-                    &mut manifolds,
-                    &mut None,
-                );
-
-                for m in &manifolds 
-                {
+                    .physics_objects
+                    .narrow_phase
+                    .query_dispatcher()
+                    .contact_manifolds(
+                        &pos12,
+                        shared_shape.as_ref(),
+                        collider.shape(),
+                        margin,
+                        &mut manifolds,
+                        &mut None,
+                    );
+                for m in &manifolds {
                     if result_count >= max_results {
                         break;
                     }
-
-                    for contact in &m.points 
-                    {
-                        let contact_p1 = (shape_transform_with_motion * contact.local_p1).coords;                                
+                    for contact in &m.points {
+                        let contact_p1 = (shape_transform_with_motion * contact.local_p1).coords;
                         let contact_p2 = (collider.position() * contact.local_p2).coords;
-                        
                         let mut this_contact: WitnessPair = WitnessPair::new();
                         this_contact.pixel_witness1 = contact_p1;
                         this_contact.pixel_witness2 = contact_p2;
-
                         results.push(this_contact);
                         result_count += 1;
                         if result_count >= max_results {
@@ -487,9 +472,8 @@ impl PhysicsEngine {
                 }
             }
         }
-            
         result_count
-    }  
+    }
 
     #[allow(clippy::too_many_arguments)]
     pub fn shape_casting(
@@ -507,7 +491,6 @@ impl PhysicsEngine {
         needs_exact: bool,
     ) -> Vec<ShapeCastResult> {
         let mut results: Vec<ShapeCastResult> = Vec::new();
-
         if let Some(raw_shared_shape) = self.get_shape(shape_info.handle) {
             let shared_shape = scale_shape(raw_shared_shape, shape_info);
             if let Some(physics_world) = self.get_world(world_handle) {
@@ -530,7 +513,6 @@ impl PhysicsEngine {
                 };
                 filter.predicate = Some(&predicate);
                 let velocity_size = shape_vel.magnitude();
-
                 if velocity_size < DEFAULT_EPSILON {
                     for (collider_handle, _collider) in physics_world
                         .physics_objects
@@ -562,22 +544,22 @@ impl PhysicsEngine {
                                 .narrow_phase
                                 .query_dispatcher()
                                 .contact(&pos12, shared_shape.as_ref(), collider.shape(), margin)
-								&& let Some(contact) = contact
+                                && let Some(contact) = contact
                             {
                                 result.normal1 = contact.normal1.into_inner();
-								result.normal2 = contact.normal2.into_inner();
-                                result.pixel_witness1 = contact.point1.coords + shape_transform.translation.vector;
-								result.pixel_witness2 = contact.point2.coords + collider.position().translation.vector;
-                            }                                
-							else {
-								godot_error!("contact error");
-							}
+                                result.normal2 = contact.normal2.into_inner();
+                                result.pixel_witness1 =
+                                    contact.point1.coords + shape_transform.translation.vector;
+                                result.pixel_witness2 =
+                                    contact.point2.coords + collider.position().translation.vector;
+                            } else {
+                                godot_error!("contact error");
+                            }
                         } else {
                             godot_error!("collider not found");
                         }
-
                         results.push(result);
-                    }                    
+                    }
                 } else {
                     let shape_cast_options = ShapeCastOptions {
                         max_time_of_impact: 1.0,
@@ -640,7 +622,8 @@ impl PhysicsEngine {
                                     .distance(&pos12, shared_shape.as_ref(), collider.shape())
                                     && distance > DEFAULT_EPSILON
                                 {
-                                    result.toi_unsafe += distance / velocity_size;
+                                    // Distance increased by an arbitrary 0.001 amount so that Godot's Shapecast2D node returns more reliable hits.
+                                    result.toi_unsafe += (distance + 0.001) / velocity_size;
                                 }
                             }
                         } else {
@@ -649,7 +632,7 @@ impl PhysicsEngine {
                         results.push(result);
                     }
                 }
-            }                
+            }
         }
         results
     }
