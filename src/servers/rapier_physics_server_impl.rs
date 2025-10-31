@@ -1760,10 +1760,21 @@ impl RapierPhysicsServerImpl {
     }
 
     #[cfg(feature = "dim3")]
-    pub(super) fn pin_joint_set_param(&mut self, _joint: Rid, _param: PinJointParam, _value: f32) {}
+    pub(super) fn pin_joint_set_param(&mut self, joint: Rid, param: PinJointParam, value: f32) {
+        let physics_data = physics_data();
+        if let Some(RapierJoint::RapierSphericalJoint3D(joint)) =
+            physics_data.joints.get_mut(&joint)
+        {
+            joint.set_param(param, value, &mut physics_data.physics_engine);
+        }
+    }
 
     #[cfg(feature = "dim3")]
-    pub(super) fn pin_joint_get_param(&self, _joint: Rid, _param: PinJointParam) -> f32 {
+    pub(super) fn pin_joint_get_param(&self, joint: Rid, param: PinJointParam) -> f32 {
+        let physics_data = physics_data();
+        if let Some(RapierJoint::RapierSphericalJoint3D(joint)) = physics_data.joints.get(&joint) {
+            return joint.get_param(param);
+        }
         0.0
     }
 
