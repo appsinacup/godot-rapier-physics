@@ -7,7 +7,7 @@ use crate::servers::RapierPhysicsServer;
 use crate::servers::rapier_project_settings::RapierProjectSettings;
 use crate::types::*;
 #[derive(GodotClass)]
-#[class(base=Node2D)]
+#[class(base=Node2D,tool)]
 /// The fluid node. Use this node to simulate fluids in 2D.
 pub struct Fluid2D {
     #[var(get)]
