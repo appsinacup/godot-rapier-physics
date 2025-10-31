@@ -1274,7 +1274,7 @@ dependencies = [
 [[package]]
 name = "salva2d-f64"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=custom-changes#5dc0e34843908d4189a0ea52971fdb4310e637f1"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#13b2b4ce3db1fdf0a325f308afe00b89df772ddb"
 dependencies = [
  "approx",
  "fnv",
@@ -1290,7 +1290,7 @@ dependencies = [
 [[package]]
 name = "salva3d"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=custom-changes#5dc0e34843908d4189a0ea52971fdb4310e637f1"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#13b2b4ce3db1fdf0a325f308afe00b89df772ddb"
 dependencies = [
  "approx",
  "bitflags",
@@ -1298,7 +1298,7 @@ dependencies = [
  "generational-arena",
  "instant",
  "itertools 0.14.0",
- "nalgebra 0.34.1",
+ "nalgebra 0.33.2",
  "num-traits",
  "parry3d 0.25.1",
  "rapier3d 0.30.1",
@@ -1307,7 +1307,7 @@ dependencies = [
 [[package]]
 name = "salva3d-f64"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=custom-changes#5dc0e34843908d4189a0ea52971fdb4310e637f1"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#13b2b4ce3db1fdf0a325f308afe00b89df772ddb"
 dependencies = [
  "approx",
  "fnv",
