@@ -321,14 +321,16 @@ impl RapierSpace {
             RapierCollisionObjectBase::get_collider_user_data(&event_info.user_data2, physics_ids);
         if let Some(body1) = physics_collision_objects.get(&p_object1) {
             if let Some(body1) = body1.get_body() {
-                if body1.can_report_contacts() {
+                if body1.can_report_contacts() || body1.get_static_linear_velocity() != Vector::ZERO
+                {
                     send_contacts = true;
                 }
             }
         }
         if let Some(body2) = physics_collision_objects.get(&p_object2) {
             if let Some(body2) = body2.get_body() {
-                if body2.can_report_contacts() {
+                if body2.can_report_contacts() || body2.get_static_linear_velocity() != Vector::ZERO
+                {
                     send_contacts = true;
                 }
             }
