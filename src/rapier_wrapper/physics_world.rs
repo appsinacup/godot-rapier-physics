@@ -187,7 +187,6 @@ impl PhysicsWorld {
             &physics_hooks,
             &event_handler,
         );
-        // TODO do I still need to call query pipeline update manually?
         if self.fluids_pipeline.liquid_world.fluids().len() > 0 {
             self.fluids_pipeline.step(
                 &liquid_gravity,

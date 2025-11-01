@@ -309,10 +309,14 @@ impl RapierBody {
         space_handle: WorldHandle,
         physics_engine: &mut PhysicsEngine,
     ) {
-        // Send contact infos for dynamic bodies
-        if self.base.mode.ord() >= BodyMode::KINEMATIC.ord() {
+        // Send contact infos for dynamic bodies, or for static bodies with static linear velocity
+        let is_with_static_linear_velocity = self.get_static_linear_velocity() != Vector::default();
+        if self.base.mode.ord() >= BodyMode::KINEMATIC.ord() || is_with_static_linear_velocity {
             let mut send_contacts = self.can_report_contacts();
             if self.base.is_debugging_contacts && godot::classes::Os::singleton().is_debug_build() {
+                send_contacts = true;
+            }
+            if is_with_static_linear_velocity {
                 send_contacts = true;
             }
             physics_engine.collider_set_contact_force_events_enabled(
@@ -346,7 +350,8 @@ impl RapierBody {
     }
 
     fn update_colliders_contact_events(&self, physics_engine: &mut PhysicsEngine) {
-        if self.base.mode.ord() < BodyMode::KINEMATIC.ord() {
+        let is_with_static_linear_velocity = self.get_static_linear_velocity() != Vector::default();
+        if self.base.mode.ord() < BodyMode::KINEMATIC.ord() && !is_with_static_linear_velocity {
             return;
         }
         let colliders = physics_engine
@@ -354,6 +359,9 @@ impl RapierBody {
             .to_vec();
         let mut send_contacts = self.can_report_contacts();
         if self.base.is_debugging_contacts && godot::classes::Os::singleton().is_debug_build() {
+            send_contacts = true;
+        }
+        if is_with_static_linear_velocity {
             send_contacts = true;
         }
         for collider in colliders {
@@ -409,6 +417,7 @@ impl RapierBody {
         self.state.linear_velocity = p_linear_velocity;
         self.update_colliders_filters(physics_engine);
         if self.base.mode == BodyMode::STATIC || !self.base.is_valid() {
+            self.update_colliders_contact_events(physics_engine);
             return;
         }
         physics_engine.body_set_linear_velocity(
