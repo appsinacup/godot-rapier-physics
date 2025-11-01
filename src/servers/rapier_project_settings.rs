@@ -15,7 +15,7 @@ const SOLVER_NORMALIZED_MAX_CORRECTIVE_VELOCITY: &str =
     "physics/rapier/solver/normalized_max_corrective_velocity";
 const SOLVER_NORMALIZED_PREDICTION_DISTANCE: &str =
     "physics/rapier/solver/normalized_prediction_distance";
-const SOLVER_PREDICTIVE_CONTACT_ALLOWANCE_THRESHOLD: &str = 
+const SOLVER_PREDICTIVE_CONTACT_ALLOWANCE_THRESHOLD: &str =
     "physics/rapier/solver/predictive_contact_allowance_threshold";
 const CONTACT_DAMPING_RATIO: &str = "physics/rapier/solver/contact_damping_ratio";
 const CONTACT_NATURAL_FREQUENCY: &str = "physics/rapier/solver/contact_natural_frequency";
@@ -241,7 +241,8 @@ impl RapierProjectSettings {
     }
 
     pub fn get_predictive_contact_allowance_threshold() -> Real {
-        RapierProjectSettings::get_setting_double(SOLVER_PREDICTIVE_CONTACT_ALLOWANCE_THRESHOLD) as Real
+        RapierProjectSettings::get_setting_double(SOLVER_PREDICTIVE_CONTACT_ALLOWANCE_THRESHOLD)
+            as Real
     }
 
     pub fn get_num_internal_stabilization_iterations() -> i64 {

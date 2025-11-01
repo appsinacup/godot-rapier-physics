@@ -264,7 +264,7 @@ impl PhysicsWorld {
                             let world_pos2 =
                                 manifold.subshape_pos2.prepend_to(collider2.position());
                             let keep_solver_contact = effective_contact_dist
-                                < settings.predictive_contact_allowance_threshold 
+                                < settings.predictive_contact_allowance_threshold
                                     * settings.length_unit
                                 || {
                                     let world_pt1 = world_pos1 * contact_point.local_p1;
