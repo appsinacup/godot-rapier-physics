@@ -1,9 +1,13 @@
 # Changelog
 
-## v0.8.17 - Oct 31
+## v0.8.17 - Nov 1
 
 ## What's Changed
 * Predictive contact culling by @dog-molecule in https://github.com/appsinacup/godot-rapier-physics/pull/412
+* Fix calls to create_shape by @dog-molecule in https://github.com/appsinacup/godot-rapier-physics/pull/413
+* fix fluid tool level error by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/414
+* add 6dof by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/415
+* Corrects normal directions for concave polygon 3D collision shapes by @dog-molecule in https://github.com/appsinacup/godot-rapier-physics/pull/416
 
 ## v0.8.16 - Oct 29
 
