@@ -11,7 +11,7 @@ jobs:
       - name: Format
         shell: sh
         run: |
-          rustup component add --toolchain nightly-2025-08-30-x86_64-unknown-linux-gnu rustfmt
+          rustup component add --toolchain nightly-2025-10-31-x86_64-unknown-linux-gnu rustfmt
           cargo fmt --all -- --config-path ./rustfmt.toml --check
 
   clippy-2d:
@@ -26,7 +26,7 @@ jobs:
       - name: Clippy 2D
         shell: sh
         run: |
-          rustup component add --toolchain nightly-2025-08-30-x86_64-unknown-linux-gnu clippy
+          rustup component add --toolchain nightly-2025-10-31-x86_64-unknown-linux-gnu clippy
           cargo clippy --all-targets --features="build2d" --no-default-features -- -D warnings
 
   clippy-3d:
@@ -41,7 +41,7 @@ jobs:
       - name: Clippy 3D
         shell: sh
         run: |
-          rustup component add --toolchain nightly-2025-08-30-x86_64-unknown-linux-gnu clippy
+          rustup component add --toolchain nightly-2025-10-31-x86_64-unknown-linux-gnu clippy
           cargo clippy --all-targets --features="build3d" --no-default-features -- -D warnings
 
   gdlint:
