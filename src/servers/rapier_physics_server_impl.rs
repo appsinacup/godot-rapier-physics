@@ -66,6 +66,7 @@ pub struct RapierPhysicsServerImpl {
     normalized_allowed_linear_error: real,
     normalized_max_corrective_velocity: real,
     normalized_prediction_distance: real,
+    predictive_contact_allowance_threshold: real,
     num_internal_stabilization_iterations: usize,
     contact_damping_ratio: real,
     contact_natural_frequency: real,
@@ -98,6 +99,8 @@ impl RapierPhysicsServerImpl {
                 RapierProjectSettings::get_normalized_max_corrective_velocity(),
             normalized_prediction_distance:
                 RapierProjectSettings::get_normalized_prediction_distance(),
+            predictive_contact_allowance_threshold:
+                RapierProjectSettings::get_predictive_contact_allowance_threshold(),
             num_internal_stabilization_iterations:
                 RapierProjectSettings::get_num_internal_stabilization_iterations() as usize,
             contact_damping_ratio: RapierProjectSettings::get_contact_damping_ratio(),
@@ -769,6 +772,16 @@ impl RapierPhysicsServerImpl {
                 );
             }
         }
+    }
+
+    pub(super) fn body_predict_next_frame_position(&self, body: Rid, timestep: f64) -> Vector {
+        let physics_data = physics_data();
+        if let Some(body) = physics_data.collision_objects.get(&body) {
+            if let Some(body) = body.get_body() {
+                return body.predict_next_frame_position(timestep, &mut physics_data.physics_engine);
+            }
+        }
+        Vector::default()
     }
 
     pub(super) fn body_create(&mut self) -> Rid {
@@ -2442,6 +2455,7 @@ impl RapierPhysicsServerImpl {
             normalized_allowed_linear_error: self.normalized_allowed_linear_error,
             normalized_max_corrective_velocity: self.normalized_max_corrective_velocity,
             normalized_prediction_distance: self.normalized_prediction_distance,
+            predictive_contact_allowance_threshold: self.predictive_contact_allowance_threshold,
             num_internal_stabilization_iterations: self.num_internal_stabilization_iterations,
             contact_damping_ratio: self.contact_damping_ratio,
             contact_natural_frequency: self.contact_natural_frequency,
