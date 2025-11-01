@@ -41,7 +41,7 @@ impl RapierConcavePolygonShape {
         }
         #[cfg(feature = "dim3")]
         for i in (0..point_count).step_by(3) {
-            let s = [(i) as u32, (i + 1) as u32, (i + 2) as u32];
+            let s = [(i + 2) as u32, (i + 1) as u32, (i) as u32];
             segments.push(s);
         }
         physics_engine.shape_create_concave_polyline(
