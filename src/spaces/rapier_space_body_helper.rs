@@ -266,60 +266,55 @@ impl RapierSpace {
                             );
                         if let Some(shape_col_object) =
                             physics_collision_objects.get(&shape_col_object)
+                            && let Some(collision_body) = shape_col_object.get_body()
                         {
-                            if let Some(collision_body) = shape_col_object.get_body() {
-                                if collision_body.has_exception(p_body.get_base().get_rid()) {
+                            if collision_body.has_exception(p_body.get_base().get_rid()) {
+                                continue;
+                            }
+                            if let Some(col_shape) = physics_shapes.get(
+                                &collision_body
+                                    .get_base()
+                                    .get_shape(physics_ids, shape_index),
+                            ) {
+                                let col_shape_transform = collision_body.get_base().get_transform()
+                                    * collision_body.get_base().get_shape_transform(shape_index);
+                                let col_shape_info = shape_info_from_body_shape(
+                                    col_shape.get_base().get_id(),
+                                    col_shape_transform,
+                                );
+                                let contact = physics_engine.shapes_contact(
+                                    body_shape_info,
+                                    col_shape_info,
+                                    p_margin,
+                                );
+                                if !contact.collided {
                                     continue;
                                 }
-                                if let Some(col_shape) = physics_shapes.get(
-                                    &collision_body
-                                        .get_base()
-                                        .get_shape(physics_ids, shape_index),
+                                if physics_engine.should_skip_collision_one_dir(
+                                    &contact,
+                                    body_shape,
+                                    shape_col_object,
+                                    shape_index,
+                                    &col_shape_transform,
+                                    p_margin,
+                                    RapierSpace::get_last_step(),
+                                    p_motion,
                                 ) {
-                                    let col_shape_transform =
-                                        collision_body.get_base().get_transform()
-                                            * collision_body
-                                                .get_base()
-                                                .get_shape_transform(shape_index);
-                                    let col_shape_info = shape_info_from_body_shape(
-                                        col_shape.get_base().get_id(),
-                                        col_shape_transform,
-                                    );
-                                    let contact = physics_engine.shapes_contact(
-                                        body_shape_info,
-                                        col_shape_info,
-                                        p_margin,
-                                    );
-                                    if !contact.collided {
-                                        continue;
-                                    }
-                                    if physics_engine.should_skip_collision_one_dir(
-                                        &contact,
-                                        body_shape,
-                                        shape_col_object,
-                                        shape_index,
-                                        &col_shape_transform,
-                                        p_margin,
-                                        RapierSpace::get_last_step(),
-                                        p_motion,
-                                    ) {
-                                        continue;
-                                    }
-                                    let a = vector_to_godot(contact.pixel_point1);
-                                    let b = vector_to_godot(contact.pixel_point2);
-                                    recovered = true;
-                                    // Compute plane on b towards a.
-                                    let n = vector_to_godot(contact.normal1);
-                                    // Move it outside as to fit the margin
-                                    let d = n.dot(b);
-                                    // Compute depth on recovered motion.
-                                    let depth = n.dot(a + recover_step) - d;
-                                    if depth > min_contact_depth + DEFAULT_EPSILON {
-                                        // Only recover if there is penetration.
-                                        recover_step -= n
-                                            * (depth - min_contact_depth)
-                                            * BODY_MOTION_RECOVER_RATIO;
-                                    }
+                                    continue;
+                                }
+                                let a = vector_to_godot(contact.pixel_point1);
+                                let b = vector_to_godot(contact.pixel_point2);
+                                recovered = true;
+                                // Compute plane on b towards a.
+                                let n = vector_to_godot(contact.normal1);
+                                // Move it outside as to fit the margin
+                                let d = n.dot(b);
+                                // Compute depth on recovered motion.
+                                let depth = n.dot(a + recover_step) - d;
+                                if depth > min_contact_depth + DEFAULT_EPSILON {
+                                    // Only recover if there is penetration.
+                                    recover_step -=
+                                        n * (depth - min_contact_depth) * BODY_MOTION_RECOVER_RATIO;
                                 }
                             }
                         }
@@ -422,111 +417,106 @@ impl RapierSpace {
                             physics_ids,
                         );
                     if let Some(shape_col_object) = physics_collision_objects.get(&shape_col_object)
+                        && let Some(collision_body) = shape_col_object.get_body()
                     {
-                        if let Some(collision_body) = shape_col_object.get_body() {
-                            if collision_body.has_exception(p_body.get_base().get_rid()) {
+                        if collision_body.has_exception(p_body.get_base().get_rid()) {
+                            continue;
+                        }
+                        if let Some(col_shape) = physics_shapes.get(
+                            &collision_body
+                                .get_base()
+                                .get_shape(physics_ids, shape_index),
+                        ) {
+                            let col_shape_transform = collision_body.get_base().get_transform()
+                                * collision_body.get_base().get_shape_transform(shape_index);
+                            let col_shape_info = shape_info_from_body_shape(
+                                col_shape.get_base().get_id(),
+                                col_shape_transform,
+                            );
+                            // stuck logic, check if body collides in place
+                            body_shape_info.transform.translation.vector =
+                                vector_to_rapier(body_shape_transform.origin);
+                            let step_contact =
+                                physics_engine.shapes_contact(body_shape_info, col_shape_info, 0.0);
+                            if physics_engine.should_skip_collision_one_dir(
+                                &step_contact,
+                                body_shape,
+                                shape_col_object,
+                                shape_index,
+                                &col_shape_transform,
+                                p_margin,
+                                RapierSpace::get_last_step(),
+                                p_motion,
+                            ) {
                                 continue;
                             }
-                            if let Some(col_shape) = physics_shapes.get(
-                                &collision_body
-                                    .get_base()
-                                    .get_shape(physics_ids, shape_index),
-                            ) {
-                                let col_shape_transform = collision_body.get_base().get_transform()
-                                    * collision_body.get_base().get_shape_transform(shape_index);
-                                let col_shape_info = shape_info_from_body_shape(
-                                    col_shape.get_base().get_id(),
-                                    col_shape_transform,
+                            //just do kinematic solving
+                            let mut low = 0.0;
+                            let mut hi = 1.0;
+                            let mut fraction_coeff = 0.5;
+                            for k in 0..8 {
+                                let fraction = low + (hi - low) * fraction_coeff;
+                                body_shape_info.transform.translation.vector = vector_to_rapier(
+                                    body_shape_transform.origin + p_motion * fraction,
                                 );
-                                // stuck logic, check if body collides in place
-                                body_shape_info.transform.translation.vector =
-                                    vector_to_rapier(body_shape_transform.origin);
                                 let step_contact = physics_engine.shapes_contact(
                                     body_shape_info,
                                     col_shape_info,
                                     0.0,
                                 );
-                                if physics_engine.should_skip_collision_one_dir(
-                                    &step_contact,
-                                    body_shape,
-                                    shape_col_object,
-                                    shape_index,
-                                    &col_shape_transform,
-                                    p_margin,
-                                    RapierSpace::get_last_step(),
-                                    p_motion,
-                                ) {
-                                    continue;
-                                }
-                                //just do kinematic solving
-                                let mut low = 0.0;
-                                let mut hi = 1.0;
-                                let mut fraction_coeff = 0.5;
-                                for k in 0..8 {
-                                    let fraction = low + (hi - low) * fraction_coeff;
-                                    body_shape_info.transform.translation.vector = vector_to_rapier(
-                                        body_shape_transform.origin + p_motion * fraction,
-                                    );
-                                    let step_contact = physics_engine.shapes_contact(
-                                        body_shape_info,
-                                        col_shape_info,
-                                        0.0,
-                                    );
-                                    if step_contact.collided && !step_contact.within_margin {
-                                        hi = fraction;
-                                        if (k == 0) || (low > 0.0) {
-                                            // Did it not collide before?
-                                            // When alternating or first iteration, use dichotomy.
-                                            fraction_coeff = 0.5;
-                                        } else {
-                                            // When colliding again, converge faster towards low
-                                            // fraction for more accurate results with long motions
-                                            // that collide near the start.
-                                            fraction_coeff = 0.25;
-                                        }
+                                if step_contact.collided && !step_contact.within_margin {
+                                    hi = fraction;
+                                    if (k == 0) || (low > 0.0) {
+                                        // Did it not collide before?
+                                        // When alternating or first iteration, use dichotomy.
+                                        fraction_coeff = 0.5;
                                     } else {
-                                        low = fraction;
-                                        if (k == 0) || (hi < 1.0) {
-                                            // Did it collide before?
-                                            // When alternating or first iteration, use dichotomy.
-                                            fraction_coeff = 0.5;
-                                        } else {
-                                            // When not colliding again, converge faster towards
-                                            // high fraction for more accurate results with long
-                                            // motions that collide near the end.
-                                            fraction_coeff = 0.75;
-                                        }
+                                        // When colliding again, converge faster towards low
+                                        // fraction for more accurate results with long motions
+                                        // that collide near the start.
+                                        fraction_coeff = 0.25;
+                                    }
+                                } else {
+                                    low = fraction;
+                                    if (k == 0) || (hi < 1.0) {
+                                        // Did it collide before?
+                                        // When alternating or first iteration, use dichotomy.
+                                        fraction_coeff = 0.5;
+                                    } else {
+                                        // When not colliding again, converge faster towards
+                                        // high fraction for more accurate results with long
+                                        // motions that collide near the end.
+                                        fraction_coeff = 0.75;
                                     }
                                 }
-                                body_shape_info.transform.translation.vector = vector_to_rapier(
-                                    body_shape_transform.origin
-                                        + p_motion
-                                            * (hi + self.get_contact_max_allowed_penetration()),
-                                );
-                                let contact = physics_engine.shapes_contact(
-                                    body_shape_info,
-                                    col_shape_info,
-                                    p_margin,
-                                );
-                                if !contact.collided {
-                                    continue;
-                                }
-                                if physics_engine.should_skip_collision_one_dir(
-                                    &contact,
-                                    body_shape,
-                                    shape_col_object,
-                                    shape_index,
-                                    &col_shape_transform,
-                                    p_margin,
-                                    RapierSpace::get_last_step(),
-                                    p_motion,
-                                ) {
-                                    continue;
-                                }
-                                if low < best_safe {
-                                    best_safe = low;
-                                    best_unsafe = hi;
-                                }
+                            }
+                            body_shape_info.transform.translation.vector = vector_to_rapier(
+                                body_shape_transform.origin
+                                    + p_motion * (hi + self.get_contact_max_allowed_penetration()),
+                            );
+                            let contact = physics_engine.shapes_contact(
+                                body_shape_info,
+                                col_shape_info,
+                                p_margin,
+                            );
+                            if !contact.collided {
+                                continue;
+                            }
+                            if physics_engine.should_skip_collision_one_dir(
+                                &contact,
+                                body_shape,
+                                shape_col_object,
+                                shape_index,
+                                &col_shape_transform,
+                                p_margin,
+                                RapierSpace::get_last_step(),
+                                p_motion,
+                            ) {
+                                continue;
+                            }
+                            if low < best_safe {
+                                best_safe = low;
+                                best_unsafe = hi;
                             }
                         }
                     }
@@ -627,48 +617,47 @@ impl RapierSpace {
                             physics_ids,
                         );
                     if let Some(shape_col_object) = physics_collision_objects.get(&shape_col_object)
+                        && let Some(collision_body) = shape_col_object.get_body()
                     {
-                        if let Some(collision_body) = shape_col_object.get_body() {
-                            if collision_body.has_exception(p_body.get_base().get_rid()) {
+                        if collision_body.has_exception(p_body.get_base().get_rid()) {
+                            continue;
+                        }
+                        let col_shape_rid = collision_body
+                            .get_base()
+                            .get_shape(physics_ids, shape_index);
+                        if let Some(col_shape) = physics_shapes.get(&col_shape_rid) {
+                            let col_shape_transform = collision_body.get_base().get_transform()
+                                * collision_body.get_base().get_shape_transform(shape_index);
+                            let col_shape_info = shape_info_from_body_shape(
+                                col_shape.get_base().get_id(),
+                                col_shape_transform,
+                            );
+                            let contact = physics_engine.shapes_contact(
+                                body_shape_info,
+                                col_shape_info,
+                                p_margin,
+                            );
+                            if !contact.collided {
                                 continue;
                             }
-                            let col_shape_rid = collision_body
-                                .get_base()
-                                .get_shape(physics_ids, shape_index);
-                            if let Some(col_shape) = physics_shapes.get(&col_shape_rid) {
-                                let col_shape_transform = collision_body.get_base().get_transform()
-                                    * collision_body.get_base().get_shape_transform(shape_index);
-                                let col_shape_info = shape_info_from_body_shape(
-                                    col_shape.get_base().get_id(),
-                                    col_shape_transform,
-                                );
-                                let contact = physics_engine.shapes_contact(
-                                    body_shape_info,
-                                    col_shape_info,
-                                    p_margin,
-                                );
-                                if !contact.collided {
-                                    continue;
-                                }
-                                if physics_engine.should_skip_collision_one_dir(
-                                    &contact,
-                                    body_shape_obj,
-                                    shape_col_object,
-                                    shape_index,
-                                    &col_shape_transform,
-                                    p_margin,
-                                    RapierSpace::get_last_step(),
-                                    p_motion,
-                                ) {
-                                    continue;
-                                }
-                                if contact.pixel_distance < min_distance {
-                                    min_distance = contact.pixel_distance;
-                                    best_collision_body = Some(collision_body);
-                                    best_collision_shape_index = shape_index as i32;
-                                    best_body_shape_index = body_shape_idx;
-                                    best_contact = contact;
-                                }
+                            if physics_engine.should_skip_collision_one_dir(
+                                &contact,
+                                body_shape_obj,
+                                shape_col_object,
+                                shape_index,
+                                &col_shape_transform,
+                                p_margin,
+                                RapierSpace::get_last_step(),
+                                p_motion,
+                            ) {
+                                continue;
+                            }
+                            if contact.pixel_distance < min_distance {
+                                min_distance = contact.pixel_distance;
+                                best_collision_body = Some(collision_body);
+                                best_collision_shape_index = shape_index as i32;
+                                best_body_shape_index = body_shape_idx;
+                                best_contact = contact;
                             }
                         }
                     }
@@ -782,19 +771,19 @@ impl PhysicsEngine {
                 .get_base()
                 .get_shape_one_way_collision_margin(shape_index);
             let mut valid_depth = owc_margin.max(p_margin);
-            if let Some(b) = collision_body.get_body() {
-                if b.get_base().mode.ord() >= BodyMode::KINEMATIC.ord() {
-                    // fix for moving platforms (kinematic and dynamic), margin is increased by how much it moved in the
-                    // given direction
-                    let lv = b.get_linear_velocity(self);
-                    // compute displacement from linear velocity
-                    let mut motion = lv * last_step;
-                    let motion_len = motion.length();
-                    if !motion_len.is_zero_approx() {
-                        motion = vector_normalized(motion);
-                    }
-                    valid_depth += motion_len * motion.dot(valid_dir).max(0.0);
+            if let Some(b) = collision_body.get_body()
+                && b.get_base().mode.ord() >= BodyMode::KINEMATIC.ord()
+            {
+                // fix for moving platforms (kinematic and dynamic), margin is increased by how much it moved in the
+                // given direction
+                let lv = b.get_linear_velocity(self);
+                // compute displacement from linear velocity
+                let mut motion = lv * last_step;
+                let motion_len = motion.length();
+                if !motion_len.is_zero_approx() {
+                    motion = vector_normalized(motion);
                 }
+                valid_depth += motion_len * motion.dot(valid_dir).max(0.0);
             }
             let motion = p_motion;
             let mut motion_normalized = motion;

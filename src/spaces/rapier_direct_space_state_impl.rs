@@ -84,12 +84,11 @@ impl RapierDirectSpaceStateImpl {
             if let Some(collision_object_2d) = physics_data.collision_objects.get(&result.rid) {
                 let instance_id = collision_object_2d.get_base().get_instance_id();
                 result.collider_id = ObjectId { id: instance_id };
-                if instance_id != 0 {
-                    if let Ok(object) =
+                if instance_id != 0
+                    && let Ok(object) =
                         Gd::<Node>::try_from_instance_id(InstanceId::from_i64(instance_id as i64))
-                    {
-                        result.set_collider(object)
-                    }
+                {
+                    result.set_collider(object)
                 }
             }
             #[cfg(feature = "dim3")]
@@ -163,12 +162,11 @@ impl RapierDirectSpaceStateImpl {
             if let Some(collision_object_2d) = collision_object_2d {
                 let instance_id = collision_object_2d.get_base().get_instance_id();
                 result_slice.collider_id = ObjectId { id: instance_id };
-                if instance_id != 0 {
-                    if let Ok(object) =
+                if instance_id != 0
+                    && let Ok(object) =
                         Gd::<Node>::try_from_instance_id(InstanceId::from_i64(instance_id as i64))
-                    {
-                        result_slice.set_collider(object)
-                    }
+                {
+                    result_slice.set_collider(object)
                 }
             }
         }
@@ -237,12 +235,11 @@ impl RapierDirectSpaceStateImpl {
                 results_slice[cpt].rid = rid;
                 let instance_id = collision_object_2d.get_base().get_instance_id();
                 results_slice[cpt].collider_id = ObjectId { id: instance_id };
-                if instance_id != 0 {
-                    if let Ok(object) =
+                if instance_id != 0
+                    && let Ok(object) =
                         Gd::<Node>::try_from_instance_id(InstanceId::from_i64(instance_id as i64))
-                    {
-                        results_slice[cpt].set_collider(object)
-                    }
+                {
+                    results_slice[cpt].set_collider(object)
                 }
             }
             cpt += 1;

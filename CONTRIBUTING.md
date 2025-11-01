@@ -127,7 +127,7 @@ For features, the following are available:
 - `double-dim2`
 - `double-dim3`
 - `parallel`
-- `simd-stable`
+- `simd-nightly`
 - `enhanced-determinism`
 - `serde-serialize`
 

@@ -12,7 +12,7 @@ inputs:
     description: Rust extra flags.
   features:
     required: true
-    description: simd-nightly,simd-stable,parallel,enhanced-determinism
+    description: simd-nightly,simd-nightly,parallel,enhanced-determinism
 
 runs:
   using: composite

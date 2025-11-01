@@ -581,23 +581,22 @@ impl PhysicsEngine {
     }
 
     pub fn world_reset_if_empty(&mut self, world_handle: WorldHandle, settings: &WorldSettings) {
-        if let Some(physics_world) = self.get_mut_world(world_handle) {
-            if physics_world.physics_objects.impulse_joint_set.is_empty()
-                && physics_world
-                    .physics_objects
-                    .multibody_joint_set
-                    .multibodies()
-                    .peekable()
-                    .peek()
-                    .is_none()
-                && physics_world.physics_objects.rigid_body_set.is_empty()
-                && physics_world.physics_objects.collider_set.is_empty()
-            {
-                let new_physics_world = PhysicsWorld::new(settings);
-                physics_world.fluids_pipeline = new_physics_world.fluids_pipeline;
-                physics_world.physics_pipeline = new_physics_world.physics_pipeline;
-                physics_world.physics_objects = new_physics_world.physics_objects;
-            }
+        if let Some(physics_world) = self.get_mut_world(world_handle)
+            && physics_world.physics_objects.impulse_joint_set.is_empty()
+            && physics_world
+                .physics_objects
+                .multibody_joint_set
+                .multibodies()
+                .peekable()
+                .peek()
+                .is_none()
+            && physics_world.physics_objects.rigid_body_set.is_empty()
+            && physics_world.physics_objects.collider_set.is_empty()
+        {
+            let new_physics_world = PhysicsWorld::new(settings);
+            physics_world.fluids_pipeline = new_physics_world.fluids_pipeline;
+            physics_world.physics_pipeline = new_physics_world.physics_pipeline;
+            physics_world.physics_objects = new_physics_world.physics_objects;
         }
     }
 

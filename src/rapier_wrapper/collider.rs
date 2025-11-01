@@ -92,12 +92,12 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
     }
     match shape.shape_type() {
         ShapeType::Ball => {
-            if let Some(new_shape) = shape.as_ball() {
-                if let Some(new_shape) = new_shape.scaled(&scale.abs(), SUBDIVISIONS) {
-                    match new_shape {
-                        Left(shape) => return SharedShape::new(shape),
-                        Right(shape) => return SharedShape::new(shape),
-                    }
+            if let Some(new_shape) = shape.as_ball()
+                && let Some(new_shape) = new_shape.scaled(&scale.abs(), SUBDIVISIONS)
+            {
+                match new_shape {
+                    Left(shape) => return SharedShape::new(shape),
+                    Right(shape) => return SharedShape::new(shape),
                 }
             }
         }
@@ -107,10 +107,10 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
             }
         }
         ShapeType::HalfSpace => {
-            if let Some(new_shape) = shape.as_halfspace() {
-                if let Some(new_shape) = new_shape.scaled(&scale.abs()) {
-                    return SharedShape::new(new_shape);
-                }
+            if let Some(new_shape) = shape.as_halfspace()
+                && let Some(new_shape) = new_shape.scaled(&scale.abs())
+            {
+                return SharedShape::new(new_shape);
             }
         }
         ShapeType::Polyline => {
@@ -137,10 +137,10 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
         }
         #[cfg(feature = "dim2")]
         ShapeType::ConvexPolygon => {
-            if let Some(new_shape) = shape.as_convex_polygon() {
-                if let Some(new_shape) = new_shape.clone().scaled(&scale) {
-                    return SharedShape::new(new_shape);
-                }
+            if let Some(new_shape) = shape.as_convex_polygon()
+                && let Some(new_shape) = new_shape.clone().scaled(&scale)
+            {
+                return SharedShape::new(new_shape);
             }
         }
         #[cfg(feature = "dim3")]
@@ -159,12 +159,12 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
             }
         }
         ShapeType::Capsule => {
-            if let Some(new_shape) = shape.as_capsule() {
-                if let Some(new_shape) = new_shape.scaled(&scale, SUBDIVISIONS) {
-                    match new_shape {
-                        Left(shape) => return SharedShape::new(shape),
-                        Right(shape) => return SharedShape::new(shape),
-                    }
+            if let Some(new_shape) = shape.as_capsule()
+                && let Some(new_shape) = new_shape.scaled(&scale, SUBDIVISIONS)
+            {
+                match new_shape {
+                    Left(shape) => return SharedShape::new(shape),
+                    Right(shape) => return SharedShape::new(shape),
                 }
             }
         }
@@ -206,12 +206,12 @@ impl Material {
     }
 }
 fn shape_is_halfspace(shape: &SharedShape) -> bool {
-    if shape.shape_type() == ShapeType::Compound {
-        if let Some(shape) = shape.as_compound() {
-            for shape in shape.shapes() {
-                if shape_is_halfspace(&shape.1) {
-                    return true;
-                }
+    if shape.shape_type() == ShapeType::Compound
+        && let Some(shape) = shape.as_compound()
+    {
+        for shape in shape.shapes() {
+            if shape_is_halfspace(&shape.1) {
+                return true;
             }
         }
     }
@@ -224,20 +224,19 @@ impl PhysicsEngine {
         collider_handle: ColliderHandle,
         enable: bool,
     ) {
-        if let Some(physics_world) = self.get_mut_world(world_handle) {
-            if let Some(collider) = physics_world
+        if let Some(physics_world) = self.get_mut_world(world_handle)
+            && let Some(collider) = physics_world
                 .physics_objects
                 .collider_set
                 .get_mut(collider_handle)
-            {
-                let mut active_events = collider.active_hooks();
-                if enable {
-                    active_events |= ActiveHooks::MODIFY_SOLVER_CONTACTS;
-                } else {
-                    active_events &= !ActiveHooks::MODIFY_SOLVER_CONTACTS;
-                }
-                collider.set_active_hooks(active_events);
+        {
+            let mut active_events = collider.active_hooks();
+            if enable {
+                active_events |= ActiveHooks::MODIFY_SOLVER_CONTACTS;
+            } else {
+                active_events &= !ActiveHooks::MODIFY_SOLVER_CONTACTS;
             }
+            collider.set_active_hooks(active_events);
         }
     }
 
@@ -247,20 +246,19 @@ impl PhysicsEngine {
         collider_handle: ColliderHandle,
         enable: bool,
     ) {
-        if let Some(physics_world) = self.get_mut_world(world_handle) {
-            if let Some(collider) = physics_world
+        if let Some(physics_world) = self.get_mut_world(world_handle)
+            && let Some(collider) = physics_world
                 .physics_objects
                 .collider_set
                 .get_mut(collider_handle)
-            {
-                let mut active_events = collider.active_hooks();
-                if enable {
-                    active_events |= ActiveHooks::FILTER_CONTACT_PAIRS;
-                } else {
-                    active_events &= !ActiveHooks::FILTER_CONTACT_PAIRS;
-                }
-                collider.set_active_hooks(active_events);
+        {
+            let mut active_events = collider.active_hooks();
+            if enable {
+                active_events |= ActiveHooks::FILTER_CONTACT_PAIRS;
+            } else {
+                active_events &= !ActiveHooks::FILTER_CONTACT_PAIRS;
             }
+            collider.set_active_hooks(active_events);
         }
     }
 
@@ -335,14 +333,13 @@ impl PhysicsEngine {
         collider_handle: ColliderHandle,
         user_data: &UserData,
     ) {
-        if let Some(physics_world) = self.get_mut_world(world_handle) {
-            if let Some(collider) = physics_world
+        if let Some(physics_world) = self.get_mut_world(world_handle)
+            && let Some(collider) = physics_world
                 .physics_objects
                 .collider_set
                 .get_mut(collider_handle)
-            {
-                collider.user_data = user_data.get_data();
-            }
+        {
+            collider.user_data = user_data.get_data();
         }
     }
 
@@ -411,18 +408,17 @@ impl PhysicsEngine {
     ) {
         if let Some(shape) = self.get_shape(shape_info.handle) {
             let new_shape = scale_shape(shape, shape_info);
-            if let Some(physics_world) = self.get_mut_world(world_handle) {
-                if let Some(collider) = physics_world
+            if let Some(physics_world) = self.get_mut_world(world_handle)
+                && let Some(collider) = physics_world
                     .physics_objects
                     .collider_set
                     .get_mut(collider_handle)
-                {
-                    collider.set_shape(new_shape);
-                    if collider.parent().is_some() {
-                        collider.set_position_wrt_parent(shape_info.transform);
-                    } else {
-                        collider.set_position(shape_info.transform);
-                    }
+            {
+                collider.set_shape(new_shape);
+                if collider.parent().is_some() {
+                    collider.set_position_wrt_parent(shape_info.transform);
+                } else {
+                    collider.set_position(shape_info.transform);
                 }
             }
         }
@@ -434,20 +430,19 @@ impl PhysicsEngine {
         collider_handle: ColliderHandle,
         enable: bool,
     ) {
-        if let Some(physics_world) = self.get_mut_world(world_handle) {
-            if let Some(collider) = physics_world
+        if let Some(physics_world) = self.get_mut_world(world_handle)
+            && let Some(collider) = physics_world
                 .physics_objects
                 .collider_set
                 .get_mut(collider_handle)
-            {
-                let mut active_events = collider.active_events();
-                if enable {
-                    active_events |= ActiveEvents::CONTACT_FORCE_EVENTS;
-                } else {
-                    active_events &= !ActiveEvents::CONTACT_FORCE_EVENTS;
-                }
-                collider.set_active_events(active_events);
+        {
+            let mut active_events = collider.active_events();
+            if enable {
+                active_events |= ActiveEvents::CONTACT_FORCE_EVENTS;
+            } else {
+                active_events &= !ActiveEvents::CONTACT_FORCE_EVENTS;
             }
+            collider.set_active_events(active_events);
         }
     }
 }

@@ -112,11 +112,11 @@ impl RapierArea {
         let area_rid = get_id_rid(*area_id, physics_ids);
         let mut detected_bodies = HashMap::default();
         let mut space_rid = Rid::Invalid;
-        if let Some(area_rid) = physics_collision_objects.get(&area_rid) {
-            if let Some(area) = area_rid.get_area() {
-                detected_bodies = area.state.detected_bodies.clone();
-                space_rid = area.get_base().get_space(physics_ids);
-            }
+        if let Some(area_rid) = physics_collision_objects.get(&area_rid)
+            && let Some(area) = area_rid.get_area()
+        {
+            detected_bodies = area.state.detected_bodies.clone();
+            space_rid = area.get_base().get_space(physics_ids);
         }
         if let Some(space) = physics_spaces.get_mut(&space_rid) {
             for (key, _) in detected_bodies.iter() {
@@ -144,11 +144,11 @@ impl RapierArea {
         let area_rid = get_id_rid(*area_id, physics_ids);
         let mut detected_bodies = HashMap::default();
         let mut space_rid = Rid::Invalid;
-        if let Some(area_rid) = physics_collision_objects.get(&area_rid) {
-            if let Some(area) = area_rid.get_area() {
-                detected_bodies = area.state.detected_bodies.clone();
-                space_rid = area.get_base().get_space(physics_ids);
-            }
+        if let Some(area_rid) = physics_collision_objects.get(&area_rid)
+            && let Some(area) = area_rid.get_area()
+        {
+            detected_bodies = area.state.detected_bodies.clone();
+            space_rid = area.get_base().get_space(physics_ids);
         }
         if let Some(space) = physics_spaces.get_mut(&space_rid) {
             for (key, _) in detected_bodies.iter() {
@@ -175,11 +175,11 @@ impl RapierArea {
         let area_rid = get_id_rid(*area_id, physics_ids);
         let mut detected_bodies = HashMap::default();
         let mut space_rid: Rid = Rid::Invalid;
-        if let Some(area_rid) = physics_collision_objects.get(&area_rid) {
-            if let Some(area) = area_rid.get_area() {
-                detected_bodies = area.state.detected_bodies.clone();
-                space_rid = area.get_base().get_space(physics_ids);
-            }
+        if let Some(area_rid) = physics_collision_objects.get(&area_rid)
+            && let Some(area) = area_rid.get_area()
+        {
+            detected_bodies = area.state.detected_bodies.clone();
+            space_rid = area.get_base().get_space(physics_ids);
         }
         if let Some(space) = physics_spaces.get_mut(&space_rid) {
             for (key, _) in detected_bodies {
@@ -268,10 +268,10 @@ impl RapierArea {
             *detected_body -= 1;
             if *detected_body == 0 {
                 self.state.detected_bodies.remove(&body_id);
-                if let Some(body) = body {
-                    if let Some(body) = body.get_mut_body() {
-                        body.remove_area(self.base.get_id(), space);
-                    }
+                if let Some(body) = body
+                    && let Some(body) = body.get_mut_body()
+                {
+                    body.remove_area(self.base.get_id(), space);
                 }
             }
         }
@@ -319,10 +319,10 @@ impl RapierArea {
             return;
         }
         if let Some(other_area) = other_area {
-            if let Some(other_area) = other_area.get_mut_area() {
-                if !other_area.is_monitorable() {
-                    return;
-                }
+            if let Some(other_area) = other_area.get_mut_area()
+                && !other_area.is_monitorable()
+            {
+                return;
             }
         } else {
             godot_error!("other area is null");
@@ -373,12 +373,11 @@ impl RapierArea {
         if self.area_monitor_callback.is_none() {
             return;
         }
-        if let Some(other_area) = other_area {
-            if let Some(other_area) = other_area.get_mut_area() {
-                if !other_area.is_monitorable() {
-                    return;
-                }
-            }
+        if let Some(other_area) = other_area
+            && let Some(other_area) = other_area.get_mut_area()
+            && !other_area.is_monitorable()
+        {
+            return;
         }
         // Remove from currently detected areas
         if let Some(detected_area) = self.state.detected_areas.get_mut(&other_area_id) {
@@ -423,11 +422,11 @@ impl RapierArea {
         let mut detected_bodies = HashMap::default();
         let mut space_rid = Rid::Invalid;
         let area_rid = get_id_rid(*area_id, physics_ids);
-        if let Some(area_rid) = physics_collision_objects.get(&area_rid) {
-            if let Some(area) = area_rid.get_area() {
-                detected_bodies = area.state.detected_bodies.clone();
-                space_rid = area.get_base().get_space(physics_ids);
-            }
+        if let Some(area_rid) = physics_collision_objects.get(&area_rid)
+            && let Some(area) = area_rid.get_area()
+        {
+            detected_bodies = area.state.detected_bodies.clone();
+            space_rid = area.get_base().get_space(physics_ids);
         }
         if let Some(space) = physics_spaces.get_mut(&space_rid) {
             space
@@ -769,10 +768,9 @@ impl RapierArea {
             for (detected_body, _) in detected_bodies {
                 if let Some(body) =
                     physics_collision_objects.get_mut(&get_id_rid(detected_body, physics_ids))
+                    && let Some(body) = body.get_mut_body()
                 {
-                    if let Some(body) = body.get_mut_body() {
-                        body.remove_area(area_id, space);
-                    }
+                    body.remove_area(area_id, space);
                 }
             }
         }

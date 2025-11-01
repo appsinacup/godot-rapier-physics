@@ -104,49 +104,40 @@ impl RapierSpace {
         {
             if let Some(body) =
                 physics_collision_objects.get_mut(&get_id_rid(*body_id, physics_ids))
+                && let Some(body) = body.get_mut_body()
             {
-                if let Some(body) = body.get_mut_body() {
-                    body.create_direct_state();
-                }
+                body.create_direct_state();
             }
-            if let Some(body) = physics_collision_objects.get(&get_id_rid(*body_id, physics_ids)) {
-                if let Some(body) = body.get_body() {
-                    if let Some(direct_state) = body.get_direct_state() {
-                        if let Some(state_sync_callback) = body.get_state_sync_callback() {
-                            queries.push((
-                                state_sync_callback.clone(),
-                                vec![direct_state.to_variant()],
-                            ));
-                        }
-                        if let Some(direct_state) = body.get_direct_state() {
-                            if let Some(fi_callback_data) = body.get_force_integration_callback() {
-                                if fi_callback_data.udata.is_nil() {
-                                    queries.push((
-                                        fi_callback_data.callable.clone(),
-                                        vec![direct_state.to_variant()],
-                                    ));
-                                } else {
-                                    queries.push((
-                                        fi_callback_data.callable.clone(),
-                                        vec![
-                                            direct_state.to_variant(),
-                                            fi_callback_data.udata.clone(),
-                                        ],
-                                    ));
-                                }
-                            }
-                        }
+            if let Some(body) = physics_collision_objects.get(&get_id_rid(*body_id, physics_ids))
+                && let Some(body) = body.get_body()
+                && let Some(direct_state) = body.get_direct_state()
+            {
+                if let Some(state_sync_callback) = body.get_state_sync_callback() {
+                    queries.push((state_sync_callback.clone(), vec![direct_state.to_variant()]));
+                }
+                if let Some(direct_state) = body.get_direct_state()
+                    && let Some(fi_callback_data) = body.get_force_integration_callback()
+                {
+                    if fi_callback_data.udata.is_nil() {
+                        queries.push((
+                            fi_callback_data.callable.clone(),
+                            vec![direct_state.to_variant()],
+                        ));
+                    } else {
+                        queries.push((
+                            fi_callback_data.callable.clone(),
+                            vec![direct_state.to_variant(), fi_callback_data.udata.clone()],
+                        ));
                     }
                 }
             }
         }
         for area_handle in self.state.get_monitor_query_list().clone() {
             if let Some(area) = physics_collision_objects.get(&get_id_rid(area_handle, physics_ids))
+                && let Some(area) = area.get_area()
             {
-                if let Some(area) = area.get_area() {
-                    let area_queries = &mut area.get_queries(physics_ids);
-                    queries.append(area_queries);
-                }
+                let area_queries = &mut area.get_queries(physics_ids);
+                queries.append(area_queries);
             }
         }
         queries
@@ -160,10 +151,9 @@ impl RapierSpace {
         for area_handle in self.state.get_monitor_query_list().clone() {
             if let Some(area) =
                 physics_collision_objects.get_mut(&get_id_rid(area_handle, physics_ids))
+                && let Some(area) = area.get_mut_area()
             {
-                if let Some(area) = area.get_mut_area() {
-                    area.clear_monitored_objects();
-                }
+                area.clear_monitored_objects();
             }
         }
         self.state.reset_monitor_query_list();
@@ -344,10 +334,10 @@ impl RapierSpace {
             physics_engine.world_get_active_objects_count(self.state.get_id()) as i32,
         );
         for body in self.state.get_active_list().clone() {
-            if let Some(body) = physics_collision_objects.get_mut(&get_id_rid(body, physics_ids)) {
-                if let Some(body) = body.get_mut_body() {
-                    body.on_update_active(self, physics_engine);
-                }
+            if let Some(body) = physics_collision_objects.get_mut(&get_id_rid(body, physics_ids))
+                && let Some(body) = body.get_mut_body()
+            {
+                body.on_update_active(self, physics_engine);
             }
         }
     }
