@@ -44,8 +44,10 @@ impl RapierSpace {
             return false;
         };
         let collision_object_base = collision_object_2d.get_base();
-        let canvas_excluded = collision_object_base.get_canvas_instance_id()
-            != handle_excluded_info.query_canvas_instance_id;
+        let canvas_excluded = match handle_excluded_info.query_canvas_instance_id {
+            Some(query_id) => collision_object_base.get_canvas_instance_id() != query_id,
+            None => false,
+        };
         let layer_excluded = collision_object_base.get_collision_layer()
             & handle_excluded_info.query_collision_layer_mask
             == 0;

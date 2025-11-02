@@ -129,7 +129,7 @@ impl RapierDirectSpaceStateImpl {
         let hit_info_ptr = hit_info_array.as_mut_ptr();
         // Initialize query_excluded_info
         let query_excluded_info = QueryExcludedInfo {
-            query_canvas_instance_id: canvas_instance_id,
+            query_canvas_instance_id: Some(canvas_instance_id),
             query_collision_layer_mask: collision_mask,
             ..Default::default()
         };
