@@ -30,7 +30,7 @@ use crate::*;
     derive(serde::Serialize, serde::Deserialize)
 )]
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
-struct MonitorInfo {
+pub struct MonitorInfo {
     pub id: RapierId,
     pub instance_id: u64,
     pub object_shape_index: u32,
@@ -60,7 +60,7 @@ pub struct AreaImport {
     derive(serde::Serialize, serde::Deserialize)
 )]
 pub struct RapierAreaState {
-    monitored_objects: HashMap<(ColliderHandle, ColliderHandle), MonitorInfo>,
+    pub monitored_objects: HashMap<(ColliderHandle, ColliderHandle), MonitorInfo>,
     detected_bodies: HashMap<RapierId, u32>,
     detected_areas: HashMap<RapierId, u32>,
 }
@@ -77,9 +77,9 @@ pub struct RapierArea {
     angular_damp: real,
     priority: i32,
     monitorable: bool,
-    monitor_callback: Option<Callable>,
-    area_monitor_callback: Option<Callable>,
-    state: RapierAreaState,
+    pub monitor_callback: Option<Callable>,
+    pub area_monitor_callback: Option<Callable>,
+    pub state: RapierAreaState,
     base: RapierCollisionObjectBase,
 }
 impl RapierArea {
@@ -671,12 +671,13 @@ impl RapierArea {
         self.priority
     }
 
-    pub fn get_queries(&self, physics_ids: &PhysicsIds) -> Vec<(Callable, Vec<Variant>)> {
-        let mut queries = Vec::default();
-        if self.state.monitored_objects.is_empty() {
-            return queries;
-        }
-        for (_, monitor_info) in &self.state.monitored_objects {
+    pub fn call_queries(
+        monitored_objects: &HashMap<(ColliderHandle, ColliderHandle), MonitorInfo>,
+        monitor_callback: Option<Callable>,
+        area_monitor_callback: Option<Callable>,
+        physics_ids: &PhysicsIds,
+    ) {
+        for (_, monitor_info) in monitored_objects {
             if monitor_info.state == 0 {
                 godot_error!("Invalid monitor state");
                 continue;
@@ -700,14 +701,13 @@ impl RapierArea {
                 ]
             };
             if monitor_info.collision_object_type == CollisionObjectType::Body {
-                if let Some(ref monitor_callback) = self.monitor_callback {
-                    queries.push((monitor_callback.clone(), arg_array));
+                if let Some(ref monitor_callback) = monitor_callback {
+                    monitor_callback.call(arg_array.as_slice());
                 }
-            } else if let Some(ref area_monitor_callback) = self.area_monitor_callback {
-                queries.push((area_monitor_callback.clone(), arg_array));
+            } else if let Some(ref area_monitor_callback) = area_monitor_callback {
+                area_monitor_callback.call(arg_array.as_slice());
             }
         }
-        queries
     }
 
     pub fn clear_monitored_objects(&mut self) {

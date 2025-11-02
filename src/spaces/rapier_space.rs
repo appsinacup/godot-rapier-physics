@@ -91,56 +91,60 @@ impl RapierSpace {
         &mut self.state
     }
 
-    pub fn get_queries(
-        &mut self,
+    pub fn call_queries(
+        state_query_list: &HashSet<RapierId>,
+        force_integrate_query_list: &HashSet<RapierId>,
+        monitor_query_list: &HashSet<RapierId>,
         physics_collision_objects: &mut PhysicsCollisionObjects,
         physics_ids: &PhysicsIds,
-    ) -> Vec<(Callable, Vec<Variant>)> {
-        let mut queries = Vec::default();
-        for body_id in self
-            .state
-            .get_state_query_list()
-            .union(self.state.get_force_integrate_query_list())
-        {
+    ) {
+        for body_id in state_query_list.union(force_integrate_query_list) {
+            let mut direct_state_array = None;
+            let mut state_sync_callback = None;
+            let mut fi_callback = None;
+            let mut fi_array = None;
             if let Some(body) =
                 physics_collision_objects.get_mut(&get_id_rid(*body_id, physics_ids))
                 && let Some(body) = body.get_mut_body()
             {
                 body.create_direct_state();
+                state_sync_callback = body.get_state_sync_callback();
+                fi_callback = body.get_force_integration_callable();
+                direct_state_array = Some(body.get_direct_state_array());
+                fi_array = Some(body.get_force_integration_array());
             }
-            if let Some(body) = physics_collision_objects.get(&get_id_rid(*body_id, physics_ids))
-                && let Some(body) = body.get_body()
-                && let Some(direct_state) = body.get_direct_state()
+            if let Some(state_sync_callback) = state_sync_callback
+                && let Some(direct_state_array) = direct_state_array
             {
-                if let Some(state_sync_callback) = body.get_state_sync_callback() {
-                    queries.push((state_sync_callback.clone(), vec![direct_state.to_variant()]));
-                }
-                if let Some(direct_state) = body.get_direct_state()
-                    && let Some(fi_callback_data) = body.get_force_integration_callback()
-                {
-                    if fi_callback_data.udata.is_nil() {
-                        queries.push((
-                            fi_callback_data.callable.clone(),
-                            vec![direct_state.to_variant()],
-                        ));
-                    } else {
-                        queries.push((
-                            fi_callback_data.callable.clone(),
-                            vec![direct_state.to_variant(), fi_callback_data.udata.clone()],
-                        ));
-                    }
-                }
+                state_sync_callback.callv(direct_state_array);
+            }
+            if let Some(fi_callback) = fi_callback
+                && let Some(fi_array) = fi_array
+            {
+                fi_callback.callv(fi_array);
             }
         }
-        for area_handle in self.state.get_monitor_query_list().clone() {
-            if let Some(area) = physics_collision_objects.get(&get_id_rid(area_handle, physics_ids))
+        for area_handle in monitor_query_list {
+            let mut monitored_objects = None;
+            let mut monitor_callback = None;
+            let mut area_monitor_callback = None;
+            if let Some(area) =
+                physics_collision_objects.get(&get_id_rid(*area_handle, physics_ids))
                 && let Some(area) = area.get_area()
             {
-                let area_queries = &mut area.get_queries(physics_ids);
-                queries.append(area_queries);
+                monitored_objects = Some(area.state.monitored_objects.clone());
+                monitor_callback = area.monitor_callback.clone();
+                area_monitor_callback = area.area_monitor_callback.clone();
+            }
+            if let Some(monitored_objects) = monitored_objects {
+                RapierArea::call_queries(
+                    &monitored_objects,
+                    monitor_callback,
+                    area_monitor_callback,
+                    physics_ids,
+                );
             }
         }
-        queries
     }
 
     pub fn update_after_queries(

@@ -74,11 +74,6 @@ impl Default for Contact {
         }
     }
 }
-#[derive(Debug)]
-pub struct ForceIntegrationCallbackData {
-    pub callable: Callable,
-    pub udata: Variant,
-}
 #[derive(Clone, Copy, Default, Debug)]
 #[cfg_attr(
     feature = "serde-serialize",
@@ -160,8 +155,10 @@ pub struct RapierBody {
     can_sleep: bool,
     sleep: bool,
     body_state_callback: Option<Callable>,
-    fi_callback_data: Option<ForceIntegrationCallbackData>,
+    force_integration_callback: Option<Callable>,
     direct_state: Option<Gd<PhysicsDirectBodyState>>,
+    direct_state_array: VariantArray,
+    force_integration_array: VariantArray,
     state: RapierBodyState,
     base: RapierCollisionObjectBase,
 }
@@ -194,8 +191,10 @@ impl RapierBody {
             can_sleep: true,
             sleep: false,
             body_state_callback: None,
-            fi_callback_data: None,
+            force_integration_callback: None,
             direct_state: None,
+            direct_state_array: VariantArray::new(),
+            force_integration_array: VariantArray::new(),
             state,
             base: RapierCollisionObjectBase::new(id, rid, CollisionObjectType::Body),
         }
@@ -549,40 +548,56 @@ impl RapierBody {
         physics_spaces: &mut PhysicsSpaces,
         physics_ids: &PhysicsIds,
     ) {
+        self.force_integration_array.clear();
+        self.force_integration_callback = None;
         if callable.is_valid() {
-            self.fi_callback_data = Some(ForceIntegrationCallbackData { callable, udata });
+            self.force_integration_callback = Some(callable);
+            if let Some(ds) = &self.direct_state {
+                self.force_integration_array.push(&ds.to_variant());
+                if !udata.is_nil() {
+                    self.force_integration_array.push(&udata);
+                }
+            }
             if let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_ids)) {
                 space
                     .get_mut_state()
                     .body_add_to_force_integrate_list(self.base.get_id());
             }
-        } else {
-            self.fi_callback_data = None;
-            if let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_ids)) {
-                space
-                    .get_mut_state()
-                    .body_remove_from_force_integrate_list(self.base.get_id());
-            }
+        } else if let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_ids)) {
+            space
+                .get_mut_state()
+                .body_remove_from_force_integrate_list(self.base.get_id());
         }
     }
 
-    pub fn get_force_integration_callback(&self) -> Option<&ForceIntegrationCallbackData> {
-        self.fi_callback_data.as_ref()
+    pub fn get_force_integration_array(&self) -> &VariantArray {
+        &self.force_integration_array
+    }
+
+    pub fn get_force_integration_callable(&self) -> Option<&Callable> {
+        self.force_integration_callback.as_ref()
     }
 
     pub fn create_direct_state(&mut self) {
         if self.direct_state.is_none() {
+            self.direct_state_array.clear();
             let mut direct_space_state = RapierDirectBodyState::new_alloc();
             {
                 let mut direct_state = direct_space_state.bind_mut();
                 direct_state.set_body(self.base.get_rid());
             }
+            self.direct_state_array
+                .push(&direct_space_state.clone().to_variant());
             self.direct_state = Some(direct_space_state.upcast());
         }
     }
 
     pub fn get_direct_state(&self) -> Option<&Gd<PhysicsDirectBodyState>> {
         self.direct_state.as_ref()
+    }
+
+    pub fn get_direct_state_array(&self) -> &VariantArray {
+        &self.direct_state_array
     }
 
     pub fn add_area(&mut self, p_area: &RapierArea, space: &mut RapierSpace) {
@@ -1991,7 +2006,7 @@ impl RapierBody {
     ) {
         let id = self.base.get_id();
         if self.base.is_space_valid() && self.base.mode.ord() >= BodyMode::KINEMATIC.ord() {
-            if self.get_force_integration_callback().is_some()
+            if self.get_force_integration_callable().is_some()
                 && let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_ids))
             {
                 space.get_mut_state().body_add_to_force_integrate_list(id);

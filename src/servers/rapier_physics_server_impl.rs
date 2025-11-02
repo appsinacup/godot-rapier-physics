@@ -2567,20 +2567,28 @@ impl RapierPhysicsServerImpl {
         RapierSpace::step(step, space_rid, physics_data, settings);
     }
 
-    pub(super) fn space_flush_queries(&mut self, space: &Rid) {
+    pub(super) fn space_flush_queries(space: &Rid) {
         let physics_data = physics_data();
-        self.flushing_queries = true;
-        let mut queries = Vec::default();
+        let mut state_query_list = None;
+        let mut force_integrate_query_list = None;
+        let mut monitor_query_list = None;
         if let Some(space) = physics_data.spaces.get_mut(space) {
-            let query = space.get_queries(&mut physics_data.collision_objects, &physics_data.ids);
-            queries.extend(query);
+            state_query_list = Some(space.get_state().get_state_query_list());
+            force_integrate_query_list = Some(space.get_state().get_force_integrate_query_list());
+            monitor_query_list = Some(space.get_state().get_monitor_query_list());
         }
-        for query in queries {
-            // TODO optimize function calls copying data.
-            // TODO optimize after these are called, the callbacks into direct state objects.
-            query.0.callv(&Array::from(query.1.as_slice()));
+        if let Some(state_query_list) = state_query_list
+            && let Some(force_integrate_query_list) = force_integrate_query_list
+            && let Some(monitor_query_list) = monitor_query_list
+        {
+            RapierSpace::call_queries(
+                state_query_list,
+                force_integrate_query_list,
+                monitor_query_list,
+                &mut physics_data.collision_objects,
+                &physics_data.ids,
+            );
         }
-        self.flushing_queries = false;
         if let Some(space) = physics_data.spaces.get_mut(space) {
             space.update_after_queries(&mut physics_data.collision_objects, &physics_data.ids);
         }

@@ -703,19 +703,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         }
         self.implementation.flushing_queries = true;
         let physics_data = physics_data();
-        let mut queries = Vec::default();
-        for space in physics_data.active_spaces.values() {
-            if let Some(space) = physics_data.spaces.get_mut(space) {
-                let query =
-                    space.get_queries(&mut physics_data.collision_objects, &physics_data.ids);
-                queries.extend(query);
-            }
-        }
         let guard = self.base_mut();
-        for query in queries {
-            // TODO optimize function calls copying data.
-            // TODO optimize after these are called, the callbacks into direct state objects.
-            query.0.callv(&Array::from(query.1.as_slice()));
+        for space in physics_data.active_spaces.values() {
+            RapierPhysicsServerImpl::space_flush_queries(space);
         }
         drop(guard);
         for space in physics_data.active_spaces.values() {

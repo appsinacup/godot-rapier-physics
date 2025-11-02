@@ -12,7 +12,7 @@ jobs:
         arch: ["x86_64-unknown-linux-gnu", "aarch64-unknown-linux-gnu", "armv7-unknown-linux-gnueabihf"] #"i686-unknown-linux-gnu"
         precision: [single] #, double]
         dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
-        features: [{"feature":"simd-nightly,serde-serialize,experimental-threads", "name": "simd-parallel"}, {"feature":"enhanced-determinism,serde-serialize,experimental-threads", "name": "enhanced-determinism"}]
+        features: [{"feature":"simd-nightly,serde-serialize", "name": "simd-parallel"}, {"feature":"enhanced-determinism,serde-serialize", "name": "enhanced-determinism"}]
 
     steps:
       - uses: actions/checkout@v4
