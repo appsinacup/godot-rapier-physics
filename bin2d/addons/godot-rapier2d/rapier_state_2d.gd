@@ -80,26 +80,29 @@ func load_state() -> int:
 	var space_rid = get_viewport().world_2d.space
 	load_node(space_rid, JSON.parse_string(state["space"]))
 	RapierPhysicsServer2D.set_global_id(int(state["id"]))
+	RapierPhysicsServer2D.space_flush_queries(space_rid)
 	return hash(JSON.stringify(state))
 
 
 ## Export the state to file
 func export_state(file_name: String = "user://state.json"):
-	save_state(false)
+	var hash = save_state(false)
 	FileAccess.open(file_name, FileAccess.WRITE).store_string(JSON.stringify(state, " "))
+	return hash
 
 
 ## Import the state from file
 func import_state(file_name: String = "user://state.json"):
 	state = JSON.parse_string(FileAccess.open(file_name, FileAccess.READ).get_as_text())
-	load_state()
+	return load_state()
 
 
-func _notification(what: int) -> void:
-	if what == NOTIFICATION_ENTER_TREE:
-		print("enter tree")
-	if what == NOTIFICATION_EXIT_TREE:
-		save_state(false)
-		FileAccess.open("user://save.json", FileAccess.WRITE).store_string(
-			JSON.stringify(state, " ")
-		)
+#func _notification(what: int) -> void:
+	#if what == NOTIFICATION_ENTER_TREE:
+		#print("enter tree")
+		# TODO reload state here?
+	#if what == NOTIFICATION_EXIT_TREE:
+	#	save_state(false)
+	#	FileAccess.open("user://save.json", FileAccess.WRITE).store_string(
+	#		JSON.stringify(state, " ")
+	#	)

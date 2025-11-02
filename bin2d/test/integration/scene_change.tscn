@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://clemidbbr2cib"]
 
-[ext_resource type="Script" path="res://test/integration/scene_change.gd" id="1_crxgh"]
-[ext_resource type="Script" path="res://addons/godot-rapier2d/rapier_state_2d.gd" id="2_6kmg0"]
+[ext_resource type="Script" uid="uid://kmnqy6hw4db4" path="res://test/integration/scene_change.gd" id="1_crxgh"]
+[ext_resource type="Script" uid="uid://b4u71ckduv8gr" path="res://addons/godot-rapier2d/rapier_state_2d.gd" id="2_6kmg0"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_uteag"]
 radius = 31.0161
@@ -11,13 +11,13 @@ size = Vector2(460, 74)
 
 [sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_86sbr"]
 
-[node name="SceneChange" type="Node2D" node_paths=PackedStringArray("rapier_state")]
+[node name="SceneChange" type="Node2D" node_paths=PackedStringArray("rapier_state", "label")]
 script = ExtResource("1_crxgh")
 rapier_state = NodePath("Rapier2DState")
-save_state = false
+label = NodePath("Label")
 
 [node name="RigidBody2D" type="RigidBody2D" parent="."]
-position = Vector2(122, 81)
+position = Vector2(214, -95)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D"]
 shape = SubResource("CircleShape2D_uteag")
@@ -41,3 +41,11 @@ script = ExtResource("2_6kmg0")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
 shape = SubResource("WorldBoundaryShape2D_86sbr")
 disabled = true
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(2, 2)
+
+[node name="Label" type="Label" parent="."]
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Running..."
