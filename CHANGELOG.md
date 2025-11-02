@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.8.18 - Nov 2
+
+## What's Changed
+* fix contact force not set for static bodies by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/417
+* Predictive pruning threshold by @dog-molecule in https://github.com/appsinacup/godot-rapier-physics/pull/418
+* Canvas layer parentage fix by @dog-molecule in https://github.com/appsinacup/godot-rapier-physics/pull/420
+* update to latest rust and use simd-nightly by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/419
+
 ## v0.8.17 - Nov 1
 
 ## What's Changed
