@@ -27,6 +27,7 @@ func reload_state():
 	# Disable physics server for load
 	PhysicsServer2D.set_active(false)
 	var hash_key = rapier_state.import_state()
+	hash_key = rapier_state.save_state()
 	label.text = "Loading and waiting 1s... " + str(hash_key)
 	# Wait 1 second to view all
 	await get_tree().create_timer(1).timeout
