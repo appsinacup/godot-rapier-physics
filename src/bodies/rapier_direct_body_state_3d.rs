@@ -220,9 +220,9 @@ impl IPhysicsDirectBodyState3DExtension for RapierDirectBodyState3D {
             && let Some(space) = physics_data
                 .spaces
                 .get(&body.get_base().get_space(&physics_data.ids))
-            {
-                return space.get_direct_state().clone();
-            }
+        {
+            return space.get_direct_state().clone();
+        }
         None
     }
 

@@ -116,9 +116,10 @@ impl RapierDirectBodyStateImpl {
     pub(super) fn get_inverse_inertia_tensor(&self) -> Basis {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get(&self.body)
-            && let Some(body) = body.get_body() {
-                return body.get_inv_inertia_tensor();
-            }
+            && let Some(body) = body.get_body()
+        {
+            return body.get_inv_inertia_tensor();
+        }
         Basis::IDENTITY
     }
 
@@ -126,9 +127,10 @@ impl RapierDirectBodyStateImpl {
     pub(super) fn get_principal_inertia_axes(&self) -> Basis {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get(&self.body)
-            && let Some(body) = body.get_body() {
-                return body.get_principal_inertia_axes();
-            }
+            && let Some(body) = body.get_body()
+        {
+            return body.get_principal_inertia_axes();
+        }
         Basis::IDENTITY
     }
 

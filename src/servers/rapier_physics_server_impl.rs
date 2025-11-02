@@ -1056,12 +1056,10 @@ impl RapierPhysicsServerImpl {
     pub fn body_set_enable_continuous_collision_detection(&mut self, body: Rid, enable: bool) {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body)
-            && let Some(body) = body.get_mut_body() {
-                body.set_continuous_collision_detection_mode(
-                    enable,
-                    &mut physics_data.physics_engine,
-                );
-            }
+            && let Some(body) = body.get_mut_body()
+        {
+            body.set_continuous_collision_detection_mode(enable, &mut physics_data.physics_engine);
+        }
     }
 
     #[cfg(feature = "dim3")]
@@ -1069,9 +1067,10 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get(&body)
             && let Some(body) = body.get_body()
-                && body.get_continuous_collision_detection_mode() {
-                    return true;
-                }
+            && body.get_continuous_collision_detection_mode()
+        {
+            return true;
+        }
         false
     }
 
@@ -1384,18 +1383,20 @@ impl RapierPhysicsServerImpl {
     pub(super) fn body_set_axis_lock(&mut self, body: Rid, axis: BodyAxis, lock: bool) {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body)
-            && let Some(body) = body.get_mut_body() {
-                body.set_axis_lock(axis, lock, &mut physics_data.physics_engine);
-            }
+            && let Some(body) = body.get_mut_body()
+        {
+            body.set_axis_lock(axis, lock, &mut physics_data.physics_engine);
+        }
     }
 
     #[cfg(feature = "dim3")]
     pub(super) fn body_is_axis_locked(&self, body: Rid, axis: BodyAxis) -> bool {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get(&body)
-            && let Some(body) = body.get_body() {
-                return body.is_axis_locked(axis);
-            }
+            && let Some(body) = body.get_body()
+        {
+            return body.is_axis_locked(axis);
+        }
         false
     }
 
