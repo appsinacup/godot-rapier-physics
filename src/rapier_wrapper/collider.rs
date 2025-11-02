@@ -126,14 +126,13 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
         }
         #[cfg(feature = "dim3")]
         ShapeType::Cylinder => {
-            if let Some(new_shape) = shape.as_cylinder() {
-                if let Some(new_shape) = new_shape.scaled(&scale, SUBDIVISIONS) {
+            if let Some(new_shape) = shape.as_cylinder()
+                && let Some(new_shape) = new_shape.scaled(&scale, SUBDIVISIONS) {
                     match new_shape {
                         Left(shape) => return SharedShape::new(shape),
                         Right(shape) => return SharedShape::new(shape),
                     }
                 }
-            }
         }
         #[cfg(feature = "dim2")]
         ShapeType::ConvexPolygon => {
@@ -145,11 +144,10 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
         }
         #[cfg(feature = "dim3")]
         ShapeType::ConvexPolyhedron => {
-            if let Some(new_shape) = shape.as_convex_polyhedron() {
-                if let Some(new_shape) = new_shape.clone().scaled(&scale) {
+            if let Some(new_shape) = shape.as_convex_polyhedron()
+                && let Some(new_shape) = new_shape.clone().scaled(&scale) {
                     return SharedShape::new(new_shape);
                 }
-            }
         }
         #[cfg(feature = "dim3")]
         ShapeType::HeightField => {

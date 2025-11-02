@@ -83,13 +83,12 @@ impl PhysicsEngine {
 
     #[cfg(feature = "dim3")]
     pub fn shape_get_convex_polyline_points(&self, handle: ShapeHandle) -> Vec<Vector<Real>> {
-        if let Some(shape) = self.get_shape(handle) {
-            if let Some(shape) = shape.as_convex_polyhedron() {
+        if let Some(shape) = self.get_shape(handle)
+            && let Some(shape) = shape.as_convex_polyhedron() {
                 let points = shape.points();
                 let points_vec = vec_to_point_array(points);
                 return points_vec;
             }
-        }
         vec![]
     }
 
@@ -186,11 +185,10 @@ impl PhysicsEngine {
 
     #[cfg(feature = "dim3")]
     pub fn shape_get_cylinder(&self, shape_handle: ShapeHandle) -> (Real, Real) {
-        if let Some(shape) = self.get_shape(shape_handle) {
-            if let Some(shape) = shape.as_cylinder() {
+        if let Some(shape) = self.get_shape(shape_handle)
+            && let Some(shape) = shape.as_cylinder() {
                 return (shape.half_height, shape.radius);
             }
-        }
         (0.0, 0.0)
     }
 
@@ -223,14 +221,13 @@ impl PhysicsEngine {
 
     #[cfg(feature = "dim3")]
     pub fn shape_get_heightmap(&self, shape_handle: ShapeHandle) -> (DMatrix<Real>, i32, i32) {
-        if let Some(shape) = self.get_shape(shape_handle) {
-            if let Some(shape) = shape.as_heightfield() {
+        if let Some(shape) = self.get_shape(shape_handle)
+            && let Some(shape) = shape.as_heightfield() {
                 let scale = shape.scale();
                 let depth = scale.x as i32;
                 let width = scale.z as i32;
                 return (shape.heights().clone(), depth, width);
             }
-        }
         (DMatrix::default(), 0, 0)
     }
 
@@ -284,11 +281,10 @@ impl PhysicsEngine {
         &self,
         shape_handle: ShapeHandle,
     ) -> (&[Point<Real>], &[[u32; 3]]) {
-        if let Some(shape) = self.get_shape(shape_handle) {
-            if let Some(shape) = shape.as_trimesh() {
+        if let Some(shape) = self.get_shape(shape_handle)
+            && let Some(shape) = shape.as_trimesh() {
                 return (shape.vertices(), shape.indices());
             }
-        }
         (&[], &[])
     }
 
