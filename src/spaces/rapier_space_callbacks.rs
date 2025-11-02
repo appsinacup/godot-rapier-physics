@@ -195,34 +195,12 @@ impl RapierSpace {
                 p_collision_object2 = Some(p_object2);
             }
             // collision object 1 area
-            if let Some(ref mut p_collision_object1) = p_collision_object1 {
-                if let Some(p_area1) = p_collision_object1.get_mut_area() {
-                    if type2 == CollisionObjectType::Area {
-                        if event_info.is_started {
-                            p_area1.on_area_enter(
-                                collider_handle2,
-                                &mut p_collision_object2,
-                                shape2,
-                                body_id2,
-                                instance_id2,
-                                collider_handle1,
-                                shape1,
-                                self,
-                            );
-                        } else if event_info.is_stopped {
-                            p_area1.on_area_exit(
-                                collider_handle2,
-                                &mut p_collision_object2,
-                                shape2,
-                                body_id2,
-                                instance_id2,
-                                collider_handle1,
-                                shape1,
-                                self,
-                            );
-                        }
-                    } else if event_info.is_started {
-                        p_area1.on_body_enter(
+            if let Some(ref mut p_collision_object1) = p_collision_object1
+                && let Some(p_area1) = p_collision_object1.get_mut_area()
+            {
+                if type2 == CollisionObjectType::Area {
+                    if event_info.is_started {
+                        p_area1.on_area_enter(
                             collider_handle2,
                             &mut p_collision_object2,
                             shape2,
@@ -233,7 +211,7 @@ impl RapierSpace {
                             self,
                         );
                     } else if event_info.is_stopped {
-                        p_area1.on_body_exit(
+                        p_area1.on_area_exit(
                             collider_handle2,
                             &mut p_collision_object2,
                             shape2,
@@ -244,61 +222,83 @@ impl RapierSpace {
                             self,
                         );
                     }
+                } else if event_info.is_started {
+                    p_area1.on_body_enter(
+                        collider_handle2,
+                        &mut p_collision_object2,
+                        shape2,
+                        body_id2,
+                        instance_id2,
+                        collider_handle1,
+                        shape1,
+                        self,
+                    );
+                } else if event_info.is_stopped {
+                    p_area1.on_body_exit(
+                        collider_handle2,
+                        &mut p_collision_object2,
+                        shape2,
+                        body_id2,
+                        instance_id2,
+                        collider_handle1,
+                        shape1,
+                        self,
+                    );
                 }
             }
             // collision object 2 area
-            if let Some(ref mut p_collision_object2) = p_collision_object2 {
-                if let Some(p_area2) = p_collision_object2.get_mut_area() {
-                    if type1 == CollisionObjectType::Area {
-                        if event_info.is_started {
-                            p_area2.on_area_enter(
-                                collider_handle1,
-                                &mut p_collision_object1,
-                                shape1,
-                                body_id1,
-                                instance_id1,
-                                collider_handle2,
-                                shape2,
-                                self,
-                            );
-                        }
-                        if event_info.is_stopped {
-                            p_area2.on_area_exit(
-                                collider_handle1,
-                                &mut p_collision_object1,
-                                shape1,
-                                body_id1,
-                                instance_id1,
-                                collider_handle2,
-                                shape2,
-                                self,
-                            );
-                        }
-                    } else {
-                        if event_info.is_started {
-                            p_area2.on_body_enter(
-                                collider_handle1,
-                                &mut p_collision_object1,
-                                shape1,
-                                body_id1,
-                                instance_id1,
-                                collider_handle2,
-                                shape2,
-                                self,
-                            );
-                        }
-                        if event_info.is_stopped {
-                            p_area2.on_body_exit(
-                                collider_handle1,
-                                &mut p_collision_object1,
-                                shape1,
-                                body_id1,
-                                instance_id1,
-                                collider_handle2,
-                                shape2,
-                                self,
-                            );
-                        }
+            if let Some(ref mut p_collision_object2) = p_collision_object2
+                && let Some(p_area2) = p_collision_object2.get_mut_area()
+            {
+                if type1 == CollisionObjectType::Area {
+                    if event_info.is_started {
+                        p_area2.on_area_enter(
+                            collider_handle1,
+                            &mut p_collision_object1,
+                            shape1,
+                            body_id1,
+                            instance_id1,
+                            collider_handle2,
+                            shape2,
+                            self,
+                        );
+                    }
+                    if event_info.is_stopped {
+                        p_area2.on_area_exit(
+                            collider_handle1,
+                            &mut p_collision_object1,
+                            shape1,
+                            body_id1,
+                            instance_id1,
+                            collider_handle2,
+                            shape2,
+                            self,
+                        );
+                    }
+                } else {
+                    if event_info.is_started {
+                        p_area2.on_body_enter(
+                            collider_handle1,
+                            &mut p_collision_object1,
+                            shape1,
+                            body_id1,
+                            instance_id1,
+                            collider_handle2,
+                            shape2,
+                            self,
+                        );
+                    }
+                    if event_info.is_stopped {
+                        p_area2.on_body_exit(
+                            collider_handle1,
+                            &mut p_collision_object1,
+                            shape1,
+                            body_id1,
+                            instance_id1,
+                            collider_handle2,
+                            shape2,
+                            self,
+                        );
                     }
                 }
             }
@@ -319,21 +319,17 @@ impl RapierSpace {
             RapierCollisionObjectBase::get_collider_user_data(&event_info.user_data1, physics_ids);
         let (p_object2, _) =
             RapierCollisionObjectBase::get_collider_user_data(&event_info.user_data2, physics_ids);
-        if let Some(body1) = physics_collision_objects.get(&p_object1) {
-            if let Some(body1) = body1.get_body() {
-                if body1.can_report_contacts() || body1.get_static_linear_velocity() != Vector::ZERO
-                {
-                    send_contacts = true;
-                }
-            }
+        if let Some(body1) = physics_collision_objects.get(&p_object1)
+            && let Some(body1) = body1.get_body()
+            && (body1.can_report_contacts() || body1.get_static_linear_velocity() != Vector::ZERO)
+        {
+            send_contacts = true;
         }
-        if let Some(body2) = physics_collision_objects.get(&p_object2) {
-            if let Some(body2) = body2.get_body() {
-                if body2.can_report_contacts() || body2.get_static_linear_velocity() != Vector::ZERO
-                {
-                    send_contacts = true;
-                }
-            }
+        if let Some(body2) = physics_collision_objects.get(&p_object2)
+            && let Some(body2) = body2.get_body()
+            && (body2.can_report_contacts() || body2.get_static_linear_velocity() != Vector::ZERO)
+        {
+            send_contacts = true;
         }
         send_contacts
     }
@@ -364,56 +360,56 @@ impl RapierSpace {
             let impulse = contact_info.pixel_impulse * vector_to_godot(normal);
             let vel_pos1 = contact_info.pixel_velocity_pos_1;
             let vel_pos2 = contact_info.pixel_velocity_pos_2;
-            if let Some(body1) = p_object1.get_mut_body() {
-                if let Some(body2) = p_object2.get_mut_body() {
-                    let static_linvelocity_1 = body1.get_static_linear_velocity();
-                    let static_linvelocity_2 = body2.get_static_linear_velocity();
-                    let static_angvelocity_1 = body1.get_static_angular_velocity();
-                    let static_angvelocity_2 = body2.get_static_angular_velocity();
-                    if static_linvelocity_1 != Vector::ZERO {
-                        body2.to_add_static_constant_linear_velocity(static_linvelocity_1);
-                    }
-                    if static_linvelocity_2 != Vector::ZERO {
-                        body1.to_add_static_constant_linear_velocity(static_linvelocity_2);
-                    }
-                    if static_angvelocity_1 != ANGLE_ZERO {
-                        body2.to_add_static_constant_angular_velocity(static_angvelocity_1);
-                    }
-                    if static_angvelocity_2 != ANGLE_ZERO {
-                        body1.to_add_static_constant_angular_velocity(static_angvelocity_2);
-                    }
-                    if body1.can_report_contacts() {
-                        let instance_id2 = body2.get_base().get_instance_id();
-                        body1.add_contact(
-                            vector_to_godot(pos1),
-                            vector_to_godot(-normal),
-                            depth,
-                            shape1 as i32,
-                            vector_to_godot(vel_pos1),
-                            vector_to_godot(pos2),
-                            shape2 as i32,
-                            instance_id2,
-                            body2.get_base().get_id(),
-                            vector_to_godot(vel_pos2),
-                            impulse,
-                        );
-                    }
-                    if body2.can_report_contacts() {
-                        let instance_id1 = body1.get_base().get_instance_id();
-                        body2.add_contact(
-                            vector_to_godot(pos2),
-                            vector_to_godot(normal),
-                            depth,
-                            shape2 as i32,
-                            vector_to_godot(vel_pos2),
-                            vector_to_godot(pos1),
-                            shape1 as i32,
-                            instance_id1,
-                            body1.get_base().get_id(),
-                            vector_to_godot(vel_pos1),
-                            -impulse,
-                        );
-                    }
+            if let Some(body1) = p_object1.get_mut_body()
+                && let Some(body2) = p_object2.get_mut_body()
+            {
+                let static_linvelocity_1 = body1.get_static_linear_velocity();
+                let static_linvelocity_2 = body2.get_static_linear_velocity();
+                let static_angvelocity_1 = body1.get_static_angular_velocity();
+                let static_angvelocity_2 = body2.get_static_angular_velocity();
+                if static_linvelocity_1 != Vector::ZERO {
+                    body2.to_add_static_constant_linear_velocity(static_linvelocity_1);
+                }
+                if static_linvelocity_2 != Vector::ZERO {
+                    body1.to_add_static_constant_linear_velocity(static_linvelocity_2);
+                }
+                if static_angvelocity_1 != ANGLE_ZERO {
+                    body2.to_add_static_constant_angular_velocity(static_angvelocity_1);
+                }
+                if static_angvelocity_2 != ANGLE_ZERO {
+                    body1.to_add_static_constant_angular_velocity(static_angvelocity_2);
+                }
+                if body1.can_report_contacts() {
+                    let instance_id2 = body2.get_base().get_instance_id();
+                    body1.add_contact(
+                        vector_to_godot(pos1),
+                        vector_to_godot(-normal),
+                        depth,
+                        shape1 as i32,
+                        vector_to_godot(vel_pos1),
+                        vector_to_godot(pos2),
+                        shape2 as i32,
+                        instance_id2,
+                        body2.get_base().get_id(),
+                        vector_to_godot(vel_pos2),
+                        impulse,
+                    );
+                }
+                if body2.can_report_contacts() {
+                    let instance_id1 = body1.get_base().get_instance_id();
+                    body2.add_contact(
+                        vector_to_godot(pos2),
+                        vector_to_godot(normal),
+                        depth,
+                        shape2 as i32,
+                        vector_to_godot(vel_pos2),
+                        vector_to_godot(pos1),
+                        shape1 as i32,
+                        instance_id1,
+                        body1.get_base().get_id(),
+                        vector_to_godot(vel_pos1),
+                        -impulse,
+                    );
                 }
             }
         }

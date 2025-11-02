@@ -74,11 +74,6 @@ impl Default for Contact {
         }
     }
 }
-#[derive(Debug)]
-pub struct ForceIntegrationCallbackData {
-    pub callable: Callable,
-    pub udata: Variant,
-}
 #[derive(Clone, Copy, Default, Debug)]
 #[cfg_attr(
     feature = "serde-serialize",
@@ -160,8 +155,10 @@ pub struct RapierBody {
     can_sleep: bool,
     sleep: bool,
     body_state_callback: Option<Callable>,
-    fi_callback_data: Option<ForceIntegrationCallbackData>,
+    force_integration_callback: Option<Callable>,
     direct_state: Option<Gd<PhysicsDirectBodyState>>,
+    direct_state_array: VariantArray,
+    force_integration_array: VariantArray,
     state: RapierBodyState,
     base: RapierCollisionObjectBase,
 }
@@ -194,8 +191,10 @@ impl RapierBody {
             can_sleep: true,
             sleep: false,
             body_state_callback: None,
-            fi_callback_data: None,
+            force_integration_callback: None,
             direct_state: None,
+            direct_state_array: VariantArray::new(),
+            force_integration_array: VariantArray::new(),
             state,
             base: RapierCollisionObjectBase::new(id, rid, CollisionObjectType::Body),
         }
@@ -549,40 +548,56 @@ impl RapierBody {
         physics_spaces: &mut PhysicsSpaces,
         physics_ids: &PhysicsIds,
     ) {
+        self.force_integration_array.clear();
+        self.force_integration_callback = None;
         if callable.is_valid() {
-            self.fi_callback_data = Some(ForceIntegrationCallbackData { callable, udata });
+            self.force_integration_callback = Some(callable);
+            if let Some(ds) = &self.direct_state {
+                self.force_integration_array.push(&ds.to_variant());
+                if !udata.is_nil() {
+                    self.force_integration_array.push(&udata);
+                }
+            }
             if let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_ids)) {
                 space
                     .get_mut_state()
                     .body_add_to_force_integrate_list(self.base.get_id());
             }
-        } else {
-            self.fi_callback_data = None;
-            if let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_ids)) {
-                space
-                    .get_mut_state()
-                    .body_remove_from_force_integrate_list(self.base.get_id());
-            }
+        } else if let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_ids)) {
+            space
+                .get_mut_state()
+                .body_remove_from_force_integrate_list(self.base.get_id());
         }
     }
 
-    pub fn get_force_integration_callback(&self) -> Option<&ForceIntegrationCallbackData> {
-        self.fi_callback_data.as_ref()
+    pub fn get_force_integration_array(&self) -> &VariantArray {
+        &self.force_integration_array
+    }
+
+    pub fn get_force_integration_callable(&self) -> Option<&Callable> {
+        self.force_integration_callback.as_ref()
     }
 
     pub fn create_direct_state(&mut self) {
         if self.direct_state.is_none() {
+            self.direct_state_array.clear();
             let mut direct_space_state = RapierDirectBodyState::new_alloc();
             {
                 let mut direct_state = direct_space_state.bind_mut();
                 direct_state.set_body(self.base.get_rid());
             }
+            self.direct_state_array
+                .push(&direct_space_state.clone().to_variant());
             self.direct_state = Some(direct_space_state.upcast());
         }
     }
 
     pub fn get_direct_state(&self) -> Option<&Gd<PhysicsDirectBodyState>> {
         self.direct_state.as_ref()
+    }
+
+    pub fn get_direct_state_array(&self) -> &VariantArray {
+        &self.direct_state_array
     }
 
     pub fn add_area(&mut self, p_area: &RapierArea, space: &mut RapierSpace) {
@@ -619,26 +634,25 @@ impl RapierBody {
         physics_ids: &PhysicsIds,
     ) {
         let mut area_override_settings = None;
-        if let Some(body) = physics_collision_objects.get(&get_id_rid(*body, physics_ids)) {
-            if let Some(body) = body.get_body() {
-                area_override_settings = Some(body.get_area_override_settings(
-                    physics_spaces,
-                    physics_collision_objects,
-                    physics_ids,
-                ));
-            }
+        if let Some(body) = physics_collision_objects.get(&get_id_rid(*body, physics_ids))
+            && let Some(body) = body.get_body()
+        {
+            area_override_settings = Some(body.get_area_override_settings(
+                physics_spaces,
+                physics_collision_objects,
+                physics_ids,
+            ));
         }
-        if let Some(area_override_settings) = area_override_settings {
-            if let Some(body) = physics_collision_objects.get_mut(&get_id_rid(*body, physics_ids)) {
-                if let Some(body) = body.get_mut_body() {
-                    body.apply_area_override(
-                        area_override_settings,
-                        physics_engine,
-                        physics_spaces,
-                        physics_ids,
-                    );
-                }
-            }
+        if let Some(area_override_settings) = area_override_settings
+            && let Some(body) = physics_collision_objects.get_mut(&get_id_rid(*body, physics_ids))
+            && let Some(body) = body.get_mut_body()
+        {
+            body.apply_area_override(
+                area_override_settings,
+                physics_engine,
+                physics_spaces,
+                physics_ids,
+            );
         }
     }
 
@@ -674,89 +688,88 @@ impl RapierBody {
             for area_handle in areas.iter() {
                 if let Some(area) =
                     physics_collision_objects.get(&get_id_rid(area_handle.id, physics_ids))
+                    && let Some(aa) = area.get_area()
                 {
-                    if let Some(aa) = area.get_area() {
-                        if !gravity_done {
-                            let area_gravity_mode = aa
-                                .get_param(AreaParameter::GRAVITY_OVERRIDE_MODE)
-                                .try_to()
-                                .unwrap_or(AreaSpaceOverrideMode::DISABLED);
-                            if area_gravity_mode != AreaSpaceOverrideMode::DISABLED {
-                                let area_gravity = aa.compute_gravity(origin);
-                                match area_gravity_mode {
-                                    AreaSpaceOverrideMode::COMBINE
-                                    | AreaSpaceOverrideMode::COMBINE_REPLACE => {
-                                        using_area_gravity = true;
-                                        total_gravity += area_gravity;
-                                        gravity_done = area_gravity_mode
-                                            == AreaSpaceOverrideMode::COMBINE_REPLACE;
-                                    }
-                                    AreaSpaceOverrideMode::REPLACE
-                                    | AreaSpaceOverrideMode::REPLACE_COMBINE => {
-                                        using_area_gravity = true;
-                                        total_gravity = area_gravity;
-                                        gravity_done =
-                                            area_gravity_mode == AreaSpaceOverrideMode::REPLACE;
-                                    }
-                                    _ => {}
+                    if !gravity_done {
+                        let area_gravity_mode = aa
+                            .get_param(AreaParameter::GRAVITY_OVERRIDE_MODE)
+                            .try_to()
+                            .unwrap_or(AreaSpaceOverrideMode::DISABLED);
+                        if area_gravity_mode != AreaSpaceOverrideMode::DISABLED {
+                            let area_gravity = aa.compute_gravity(origin);
+                            match area_gravity_mode {
+                                AreaSpaceOverrideMode::COMBINE
+                                | AreaSpaceOverrideMode::COMBINE_REPLACE => {
+                                    using_area_gravity = true;
+                                    total_gravity += area_gravity;
+                                    gravity_done =
+                                        area_gravity_mode == AreaSpaceOverrideMode::COMBINE_REPLACE;
                                 }
+                                AreaSpaceOverrideMode::REPLACE
+                                | AreaSpaceOverrideMode::REPLACE_COMBINE => {
+                                    using_area_gravity = true;
+                                    total_gravity = area_gravity;
+                                    gravity_done =
+                                        area_gravity_mode == AreaSpaceOverrideMode::REPLACE;
+                                }
+                                _ => {}
                             }
                         }
-                        if !linear_damping_done {
-                            let area_linear_damping_mode = aa
-                                .get_param(AreaParameter::LINEAR_DAMP_OVERRIDE_MODE)
-                                .try_to()
-                                .unwrap_or(AreaSpaceOverrideMode::DISABLED);
-                            if area_linear_damping_mode != AreaSpaceOverrideMode::DISABLED {
-                                let area_linear_damping = aa.get_linear_damp();
-                                match area_linear_damping_mode {
-                                    AreaSpaceOverrideMode::COMBINE
-                                    | AreaSpaceOverrideMode::COMBINE_REPLACE => {
-                                        using_area_linear_damping = true;
-                                        total_linear_damping += area_linear_damping;
-                                        linear_damping_done = area_linear_damping_mode
-                                            == AreaSpaceOverrideMode::COMBINE_REPLACE;
-                                    }
-                                    AreaSpaceOverrideMode::REPLACE
-                                    | AreaSpaceOverrideMode::REPLACE_COMBINE => {
-                                        using_area_linear_damping = true;
-                                        total_linear_damping = area_linear_damping;
-                                        linear_damping_done = area_linear_damping_mode
-                                            == AreaSpaceOverrideMode::REPLACE;
-                                    }
-                                    _ => {}
+                    }
+                    if !linear_damping_done {
+                        let area_linear_damping_mode = aa
+                            .get_param(AreaParameter::LINEAR_DAMP_OVERRIDE_MODE)
+                            .try_to()
+                            .unwrap_or(AreaSpaceOverrideMode::DISABLED);
+                        if area_linear_damping_mode != AreaSpaceOverrideMode::DISABLED {
+                            let area_linear_damping = aa.get_linear_damp();
+                            match area_linear_damping_mode {
+                                AreaSpaceOverrideMode::COMBINE
+                                | AreaSpaceOverrideMode::COMBINE_REPLACE => {
+                                    using_area_linear_damping = true;
+                                    total_linear_damping += area_linear_damping;
+                                    linear_damping_done = area_linear_damping_mode
+                                        == AreaSpaceOverrideMode::COMBINE_REPLACE;
                                 }
+                                AreaSpaceOverrideMode::REPLACE
+                                | AreaSpaceOverrideMode::REPLACE_COMBINE => {
+                                    using_area_linear_damping = true;
+                                    total_linear_damping = area_linear_damping;
+                                    linear_damping_done =
+                                        area_linear_damping_mode == AreaSpaceOverrideMode::REPLACE;
+                                }
+                                _ => {}
                             }
                         }
-                        if !angular_damping_done {
-                            let area_angular_damping_mode = aa
-                                .get_param(AreaParameter::ANGULAR_DAMP_OVERRIDE_MODE)
-                                .try_to()
-                                .unwrap_or(AreaSpaceOverrideMode::DISABLED);
-                            if area_angular_damping_mode != AreaSpaceOverrideMode::DISABLED {
-                                let area_angular_damping = aa.get_angular_damp();
-                                match area_angular_damping_mode {
-                                    AreaSpaceOverrideMode::COMBINE
-                                    | AreaSpaceOverrideMode::COMBINE_REPLACE => {
-                                        using_area_angular_damping = true;
-                                        total_angular_damping += area_angular_damping;
-                                        angular_damping_done = area_angular_damping_mode
-                                            == AreaSpaceOverrideMode::COMBINE_REPLACE;
-                                    }
-                                    AreaSpaceOverrideMode::REPLACE
-                                    | AreaSpaceOverrideMode::REPLACE_COMBINE => {
-                                        using_area_angular_damping = true;
-                                        total_angular_damping = area_angular_damping;
-                                        angular_damping_done = area_angular_damping_mode
-                                            == AreaSpaceOverrideMode::REPLACE;
-                                    }
-                                    _ => {}
+                    }
+                    if !angular_damping_done {
+                        let area_angular_damping_mode = aa
+                            .get_param(AreaParameter::ANGULAR_DAMP_OVERRIDE_MODE)
+                            .try_to()
+                            .unwrap_or(AreaSpaceOverrideMode::DISABLED);
+                        if area_angular_damping_mode != AreaSpaceOverrideMode::DISABLED {
+                            let area_angular_damping = aa.get_angular_damp();
+                            match area_angular_damping_mode {
+                                AreaSpaceOverrideMode::COMBINE
+                                | AreaSpaceOverrideMode::COMBINE_REPLACE => {
+                                    using_area_angular_damping = true;
+                                    total_angular_damping += area_angular_damping;
+                                    angular_damping_done = area_angular_damping_mode
+                                        == AreaSpaceOverrideMode::COMBINE_REPLACE;
                                 }
+                                AreaSpaceOverrideMode::REPLACE
+                                | AreaSpaceOverrideMode::REPLACE_COMBINE => {
+                                    using_area_angular_damping = true;
+                                    total_angular_damping = area_angular_damping;
+                                    angular_damping_done =
+                                        area_angular_damping_mode == AreaSpaceOverrideMode::REPLACE;
+                                }
+                                _ => {}
                             }
                         }
-                        if gravity_done && linear_damping_done && angular_damping_done {
-                            break;
-                        }
+                    }
+                    if gravity_done && linear_damping_done && angular_damping_done {
+                        break;
                     }
                 }
             }
@@ -1993,15 +2006,15 @@ impl RapierBody {
     ) {
         let id = self.base.get_id();
         if self.base.is_space_valid() && self.base.mode.ord() >= BodyMode::KINEMATIC.ord() {
-            if self.get_force_integration_callback().is_some() {
-                if let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_ids)) {
-                    space.get_mut_state().body_add_to_force_integrate_list(id);
-                }
+            if self.get_force_integration_callable().is_some()
+                && let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_ids))
+            {
+                space.get_mut_state().body_add_to_force_integrate_list(id);
             }
-            if self.get_state_sync_callback().is_some() {
-                if let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_ids)) {
-                    space.get_mut_state().body_add_to_state_query_list(id);
-                }
+            if self.get_state_sync_callback().is_some()
+                && let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_ids))
+            {
+                space.get_mut_state().body_add_to_state_query_list(id);
             }
             if !self.can_sleep {
                 self.set_can_sleep(false, physics_engine);

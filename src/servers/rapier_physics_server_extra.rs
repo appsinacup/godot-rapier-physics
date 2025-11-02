@@ -380,15 +380,7 @@ macro_rules! make_rapier_server_godot_impl {
             #[func]
             /// Flush the space queries. Used after space_step.
             fn space_flush_queries(space: Rid) {
-                let Ok(mut physics_singleton) =
-                    PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
-                else {
-                    return;
-                };
-                physics_singleton
-                    .bind_mut()
-                    .implementation
-                    .space_flush_queries(&space);
+                RapierPhysicsServerImpl::space_flush_queries(&space);
             }
 
             #[func]

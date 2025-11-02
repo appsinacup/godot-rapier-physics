@@ -217,13 +217,11 @@ impl IPhysicsDirectBodyState3DExtension for RapierDirectBodyState3D {
         if let Some(body) = physics_data
             .collision_objects
             .get(self.implementation.get_body())
-        {
-            if let Some(space) = physics_data
+            && let Some(space) = physics_data
                 .spaces
                 .get(&body.get_base().get_space(&physics_data.ids))
-            {
-                return space.get_direct_state().clone();
-            }
+        {
+            return space.get_direct_state().clone();
         }
         None
     }

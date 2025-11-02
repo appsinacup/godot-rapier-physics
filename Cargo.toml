@@ -3,7 +3,7 @@ name = "godot-rapier"
 version = "0.8.17"
 edition = "2024"
 license = "MIT"
-rust-version = "1.85"
+rust-version = "1.91"
 publish = false
 
 [lib]
@@ -12,10 +12,10 @@ crate-type = ["cdylib", "staticlib"]
 [features]
 default = ["build2d", "test"]
 test = []
-build2d = ["single-dim2", "serde-serialize", "simd-stable"]
-build3d = ["single-dim3", "serde-serialize", "simd-stable"]
-build2d-f64 = ["double-dim2", "serde-serialize", "simd-stable"]
-build3d-f64 = ["double-dim3", "serde-serialize", "simd-stable"]
+build2d = ["single-dim2", "serde-serialize", "simd-nightly"]
+build3d = ["single-dim3", "serde-serialize", "simd-nightly"]
+build2d-f64 = ["double-dim2", "serde-serialize", "simd-nightly"]
+build3d-f64 = ["double-dim3", "serde-serialize", "simd-nightly"]
 dim2 = []
 dim3 = []
 single = []
@@ -24,7 +24,7 @@ api-custom = ["godot/api-custom"]
 enhanced-determinism = ["rapier2d/enhanced-determinism", "rapier2d-f64/enhanced-determinism", "rapier3d/enhanced-determinism", "rapier3d-f64/enhanced-determinism"]
 serde-serialize = ["serde", "hashbrown/serde", "bincode", "serde_json", "godot/serde", "rapier2d/serde-serialize", "rapier2d-f64/serde-serialize", "rapier3d/serde-serialize", "rapier3d-f64/serde-serialize" ]
 # Note: SIMD disabled for f64 builds due to upstream rapier bugs with f64 SIMD implementation
-# simd-stable = ["rapier2d/simd-stable", "rapier2d-f64/simd-stable", "rapier3d/simd-stable", "rapier3d-f64/simd-stable"]
+# simd-nightly = ["rapier2d/simd-nightly", "rapier2d-f64/simd-nightly", "rapier3d/simd-nightly", "rapier3d-f64/simd-nightly"]
 # simd-nightly = ["rapier2d/simd-nightly", "rapier2d-f64/simd-nightly", "rapier3d/simd-nightly", "rapier3d-f64/simd-nightly"]
 simd-stable = ["rapier2d/simd-stable", "rapier3d/simd-stable"]
 simd-nightly = ["rapier2d/simd-nightly", "rapier3d/simd-nightly"]
@@ -41,7 +41,7 @@ double-dim3 = ["double", "dim3", "rapier3d-f64", "salva3d-f64"]
 bincode = { version = "1", optional = true }
 hashbrown = { version = "0.14" }
 
-godot = { version = "0.4.0", features=["register-docs"] }
+godot = { git = "https://github.com/godot-rust/gdext", branch = "master", features=["register-docs", "safeguards-release-disengaged"] }
 
 rapier2d = { git = "https://github.com/ughuuu/rapier", branch = "master", optional = true }
 rapier2d-f64 = { git = "https://github.com/ughuuu/rapier", branch = "master", optional = true}
@@ -69,6 +69,26 @@ parry3d-f64 = {git = "https://github.com/ughuuu/parry", branch = "master"}
 opt-level = 3
 strip = "debuginfo"
 lto = "fat"
+codegen-units = 1
+
+[profile.release.package.rapier2d]
+opt-level = 3
+codegen-units = 1
+
+[profile.release.package.rapier3d]
+opt-level = 3
+codegen-units = 1
+
+[profile.release.package.salva2d]
+opt-level = 3
+codegen-units = 1
+
+[profile.release.package.salva3d]
+opt-level = 3
+codegen-units = 1
+
+[profile.release.package.godot]
+opt-level = 3
 codegen-units = 1
 
 [profile.dev]

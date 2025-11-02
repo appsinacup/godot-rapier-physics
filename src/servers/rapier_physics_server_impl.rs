@@ -460,34 +460,34 @@ impl RapierPhysicsServerImpl {
         disabled: bool,
     ) {
         let physics_data = physics_data();
-        if let Some(area) = physics_data.collision_objects.get_mut(&area) {
-            if let Some(shape) = physics_data.shapes.get(&shape) {
-                area.add_shape(
-                    shape.get_base().get_id(),
-                    transform,
-                    disabled,
-                    &mut physics_data.physics_engine,
-                    &mut physics_data.spaces,
-                    &mut physics_data.shapes,
-                    &physics_data.ids,
-                );
-            }
+        if let Some(area) = physics_data.collision_objects.get_mut(&area)
+            && let Some(shape) = physics_data.shapes.get(&shape)
+        {
+            area.add_shape(
+                shape.get_base().get_id(),
+                transform,
+                disabled,
+                &mut physics_data.physics_engine,
+                &mut physics_data.spaces,
+                &mut physics_data.shapes,
+                &physics_data.ids,
+            );
         }
     }
 
     pub(super) fn area_set_shape(&mut self, area: Rid, shape_idx: i32, shape: Rid) {
         let physics_data = physics_data();
-        if let Some(area) = physics_data.collision_objects.get_mut(&area) {
-            if let Some(shape) = physics_data.shapes.get(&shape) {
-                area.set_shape(
-                    shape_idx as usize,
-                    shape.get_base().get_id(),
-                    &mut physics_data.physics_engine,
-                    &mut physics_data.spaces,
-                    &mut physics_data.shapes,
-                    &physics_data.ids,
-                );
-            }
+        if let Some(area) = physics_data.collision_objects.get_mut(&area)
+            && let Some(shape) = physics_data.shapes.get(&shape)
+        {
+            area.set_shape(
+                shape_idx as usize,
+                shape.get_base().get_id(),
+                &mut physics_data.physics_engine,
+                &mut physics_data.spaces,
+                &mut physics_data.shapes,
+                &physics_data.ids,
+            );
         }
     }
 
@@ -616,11 +616,11 @@ impl RapierPhysicsServerImpl {
         }
         let area_update_mode = AreaUpdateMode::None;
         let mut area_id = RapierId::default();
-        if let Some(area) = physics_data.collision_objects.get_mut(&area) {
-            if let Some(area) = area.get_mut_area() {
-                area.set_param(param, value, &mut physics_data.spaces, &physics_data.ids);
-                area_id = area.get_base().get_id();
-            }
+        if let Some(area) = physics_data.collision_objects.get_mut(&area)
+            && let Some(area) = area.get_mut_area()
+        {
+            area.set_param(param, value, &mut physics_data.spaces, &physics_data.ids);
+            area_id = area.get_base().get_id();
         }
         if area_id == RapierId::default() {
             godot_error!("Area not found");
@@ -668,10 +668,10 @@ impl RapierPhysicsServerImpl {
         if let Some(space) = physics_data.spaces.get(&area) {
             return space.get_default_area_param(param);
         }
-        if let Some(area) = physics_data.collision_objects.get(&area) {
-            if let Some(area) = area.get_area() {
-                return area.get_param(param);
-            }
+        if let Some(area) = physics_data.collision_objects.get(&area)
+            && let Some(area) = area.get_area()
+        {
+            return area.get_param(param);
         }
         Variant::nil()
     }
@@ -718,15 +718,15 @@ impl RapierPhysicsServerImpl {
 
     pub(super) fn area_set_monitorable(&mut self, area: Rid, monitorable: bool) {
         let physics_data = physics_data();
-        if let Some(area) = physics_data.collision_objects.get_mut(&area) {
-            if let Some(area) = area.get_mut_area() {
-                area.set_monitorable(
-                    monitorable,
-                    &mut physics_data.physics_engine,
-                    &mut physics_data.spaces,
-                    &physics_data.ids,
-                );
-            }
+        if let Some(area) = physics_data.collision_objects.get_mut(&area)
+            && let Some(area) = area.get_mut_area()
+        {
+            area.set_monitorable(
+                monitorable,
+                &mut physics_data.physics_engine,
+                &mut physics_data.spaces,
+                &physics_data.ids,
+            );
         }
     }
 
@@ -748,29 +748,29 @@ impl RapierPhysicsServerImpl {
 
     pub(super) fn area_set_monitor_callback(&mut self, area: Rid, callback: Callable) {
         let physics_data = physics_data();
-        if let Some(area) = physics_data.collision_objects.get_mut(&area) {
-            if let Some(area) = area.get_mut_area() {
-                area.set_monitor_callback(
-                    callback,
-                    &mut physics_data.physics_engine,
-                    &mut physics_data.spaces,
-                    &physics_data.ids,
-                );
-            }
+        if let Some(area) = physics_data.collision_objects.get_mut(&area)
+            && let Some(area) = area.get_mut_area()
+        {
+            area.set_monitor_callback(
+                callback,
+                &mut physics_data.physics_engine,
+                &mut physics_data.spaces,
+                &physics_data.ids,
+            );
         }
     }
 
     pub(super) fn area_set_area_monitor_callback(&mut self, area: Rid, callback: Callable) {
         let physics_data = physics_data();
-        if let Some(area) = physics_data.collision_objects.get_mut(&area) {
-            if let Some(area) = area.get_mut_area() {
-                area.set_area_monitor_callback(
-                    callback,
-                    &mut physics_data.physics_engine,
-                    &mut physics_data.spaces,
-                    &physics_data.ids,
-                );
-            }
+        if let Some(area) = physics_data.collision_objects.get_mut(&area)
+            && let Some(area) = area.get_mut_area()
+        {
+            area.set_area_monitor_callback(
+                callback,
+                &mut physics_data.physics_engine,
+                &mut physics_data.spaces,
+                &physics_data.ids,
+            );
         }
     }
 
@@ -833,10 +833,10 @@ impl RapierPhysicsServerImpl {
 
     pub(super) fn body_get_mode(&self, body: Rid) -> BodyMode {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get(&body) {
-            if let Some(body) = body.get_body() {
-                return body.get_base().get_mode();
-            }
+        if let Some(body) = physics_data.collision_objects.get(&body)
+            && let Some(body) = body.get_body()
+        {
+            return body.get_base().get_mode();
         }
         BodyMode::STATIC
     }
@@ -889,63 +889,63 @@ impl RapierPhysicsServerImpl {
         transform: Transform,
     ) {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.set_shape_transform(
-                    shape_idx as usize,
-                    transform,
-                    &mut physics_data.physics_engine,
-                    &mut physics_data.spaces,
-                    &physics_data.ids,
-                );
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.set_shape_transform(
+                shape_idx as usize,
+                transform,
+                &mut physics_data.physics_engine,
+                &mut physics_data.spaces,
+                &physics_data.ids,
+            );
         }
     }
 
     pub(super) fn body_get_shape_count(&self, body: Rid) -> i32 {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get(&body) {
-            if let Some(body) = body.get_body() {
-                return body.get_base().get_shape_count();
-            }
+        if let Some(body) = physics_data.collision_objects.get(&body)
+            && let Some(body) = body.get_body()
+        {
+            return body.get_base().get_shape_count();
         }
         0
     }
 
     pub(super) fn body_get_shape(&self, body: Rid, shape_idx: i32) -> Rid {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get(&body) {
-            if let Some(body) = body.get_body() {
-                return body
-                    .get_base()
-                    .get_shape(&physics_data.ids, shape_idx as usize);
-            }
+        if let Some(body) = physics_data.collision_objects.get(&body)
+            && let Some(body) = body.get_body()
+        {
+            return body
+                .get_base()
+                .get_shape(&physics_data.ids, shape_idx as usize);
         }
         Rid::Invalid
     }
 
     pub(super) fn body_get_shape_transform(&self, body: Rid, shape_idx: i32) -> Transform {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get(&body) {
-            if let Some(body) = body.get_body() {
-                return body.get_base().get_shape_transform(shape_idx as usize);
-            }
+        if let Some(body) = physics_data.collision_objects.get(&body)
+            && let Some(body) = body.get_body()
+        {
+            return body.get_base().get_shape_transform(shape_idx as usize);
         }
         Transform::IDENTITY
     }
 
     pub(super) fn body_set_shape_disabled(&mut self, body: Rid, shape_idx: i32, disabled: bool) {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.set_shape_disabled(
-                    shape_idx as usize,
-                    disabled,
-                    &mut physics_data.physics_engine,
-                    &mut physics_data.spaces,
-                    &physics_data.ids,
-                );
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.set_shape_disabled(
+                shape_idx as usize,
+                disabled,
+                &mut physics_data.physics_engine,
+                &mut physics_data.spaces,
+                &physics_data.ids,
+            );
         }
     }
 
@@ -966,16 +966,16 @@ impl RapierPhysicsServerImpl {
 
     pub(super) fn body_remove_shape(&mut self, body: Rid, shape_idx: i32) {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.remove_shape_idx(
-                    shape_idx as usize,
-                    &mut physics_data.physics_engine,
-                    &mut physics_data.spaces,
-                    &mut physics_data.shapes,
-                    &physics_data.ids,
-                );
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.remove_shape_idx(
+                shape_idx as usize,
+                &mut physics_data.physics_engine,
+                &mut physics_data.spaces,
+                &mut physics_data.shapes,
+                &physics_data.ids,
+            );
         }
     }
 
@@ -1033,25 +1033,24 @@ impl RapierPhysicsServerImpl {
         mode: CcdMode,
     ) {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.set_continuous_collision_detection_mode(
-                    mode != CcdMode::DISABLED,
-                    &mut physics_data.physics_engine,
-                );
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.set_continuous_collision_detection_mode(
+                mode != CcdMode::DISABLED,
+                &mut physics_data.physics_engine,
+            );
         }
     }
 
     #[cfg(feature = "dim2")]
     pub(super) fn body_get_continuous_collision_detection_mode(&self, body: Rid) -> CcdMode {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get(&body) {
-            if let Some(body) = body.get_body() {
-                if body.get_continuous_collision_detection_mode() {
-                    return CcdMode::CAST_RAY;
-                }
-            }
+        if let Some(body) = physics_data.collision_objects.get(&body)
+            && let Some(body) = body.get_body()
+            && body.get_continuous_collision_detection_mode()
+        {
+            return CcdMode::CAST_RAY;
         }
         CcdMode::DISABLED
     }
@@ -1059,25 +1058,21 @@ impl RapierPhysicsServerImpl {
     #[cfg(feature = "dim3")]
     pub fn body_set_enable_continuous_collision_detection(&mut self, body: Rid, enable: bool) {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.set_continuous_collision_detection_mode(
-                    enable,
-                    &mut physics_data.physics_engine,
-                );
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.set_continuous_collision_detection_mode(enable, &mut physics_data.physics_engine);
         }
     }
 
     #[cfg(feature = "dim3")]
     pub(super) fn body_is_continuous_collision_detection_enabled(&self, body: Rid) -> bool {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get(&body) {
-            if let Some(body) = body.get_body() {
-                if body.get_continuous_collision_detection_mode() {
-                    return true;
-                }
-            }
+        if let Some(body) = physics_data.collision_objects.get(&body)
+            && let Some(body) = body.get_body()
+            && body.get_continuous_collision_detection_mode()
+        {
+            return true;
         }
         false
     }
@@ -1139,330 +1134,330 @@ impl RapierPhysicsServerImpl {
 
     pub(super) fn body_set_param(&mut self, body: Rid, param: BodyParameter, value: Variant) {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.set_param(
-                    param,
-                    value,
-                    &mut physics_data.physics_engine,
-                    &mut physics_data.spaces,
-                    &physics_data.ids,
-                );
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.set_param(
+                param,
+                value,
+                &mut physics_data.physics_engine,
+                &mut physics_data.spaces,
+                &physics_data.ids,
+            );
         }
     }
 
     pub(super) fn body_get_param(&self, body: Rid, param: BodyParameter) -> Variant {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get(&body) {
-            if let Some(body) = body.get_body() {
-                return body.get_param(param);
-            }
+        if let Some(body) = physics_data.collision_objects.get(&body)
+            && let Some(body) = body.get_body()
+        {
+            return body.get_param(param);
         }
         Variant::nil()
     }
 
     pub(super) fn body_reset_mass_properties(&mut self, body: Rid) {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.reset_mass_properties(
-                    &mut physics_data.physics_engine,
-                    &mut physics_data.spaces,
-                    &physics_data.ids,
-                );
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.reset_mass_properties(
+                &mut physics_data.physics_engine,
+                &mut physics_data.spaces,
+                &physics_data.ids,
+            );
         }
     }
 
     pub(super) fn body_set_state(&mut self, body: Rid, state: BodyState, value: Variant) {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.set_state(
-                    state,
-                    value,
-                    &mut physics_data.physics_engine,
-                    &mut physics_data.spaces,
-                    &physics_data.ids,
-                );
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.set_state(
+                state,
+                value,
+                &mut physics_data.physics_engine,
+                &mut physics_data.spaces,
+                &physics_data.ids,
+            );
         }
     }
 
     pub(super) fn body_get_state(&self, body: Rid, state: BodyState) -> Variant {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get(&body) {
-            if let Some(body) = body.get_body() {
-                return body.get_state(state, &physics_data.physics_engine);
-            }
+        if let Some(body) = physics_data.collision_objects.get(&body)
+            && let Some(body) = body.get_body()
+        {
+            return body.get_state(state, &physics_data.physics_engine);
         }
         Variant::nil()
     }
 
     pub(super) fn body_apply_central_impulse(&mut self, body: Rid, impulse: Vector) {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(
-                    &mut physics_data.spaces,
-                    &mut physics_data.physics_engine,
-                    &physics_data.ids,
-                );
-                body.apply_central_impulse(impulse, &mut physics_data.physics_engine);
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.force_mass_update(
+                &mut physics_data.spaces,
+                &mut physics_data.physics_engine,
+                &physics_data.ids,
+            );
+            body.apply_central_impulse(impulse, &mut physics_data.physics_engine);
         }
     }
 
     pub(super) fn body_apply_torque_impulse(&mut self, body: Rid, impulse: Angle) {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(
-                    &mut physics_data.spaces,
-                    &mut physics_data.physics_engine,
-                    &physics_data.ids,
-                );
-                body.apply_torque_impulse(impulse, &mut physics_data.physics_engine);
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.force_mass_update(
+                &mut physics_data.spaces,
+                &mut physics_data.physics_engine,
+                &physics_data.ids,
+            );
+            body.apply_torque_impulse(impulse, &mut physics_data.physics_engine);
         }
     }
 
     pub(super) fn body_apply_impulse(&mut self, body: Rid, impulse: Vector, position: Vector) {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(
-                    &mut physics_data.spaces,
-                    &mut physics_data.physics_engine,
-                    &physics_data.ids,
-                );
-                body.apply_impulse(impulse, position, &mut physics_data.physics_engine);
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.force_mass_update(
+                &mut physics_data.spaces,
+                &mut physics_data.physics_engine,
+                &physics_data.ids,
+            );
+            body.apply_impulse(impulse, position, &mut physics_data.physics_engine);
         }
     }
 
     pub(super) fn body_apply_central_force(&mut self, body: Rid, force: Vector) {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(
-                    &mut physics_data.spaces,
-                    &mut physics_data.physics_engine,
-                    &physics_data.ids,
-                );
-                body.apply_central_force(force, &mut physics_data.physics_engine);
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.force_mass_update(
+                &mut physics_data.spaces,
+                &mut physics_data.physics_engine,
+                &physics_data.ids,
+            );
+            body.apply_central_force(force, &mut physics_data.physics_engine);
         }
     }
 
     pub(super) fn body_apply_force(&mut self, body: Rid, force: Vector, position: Vector) {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(
-                    &mut physics_data.spaces,
-                    &mut physics_data.physics_engine,
-                    &physics_data.ids,
-                );
-                body.apply_force(force, position, &mut physics_data.physics_engine);
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.force_mass_update(
+                &mut physics_data.spaces,
+                &mut physics_data.physics_engine,
+                &physics_data.ids,
+            );
+            body.apply_force(force, position, &mut physics_data.physics_engine);
         }
     }
 
     pub(super) fn body_apply_torque(&mut self, body: Rid, torque: Angle) {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(
-                    &mut physics_data.spaces,
-                    &mut physics_data.physics_engine,
-                    &physics_data.ids,
-                );
-                body.apply_torque(torque, &mut physics_data.physics_engine);
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.force_mass_update(
+                &mut physics_data.spaces,
+                &mut physics_data.physics_engine,
+                &physics_data.ids,
+            );
+            body.apply_torque(torque, &mut physics_data.physics_engine);
         }
     }
 
     pub(super) fn body_add_constant_central_force(&mut self, body: Rid, force: Vector) {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(
-                    &mut physics_data.spaces,
-                    &mut physics_data.physics_engine,
-                    &physics_data.ids,
-                );
-                body.add_constant_central_force(force, &mut physics_data.physics_engine);
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.force_mass_update(
+                &mut physics_data.spaces,
+                &mut physics_data.physics_engine,
+                &physics_data.ids,
+            );
+            body.add_constant_central_force(force, &mut physics_data.physics_engine);
         }
     }
 
     pub(super) fn body_add_constant_force(&mut self, body: Rid, force: Vector, position: Vector) {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(
-                    &mut physics_data.spaces,
-                    &mut physics_data.physics_engine,
-                    &physics_data.ids,
-                );
-                body.add_constant_force(force, position, &mut physics_data.physics_engine);
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.force_mass_update(
+                &mut physics_data.spaces,
+                &mut physics_data.physics_engine,
+                &physics_data.ids,
+            );
+            body.add_constant_force(force, position, &mut physics_data.physics_engine);
         }
     }
 
     pub(super) fn body_add_constant_torque(&mut self, body: Rid, torque: Angle) {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(
-                    &mut physics_data.spaces,
-                    &mut physics_data.physics_engine,
-                    &physics_data.ids,
-                );
-                body.add_constant_torque(torque, &mut physics_data.physics_engine);
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.force_mass_update(
+                &mut physics_data.spaces,
+                &mut physics_data.physics_engine,
+                &physics_data.ids,
+            );
+            body.add_constant_torque(torque, &mut physics_data.physics_engine);
         }
     }
 
     pub(super) fn body_set_constant_force(&mut self, body: Rid, force: Vector) {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(
-                    &mut physics_data.spaces,
-                    &mut physics_data.physics_engine,
-                    &physics_data.ids,
-                );
-                body.set_constant_force(force, &mut physics_data.physics_engine);
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.force_mass_update(
+                &mut physics_data.spaces,
+                &mut physics_data.physics_engine,
+                &physics_data.ids,
+            );
+            body.set_constant_force(force, &mut physics_data.physics_engine);
         }
     }
 
     pub(super) fn body_get_constant_force(&self, body: Rid) -> Vector {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get(&body) {
-            if let Some(body) = body.get_body() {
-                return body.get_constant_force(&physics_data.physics_engine);
-            }
+        if let Some(body) = physics_data.collision_objects.get(&body)
+            && let Some(body) = body.get_body()
+        {
+            return body.get_constant_force(&physics_data.physics_engine);
         }
         Vector::default()
     }
 
     pub(super) fn body_set_constant_torque(&mut self, body: Rid, torque: Angle) {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.force_mass_update(
-                    &mut physics_data.spaces,
-                    &mut physics_data.physics_engine,
-                    &physics_data.ids,
-                );
-                body.set_constant_torque(torque, &mut physics_data.physics_engine);
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.force_mass_update(
+                &mut physics_data.spaces,
+                &mut physics_data.physics_engine,
+                &physics_data.ids,
+            );
+            body.set_constant_torque(torque, &mut physics_data.physics_engine);
         }
     }
 
     pub(super) fn body_get_constant_torque(&self, body: Rid) -> Angle {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get(&body) {
-            if let Some(body) = body.get_body() {
-                return body.get_constant_torque(&physics_data.physics_engine);
-            }
+        if let Some(body) = physics_data.collision_objects.get(&body)
+            && let Some(body) = body.get_body()
+        {
+            return body.get_constant_torque(&physics_data.physics_engine);
         }
         ANGLE_ZERO
     }
 
     pub(super) fn body_set_axis_velocity(&mut self, body: Rid, axis_velocity: Vector) {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                let mut v = body.get_linear_velocity(&physics_data.physics_engine);
-                let axis = vector_normalized(axis_velocity);
-                v -= axis * axis.dot(v);
-                v += axis_velocity;
-                body.set_linear_velocity(v, &mut physics_data.physics_engine);
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            let mut v = body.get_linear_velocity(&physics_data.physics_engine);
+            let axis = vector_normalized(axis_velocity);
+            v -= axis * axis.dot(v);
+            v += axis_velocity;
+            body.set_linear_velocity(v, &mut physics_data.physics_engine);
         }
     }
 
     #[cfg(feature = "dim3")]
     pub(super) fn body_set_axis_lock(&mut self, body: Rid, axis: BodyAxis, lock: bool) {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.set_axis_lock(axis, lock, &mut physics_data.physics_engine);
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.set_axis_lock(axis, lock, &mut physics_data.physics_engine);
         }
     }
 
     #[cfg(feature = "dim3")]
     pub(super) fn body_is_axis_locked(&self, body: Rid, axis: BodyAxis) -> bool {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get(&body) {
-            if let Some(body) = body.get_body() {
-                return body.is_axis_locked(axis);
-            }
+        if let Some(body) = physics_data.collision_objects.get(&body)
+            && let Some(body) = body.get_body()
+        {
+            return body.is_axis_locked(axis);
         }
         false
     }
 
     pub(super) fn body_add_collision_exception(&mut self, body: Rid, excepted_body: Rid) {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.add_exception(excepted_body, &mut physics_data.physics_engine);
-                body.wakeup(&mut physics_data.physics_engine);
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.add_exception(excepted_body, &mut physics_data.physics_engine);
+            body.wakeup(&mut physics_data.physics_engine);
         }
     }
 
     pub(super) fn body_remove_collision_exception(&mut self, body: Rid, excepted_body: Rid) {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.remove_exception(excepted_body, &mut physics_data.physics_engine);
-                body.wakeup(&mut physics_data.physics_engine);
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.remove_exception(excepted_body, &mut physics_data.physics_engine);
+            body.wakeup(&mut physics_data.physics_engine);
         }
     }
 
     pub(super) fn body_get_collision_exceptions(&self, body: Rid) -> Array<Rid> {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get(&body) {
-            if let Some(body) = body.get_body() {
-                let exceptions = body.get_exceptions();
-                let mut arr = Array::new();
-                for e in exceptions {
-                    arr.push(*e);
-                }
-                return arr;
+        if let Some(body) = physics_data.collision_objects.get(&body)
+            && let Some(body) = body.get_body()
+        {
+            let exceptions = body.get_exceptions();
+            let mut arr = Array::new();
+            for e in exceptions {
+                arr.push(*e);
             }
+            return arr;
         }
         Array::new()
     }
 
     pub(super) fn body_set_max_contacts_reported(&mut self, body: Rid, amount: i32) {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.set_max_contacts_reported(
-                    amount,
-                    &mut physics_data.physics_engine,
-                    &mut physics_data.spaces,
-                    &physics_data.ids,
-                );
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.set_max_contacts_reported(
+                amount,
+                &mut physics_data.physics_engine,
+                &mut physics_data.spaces,
+                &physics_data.ids,
+            );
         }
     }
 
     pub(super) fn body_get_max_contacts_reported(&self, body: Rid) -> i32 {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get(&body) {
-            if let Some(body) = body.get_body() {
-                return body.get_max_contacts_reported();
-            }
+        if let Some(body) = physics_data.collision_objects.get(&body)
+            && let Some(body) = body.get_body()
+        {
+            return body.get_max_contacts_reported();
         }
         0
     }
@@ -1481,11 +1476,11 @@ impl RapierPhysicsServerImpl {
     pub(super) fn body_set_omit_force_integration(&mut self, body: Rid, enable: bool) {
         let physics_data = physics_data();
         let mut body_id = RapierId::default();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.set_omit_force_integration(enable);
-                body_id = body.get_base().get_id();
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.set_omit_force_integration(enable);
+            body_id = body.get_base().get_id();
         }
         if body_id != RapierId::default() {
             RapierBody::apply_area_override_to_body(
@@ -1500,20 +1495,20 @@ impl RapierPhysicsServerImpl {
 
     pub(super) fn body_is_omitting_force_integration(&self, body: Rid) -> bool {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get(&body) {
-            if let Some(body) = body.get_body() {
-                return body.get_omit_force_integration();
-            }
+        if let Some(body) = physics_data.collision_objects.get(&body)
+            && let Some(body) = body.get_body()
+        {
+            return body.get_omit_force_integration();
         }
         false
     }
 
     pub(super) fn body_set_state_sync_callback(&mut self, body: Rid, callable: Callable) {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.set_state_sync_callback(callable, &mut physics_data.spaces, &physics_data.ids);
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.set_state_sync_callback(callable, &mut physics_data.spaces, &physics_data.ids);
         }
     }
 
@@ -1524,15 +1519,15 @@ impl RapierPhysicsServerImpl {
         userdata: Variant,
     ) {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.set_force_integration_callback(
-                    callable,
-                    userdata,
-                    &mut physics_data.spaces,
-                    &physics_data.ids,
-                );
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.set_force_integration_callback(
+                callable,
+                userdata,
+                &mut physics_data.spaces,
+                &physics_data.ids,
+            );
         }
     }
 
@@ -1554,14 +1549,14 @@ impl RapierPhysicsServerImpl {
         let mut body_transform = Transform::IDENTITY;
         let mut body_shape_transform = Transform::IDENTITY;
         {
-            if let Some(body) = physics_data.collision_objects.get(&body) {
-                if let Some(body) = body.get_body() {
-                    body_shape_rid = body
-                        .get_base()
-                        .get_shape(&physics_data.ids, body_shape as usize);
-                    body_transform = body.get_base().get_transform();
-                    body_shape_transform = body.get_base().get_shape_transform(body_shape as usize);
-                }
+            if let Some(body) = physics_data.collision_objects.get(&body)
+                && let Some(body) = body.get_body()
+            {
+                body_shape_rid = body
+                    .get_base()
+                    .get_shape(&physics_data.ids, body_shape as usize);
+                body_transform = body.get_base().get_transform();
+                body_shape_transform = body.get_base().get_shape_transform(body_shape as usize);
             }
         }
         unsafe {
@@ -1600,11 +1595,11 @@ impl RapierPhysicsServerImpl {
         body: Rid,
     ) -> Option<Gd<PhysicsDirectBodyState>> {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            if let Some(body) = body.get_mut_body() {
-                body.create_direct_state();
-                return body.get_direct_state().cloned();
-            }
+        if let Some(body) = physics_data.collision_objects.get_mut(&body)
+            && let Some(body) = body.get_mut_body()
+        {
+            body.create_direct_state();
+            return body.get_direct_state().cloned();
         }
         None
     }
@@ -1622,28 +1617,26 @@ impl RapierPhysicsServerImpl {
         result: *mut PhysicsServerExtensionMotionResult,
     ) -> bool {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get(&body) {
-            if let Some(body) = body.get_body() {
-                if let Some(space) = physics_data
-                    .spaces
-                    .get(&body.get_base().get_space(&physics_data.ids))
-                {
-                    let result: &mut PhysicsServerExtensionMotionResult = unsafe { &mut *result };
-                    return space.test_body_motion(
-                        body,
-                        from,
-                        motion,
-                        margin,
-                        collide_separation_ray,
-                        recovery_as_collision,
-                        result,
-                        &physics_data.physics_engine,
-                        &physics_data.shapes,
-                        &physics_data.ids,
-                        &physics_data.collision_objects,
-                    );
-                }
-            }
+        if let Some(body) = physics_data.collision_objects.get(&body)
+            && let Some(body) = body.get_body()
+            && let Some(space) = physics_data
+                .spaces
+                .get(&body.get_base().get_space(&physics_data.ids))
+        {
+            let result: &mut PhysicsServerExtensionMotionResult = unsafe { &mut *result };
+            return space.test_body_motion(
+                body,
+                from,
+                motion,
+                margin,
+                collide_separation_ray,
+                recovery_as_collision,
+                result,
+                &physics_data.physics_engine,
+                &physics_data.shapes,
+                &physics_data.ids,
+                &physics_data.collision_objects,
+            );
         }
         false
     }
@@ -1680,20 +1673,20 @@ impl RapierPhysicsServerImpl {
     #[cfg(feature = "dim2")]
     pub(super) fn joint_set_param(&mut self, joint: Rid, param: JointParam, value: f32) {
         let physics_data = physics_data();
-        if let Some(joint) = physics_data.joints.get_mut(&joint) {
-            if param == JointParam::MAX_FORCE {
-                joint.get_mut_base().set_max_force(value);
-            }
+        if let Some(joint) = physics_data.joints.get_mut(&joint)
+            && param == JointParam::MAX_FORCE
+        {
+            joint.get_mut_base().set_max_force(value);
         }
     }
 
     #[cfg(feature = "dim2")]
     pub(super) fn joint_get_param(&self, joint: Rid, param: JointParam) -> f32 {
         let physics_data = physics_data();
-        if let Some(joint) = physics_data.joints.get(&joint) {
-            if param == JointParam::MAX_FORCE {
-                return joint.get_base().get_max_force();
-            }
+        if let Some(joint) = physics_data.joints.get(&joint)
+            && param == JointParam::MAX_FORCE
+        {
+            return joint.get_base().get_max_force();
         }
         0.0
     }
@@ -2574,20 +2567,28 @@ impl RapierPhysicsServerImpl {
         RapierSpace::step(step, space_rid, physics_data, settings);
     }
 
-    pub(super) fn space_flush_queries(&mut self, space: &Rid) {
+    pub(super) fn space_flush_queries(space: &Rid) {
         let physics_data = physics_data();
-        self.flushing_queries = true;
-        let mut queries = Vec::default();
+        let mut state_query_list = None;
+        let mut force_integrate_query_list = None;
+        let mut monitor_query_list = None;
         if let Some(space) = physics_data.spaces.get_mut(space) {
-            let query = space.get_queries(&mut physics_data.collision_objects, &physics_data.ids);
-            queries.extend(query);
+            state_query_list = Some(space.get_state().get_state_query_list());
+            force_integrate_query_list = Some(space.get_state().get_force_integrate_query_list());
+            monitor_query_list = Some(space.get_state().get_monitor_query_list());
         }
-        for query in queries {
-            // TODO optimize function calls copying data.
-            // TODO optimize after these are called, the callbacks into direct state objects.
-            query.0.callv(&Array::from(query.1.as_slice()));
+        if let Some(state_query_list) = state_query_list
+            && let Some(force_integrate_query_list) = force_integrate_query_list
+            && let Some(monitor_query_list) = monitor_query_list
+        {
+            RapierSpace::call_queries(
+                state_query_list,
+                force_integrate_query_list,
+                monitor_query_list,
+                &mut physics_data.collision_objects,
+                &physics_data.ids,
+            );
         }
-        self.flushing_queries = false;
         if let Some(space) = physics_data.spaces.get_mut(space) {
             space.update_after_queries(&mut physics_data.collision_objects, &physics_data.ids);
         }
