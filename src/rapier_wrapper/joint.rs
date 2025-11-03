@@ -74,6 +74,8 @@ impl PhysicsEngine {
         body_handle_2: RigidBodyHandle,
         anchor_1: Vector<Real>,
         anchor_2: Vector<Real>,
+        axis_1: Rotation<Real>,
+        axis_2: Rotation<Real>,
         angular_limit_lower: Real,
         angular_limit_upper: Real,
         angular_limit_enabled: bool,
@@ -86,11 +88,13 @@ impl PhysicsEngine {
         self.body_wake_up(world_handle, body_handle_1, false);
         self.body_wake_up(world_handle, body_handle_2, false);
         if let Some(physics_world) = self.get_mut_world(world_handle) {
-            let axis = anchor_1 - anchor_2;
-            let unit_axis = UnitVector::new_normalize(axis.normalize());
-            let mut joint = RevoluteJointBuilder::new(unit_axis)
+            // Extract the hinge axis (X-axis) from the rotation matrices
+            let axis1_vec = axis_1 * Vector::x_axis();
+            let axis2_vec = axis_2 * Vector::x_axis();
+            let mut joint = RevoluteJointBuilder::new(axis1_vec)
                 .local_anchor1(Point { coords: anchor_1 })
                 .local_anchor2(Point { coords: anchor_2 })
+                .local_axis2(axis2_vec)
                 .contacts_enabled(!disable_collision);
             if angular_limit_enabled {
                 joint = joint.limits([angular_limit_lower, angular_limit_upper]);
@@ -149,6 +153,8 @@ impl PhysicsEngine {
         body_handle_2: RigidBodyHandle,
         anchor_1: Vector<Real>,
         anchor_2: Vector<Real>,
+        axis_1: Rotation<Real>,
+        axis_2: Rotation<Real>,
         linear_limit_upper: f32,
         linear_limit_lower: f32,
         multibody: bool,
@@ -158,9 +164,9 @@ impl PhysicsEngine {
         self.body_wake_up(world_handle, body_handle_1, false);
         self.body_wake_up(world_handle, body_handle_2, false);
         if let Some(physics_world) = self.get_mut_world(world_handle) {
-            let axis = anchor_1 - anchor_2;
-            let unit_axis = UnitVector::new_normalize(axis.normalize());
-            let joint = PrismaticJointBuilder::new(unit_axis)
+            // Extract the X axis from the rotation matrices
+            let axis1_vec = axis_1 * Vector::x_axis();
+            let joint = PrismaticJointBuilder::new(axis1_vec)
                 .local_anchor1(Point { coords: anchor_1 })
                 .local_anchor2(Point { coords: anchor_2 })
                 .limits([linear_limit_lower, linear_limit_upper])

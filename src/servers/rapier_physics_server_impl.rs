@@ -1836,6 +1836,8 @@ impl RapierPhysicsServerImpl {
                 rid,
                 hinge_a.origin,
                 hinge_b.origin,
+                hinge_a.basis,
+                hinge_b.basis,
                 body_a,
                 body_b,
                 &mut physics_data.physics_engine,
@@ -1862,22 +1864,37 @@ impl RapierPhysicsServerImpl {
         rid: Rid,
         body_a: Rid,
         pivot_a: Vector3,
-        _axis_a: Vector3,
+        axis_a: Vector3,
         body_b: Rid,
         pivot_b: Vector3,
-        _axis_b: Vector3,
+        axis_b: Vector3,
     ) {
         let physics_data = physics_data();
         let mut joint: RapierJoint;
         if let Some(body_a) = physics_data.collision_objects.get(&body_a)
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
+            // Create basis from axis vectors
+            // The hinge axis should be the X-axis in the local frame
+            // We need to create a rotation that aligns X-axis with the given axis
+            let basis_a = if axis_a.length_squared() > 0.0 {
+                godot::prelude::Basis::looking_at(axis_a.normalized(), Vector3::UP)
+            } else {
+                godot::prelude::Basis::IDENTITY
+            };
+            let basis_b = if axis_b.length_squared() > 0.0 {
+                godot::prelude::Basis::looking_at(axis_b.normalized(), Vector3::UP)
+            } else {
+                godot::prelude::Basis::IDENTITY
+            };
             let id = self.next_id();
             joint = RapierJoint::RapierRevoluteJoint(RapierRevoluteJoint::new(
                 id,
                 rid,
                 pivot_a,
                 pivot_b,
+                basis_a,
+                basis_b,
                 body_a,
                 body_b,
                 &mut physics_data.physics_engine,
@@ -1950,8 +1967,10 @@ impl RapierPhysicsServerImpl {
             joint = RapierJoint::RapierSliderJoint3D(RapierSliderJoint3D::new(
                 id,
                 rid,
-                local_ref_a,
-                local_ref_b,
+                local_ref_a.origin,
+                local_ref_b.origin,
+                local_ref_a.basis,
+                local_ref_b.basis,
                 body_a,
                 body_b,
                 &mut physics_data.physics_engine,
