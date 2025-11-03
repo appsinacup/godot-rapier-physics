@@ -28,6 +28,4 @@ pub struct SimulationSettings {
     pub normalized_prediction_distance: Real,
     pub predictive_contact_allowance_threshold: Real,
     pub num_internal_stabilization_iterations: usize,
-    #[cfg(feature = "parallel")]
-    pub use_parallel: bool,
 }

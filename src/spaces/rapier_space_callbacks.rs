@@ -43,6 +43,7 @@ impl RapierSpace {
             && let Some(body) = body.get_mut_body()
         {
             body.set_previous_linear_velocity(vector_to_godot(active_body_info.previous_velocity));
+            body.set_active(false, self);
         }
     }
 
