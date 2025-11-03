@@ -425,7 +425,14 @@ impl RapierSpace {
         match bincode::deserialize::<SpaceImport>(data.as_slice()) {
             Ok(import) => {
                 self.state = import.space;
-                let physics_objects = import.world;
+                let mut physics_objects = import.world;
+
+                if let Some(current_world) = physics_engine.get_world(self.get_state().get_id())
+                {
+                    physics_objects.broad_phase = current_world.physics_objects.broad_phase.clone();
+                    physics_objects.narrow_phase = current_world.physics_objects.narrow_phase.clone();
+                }
+                
                 let world_settings = WorldSettings {
                     particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
                     smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
