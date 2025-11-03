@@ -93,12 +93,6 @@ pub struct PhysicsWorld {
 impl PhysicsWorld {
     #[cfg(feature = "parallel")]
     fn create_threadpool() -> rapier::rayon::ThreadPool {
-        use godot::global::godot_print;
-        godot_print!("Creating Rapier thread pool for parallel physics step...");
-        godot_print!(
-            "Number of physical CPUs detected: {}",
-            num_cpus::get_physical()
-        );
         let num_threads = num_cpus::get_physical();
         rapier::rayon::ThreadPoolBuilder::new()
             .num_threads(num_threads)
