@@ -91,23 +91,25 @@ impl PhysicsEngine {
             // Extract the hinge axis (X-axis) from the rotation matrices
             let axis1_vec = axis_1 * Vector::x_axis();
             let axis2_vec = axis_2 * Vector::x_axis();
-            let mut joint = RevoluteJointBuilder::new(axis1_vec)
+            // Use GenericJointBuilder to set both local axes
+            let mut joint = GenericJointBuilder::new(JointAxesMask::LOCKED_REVOLUTE_AXES)
                 .local_anchor1(Point { coords: anchor_1 })
                 .local_anchor2(Point { coords: anchor_2 })
+                .local_axis1(axis1_vec)
                 .local_axis2(axis2_vec)
                 .contacts_enabled(!disable_collision);
             if angular_limit_enabled {
-                joint = joint.limits([angular_limit_lower, angular_limit_upper]);
+                joint = joint.limits(JointAxis::AngX, [angular_limit_lower, angular_limit_upper]);
             }
             if motor_enabled {
-                joint = joint.motor_velocity(motor_target_velocity, 0.0);
+                joint = joint.motor_velocity(JointAxis::AngX, motor_target_velocity, 0.0);
             }
             return physics_world.insert_joint(
                 body_handle_1,
                 body_handle_2,
                 multibody,
                 kinematic,
-                joint,
+                joint.build(),
             );
         }
         JointHandle::default()
@@ -166,17 +168,21 @@ impl PhysicsEngine {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             // Extract the X axis from the rotation matrices
             let axis1_vec = axis_1 * Vector::x_axis();
-            let joint = PrismaticJointBuilder::new(axis1_vec)
+            let axis2_vec = axis_2 * Vector::x_axis();
+            // Use GenericJointBuilder to set both local axes for prismatic joint
+            let joint = GenericJointBuilder::new(JointAxesMask::LOCKED_PRISMATIC_AXES)
                 .local_anchor1(Point { coords: anchor_1 })
                 .local_anchor2(Point { coords: anchor_2 })
-                .limits([linear_limit_lower, linear_limit_upper])
+                .local_axis1(axis1_vec)
+                .local_axis2(axis2_vec)
+                .limits(JointAxis::LinX, [linear_limit_lower, linear_limit_upper])
                 .contacts_enabled(!disable_collision);
             return physics_world.insert_joint(
                 body_handle_1,
                 body_handle_2,
                 multibody,
                 kinematic,
-                joint,
+                joint.build(),
             );
         }
         JointHandle::default()

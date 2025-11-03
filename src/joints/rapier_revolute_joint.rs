@@ -12,6 +12,8 @@ use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::RapierId;
 use crate::types::Vector;
+#[cfg(feature = "dim3")]
+use crate::types::basis_to_rapier;
 pub struct RapierRevoluteJoint {
     angular_limit_lower: f32,
     angular_limit_upper: f32,

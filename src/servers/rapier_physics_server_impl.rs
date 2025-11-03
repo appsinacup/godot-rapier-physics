@@ -1876,14 +1876,29 @@ impl RapierPhysicsServerImpl {
         {
             // Create basis from axis vectors
             // The hinge axis should be the X-axis in the local frame
-            // We need to create a rotation that aligns X-axis with the given axis
+            // Construct a basis where X-axis is aligned with the given axis
             let basis_a = if axis_a.length_squared() > 0.0 {
-                godot::prelude::Basis::looking_at(axis_a.normalized(), Vector3::UP)
+                let x_axis = axis_a.normalized();
+                // Choose an arbitrary perpendicular vector for Y
+                let y_axis = if x_axis.abs().dot(Vector3::UP) < 0.99 {
+                    x_axis.cross(Vector3::UP).normalized()
+                } else {
+                    x_axis.cross(Vector3::RIGHT).normalized()
+                };
+                let z_axis = x_axis.cross(y_axis).normalized();
+                godot::prelude::Basis::from_cols(x_axis, y_axis, z_axis)
             } else {
                 godot::prelude::Basis::IDENTITY
             };
             let basis_b = if axis_b.length_squared() > 0.0 {
-                godot::prelude::Basis::looking_at(axis_b.normalized(), Vector3::UP)
+                let x_axis = axis_b.normalized();
+                let y_axis = if x_axis.abs().dot(Vector3::UP) < 0.99 {
+                    x_axis.cross(Vector3::UP).normalized()
+                } else {
+                    x_axis.cross(Vector3::RIGHT).normalized()
+                };
+                let z_axis = x_axis.cross(y_axis).normalized();
+                godot::prelude::Basis::from_cols(x_axis, y_axis, z_axis)
             } else {
                 godot::prelude::Basis::IDENTITY
             };
