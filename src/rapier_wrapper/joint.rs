@@ -275,40 +275,39 @@ impl PhysicsEngine {
         JointHandle::default()
     }
 
-    #[allow(clippy::too_many_arguments)]
-    #[cfg(feature = "dim2")]
-    pub fn joint_create_prismatic(
-        &mut self,
-        world_handle: WorldHandle,
-        body_handle_1: RigidBodyHandle,
-        body_handle_2: RigidBodyHandle,
-        axis: Vector<Real>,
-        anchor_1: Vector<Real>,
-        anchor_2: Vector<Real>,
-        limits: Vector<Real>,
-        multibody: bool,
-        kinematic: bool,
-        disable_collision: bool,
-    ) -> JointHandle {
-        self.body_wake_up(world_handle, body_handle_1, false);
-        self.body_wake_up(world_handle, body_handle_2, false);
-        if let Some(physics_world) = self.get_mut_world(world_handle) {
-            let joint = PrismaticJointBuilder::new(UnitVector::new_unchecked(axis))
-                .local_anchor1(Point { coords: anchor_1 })
-                .local_anchor2(Point { coords: anchor_2 })
-                .limits([limits.x, limits.y])
-                .contacts_enabled(!disable_collision);
-            return physics_world.insert_joint(
-                body_handle_1,
-                body_handle_2,
-                multibody,
-                kinematic,
-                joint,
-            );
-        }
-        JointHandle::default()
-    }
-
+    //    #[allow(clippy::too_many_arguments)]
+    //    #[cfg(feature = "dim2")]
+    //    pub fn joint_create_prismatic(
+    //        &mut self,
+    //        world_handle: WorldHandle,
+    //        body_handle_1: RigidBodyHandle,
+    //        body_handle_2: RigidBodyHandle,
+    //        axis: Vector<Real>,
+    //        anchor_1: Vector<Real>,
+    //        anchor_2: Vector<Real>,
+    //        limits: Vector<Real>,
+    //        multibody: bool,
+    //        kinematic: bool,
+    //        disable_collision: bool,
+    //    ) -> JointHandle {
+    //        self.body_wake_up(world_handle, body_handle_1, false);
+    //        self.body_wake_up(world_handle, body_handle_2, false);
+    //        if let Some(physics_world) = self.get_mut_world(world_handle) {
+    //            let joint = PrismaticJointBuilder::new(UnitVector::new_unchecked(axis))
+    //                .local_anchor1(Point { coords: anchor_1 })
+    //                .local_anchor2(Point { coords: anchor_2 })
+    //                .limits([limits.x, limits.y])
+    //                .contacts_enabled(!disable_collision);
+    //            return physics_world.insert_joint(
+    //                body_handle_1,
+    //                body_handle_2,
+    //                multibody,
+    //                kinematic,
+    //                joint,
+    //            );
+    //        }
+    //        JointHandle::default()
+    //    }
     #[allow(clippy::too_many_arguments)]
     #[cfg(feature = "dim2")]
     pub fn joint_create_spring(
