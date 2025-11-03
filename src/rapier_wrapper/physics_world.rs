@@ -87,8 +87,25 @@ pub struct PhysicsWorld {
     pub physics_objects: PhysicsObjects,
     pub physics_pipeline: PhysicsPipeline,
     pub fluids_pipeline: FluidsPipeline,
+    #[cfg(feature = "parallel")]
+    pub thread_pool: rapier::rayon::ThreadPool,
 }
 impl PhysicsWorld {
+    #[cfg(feature = "parallel")]
+    fn create_threadpool() -> rapier::rayon::ThreadPool {
+        use godot::global::godot_print;
+        godot_print!("Creating Rapier thread pool for parallel physics step...");
+        godot_print!(
+            "Number of physical CPUs detected: {}",
+            num_cpus::get_physical()
+        );
+        let num_threads = num_cpus::get_physical();
+        rapier::rayon::ThreadPoolBuilder::new()
+            .num_threads(num_threads)
+            .build()
+            .unwrap()
+    }
+
     pub fn new(settings: &WorldSettings) -> PhysicsWorld {
         let mut physics_pipeline = PhysicsPipeline::new();
         if settings.counters_enabled {
@@ -116,6 +133,8 @@ impl PhysicsWorld {
                 settings.particle_radius,
                 settings.smoothing_factor,
             ),
+            #[cfg(feature = "parallel")]
+            thread_pool: Self::create_threadpool(),
         }
     }
 
@@ -173,6 +192,28 @@ impl PhysicsWorld {
         let (collision_send, collision_recv) = mpsc::channel();
         let (contact_force_send, contact_force_recv) = mpsc::channel();
         let event_handler = ContactEventHandler::new(collision_send, contact_force_send);
+        #[cfg(feature = "parallel")]
+        {
+            let physics_objects = &mut self.physics_objects;
+            let physics_pipeline = &mut self.physics_pipeline;
+            self.thread_pool.install(|| {
+                physics_pipeline.step(
+                    &gravity,
+                    &integration_parameters,
+                    &mut physics_objects.island_manager,
+                    &mut physics_objects.broad_phase,
+                    &mut physics_objects.narrow_phase,
+                    &mut physics_objects.rigid_body_set,
+                    &mut physics_objects.collider_set,
+                    &mut physics_objects.impulse_joint_set,
+                    &mut physics_objects.multibody_joint_set,
+                    &mut physics_objects.ccd_solver,
+                    &physics_hooks,
+                    &event_handler,
+                );
+            });
+        }
+        #[cfg(not(feature = "parallel"))]
         self.physics_pipeline.step(
             &gravity,
             &integration_parameters,
