@@ -206,6 +206,7 @@ impl RapierProjectSettings {
         setting_value.to::<f64>()
     }
 
+    #[cfg(feature = "parallel")]
     fn get_setting_bool(p_setting: &str) -> bool {
         let project_settings = ProjectSettings::singleton();
         let setting_value = project_settings.get_setting_with_override(p_setting);
