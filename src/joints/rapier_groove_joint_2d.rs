@@ -50,7 +50,7 @@ impl RapierGrooveJoint2D {
         let rapier_anchor_b = vector_to_rapier(anchor_b);
         let space_handle = body_a.get_base().get_space_id();
         let space_id = body_a.get_base().get_space_id();
-        let handle = physics_engine.joint_create_prismatic(
+        let handle = physics_engine.joint_create_pin_slot(
             space_handle,
             body_a.get_base().get_body_handle(),
             body_b.get_base().get_body_handle(),

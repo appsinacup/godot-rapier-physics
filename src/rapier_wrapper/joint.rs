@@ -243,7 +243,7 @@ impl PhysicsEngine {
 
     #[allow(clippy::too_many_arguments)]
     #[cfg(feature = "dim2")]
-    pub fn joint_create_prismatic(
+    pub fn joint_create_pin_slot(
         &mut self,
         world_handle: WorldHandle,
         body_handle_1: RigidBodyHandle,
@@ -259,7 +259,7 @@ impl PhysicsEngine {
         self.body_wake_up(world_handle, body_handle_1, false);
         self.body_wake_up(world_handle, body_handle_2, false);
         if let Some(physics_world) = self.get_mut_world(world_handle) {
-            let joint = PrismaticJointBuilder::new(UnitVector::new_unchecked(axis))
+            let joint = PinSlotJointBuilder::new(UnitVector::new_unchecked(axis))
                 .local_anchor1(Point { coords: anchor_1 })
                 .local_anchor2(Point { coords: anchor_2 })
                 .limits([limits.x, limits.y])
