@@ -194,24 +194,41 @@ impl PhysicsWorld {
         let event_handler = ContactEventHandler::new(collision_send, contact_force_send);
         #[cfg(feature = "parallel")]
         {
-            let physics_objects = &mut self.physics_objects;
-            let physics_pipeline = &mut self.physics_pipeline;
-            self.thread_pool.install(|| {
-                physics_pipeline.step(
+            if settings.use_parallel {
+                let physics_objects = &mut self.physics_objects;
+                let physics_pipeline = &mut self.physics_pipeline;
+                self.thread_pool.install(|| {
+                    physics_pipeline.step(
+                        &gravity,
+                        &integration_parameters,
+                        &mut physics_objects.island_manager,
+                        &mut physics_objects.broad_phase,
+                        &mut physics_objects.narrow_phase,
+                        &mut physics_objects.rigid_body_set,
+                        &mut physics_objects.collider_set,
+                        &mut physics_objects.impulse_joint_set,
+                        &mut physics_objects.multibody_joint_set,
+                        &mut physics_objects.ccd_solver,
+                        &physics_hooks,
+                        &event_handler,
+                    );
+                });
+            } else {
+                self.physics_pipeline.step(
                     &gravity,
                     &integration_parameters,
-                    &mut physics_objects.island_manager,
-                    &mut physics_objects.broad_phase,
-                    &mut physics_objects.narrow_phase,
-                    &mut physics_objects.rigid_body_set,
-                    &mut physics_objects.collider_set,
-                    &mut physics_objects.impulse_joint_set,
-                    &mut physics_objects.multibody_joint_set,
-                    &mut physics_objects.ccd_solver,
+                    &mut self.physics_objects.island_manager,
+                    &mut self.physics_objects.broad_phase,
+                    &mut self.physics_objects.narrow_phase,
+                    &mut self.physics_objects.rigid_body_set,
+                    &mut self.physics_objects.collider_set,
+                    &mut self.physics_objects.impulse_joint_set,
+                    &mut self.physics_objects.multibody_joint_set,
+                    &mut self.physics_objects.ccd_solver,
                     &physics_hooks,
                     &event_handler,
                 );
-            });
+            }
         }
         #[cfg(not(feature = "parallel"))]
         self.physics_pipeline.step(

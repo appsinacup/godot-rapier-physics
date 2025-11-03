@@ -42,6 +42,8 @@ const LENGTH_UNIT: &str = "physics/rapier/solver/length_unit_3d";
 const LENGTH_UNIT_VALUE: real = 1.0;
 const JOINT_DAMPING_RATIO: &str = "physics/rapier/joint/damping_ratio";
 const JOINT_NATURAL_FREQUENCY: &str = "physics/rapier/joint/natural_frequency";
+#[cfg(feature = "parallel")]
+const SOLVER_USE_PARALLEL: &str = "physics/rapier/solver/use_parallel";
 pub fn register_setting(
     p_name: &str,
     p_value: Variant,
@@ -182,6 +184,14 @@ impl RapierProjectSettings {
             "1,100,1,suffix:length_unit,or_greater",
             false,
         );
+        #[cfg(feature = "parallel")]
+        register_setting(
+            SOLVER_USE_PARALLEL,
+            Variant::from(true),
+            false,
+            PropertyHint::NONE,
+            "",
+        );
     }
 
     fn get_setting_int(p_setting: &str) -> i64 {
@@ -194,6 +204,12 @@ impl RapierProjectSettings {
         let project_settings = ProjectSettings::singleton();
         let setting_value = project_settings.get_setting_with_override(p_setting);
         setting_value.to::<f64>()
+    }
+
+    fn get_setting_bool(p_setting: &str) -> bool {
+        let project_settings = ProjectSettings::singleton();
+        let setting_value = project_settings.get_setting_with_override(p_setting);
+        setting_value.to::<bool>()
     }
 
     pub fn get_solver_max_ccd_substeps() -> i64 {
@@ -259,5 +275,10 @@ impl RapierProjectSettings {
 
     pub fn get_ghost_collision_distance() -> Real {
         RapierProjectSettings::get_setting_double(GHOST_COLLISION_DISTANCE) as Real
+    }
+
+    #[cfg(feature = "parallel")]
+    pub fn get_use_parallel() -> bool {
+        RapierProjectSettings::get_setting_bool(SOLVER_USE_PARALLEL)
     }
 }
