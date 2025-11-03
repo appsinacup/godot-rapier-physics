@@ -14,6 +14,7 @@ pub struct RapierSliderJoint3D {
     linear_limit_upper: f32,
 }
 impl RapierSliderJoint3D {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         id: RapierId,
         rid: Rid,
