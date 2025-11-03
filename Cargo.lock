@@ -341,7 +341,7 @@ checksum = "0cc23270f6e1808e30a928bdc84dea0b9b4136a8bc82338574f23baf47bbd280"
 [[package]]
 name = "godot"
 version = "0.4.2"
-source = "git+https://github.com/godot-rust/gdext?branch=master#53043c99280211d963564e14dcdf8407c897610c"
+source = "git+https://github.com/yarwin/gdext?branch=custom-rapier-branch#a4641a531229c6134cca3823cf2005d8119ecd15"
 dependencies = [
  "godot-core",
  "godot-macros",
@@ -350,7 +350,7 @@ dependencies = [
 [[package]]
 name = "godot-bindings"
 version = "0.4.2"
-source = "git+https://github.com/godot-rust/gdext?branch=master#53043c99280211d963564e14dcdf8407c897610c"
+source = "git+https://github.com/yarwin/gdext?branch=custom-rapier-branch#a4641a531229c6134cca3823cf2005d8119ecd15"
 dependencies = [
  "bindgen",
  "gdextension-api",
@@ -361,12 +361,12 @@ dependencies = [
 [[package]]
 name = "godot-cell"
 version = "0.4.2"
-source = "git+https://github.com/godot-rust/gdext?branch=master#53043c99280211d963564e14dcdf8407c897610c"
+source = "git+https://github.com/yarwin/gdext?branch=custom-rapier-branch#a4641a531229c6134cca3823cf2005d8119ecd15"
 
 [[package]]
 name = "godot-codegen"
 version = "0.4.2"
-source = "git+https://github.com/godot-rust/gdext?branch=master#53043c99280211d963564e14dcdf8407c897610c"
+source = "git+https://github.com/yarwin/gdext?branch=custom-rapier-branch#a4641a531229c6134cca3823cf2005d8119ecd15"
 dependencies = [
  "godot-bindings",
  "heck",
@@ -379,7 +379,7 @@ dependencies = [
 [[package]]
 name = "godot-core"
 version = "0.4.2"
-source = "git+https://github.com/godot-rust/gdext?branch=master#53043c99280211d963564e14dcdf8407c897610c"
+source = "git+https://github.com/yarwin/gdext?branch=custom-rapier-branch#a4641a531229c6134cca3823cf2005d8119ecd15"
 dependencies = [
  "glam 0.30.9",
  "godot-bindings",
@@ -392,7 +392,7 @@ dependencies = [
 [[package]]
 name = "godot-ffi"
 version = "0.4.2"
-source = "git+https://github.com/godot-rust/gdext?branch=master#53043c99280211d963564e14dcdf8407c897610c"
+source = "git+https://github.com/yarwin/gdext?branch=custom-rapier-branch#a4641a531229c6134cca3823cf2005d8119ecd15"
 dependencies = [
  "godot-bindings",
  "godot-codegen",
@@ -403,7 +403,7 @@ dependencies = [
 [[package]]
 name = "godot-macros"
 version = "0.4.2"
-source = "git+https://github.com/godot-rust/gdext?branch=master#53043c99280211d963564e14dcdf8407c897610c"
+source = "git+https://github.com/yarwin/gdext?branch=custom-rapier-branch#a4641a531229c6134cca3823cf2005d8119ecd15"
 dependencies = [
  "godot-bindings",
  "litrs",
