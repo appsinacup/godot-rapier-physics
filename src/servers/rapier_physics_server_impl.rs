@@ -70,6 +70,8 @@ pub struct RapierPhysicsServerImpl {
     num_internal_stabilization_iterations: usize,
     contact_damping_ratio: real,
     contact_natural_frequency: real,
+    #[cfg(feature = "parallel")]
+    use_parallel: bool,
 }
 impl RapierPhysicsServerImpl {
     pub(super) fn next_id(&mut self) -> RapierId {
@@ -105,6 +107,8 @@ impl RapierPhysicsServerImpl {
                 RapierProjectSettings::get_num_internal_stabilization_iterations() as usize,
             contact_damping_ratio: RapierProjectSettings::get_contact_damping_ratio(),
             contact_natural_frequency: RapierProjectSettings::get_contact_natural_frequency(),
+            #[cfg(feature = "parallel")]
+            use_parallel: RapierProjectSettings::get_use_parallel(),
         }
     }
 
@@ -2563,6 +2567,8 @@ impl RapierPhysicsServerImpl {
             num_internal_stabilization_iterations: self.num_internal_stabilization_iterations,
             contact_damping_ratio: self.contact_damping_ratio,
             contact_natural_frequency: self.contact_natural_frequency,
+            #[cfg(feature = "parallel")]
+            use_parallel: self.use_parallel,
         };
         RapierSpace::step(step, space_rid, physics_data, settings);
     }

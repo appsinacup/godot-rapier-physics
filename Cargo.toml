@@ -10,7 +10,7 @@ publish = false
 crate-type = ["cdylib", "staticlib"]
 
 [features]
-default = ["build2d", "test"]
+default = ["build2d", "test", "parallel"]
 test = []
 build2d = ["single-dim2", "serde-serialize", "simd-nightly"]
 build3d = ["single-dim3", "serde-serialize", "simd-nightly"]
@@ -28,7 +28,7 @@ serde-serialize = ["serde", "hashbrown/serde", "bincode", "serde_json", "godot/s
 # simd-nightly = ["rapier2d/simd-nightly", "rapier2d-f64/simd-nightly", "rapier3d/simd-nightly", "rapier3d-f64/simd-nightly"]
 simd-stable = ["rapier2d/simd-stable", "rapier3d/simd-stable"]
 simd-nightly = ["rapier2d/simd-nightly", "rapier3d/simd-nightly"]
-parallel = ["rapier2d/parallel", "rapier2d-f64/parallel", "rapier3d/parallel", "rapier3d-f64/parallel"] #, "experimental-threads"]
+parallel = ["rapier2d/parallel", "rapier2d-f64/parallel", "rapier3d/parallel", "rapier3d-f64/parallel", "num_cpus"] #, "experimental-threads"]
 experimental-wasm-nothreads = ["godot/experimental-wasm-nothreads", "godot/lazy-function-tables"]
 experimental-wasm = ["godot/experimental-wasm", "godot/lazy-function-tables"]
 experimental-threads = ["godot/experimental-threads"]
@@ -40,6 +40,8 @@ double-dim3 = ["double", "dim3", "rapier3d-f64", "salva3d-f64"]
 [dependencies]
 bincode = { version = "1", optional = true }
 hashbrown = { version = "0.14" }
+
+num_cpus = { version = "1", optional = true }
 
 godot = { git = "https://github.com/godot-rust/gdext", branch = "master", features=["register-docs", "safeguards-release-disengaged"] }
 
