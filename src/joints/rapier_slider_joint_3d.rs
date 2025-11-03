@@ -7,17 +7,21 @@ use crate::bodies::rapier_collision_object::RapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::RapierId;
+use crate::types::*;
 pub struct RapierSliderJoint3D {
     base: RapierJointBase,
     linear_limit_lower: f32,
     linear_limit_upper: f32,
 }
 impl RapierSliderJoint3D {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         id: RapierId,
         rid: Rid,
-        anchor_a: Transform3D,
-        anchor_b: Transform3D,
+        anchor_a: Vector3,
+        anchor_b: Vector3,
+        axis_a: Basis,
+        axis_b: Basis,
         body_a: &RapierCollisionObject,
         body_b: &RapierCollisionObject,
         physics_engine: &mut PhysicsEngine,
@@ -38,8 +42,10 @@ impl RapierSliderJoint3D {
         {
             return invalid_joint;
         }
-        let rapier_anchor_a = vector_to_rapier(anchor_a.origin);
-        let rapier_anchor_b = vector_to_rapier(anchor_b.origin);
+        let rapier_anchor_a = vector_to_rapier(anchor_a);
+        let rapier_anchor_b = vector_to_rapier(anchor_b);
+        let rapier_axis_a = basis_to_rapier(axis_a);
+        let rapier_axis_b = basis_to_rapier(axis_b);
         let space_handle = body_a.get_base().get_space_id();
         let space_id = body_a.get_base().get_space_id();
         let handle = physics_engine.joint_create_slider(
@@ -48,6 +54,8 @@ impl RapierSliderJoint3D {
             body_b.get_base().get_body_handle(),
             rapier_anchor_a,
             rapier_anchor_b,
+            rapier_axis_a,
+            rapier_axis_b,
             0.0,
             0.0,
             false,

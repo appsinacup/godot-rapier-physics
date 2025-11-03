@@ -1832,6 +1832,8 @@ impl RapierPhysicsServerImpl {
                 rid,
                 hinge_a.origin,
                 hinge_b.origin,
+                hinge_a.basis,
+                hinge_b.basis,
                 body_a,
                 body_b,
                 &mut physics_data.physics_engine,
@@ -1858,22 +1860,52 @@ impl RapierPhysicsServerImpl {
         rid: Rid,
         body_a: Rid,
         pivot_a: Vector3,
-        _axis_a: Vector3,
+        axis_a: Vector3,
         body_b: Rid,
         pivot_b: Vector3,
-        _axis_b: Vector3,
+        axis_b: Vector3,
     ) {
         let physics_data = physics_data();
         let mut joint: RapierJoint;
         if let Some(body_a) = physics_data.collision_objects.get(&body_a)
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
+            // Create basis from axis vectors
+            // The hinge axis should be the X-axis in the local frame
+            // Construct a basis where X-axis is aligned with the given axis
+            let basis_a = if axis_a.length_squared() > 0.0 {
+                let x_axis = axis_a.normalized();
+                // Choose an arbitrary perpendicular vector for Y
+                let y_axis = if x_axis.abs().dot(Vector3::UP) < 0.99 {
+                    x_axis.cross(Vector3::UP).normalized()
+                } else {
+                    x_axis.cross(Vector3::RIGHT).normalized()
+                };
+                let z_axis = x_axis.cross(y_axis).normalized();
+                godot::prelude::Basis::from_cols(x_axis, y_axis, z_axis)
+            } else {
+                godot::prelude::Basis::IDENTITY
+            };
+            let basis_b = if axis_b.length_squared() > 0.0 {
+                let x_axis = axis_b.normalized();
+                let y_axis = if x_axis.abs().dot(Vector3::UP) < 0.99 {
+                    x_axis.cross(Vector3::UP).normalized()
+                } else {
+                    x_axis.cross(Vector3::RIGHT).normalized()
+                };
+                let z_axis = x_axis.cross(y_axis).normalized();
+                godot::prelude::Basis::from_cols(x_axis, y_axis, z_axis)
+            } else {
+                godot::prelude::Basis::IDENTITY
+            };
             let id = self.next_id();
             joint = RapierJoint::RapierRevoluteJoint(RapierRevoluteJoint::new(
                 id,
                 rid,
                 pivot_a,
                 pivot_b,
+                basis_a,
+                basis_b,
                 body_a,
                 body_b,
                 &mut physics_data.physics_engine,
@@ -1946,8 +1978,10 @@ impl RapierPhysicsServerImpl {
             joint = RapierJoint::RapierSliderJoint3D(RapierSliderJoint3D::new(
                 id,
                 rid,
-                local_ref_a,
-                local_ref_b,
+                local_ref_a.origin,
+                local_ref_b.origin,
+                local_ref_a.basis,
+                local_ref_b.basis,
                 body_a,
                 body_b,
                 &mut physics_data.physics_engine,
