@@ -24,7 +24,9 @@ runs:
     - name: Rust Add target
       shell: sh
       run: |
+        rustup toolchain install nightly
         rustup target add ${{ inputs.arch }} --toolchain nightly
+        rustup component add rust-src --toolchain nightly
     - name: Build
       shell: sh
       run: |
