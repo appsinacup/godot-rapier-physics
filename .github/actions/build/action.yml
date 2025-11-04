@@ -25,12 +25,12 @@ runs:
       shell: sh
       run: |
         rustup toolchain install nightly
-        rustup target add ${{ inputs.arch }} --toolchain nightly
         rustup component add rust-src --toolchain nightly
+        rustup target add ${{ inputs.arch }} --toolchain nightly
     - name: Build
       shell: sh
       run: |
-        cargo build --target=${{ inputs.arch }} --release --features="${{ inputs.features }},api-custom" ${{ inputs.extra_flags }} --no-default-features
+        cargo +nightly build --target=${{ inputs.arch }} --release --features="${{ inputs.features }},api-custom" ${{ inputs.extra_flags }} --no-default-features
     - name: Copy to release
       shell: sh
       run: |
