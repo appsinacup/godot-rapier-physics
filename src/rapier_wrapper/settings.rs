@@ -6,6 +6,7 @@ pub struct WorldSettings {
     ///   The kernel radius will be computed as `particle_radius * smoothing_factor * 2.0.
     pub smoothing_factor: Real,
     pub counters_enabled: bool,
+    pub boundary_coef: Real,
 }
 pub struct SimulationSettings {
     /// The timestep length (default: `1.0 / 60.0`)

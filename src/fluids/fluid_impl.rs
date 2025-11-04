@@ -189,8 +189,9 @@ impl FluidImpl {
         if fluid.collision_mask != mask {
             fluid.collision_mask = mask;
             let rid = fluid.rid;
+            let layer = fluid.collision_layer;
             let guard = fluid.base_mut();
-            RapierPhysicsServer::fluid_set_collision_mask(rid, mask);
+            RapierPhysicsServer::fluid_set_collision_masks(rid, mask, layer);
             drop(guard);
         }
     }
@@ -203,8 +204,9 @@ impl FluidImpl {
         if fluid.collision_layer != layer {
             fluid.collision_layer = layer;
             let rid = fluid.rid;
+            let mask = fluid.collision_mask;
             let guard = fluid.base_mut();
-            RapierPhysicsServer::fluid_set_collision_layer(rid, layer);
+            RapierPhysicsServer::fluid_set_collision_masks(rid, mask, layer);
             drop(guard);
         }
     }
