@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.8.19 - Nov 4
+
+## What's Changed
+* re-enable parallel feature by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/421
+* Fix groove joint from @legendofa by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/422
+* Update to use yarwin/gdext by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/425
+* fix joints axis to use basis correctly by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/423
+
 ## v0.8.18 - Nov 2
 
 ## What's Changed

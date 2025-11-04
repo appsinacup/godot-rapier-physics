@@ -307,6 +307,7 @@ impl PhysicsEngine {
         self.body_wake_up(world_handle, body_handle_2, false);
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             let joint = SpringJointBuilder::new(rest_length, stiffness, damping)
+                .spring_model(MotorModel::AccelerationBased)
                 .local_anchor1(Point { coords: anchor_1 })
                 .local_anchor2(Point { coords: anchor_2 })
                 .contacts_enabled(!disable_collision);
