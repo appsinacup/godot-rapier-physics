@@ -21,17 +21,12 @@ runs:
       shell: sh
       run: |
         rustc --print=target-list
-    - uses: actions-rust-lang/setup-rust-toolchain@v1
-      with:
-        rust-version: nightly
-        targets: ${{ inputs.arch }}
-        components: rust-src
-    #- name: Rust Add target
-    #  shell: sh
-    #  run: |
-    #    rustup toolchain install nightly
-    #    rustup component add rust-src --toolchain nightly
-    #    rustup target add ${{ inputs.arch }} --toolchain nightly
+    - name: Rust Add target
+      shell: sh
+      run: |
+        rustup toolchain install nightly
+        rustup component add rust-src --toolchain nightly
+        rustup target add ${{ inputs.arch }} --toolchain nightly
     - name: Build
       shell: sh
       run: |
