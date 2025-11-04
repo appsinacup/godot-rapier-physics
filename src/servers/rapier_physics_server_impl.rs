@@ -2186,12 +2186,12 @@ impl RapierPhysicsServerImpl {
                     param,
                     value,
                 );
-            // Store the parameter in the joint struct
-            if let RapierJoint::RapierGeneric6DOFJoint3D(joint_6dof) =
-                physics_data.joints.get_mut(&joint).unwrap()
-            {
-                joint_6dof.set_param(axis, param, value);
-            }
+        }
+        // Store the parameter in the joint struct (separate borrow after immutable borrow ends)
+        if let Some(RapierJoint::RapierGeneric6DOFJoint3D(joint_6dof)) =
+            physics_data.joints.get_mut(&joint)
+        {
+            joint_6dof.set_param(axis, param, value);
         }
     }
 
@@ -2250,12 +2250,12 @@ impl RapierPhysicsServerImpl {
                     flag,
                     enable,
                 );
-            // Store the flag in the joint struct
-            if let RapierJoint::RapierGeneric6DOFJoint3D(joint_6dof) =
-                physics_data.joints.get_mut(&joint).unwrap()
-            {
-                joint_6dof.set_flag(axis, flag, enable);
-            }
+        }
+        // Store the flag in the joint struct (separate borrow after immutable borrow ends)
+        if let Some(RapierJoint::RapierGeneric6DOFJoint3D(joint_6dof)) =
+            physics_data.joints.get_mut(&joint)
+        {
+            joint_6dof.set_flag(axis, flag, enable);
         }
     }
 
