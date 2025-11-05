@@ -53,6 +53,7 @@ jobs:
 
   #web-build:
   #  name: 🌐 Web Builds
+  #  needs: [static-checks]
   #  uses: ./.github/workflows/web_builds.yml
 
   merge:

@@ -415,7 +415,7 @@ dependencies = [
 
 [[package]]
 name = "godot-rapier"
-version = "0.8.19"
+version = "0.8.20"
 dependencies = [
  "bincode",
  "godot",
@@ -1142,7 +1142,7 @@ dependencies = [
 [[package]]
 name = "salva2d"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=custom-changes#5dc0e34843908d4189a0ea52971fdb4310e637f1"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#c217212219e1a4c45f540f396b0c43f1fda96376"
 dependencies = [
  "approx",
  "bitflags",
@@ -1159,7 +1159,7 @@ dependencies = [
 [[package]]
 name = "salva2d-f64"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=custom-changes#5dc0e34843908d4189a0ea52971fdb4310e637f1"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#c217212219e1a4c45f540f396b0c43f1fda96376"
 dependencies = [
  "approx",
  "fnv",
@@ -1175,7 +1175,7 @@ dependencies = [
 [[package]]
 name = "salva3d"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=custom-changes#5dc0e34843908d4189a0ea52971fdb4310e637f1"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#c217212219e1a4c45f540f396b0c43f1fda96376"
 dependencies = [
  "approx",
  "bitflags",
@@ -1192,7 +1192,7 @@ dependencies = [
 [[package]]
 name = "salva3d-f64"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=custom-changes#5dc0e34843908d4189a0ea52971fdb4310e637f1"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#c217212219e1a4c45f540f396b0c43f1fda96376"
 dependencies = [
  "approx",
  "fnv",

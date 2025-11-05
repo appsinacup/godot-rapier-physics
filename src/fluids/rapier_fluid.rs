@@ -32,10 +32,7 @@ impl RapierFluid {
             points: Vec::new(),
             velocities: Vec::new(),
             accelerations: Vec::new(),
-            interaction_groups: salva::object::interaction_groups::InteractionGroups::new(
-                salva::object::interaction_groups::Group::GROUP_1,
-                salva::object::interaction_groups::Group::GROUP_1,
-            ),
+            interaction_groups: salva::object::interaction_groups::InteractionGroups::all(),
         }
     }
 
@@ -63,6 +60,7 @@ impl RapierFluid {
         groups: salva::object::interaction_groups::InteractionGroups,
         physics_engine: &mut PhysicsEngine,
     ) {
+        self.interaction_groups = groups;
         if self.is_valid() {
             physics_engine.fluid_change_interaction_groups(
                 self.space_id,
@@ -234,12 +232,18 @@ impl RapierFluid {
         if self.effects != effects {
             self.effects = effects.clone();
         }
-        if self.is_valid() {
-            physics_engine.fluid_clear_effects(self.space_id, self.fluid_handle);
-            for effect in self.effects.iter_shared().flatten() {
-                let effect = effect.clone();
-                self.set_effect(&effect, physics_engine);
-            }
+        if !self.is_valid() {
+            return;
+        }
+        // Skip effects in editor - they're not fully initialized during scene loading
+        // and can cause binding crashes. Effects will work fine in actual game runtime.
+        if godot::classes::Engine::singleton().is_editor_hint() {
+            return;
+        }
+        physics_engine.fluid_clear_effects(self.space_id, self.fluid_handle);
+        for effect in self.effects.iter_shared().flatten() {
+            let effect = effect.clone();
+            self.set_effect(&effect, physics_engine);
         }
     }
 
@@ -272,11 +276,14 @@ impl RapierFluid {
                 self.fluid_handle = physics_engine.fluid_create(
                     self.space_id,
                     self.density,
-                    salva::object::interaction_groups::InteractionGroups::all(),
+                    self.interaction_groups,
                 );
+                // Only set points and effects if fluid was actually created
+                if self.fluid_handle.is_valid() {
+                    self.set_points(self.points.clone(), physics_engine);
+                    self.set_effects(self.effects.clone(), physics_engine);
+                }
             }
-            self.set_points(self.points.clone(), physics_engine);
-            self.set_effects(self.effects.clone(), physics_engine);
         }
     }
 

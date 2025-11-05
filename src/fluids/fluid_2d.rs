@@ -32,12 +32,14 @@ pub struct Fluid2D {
     pub(crate) points: PackedVectorArray,
     pub(crate) create_times: PackedFloat32Array,
 
-    #[export(flags_2d_physics)]
-    #[var(get = get_collision_mask, set = set_collision_mask)]
-    pub(crate) collision_mask: u32,
+    // add a group for collision layers/masks
+    #[export_group(name = "Collision", prefix = "collision_")]
     #[export(flags_2d_physics)]
     #[var(get = get_collision_layer, set = set_collision_layer)]
     pub(crate) collision_layer: u32,
+    #[export(flags_2d_physics)]
+    #[var(get = get_collision_mask, set = set_collision_mask)]
+    pub(crate) collision_mask: u32,
     base: Base<Node2D>,
 }
 #[godot_api]

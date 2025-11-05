@@ -123,9 +123,10 @@ impl PhysicsWorld {
                 handle: WorldHandle::default(),
             },
             physics_pipeline,
-            fluids_pipeline: FluidsPipeline::new(
+            fluids_pipeline: FluidsPipeline::new_with_boundary_coef(
                 settings.particle_radius,
                 settings.smoothing_factor,
+                settings.boundary_coef,
             ),
             #[cfg(feature = "parallel")]
             thread_pool: Self::create_threadpool(),

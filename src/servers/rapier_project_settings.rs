@@ -24,6 +24,7 @@ const FLUID_PARTICLE_RADIUS: &str = "physics/rapier/fluid/fluid_particle_radius_
 #[cfg(feature = "dim3")]
 const FLUID_PARTICLE_RADIUS: &str = "physics/rapier/fluid/fluid_particle_radius_3d";
 const FLUID_SMOOTHING_FACTOR: &str = "physics/rapier/fluid/fluid_smoothing_factor";
+const FLUID_BOUNDARY_COEFF: &str = "physics/rapier/fluid/fluid_boundary_coefficient";
 #[cfg(feature = "dim2")]
 const LENGTH_UNIT: &str = "physics/rapier/solver/length_unit_2d";
 #[cfg(feature = "dim2")]
@@ -177,6 +178,12 @@ impl RapierProjectSettings {
             false,
         );
         register_setting_ranged(
+            FLUID_BOUNDARY_COEFF,
+            Variant::from(0.00001),
+            "0,10,0.00001,or_greater",
+            false,
+        );
+        register_setting_ranged(
             LENGTH_UNIT,
             Variant::from(LENGTH_UNIT_VALUE),
             "1,100,1,suffix:length_unit,or_greater",
@@ -214,6 +221,10 @@ impl RapierProjectSettings {
 
     pub fn get_fluid_smoothing_factor() -> Real {
         RapierProjectSettings::get_setting_double(FLUID_SMOOTHING_FACTOR) as Real
+    }
+
+    pub fn get_fluid_boundary_coef() -> Real {
+        RapierProjectSettings::get_setting_double(FLUID_BOUNDARY_COEFF) as Real
     }
 
     pub fn get_length_unit() -> Real {

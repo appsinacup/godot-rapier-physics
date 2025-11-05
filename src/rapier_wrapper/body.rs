@@ -272,6 +272,20 @@ impl PhysicsEngine {
                     if let Some(restitution) = mat.restitution {
                         col.set_restitution(restitution);
                     }
+                    if let Some(coupling_boundary_entry) =
+                        physics_world.fluids_pipeline.coupling.entries.get(collider)
+                        && let Some(coupling_boundary) = physics_world
+                            .fluids_pipeline
+                            .liquid_world
+                            .boundaries_mut()
+                            .get_mut(coupling_boundary_entry.boundary)
+                    {
+                        coupling_boundary.interaction_groups =
+                            salva::object::interaction_groups::InteractionGroups {
+                                memberships: mat.collision_layer.unwrap_or(1).into(),
+                                filter: mat.collision_mask.unwrap_or(1).into(),
+                            };
+                    }
                     if let Some(contact_skin) = mat.contact_skin {
                         col.set_contact_skin(contact_skin);
                     }
