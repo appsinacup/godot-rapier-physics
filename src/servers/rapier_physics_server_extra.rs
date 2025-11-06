@@ -234,10 +234,7 @@ macro_rules! make_rapier_server_godot_impl {
 
             #[func]
             /// Get the indices of the fluid particles inside an AABB.
-            pub(crate) fn fluid_get_particles_in_aabb(
-                fluid_rid: Rid,
-                aabb: Rect2,
-            ) -> PackedInt32Array {
+            pub(crate) fn fluid_get_particles_in_aabb(fluid_rid: Rid, aabb: crate::types::Rect) -> PackedInt32Array {
                 let physics_data = physics_data();
                 if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
                     let indices =

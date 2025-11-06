@@ -166,7 +166,7 @@ impl RapierFluid {
 
     pub fn get_particles_in_aabb(
         &self,
-        aabb: Rect2,
+        aabb: crate::types::Rect,
         physics_engine: &mut PhysicsEngine,
     ) -> Vec<i32> {
         physics_engine.fluid_get_particles_in_aabb(self.space_id, self.fluid_handle, aabb)

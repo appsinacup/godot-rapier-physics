@@ -215,7 +215,7 @@ impl FluidImpl {
         fluid.collision_layer
     }
 
-    pub fn get_particles_in_aabb(fluid: &Fluid, aabb: Rect2) -> PackedInt32Array {
+    pub fn get_particles_in_aabb(fluid: &Fluid, aabb: crate::types::Rect) -> PackedInt32Array {
         let rid = fluid.rid;
         let guard = fluid.base();
         let indices = RapierPhysicsServer::fluid_get_particles_in_aabb(rid, aabb);
