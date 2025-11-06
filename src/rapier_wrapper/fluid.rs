@@ -273,16 +273,18 @@ impl PhysicsEngine {
             let salva_aabb = crate::rapier_wrapper::convert::aabb_to_salva_aabb(aabb);
             let liquid_world = &physics_world.fluids_pipeline.liquid_world;
             let r_fluid_handle = handle_to_fluid_handle(fluid_handle);
-
             for particle in liquid_world.particles_intersecting_aabb(salva_aabb) {
                 match particle {
-                    salva::object::ParticleId::FluidParticle(found_fluid_handle, particle_index) => {
+                    salva::object::ParticleId::FluidParticle(
+                        found_fluid_handle,
+                        particle_index,
+                    ) => {
                         if found_fluid_handle == r_fluid_handle {
                             indices.push(particle_index as i32);
                         }
                     }
                     // We are only interested in fluid particles for this function.
-                    salva::object::ParticleId::BoundaryParticle(_, _) => {}
+                    salva::object::ParticleId::BoundaryParticle(..) => {}
                 }
             }
         }

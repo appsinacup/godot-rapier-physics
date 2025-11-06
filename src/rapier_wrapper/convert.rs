@@ -34,7 +34,6 @@ pub fn angle_to_rapier(angle: Angle) -> Real {
 pub fn angle_to_godot(angle: Real) -> Angle {
     angle
 }
-
 #[cfg(feature = "dim2")]
 pub fn aabb_to_salva_aabb(aabb: godot::prelude::Rect2) -> salva::parry::bounding_volume::Aabb {
     salva::parry::bounding_volume::Aabb::new(
@@ -42,11 +41,14 @@ pub fn aabb_to_salva_aabb(aabb: godot::prelude::Rect2) -> salva::parry::bounding
         nalgebra::Point2::new(aabb.position.x + aabb.size.x, aabb.position.y + aabb.size.y),
     )
 }
-
 #[cfg(feature = "dim3")]
 pub fn aabb_to_salva_aabb(aabb: godot::prelude::Aabb) -> salva::parry::bounding_volume::Aabb {
     salva::parry::bounding_volume::Aabb::new(
         nalgebra::Point3::new(aabb.position.x, aabb.position.y, aabb.position.z),
-        nalgebra::Point3::new(aabb.position.x + aabb.size.x, aabb.position.y + aabb.size.y, aabb.position.z + aabb.size.z),
+        nalgebra::Point3::new(
+            aabb.position.x + aabb.size.x,
+            aabb.position.y + aabb.size.y,
+            aabb.position.z + aabb.size.z,
+        ),
     )
 }
