@@ -2,7 +2,6 @@ use rapier::prelude::*;
 use salva::math::Vector as SalvaVector;
 use salva::object::*;
 use salva::solver::*;
-use godot::prelude::Rect2;
 use super::shape::point_array_to_vec;
 use crate::rapier_wrapper::prelude::*;
 impl PhysicsEngine {
@@ -266,7 +265,7 @@ impl PhysicsEngine {
         &self,
         world_handle: WorldHandle,
         fluid_handle: HandleDouble,
-        aabb: Rect2,
+        aabb: crate::types::Rect,
     ) -> Vec<i32> {
         let mut indices = Vec::new();
         if let Some(physics_world) = self.get_world(world_handle) {

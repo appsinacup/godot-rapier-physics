@@ -42,3 +42,11 @@ pub fn aabb_to_salva_aabb(aabb: godot::prelude::Rect2) -> salva::parry::bounding
         nalgebra::Point2::new(aabb.position.x + aabb.size.x, aabb.position.y + aabb.size.y),
     )
 }
+
+#[cfg(feature = "dim3")]
+pub fn aabb_to_salva_aabb(aabb: godot::prelude::Aabb) -> salva::parry::bounding_volume::Aabb {
+    salva::parry::bounding_volume::Aabb::new(
+        vector_to_rapier(aabb.position).into(),
+        vector_to_rapier(aabb.position + aabb.size).into(),
+    )
+}
