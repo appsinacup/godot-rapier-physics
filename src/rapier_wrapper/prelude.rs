@@ -1,6 +1,5 @@
 pub use super::body::*;
 pub use super::collider::*;
-#[cfg(feature = "dim2")]
 pub use super::convert::*;
 pub use super::event_handler::*;
 pub use super::handle::*;

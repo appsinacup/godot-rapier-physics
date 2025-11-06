@@ -2,6 +2,7 @@ use rapier::prelude::*;
 use salva::math::Vector as SalvaVector;
 use salva::object::*;
 use salva::solver::*;
+
 use super::shape::point_array_to_vec;
 use crate::rapier_wrapper::prelude::*;
 impl PhysicsEngine {
