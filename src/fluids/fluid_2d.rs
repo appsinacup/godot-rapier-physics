@@ -182,6 +182,12 @@ impl Fluid2D {
     fn set_collision_layer(&mut self, layer: u32) {
         FluidImpl::set_collision_layer(self, layer);
     }
+
+    #[func]
+    /// Get the indices of the fluid particles inside an AABB.
+    fn get_particles_in_aabb(&self, aabb: Rect2) -> PackedInt32Array {
+        FluidImpl::get_particles_in_aabb(self, aabb)
+    }
 }
 #[godot_api]
 impl INode2D for Fluid2D {

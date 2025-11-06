@@ -233,6 +233,21 @@ macro_rules! make_rapier_server_godot_impl {
             }
 
             #[func]
+            /// Get the indices of the fluid particles inside an AABB.
+            pub(crate) fn fluid_get_particles_in_aabb(
+                fluid_rid: Rid,
+                aabb: Rect2,
+            ) -> PackedInt32Array {
+                let physics_data = physics_data();
+                if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
+                    let indices =
+                        fluid.get_particles_in_aabb(aabb, &mut physics_data.physics_engine);
+                    return PackedInt32Array::from_iter(indices);
+                }
+                PackedInt32Array::default()
+            }
+
+            #[func]
             /// Get interaction groups mask.
             pub(crate) fn fluid_get_collision_mask(fluid_rid: Rid) -> u32 {
                 let physics_data = physics_data();
