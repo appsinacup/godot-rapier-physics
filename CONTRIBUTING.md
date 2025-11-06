@@ -10,6 +10,8 @@
 
 -----
 
+If you just want to build locally, start from Chapter 5.
+
 ## Extending Godot Physics
 
 Godot let's any GDExtension create a new `Physics Server` if they call `register_server` on the [PhysicsServer2DManager](https://docs.godotengine.org/en/latest/classes/class_physicsserver2dmanager.html) or [PhysicsServer3DManager](https://docs.godotengine.org/en/latest/classes/class_physicsserver3dmanager.html) and on the callback return a new instance of their custom `Physics Server` that extends either [PhysicsServer2DExtension](https://docs.godotengine.org/en/latest/classes/class_physicsserver2dextension.html) or [PhysicsServer3DExtension](https://docs.godotengine.org/en/latest/classes/class_physicsserver3dextension.html).
