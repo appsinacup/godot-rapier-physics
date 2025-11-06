@@ -36,8 +36,8 @@ pub fn angle_to_godot(angle: Real) -> Angle {
 }
 
 #[cfg(feature = "dim2")]
-pub fn aabb_to_salva_aabb(aabb: godot::prelude::Rect2) -> salva2d::parry::bounding_volume::Aabb {
-    salva2d::parry::bounding_volume::Aabb::new(
+pub fn aabb_to_salva_aabb(aabb: godot::prelude::Rect2) -> salva::parry::bounding_volume::Aabb {
+    salva::parry::bounding_volume::Aabb::new(
         nalgebra::Point2::new(aabb.position.x, aabb.position.y),
         nalgebra::Point2::new(aabb.position.x + aabb.size.x, aabb.position.y + aabb.size.y),
     )

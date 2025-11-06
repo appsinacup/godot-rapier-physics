@@ -1,7 +1,7 @@
 use rapier::prelude::*;
-use salva2d::math::Vector as SalvaVector;
-use salva2d::object::*;
-use salva2d::solver::*;
+use salva::math::Vector as SalvaVector;
+use salva::object::*;
+use salva::solver::*;
 use godot::prelude::Rect2;
 use super::shape::point_array_to_vec;
 use crate::rapier_wrapper::prelude::*;
@@ -10,7 +10,7 @@ impl PhysicsEngine {
         &mut self,
         world_handle: WorldHandle,
         density: Real,
-        interaction_groups: salva2d::object::interaction_groups::InteractionGroups,
+        interaction_groups: salva::object::interaction_groups::InteractionGroups,
     ) -> HandleDouble {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             let particle_radius = physics_world.fluids_pipeline.liquid_world.particle_radius();
@@ -43,7 +43,7 @@ impl PhysicsEngine {
         &mut self,
         world_handle: WorldHandle,
         fluid_handle: HandleDouble,
-        interaction_groups: salva2d::object::interaction_groups::InteractionGroups,
+        interaction_groups: salva::object::interaction_groups::InteractionGroups,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(fluid) = physics_world
@@ -276,13 +276,13 @@ impl PhysicsEngine {
 
             for particle in liquid_world.particles_intersecting_aabb(salva_aabb) {
                 match particle {
-                    salva2d::object::ParticleId::FluidParticle(found_fluid_handle, particle_index) => {
+                    salva::object::ParticleId::FluidParticle(found_fluid_handle, particle_index) => {
                         if found_fluid_handle == r_fluid_handle {
                             indices.push(particle_index as i32);
                         }
                     }
                     // We are only interested in fluid particles for this function.
-                    salva2d::object::ParticleId::BoundaryParticle(_, _) => {}
+                    salva::object::ParticleId::BoundaryParticle(_, _) => {}
                 }
             }
         }
