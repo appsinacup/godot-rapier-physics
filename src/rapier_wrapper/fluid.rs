@@ -262,6 +262,35 @@ impl PhysicsEngine {
         array
     }
 
+    pub fn fluid_get_particles_in_aabb(
+        &self,
+        world_handle: WorldHandle,
+        fluid_handle: HandleDouble,
+        aabb: crate::types::Rect,
+    ) -> Vec<i32> {
+        let mut indices = Vec::new();
+        if let Some(physics_world) = self.get_world(world_handle) {
+            let salva_aabb = crate::rapier_wrapper::convert::aabb_to_salva_aabb(aabb);
+            let liquid_world = &physics_world.fluids_pipeline.liquid_world;
+            let r_fluid_handle = handle_to_fluid_handle(fluid_handle);
+            for particle in liquid_world.particles_intersecting_aabb(salva_aabb) {
+                match particle {
+                    salva::object::ParticleId::FluidParticle(
+                        found_fluid_handle,
+                        particle_index,
+                    ) => {
+                        if found_fluid_handle == r_fluid_handle {
+                            indices.push(particle_index as i32);
+                        }
+                    }
+                    // We are only interested in fluid particles for this function.
+                    salva::object::ParticleId::BoundaryParticle(..) => {}
+                }
+            }
+        }
+        indices
+    }
+
     pub fn fluid_clear_effects(&mut self, world_handle: WorldHandle, fluid_handle: HandleDouble) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(fluid) = physics_world
