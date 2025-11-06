@@ -6,6 +6,7 @@
 4. [Rapier Physics Server Fluids](#rapier-physics-server-fluids)
 5. [How to build](#how-to-build)
 6. [How to debug](#how-to-debug)
+7. [Hot to lint and format](#how-to-lint)
 
 -----
 
@@ -166,3 +167,18 @@ Click `Run and Debug` in VSCode on the left. Add a configuration to the `launch.
 ```
 
 More on godot cli usage [here](https://docs.godotengine.org/en/stable/tutorials/editor/command_line_tutorial.html).
+
+## How to lint
+
+In order to make a PR that will get merged, you need to lint and format your code by running:
+
+```sh
+# Format
+cargo fmt -- --config-path rustfmt.toml
+# Run clippy for 2d only
+cargo clippy --all-targets --features="build2d" --no-default-features -- -D warnings --fix --allow-dirty
+# Run clippy for 3d only
+cargo clippy --all-targets --features="build3d" --no-default-features -- -D warnings --fix --allow-dirty
+```
+
+The above runs formatting with `cargo fmt` and linting with `cargo clippy`. For clippy yo ucan specify (and should run) with both 2d and 3d.
