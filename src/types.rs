@@ -90,6 +90,27 @@ pub fn transform_inverse(transform: &Transform) -> Transform {
         transform.affine_inverse()
     }
 }
+/// Converts a world position to local position without applying scale.
+/// This is needed for joint anchors to work correctly with scaled bodies.
+#[cfg(feature = "dim2")]
+pub fn world_to_local_no_scale(transform: &Transform, world_pos: Vector) -> Vector {
+    // Create a transform without scale for proper anchor conversion
+    let scale = transform.scale();
+    if scale.x.is_zero_approx() || scale.y.is_zero_approx() {
+        // Degenerate scale, return as-is
+        return transform.affine_inverse() * world_pos;
+    }
+    // Remove scale from the transform
+    let rotation = transform.rotation();
+    let origin = transform.origin;
+    let transform_no_scale = Transform::from_angle_scale_skew_origin(
+        rotation,
+        Vector::new(1.0, 1.0),
+        transform.skew(),
+        origin,
+    );
+    transform_no_scale.affine_inverse() * world_pos
+}
 #[cfg(feature = "dim2")]
 pub fn transform_update(
     transform: &Transform,

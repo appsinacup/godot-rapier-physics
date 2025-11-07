@@ -14,6 +14,8 @@ use crate::servers::rapier_physics_singleton::RapierId;
 use crate::types::Vector;
 #[cfg(feature = "dim3")]
 use crate::types::basis_to_rapier;
+#[cfg(feature = "dim2")]
+use crate::types::world_to_local_no_scale;
 pub struct RapierRevoluteJoint {
     angular_limit_lower: f32,
     angular_limit_upper: f32,
@@ -52,8 +54,9 @@ impl RapierRevoluteJoint {
         {
             return invalid_joint;
         }
-        let anchor_a = body_a.get_base().get_inv_transform() * anchor_a;
-        let anchor_b = body_b.get_base().get_inv_transform() * anchor_b;
+        // Convert world positions to local positions without scale for proper joint anchor placement
+        let anchor_a = world_to_local_no_scale(&body_a.get_base().get_transform(), anchor_a);
+        let anchor_b = world_to_local_no_scale(&body_b.get_base().get_transform(), anchor_b);
         let rapier_anchor_a = vector_to_rapier(anchor_a);
         let rapier_anchor_b = vector_to_rapier(anchor_b);
         let space_handle = body_a.get_base().get_space_id();
