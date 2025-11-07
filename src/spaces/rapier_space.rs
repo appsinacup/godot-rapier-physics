@@ -341,6 +341,10 @@ impl RapierSpace {
             if let Some(body) = physics_collision_objects.get_mut(&get_id_rid(body, physics_ids))
                 && let Some(body) = body.get_mut_body()
             {
+                if body.is_sleeping(physics_engine) {
+                    body.set_active(false, self);
+                    continue;
+                }
                 body.on_update_active(self, physics_engine);
             }
         }
