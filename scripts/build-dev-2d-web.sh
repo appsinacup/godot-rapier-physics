@@ -3,7 +3,7 @@ export LLVM_PATH=clang
 cargo fmt -- --config-path rustfmt.toml
 cargo clippy --fix --allow-dirty
 if [ "${OSTYPE#darwin}" != "$OSTYPE" ]; then
-    cargo build --features="experimental-wasm,experimental-wasm-nothreads,single-dim2,serde-serialize,test" --no-default-features --target=wasm32-unknown-emscripten -Z build-std=std
+    cargo +nightly build --features="experimental-wasm,experimental-wasm-nothreads,single-dim2,serde-serialize,test,api-custom" --no-default-features --target=wasm32-unknown-emscripten -Z build-std=std --verbose
     echo "Running on macOS"
     rm -f bin2d/addons/godot-rapier2d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
     cp target/debug/libgodot_rapier.dylib bin2d/addons/godot-rapier2d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib

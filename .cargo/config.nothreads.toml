@@ -1,18 +1,13 @@
 [target.wasm32-unknown-emscripten]
 rustflags = [
-  "-C",
-  "link-args=-sSIDE_MODULE=2",
-  "-C",
-  "target-feature=+atomics,+bulk-memory,+mutable-globals",
+  "-C", "link-args=-sSIDE_MODULE=2",
+  "-C", "target-feature=+atomics,+bulk-memory,+mutable-globals",
   "-Clink-args=-sEXPORT_ALL=1",
   "-Clink-arg=-fwasm-exceptions",
-  "-C",
-  "link-args=-sSUPPORT_LONGJMP=wasm",
   "-Cllvm-args=-enable-emscripten-cxx-exceptions=0",
-  "-Cllvm-args=-wasm-enable-sjlj",
-  "-C",
-  "link-args=-sDISABLE_EXCEPTION_CATCHING=1",
   "-Zlink-native-libraries=no",
+  "-Zunstable-options",
+  "-Cpanic=immediate-abort"
 ]
 [target.armv7-linux-androideabi]
 linker = "armv7a-linux-androideabi23-clang"
