@@ -452,11 +452,6 @@ impl RapierCollisionObjectBase {
         self.state.transform
     }
 
-    #[cfg(feature = "dim2")]
-    pub fn get_inv_transform(&self) -> Transform {
-        self.state.inv_transform
-    }
-
     pub fn get_space(&self, physics_ids: &PhysicsIds) -> Rid {
         get_id_rid(self.state.space_id, physics_ids)
     }
