@@ -35,7 +35,6 @@ impl RapierRevoluteJoint {
         body_b: &RapierCollisionObject,
         physics_engine: &mut PhysicsEngine,
     ) -> Self {
-
         let invalid_joint = Self {
             angular_limit_lower: 0.0,
             angular_limit_upper: 0.0,
