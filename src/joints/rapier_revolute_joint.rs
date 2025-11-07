@@ -14,7 +14,6 @@ use crate::servers::rapier_physics_singleton::RapierId;
 use crate::types::Vector;
 #[cfg(feature = "dim3")]
 use crate::types::basis_to_rapier;
-use crate::types::world_to_local_no_scale;
 pub struct RapierRevoluteJoint {
     angular_limit_lower: f32,
     angular_limit_upper: f32,
