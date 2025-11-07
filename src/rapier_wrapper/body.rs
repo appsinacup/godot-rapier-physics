@@ -745,4 +745,20 @@ impl PhysicsEngine {
         }
         &[]
     }
+
+    pub fn body_is_sleeping(
+        &self,
+        world_handle: WorldHandle,
+        body_handle: RigidBodyHandle,
+    ) -> bool {
+        if let Some(physics_world) = self.get_world(world_handle)
+            && let Some(body) = physics_world
+                .physics_objects
+                .rigid_body_set
+                .get(body_handle)
+        {
+            return body.is_sleeping();
+        }
+        false
+    }
 }

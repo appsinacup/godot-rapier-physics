@@ -1259,6 +1259,9 @@ impl RapierBody {
         space: &mut RapierSpace,
         physics_engine: &mut PhysicsEngine,
     ) {
+        if !self.state.active {
+            return;
+        }
         if !self.state.marked_active {
             self.set_active(false, space);
             return;
@@ -2112,6 +2115,10 @@ impl RapierBody {
             self.base.set_collision_mask(mask, physics_engine);
             self.update_colliders_filters(physics_engine);
         }
+    }
+
+    pub fn is_sleeping(&self, physics_engine: &PhysicsEngine) -> bool {
+        physics_engine.body_is_sleeping(self.base.get_space_id(), self.base.get_body_handle())
     }
 }
 // We won't use the pointers between threads, so it should be safe.
