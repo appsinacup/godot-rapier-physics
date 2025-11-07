@@ -43,7 +43,9 @@ hashbrown = { version = "0.14" }
 
 num_cpus = { version = "1", optional = true }
 
-godot = { git = "https://github.com/yarwin/gdext", branch = "custom-rapier-branch", features=["register-docs", "safeguards-release-disengaged"] }
+# has blocklist max_align_t for web builds
+godot = { git = "https://github.com/ughuuu/gdext", branch = "custom-rapier-branch", features=["register-docs", "safeguards-release-disengaged"] }
+# godot = { git = "https://github.com/yarwin/gdext", branch = "custom-rapier-branch", features=["register-docs", "safeguards-release-disengaged"] }
 # godot = { git = "https://github.com/godot-rust/gdext", branch = "master", features=["register-docs", "safeguards-release-disengaged"] }
 
 rapier2d = { git = "https://github.com/ughuuu/rapier", branch = "master", optional = true }
@@ -72,26 +74,6 @@ parry3d-f64 = {git = "https://github.com/ughuuu/parry", branch = "master"}
 opt-level = 3
 strip = "debuginfo"
 lto = "fat"
-codegen-units = 1
-
-[profile.release.package.rapier2d]
-opt-level = 3
-codegen-units = 1
-
-[profile.release.package.rapier3d]
-opt-level = 3
-codegen-units = 1
-
-[profile.release.package.salva2d]
-opt-level = 3
-codegen-units = 1
-
-[profile.release.package.salva3d]
-opt-level = 3
-codegen-units = 1
-
-[profile.release.package.godot]
-opt-level = 3
 codegen-units = 1
 
 [profile.dev]
