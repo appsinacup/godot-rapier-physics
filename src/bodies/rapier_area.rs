@@ -1,3 +1,4 @@
+
 use bodies::rapier_collision_object_base::CollisionObjectShape;
 use bodies::rapier_collision_object_base::CollisionObjectType;
 use bodies::rapier_collision_object_base::RapierCollisionObjectBase;
@@ -12,6 +13,7 @@ use godot::obj::EngineEnum;
 use godot::prelude::*;
 use hashbrown::HashMap;
 use rapier::geometry::ColliderHandle;
+use rapier::geometry::ColliderPair;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsIds;
 use servers::rapier_physics_singleton::PhysicsShapes;
@@ -21,6 +23,7 @@ use servers::rapier_physics_singleton::get_id_rid;
 
 use super::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;
+use crate::rapier_wrapper::collider;
 use crate::rapier_wrapper::prelude::*;
 use crate::spaces::rapier_space::*;
 use crate::types::*;
@@ -30,14 +33,46 @@ use crate::*;
     derive(serde::Serialize, serde::Deserialize)
 )]
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
+// Contains information necessary to track the full lifetime of a contact or intersection event.
+// Includes a count of the number of contacts between this area and the other collider.
 pub struct MonitorInfo {
     pub id: RapierId,
     pub instance_id: u64,
     pub object_shape_index: u32,
     pub area_shape_index: u32,
     pub collision_object_type: CollisionObjectType,
-    pub state: i32,
+    pub num_contacts: i32,
 }
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
+// This struct contains the data that will get reported to Godot in case of an entry/exit event.
+// It's designed to be temporary, and destroyed after the signal is sent.
+pub struct MonitorReport {
+    pub id: RapierId,
+    pub collision_object_type: CollisionObjectType,
+    pub state: i32,
+    pub instance_id: u64,
+    pub object_shape_index: u32,
+    pub area_shape_index: u32,
+}
+
+impl MonitorReport {
+    pub fn from_monitor_info(from_info: MonitorInfo, state_in: i32) -> Self 
+    {
+        Self{
+            state: state_in,
+            id: from_info.id.clone(),
+            collision_object_type: from_info.collision_object_type.clone(),
+            instance_id: from_info.instance_id.clone(),
+            object_shape_index: from_info.object_shape_index.clone(),
+            area_shape_index: from_info.area_shape_index.clone(),
+        }
+    }
+}
+
 pub enum AreaUpdateMode {
     EnableSpaceOverride,
     DisableSpaceOverride,
@@ -60,9 +95,10 @@ pub struct AreaImport {
     derive(serde::Serialize, serde::Deserialize)
 )]
 pub struct RapierAreaState {
+    // New events go into this queue; once handled (eg once reported to Godot), they are removed.
+    pub unhandled_event_queue: HashMap<ColliderHandle, MonitorReport>,
+    // This is a persistent list of all current contacts. Entries only disappear when contact ceases, or when contacts are manually cleared.
     pub monitored_objects: HashMap<(ColliderHandle, ColliderHandle), MonitorInfo>,
-    detected_bodies: HashMap<RapierId, u32>,
-    detected_areas: HashMap<RapierId, u32>,
 }
 #[derive(Debug)]
 pub struct RapierArea {
@@ -115,19 +151,23 @@ impl RapierArea {
         if let Some(area_rid) = physics_collision_objects.get(&area_rid)
             && let Some(area) = area_rid.get_area()
         {
-            detected_bodies = area.state.detected_bodies.clone();
+            detected_bodies = area.state.monitored_objects.clone();
             space_rid = area.get_base().get_space(physics_ids);
         }
         if let Some(space) = physics_spaces.get_mut(&space_rid) {
-            for (key, _) in detected_bodies.iter() {
+            
+            //EDITED
+            for (_, monitor_info) in detected_bodies.iter() {
                 if let Some([body, area]) = physics_collision_objects
-                    .get_many_mut([&get_id_rid(*key, physics_ids), &area_rid])
+                    .get_many_mut([&get_id_rid(monitor_info.id, physics_ids), &area_rid])
                     && let Some(body) = body.get_mut_body()
                     && let Some(area) = area.get_mut_area()
                 {
                     body.add_area(area, space);
                 }
             }
+
+            
             // No need to update anymore if it was scheduled before
             space
                 .get_mut_state()
@@ -147,13 +187,13 @@ impl RapierArea {
         if let Some(area_rid) = physics_collision_objects.get(&area_rid)
             && let Some(area) = area_rid.get_area()
         {
-            detected_bodies = area.state.detected_bodies.clone();
+            detected_bodies = area.state.monitored_objects.clone();
             space_rid = area.get_base().get_space(physics_ids);
         }
         if let Some(space) = physics_spaces.get_mut(&space_rid) {
-            for (key, _) in detected_bodies.iter() {
+            for (_, monitor_info) in detected_bodies.iter() {
                 if let Some(body) =
-                    physics_collision_objects.get_mut(&get_id_rid(*key, physics_ids))
+                    physics_collision_objects.get_mut(&get_id_rid(monitor_info.id, physics_ids))
                     && let Some(body) = body.get_mut_body()
                 {
                     body.remove_area(*area_id, space);
@@ -178,13 +218,13 @@ impl RapierArea {
         if let Some(area_rid) = physics_collision_objects.get(&area_rid)
             && let Some(area) = area_rid.get_area()
         {
-            detected_bodies = area.state.detected_bodies.clone();
+            detected_bodies = area.state.monitored_objects.clone();
             space_rid = area.get_base().get_space(physics_ids);
         }
         if let Some(space) = physics_spaces.get_mut(&space_rid) {
-            for (key, _) in detected_bodies {
+            for (_, monitor_info) in detected_bodies {
                 if let Some([body, area]) = physics_collision_objects
-                    .get_many_mut([&get_id_rid(key, physics_ids), &area_rid])
+                    .get_many_mut([&get_id_rid(monitor_info.id, physics_ids), &area_rid])
                     && let Some(body) = body.get_mut_body()
                     && let Some(area) = area.get_mut_area()
                 {
@@ -201,7 +241,7 @@ impl RapierArea {
     #[allow(clippy::too_many_arguments)]
     pub fn on_body_enter(
         &mut self,
-        collider_handle: ColliderHandle,
+        other_collider_handle: ColliderHandle,
         body: &mut Option<&mut RapierCollisionObject>,
         body_shape: usize,
         body_id: RapierId,
@@ -210,11 +250,17 @@ impl RapierArea {
         area_shape: usize,
         space: &mut RapierSpace,
     ) {
-        // Add to keep track of currently detected bodies
-        if let Some(detected_body) = self.state.detected_bodies.get_mut(&body_id) {
-            *detected_body += 1;
-        } else {
-            self.state.detected_bodies.insert(body_id, 1);
+        let new_entry = self.process_entry(
+            area_collider_handle, 
+            area_shape,
+            other_collider_handle,
+            body_shape, 
+            body_id, 
+            body_instance_id,
+            CollisionObjectType::Body,
+        );
+
+        if new_entry {            
             if let Some(body) = body {
                 if let Some(body) = body.get_mut_body() {
                     body.add_area(self, space);
@@ -222,39 +268,42 @@ impl RapierArea {
             } else {
                 godot_error!("Body not found when entering area");
             }
-        }
-        if self.monitor_callback.is_none() {
-            return;
-        }
-        let handle_pair_hash = (collider_handle, area_collider_handle);
-        if let Some(monitored_object) = self.state.monitored_objects.get(&handle_pair_hash) {
-            // in case it already exited this frame and now it enters, cancel out the event
-            if monitored_object.state != -1 {
-                godot_error!("Body has not exited the area");
+
+            // If we have no monitoring callback, then no worries-- we won't report this event.
+            if self.monitor_callback.is_none() {
+                return;
             }
-            self.state.monitored_objects.remove(&handle_pair_hash);
-        } else {
-            self.state.monitored_objects.insert(
-                handle_pair_hash,
-                MonitorInfo {
+
+            // Edge case here handles the scenario where an object has exited this area this frame, and is also entering it again--
+            // in this scenario, we want to clear the "exit" event from the queue and, if there are no other unhandled events, remove this area from the space's update list.
+            if !self.filter_on_unhandled_events(
+                space,
+                other_collider_handle, 
+                1
+            ){
+                return;
+            }
+
+            // Add an entry event to our queue.            
+            self.enqueue_unhandled_event(
+                space, 
+                other_collider_handle, 
+                MonitorReport {
                     id: body_id,
+                    collision_object_type: CollisionObjectType::Body,
+                    state: 1,
                     instance_id: body_instance_id,
                     object_shape_index: body_shape as u32,
                     area_shape_index: area_shape as u32,
-                    collision_object_type: CollisionObjectType::Body,
-                    state: 1,
-                },
+                }
             );
-            space
-                .get_mut_state()
-                .area_add_to_monitor_query_list(self.base.get_id());
         }
     }
 
     #[allow(clippy::too_many_arguments)]
     pub fn on_body_exit(
         &mut self,
-        collider_handle: ColliderHandle,
+        other_collider_handle: ColliderHandle,
         body: &mut Option<&mut RapierCollisionObject>,
         body_shape: usize,
         body_id: RapierId,
@@ -263,50 +312,61 @@ impl RapierArea {
         area_shape: usize,
         space: &mut RapierSpace,
     ) {
-        // Remove from currently detected bodies
-        if let Some(detected_body) = self.state.detected_bodies.get_mut(&body_id) {
-            *detected_body -= 1;
-            if *detected_body == 0 {
-                self.state.detected_bodies.remove(&body_id);
-                if let Some(body) = body
-                    && let Some(body) = body.get_mut_body()
-                {
-                    body.remove_area(self.base.get_id(), space);
+        // Ensure that this body is actually in our list of monitored objects.
+        match self.state.monitored_objects.get_mut(&(other_collider_handle, area_collider_handle)) {
+            None => {
+                return;
+            }
+            Some(monitor_info) => {
+                monitor_info.num_contacts -= 1;
+                if monitor_info.num_contacts == 0 {
+                    // If we're no longer contacting any shapes from this body:
+                    self.state.monitored_objects.remove(&(other_collider_handle, area_collider_handle));
+
+                    // Tell the body to remove this area.
+                    if let Some(body) = body
+                        && let Some(body) = body.get_mut_body()
+                    {
+                        body.remove_area(self.base.get_id(), space);
+                    }
+
+                    // If we're not monitoring, return now.
+                    if self.monitor_callback.is_none() {
+                        return;
+                    }
+
+                    // Edge case to handle the scenario where an object has entered and is now exiting this area in the same frame.
+                    // As we flush queries every frame, the only way our unhandled event queue will have an entry is if this event occured this frame.
+                    if !self.filter_on_unhandled_events(
+                        space,
+                        other_collider_handle, 
+                        -1
+                    ){
+                        return;
+                    }
+
+                    // Add an exit event to our queue.            
+                    self.enqueue_unhandled_event(
+                        space, 
+                        other_collider_handle, 
+                        MonitorReport {
+                            id: body_id,
+                            collision_object_type: CollisionObjectType::Body,
+                            state: -1,
+                            instance_id: body_instance_id,
+                            object_shape_index: body_shape as u32,
+                            area_shape_index: area_shape as u32,
+                        }
+                    );
                 }
             }
-        }
-        if self.monitor_callback.is_none() {
-            return;
-        }
-        let handle_pair_hash = (collider_handle, area_collider_handle);
-        if let Some(monitored_object) = self.state.monitored_objects.get(&handle_pair_hash) {
-            // in case it already entered this frame and now it exits, cancel out the event
-            if monitored_object.state != 1 {
-                godot_error!("Body has not entered the area");
-            }
-            self.state.monitored_objects.remove(&handle_pair_hash);
-        } else {
-            self.state.monitored_objects.insert(
-                handle_pair_hash,
-                MonitorInfo {
-                    id: body_id,
-                    instance_id: body_instance_id,
-                    object_shape_index: body_shape as u32,
-                    area_shape_index: area_shape as u32,
-                    collision_object_type: CollisionObjectType::Body,
-                    state: -1,
-                },
-            );
-            space
-                .get_mut_state()
-                .area_add_to_monitor_query_list(self.base.get_id());
         }
     }
 
     #[allow(clippy::too_many_arguments)]
     pub fn on_area_enter(
         &mut self,
-        collider_handle: ColliderHandle,
+        other_collider_handle: ColliderHandle,
         other_area: &mut Option<&mut RapierCollisionObject>,
         other_area_shape: usize,
         other_area_id: RapierId,
@@ -318,98 +378,189 @@ impl RapierArea {
         if self.area_monitor_callback.is_none() {
             return;
         }
-        if let Some(other_area) = other_area {
-            if let Some(other_area) = other_area.get_mut_area()
-                && !other_area.is_monitorable()
-            {
-                return;
-            }
-        } else {
-            godot_error!("other area is null");
-        }
-        // Add to keep track of currently detected areas
-        if let Some(detected_area) = self.state.detected_areas.get_mut(&other_area_id) {
-            *detected_area += 1;
-        } else {
-            self.state.detected_areas.insert(other_area_id, 1);
-        }
-        let handle_pair_hash = (collider_handle, area_collider_handle);
-        if let Some(monitored_object) = self.state.monitored_objects.get(&handle_pair_hash) {
-            // in case it already exited this frame and now it enters, cancel out the event
-            if monitored_object.state != -1 {
-                godot_error!("Area is already being monitored");
-            }
-            self.state.monitored_objects.remove(&handle_pair_hash);
-        } else {
-            self.state.monitored_objects.insert(
-                handle_pair_hash,
-                MonitorInfo {
-                    id: other_area_id,
-                    instance_id: other_area_instance_id,
-                    object_shape_index: other_area_shape as u32,
-                    area_shape_index: area_shape as u32,
-                    collision_object_type: CollisionObjectType::Area,
-                    state: 1,
-                },
-            );
-            space
-                .get_mut_state()
-                .area_add_to_monitor_query_list(self.base.get_id());
-        }
-    }
-
-    #[allow(clippy::too_many_arguments)]
-    pub fn on_area_exit(
-        &mut self,
-        collider_handle: ColliderHandle,
-        other_area: &mut Option<&mut RapierCollisionObject>,
-        other_area_shape: usize,
-        other_area_id: RapierId,
-        other_area_instance_id: u64,
-        area_collider_handle: ColliderHandle,
-        area_shape: usize,
-        space: &mut RapierSpace,
-    ) {
-        if self.area_monitor_callback.is_none() {
-            return;
-        }
+        
         if let Some(other_area) = other_area
             && let Some(other_area) = other_area.get_mut_area()
             && !other_area.is_monitorable()
         {
             return;
         }
-        // Remove from currently detected areas
-        if let Some(detected_area) = self.state.detected_areas.get_mut(&other_area_id) {
-            *detected_area -= 1;
-            if *detected_area == 0 {
-                self.state.detected_areas.remove(&other_area_id);
+
+        let new_entry = self.process_entry(
+            area_collider_handle, 
+            area_shape,
+            other_collider_handle,
+            other_area_shape, 
+            other_area_id, 
+            other_area_instance_id,
+            CollisionObjectType::Area,
+        );
+
+        if new_entry {
+            // Check the edge case for an area entering on this frame that also exited earlier this frame.
+            if !self.filter_on_unhandled_events(
+                space,
+                other_collider_handle, 
+                1
+            ) {
+                return;
             }
-        } else {
-            return;
-        }
-        let handle_pair_hash = (collider_handle, area_collider_handle);
-        if let Some(monitored_object) = self.state.monitored_objects.get(&handle_pair_hash) {
-            if monitored_object.state != 1 {
-                godot_error!("Area is not being monitored");
-            }
-            self.state.monitored_objects.remove(&handle_pair_hash);
-        } else {
-            self.state.monitored_objects.insert(
-                handle_pair_hash,
-                MonitorInfo {
+
+            // Add an entry event to our queue.      
+            self.enqueue_unhandled_event(
+                space, 
+                other_collider_handle, 
+                MonitorReport {
                     id: other_area_id,
+                    collision_object_type: CollisionObjectType::Area,
+                    state: 1,
                     instance_id: other_area_instance_id,
                     object_shape_index: other_area_shape as u32,
                     area_shape_index: area_shape as u32,
-                    collision_object_type: CollisionObjectType::Area,
-                    state: -1,
-                },
+                }
             );
-            space
-                .get_mut_state()
-                .area_add_to_monitor_query_list(self.base.get_id());
         }
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub fn on_area_exit(
+        &mut self,
+        other_collider_handle: ColliderHandle,
+        other_area: &mut Option<&mut RapierCollisionObject>,
+        other_area_shape: usize,
+        other_area_id: RapierId,
+        other_area_instance_id: u64,
+        area_collider_handle: ColliderHandle,
+        area_shape: usize,
+        space: &mut RapierSpace,
+    ) {
+        if self.area_monitor_callback.is_none() {
+            return;
+        }
+
+        if let Some(other_area) = other_area
+            && let Some(other_area) = other_area.get_mut_area()
+            && !other_area.is_monitorable()
+        {
+            return;
+        }
+
+        match self.state.monitored_objects.get_mut(&(other_collider_handle, area_collider_handle)) {
+            None => {
+                return;
+            }
+            Some(monitor_info) => {
+                monitor_info.num_contacts -= 1;
+                if monitor_info.num_contacts == 0 {
+                    // If we're no longer contacting any shapes from this area:
+                    self.state.monitored_objects.remove(&(other_collider_handle, area_collider_handle));
+
+                    // Edge case to handle the scenario where an object has entered and is now exiting this area in the same frame.
+                    // As we flush queries every frame, the only way our unhandled event queue will have an entry is if this event occured this frame.
+                    if !self.filter_on_unhandled_events(
+                        space,
+                        other_collider_handle, 
+                        -1
+                    ){
+                        return;
+                    }
+
+                    // Add an exit event to our queue.            
+                    self.enqueue_unhandled_event(
+                        space, 
+                        other_collider_handle, 
+                        MonitorReport {
+                            id: other_area_id,
+                            collision_object_type: CollisionObjectType::Area,
+                            state: -1,
+                            instance_id: other_area_instance_id,
+                            object_shape_index: other_area_shape as u32,
+                            area_shape_index: area_shape as u32,
+                        }
+                    );
+                }
+            }
+        }
+    }
+
+    // Considers a new 
+    // Returns true if the entry is new, false if we're already monitoring the body.
+    fn process_entry(
+        &mut self,
+        this_collider_handle: ColliderHandle,
+        this_collider_shape: usize,
+        other_collider_handle: ColliderHandle,
+        other_collider_shape: usize,
+        other_collider_id: RapierId,
+        other_collider_instance_id: u64,
+        other_collider_type: CollisionObjectType,     
+    ) -> bool {
+        if let Some(monitor_info) = self
+        .state
+        .monitored_objects
+        .get_mut(&(other_collider_handle, this_collider_handle)) {
+            monitor_info.num_contacts += 1;            
+            return false;
+        } else {
+            // Otherwise, this is a totally new contact. Start a new contact monitor and dispatch an event to Godot.
+            let handle_pair = (other_collider_handle, this_collider_handle);
+            let new_monitor_info = MonitorInfo {
+                id: other_collider_id,
+                instance_id: other_collider_instance_id,
+                object_shape_index: other_collider_shape as u32,
+                area_shape_index: this_collider_shape as u32,
+                collision_object_type: other_collider_type,
+                num_contacts: 1,
+            };
+            
+            self.state.monitored_objects.insert(handle_pair, new_monitor_info);            
+            return true;
+        }
+    }
+
+    // Add an entry event to our queue.
+    fn enqueue_unhandled_event(
+        &mut self,
+        space: &mut RapierSpace,
+        other_collider_handle: ColliderHandle,
+        new_event: MonitorReport,
+    ){   
+        self.state.unhandled_event_queue.insert(other_collider_handle, new_event);
+      
+        // Finally, we tell the space that we have events in our queue.
+        space
+            .get_mut_state()
+            .area_add_to_monitor_query_list(self.base.get_id());
+    }
+
+    // Returns true if the new event is required (eg it doesn't contradict or invalidate an existing unhandled event).
+    fn filter_on_unhandled_events(
+        &mut self,
+        space: &mut RapierSpace,
+        other_collider_handle: ColliderHandle,
+        new_event_state: i32,
+    ) -> bool {
+        if let Some(current_event_in_queue) = self.state.unhandled_event_queue.get(&other_collider_handle) {
+            // See if we currently have a pending unhandled event (eg an event from this frame) that is the opposite of this one.
+            // If so, this event will cancel that one out.
+            if current_event_in_queue.state == new_event_state * -1 {
+                self.state.unhandled_event_queue.remove(&other_collider_handle);
+
+                if self.state.unhandled_event_queue.len() == 0 {
+                    space
+                    .get_mut_state()
+                    .area_remove_from_area_update_list(self.base.get_id());
+                    return false;
+                }
+
+                
+            } else if current_event_in_queue.state == new_event_state {
+                // In this scenario, we can just stop here-- the state is already going to report an entry event at the end of this tick.
+                return false;
+            }        
+        }
+        
+        return true;
     }
 
     pub fn update_area_override(
@@ -419,13 +570,13 @@ impl RapierArea {
         area_id: &RapierId,
         physics_ids: &PhysicsIds,
     ) {
-        let mut detected_bodies = HashMap::default();
+        let mut monitored_bodies = HashMap::default();
         let mut space_rid = Rid::Invalid;
         let area_rid = get_id_rid(*area_id, physics_ids);
         if let Some(area_rid) = physics_collision_objects.get(&area_rid)
             && let Some(area) = area_rid.get_area()
         {
-            detected_bodies = area.state.detected_bodies.clone();
+            monitored_bodies = area.state.monitored_objects.clone();
             space_rid = area.get_base().get_space(physics_ids);
         }
         if let Some(space) = physics_spaces.get_mut(&space_rid) {
@@ -433,14 +584,14 @@ impl RapierArea {
                 .get_mut_state()
                 .area_remove_from_area_update_list(*area_id);
         }
-        for (detected_body, _) in &detected_bodies {
+        for (_, monitor_info) in &monitored_bodies {
             RapierBody::apply_area_override_to_body(
-                detected_body,
+                &monitor_info.id,
                 physics_engine,
                 physics_spaces,
                 physics_collision_objects,
                 physics_ids,
-            );
+            )
         }
     }
 
@@ -672,35 +823,35 @@ impl RapierArea {
     }
 
     pub fn call_queries(
-        monitored_objects: &HashMap<(ColliderHandle, ColliderHandle), MonitorInfo>,
+        unhandled_events: &HashMap<ColliderHandle, MonitorReport>,
         monitor_callback: Option<Callable>,
         area_monitor_callback: Option<Callable>,
         physics_ids: &PhysicsIds,
     ) {
-        for (_, monitor_info) in monitored_objects {
-            if monitor_info.state == 0 {
+        for (_, monitor_report) in unhandled_events {
+            if monitor_report.state == 0 {
                 godot_error!("Invalid monitor state");
                 continue;
             }
-            let rid = get_id_rid(monitor_info.id, physics_ids);
-            let arg_array = if monitor_info.state > 0 {
+            let rid = get_id_rid(monitor_report.id, physics_ids);
+            let arg_array = if monitor_report.state > 0 {
                 vec![
                     AreaBodyStatus::ADDED.to_variant(),
                     rid.to_variant(),
-                    monitor_info.instance_id.to_variant(),
-                    monitor_info.object_shape_index.to_variant(),
-                    monitor_info.area_shape_index.to_variant(),
+                    monitor_report.instance_id.to_variant(),
+                    monitor_report.object_shape_index.to_variant(),
+                    monitor_report.area_shape_index.to_variant(),
                 ]
             } else {
                 vec![
                     AreaBodyStatus::REMOVED.to_variant(),
                     rid.to_variant(),
-                    monitor_info.instance_id.to_variant(),
-                    monitor_info.object_shape_index.to_variant(),
-                    monitor_info.area_shape_index.to_variant(),
-                ]
+                    monitor_report.instance_id.to_variant(),
+                    monitor_report.object_shape_index.to_variant(),
+                    monitor_report.area_shape_index.to_variant(),
+                ]                
             };
-            if monitor_info.collision_object_type == CollisionObjectType::Body {
+            if monitor_report.collision_object_type == CollisionObjectType::Body {
                 if let Some(ref monitor_callback) = monitor_callback {
                     monitor_callback.call(arg_array.as_slice());
                 }
@@ -710,8 +861,49 @@ impl RapierArea {
         }
     }
 
+    // For state loading, we sometimes need to load a state where a contact present in the pre-load state is no longer extant.
+    // In this scenario, the area needs to be manually told to cease monitoring the contact, and Godot must be notified.
+    // On the state's next query flush after calling this method, this signal will be emitted.
+    pub fn close_stale_contacts(
+        &mut self, 
+        space: &mut RapierSpace,
+        stale_collider_pairs: &Vec<ColliderPair>,
+    )
+    {
+        let mut add_to_monitored_list = false;
+        let mut monitors_to_remove: Vec<(ColliderHandle, ColliderHandle)> = Vec::new();
+        for ((handle_1, handle_2), monitor_info) in &mut self.state.monitored_objects
+        {
+            // If our stale colliders contain a pair in either order:
+            let ab = ColliderPair::new(*handle_1, *handle_2);
+            let ba = ColliderPair::new(*handle_2, *handle_1);
+            if stale_collider_pairs.contains(&ab)
+                || stale_collider_pairs.contains(&ba)
+            {
+                add_to_monitored_list = true;
+                let new_exit_event = MonitorReport::from_monitor_info(*monitor_info, -1);
+                self.state.unhandled_event_queue.insert(*handle_1, new_exit_event);
+                monitors_to_remove.push((*handle_1, *handle_2));
+            }
+        }
+
+        for removal in monitors_to_remove {
+            self.state.monitored_objects.remove(&removal);
+        }
+
+        if add_to_monitored_list {
+            space
+            .get_mut_state()
+            .area_add_to_monitor_query_list(self.base.get_id());
+        }
+    }
+
     pub fn clear_monitored_objects(&mut self) {
         self.state.monitored_objects.clear();
+    }
+
+    pub fn clear_event_queue(&mut self) {
+        self.state.unhandled_event_queue.clear();
     }
 
     pub fn compute_gravity(&self, position: Vector) -> Vector {
@@ -733,49 +925,8 @@ impl RapierArea {
             self.gravity_vector * self.gravity
         }
     }
-
-    pub fn clear_detected_bodies(
-        area_rid: &Rid,
-        physics_spaces: &mut PhysicsSpaces,
-        physics_collision_objects: &mut PhysicsCollisionObjects,
-        physics_ids: &PhysicsIds,
-    ) {
-        let mut previous_space_rid = Rid::Invalid;
-        let mut detected_bodies = HashMap::default();
-        let mut area_id = RapierId::default();
-        if let Some(area) = physics_collision_objects.get_mut(area_rid)
-            && let Some(area) = area.get_mut_area()
-        {
-            previous_space_rid = area.get_base().get_space(physics_ids);
-            detected_bodies = area.state.detected_bodies.clone();
-            area.state.detected_bodies.clear();
-            area.state.monitored_objects.clear();
-            area_id = area.get_base().get_id();
-        }
-        if area_id == RapierId::default() {
-            godot_error!("Invalid area id");
-            return;
-        }
-        if let Some(space) = physics_spaces.get_mut(&previous_space_rid) {
-            if !detected_bodies.is_empty() {
-                space
-                    .get_mut_state()
-                    .area_add_to_monitor_query_list(area_id);
-            }
-            space
-                .get_mut_state()
-                .area_remove_from_area_update_list(area_id);
-            for (detected_body, _) in detected_bodies {
-                if let Some(body) =
-                    physics_collision_objects.get_mut(&get_id_rid(detected_body, physics_ids))
-                    && let Some(body) = body.get_mut_body()
-                {
-                    body.remove_area(area_id, space);
-                }
-            }
-        }
-    }
 }
+
 // We won't use the pointers between threads, so it should be safe.
 unsafe impl Sync for RapierArea {}
 impl IRapierCollisionObject for RapierArea {

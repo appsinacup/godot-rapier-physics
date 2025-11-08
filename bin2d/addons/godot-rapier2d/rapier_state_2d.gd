@@ -60,6 +60,8 @@ func save_state(save_json: bool = false) -> int:
 
 ## Load the state of whole world (single space)
 func load_state() -> int:
+	var space_rid = get_viewport().world_2d.space
+	load_node(space_rid, JSON.parse_string(state["space"]))
 	var physics_nodes := _get_all_physics_nodes(get_tree().current_scene)
 	for node_path in physics_nodes:
 		var node := get_node(node_path)
@@ -77,8 +79,6 @@ func load_state() -> int:
 			rid = node.get_rid()
 		var node_state = state[node_path]
 		load_node(rid, JSON.parse_string(node_state))
-	var space_rid = get_viewport().world_2d.space
-	load_node(space_rid, JSON.parse_string(state["space"]))
 	RapierPhysicsServer2D.set_global_id(int(state["id"]))
 	RapierPhysicsServer2D.space_flush_queries(space_rid)
 	return hash(JSON.stringify(state, " "))

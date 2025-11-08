@@ -1,3 +1,5 @@
+use std::sync::mpsc;
+
 use bodies::rapier_area::RapierArea;
 use bodies::rapier_body::RapierBody;
 use godot::classes::ProjectSettings;
@@ -7,6 +9,8 @@ use godot::classes::physics_server_2d::*;
 use godot::classes::physics_server_3d::*;
 use godot::prelude::*;
 use hashbrown::HashSet;
+use rapier::dynamics::IntegrationParameters;
+use rapier::geometry::BroadPhasePairEvent;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsData;
 use servers::rapier_physics_singleton::PhysicsIds;
@@ -19,6 +23,7 @@ use super::PhysicsDirectSpaceState;
 use super::RapierDirectSpaceState;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
+use crate::servers::RapierPhysicsServer;
 use crate::servers::rapier_project_settings::*;
 use crate::types::*;
 use crate::*;
@@ -125,20 +130,24 @@ impl RapierSpace {
             }
         }
         for area_handle in monitor_query_list {
-            let mut monitored_objects = None;
+            let mut unhandled_event_queue = None;
             let mut monitor_callback = None;
             let mut area_monitor_callback = None;
             if let Some(area) =
                 physics_collision_objects.get(&get_id_rid(*area_handle, physics_ids))
                 && let Some(area) = area.get_area()
             {
-                monitored_objects = Some(area.state.monitored_objects.clone());
+                unhandled_event_queue = Some(area.state.unhandled_event_queue.clone());
                 monitor_callback = area.monitor_callback.clone();
                 area_monitor_callback = area.area_monitor_callback.clone();
             }
-            if let Some(monitored_objects) = monitored_objects {
+            if let Some(unhandled_event_queue) = unhandled_event_queue {
+                
+                let mon_obj_len = unhandled_event_queue.len();
+                godot_print!("monitored_objects length passed into call_queries is {}", mon_obj_len);
+                
                 RapierArea::call_queries(
-                    &monitored_objects,
+                    &unhandled_event_queue,
                     monitor_callback,
                     area_monitor_callback,
                     physics_ids,
@@ -157,7 +166,7 @@ impl RapierSpace {
                 physics_collision_objects.get_mut(&get_id_rid(area_handle, physics_ids))
                 && let Some(area) = area.get_mut_area()
             {
-                area.clear_monitored_objects();
+                area.clear_event_queue();
             }
         }
         self.state.reset_monitor_query_list();
@@ -416,25 +425,306 @@ impl RapierSpace {
 
     #[cfg(feature = "serde-serialize")]
     pub fn import_binary(&mut self, physics_engine: &mut PhysicsEngine, data: PackedByteArray) {
+        use rapier::geometry::{ContactPair, ColliderHandle, ColliderPair};
+        
+        use crate::servers::rapier_physics_singleton::physics_data;
+     
         match bincode::deserialize::<SpaceImport>(data.as_slice()) {
             Ok(import) => {
+                let physics_data = physics_data();                
+                let imported_physics_objects = import.world;
+
+                // Oldstyle:
+                // let physics_objects = imported_physics_objects;                
+                // let mut collider_set = physics_objects.collider_set.clone();
+                // physics_engine.world_import(
+                //     self.get_state().get_id(),
+                //     &world_settings,
+                //     physics_objects,
+                // );
+                
+
+                // Here, we compare our narrowphase to the imported narrowphase. Any collisions present in our pre-load state
+                // that don't exist in the imported state will be manually cleaned up.
+                let mut stale_collider_pairs: Vec<ColliderPair> = Vec::new();
+                if let Some(current_world) = physics_engine.get_mut_world(self.get_state().get_id())
+                {
+                    let imported_narrowphase = imported_physics_objects.narrow_phase.clone();
+                    let current_narrowphase = current_world.physics_objects.narrow_phase.clone();
+
+                    // Do I need to check the reversed pair too? eg handle2, handle1?
+                    for (handle1, handle2, _intersecting) in current_narrowphase.intersection_pairs()
+                    {
+                        match imported_narrowphase.intersection_pair(handle1, handle2) {
+                            Some(true) => continue,
+                            Some(false) | None => stale_collider_pairs.push(ColliderPair::new(handle1, handle2)),
+                        }
+                    }
+                }
+
+                for (_, collision_object) in physics_data.collision_objects.iter_mut()
+                {
+                    if let Some(area) = collision_object.get_mut_area()
+                    {
+                        area.close_stale_contacts(self, &stale_collider_pairs);
+                    }
+                }
+                
+                self.flush(physics_data);
+
                 self.state = import.space;
-                let physics_objects = import.world;
+                                
                 let world_settings = WorldSettings {
                     particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
                     smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
                     counters_enabled: false,
                 };
+
+                let physics_objects = imported_physics_objects;             
                 physics_engine.world_import(
                     self.get_state().get_id(),
                     &world_settings,
                     physics_objects,
                 );
+
+                self.zero_tick(physics_data);
+                self.flush(physics_data);
+
+
+                // self.zero_tick(physics_data);
+                // self.flush(physics_data);
+                // self.zero_tick(physics_data);
+                // self.flush(physics_data);
+                //self.flush(physics_data);
+
+
+                // Currently throws an error if a body from the current state (with active collisions/overlaps) does not exist in the loaded state.
+
+                // if let Some(current_world) = physics_engine.get_mut_world(self.get_state().get_id())
+                // {
+
+                //     // We probably actually need to start from the loaded-frame b and n, and then only append contacts from this frame if
+                //     // the bodies actually exist in the loaded-frame. There is a caveat here involving the maximum number of contacts...
+
+                //     // Additionally, if a body exists in the current frame but not in the loaded frame, then if there are any open interactions
+                //     // between this body and another entity, then we need to close them. 
+                //     let mut current_broadphase = current_world.physics_objects.broad_phase.clone();
+                //     let mut deleted_colliders_with_current_frame_collisions: HashSet<ColliderHandle> = HashSet::new();
+                //     for (&(handle1, handle2), &timestamp) in &current_world.physics_objects.broad_phase.pairs {
+                //         if !imported_physics_objects.collider_set.contains(handle1)
+                //         {
+                //             deleted_colliders_with_current_frame_collisions.insert(handle1);
+                //         }
+
+                //         if !imported_physics_objects.collider_set.contains(handle2)
+                //         {
+                //             deleted_colliders_with_current_frame_collisions.insert(handle2);
+                //         }
+                //     }
+
+                //     // So now we know all the colliders that will no longer be in the physics state once we finish load.
+                //     // Because we want to append our pre-load broadphase and narrowphase to our post-load data, 
+                //     // we need to make sure that pre-load data doesn't contain any information pertaining to bodies that don't exist in the post-load environment.
+                //     // To achieve this, we have to manually remove these stale colliders and update our broadphase and narrowphase now.
+
+                //     // Fuuuuck of course we can't just remove the bodies and tick, they're all still sitting in the exact same place.
+                //     for collider_handle in deleted_colliders_with_current_frame_collisions
+                //     {
+                //         RapierPhysicsServer2D:: 
+                //         current_world.physics_objects.collider_set.remove(
+                //             collider_handle, 
+                //             &mut current_world.physics_objects.island_manager,
+                //             &mut current_world.physics_objects.rigid_body_set,
+                //             false,
+                //         );
+                //     }
+
+                //     self.zero_tick(physics_data);
+                //     //self.flush(physics_data);
+                // }
+
+                // // After the tick, fetch current_world again
+                // if let Some(current_world) = physics_engine.get_mut_world(self.get_state().get_id())
+                // {
+
+                //     let mut current_broadphase = current_world.physics_objects.broad_phase.clone();
+
+                //     for (&(handle1, handle2), &timestamp) in &imported_physics_objects.broad_phase.pairs {           
+                //         // if current_world.physics_objects.collider_set.get(handle1).is_none() || current_world.physics_objects.collider_set.get(handle2).is_none() {
+                //         //     continue;
+                //         // }
+                
+                //         // Insert only if the pair does not already exist in current broadphase
+                //         godot_print!("adding broadphase pair...");
+                //         current_broadphase.pairs.entry((handle1, handle2)).or_insert(timestamp);
+                //     }
+
+                //     //let mut imported_narrowphase = imported_physics_objects.narrow_phase.clone();
+                //     //imported_narrowphase.append(&imported_physics_objects.collider_set, current_world.physics_objects.narrow_phase.clone());
+
+
+
+                //     let mut current_narrowphase = current_world.physics_objects.narrow_phase.clone();
+                //     current_narrowphase.append(&current_world.physics_objects.collider_set, imported_physics_objects.narrow_phase.clone());
+
+                //     let mut physics_objects = imported_physics_objects;
+                //     physics_objects.broad_phase = current_broadphase;
+                //     physics_objects.narrow_phase = current_narrowphase;
+
+                    
+     
+                //     //physics_objects = imported_physics_objects;
+                //     // Set up our data so that it has all of this frame's data, but with the bodies from the loaded data.
+                //     // let physics_objects = PhysicsObjects {
+                //     //     island_manager: current_world.physics_objects.island_manager.clone(),
+                //     //     broad_phase: current_world.physics_objects.broad_phase.clone(),
+                //     //     narrow_phase: current_world.physics_objects.narrow_phase.clone(),
+                //     //     ccd_solver: current_world.physics_objects.ccd_solver.clone(),
+                        
+                //     //     collider_set: imported_physics_objects.collider_set.clone(),
+                //     //     rigid_body_set: imported_physics_objects.rigid_body_set.clone(),
+                //     //     impulse_joint_set: imported_physics_objects.impulse_joint_set.clone(),
+                //     //     multibody_joint_set: imported_physics_objects.multibody_joint_set.clone(),
+
+                //     //     //collider_set: current_world.physics_objects.collider_set.clone(),
+                //     //     //rigid_body_set: current_world.physics_objects.rigid_body_set.clone(),                        
+                //     //     //impulse_joint_set: current_world.physics_objects.impulse_joint_set.clone(),
+                //     //     //multibody_joint_set: current_world.physics_objects.multibody_joint_set.clone(),
+
+                //     //     removed_rigid_bodies_user_data: current_world.physics_objects.removed_rigid_bodies_user_data.clone(),
+                //     //     removed_colliders_user_data: current_world.physics_objects.removed_colliders_user_data.clone(),
+                //     //     handle: current_world.physics_objects.handle.clone()
+                //     // };
+
+                //     physics_engine.world_import(
+                //         self.get_state().get_id(),
+                //         &world_settings,
+                //         physics_objects,
+                //     );
+
+                //     godot_print!("{}", self.get_state().get_time_stepped());
+
+                //     self.zero_tick(physics_data);
+                //     self.flush(physics_data);
+
+                    
+                //     // self.state = import2.space;
+                //     // physics_engine.world_import(
+                //     //     self.get_state().get_id(),
+                //     //     &world_settings,
+                //     //     import2.world,
+                //     // );
+
+                //     // self.zero_tick(physics_data);
+                //     // self.flush(physics_data);
+                    
+
+                // }
+                // else {
+                //     physics_engine.world_import(
+                //         self.get_state().get_id(),
+                //         &world_settings, 
+                //         imported_physics_objects,
+                //     );
+
+                //     self.zero_tick(physics_data);
+                //     self.flush(physics_data);
+
+                //     self.zero_tick(physics_data);
+                //     self.flush(physics_data);
+                // }
+
+                
+                
+
+                //self.zero_tick(physics_data);
+
+                //self.zero_tick(physics_engine, physics_data, &settings);
+                // self.state = import2.space;
+                // let physics_objects2 = import2.world;
+                // physics_engine.world_import(
+                //     self.get_state().get_id(),
+                //     &world_settings,
+                //     physics_objects2,
+                // );
+                
+                // self.zero_tick(physics_data);
             }
             Err(e) => {
                 godot_error!("Failed to deserialize space from binary: {}", e);
             }
         }
+    }
+
+    fn zero_tick(
+        &mut self,
+        physics_data: &mut PhysicsData,
+    )
+    {
+
+        use crate::servers::RapierPhysicsServer;
+
+        let hi = RapierPhysicsServer::implementation.length_unit;
+        // Fetch project settings.
+        let settings = SimulationSettings {
+            dt: 0.0,
+            length_unit: RapierProjectSettings::get_length_unit(),
+            max_ccd_substeps: RapierProjectSettings::get_solver_max_ccd_substeps() as usize,
+            num_internal_pgs_iterations:
+                RapierProjectSettings::get_solver_num_internal_pgs_iterations() as usize,
+            num_solver_iterations: RapierProjectSettings::get_solver_num_solver_iterations()
+                as usize,
+            joint_damping_ratio: RapierProjectSettings::get_joint_damping_ratio(),
+            joint_natural_frequency: RapierProjectSettings::get_joint_natural_frequency(),
+            normalized_allowed_linear_error:
+                RapierProjectSettings::get_normalized_allowed_linear_error(),
+            normalized_max_corrective_velocity:
+                RapierProjectSettings::get_normalized_max_corrective_velocity(),
+            normalized_prediction_distance:
+                RapierProjectSettings::get_normalized_prediction_distance(),
+            predictive_contact_allowance_threshold:
+                RapierProjectSettings::get_predictive_contact_allowance_threshold(),
+            num_internal_stabilization_iterations:
+                RapierProjectSettings::get_num_internal_stabilization_iterations() as usize,
+            contact_damping_ratio: RapierProjectSettings::get_contact_damping_ratio(),
+            contact_natural_frequency: RapierProjectSettings::get_contact_natural_frequency(),
+            pixel_gravity: vector_to_rapier(Vector::ZERO),
+            pixel_liquid_gravity: vector_to_rapier(Vector::ZERO),
+        };
+
+        let space_rid = physics_data.spaces
+            .iter()
+            .find(|(_, space)| std::ptr::eq(*space, self))
+            .map(|(rid, _)| *rid);
+
+        if let Some(rid) = space_rid {                    
+            // Use our space's RID to tick for a zero timestep.
+            RapierSpace::step( 0.0, &rid, physics_data, settings);            
+        }
+    }
+
+    fn flush(
+        &mut self,
+        physics_data: &mut PhysicsData
+    ){
+        let state_query_list = Some(self.get_state().get_state_query_list());
+        let force_integrate_query_list = Some(self.get_state().get_force_integrate_query_list());
+        let monitor_query_list = Some(self.get_state().get_monitor_query_list());
+
+        if let Some(state_query_list) = state_query_list
+            && let Some(force_integrate_query_list) = force_integrate_query_list
+            && let Some(monitor_query_list) = monitor_query_list
+        {
+            RapierSpace::call_queries(
+                state_query_list,
+                force_integrate_query_list,
+                monitor_query_list,
+                &mut physics_data.collision_objects,
+                &physics_data.ids,
+            );
+        }
+
+        self.update_after_queries(&mut physics_data.collision_objects, &physics_data.ids);
     }
 
     pub fn get_ghost_collision_distance(&self) -> real {

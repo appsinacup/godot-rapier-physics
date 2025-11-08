@@ -427,14 +427,11 @@ impl RapierPhysicsServerImpl {
     }
 
     pub(super) fn area_set_space(&mut self, area: Rid, space: Rid) {
-        let physics_data = physics_data();
-        RapierArea::clear_detected_bodies(
-            &area,
-            &mut physics_data.spaces,
-            &mut physics_data.collision_objects,
-            &physics_data.ids,
-        );
+        let physics_data = physics_data();        
         if let Some(area) = physics_data.collision_objects.get_mut(&area) {
+            if let Some(area) = area.get_mut_area() {                
+                area.clear_monitored_objects();
+            }
             area.set_space(
                 space,
                 &mut physics_data.physics_engine,
@@ -772,16 +769,6 @@ impl RapierPhysicsServerImpl {
                 &physics_data.ids,
             );
         }
-    }
-
-    pub(super) fn body_predict_next_frame_position(&self, body: Rid, timestep: f64) -> Vector {
-        let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get(&body) {
-            if let Some(body) = body.get_body() {
-                return body.predict_next_frame_position(timestep, &mut physics_data.physics_engine);
-            }
-        }
-        Vector::default()
     }
 
     pub(super) fn body_predict_next_frame_position(&self, body: Rid, timestep: f64) -> Vector {

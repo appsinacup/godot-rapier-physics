@@ -83,6 +83,27 @@ pub struct PhysicsObjects {
 
     pub handle: WorldHandle,
 }
+impl Clone for PhysicsObjects {
+    fn clone(&self) -> Self {
+        Self {
+            island_manager: self.island_manager.clone(),
+            broad_phase: self.broad_phase.clone(),
+            narrow_phase: self.narrow_phase.clone(),
+            impulse_joint_set: self.impulse_joint_set.clone(),
+            multibody_joint_set: self.multibody_joint_set.clone(),
+            ccd_solver: self.ccd_solver.clone(),
+
+            collider_set: self.collider_set.clone(),
+            rigid_body_set: self.rigid_body_set.clone(),
+
+            removed_rigid_bodies_user_data: self.removed_rigid_bodies_user_data.clone(),
+            removed_colliders_user_data: self.removed_colliders_user_data.clone(),
+
+            handle: self.handle.clone(),
+        }
+    }
+}
+
 pub struct PhysicsWorld {
     pub physics_objects: PhysicsObjects,
     pub physics_pipeline: PhysicsPipeline,

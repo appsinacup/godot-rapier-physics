@@ -1,7 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://clemidbbr2cib"]
+[gd_scene load_steps=8 format=3 uid="uid://clemidbbr2cib"]
 
 [ext_resource type="Script" uid="uid://kmnqy6hw4db4" path="res://test/integration/scene_change.gd" id="1_crxgh"]
 [ext_resource type="Script" uid="uid://b4u71ckduv8gr" path="res://addons/godot-rapier2d/rapier_state_2d.gd" id="2_6kmg0"]
+[ext_resource type="Script" uid="uid://djitfjvlj5iok" path="res://test/integration/area_2d.gd" id="3_58trk"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_uteag"]
 radius = 31.0161
@@ -9,15 +10,19 @@ radius = 31.0161
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_l14l6"]
 size = Vector2(460, 74)
 
-[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_86sbr"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qmvy1"]
 
-[node name="SceneChange" type="Node2D" node_paths=PackedStringArray("rapier_state", "label")]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2h8nx"]
+size = Vector2(87, 20)
+
+[node name="SceneChange" type="Node2D" node_paths=PackedStringArray("rapier_state", "label", "rb")]
 script = ExtResource("1_crxgh")
 rapier_state = NodePath("Rapier2DState")
 label = NodePath("Label")
+rb = NodePath("RigidBody2D")
 
 [node name="RigidBody2D" type="RigidBody2D" parent="."]
-position = Vector2(214, -95)
+position = Vector2(214, -126)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D"]
 shape = SubResource("CircleShape2D_uteag")
@@ -35,12 +40,18 @@ polygon = PackedVector2Array(221, -20, 172, 65, 243, 126, 661, 32, 341, 64)
 script = ExtResource("2_6kmg0")
 
 [node name="PinJoint2D" type="PinJoint2D" parent="."]
+visible = false
+node_a = NodePath("../StaticBody2D")
+node_b = NodePath("../RigidBody2D2")
 
-[node name="Area2D" type="Area2D" parent="."]
+[node name="Area2D" type="Area2D" parent="." node_paths=PackedStringArray("overlap_report")]
+position = Vector2(-11, 162)
+script = ExtResource("3_58trk")
+overlap_report = NodePath("../report")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
-shape = SubResource("WorldBoundaryShape2D_86sbr")
-disabled = true
+shape = SubResource("RectangleShape2D_qmvy1")
+debug_color = Color(0.7856283, 0.4320267, 0.07522286, 0.41960785)
 
 [node name="Camera2D" type="Camera2D" parent="."]
 zoom = Vector2(2, 2)
@@ -49,3 +60,27 @@ zoom = Vector2(2, 2)
 offset_right = 40.0
 offset_bottom = 23.0
 text = "Running..."
+
+[node name="Label2" type="Label" parent="."]
+offset_left = -26.0
+offset_top = 195.0
+offset_right = 52.0
+offset_bottom = 218.0
+text = "Num bodies overlapping orange area:"
+
+[node name="report" type="Label" parent="."]
+offset_left = -25.0
+offset_top = 219.0
+offset_right = 252.0
+offset_bottom = 242.0
+text = "0"
+
+[node name="RigidBody2D2" type="RigidBody2D" parent="."]
+visible = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D2"]
+position = Vector2(33.5, 0)
+shape = SubResource("RectangleShape2D_2h8nx")
+
+[connection signal="body_entered" from="Area2D" to="Area2D" method="_on_body_entered"]
+[connection signal="body_exited" from="Area2D" to="Area2D" method="_on_body_exited"]
