@@ -160,17 +160,7 @@ impl PhysicsEngine {
                 .get_mut(handle_to_fluid_handle(fluid_handle))
         {
             let points = point_array_to_vec(points);
-            // add old positions from fluid
-            fluid.positions.extend_from_slice(&points);
-            fluid.velocities.extend_from_slice(velocity_points);
-            let new_point_count = fluid.positions.len();
-            let mut accelerations: Vec<_> =
-                std::iter::repeat_n(SalvaVector::zeros(), new_point_count).collect();
-            // copy back the accelerations that were before, if they exist
-            accelerations[..fluid.accelerations.len()].copy_from_slice(&fluid.accelerations[..]);
-            fluid.accelerations = accelerations;
-            fluid.volumes =
-                std::iter::repeat_n(fluid.default_particle_volume(), new_point_count).collect();
+            fluid.add_particles(&points, Some(velocity_points));
         }
     }
 
