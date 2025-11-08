@@ -1,6 +1,12 @@
 # Changelog
 
-## v0.8.21
+## v0.8.22 -
+
+## v0.8.21 - Nov 8
+
+## What's New?
+* fix sleeping not working by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/434
+* Fix character controller by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/436
 
 ## v0.8.20 - Nov 7
 
