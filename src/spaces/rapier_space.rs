@@ -661,10 +661,6 @@ impl RapierSpace {
         physics_data: &mut PhysicsData,
     )
     {
-
-        use crate::servers::RapierPhysicsServer;
-
-        let hi = RapierPhysicsServer::implementation.length_unit;
         // Fetch project settings.
         let settings = SimulationSettings {
             dt: 0.0,
