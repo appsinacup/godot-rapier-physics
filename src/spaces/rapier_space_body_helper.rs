@@ -801,8 +801,7 @@ impl PhysicsEngine {
                 return true;
             }
             // Check if contact normal is valid (non-zero)
-            let normal_length_sq =
-                contact_normal.x * contact_normal.x + contact_normal.y * contact_normal.y;
+            let normal_length_sq = contact_normal.length_squared();
             const NORMAL_EPSILON: Real = 0.01;
             if normal_length_sq > NORMAL_EPSILON {
                 // Skip side edges (perpendicular contacts)
