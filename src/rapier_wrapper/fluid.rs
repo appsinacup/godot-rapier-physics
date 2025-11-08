@@ -1,5 +1,6 @@
 use rapier::prelude::*;
 use salva::math::Vector as SalvaVector;
+use salva::geometry;
 use salva::object::*;
 use salva::solver::*;
 
@@ -137,39 +138,11 @@ impl PhysicsEngine {
                 .fluids_mut()
                 .get_mut(handle_to_fluid_handle(fluid_handle))
         {
-            // create mask from array of indexes
-            let mut mask = vec![false; fluid.positions.len()];
-            for i in 0..indices.len() {
-                if fluid.positions.len() <= indices[i] as usize {
-                    continue;
+            for index in indices {
+                if index >= 0 && (index as usize) < fluid.num_particles() {
+                    fluid.delete_particle_at_next_timestep(index as usize);
                 }
-                mask[indices[i] as usize] = true;
             }
-            let mut i = 0;
-            // remove all points that are not in the mask
-            fluid.positions.retain(|_| {
-                let delete = mask[i];
-                i += 1;
-                !delete
-            });
-            let mut i = 0;
-            fluid.velocities.retain(|_| {
-                let delete = mask[i];
-                i += 1;
-                !delete
-            });
-            let mut i = 0;
-            fluid.accelerations.retain(|_| {
-                let delete = mask[i];
-                i += 1;
-                !delete
-            });
-            let mut i = 0;
-            fluid.volumes.retain(|_| {
-                let delete = mask[i];
-                i += 1;
-                !delete
-            });
         }
     }
 
