@@ -762,8 +762,7 @@ impl PhysicsEngine {
         p_motion: Vector,
     ) -> bool {
         let dist = contact.pixel_distance;
-        if !contact.within_margin
-            && body_shape.allows_one_way_collision()
+        if body_shape.allows_one_way_collision()
             && collision_body
                 .get_base()
                 .is_shape_set_as_one_way_collision(shape_index)
@@ -776,10 +775,8 @@ impl PhysicsEngine {
             if let Some(b) = collision_body.get_body()
                 && b.get_base().mode.ord() >= BodyMode::KINEMATIC.ord()
             {
-                // fix for moving platforms (kinematic and dynamic), margin is increased by how much it moved in the
-                // given direction
+                // Increase margin by platform movement in the one-way direction
                 let lv = b.get_linear_velocity(self);
-                // compute displacement from linear velocity
                 let mut motion = lv * last_step;
                 let motion_len = motion.length();
                 if !motion_len.is_zero_approx() {
@@ -787,14 +784,38 @@ impl PhysicsEngine {
                 }
                 valid_depth += motion_len * motion.dot(valid_dir).max(0.0);
             }
-            let motion = p_motion;
-            let mut motion_normalized = motion;
-            let motion_len = motion.length();
+            let _motion = p_motion;
+            let motion_len = p_motion.length();
             if !motion_len.is_zero_approx() {
-                motion_normalized = vector_normalized(motion_normalized);
+                valid_depth += motion_len * vector_normalized(p_motion).dot(valid_dir).max(0.0);
             }
-            valid_depth += motion_len * motion_normalized.dot(valid_dir).max(0.0);
-            if dist < -valid_depth || motion_normalized.dot(valid_dir) < DEFAULT_EPSILON {
+            let motion_dot_valid_dir = if motion_len.is_zero_approx() {
+                0.0
+            } else {
+                vector_normalized(p_motion).dot(valid_dir)
+            };
+            let contact_normal = vector_to_godot(contact.normal1);
+            let normal_dot_direction = contact_normal.dot(valid_dir);
+            // If motion opposes one-way direction, skip collision (allows passage through platforms)
+            if motion_dot_valid_dir < 0.0 {
+                return true;
+            }
+            // Check if contact normal is valid (non-zero)
+            let normal_length_sq = contact_normal.length_squared();
+            const NORMAL_EPSILON: Real = 0.01;
+            if normal_length_sq > NORMAL_EPSILON {
+                // Skip side edges (perpendicular contacts)
+                const ONE_WAY_PERPENDICULAR_THRESHOLD: Real = 0.1;
+                if normal_dot_direction.abs() < ONE_WAY_PERPENDICULAR_THRESHOLD {
+                    return true;
+                }
+                // Skip if contact normal opposes one-way direction
+                if normal_dot_direction < 0.0 {
+                    return true;
+                }
+            }
+            // Skip deeply penetrating contacts
+            if dist < -valid_depth {
                 return true;
             }
         }

@@ -1,7 +1,17 @@
 # Changelog
 
-## v0.8.20 - UNRELEASED
+## v0.8.21
 
+## v0.8.20 - Nov 7
+
+## What's Changed
+* Fix fluid2d mask and layer by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/426
+* Fluid get particle in aabb by @iLLsen in https://github.com/appsinacup/godot-rapier-physics/pull/429
+* re-enable web builds and linux 32 bit builds by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/430
+* fix joint scale for 2d by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/431
+
+## New Contributors
+* @iLLsen made their first contribution in https://github.com/appsinacup/godot-rapier-physics/pull/429
 
 ## v0.8.19 - Nov 4
 
