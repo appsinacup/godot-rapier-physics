@@ -51,7 +51,7 @@ runs:
     - name: Rename Symbols if Enabled
       shell: sh
       run: |
-        LIB="target/${{ inputs.arch }}/release/libgodot_rapier.a"  # Adjust if .lib on Windows
+        LIB="target/${{ inputs.arch }}/release/libgodot_rapier.a"
         CLEAN_FEATURES=$(echo "${{ inputs.features }}" | sed 's/,/_/g; s/-/_/g')
         
         echo "=== Searching for symbols in: $LIB ==="
