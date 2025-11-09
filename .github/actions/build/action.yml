@@ -1,5 +1,6 @@
 name: Physics Server Rapier Build
 description: Build Godot Cpp and the Physics Server 2D Extension.
+
 inputs:
   arch:
     required: true
@@ -12,6 +13,7 @@ inputs:
   features:
     required: true
     description: simd-stable,simd-nightly,parallel,enhanced-determinism
+
 runs:
   using: composite
   steps:
