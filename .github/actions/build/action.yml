@@ -106,9 +106,11 @@ runs:
           echo "Processing: $LIB"
           
           # Debug: show first 20 lines of nm output
-          echo "Debug: First 20 lines of nm output:"
-          nm "$LIB" 2>/dev/null | head -20
-          
+          # echo "Debug: First 20 lines of nm output:"
+          # nm "$LIB" 2>/dev/null | head -20
+          echo "Querying symbols:"
+          nm "$LIB" 2>/dev/null | grep -E 'GODOT_PLUGIN_REGISTRY|GODOT_DOCS_REGISTRY|rust_eh_personality'
+
           # Search for mangled symbols containing GODOT_PLUGIN_REGISTRY, GODOT_DOCS_REGISTRY, or rust_eh_personality
           SYMBOLS=$(nm "$LIB" 2>/dev/null | grep -E 'GODOT_PLUGIN_REGISTRY|GODOT_DOCS_REGISTRY|rust_eh_personality' | awk '{print $NF}' | sort -u) || SYMBOLS=""
 
