@@ -74,16 +74,21 @@ runs:
       run: |
         CLEAN_FEATURES=$(echo "${{ inputs.features }}" | sed 's/,/_/g; s/-/_/g')
 
-        mapfile -d $'\0' -t LIBS < <(find target/release -maxdepth 1 -type f -name '*godot_rapier*.a' -print0 2>/dev/null)
+        # Find all libs
+        LIBS=$(find target/release -maxdepth 1 -type f -name '*godot_rapier*.a' 2>/dev/null)
 
-        if [ ${#LIBS[@]} -eq 0 ]; then
+        if [ -z "$LIBS" ]; then
           echo "ERROR: No godot_rapier static libs found in target/release/"
           exit 1
         fi
 
-        echo "Found ${#LIBS[@]} lib(s)"
-        for LIB in "${LIBS[@]}"; do
+        echo "Found libs:"
+        echo "$LIBS"
+        
+        echo "$LIBS" | while IFS= read -r LIB; do
+          [ -z "$LIB" ] && continue
           echo "Processing: $LIB"
+          
           # Search for mangled symbols containing GODOT_PLUGIN_REGISTRY, GODOT_DOCS_REGISTRY, or rust_eh_personality
           SYMBOLS=$(nm "$LIB" 2>/dev/null | grep -E 'GODOT_PLUGIN_REGISTRY|GODOT_DOCS_REGISTRY|rust_eh_personality' | awk '{print $NF}' | sort -u) || SYMBOLS=""
 
@@ -95,12 +100,16 @@ runs:
           echo "Symbols before:"
           echo "$SYMBOLS"
 
-          FLAGS=()
-          for sym in $SYMBOLS; do
-            FLAGS+=("--redefine-sym" "$sym=${sym}_${CLEAN_FEATURES}")
-          done
+          # Build llvm-objcopy command with all symbol renames
+          CMD="llvm-objcopy"
+          while IFS= read -r sym; do
+            [ -z "$sym" ] && continue
+            CMD="$CMD --redefine-sym $sym=${sym}_${CLEAN_FEATURES}"
+          done <<< "$SYMBOLS"
+          CMD="$CMD \"$LIB\" \"$LIB\""
 
-          llvm-objcopy "${FLAGS[@]}" "$LIB" "$LIB"
+          # Execute the command
+          eval $CMD
 
           echo "Symbols after:"
           nm "$LIB" 2>/dev/null | grep -E 'GODOT_PLUGIN_REGISTRY|GODOT_DOCS_REGISTRY|rust_eh_personality' | awk '{print $NF}' | sort -u || echo "(none)"
