@@ -1,6 +1,5 @@
 name: Physics Server Rapier Build
 description: Build Godot Cpp and the Physics Server 2D Extension.
-
 inputs:
   arch:
     required: true
@@ -13,7 +12,6 @@ inputs:
   features:
     required: true
     description: simd-stable,simd-nightly,parallel,enhanced-determinism
-
 runs:
   using: composite
   steps:
@@ -31,6 +29,36 @@ runs:
       shell: sh
       run: |
         cargo +nightly build --target=${{ inputs.arch }} --release --features="${{ inputs.features }},api-custom" ${{ inputs.extra_flags }} --no-default-features
+    - name: Install LLVM (Ubuntu)
+      if: runner.os == 'Linux'
+      shell: sh
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y llvm
+    - name: Install LLVM (macOS)
+      if: runner.os == 'macOS'
+      shell: sh
+      run: |
+        brew install llvm
+        echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH  # Add to PATH
+    - name: Install LLVM (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        choco install llvm --confirm
+    - name: Rename Symbols if Enabled
+      shell: sh
+      run: |
+        LIB="target/${{ inputs.arch }}/release/libgodot_rapier.a"  # Adjust if .lib on Windows
+        CLEAN_FEATURES=$(echo "${{ inputs.features }}" | sed 's/,/_/g; s/-/_/g')
+        SYMBOLS=$(nm -gU "$LIB" 2>/dev/null | grep -E '__GODOT_PLUGIN_REGISTRY|__GODOT_DOCS_REGISTRY|_rust_eh_personality' | awk '{print $NF}' | sort -u) || SYMBOLS=""
+        if [ -n "$SYMBOLS" ]; then
+          FLAGS=""
+          for sym in $SYMBOLS; do
+            FLAGS="$FLAGS --redefine-sym $sym=${sym}_${CLEAN_FEATURES}"
+          done
+          llvm-objcopy $FLAGS "$LIB" "$LIB"
+        fi
     - name: Copy to release
       shell: sh
       run: |
