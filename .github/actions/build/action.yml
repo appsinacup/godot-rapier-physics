@@ -74,11 +74,31 @@ runs:
       run: |
         CLEAN_FEATURES=$(echo "${{ inputs.features }}" | sed 's/,/_/g; s/-/_/g')
 
-        # Find all libs
-        LIBS=$(find target/release -maxdepth 1 -type f -name '*godot_rapier*.a' 2>/dev/null)
+        # Set up llvm-objcopy path for macOS
+        if [ "$(uname)" = "Darwin" ]; then
+          if [ -f "/opt/homebrew/opt/llvm/bin/llvm-objcopy" ]; then
+            OBJCOPY="/opt/homebrew/opt/llvm/bin/llvm-objcopy"
+          elif [ -f "/usr/local/opt/llvm/bin/llvm-objcopy" ]; then
+            OBJCOPY="/usr/local/opt/llvm/bin/llvm-objcopy"
+          else
+            OBJCOPY="llvm-objcopy"
+          fi
+        else
+          OBJCOPY="llvm-objcopy"
+        fi
+
+        echo "Using OBJCOPY: $OBJCOPY"
+
+        # Find all libs - check both target/release and target/${{ inputs.arch }}/release
+        LIBS=$(find target/release target/${{ inputs.arch }}/release -maxdepth 1 -type f -name '*godot_rapier*.a' 2>/dev/null | sort -u)
 
         if [ -z "$LIBS" ]; then
-          echo "ERROR: No godot_rapier static libs found in target/release/"
+          echo "ERROR: No godot_rapier static libs found"
+          echo "Checked directories:"
+          echo "  target/release/"
+          echo "  target/${{ inputs.arch }}/release/"
+          ls -la target/release/ 2>/dev/null || echo "  target/release/ does not exist"
+          ls -la target/${{ inputs.arch }}/release/ 2>/dev/null || echo "  target/${{ inputs.arch }}/release/ does not exist"
           exit 1
         fi
 
@@ -88,6 +108,10 @@ runs:
         echo "$LIBS" | while IFS= read -r LIB; do
           [ -z "$LIB" ] && continue
           echo "Processing: $LIB"
+          
+          # Debug: show first 20 lines of nm output
+          echo "Debug: First 20 lines of nm output:"
+          nm "$LIB" 2>/dev/null | head -20
           
           # Search for mangled symbols containing GODOT_PLUGIN_REGISTRY, GODOT_DOCS_REGISTRY, or rust_eh_personality
           SYMBOLS=$(nm "$LIB" 2>/dev/null | grep -E 'GODOT_PLUGIN_REGISTRY|GODOT_DOCS_REGISTRY|rust_eh_personality' | awk '{print $NF}' | sort -u) || SYMBOLS=""
@@ -101,7 +125,7 @@ runs:
           echo "$SYMBOLS"
 
           # Build llvm-objcopy command with all symbol renames
-          CMD="llvm-objcopy"
+          CMD="$OBJCOPY"
           while IFS= read -r sym; do
             [ -z "$sym" ] && continue
             CMD="$CMD --redefine-sym $sym=${sym}_${CLEAN_FEATURES}"
