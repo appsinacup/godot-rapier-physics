@@ -1133,7 +1133,7 @@ dependencies = [
 [[package]]
 name = "salva2d"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=custom-changes#2a869fd516464af56c9a4d717cc79cc2ef906819"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#37b8a6a3ce2ea88aa9172dcbd936ec005a2a2cab"
 dependencies = [
  "approx",
  "bitflags",
@@ -1149,7 +1149,7 @@ dependencies = [
 [[package]]
 name = "salva2d-f64"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=custom-changes#2a869fd516464af56c9a4d717cc79cc2ef906819"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#37b8a6a3ce2ea88aa9172dcbd936ec005a2a2cab"
 dependencies = [
  "approx",
  "fnv",
@@ -1164,7 +1164,7 @@ dependencies = [
 [[package]]
 name = "salva3d"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=custom-changes#2a869fd516464af56c9a4d717cc79cc2ef906819"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#37b8a6a3ce2ea88aa9172dcbd936ec005a2a2cab"
 dependencies = [
  "approx",
  "bitflags",
@@ -1180,7 +1180,7 @@ dependencies = [
 [[package]]
 name = "salva3d-f64"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=custom-changes#2a869fd516464af56c9a4d717cc79cc2ef906819"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#37b8a6a3ce2ea88aa9172dcbd936ec005a2a2cab"
 dependencies = [
  "approx",
  "fnv",

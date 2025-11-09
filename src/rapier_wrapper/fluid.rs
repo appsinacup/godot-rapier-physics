@@ -1,6 +1,7 @@
 use rapier::prelude::*;
 use salva::object::*;
 use salva::solver::*;
+use salva::math::Vector as SalvaVector;
 
 use super::shape::point_array_to_vec;
 use crate::rapier_wrapper::prelude::*;
@@ -70,12 +71,24 @@ impl PhysicsEngine {
                 .get_mut(handle_to_fluid_handle(fluid_handle))
         {
             let points = point_array_to_vec(points);
-            // 1. Mark all existing particles for deletion.
-            for i in 0..fluid.num_particles() {
-                fluid.delete_particle_at_next_timestep(i);
+            let points_len = points.len();
+            let mut accelerations: Vec<_> =
+                std::iter::repeat_n(SalvaVector::zeros(), points_len).collect();
+            let mut deleted_particles: Vec<bool> = 
+                std::iter::repeat_n(false, points_len).collect();
+            fluid.positions = points;
+            // copy back the accelerations that were before, if they exist
+            for i in 0..fluid.accelerations.len() {
+                if fluid.accelerations.len() > i {
+                    accelerations[i] = fluid.accelerations[i];
+                    deleted_particles[i] = fluid.deleted_particles[i];
+                }
             }
-            // 2. Add the new particles.
-            fluid.add_particles(&points, Some(velocity_points));
+            fluid.velocities = velocity_points.to_owned();
+            fluid.accelerations = accelerations;
+            fluid.volumes =
+                std::iter::repeat_n(fluid.default_particle_volume(), points_len).collect();
+            fluid.deleted_particles = deleted_particles;
         }
     }
 
