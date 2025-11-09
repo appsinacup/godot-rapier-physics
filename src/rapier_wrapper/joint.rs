@@ -252,7 +252,11 @@ impl PhysicsEngine {
                 joint.set_limits([angular_limit_lower, angular_limit_upper]);
             }
             //joint.data.natural_frequency = softness;
-            joint.data.damping_ratio = softness;
+            if softness <= 0.0 {
+                joint.data.damping_ratio = DEFAULT_EPSILON;
+            } else {
+                joint.data.damping_ratio = softness;
+            }
         }
     }
 
