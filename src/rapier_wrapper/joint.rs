@@ -1,4 +1,3 @@
-use godot::global::godot_print;
 use rapier::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
@@ -257,11 +256,6 @@ impl PhysicsEngine {
             joint.data.natural_frequency = frequency;
             let damping_ratio = 10_f32.powf(-softness * 0.4375);
             joint.data.damping_ratio = damping_ratio;
-            godot_print!(
-                "Revolute joint updated: frequency = {:?}, damping_ratio = {:?}",
-                frequency,
-                damping_ratio
-            );
         }
     }
 
