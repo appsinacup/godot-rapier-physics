@@ -155,8 +155,10 @@ impl FluidImpl {
         indices.sort_unstable();
         indices.reverse();
         for index in indices {
-            fluid.points.remove(index as usize);
-            fluid.create_times.remove(index as usize);
+            if index >= 0 && (index as usize) < fluid.points.len() {
+                fluid.points.remove(index as usize);
+                fluid.create_times.remove(index as usize);
+            }
         }
     }
 

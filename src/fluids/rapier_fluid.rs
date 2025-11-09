@@ -135,9 +135,11 @@ impl RapierFluid {
     pub fn delete_points(&mut self, indices: Vec<i32>, physics_engine: &mut PhysicsEngine) {
         let removals = indices.clone().into_iter().collect::<VecDeque<_>>();
         for index in removals {
-            self.points.remove(index as usize);
-            self.velocities.remove(index as usize);
-            self.accelerations.remove(index as usize);
+            if index >= 0 && (index as usize) < self.points.len() {
+                self.points.remove(index as usize);
+                self.velocities.remove(index as usize);
+                self.accelerations.remove(index as usize);
+            }
         }
         physics_engine.fluid_delete_points(self.space_id, self.fluid_handle, indices);
     }
