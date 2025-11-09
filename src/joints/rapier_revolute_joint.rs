@@ -22,6 +22,7 @@ pub struct RapierRevoluteJoint {
     motor_target_velocity: f32,
     motor_enabled: bool,
     angular_limit_enabled: bool,
+    #[cfg(feature = "dim2")]
     softness: f32,
     base: RapierJointBase,
 }
@@ -42,6 +43,7 @@ impl RapierRevoluteJoint {
             motor_target_velocity: 0.0,
             motor_enabled: false,
             angular_limit_enabled: false,
+            #[cfg(feature = "dim2")]
             softness: 0.0,
             base: RapierJointBase::default(),
         };
@@ -108,7 +110,6 @@ impl RapierRevoluteJoint {
             motor_target_velocity: 0.0,
             motor_enabled: false,
             angular_limit_enabled: false,
-            softness: 0.0,
             base: RapierJointBase::default(),
         };
         let body_a_rid = body_a.get_base().get_rid();
@@ -151,7 +152,6 @@ impl RapierRevoluteJoint {
             motor_target_velocity: 0.0,
             motor_enabled: false,
             angular_limit_enabled: false,
-            softness: 0.0,
             base: RapierJointBase::new(id, rid, space_id, space_handle, handle),
         }
     }
