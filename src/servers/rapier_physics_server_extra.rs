@@ -256,14 +256,15 @@ macro_rules! make_rapier_server_godot_impl {
             ) -> PackedInt32Array {
                 let physics_data = physics_data();
                 if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
-                    let indices =
-                        fluid.get_particles_in_ball(center, radius, &mut physics_data.physics_engine);
+                    let indices = fluid.get_particles_in_ball(
+                        center,
+                        radius,
+                        &mut physics_data.physics_engine,
+                    );
                     return PackedInt32Array::from_iter(indices);
                 }
                 PackedInt32Array::default()
             }
-
-
 
             #[func]
             /// Get interaction groups mask.

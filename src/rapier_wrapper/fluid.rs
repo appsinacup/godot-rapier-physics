@@ -274,14 +274,12 @@ impl PhysicsEngine {
             for particle in liquid_world.particles_intersecting_aabb(salva_aabb) {
                 if let salva::object::ParticleId::FluidParticle(found_fluid_handle, particle_index) =
                     particle
+                    && found_fluid_handle == r_fluid_handle
+                    && let Some(fluid) = liquid_world.fluids().get(found_fluid_handle)
                 {
-                    if found_fluid_handle == r_fluid_handle {
-                        if let Some(fluid) = liquid_world.fluids().get(found_fluid_handle) {
-                            let particle_pos = fluid.positions[particle_index].coords;
-                            if (particle_pos - r_center).norm_squared() <= radius_sq {
-                                indices.push(particle_index as i32);
-                            }
-                        }
+                    let particle_pos = fluid.positions[particle_index].coords;
+                    if (particle_pos - r_center).norm_squared() <= radius_sq {
+                        indices.push(particle_index as i32);
                     }
                 }
             }

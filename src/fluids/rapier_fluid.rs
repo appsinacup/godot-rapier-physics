@@ -179,7 +179,12 @@ impl RapierFluid {
         physics_engine: &mut PhysicsEngine,
     ) -> Vec<i32> {
         if self.is_valid() {
-            return physics_engine.fluid_get_particles_in_ball(self.space_id, self.fluid_handle, center, radius);
+            return physics_engine.fluid_get_particles_in_ball(
+                self.space_id,
+                self.fluid_handle,
+                center,
+                radius,
+            );
         }
         Vec::new()
     }
