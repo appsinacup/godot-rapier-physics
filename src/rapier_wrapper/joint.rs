@@ -234,6 +234,7 @@ impl PhysicsEngine {
         angular_limit_enabled: bool,
         motor_target_velocity: Real,
         motor_enabled: bool,
+        softness: Real,
     ) {
         self.joint_wake_up_connected_rigidbodies(world_handle, joint_handle);
         if let Some(physics_world) = self.get_mut_world(world_handle)
@@ -250,6 +251,8 @@ impl PhysicsEngine {
             if angular_limit_enabled {
                 joint.set_limits([angular_limit_lower, angular_limit_upper]);
             }
+            //joint.data.natural_frequency = softness;
+            joint.data.damping_ratio = softness;
         }
     }
 

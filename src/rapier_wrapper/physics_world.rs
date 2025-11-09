@@ -148,8 +148,6 @@ impl PhysicsWorld {
             contact_damping_ratio: settings.contact_damping_ratio,
             contact_natural_frequency: settings.contact_natural_frequency,
             max_ccd_substeps: settings.max_ccd_substeps,
-            joint_damping_ratio: settings.joint_damping_ratio,
-            joint_natural_frequency: settings.joint_natural_frequency,
             normalized_allowed_linear_error: settings.normalized_allowed_linear_error,
             normalized_max_corrective_velocity: settings.normalized_max_corrective_velocity,
             normalized_prediction_distance: settings.normalized_prediction_distance,

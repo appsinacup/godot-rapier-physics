@@ -22,6 +22,7 @@ pub struct RapierRevoluteJoint {
     motor_target_velocity: f32,
     motor_enabled: bool,
     angular_limit_enabled: bool,
+    softness: f32,
     base: RapierJointBase,
 }
 impl RapierRevoluteJoint {
@@ -41,6 +42,7 @@ impl RapierRevoluteJoint {
             motor_target_velocity: 0.0,
             motor_enabled: false,
             angular_limit_enabled: false,
+            softness: 0.0,
             base: RapierJointBase::default(),
         };
         let body_a_rid = body_a.get_base().get_rid();
@@ -82,6 +84,7 @@ impl RapierRevoluteJoint {
             motor_target_velocity: 0.0,
             motor_enabled: false,
             angular_limit_enabled: false,
+            softness: 0.0,
             base: RapierJointBase::new(id, rid, space_id, space_handle, handle),
         }
     }
@@ -105,6 +108,7 @@ impl RapierRevoluteJoint {
             motor_target_velocity: 0.0,
             motor_enabled: false,
             angular_limit_enabled: false,
+            softness: 0.0,
             base: RapierJointBase::default(),
         };
         let body_a_rid = body_a.get_base().get_rid();
@@ -147,6 +151,7 @@ impl RapierRevoluteJoint {
             motor_target_velocity: 0.0,
             motor_enabled: false,
             angular_limit_enabled: false,
+            softness: 0.0,
             base: RapierJointBase::new(id, rid, space_id, space_handle, handle),
         }
     }
@@ -168,6 +173,9 @@ impl RapierRevoluteJoint {
             physics_server_2d::PinJointParam::MOTOR_TARGET_VELOCITY => {
                 self.motor_target_velocity = p_value;
             }
+            physics_server_2d::PinJointParam::SOFTNESS => {
+                self.softness = p_value;
+            }
             _ => {}
         }
         if !self.base.is_valid() {
@@ -181,6 +189,7 @@ impl RapierRevoluteJoint {
             self.angular_limit_enabled,
             self.motor_target_velocity,
             self.motor_enabled,
+            self.softness,
         );
     }
 
@@ -223,6 +232,7 @@ impl RapierRevoluteJoint {
             physics_server_2d::PinJointParam::LIMIT_UPPER => self.angular_limit_upper,
             physics_server_2d::PinJointParam::LIMIT_LOWER => self.angular_limit_lower,
             physics_server_2d::PinJointParam::MOTOR_TARGET_VELOCITY => self.motor_target_velocity,
+            physics_server_2d::PinJointParam::SOFTNESS => self.softness,
             _ => 0.0,
         }
     }
@@ -264,6 +274,7 @@ impl RapierRevoluteJoint {
             self.angular_limit_enabled,
             self.motor_target_velocity,
             self.motor_enabled,
+            self.softness,
         );
     }
 
