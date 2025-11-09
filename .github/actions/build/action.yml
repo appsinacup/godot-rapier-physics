@@ -48,33 +48,6 @@ runs:
       shell: pwsh
       run: |
         choco install llvm --confirm
-    - name: Rename Symbols if Enabled
-      shell: sh
-      run: |
-        LIB="target/${{ inputs.arch }}/release/libgodot_rapier.a"
-        CLEAN_FEATURES=$(echo "${{ inputs.features }}" | sed 's/,/_/g; s/-/_/g')
-        
-        echo "=== Searching for symbols in: $LIB ==="
-        SYMBOLS=$(nm -gU "$LIB" 2>/dev/null | grep -E '__GODOT_PLUGIN_REGISTRY|__GODOT_DOCS_REGISTRY|_rust_eh_personality' | awk '{print $NF}' | sort -u) || SYMBOLS=""
-        
-        if [ -n "$SYMBOLS" ]; then
-          echo "=== Found symbols BEFORE renaming ==="
-          echo "$SYMBOLS"
-          echo "=== Renaming with suffix: _${CLEAN_FEATURES} ==="
-          
-          FLAGS=""
-          for sym in $SYMBOLS; do
-            FLAGS="$FLAGS --redefine-sym $sym=${sym}_${CLEAN_FEATURES}"
-            echo "  $sym -> ${sym}_${CLEAN_FEATURES}"
-          done
-          
-          llvm-objcopy $FLAGS "$LIB" "$LIB"
-          
-          echo "=== Symbols AFTER renaming ==="
-          nm -gU "$LIB" 2>/dev/null | grep -E '__GODOT_PLUGIN_REGISTRY|__GODOT_DOCS_REGISTRY|_rust_eh_personality' | awk '{print $NF}' | sort -u || echo "No matching symbols found"
-        else
-          echo "=== No symbols found to rename ==="
-        fi
     - name: Copy to release
       shell: sh
       run: |
@@ -96,3 +69,39 @@ runs:
       run: |
         mv target/x86_64-apple-darwin/release/libgodot_rapier.a target/release/libgodot_rapier.x86_64.a
         mv target/aarch64-apple-darwin/release/libgodot_rapier.a target/release/libgodot_rapier.arm64.a
+    - name: Rename Symbols for Static
+      shell: bash
+      run: |
+        CLEAN_FEATURES=$(echo "${{ inputs.features }}" | sed 's/,/_/g; s/-/_/g')
+
+        echo "=== Searching recursively for *godot_rapier*.a ==="
+        mapfile -d $'\0' -t LIBS < <(find . -type f -name '*godot_rapier*.a' -print0 2>/dev/null)
+
+        if [ ${#LIBS[@]} -eq 0 ]; then
+          echo "ERROR: No godot_rapier static libs found"
+          exit 1
+        fi
+
+        echo "Found ${#LIBS[@]} lib(s)"
+        for LIB in "${LIBS[@]}"; do
+          echo "Processing: $LIB"
+          SYMBOLS=$(nm -gU "$LIB" 2>/dev/null | grep -E '__GODOT_PLUGIN_REGISTRY|__GODOT_DOCS_REGISTRY|_rust_eh_personality' | awk '{print $NF}' | sort -u) || SYMBOLS=""
+
+          if [ -z "$SYMBOLS" ]; then
+            echo "ERROR: No symbols found in $LIB"
+            exit 1
+          fi
+
+          echo "Symbols before:"
+          echo "$SYMBOLS"
+
+          FLAGS=()
+          for sym in $SYMBOLS; do
+            FLAGS+=("--redefine-sym" "$sym=${sym}_${CLEAN_FEATURES}")
+          done
+
+          llvm-objcopy "${FLAGS[@]}" "$LIB" "$LIB"
+
+          echo "Symbols after:"
+          nm -gU "$LIB" 2>/dev/null | grep -E '__GODOT_PLUGIN_REGISTRY|__GODOT_DOCS_REGISTRY|_rust_eh_personality' | awk '{print $NF}' | sort -u || echo "(none)"
+        done
