@@ -84,7 +84,8 @@ runs:
         echo "Found ${#LIBS[@]} lib(s)"
         for LIB in "${LIBS[@]}"; do
           echo "Processing: $LIB"
-          SYMBOLS=$(nm -gU "$LIB" 2>/dev/null | grep -E '__GODOT_PLUGIN_REGISTRY|__GODOT_DOCS_REGISTRY|_rust_eh_personality' | awk '{print $NF}' | sort -u) || SYMBOLS=""
+          # Search for mangled symbols containing GODOT_PLUGIN_REGISTRY, GODOT_DOCS_REGISTRY, or rust_eh_personality
+          SYMBOLS=$(nm "$LIB" 2>/dev/null | grep -E 'GODOT_PLUGIN_REGISTRY|GODOT_DOCS_REGISTRY|rust_eh_personality' | awk '{print $NF}' | sort -u) || SYMBOLS=""
 
           if [ -z "$SYMBOLS" ]; then
             echo "ERROR: No symbols found in $LIB"
@@ -102,5 +103,5 @@ runs:
           llvm-objcopy "${FLAGS[@]}" "$LIB" "$LIB"
 
           echo "Symbols after:"
-          nm -gU "$LIB" 2>/dev/null | grep -E '__GODOT_PLUGIN_REGISTRY|__GODOT_DOCS_REGISTRY|_rust_eh_personality' | awk '{print $NF}' | sort -u || echo "(none)"
+          nm "$LIB" 2>/dev/null | grep -E 'GODOT_PLUGIN_REGISTRY|GODOT_DOCS_REGISTRY|rust_eh_personality' | awk '{print $NF}' | sort -u || echo "(none)"
         done
