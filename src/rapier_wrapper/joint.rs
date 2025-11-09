@@ -1,3 +1,4 @@
+use godot::global::godot_print;
 use rapier::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
@@ -252,11 +253,17 @@ impl PhysicsEngine {
                 joint.set_limits([angular_limit_lower, angular_limit_upper]);
             }
             //joint.data.natural_frequency = softness;
+            let mut softness_bounded = softness;
             if softness <= 0.0 {
-                joint.data.damping_ratio = DEFAULT_EPSILON;
+                softness_bounded = 1.0;
             } else {
-                joint.data.damping_ratio = softness;
+                if softness_bounded > 16.0 {
+                    softness_bounded = 16.0;
+                }
+                softness_bounded = (16.1 - softness_bounded) / 16.1;
             }
+            godot_print!("Revolute joint softness set to: {}", softness_bounded);
+            joint.data.damping_ratio = softness_bounded;
         }
     }
 
