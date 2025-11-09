@@ -89,16 +89,12 @@ runs:
 
         echo "Using OBJCOPY: $OBJCOPY"
 
-        # Find all libs - check both target/release and target/${{ inputs.arch }}/release
-        LIBS=$(find target/release target/${{ inputs.arch }}/release -maxdepth 1 -type f -name '*godot_rapier*.a' 2>/dev/null | sort -u)
+        # Search for both .a (Unix) and .lib (Windows) extensions
+        LIBS=$(find target/release -maxdepth 1 -type f \( -name '*godot_rapier*.a' -o -name '*godot_rapier*.lib' \) 2>/dev/null)
 
         if [ -z "$LIBS" ]; then
-          echo "ERROR: No godot_rapier static libs found"
-          echo "Checked directories:"
-          echo "  target/release/"
-          echo "  target/${{ inputs.arch }}/release/"
-          ls -la target/release/ 2>/dev/null || echo "  target/release/ does not exist"
-          ls -la target/${{ inputs.arch }}/release/ 2>/dev/null || echo "  target/${{ inputs.arch }}/release/ does not exist"
+          echo "ERROR: No godot_rapier static libs found in target/release/"
+          ls -la target/release/ 2>/dev/null || echo "target/release/ does not exist"
           exit 1
         fi
 
