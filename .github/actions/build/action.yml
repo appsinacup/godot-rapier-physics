@@ -53,13 +53,27 @@ runs:
       run: |
         LIB="target/${{ inputs.arch }}/release/libgodot_rapier.a"  # Adjust if .lib on Windows
         CLEAN_FEATURES=$(echo "${{ inputs.features }}" | sed 's/,/_/g; s/-/_/g')
+        
+        echo "=== Searching for symbols in: $LIB ==="
         SYMBOLS=$(nm -gU "$LIB" 2>/dev/null | grep -E '__GODOT_PLUGIN_REGISTRY|__GODOT_DOCS_REGISTRY|_rust_eh_personality' | awk '{print $NF}' | sort -u) || SYMBOLS=""
+        
         if [ -n "$SYMBOLS" ]; then
+          echo "=== Found symbols BEFORE renaming ==="
+          echo "$SYMBOLS"
+          echo "=== Renaming with suffix: _${CLEAN_FEATURES} ==="
+          
           FLAGS=""
           for sym in $SYMBOLS; do
             FLAGS="$FLAGS --redefine-sym $sym=${sym}_${CLEAN_FEATURES}"
+            echo "  $sym -> ${sym}_${CLEAN_FEATURES}"
           done
+          
           llvm-objcopy $FLAGS "$LIB" "$LIB"
+          
+          echo "=== Symbols AFTER renaming ==="
+          nm -gU "$LIB" 2>/dev/null | grep -E '__GODOT_PLUGIN_REGISTRY|__GODOT_DOCS_REGISTRY|_rust_eh_personality' | awk '{print $NF}' | sort -u || echo "No matching symbols found"
+        else
+          echo "=== No symbols found to rename ==="
         fi
     - name: Copy to release
       shell: sh
