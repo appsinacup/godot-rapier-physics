@@ -1,5 +1,4 @@
 use rapier::prelude::*;
-use salva::math::Vector as SalvaVector;
 use salva::object::*;
 use salva::solver::*;
 
