@@ -222,4 +222,12 @@ impl FluidImpl {
         drop(guard);
         indices
     }
+
+    pub fn get_particles_in_ball(fluid: &Fluid, center: crate::types::Vector, radius: real) -> PackedInt32Array {
+        let rid = fluid.rid;
+        let guard = fluid.base();
+        let indices = RapierPhysicsServer::fluid_get_particles_in_ball(rid, center, radius);
+        drop(guard);
+        indices
+    }
 }

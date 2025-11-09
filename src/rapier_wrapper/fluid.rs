@@ -253,6 +253,42 @@ impl PhysicsEngine {
         indices
     }
 
+    pub fn fluid_get_particles_in_ball(
+        &self,
+        world_handle: WorldHandle,
+        fluid_handle: HandleDouble,
+        center: crate::types::Vector,
+        radius: Real,
+    ) -> Vec<i32> {
+        let mut indices = Vec::new();
+        if let Some(physics_world) = self.get_world(world_handle) {
+            let godot_aabb = crate::types::Rect::new(
+                center - crate::types::Vector::splat(radius),
+                crate::types::Vector::splat(radius * 2.0),
+            );
+            let salva_aabb = crate::rapier_wrapper::convert::aabb_to_salva_aabb(godot_aabb);
+            let liquid_world = &physics_world.fluids_pipeline.liquid_world;
+            let r_fluid_handle = handle_to_fluid_handle(fluid_handle);
+            let radius_sq = radius * radius;
+            let r_center = vector_to_rapier(center);
+            for particle in liquid_world.particles_intersecting_aabb(salva_aabb) {
+                if let salva::object::ParticleId::FluidParticle(found_fluid_handle, particle_index) =
+                    particle
+                {
+                    if found_fluid_handle == r_fluid_handle {
+                        if let Some(fluid) = liquid_world.fluids().get(found_fluid_handle) {
+                            let particle_pos = fluid.positions[particle_index].coords;
+                            if (particle_pos - r_center).norm_squared() <= radius_sq {
+                                indices.push(particle_index as i32);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        indices
+    }
+
     pub fn fluid_clear_effects(&mut self, world_handle: WorldHandle, fluid_handle: HandleDouble) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(fluid) = physics_world
