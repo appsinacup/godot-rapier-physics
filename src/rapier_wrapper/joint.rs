@@ -252,18 +252,16 @@ impl PhysicsEngine {
             if angular_limit_enabled {
                 joint.set_limits([angular_limit_lower, angular_limit_upper]);
             }
-            //joint.data.natural_frequency = softness;
-            let mut softness_bounded = softness;
-            if softness <= 0.0 {
-                softness_bounded = 1.0;
-            } else {
-                if softness_bounded > 16.0 {
-                    softness_bounded = 16.0;
-                }
-                softness_bounded = (16.1 - softness_bounded) / 16.1;
-            }
-            godot_print!("Revolute joint softness set to: {}", softness_bounded);
-            joint.data.damping_ratio = softness_bounded;
+            let softness = softness.clamp(Real::EPSILON, 16.0);
+            let frequency = 10_f32.powf(3.0 - softness * 0.2);
+            joint.data.natural_frequency = frequency;
+            let damping_ratio = 10_f32.powf(-softness * 0.4375);
+            joint.data.damping_ratio = damping_ratio;
+            godot_print!(
+                "Revolute joint updated: frequency = {:?}, damping_ratio = {:?}",
+                frequency,
+                damping_ratio
+            );
         }
     }
 
