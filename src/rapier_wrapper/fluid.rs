@@ -71,20 +71,12 @@ impl PhysicsEngine {
                 .get_mut(handle_to_fluid_handle(fluid_handle))
         {
             let points = point_array_to_vec(points);
-            let points_len = points.len();
-            let mut accelerations: Vec<_> =
-                std::iter::repeat_n(SalvaVector::zeros(), points_len).collect();
-            fluid.positions = points;
-            // copy back the accelerations that were before, if they exist
-            for i in 0..fluid.accelerations.len() {
-                if fluid.accelerations.len() > i {
-                    accelerations[i] = fluid.accelerations[i];
-                }
+            // 1. Mark all existing particles for deletion.
+            for i in 0..fluid.num_particles() {
+                fluid.delete_particle_at_next_timestep(i);
             }
-            fluid.velocities = velocity_points.to_owned();
-            fluid.accelerations = accelerations;
-            fluid.volumes =
-                std::iter::repeat_n(fluid.default_particle_volume(), points_len).collect();
+            // 2. Add the new particles.
+            fluid.add_particles(&points, Some(velocity_points));
         }
     }
 
@@ -102,25 +94,12 @@ impl PhysicsEngine {
                 .get_mut(handle_to_fluid_handle(fluid_handle))
         {
             let points = point_array_to_vec(points);
-            let point_count = points.len();
-            let mut velocities: Vec<_> =
-                std::iter::repeat_n(SalvaVector::zeros(), point_count).collect();
-            let mut accelerations: Vec<_> =
-                std::iter::repeat_n(SalvaVector::zeros(), point_count).collect();
-            fluid.positions = points;
-            // copy back the velocities and accelerations that were before, if they exist
-            for i in 0..point_count {
-                if fluid.velocities.len() > i {
-                    velocities[i] = fluid.velocities[i];
-                }
-                if fluid.accelerations.len() > i {
-                    accelerations[i] = fluid.accelerations[i];
-                }
+            // 1. Mark all existing particles for deletion.
+            for i in 0..fluid.num_particles() {
+                fluid.delete_particle_at_next_timestep(i);
             }
-            fluid.velocities = velocities;
-            fluid.accelerations = accelerations;
-            fluid.volumes =
-                std::iter::repeat_n(fluid.default_particle_volume(), point_count).collect();
+            // 2. Add the new particles with zero velocity.
+            fluid.add_particles(&points, None);
         }
     }
 
