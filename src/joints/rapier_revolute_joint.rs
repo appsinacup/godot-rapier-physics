@@ -223,6 +223,7 @@ impl RapierRevoluteJoint {
             self.angular_limit_enabled,
             self.motor_target_velocity,
             self.motor_enabled,
+            1.0,
         );
     }
 
@@ -305,6 +306,7 @@ impl RapierRevoluteJoint {
             self.angular_limit_enabled,
             self.motor_target_velocity,
             self.motor_enabled,
+            1.0,
         );
     }
 
