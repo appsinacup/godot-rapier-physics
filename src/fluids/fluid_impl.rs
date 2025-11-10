@@ -21,7 +21,7 @@ impl FluidImpl {
         }
         let rid = fluid.rid;
         let guard = fluid.base_mut();
-        RapierPhysicsServer::fluid_set_points(rid, rapier_points.clone());
+        RapierPhysicsServer::fluid_set_points(rid);
         drop(guard);
     }
 
@@ -140,9 +140,8 @@ impl FluidImpl {
             fluid.points[i] = gl_transform * (fluid.points[i]);
         }
         let rid = fluid.rid;
-        let points = fluid.points.clone();
         let guard = fluid.base_mut();
-        RapierPhysicsServer::fluid_set_points_and_velocities(rid, points, velocities);
+        RapierPhysicsServer::fluid_set_points_and_velocities(rid);
         drop(guard);
     }
 

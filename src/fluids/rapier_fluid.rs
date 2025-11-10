@@ -1,4 +1,3 @@
-use std::collections::VecDeque;
 
 use godot::prelude::*;
 
@@ -40,19 +39,15 @@ impl RapierFluid {
         self.fluid_handle.is_valid() && self.space_id != WorldHandle::default()
     }
 
-    pub fn set_points(&mut self, points: Vec<Vector>, physics_engine: &mut PhysicsEngine) {
-        self.points = points;
-        self.velocities.resize(self.points.len(), Vector::default());
-        self.accelerations
-            .resize(self.points.len(), Vector::default());
+    pub fn set_points(&mut self, physics_engine: &mut PhysicsEngine) {
         if self.is_valid() {
-            let rapier_points = self
-                .points
-                .iter()
-                .map(|vec: &crate::types::Vector| vector_to_rapier(*vec))
-                .collect::<Vec<_>>();
-            physics_engine.fluid_change_points(self.space_id, self.fluid_handle, &rapier_points);
-        }
+                    let rapier_points = self
+                        .points // Ok to read from cache for conversion, but this is stale.
+                        .iter()
+                        .map(|vec: &crate::types::Vector| vector_to_rapier(*vec))
+                        .collect::<Vec<_>>();
+                    physics_engine.fluid_change_points(self.space_id, self.fluid_handle, &rapier_points);
+                }
     }
 
     pub fn set_interaction_groups(
@@ -76,14 +71,8 @@ impl RapierFluid {
 
     pub fn set_points_and_velocities(
         &mut self,
-        points: Vec<Vector>,
-        velocities: Vec<Vector>,
         physics_engine: &mut PhysicsEngine,
     ) {
-        self.points = points;
-        self.velocities = velocities;
-        self.accelerations
-            .resize(self.points.len(), Vector::default());
         if self.is_valid() {
             let rapier_points = self
                 .points
@@ -110,10 +99,6 @@ impl RapierFluid {
         velocities: Vec<Vector>,
         physics_engine: &mut PhysicsEngine,
     ) {
-        self.points.extend(points.clone());
-        self.velocities.extend(velocities.clone());
-        self.accelerations
-            .resize(self.points.len(), Vector::default());
         if self.is_valid() {
             let rapier_points = points
                 .iter()
@@ -133,36 +118,43 @@ impl RapierFluid {
     }
 
     pub fn delete_points(&mut self, indices: Vec<i32>, physics_engine: &mut PhysicsEngine) {
-        let removals = indices.clone().into_iter().collect::<VecDeque<_>>();
-        for index in removals {
-            if index >= 0 && (index as usize) < self.points.len() {
-                self.points.remove(index as usize);
-                self.velocities.remove(index as usize);
-                self.accelerations.remove(index as usize);
-            }
-        }
+        // DO NOT modify local cache (self.points, self.velocities) here.
+        // Doing so causes a race condition, as the physics_engine call
+        // only *schedules* the deletion for the next physics step.
+        // The local cache will be correctly updated on the next get_points()
+        // or get_velocities() call.
         physics_engine.fluid_delete_points(self.space_id, self.fluid_handle, indices);
     }
 
-    pub fn get_points(&mut self, physics_engine: &mut PhysicsEngine) -> &Vec<Vector> {
+    // The individual get_... methods were desynchronizing the local cache.
+    // get_points() would update self.points, but not self.velocities, etc.
+    // This new function syncs all particle data at once.
+    fn sync_cache_from_engine(&mut self, physics_engine: &mut PhysicsEngine) {
         if self.is_valid() {
             self.points = physics_engine.fluid_get_points(self.space_id, self.fluid_handle);
+            self.velocities = physics_engine.fluid_get_velocities(self.space_id, self.fluid_handle);
+            self.accelerations =
+                physics_engine.fluid_get_accelerations(self.space_id, self.fluid_handle);
         }
+    }
+
+    pub fn get_points(&mut self, physics_engine: &mut PhysicsEngine) -> &Vec<Vector> {
+        // Now, requesting points syncs everything, guaranteeing the
+        // local vectors (points, velocities, accelerations) have the same length.
+        self.sync_cache_from_engine(physics_engine);
         &self.points
     }
 
     pub fn get_velocities(&mut self, physics_engine: &mut PhysicsEngine) -> &Vec<Vector> {
-        if self.is_valid() {
-            self.velocities = physics_engine.fluid_get_velocities(self.space_id, self.fluid_handle);
-        }
+        // We can't assume get_points() was called first, so sync here too
+        // to be 100% safe against other C# or GDScript calls.
+        self.sync_cache_from_engine(physics_engine);
         &self.velocities
     }
 
     pub fn get_accelerations(&mut self, physics_engine: &mut PhysicsEngine) -> &Vec<Vector> {
-        if self.is_valid() {
-            self.accelerations =
-                physics_engine.fluid_get_accelerations(self.space_id, self.fluid_handle);
-        }
+        // Sync here too for robustness.
+        self.sync_cache_from_engine(physics_engine);
         &self.accelerations
     }
 
@@ -307,7 +299,7 @@ impl RapierFluid {
                 );
                 // Only set points and effects if fluid was actually created
                 if self.fluid_handle.is_valid() {
-                    self.set_points(self.points.clone(), physics_engine);
+                    self.set_points(physics_engine);
                     self.set_effects(self.effects.clone(), physics_engine);
                 }
             }

@@ -305,10 +305,10 @@ macro_rules! make_rapier_server_godot_impl {
 
             #[func]
             /// Set the points of the fluid particles.
-            pub(crate) fn fluid_set_points(fluid_rid: Rid, points: PackedVectorArray) {
+            pub(crate) fn fluid_set_points(fluid_rid: Rid) {
                 let physics_data = physics_data();
                 if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
-                    fluid.set_points(points.to_vec(), &mut physics_data.physics_engine);
+                    fluid.set_points(&mut physics_data.physics_engine);
                 }
             }
 
@@ -316,14 +316,10 @@ macro_rules! make_rapier_server_godot_impl {
             /// Set the velocities of the fluid particles.
             pub(crate) fn fluid_set_points_and_velocities(
                 fluid_rid: Rid,
-                points: PackedVectorArray,
-                velocities: PackedVectorArray,
             ) {
                 let physics_data = physics_data();
                 if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
                     fluid.set_points_and_velocities(
-                        points.to_vec(),
-                        velocities.to_vec(),
                         &mut physics_data.physics_engine,
                     );
                 }
