@@ -16,12 +16,12 @@ impl FluidImpl {
         }
         let gl_transform = fluid.to_gd().get_global_transform();
         let mut rapier_points = fluid.points.clone();
-        for i in 0..fluid.points.len() {
-            rapier_points[i] = gl_transform * (fluid.points[i]);
+        for i in 0..rapier_points.len() {
+            rapier_points[i] = gl_transform * (rapier_points[i]);
         }
         let rid = fluid.rid;
         let guard = fluid.base_mut();
-        RapierPhysicsServer::fluid_set_points(rid);
+        RapierPhysicsServer::fluid_set_points(rid, rapier_points);
         drop(guard);
     }
 
@@ -136,12 +136,13 @@ impl FluidImpl {
             fluid.create_times.push(ticks as f32);
         }
         let gl_transform = fluid.to_gd().get_global_transform();
-        for i in 0..fluid.points.len() {
-            fluid.points[i] = gl_transform * (fluid.points[i]);
+        let mut rapier_points = fluid.points.clone();
+        for i in 0..rapier_points.len() {
+            rapier_points[i] = gl_transform * (rapier_points[i]);
         }
         let rid = fluid.rid;
         let guard = fluid.base_mut();
-        RapierPhysicsServer::fluid_set_points_and_velocities(rid);
+        RapierPhysicsServer::fluid_set_points_and_velocities(rid, rapier_points, velocities);
         drop(guard);
     }
 

@@ -1,6 +1,7 @@
 use rapier::prelude::*;
 use salva::object::*;
 use salva::solver::*;
+
 use super::shape::point_array_to_vec;
 use crate::rapier_wrapper::prelude::*;
 impl PhysicsEngine {
@@ -54,10 +55,7 @@ impl PhysicsEngine {
         }
     }
 
-    
-
-// In fluid.rs
-pub fn fluid_change_points_and_velocities(
+    pub fn fluid_change_points_and_velocities(
         &mut self,
         world_handle: WorldHandle,
         fluid_handle: HandleDouble,
@@ -72,12 +70,10 @@ pub fn fluid_change_points_and_velocities(
                 .get_mut(handle_to_fluid_handle(fluid_handle))
         {
             let points = point_array_to_vec(points);
-
             // 1. Mark all existing particles for deletion using the Salva API.
             for i in 0..fluid.num_particles() {
                 fluid.delete_particle_at_next_timestep(i);
             }
-
             // 2. Add the new particles using the Salva API.
             // This correctly notifies the internal grid and prevents desync.
             fluid.add_particles(&points, Some(velocity_points));
@@ -106,7 +102,7 @@ pub fn fluid_change_points_and_velocities(
             fluid.add_particles(&points, None);
         }
     }
-    
+
     pub fn fluid_delete_points(
         &mut self,
         world_handle: WorldHandle,
@@ -225,10 +221,10 @@ pub fn fluid_change_points_and_velocities(
                         particle_index,
                     ) = particle
                         && found_fluid_handle == r_fluid_handle
-                            && particle_index < fluid.num_particles()
-                        {
-                            indices.push(particle_index as i32);
-                        }
+                        && particle_index < fluid.num_particles()
+                    {
+                        indices.push(particle_index as i32);
+                    }
                 }
             }
         }
@@ -257,14 +253,14 @@ pub fn fluid_change_points_and_velocities(
                 if let salva::object::ParticleId::FluidParticle(found_fluid_handle, particle_index) =
                     particle
                     && found_fluid_handle == r_fluid_handle
-                        && let Some(fluid) = liquid_world.fluids().get(found_fluid_handle)
-                        && particle_index < fluid.num_particles()
-                    {
-                        let particle_pos = fluid.positions[particle_index].coords;
-                        if (particle_pos - r_center).norm_squared() <= radius_sq {
-                            indices.push(particle_index as i32);
-                        }
+                    && let Some(fluid) = liquid_world.fluids().get(found_fluid_handle)
+                    && particle_index < fluid.num_particles()
+                {
+                    let particle_pos = fluid.positions[particle_index].coords;
+                    if (particle_pos - r_center).norm_squared() <= radius_sq {
+                        indices.push(particle_index as i32);
                     }
+                }
             }
         }
         indices
