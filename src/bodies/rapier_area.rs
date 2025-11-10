@@ -120,8 +120,9 @@ impl RapierArea {
         }
         if let Some(space) = physics_spaces.get_mut(&space_rid) {
             for (key, _) in detected_bodies.iter() {
-                if let Some([body, area]) = physics_collision_objects
-                    .get_many_mut([&get_id_rid(*key, physics_ids), &area_rid])
+                let [body, area] = physics_collision_objects
+                    .get_many_mut([&get_id_rid(*key, physics_ids), &area_rid]);
+                if let (Some(body), Some(area)) = (body, area)
                     && let Some(body) = body.get_mut_body()
                     && let Some(area) = area.get_mut_area()
                 {
@@ -183,8 +184,9 @@ impl RapierArea {
         }
         if let Some(space) = physics_spaces.get_mut(&space_rid) {
             for (key, _) in detected_bodies {
-                if let Some([body, area]) = physics_collision_objects
-                    .get_many_mut([&get_id_rid(key, physics_ids), &area_rid])
+                let [body, area] = physics_collision_objects
+                    .get_many_mut([&get_id_rid(key, physics_ids), &area_rid]);
+                if let (Some(body), Some(area)) = (body, area)
                     && let Some(body) = body.get_mut_body()
                     && let Some(area) = area.get_mut_area()
                 {
