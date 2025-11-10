@@ -224,13 +224,11 @@ pub fn fluid_change_points_and_velocities(
                         found_fluid_handle,
                         particle_index,
                     ) = particle
-                    {
-                        if found_fluid_handle == r_fluid_handle
+                        && found_fluid_handle == r_fluid_handle
                             && particle_index < fluid.num_particles()
                         {
                             indices.push(particle_index as i32);
                         }
-                    }
                 }
             }
         }
@@ -258,8 +256,7 @@ pub fn fluid_change_points_and_velocities(
             for particle in liquid_world.particles_intersecting_aabb(salva_aabb) {
                 if let salva::object::ParticleId::FluidParticle(found_fluid_handle, particle_index) =
                     particle
-                {
-                    if found_fluid_handle == r_fluid_handle
+                    && found_fluid_handle == r_fluid_handle
                         && let Some(fluid) = liquid_world.fluids().get(found_fluid_handle)
                         && particle_index < fluid.num_particles()
                     {
@@ -268,7 +265,6 @@ pub fn fluid_change_points_and_velocities(
                             indices.push(particle_index as i32);
                         }
                     }
-                }
             }
         }
         indices
