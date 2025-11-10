@@ -7,6 +7,8 @@ pub struct WorldSettings {
     pub smoothing_factor: Real,
     pub counters_enabled: bool,
     pub boundary_coef: Real,
+    #[cfg(feature = "parallel")]
+    pub thread_count: usize,
 }
 pub struct SimulationSettings {
     /// The timestep length (default: `1.0 / 60.0`)

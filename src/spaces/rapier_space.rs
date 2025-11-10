@@ -364,6 +364,8 @@ impl RapierSpace {
             smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
             counters_enabled: false,
             boundary_coef: RapierProjectSettings::get_fluid_boundary_coef() as real,
+            #[cfg(feature = "parallel")]
+            thread_count: RapierProjectSettings::get_num_threads(),
         }
     }
 
@@ -430,6 +432,8 @@ impl RapierSpace {
                     smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
                     counters_enabled: false,
                     boundary_coef: RapierProjectSettings::get_fluid_boundary_coef() as real,
+                    #[cfg(feature = "parallel")]
+                    thread_count: RapierProjectSettings::get_num_threads(),
                 };
                 physics_engine.world_import(
                     self.get_state().get_id(),

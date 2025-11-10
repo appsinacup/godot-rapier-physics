@@ -3,6 +3,8 @@ use godot::global::*;
 use godot::prelude::*;
 use rapier::dynamics::IntegrationParameters;
 use rapier::math::Real;
+#[cfg(feature = "parallel")]
+const NUM_THREADS: &str = "physics/rapier/parallel/num_threads";
 const SOLVER_NUM_ITERATIONS: &str = "physics/rapier/solver/num_iterations";
 const SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS: &str =
     "physics/rapier/solver/num_internal_stabilization_iterations";
@@ -85,6 +87,16 @@ pub struct RapierProjectSettings;
 impl RapierProjectSettings {
     pub fn register_settings() {
         let integration_parameters = IntegrationParameters::default();
+        #[cfg(feature = "parallel")]
+        {
+            let num_threads = num_cpus::get_physical();
+            register_setting_ranged(
+                NUM_THREADS,
+                Variant::from(num_threads as i32),
+                "1,64,or_greater",
+                false,
+            );
+        }
         register_setting_ranged(
             SOLVER_NUM_INTERNAL_PGS_ITERATIONS,
             Variant::from(integration_parameters.num_internal_pgs_iterations as i32),
@@ -248,5 +260,10 @@ impl RapierProjectSettings {
 
     pub fn get_ghost_collision_distance() -> Real {
         RapierProjectSettings::get_setting_double(GHOST_COLLISION_DISTANCE) as Real
+    }
+
+    #[cfg(feature = "parallel")]
+    pub fn get_num_threads() -> usize {
+        RapierProjectSettings::get_setting_int(NUM_THREADS) as usize
     }
 }

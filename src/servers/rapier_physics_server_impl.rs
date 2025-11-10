@@ -269,8 +269,8 @@ impl RapierPhysicsServerImpl {
         result_count: *mut i32,
     ) -> bool {
         let physics_data = physics_data();
-        let result = physics_data.shapes.get_many_mut([&shape_a, &shape_b]);
-        let Some([shape_a, shape_b]) = result else {
+        let [shape_a, shape_b] = physics_data.shapes.get_many_mut([&shape_a, &shape_b]);
+        let (Some(shape_a), Some(shape_b)) = (shape_a, shape_b) else {
             return false;
         };
         let shape_a_handle = shape_a.get_base().get_id();
