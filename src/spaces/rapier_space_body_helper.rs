@@ -24,6 +24,22 @@ const TEST_MOTION_MARGIN: Real = 1e-4;
 const TEST_MOTION_MIN_CONTACT_DEPTH_FACTOR: Real = 0.05;
 const BODY_MOTION_RECOVER_ATTEMPTS: i32 = 4;
 const BODY_MOTION_RECOVER_RATIO: Real = 0.4;
+const MAX_EXCLUDED_SHAPE_PAIRS: usize = 32;
+#[derive(Clone, Copy)]
+struct ExcludedShapePair {
+    local_shape_index: usize,
+    collision_object_rid: Rid,
+    collision_shape_index: usize,
+}
+impl Default for ExcludedShapePair {
+    fn default() -> Self {
+        Self {
+            local_shape_index: 0,
+            collision_object_rid: Rid::Invalid,
+            collision_shape_index: 0,
+        }
+    }
+}
 impl RapierSpace {
     pub fn is_handle_excluded_callback(
         &self,
@@ -82,18 +98,30 @@ impl RapierSpace {
         physics_collision_objects: &PhysicsCollisionObjects,
     ) -> bool {
         result.travel = Vector::default();
+        // Skip processing if motion is too small (prevents infinite micro-adjustments)
+        const MIN_MOTION_THRESHOLD: Real = 0.001;
+        if motion.length() < MIN_MOTION_THRESHOLD {
+            result.remainder = Vector::default();
+            result.collision_safe_fraction = 1.0;
+            result.collision_unsafe_fraction = 1.0;
+            return false;
+        }
         let mut body_transform = from; // Because body_transform needs to be modified during recovery
         // Step 1: recover motion.
         // Expand the body colliders by the margin (grow) and check if now it collides with a collider,
         // if yes, "recover" / "push" out of this collider
         let mut recover_motion = Vector::default();
         let margin = Real::max(margin, TEST_MOTION_MARGIN);
+        let mut excluded_shape_pairs = [ExcludedShapePair::default(); MAX_EXCLUDED_SHAPE_PAIRS];
+        let mut excluded_shape_pair_count = 0;
         let recovered = self.body_motion_recover(
             body,
             &mut body_transform,
             motion,
             margin,
             &mut recover_motion,
+            &mut excluded_shape_pairs,
+            &mut excluded_shape_pair_count,
             physics_engine,
             physics_shapes,
             physics_ids,
@@ -114,11 +142,20 @@ impl RapierSpace {
             &mut best_safe,
             &mut best_unsafe,
             &mut best_body_shape,
+            &excluded_shape_pairs,
+            excluded_shape_pair_count,
             physics_engine,
             physics_shapes,
             physics_ids,
             physics_collision_objects,
         );
+        // If cast motion resulted in near-zero movement but recovery found no collision,
+        // treat this as a numerical precision issue and allow the motion
+        const MOTION_EPSILON: Real = 0.001;
+        if !recovered && best_safe < MOTION_EPSILON && best_unsafe < MOTION_EPSILON {
+            best_safe = 1.0;
+            best_unsafe = 1.0;
+        }
         // Step 3: Rest Info
         // Apply the motion and fill the collision information
         let mut collided = false;
@@ -136,6 +173,8 @@ impl RapierSpace {
                 best_body_shape,
                 margin,
                 result,
+                &excluded_shape_pairs,
+                excluded_shape_pair_count,
                 physics_engine,
                 physics_shapes,
                 physics_ids,
@@ -206,6 +245,8 @@ impl RapierSpace {
         p_motion: Vector,
         p_margin: f32,
         p_recover_motion: &mut Vector,
+        excluded_shape_pairs: &mut [ExcludedShapePair; MAX_EXCLUDED_SHAPE_PAIRS],
+        excluded_shape_pair_count: &mut usize,
         physics_engine: &PhysicsEngine,
         physics_shapes: &PhysicsShapes,
         physics_ids: &PhysicsIds,
@@ -221,6 +262,9 @@ impl RapierSpace {
         let body_aabb = p_body.get_aabb(physics_shapes, physics_ids);
         loop {
             let mut results = [PointHitInfo::default(); 32];
+            let mut sr = [Vector::default(); 64]; // Store contact points (2 per contact, max 32 contacts)
+            let mut contact_count = 0;
+            *excluded_shape_pair_count = 0; // Reset for this iteration
             // Undo the currently transform the physics server is aware of and apply the provided one
             let margin_aabb = *p_transform * body_aabb;
             let margin_aabb = margin_aabb.grow(p_margin);
@@ -240,7 +284,7 @@ impl RapierSpace {
             if result_count == 0 {
                 break;
             }
-            let mut recover_step = Vector::default();
+            let mut collided = false;
             for body_shape_idx in 0..p_body.get_base().get_shape_count() {
                 let body_shape_idx = body_shape_idx as usize;
                 if p_body.get_base().is_shape_disabled(body_shape_idx) {
@@ -292,7 +336,8 @@ impl RapierSpace {
                                 if !contact.collided {
                                     continue;
                                 }
-                                if physics_engine.should_skip_collision_one_dir(
+                                let mut did_collide = true;
+                                let skip_collision = physics_engine.should_skip_collision_one_dir(
                                     &contact,
                                     body_shape,
                                     shape_col_object,
@@ -301,36 +346,85 @@ impl RapierSpace {
                                     p_margin,
                                     RapierSpace::get_last_step(),
                                     p_motion,
-                                ) {
-                                    continue;
+                                );
+                                if skip_collision {
+                                    // Add to excluded shapes - this shape should be skipped in later steps
+                                    if *excluded_shape_pair_count < MAX_EXCLUDED_SHAPE_PAIRS {
+                                        excluded_shape_pairs[*excluded_shape_pair_count] =
+                                            ExcludedShapePair {
+                                                local_shape_index: body_shape_idx,
+                                                collision_object_rid: shape_col_object
+                                                    .get_base()
+                                                    .get_rid(),
+                                                collision_shape_index: shape_index,
+                                            };
+                                        *excluded_shape_pair_count += 1;
+                                    }
+                                    did_collide = false;
                                 }
-                                let a = vector_to_godot(contact.pixel_point1);
-                                let b = vector_to_godot(contact.pixel_point2);
-                                recovered = true;
-                                // Compute plane on b towards a.
-                                let n = vector_to_godot(contact.normal1);
-                                // Move it outside as to fit the margin
-                                let d = n.dot(b);
-                                // Compute depth on recovered motion.
-                                let depth = n.dot(a + recover_step) - d;
-                                if depth > min_contact_depth + DEFAULT_EPSILON {
-                                    // Only recover if there is penetration.
-                                    recover_step -=
-                                        n * (depth - min_contact_depth) * BODY_MOTION_RECOVER_RATIO;
+                                if did_collide && contact_count < 32 {
+                                    let a = vector_to_godot(contact.pixel_point1);
+                                    let b = vector_to_godot(contact.pixel_point2);
+                                    sr[contact_count * 2] = a;
+                                    sr[contact_count * 2 + 1] = b;
+                                    contact_count += 1;
+                                    collided = true;
                                 }
                             }
                         }
                     }
                 }
             }
-            if recover_step == Vector::default() {
+            if !collided {
+                break;
+            }
+            recovered = true;
+            // First pass: calculate all depths and total priority (like Godot does)
+            let mut depths = [0.0; 32];
+            let mut total_priority = 0.0;
+            for i in 0..contact_count {
+                let a = sr[i * 2];
+                let b = sr[i * 2 + 1];
+                if let Some(n) = (a - b).try_normalized() {
+                    let d = n.dot(b);
+                    let depth = n.dot(a) - d;
+                    // Count any penetration, even if shallow
+                    if depth > DEFAULT_EPSILON {
+                        depths[i] = depth;
+                        total_priority += depth;
+                    }
+                }
+            }
+            // Second pass: apply recovery weighted by priority
+            let mut recover_motion = Vector::default();
+            if total_priority > 0.0 {
+                for i in 0..contact_count {
+                    if depths[i] <= 0.0 {
+                        continue;
+                    }
+                    let a = sr[i * 2];
+                    let b = sr[i * 2 + 1];
+                    if let Some(n) = (a - b).try_normalized() {
+                        let d = n.dot(b);
+                        let depth = n.dot(a + recover_motion) - d;
+                        if depth > DEFAULT_EPSILON {
+                            // Priority weight: deeper contacts get more correction
+                            let priority = depths[i] / total_priority;
+                            let recovery_amount = (depth - min_contact_depth).max(depth * 0.4);
+                            recover_motion -=
+                                n * recovery_amount * BODY_MOTION_RECOVER_RATIO * priority;
+                        }
+                    }
+                }
+            }
+            // Break if recovery motion is too small to be meaningful
+            const MIN_RECOVERY_THRESHOLD: Real = 0.001;
+            if recover_motion.length() < MIN_RECOVERY_THRESHOLD {
                 recovered = false;
                 break;
             }
-            if recovered {
-                *p_recover_motion += recover_step;
-                p_transform.origin += recover_step;
-            }
+            *p_recover_motion += recover_motion;
+            p_transform.origin += recover_motion;
             recover_attempts -= 1;
             if recover_attempts == 0 {
                 break;
@@ -351,6 +445,8 @@ impl RapierSpace {
         p_closest_safe: &mut f32,
         p_closest_unsafe: &mut f32,
         p_best_body_shape: &mut i32,
+        excluded_shape_pairs: &[ExcludedShapePair; MAX_EXCLUDED_SHAPE_PAIRS],
+        excluded_shape_pair_count: usize,
         physics_engine: &PhysicsEngine,
         physics_shapes: &PhysicsShapes,
         physics_ids: &PhysicsIds,
@@ -406,7 +502,7 @@ impl RapierSpace {
                 //}
                 let mut best_safe = 1.0;
                 let mut best_unsafe = 1.0;
-                let _stuck = false;
+                let mut stuck = false;
                 for result_idx in 0..result_count {
                     let result_idx = result_idx as usize;
                     let result = &mut results[result_idx];
@@ -418,6 +514,21 @@ impl RapierSpace {
                             &result.user_data,
                             physics_ids,
                         );
+                    // Check if this shape pair is excluded
+                    let mut is_excluded = false;
+                    for excluded_idx in 0..excluded_shape_pair_count {
+                        let excluded = &excluded_shape_pairs[excluded_idx];
+                        if excluded.local_shape_index == body_shape_idx
+                            && excluded.collision_object_rid == shape_col_object
+                            && excluded.collision_shape_index == shape_index
+                        {
+                            is_excluded = true;
+                            break;
+                        }
+                    }
+                    if is_excluded {
+                        continue;
+                    }
                     if let Some(shape_col_object) = physics_collision_objects.get(&shape_col_object)
                         && let Some(collision_body) = shape_col_object.get_body()
                     {
@@ -435,22 +546,49 @@ impl RapierSpace {
                                 col_shape.get_base().get_id(),
                                 col_shape_transform,
                             );
-                            // stuck logic, check if body collides in place
+                            // Test if going all the way collides
+                            body_shape_info.transform.translation.vector =
+                                vector_to_rapier(body_shape_transform.origin + p_motion);
+                            let end_contact =
+                                physics_engine.shapes_contact(body_shape_info, col_shape_info, 0.0);
+                            if !end_contact.collided {
+                                // Doesn't collide at end, skip
+                                continue;
+                            }
+                            // Test initial overlap - if colliding at start position, body is stuck
                             body_shape_info.transform.translation.vector =
                                 vector_to_rapier(body_shape_transform.origin);
-                            let step_contact =
-                                physics_engine.shapes_contact(body_shape_info, col_shape_info, 0.0);
-                            if physics_engine.should_skip_collision_one_dir(
-                                &step_contact,
-                                body_shape,
-                                shape_col_object,
-                                shape_index,
-                                &col_shape_transform,
-                                p_margin,
-                                RapierSpace::get_last_step(),
-                                p_motion,
-                            ) {
-                                continue;
+                            let initial_contact = physics_engine.shapes_contact(
+                                body_shape_info,
+                                col_shape_info,
+                                p_margin, // Use same margin as recovery
+                            );
+                            // Only consider it stuck if there's deep actual penetration that recovery can't handle
+                            // Shallow penetrations (< 0.1 pixels) should be handled by recovery
+                            const STUCK_PENETRATION_THRESHOLD: Real = 0.1;
+                            let penetration_depth = -initial_contact.pixel_distance;
+                            if initial_contact.collided
+                                && !initial_contact.within_margin
+                                && penetration_depth > STUCK_PENETRATION_THRESHOLD
+                            {
+                                // Check one-way collision - allow passage if motion opposes one-way direction
+                                if body_shape.allows_one_way_collision()
+                                    && shape_col_object
+                                        .get_base()
+                                        .is_shape_set_as_one_way_collision(shape_index)
+                                {
+                                    let direction = -get_transform_forward(&col_shape_transform);
+                                    if let Some(motion_normal) = p_motion.try_normalized()
+                                        && motion_normal.dot(direction) < 0.0
+                                    {
+                                        continue; // Motion opposes one-way direction, allow passage
+                                    }
+                                }
+                                // Body is stuck - set both safe and unsafe to 0 and mark this shape
+                                stuck = true;
+                                best_safe = 0.0;
+                                best_unsafe = 0.0;
+                                break; // Break out of result loop - this shape is stuck
                             }
                             //just do kinematic solving
                             let mut low = 0.0;
@@ -523,6 +661,13 @@ impl RapierSpace {
                         }
                     }
                 }
+                // If stuck, immediately update closest values and stop checking other shapes
+                if stuck {
+                    *p_closest_safe = 0.0;
+                    *p_closest_unsafe = 0.0;
+                    *p_best_body_shape = body_shape_idx as i32;
+                    break; // Break out of body shape loop
+                }
                 if best_safe == 1.0 {
                     continue;
                 }
@@ -544,6 +689,8 @@ impl RapierSpace {
         p_best_body_shape: i32,
         p_margin: f32,
         p_result: &mut PhysicsServerExtensionMotionResult,
+        excluded_shape_pairs: &[ExcludedShapePair; MAX_EXCLUDED_SHAPE_PAIRS],
+        excluded_shape_pair_count: usize,
         physics_engine: &PhysicsEngine,
         physics_shapes: &PhysicsShapes,
         physics_ids: &PhysicsIds,
@@ -618,6 +765,21 @@ impl RapierSpace {
                             &result.user_data,
                             physics_ids,
                         );
+                    // Check if this shape pair is in the excluded list
+                    let mut is_excluded = false;
+                    for i in 0..excluded_shape_pair_count {
+                        let excluded = &excluded_shape_pairs[i];
+                        if excluded.local_shape_index == body_shape_idx as usize
+                            && excluded.collision_object_rid == shape_col_object
+                            && excluded.collision_shape_index == shape_index
+                        {
+                            is_excluded = true;
+                            break;
+                        }
+                    }
+                    if is_excluded {
+                        continue;
+                    }
                     if let Some(shape_col_object) = physics_collision_objects.get(&shape_col_object)
                         && let Some(collision_body) = shape_col_object.get_body()
                     {
