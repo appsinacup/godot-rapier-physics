@@ -306,10 +306,8 @@ macro_rules! make_rapier_server_godot_impl {
             #[func]
             /// Set the points of the fluid particles.
             pub(crate) fn fluid_set_points(fluid_rid: Rid, points: PackedVectorArray) {
-                // <--- MODIFIED
                 let physics_data = physics_data();
                 if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
-                    // MODIFIED: Pass the new points (converted to Vec) down to the RapierFluid struct.
                     fluid.set_points(points.to_vec(), &mut physics_data.physics_engine);
                 }
             }

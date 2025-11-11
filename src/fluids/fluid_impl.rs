@@ -147,7 +147,7 @@ impl FluidImpl {
     }
 
     pub fn delete_points(fluid: &mut Fluid, indices: PackedInt32Array) {
-        let rid: Rid = fluid.rid;
+        let rid = fluid.rid;
         let guard = fluid.base_mut();
         RapierPhysicsServer::fluid_delete_points(rid, indices.clone());
         drop(guard);
