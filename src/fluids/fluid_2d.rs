@@ -188,6 +188,12 @@ impl Fluid2D {
     fn get_particles_in_aabb(&self, aabb: Rect2) -> PackedInt32Array {
         FluidImpl::get_particles_in_aabb(self, aabb)
     }
+
+    #[func]
+    /// Get the indices of the fluid particles inside a circle.
+    fn get_particles_in_circle(&self, center: Vector2, radius: real) -> PackedInt32Array {
+        FluidImpl::get_particles_in_ball(self, center, radius)
+    }
 }
 #[godot_api]
 impl INode2D for Fluid2D {

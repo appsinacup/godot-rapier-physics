@@ -190,6 +190,12 @@ impl Fluid3D {
     fn get_particles_in_aabb(&self, aabb: Aabb) -> PackedInt32Array {
         FluidImpl::get_particles_in_aabb(self, aabb)
     }
+
+    #[func]
+    /// Get the indices of the fluid particles inside a sphere.
+    fn get_particles_in_sphere(&self, center: Vector3, radius: real) -> PackedInt32Array {
+        FluidImpl::get_particles_in_ball(self, center, radius)
+    }
 }
 #[godot_api]
 impl INode3D for Fluid3D {
