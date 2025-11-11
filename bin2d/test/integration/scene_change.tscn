@@ -82,5 +82,8 @@ visible = false
 position = Vector2(33.5, 0)
 shape = SubResource("RectangleShape2D_2h8nx")
 
+[node name="StateManager" type="StateManager" parent="." node_paths=PackedStringArray("root_node")]
+root_node = NodePath("..")
+
 [connection signal="body_entered" from="Area2D" to="Area2D" method="_on_body_entered"]
 [connection signal="body_exited" from="Area2D" to="Area2D" method="_on_body_exited"]

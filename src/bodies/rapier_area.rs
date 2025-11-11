@@ -14,6 +14,7 @@ use godot::prelude::*;
 use hashbrown::HashMap;
 use rapier::geometry::ColliderHandle;
 use rapier::geometry::ColliderPair;
+use serde::{Serialize, Deserialize, Serializer, Deserializer};
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsIds;
 use servers::rapier_physics_singleton::PhysicsShapes;
@@ -89,17 +90,97 @@ pub struct AreaImport {
     area_state: RapierAreaState,
     base_state: RapierCollisionObjectBaseState,
 }
+
+#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
-#[cfg_attr(
-    feature = "serde-serialize",
-    derive(serde::Serialize, serde::Deserialize)
-)]
 pub struct RapierAreaState {
-    // New events go into this queue; once handled (eg once reported to Godot), they are removed.
+    // New events go into this queue; once handled (eg once reported to Godot), they are removed. No need to serialize this, I think.
     pub unhandled_event_queue: HashMap<ColliderHandle, EventReport>,
     // This is a persistent list of all current contacts. Entries only disappear when contact ceases, or when contacts are manually cleared.
+    #[cfg_attr(
+        feature = "serde-serialize",
+        serde(
+            serialize_with = "rapier::utils::serde::serialize_to_vec_tuple",
+            deserialize_with = "rapier::utils::serde::deserialize_from_vec_tuple"
+        )
+    )]
     pub monitored_objects: HashMap<(ColliderHandle, ColliderHandle), MonitorInfo>,
 }
+
+// This serialization is required for serializing collider-handle objects to strings as part of our json/godotbase46 export;
+// however, it's also used by bincode export, where it's not really needed.
+// impl Serialize for RapierAreaState {
+//     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+//     where
+//         S: Serializer,
+//     {
+//         use serde::ser::SerializeMap;
+        
+//         let mut inner_map = serializer.serialize_map(Some(self.monitored_objects.len()))?;
+//         for ((a, b), info) in &self.monitored_objects {
+//             let (a_id, a_gen) = a.into_raw_parts();
+//             let (b_id, b_gen) = b.into_raw_parts();
+//             let key = format!("{}_{}_{}_{}", a_id, a_gen, b_id, b_gen);
+//             inner_map.serialize_entry(&key, info)?;
+//         }
+//         inner_map.end()
+//     }
+// }
+
+// impl<'de> Deserialize<'de> for RapierAreaState {
+//     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+//     where
+//         D: Deserializer<'de>,
+//     {
+//         use serde::de::{MapAccess, Visitor};
+//         use std::fmt;
+
+//         struct StateVisitor;
+
+//         impl<'de> Visitor<'de> for StateVisitor {
+//             type Value = RapierAreaState;
+
+//             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+//                 formatter.write_str("RapierAreaState with string keys for monitored_objects")
+//             }
+
+//             fn visit_map<M>(self, mut map: M) -> Result<Self::Value, M::Error>
+//             where
+//                 M: MapAccess<'de>,
+//             {
+//                 let mut monitored_objects = HashMap::new();
+
+//                 while let Some((key, info)) = map.next_entry::<String, MonitorInfo>()? {
+//                     // parse "a_id_a_gen_b_id_b_gen" -> tuple
+//                     let parts: Vec<_> = key.split('_').collect();
+//                     if parts.len() != 4 {
+//                         return Err(serde::de::Error::custom(format!(
+//                             "invalid key format: {}",
+//                             key
+//                         )));
+//                     }
+//                     let a_id = parts[0].parse::<u32>().map_err(serde::de::Error::custom)?;
+//                     let a_gen = parts[1].parse::<u32>().map_err(serde::de::Error::custom)?;
+//                     let b_id = parts[2].parse::<u32>().map_err(serde::de::Error::custom)?;
+//                     let b_gen = parts[3].parse::<u32>().map_err(serde::de::Error::custom)?;
+
+//                     let a = ColliderHandle::from_raw_parts(a_id, a_gen);
+//                     let b = ColliderHandle::from_raw_parts(b_id, b_gen);
+
+//                     monitored_objects.insert((a, b), info);
+//                 }
+
+//                 Ok(RapierAreaState {
+//                     monitored_objects,
+//                     unhandled_event_queue: HashMap::new(), // skipped anyway
+//                 })
+//             }
+//         }
+
+//         deserializer.deserialize_map(StateVisitor)
+//     }
+// }
+
 #[derive(Debug)]
 pub struct RapierArea {
     gravity_override_mode: AreaSpaceOverrideMode,
@@ -1008,30 +1089,35 @@ impl IRapierCollisionObject for RapierArea {
             }
             Err(e) => {
                 godot_error!("Failed to serialize area to json: {}", e);
+
+                match serde_json::to_string_pretty(&state.area_state) {
+                    Ok(s) => {                        
+                    }
+                    Err(e) => {
+                        godot_error!("Failed to serialize area state to json: {}", e);
+                    }
+                }
+
             }
         }
         "{}".to_string()
     }
 
     #[cfg(feature = "serde-serialize")]
-    fn export_binary(&self) -> PackedByteArray {
-        let mut buf = PackedByteArray::new();
+    fn export_binary(&self) -> Vec<u8> {
         let state = AreaExport {
             area_state: &self.state,
             base_state: &self.base.state,
         };
         match bincode::serialize(&state) {
             Ok(binary_data) => {
-                buf.resize(binary_data.len());
-                for i in 0..binary_data.len() {
-                    buf[i] = binary_data[i];
-                }
+                return binary_data
             }
             Err(e) => {
                 godot_error!("Failed to serialize area to binary: {}", e);
             }
         }
-        buf
+        Vec::new()
     }
 
     #[cfg(feature = "serde-serialize")]

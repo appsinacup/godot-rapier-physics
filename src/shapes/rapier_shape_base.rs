@@ -135,8 +135,7 @@ impl RapierShapeBase {
     }
 
     #[cfg(feature = "serde-serialize")]
-    pub fn export_binary(&self, physics_engine: &mut PhysicsEngine) -> PackedByteArray {
-        let mut buf = PackedByteArray::new();
+    pub fn export_binary(&self, physics_engine: &mut PhysicsEngine) -> Vec<u8> {
         if let Some(inner) = physics_engine.get_shape(self.get_id()) {
             let export = ShapeExport {
                 state: &self.state,
@@ -144,17 +143,14 @@ impl RapierShapeBase {
             };
             match bincode::serialize(&export) {
                 Ok(binary_data) => {
-                    buf.resize(binary_data.len());
-                    for i in 0..binary_data.len() {
-                        buf[i] = binary_data[i];
-                    }
+                    return binary_data
                 }
                 Err(e) => {
                     godot_error!("Failed to serialize shape to binary: {}", e);
                 }
             }
         }
-        buf
+        Vec::new()
     }
 
     #[cfg(feature = "serde-serialize")]

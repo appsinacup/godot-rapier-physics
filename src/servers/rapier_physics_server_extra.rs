@@ -56,7 +56,7 @@ macro_rules! make_rapier_server_godot_impl {
             #[cfg(feature = "serde-serialize")]
             #[func]
             /// Exports the physics object to a JSON string. This is slower than the binary export.
-            fn export_json(physics_object: Rid) -> String {
+            pub fn export_json(physics_object: Rid) -> String {
                 let physics_data = physics_data();
                 if let Some(body) = physics_data.collision_objects.get(&physics_object) {
                     return body.export_json();
@@ -78,10 +78,14 @@ macro_rules! make_rapier_server_godot_impl {
             #[cfg(feature = "serde-serialize")]
             #[func]
             /// Exports the physics object to a binary format.
-            fn export_binary(physics_object: Rid) -> PackedByteArray {
+            pub fn export_binary(physics_object: Rid) -> PackedByteArray {
+                return bin_to_packed_byte_array(RapierPhysicsServer::export_binary_internal(physics_object))
+            }
+
+            pub fn export_binary_internal(physics_object: Rid) -> Vec<u8> {
                 let physics_data = physics_data();
                 if let Some(body) = physics_data.collision_objects.get(&physics_object) {
-                    return body.export_binary();
+                    return body.export_binary()
                 }
                 use $crate::shapes::rapier_shape::IRapierShape;
                 if let Some(shape) = physics_data.shapes.get(&physics_object) {
@@ -91,18 +95,18 @@ macro_rules! make_rapier_server_godot_impl {
                 }
                 use $crate::joints::rapier_joint::IRapierJoint;
                 if let Some(joint) = physics_data.joints.get(&physics_object) {
-                    return joint.get_base().export_binary();
+                    return joint.get_base().export_binary()
                 }
                 if let Some(space) = physics_data.spaces.get(&physics_object) {
-                    return space.export_binary(&mut physics_data.physics_engine);
+                    return space.export_binary(&mut physics_data.physics_engine)
                 }
-                PackedByteArray::default()
+                Vec::new()
             }
 
             #[cfg(feature = "serde-serialize")]
             #[func]
             /// Imports the physics object from a binary format.
-            fn import_binary(physics_object: Rid, data: PackedByteArray) {
+            pub fn import_binary(physics_object: Rid, data: PackedByteArray) {
                 use $crate::joints::rapier_joint::IRapierJoint;
                 use $crate::servers::rapier_physics_singleton::insert_id_rid;
                 use $crate::servers::rapier_physics_singleton::remove_id_rid;

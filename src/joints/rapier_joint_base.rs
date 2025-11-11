@@ -136,20 +136,16 @@ impl RapierJointBase {
     }
 
     #[cfg(feature = "serde-serialize")]
-    pub fn export_binary(&self) -> PackedByteArray {
-        let mut buf = PackedByteArray::new();
+    pub fn export_binary(&self) -> Vec<u8> {
         match bincode::serialize(&self.state) {
             Ok(binary_data) => {
-                buf.resize(binary_data.len());
-                for i in 0..binary_data.len() {
-                    buf[i] = binary_data[i];
-                }
+                return binary_data
             }
             Err(e) => {
                 godot_error!("Failed to serialize joint to binary: {}", e);
             }
         }
-        buf
+        Vec::new()
     }
 
     #[cfg(feature = "serde-serialize")]

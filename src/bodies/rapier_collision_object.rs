@@ -107,7 +107,7 @@ pub trait IRapierCollisionObject: Sync {
     #[cfg(feature = "serde-serialize")]
     fn export_json(&self) -> String;
     #[cfg(feature = "serde-serialize")]
-    fn export_binary(&self) -> PackedByteArray;
+    fn export_binary(&self) -> Vec<u8>;
     #[cfg(feature = "serde-serialize")]
     fn import_binary(&mut self, data: PackedByteArray);
 }
@@ -309,7 +309,7 @@ macro_rules! impl_rapier_collision_object_trait {
             }
 
             #[cfg(feature = "serde-serialize")]
-            fn export_binary(&self) -> PackedByteArray {
+            fn export_binary(&self) -> Vec<u8> {
                 match self {
                     $(Self::$variant(co) => co.export_binary(),)*
                 }

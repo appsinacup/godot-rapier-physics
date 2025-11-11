@@ -2376,24 +2376,20 @@ impl IRapierCollisionObject for RapierBody {
     }
 
     #[cfg(feature = "serde-serialize")]
-    fn export_binary(&self) -> PackedByteArray {
-        let mut buf = PackedByteArray::new();
+    fn export_binary(&self) -> Vec<u8> {
         let state = BodyExport {
             body_state: &self.state,
             base_state: &self.base.state,
         };
         match bincode::serialize(&state) {
             Ok(binary_data) => {
-                buf.resize(binary_data.len());
-                for i in 0..binary_data.len() {
-                    buf[i] = binary_data[i];
-                }
+                return binary_data
             }
             Err(e) => {
                 godot_error!("Failed to serialize body to binary: {}", e);
             }
         }
-        buf
+        Vec::new()
     }
 
     #[cfg(feature = "serde-serialize")]

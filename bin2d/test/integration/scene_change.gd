@@ -5,7 +5,7 @@ extends Node2D
 @export var rb: RigidBody2D
 
 # Called when the node enters the scene tree for the first time.
-func _ready() -> void:
+func _ready() -> void:	
 	await run_for_1s()
 	await save_state()
 	await run_for_1s()
