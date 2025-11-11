@@ -320,7 +320,11 @@ impl RapierSpace {
                             physics_collision_objects.get(&shape_col_object)
                             && let Some(collision_body) = shape_col_object.get_body()
                         {
-                            if collision_body.has_exception(p_body.get_base().get_rid()) {
+                            let moving_rid = p_body.get_base().get_rid();
+                            let col_rid = collision_body.get_base().get_rid();
+                            if collision_body.has_exception(moving_rid)
+                                || p_body.has_exception(col_rid)
+                            {
                                 continue;
                             }
                             if let Some(col_shape) = physics_shapes.get(
@@ -537,7 +541,10 @@ impl RapierSpace {
                     if let Some(shape_col_object) = physics_collision_objects.get(&shape_col_object)
                         && let Some(collision_body) = shape_col_object.get_body()
                     {
-                        if collision_body.has_exception(p_body.get_base().get_rid()) {
+                        let moving_rid = p_body.get_base().get_rid();
+                        let col_rid = collision_body.get_base().get_rid();
+                        if collision_body.has_exception(moving_rid) || p_body.has_exception(col_rid)
+                        {
                             continue;
                         }
                         if let Some(col_shape) = physics_shapes.get(
@@ -787,7 +794,10 @@ impl RapierSpace {
                     if let Some(shape_col_object) = physics_collision_objects.get(&shape_col_object)
                         && let Some(collision_body) = shape_col_object.get_body()
                     {
-                        if collision_body.has_exception(p_body.get_base().get_rid()) {
+                        let moving_rid = p_body.get_base().get_rid();
+                        let col_rid = collision_body.get_base().get_rid();
+                        if collision_body.has_exception(moving_rid) || p_body.has_exception(col_rid)
+                        {
                             continue;
                         }
                         let col_shape_rid = collision_body
