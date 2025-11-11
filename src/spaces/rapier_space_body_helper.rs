@@ -516,8 +516,7 @@ impl RapierSpace {
                         );
                     // Check if this shape pair is excluded
                     let mut is_excluded = false;
-                    for excluded_idx in 0..excluded_shape_pair_count {
-                        let excluded = &excluded_shape_pairs[excluded_idx];
+                    for excluded in excluded_shape_pairs.iter().take(excluded_shape_pair_count) {
                         if excluded.local_shape_index == body_shape_idx
                             && excluded.collision_object_rid == shape_col_object
                             && excluded.collision_shape_index == shape_index
@@ -767,8 +766,7 @@ impl RapierSpace {
                         );
                     // Check if this shape pair is in the excluded list
                     let mut is_excluded = false;
-                    for i in 0..excluded_shape_pair_count {
-                        let excluded = &excluded_shape_pairs[i];
+                    for excluded in excluded_shape_pairs.iter().take(excluded_shape_pair_count) {
                         if excluded.local_shape_index == body_shape_idx as usize
                             && excluded.collision_object_rid == shape_col_object
                             && excluded.collision_shape_index == shape_index
