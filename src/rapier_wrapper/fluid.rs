@@ -1,5 +1,4 @@
 use rapier::prelude::*;
-use salva::math::Vector as SalvaVector;
 use salva::object::*;
 use salva::solver::*;
 
@@ -71,20 +70,13 @@ impl PhysicsEngine {
                 .get_mut(handle_to_fluid_handle(fluid_handle))
         {
             let points = point_array_to_vec(points);
-            let points_len = points.len();
-            let mut accelerations: Vec<_> =
-                std::iter::repeat_n(SalvaVector::zeros(), points_len).collect();
-            fluid.positions = points;
-            // copy back the accelerations that were before, if they exist
-            for i in 0..fluid.accelerations.len() {
-                if fluid.accelerations.len() > i {
-                    accelerations[i] = fluid.accelerations[i];
-                }
+            // 1. Mark all existing particles for deletion using the Salva API.
+            for i in 0..fluid.num_particles() {
+                fluid.delete_particle_at_next_timestep(i);
             }
-            fluid.velocities = velocity_points.to_owned();
-            fluid.accelerations = accelerations;
-            fluid.volumes =
-                std::iter::repeat_n(fluid.default_particle_volume(), points_len).collect();
+            // 2. Add the new particles using the Salva API.
+            // This correctly notifies the internal grid and prevents desync.
+            fluid.add_particles(&points, Some(velocity_points));
         }
     }
 
@@ -102,25 +94,12 @@ impl PhysicsEngine {
                 .get_mut(handle_to_fluid_handle(fluid_handle))
         {
             let points = point_array_to_vec(points);
-            let point_count = points.len();
-            let mut velocities: Vec<_> =
-                std::iter::repeat_n(SalvaVector::zeros(), point_count).collect();
-            let mut accelerations: Vec<_> =
-                std::iter::repeat_n(SalvaVector::zeros(), point_count).collect();
-            fluid.positions = points;
-            // copy back the velocities and accelerations that were before, if they exist
-            for i in 0..point_count {
-                if fluid.velocities.len() > i {
-                    velocities[i] = fluid.velocities[i];
-                }
-                if fluid.accelerations.len() > i {
-                    accelerations[i] = fluid.accelerations[i];
-                }
+            // 1. Mark all existing particles for deletion.
+            for i in 0..fluid.num_particles() {
+                fluid.delete_particle_at_next_timestep(i);
             }
-            fluid.velocities = velocities;
-            fluid.accelerations = accelerations;
-            fluid.volumes =
-                std::iter::repeat_n(fluid.default_particle_volume(), point_count).collect();
+            // 2. Add the new particles with zero velocity.
+            fluid.add_particles(&points, None);
         }
     }
 
@@ -137,39 +116,11 @@ impl PhysicsEngine {
                 .fluids_mut()
                 .get_mut(handle_to_fluid_handle(fluid_handle))
         {
-            // create mask from array of indexes
-            let mut mask = vec![false; fluid.positions.len()];
-            for i in 0..indices.len() {
-                if fluid.positions.len() <= indices[i] as usize {
-                    continue;
+            for index in indices {
+                if index >= 0 && (index as usize) < fluid.num_particles() {
+                    fluid.delete_particle_at_next_timestep(index as usize);
                 }
-                mask[indices[i] as usize] = true;
             }
-            let mut i = 0;
-            // remove all points that are not in the mask
-            fluid.positions.retain(|_| {
-                let delete = mask[i];
-                i += 1;
-                !delete
-            });
-            let mut i = 0;
-            fluid.velocities.retain(|_| {
-                let delete = mask[i];
-                i += 1;
-                !delete
-            });
-            let mut i = 0;
-            fluid.accelerations.retain(|_| {
-                let delete = mask[i];
-                i += 1;
-                !delete
-            });
-            let mut i = 0;
-            fluid.volumes.retain(|_| {
-                let delete = mask[i];
-                i += 1;
-                !delete
-            });
         }
     }
 
@@ -188,17 +139,7 @@ impl PhysicsEngine {
                 .get_mut(handle_to_fluid_handle(fluid_handle))
         {
             let points = point_array_to_vec(points);
-            // add old positions from fluid
-            fluid.positions.extend_from_slice(&points);
-            fluid.velocities.extend_from_slice(velocity_points);
-            let new_point_count = fluid.positions.len();
-            let mut accelerations: Vec<_> =
-                std::iter::repeat_n(SalvaVector::zeros(), new_point_count).collect();
-            // copy back the accelerations that were before, if they exist
-            accelerations[..fluid.accelerations.len()].copy_from_slice(&fluid.accelerations[..]);
-            fluid.accelerations = accelerations;
-            fluid.volumes =
-                std::iter::repeat_n(fluid.default_particle_volume(), new_point_count).collect();
+            fluid.add_particles(&points, Some(velocity_points));
         }
     }
 
@@ -273,18 +214,52 @@ impl PhysicsEngine {
             let salva_aabb = crate::rapier_wrapper::convert::aabb_to_salva_aabb(aabb);
             let liquid_world = &physics_world.fluids_pipeline.liquid_world;
             let r_fluid_handle = handle_to_fluid_handle(fluid_handle);
-            for particle in liquid_world.particles_intersecting_aabb(salva_aabb) {
-                match particle {
-                    salva::object::ParticleId::FluidParticle(
+            if let Some(fluid) = liquid_world.fluids().get(r_fluid_handle) {
+                for particle in liquid_world.particles_intersecting_aabb(salva_aabb) {
+                    if let salva::object::ParticleId::FluidParticle(
                         found_fluid_handle,
                         particle_index,
-                    ) => {
-                        if found_fluid_handle == r_fluid_handle {
-                            indices.push(particle_index as i32);
-                        }
+                    ) = particle
+                        && found_fluid_handle == r_fluid_handle
+                        && particle_index < fluid.num_particles()
+                    {
+                        indices.push(particle_index as i32);
                     }
-                    // We are only interested in fluid particles for this function.
-                    salva::object::ParticleId::BoundaryParticle(..) => {}
+                }
+            }
+        }
+        indices
+    }
+
+    pub fn fluid_get_particles_in_ball(
+        &self,
+        world_handle: WorldHandle,
+        fluid_handle: HandleDouble,
+        center: crate::types::Vector,
+        radius: Real,
+    ) -> Vec<i32> {
+        let mut indices = Vec::new();
+        if let Some(physics_world) = self.get_world(world_handle) {
+            let godot_aabb = crate::types::Rect::new(
+                center - crate::types::Vector::ONE * radius,
+                crate::types::Vector::ONE * radius * 2.0,
+            );
+            let salva_aabb = crate::rapier_wrapper::convert::aabb_to_salva_aabb(godot_aabb);
+            let liquid_world = &physics_world.fluids_pipeline.liquid_world;
+            let r_fluid_handle = handle_to_fluid_handle(fluid_handle);
+            let radius_sq = radius * radius;
+            let r_center = vector_to_rapier(center);
+            for particle in liquid_world.particles_intersecting_aabb(salva_aabb) {
+                if let salva::object::ParticleId::FluidParticle(found_fluid_handle, particle_index) =
+                    particle
+                    && found_fluid_handle == r_fluid_handle
+                    && let Some(fluid) = liquid_world.fluids().get(found_fluid_handle)
+                    && particle_index < fluid.num_particles()
+                {
+                    let particle_pos = fluid.positions[particle_index].coords;
+                    if (particle_pos - r_center).norm_squared() <= radius_sq {
+                        indices.push(particle_index as i32);
+                    }
                 }
             }
         }

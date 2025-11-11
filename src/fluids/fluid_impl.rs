@@ -16,12 +16,12 @@ impl FluidImpl {
         }
         let gl_transform = fluid.to_gd().get_global_transform();
         let mut rapier_points = fluid.points.clone();
-        for i in 0..fluid.points.len() {
-            rapier_points[i] = gl_transform * (fluid.points[i]);
+        for i in 0..rapier_points.len() {
+            rapier_points[i] = gl_transform * (rapier_points[i]);
         }
         let rid = fluid.rid;
         let guard = fluid.base_mut();
-        RapierPhysicsServer::fluid_set_points(rid, rapier_points.clone());
+        RapierPhysicsServer::fluid_set_points(rid, rapier_points);
         drop(guard);
     }
 
@@ -132,17 +132,17 @@ impl FluidImpl {
         let old_times = fluid.create_times.len();
         fluid.create_times.resize(fluid.points.len());
         let ticks = Time::singleton().get_ticks_msec();
-        for _i in old_times..fluid.points.len() {
-            fluid.create_times.push(ticks as f32);
+        for i in old_times..fluid.points.len() {
+            fluid.create_times[i] = ticks as f32;
         }
         let gl_transform = fluid.to_gd().get_global_transform();
-        for i in 0..fluid.points.len() {
-            fluid.points[i] = gl_transform * (fluid.points[i]);
+        let mut rapier_points = fluid.points.clone();
+        for i in 0..rapier_points.len() {
+            rapier_points[i] = gl_transform * (rapier_points[i]);
         }
         let rid = fluid.rid;
-        let points = fluid.points.clone();
         let guard = fluid.base_mut();
-        RapierPhysicsServer::fluid_set_points_and_velocities(rid, points, velocities);
+        RapierPhysicsServer::fluid_set_points_and_velocities(rid, rapier_points, velocities);
         drop(guard);
     }
 
@@ -153,10 +153,15 @@ impl FluidImpl {
         drop(guard);
         let mut indices = indices.to_vec();
         indices.sort_unstable();
+        indices.dedup();
         indices.reverse();
         for index in indices {
-            fluid.points.remove(index as usize);
-            fluid.create_times.remove(index as usize);
+            let idx = index as usize;
+            // Check against both arrays to prevent panic from desynchronization
+            if index >= 0 && idx < fluid.points.len() && idx < fluid.create_times.len() {
+                fluid.points.remove(idx);
+                fluid.create_times.remove(idx);
+            }
         }
     }
 
@@ -219,6 +224,18 @@ impl FluidImpl {
         let rid = fluid.rid;
         let guard = fluid.base();
         let indices = RapierPhysicsServer::fluid_get_particles_in_aabb(rid, aabb);
+        drop(guard);
+        indices
+    }
+
+    pub fn get_particles_in_ball(
+        fluid: &Fluid,
+        center: crate::types::Vector,
+        radius: real,
+    ) -> PackedInt32Array {
+        let rid = fluid.rid;
+        let guard = fluid.base();
+        let indices = RapierPhysicsServer::fluid_get_particles_in_ball(rid, center, radius);
         drop(guard);
         indices
     }

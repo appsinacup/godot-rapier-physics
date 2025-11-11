@@ -1,5 +1,3 @@
-use std::collections::VecDeque;
-
 use godot::prelude::*;
 
 use super::types::*;
@@ -41,13 +39,8 @@ impl RapierFluid {
     }
 
     pub fn set_points(&mut self, points: Vec<Vector>, physics_engine: &mut PhysicsEngine) {
-        self.points = points;
-        self.velocities.resize(self.points.len(), Vector::default());
-        self.accelerations
-            .resize(self.points.len(), Vector::default());
         if self.is_valid() {
-            let rapier_points = self
-                .points
+            let rapier_points = points
                 .iter()
                 .map(|vec: &crate::types::Vector| vector_to_rapier(*vec))
                 .collect::<Vec<_>>();
@@ -80,18 +73,12 @@ impl RapierFluid {
         velocities: Vec<Vector>,
         physics_engine: &mut PhysicsEngine,
     ) {
-        self.points = points;
-        self.velocities = velocities;
-        self.accelerations
-            .resize(self.points.len(), Vector::default());
         if self.is_valid() {
-            let rapier_points = self
-                .points
+            let rapier_points = points
                 .iter()
                 .map(|vec: &crate::types::Vector| vector_to_rapier(*vec))
                 .collect::<Vec<_>>();
-            let rapier_velocities = self
-                .velocities
+            let rapier_velocities = velocities
                 .iter()
                 .map(|vec: &crate::types::Vector| vector_to_rapier(*vec))
                 .collect::<Vec<_>>();
@@ -110,10 +97,6 @@ impl RapierFluid {
         velocities: Vec<Vector>,
         physics_engine: &mut PhysicsEngine,
     ) {
-        self.points.extend(points.clone());
-        self.velocities.extend(velocities.clone());
-        self.accelerations
-            .resize(self.points.len(), Vector::default());
         if self.is_valid() {
             let rapier_points = points
                 .iter()
@@ -133,34 +116,30 @@ impl RapierFluid {
     }
 
     pub fn delete_points(&mut self, indices: Vec<i32>, physics_engine: &mut PhysicsEngine) {
-        let removals = indices.clone().into_iter().collect::<VecDeque<_>>();
-        for index in removals {
-            self.points.remove(index as usize);
-            self.velocities.remove(index as usize);
-            self.accelerations.remove(index as usize);
-        }
         physics_engine.fluid_delete_points(self.space_id, self.fluid_handle, indices);
     }
 
-    pub fn get_points(&mut self, physics_engine: &mut PhysicsEngine) -> &Vec<Vector> {
+    fn sync_cache_from_engine(&mut self, physics_engine: &mut PhysicsEngine) {
         if self.is_valid() {
             self.points = physics_engine.fluid_get_points(self.space_id, self.fluid_handle);
+            self.velocities = physics_engine.fluid_get_velocities(self.space_id, self.fluid_handle);
+            self.accelerations =
+                physics_engine.fluid_get_accelerations(self.space_id, self.fluid_handle);
         }
+    }
+
+    pub fn get_points(&mut self, physics_engine: &mut PhysicsEngine) -> &Vec<Vector> {
+        self.sync_cache_from_engine(physics_engine);
         &self.points
     }
 
     pub fn get_velocities(&mut self, physics_engine: &mut PhysicsEngine) -> &Vec<Vector> {
-        if self.is_valid() {
-            self.velocities = physics_engine.fluid_get_velocities(self.space_id, self.fluid_handle);
-        }
+        self.sync_cache_from_engine(physics_engine);
         &self.velocities
     }
 
     pub fn get_accelerations(&mut self, physics_engine: &mut PhysicsEngine) -> &Vec<Vector> {
-        if self.is_valid() {
-            self.accelerations =
-                physics_engine.fluid_get_accelerations(self.space_id, self.fluid_handle);
-        }
+        self.sync_cache_from_engine(physics_engine);
         &self.accelerations
     }
 
@@ -170,6 +149,23 @@ impl RapierFluid {
         physics_engine: &mut PhysicsEngine,
     ) -> Vec<i32> {
         physics_engine.fluid_get_particles_in_aabb(self.space_id, self.fluid_handle, aabb)
+    }
+
+    pub fn get_particles_in_ball(
+        &self,
+        center: crate::types::Vector,
+        radius: real,
+        physics_engine: &mut PhysicsEngine,
+    ) -> Vec<i32> {
+        if self.is_valid() {
+            return physics_engine.fluid_get_particles_in_ball(
+                self.space_id,
+                self.fluid_handle,
+                center,
+                radius,
+            );
+        }
+        Vec::new()
     }
 
     fn set_effect(&self, effect: &Gd<Resource>, physics_engine: &mut PhysicsEngine) {
@@ -287,7 +283,7 @@ impl RapierFluid {
                     self.interaction_groups,
                 );
                 // Only set points and effects if fluid was actually created
-                if self.fluid_handle.is_valid() {
+                if self.fluid_handle.is_valid() && !self.points.is_empty() {
                     self.set_points(self.points.clone(), physics_engine);
                     self.set_effects(self.effects.clone(), physics_engine);
                 }
@@ -299,7 +295,10 @@ impl RapierFluid {
         if self.is_valid() {
             physics_engine.fluid_destroy(self.space_id, self.fluid_handle);
             self.fluid_handle = invalid_handle_double();
-            self.space_id = WorldHandle::default()
+            self.space_id = WorldHandle::default();
+            self.points.clear();
+            self.velocities.clear();
+            self.accelerations.clear();
         }
     }
 

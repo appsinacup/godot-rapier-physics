@@ -248,6 +248,25 @@ macro_rules! make_rapier_server_godot_impl {
             }
 
             #[func]
+            /// Get the indices of the fluid particles inside a ball.
+            pub(crate) fn fluid_get_particles_in_ball(
+                fluid_rid: Rid,
+                center: $crate::types::Vector,
+                radius: real,
+            ) -> PackedInt32Array {
+                let physics_data = physics_data();
+                if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
+                    let indices = fluid.get_particles_in_ball(
+                        center,
+                        radius,
+                        &mut physics_data.physics_engine,
+                    );
+                    return PackedInt32Array::from_iter(indices);
+                }
+                PackedInt32Array::default()
+            }
+
+            #[func]
             /// Get interaction groups mask.
             pub(crate) fn fluid_get_collision_mask(fluid_rid: Rid) -> u32 {
                 let physics_data = physics_data();
