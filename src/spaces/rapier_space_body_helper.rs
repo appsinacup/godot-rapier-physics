@@ -151,8 +151,14 @@ impl RapierSpace {
         );
         // If cast motion resulted in near-zero movement but recovery found no collision,
         // treat this as a numerical precision issue and allow the motion
+        // Only apply this when the actual distance traveled is tiny, not just the fraction
         const MOTION_EPSILON: Real = 0.001;
-        if !recovered && best_safe < MOTION_EPSILON && best_unsafe < MOTION_EPSILON {
+        let actual_safe_distance = motion.length() * best_safe;
+        let actual_unsafe_distance = motion.length() * best_unsafe;
+        if !recovered
+            && actual_safe_distance < MOTION_EPSILON
+            && actual_unsafe_distance < MOTION_EPSILON
+        {
             best_safe = 1.0;
             best_unsafe = 1.0;
         }
