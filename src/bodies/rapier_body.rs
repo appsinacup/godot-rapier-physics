@@ -2318,6 +2318,8 @@ impl IRapierCollisionObject for RapierBody {
             physics_spaces,
             physics_ids,
         );
+        // Reapply CCD setting after recreating shapes
+        self.set_continuous_collision_detection_mode(self.ccd_enabled, physics_engine);
     }
 
     fn init_material(&self) -> Material {

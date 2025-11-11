@@ -74,14 +74,21 @@ impl RapierSpace {
             RapierCollisionObjectBase::get_collider_user_data(&filter_info.user_data1, physics_ids);
         (colliders_info.object2, colliders_info.shape2) =
             RapierCollisionObjectBase::get_collider_user_data(&filter_info.user_data2, physics_ids);
-        if let Some(body1) = physics_collision_objects.get(&colliders_info.object1)
-            && let Some(body1) = body1.get_body()
-            && let Some(body2) = physics_collision_objects.get(&colliders_info.object2)
-            && let Some(body2) = body2.get_body()
-            && (body1.has_exception(body2.get_base().get_rid())
-                || body2.has_exception(body1.get_base().get_rid()))
+        if let Some(obj1) = physics_collision_objects.get(&colliders_info.object1)
+            && let Some(body1) = obj1.get_body()
+            && let Some(obj2) = physics_collision_objects.get(&colliders_info.object2)
         {
-            return false;
+            if body1.has_exception(obj2.get_base().get_rid()) {
+                return false;
+            }
+        }
+        if let Some(obj2) = physics_collision_objects.get(&colliders_info.object2)
+            && let Some(body2) = obj2.get_body()
+            && let Some(obj1) = physics_collision_objects.get(&colliders_info.object1)
+        {
+            if body2.has_exception(obj1.get_base().get_rid()) {
+                return false;
+            }
         }
         true
     }
