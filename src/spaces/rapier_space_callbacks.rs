@@ -77,18 +77,16 @@ impl RapierSpace {
         if let Some(obj1) = physics_collision_objects.get(&colliders_info.object1)
             && let Some(body1) = obj1.get_body()
             && let Some(obj2) = physics_collision_objects.get(&colliders_info.object2)
+            && body1.has_exception(obj2.get_base().get_rid())
         {
-            if body1.has_exception(obj2.get_base().get_rid()) {
-                return false;
-            }
+            return false;
         }
         if let Some(obj2) = physics_collision_objects.get(&colliders_info.object2)
             && let Some(body2) = obj2.get_body()
             && let Some(obj1) = physics_collision_objects.get(&colliders_info.object1)
+            && body2.has_exception(obj1.get_base().get_rid())
         {
-            if body2.has_exception(obj1.get_base().get_rid()) {
-                return false;
-            }
+            return false;
         }
         true
     }
