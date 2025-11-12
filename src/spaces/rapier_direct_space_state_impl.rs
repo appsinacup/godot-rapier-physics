@@ -288,9 +288,6 @@ impl RapierDirectSpaceStateImpl {
             space,
             true,
         );
-        if results.is_empty() {
-            return false;
-        }
         let mut closest_located_safe = 1.0;
         let mut closest_located_unsafe = 1.0;
         for result in results {
@@ -298,6 +295,12 @@ impl RapierDirectSpaceStateImpl {
                 closest_located_safe = result.toi;
                 closest_located_unsafe = result.toi_unsafe;
             }
+        }
+        // If the shape is already penetrating at the start position (toi = 0),
+        // Godot expects [1, 1] to indicate no blocking (shape is already inside)
+        if closest_located_safe == 0.0 && closest_located_unsafe == 0.0 {
+            closest_located_safe = 1.0;
+            closest_located_unsafe = 1.0;
         }
         let closest_safe = closest_safe as *mut real;
         let closest_unsafe = closest_unsafe as *mut real;
