@@ -1,6 +1,19 @@
 # Changelog
 
-## v0.8.22 -
+## v0.8.22 - Nov 12
+
+## What's Changed
+* Add joint softness finally by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/439
+* update hashbrown. Also add threadcount. by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/442
+* Fluid: Implement get_particle_in_circle/sphere and Salva Particle Logic Refactors by @iLLsen in https://github.com/appsinacup/godot-rapier-physics/pull/440
+* Add stuck logic to the chracter controller by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/443
+* fix character bodies not using excepted bodies by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/444
+* fix ccd not setting after shape recreate by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/445
+* always send 1 collision, even if predictive contact by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/446
+* small fix to cast motion by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/447
+
+
+**Full Changelog**: https://github.com/appsinacup/godot-rapier-physics/compare/v0.8.21...nightly
 
 ## v0.8.21 - Nov 8
 
