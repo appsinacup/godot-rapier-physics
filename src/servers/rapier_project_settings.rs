@@ -159,7 +159,7 @@ impl RapierProjectSettings {
         );
         register_setting_ranged(
             GHOST_COLLISION_DISTANCE,
-            Variant::from(0.0),
+            Variant::from(0.15),
             "0,10,0.00001,or_greater",
             false,
         );
