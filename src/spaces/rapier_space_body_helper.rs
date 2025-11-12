@@ -918,11 +918,11 @@ fn set_collision_info(
 }
 #[cfg(feature = "dim2")]
 fn get_transform_forward(transform: &Transform2D) -> Vector {
-    -Vector2::new(transform.a.y, transform.b.y)
+    -transform.b
 }
 #[cfg(feature = "dim3")]
 fn get_transform_forward(transform: &Transform3D) -> Vector {
-    -transform.basis.col_c()
+    -transform.basis.col_b()
 }
 impl PhysicsEngine {
     #[allow(clippy::too_many_arguments)]
