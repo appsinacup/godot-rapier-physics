@@ -38,6 +38,7 @@ pub struct ContactPointInfo {
     pub normal: Vector<Real>,
     pub pixel_distance: Real,
     pub pixel_impulse: Real,
+    pub pixel_tangent_impulse: TangentImpulse<Real>,
 }
 #[cfg_attr(
     feature = "serde-serialize",
@@ -267,45 +268,12 @@ impl PhysicsWorld {
                     && let Some(body1) = self.get_collider_rigid_body(collider1)
                     && let Some(body2) = self.get_collider_rigid_body(collider2)
                 {
-                    // Helper closure to send contact point info
-                    let mut send_contact_point =
-                        |manifold_normal: Vector<Real>,
-                         contact_point: &TrackedContact<ContactData>| {
-                            let collider_pos_1 = *collider1.position();
-                            let collider_pos_2 = *collider2.position();
-                            let point_velocity_1 = body1
-                                .velocity_at_point(&Point::from(collider_pos_1.translation.vector));
-                            let point_velocity_2 = body2
-                                .velocity_at_point(&Point::from(collider_pos_2.translation.vector));
-                            let pixel_pos_1 = collider_pos_1.translation.vector;
-                            let pixel_pos_2 = collider_pos_2.translation.vector;
-                            let contact_info = ContactPointInfo {
-                                normal: manifold_normal,
-                                pixel_local_pos_1: pixel_pos_1
-                                    + (body1
-                                        .rotation()
-                                        .transform_vector(&contact_point.local_p1.coords)),
-                                pixel_local_pos_2: pixel_pos_2
-                                    + (body2
-                                        .rotation()
-                                        .transform_vector(&contact_point.local_p2.coords)),
-                                pixel_velocity_pos_1: point_velocity_1,
-                                pixel_velocity_pos_2: point_velocity_2,
-                                pixel_distance: contact_point.dist,
-                                pixel_impulse: contact_point.data.impulse,
-                            };
-                            space.contact_point_callback(
-                                &contact_info,
-                                &event_info,
-                                physics_collision_objects,
-                                physics_ids,
-                            );
-                        };
                     // Find the contact pair, if it exists, between two colliders
-                    let mut has_any_valid_contact = false;
+                    let mut contact_info = ContactPointInfo::default();
                     // We may also read the contact manifolds to access the contact geometry.
                     for manifold in &contact_pair.manifolds {
                         let manifold_normal = manifold.data.normal;
+                        contact_info.normal = manifold_normal;
                         for contact_point in &manifold.points {
                             // Any given "contact point" may actually be a predictive point-- these points do not actually represent a contact for this frame.
                             // To prune out these false contacts, the below is a direct port of Rapier's own logic (from src/geometry/narrow_phase.rs).
@@ -338,18 +306,38 @@ impl PhysicsWorld {
                                             * settings.length_unit
                                 };
                             if keep_solver_contact {
-                                has_any_valid_contact = true;
-                                send_contact_point(manifold_normal, contact_point);
+                                let collider_pos_1 = *collider1.position();
+                                let collider_pos_2 = *collider2.position();
+                                let point_velocity_1 = body1.velocity_at_point(&Point::from(
+                                    collider_pos_1.translation.vector,
+                                ));
+                                let point_velocity_2 = body2.velocity_at_point(&Point::from(
+                                    collider_pos_2.translation.vector,
+                                ));
+                                let pixel_pos_1 = collider_pos_1.translation.vector;
+                                let pixel_pos_2 = collider_pos_2.translation.vector;
+                                contact_info.pixel_local_pos_1 = pixel_pos_1
+                                    + (body1
+                                        .rotation()
+                                        .transform_vector(&contact_point.local_p1.coords));
+                                contact_info.pixel_local_pos_2 = pixel_pos_2
+                                    + (body2
+                                        .rotation()
+                                        .transform_vector(&contact_point.local_p2.coords));
+                                contact_info.pixel_velocity_pos_1 = point_velocity_1;
+                                contact_info.pixel_velocity_pos_2 = point_velocity_2;
+                                contact_info.pixel_distance = contact_point.dist;
+                                contact_info.pixel_impulse = contact_point.data.impulse;
+                                contact_info.pixel_tangent_impulse =
+                                    contact_point.data.tangent_impulse;
+                                space.contact_point_callback(
+                                    &contact_info,
+                                    &event_info,
+                                    physics_collision_objects,
+                                    physics_ids,
+                                );
                             }
                         }
-                    }
-                    // If no valid contacts were found, call callback with first contact
-                    if !has_any_valid_contact
-                        && !contact_pair.manifolds.is_empty()
-                        && let Some(manifold) = contact_pair.manifolds.first()
-                        && let Some(contact_point) = manifold.points.first()
-                    {
-                        send_contact_point(manifold.data.normal, contact_point);
                     }
                 }
             }
