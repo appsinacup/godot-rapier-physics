@@ -2,6 +2,7 @@ use godot::prelude::*;
 use hashbrown::HashMap;
 use rapier::prelude::SharedShape;
 
+use crate::bodies::exportable_object::ExportableObject;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsData;
@@ -9,6 +10,7 @@ use crate::servers::rapier_physics_singleton::RapierId;
 use crate::servers::rapier_physics_singleton::get_id_rid;
 use crate::types::*;
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
+#[derive(Debug)]
 pub struct ShapeExport<'a> {
     state: &'a RapierShapeState,
     shape: &'a SharedShape,
@@ -35,6 +37,8 @@ pub struct RapierShapeState {
     owners: HashMap<RapierId, i32>,
     id: RapierId,
 }
+
+#[derive(Debug)]
 pub struct RapierShapeBase {
     rid: Rid,
     state: RapierShapeState,
@@ -124,11 +128,19 @@ impl RapierShapeBase {
     }
 
     #[cfg(feature = "serde-serialize")]
-    pub fn export_json(&self) -> String {
-        match serde_json::to_string_pretty(&self.state) {
-            Ok(s) => return s,
-            Err(e) => {
-                godot_error!("Failed to serialize shape to json: {}", e);
+    pub fn export_json(&self, physics_engine: &mut PhysicsEngine) -> String {
+        if let Some(inner) = physics_engine.get_shape(self.get_id()) {
+            let export = ShapeExport {
+                state: &self.state,
+                shape: inner,
+            };
+            match serde_json::to_string_pretty(&export) {
+                Ok(s) => {
+                    return s
+                }
+                Err(e) => {
+                    godot_error!("Failed to serialize shape to string: {}", e);
+                }
             }
         }
         "{}".to_string()
@@ -171,6 +183,21 @@ impl Drop for RapierShapeBase {
         if !self.state.owners.is_empty() {
             godot_error!("RapierShapeBase leaked {} owners", self.state.owners.len());
         }
+    }
+}
+#[cfg(feature = "serde-serialize")]
+impl ExportableObject for RapierShapeBase {
+    type ExportState<'a> = ShapeExport<'a>;
+
+    fn get_export_state<'a>(&'a self, physics_engine: &'a mut PhysicsEngine) -> Option<Self::ExportState<'a>> {
+        if let Some(inner) = physics_engine.get_shape(self.get_id()) {
+            Some(ShapeExport {
+                state: &self.state,
+                shape: inner,
+            })
+        } else {
+            return None
+        }   
     }
 }
 #[cfg(test)]

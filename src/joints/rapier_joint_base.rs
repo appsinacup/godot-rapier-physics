@@ -2,8 +2,14 @@ use servers::rapier_physics_singleton::PhysicsIds;
 use servers::rapier_physics_singleton::RapierId;
 use servers::rapier_physics_singleton::get_id_rid;
 
+use crate::bodies::exportable_object::ExportableObject;
 use crate::rapier_wrapper::prelude::*;
 use crate::*;
+#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
+#[derive(Debug)]
+pub struct JointExport<'a> {
+    state: &'a RapierJointBaseState,
+}
 #[cfg_attr(
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
@@ -30,6 +36,16 @@ impl Default for RapierJointBase {
             WorldHandle::default(),
             JointHandle::default(),
         )
+    }
+}
+#[cfg(feature = "serde-serialize")]
+impl ExportableObject for RapierJointBase {
+    type ExportState<'a> = JointExport<'a>;
+
+    fn get_export_state<'a>(&'a self, _: &'a mut PhysicsEngine) -> Option<Self::ExportState<'a>> {
+        Some(JointExport {
+            state: &self.state,
+        })  
     }
 }
 impl RapierJointBase {

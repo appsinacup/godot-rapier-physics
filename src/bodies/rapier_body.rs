@@ -21,6 +21,7 @@ use servers::rapier_physics_singleton::RapierId;
 use servers::rapier_physics_singleton::get_id_rid;
 use shapes::rapier_shape::IRapierShape;
 
+use super::exportable_object::ExportableObject;
 use super::rapier_area::RapierArea;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
@@ -89,6 +90,7 @@ impl IdWithPriority {
     }
 }
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
+#[derive(Debug)]
 pub struct BodyExport<'a> {
     body_state: &'a RapierBodyState,
     base_state: &'a RapierCollisionObjectBaseState,
@@ -2120,6 +2122,19 @@ impl RapierBody {
         }
     }
 }
+
+#[cfg(feature = "serde-serialize")]
+impl ExportableObject for RapierBody {
+    type ExportState<'a> = BodyExport<'a>;
+
+    fn get_export_state<'a>(&'a self, _: &'a mut PhysicsEngine) -> Option<Self::ExportState<'_>> {
+        Some(BodyExport {
+            body_state: &self.state,
+            base_state: &self.base.state,
+        })
+    }
+}
+
 // We won't use the pointers between threads, so it should be safe.
 unsafe impl Sync for RapierBody {}
 impl IRapierCollisionObject for RapierBody {

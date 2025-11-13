@@ -22,6 +22,7 @@ use servers::rapier_physics_singleton::PhysicsSpaces;
 use servers::rapier_physics_singleton::RapierId;
 use servers::rapier_physics_singleton::get_id_rid;
 
+use super::exportable_object::ExportableObject;
 use super::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::collider;
@@ -81,6 +82,7 @@ pub enum AreaUpdateMode {
     None,
 }
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
+#[derive(Debug)]
 pub struct AreaExport<'a> {
     area_state: &'a RapierAreaState,
     base_state: &'a RapierCollisionObjectBaseState,
@@ -854,9 +856,23 @@ impl RapierArea {
     }
 }
 
+#[cfg(feature = "serde-serialize")]
+impl ExportableObject for RapierArea {
+    type ExportState<'a> = AreaExport<'a>;
+
+    fn get_export_state(&self, _: &mut PhysicsEngine) -> Option<Self::ExportState<'_>> {
+        Some(AreaExport {
+            area_state: &self.state,
+            base_state: &self.base.state,
+        })
+    }
+}
+
 // We won't use the pointers between threads, so it should be safe.
 unsafe impl Sync for RapierArea {}
-impl IRapierCollisionObject for RapierArea {
+impl IRapierCollisionObject for RapierArea {    
+
+
     fn get_base(&self) -> &RapierCollisionObjectBase {
         &self.base
     }

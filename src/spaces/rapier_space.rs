@@ -21,6 +21,7 @@ use spaces::rapier_space_state::RapierSpaceState;
 
 use super::PhysicsDirectSpaceState;
 use super::RapierDirectSpaceState;
+use crate::bodies::exportable_object::ExportableObject;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::RapierPhysicsServer;
@@ -39,6 +40,21 @@ const DEFAULT_GRAVITY: &str = "physics/3d/default_gravity";
 pub struct SpaceExport<'a> {
     space: &'a RapierSpaceState,
     world: &'a PhysicsObjects,
+}
+#[cfg(feature = "serde-serialize")]
+impl ExportableObject for RapierSpace {
+    type ExportState<'a> = SpaceExport<'a>;
+
+    fn get_export_state<'a>(&'a self, physics_engine: &'a mut PhysicsEngine) -> Option<Self::ExportState<'a>> {
+        if let Some(inner) = physics_engine.world_export(self.state.get_id()) {
+            Some(SpaceExport {
+                space: &self.state,
+                world: inner, 
+            })
+        } else {
+            return None
+        }   
+    }
 }
 #[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize))]
 pub struct SpaceImport {

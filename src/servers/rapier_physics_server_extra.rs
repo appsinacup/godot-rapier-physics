@@ -63,7 +63,8 @@ macro_rules! make_rapier_server_godot_impl {
                 }
                 use $crate::shapes::rapier_shape::IRapierShape;
                 if let Some(shape) = physics_data.shapes.get(&physics_object) {
-                    return shape.get_base().export_json();
+                    //return shape.get_base().export_json();
+                    return shape.get_base().export_json(&mut physics_data.physics_engine);
                 }
                 use $crate::joints::rapier_joint::IRapierJoint;
                 if let Some(joint) = physics_data.joints.get(&physics_object) {

@@ -1,5 +1,7 @@
 use bodies::rapier_collision_object_base::CollisionObjectShape;
 use bodies::rapier_collision_object_base::RapierCollisionObjectBase;
+use bodies::exportable_object::ExportableObject;
+use crate::bodies::exportable_object::ObjectExportState;
 use godot::prelude::*;
 use rapier::geometry::ColliderHandle;
 use servers::rapier_physics_singleton::PhysicsIds;
@@ -7,11 +9,14 @@ use servers::rapier_physics_singleton::PhysicsShapes;
 use servers::rapier_physics_singleton::PhysicsSpaces;
 use servers::rapier_physics_singleton::RapierId;
 
+use super::rapier_area::AreaExport;
 use super::rapier_area::RapierArea;
+use super::rapier_body::BodyExport;
 use super::rapier_body::RapierBody;
 use crate::rapier_wrapper::prelude::*;
 use crate::types::*;
 use crate::*;
+
 pub trait IRapierCollisionObject: Sync {
     fn get_base(&self) -> &RapierCollisionObjectBase;
     fn get_mut_base(&mut self) -> &mut RapierCollisionObjectBase;

@@ -1,21 +1,18 @@
 use godot::{prelude::*, classes::{CollisionObject2D, CollisionObject3D, Joint2D, Joint3D, Marshalls, Json}};
 use hashbrown::HashMap;
 
-use crate::{servers::{RapierPhysicsServer, rapier_physics_singleton::physics_data, rapier_physics_server_2d::RapierPhysicsServer2D}, types::{PhysicsServer, SerializationFormat, bin_to_packed_byte_array}, bodies::rapier_collision_object::{RapierCollisionObject, IRapierCollisionObject}};
+use crate::{servers::{RapierPhysicsServer, rapier_physics_singleton::physics_data, rapier_physics_server_2d::RapierPhysicsServer2D}, types::{PhysicsServer, SerializationFormat, bin_to_packed_byte_array}, bodies::{rapier_collision_object::{RapierCollisionObject, IRapierCollisionObject}, rapier_area::RapierAreaState, exportable_object::{ExportableObject, ObjectExportState}}, spaces::rapier_space::SpaceExport, shapes::rapier_shape_base::ShapeExport};
 
-enum StateData {
-    Binary(Vec<u8>),
+// enum RapierStateData {
+//     A
+// }
+
+enum StateData<'a> {
+    RawState(ObjectExportState<'a>),
     Variant(Variant),
 }
 
-impl StateData {
-    fn as_var(&self) -> &Variant {
-        match self {
-            StateData::Variant(v) => v,
-            _ => panic!("called as_var() on non-Variant StateData"),
-        }
-    }
-
+impl StateData<'_> {
     fn into_variant(self) -> Variant {
         match self {
             StateData::Variant(v) => v,
@@ -23,32 +20,25 @@ impl StateData {
         }
     }
 
-    fn as_bin(&self) -> &Vec<u8> {
+    fn get_raw_state<'a>(&'a self) -> &ObjectExportState<'a> {
         match self {
-            StateData::Binary(b) => b,
-            _ => panic!("called as_bin() on non-binary StateData"),
-        }
-    }
-
-    fn into_binary(self) -> Vec<u8> {
-        match self {
-            StateData::Binary(b) => b,
-            _ => panic!("called into_binary() on non-binary StateData"),
+            StateData::RawState(r) => r,
+            _ => panic!("called into_raw_state() on non-rust StateData"),
         }
     }
 }
 
-struct CollatedObjectState {
+struct CollatedObjectState<'a> {
     node_path: String,
-    self_state: StateData,
-    shape_owner_states: Vec<(i32, Vec<StateData>)>,
+    self_state: StateData<'a>,
+    shape_owner_states: Vec<(i32, Vec<StateData<'a>>)>,
 }
 
-impl CollatedObjectState {
-    fn new(data: StateData) -> Self {
+impl CollatedObjectState<'_> {
+    fn new() -> Self {
         Self{
             node_path: String::new(),
-            self_state: data,
+            self_state: StateData::Variant(Variant::nil()),
             shape_owner_states: Vec::new(),
         }
     }
@@ -56,24 +46,24 @@ impl CollatedObjectState {
 
 #[cfg_attr(
     feature = "serde-serialize",
-    derive(serde::Serialize, serde::Deserialize)
+    derive(serde::Serialize)
 )]
-struct BinaryPhysObjState {
-    state: Vec<u8>,
-    shapes: HashMap<i32, Vec<Vec<u8>>>,
+struct BinaryPhysObjState<'a> {
+    state: ObjectExportState<'a>,
+    shapes: HashMap<i32, ObjectExportState<'a>>,
 }
 
 #[cfg_attr(
     feature = "serde-serialize",
-    derive(serde::Serialize, serde::Deserialize)
+    derive(serde::Serialize)
 )]
-struct BinaryState {
-    space: Vec<u8>,
+struct BinaryState<'a> {
+    space: SpaceExport,
     physics_server_id: i64,
-    physics_objects_state: HashMap<String, BinaryPhysObjState>
+    physics_objects_state: HashMap<String, BinaryPhysObjState<'a>>
 }
 
-impl BinaryState {
+impl BinaryState<'_> {
     fn new() -> Self {
         Self{
             space: Vec::new(),
@@ -95,6 +85,42 @@ fn serde_json_string_to_variant(json_string: String) -> Option<Variant> {
     }
 
     return Some(parsed.get_data()) 
+}
+
+// Grabs the state for a physics object; the object has to implement ExportableObject.
+pub fn get_state_for_export<'a>(physics_object: Rid) -> Option<ObjectExportState<'a>> {
+    let physics_data = physics_data();
+    if let Some(collision_object) = physics_data.collision_objects.get(&physics_object) 
+    {
+        match collision_object {
+            RapierCollisionObject::RapierArea(area) => {
+                return Some(ObjectExportState::RapierArea(
+                    area.get_export_state(&mut physics_data.physics_engine)?,
+                ));
+            }
+            RapierCollisionObject::RapierBody(body) => {
+                return Some(ObjectExportState::RapierBody(
+                    body.get_export_state(&mut physics_data.physics_engine)?,
+                ));
+            }
+        }
+    }
+    use crate::shapes::rapier_shape::IRapierShape;
+    if let Some(shape) = physics_data.shapes.get(&physics_object) {
+        return Some(ObjectExportState::RapierShapeBase(
+            shape.get_base().get_export_state(&mut physics_data.physics_engine)?,
+        ));
+    }
+    use crate::joints::rapier_joint::IRapierJoint;
+    if let Some(joint) = physics_data.joints.get(&physics_object) {
+        return Some(ObjectExportState::RapierJointBase(
+            joint.get_base().get_export_state(&mut physics_data.physics_engine)?,
+        ));
+    }
+    // if let Some(space) = physics_data.spaces.get(&physics_object) {
+    //     return space.export_json(&mut physics_data.physics_engine);
+    // }
+    None
 }
 
 #[derive(GodotClass)]
@@ -160,12 +186,7 @@ impl StateManager {
                 let full_path_string = root_nodepath.to_string() + "/" + &nodepath_str;
                 let nodepath = NodePath::from(&full_path_string);
                 if let Some(node) = self.base().try_get_node_as::<Node>(&nodepath) {
-                    let mut collated_state = {
-                        match format {
-                            SerializationFormat::None | SerializationFormat::GodotBase64 => CollatedObjectState::new(StateData::Variant(Variant::nil())),
-                            SerializationFormat::RustBincode => CollatedObjectState::new(StateData::Binary(Vec::new())),
-                        }
-                    };
+                    let mut collated_state = CollatedObjectState::new();
                     collated_state.node_path = nodepath_str;
                     
                     // Messy tree here, unfortunately, to decipher the type of the node.
@@ -328,17 +349,23 @@ impl StateManager {
                 }                
                 SerializationFormat::RustBincode => {
                     let mut bin_state = BinaryState::new();
-                    bin_state.space = encoded_space.into_binary();
+                    bin_state.space = encoded_space.get_raw_state();
                     bin_state.physics_server_id = physics_server_index;
                     
                     let mut physics_objects_map: HashMap<String, BinaryPhysObjState> = HashMap::new();
 
                     for object_state in object_states {
-                        let mut composed_shape_owners_states: HashMap<i32, Vec<Vec<u8>>> = HashMap::new();
+                        let mut composed_shape_owners_states: HashMap<i32, Vec<ShapeExport>> = HashMap::new();
                         for (shape_owner_id, shape_states) in object_state.shape_owner_states {
-                            let mut composed_shape_states: Vec<Vec<u8>> = Vec::new();
+                            let mut composed_shape_states: Vec<ShapeExport> = Vec::new();
                             for shape_state in shape_states {
-                                composed_shape_states.push(shape_state.into_binary());
+                                let raw_state: ShapeExport = &shape_state.get_raw_state();
+
+
+                                if let Some(raw_shape_state) = ObjectExportState::RapierShapeBase(raw_state) {
+
+                                }
+                                composed_shape_states.push(shape_state.get_raw_state());
                             }
                             composed_shape_owners_states.insert(shape_owner_id, composed_shape_states);
                         }
