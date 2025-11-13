@@ -10,7 +10,7 @@ extends StaticBody2D
 			set_body_skin(value)
 
 func _ready() -> void:
-	RapierPhysicsServer2D.body_set_extra_param(get_rid(), RapierPhysicsServer2D.CONTACT_SKIN, body_skin)
+	set_body_skin(body_skin)
 
 func set_body_skin(value: float) -> void:
 	RapierPhysicsServer2D.body_set_extra_param(get_rid(), RapierPhysicsServer2D.CONTACT_SKIN, value)

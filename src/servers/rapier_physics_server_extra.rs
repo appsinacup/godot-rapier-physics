@@ -23,6 +23,8 @@ macro_rules! make_rapier_server_godot_impl {
         use godot::global::rid_from_int64;
         use $crate::bodies::rapier_collision_object::IRapierCollisionObject;
         use $crate::fluids::rapier_fluid::RapierFluid;
+        use $crate::joints::rapier_joint::IRapierJoint;
+        use $crate::joints::rapier_joint_base::RapierJointType;
         use $crate::servers::RapierPhysicsServer;
         use $crate::servers::rapier_physics_server_extra::RapierBodyParam;
         #[godot_api]
@@ -31,6 +33,8 @@ macro_rules! make_rapier_server_godot_impl {
             pub const CONTACT_SKIN: i32 = 0;
             #[constant]
             pub const DOMINANCE: i32 = 1;
+            #[constant]
+            pub const JOINT_TYPE: i32 = 0;
             #[constant]
             pub const SOFT_CCD: i32 = 2;
 
@@ -65,6 +69,35 @@ macro_rules! make_rapier_server_godot_impl {
                     }
                 }
                 0.0.to_variant()
+            }
+
+            #[func]
+            /// Set an extra parameter for a joint.
+            /// If [param param] is [member JOINT_TYPE] (0), sets if multibody or not.
+            pub fn joint_set_extra_param(_joint: Rid, param: i32, _value: Variant) {
+                if param == Self::JOINT_TYPE {
+                    // TODO: Implement joint type change logic
+                    // For now, this is a placeholder
+                    godot_warn!("joint_set_extra_param for JOINT_TYPE not fully implemented yet");
+                }
+            }
+
+            #[func]
+            /// Get an extra parameter for a joint.
+            /// If [param param] is [member JOINT_TYPE] (0), gets if the joint is multibody or not.
+            pub fn joint_get_extra_param(joint: Rid, param: i32) -> Variant {
+                if param == Self::JOINT_TYPE {
+                    let physics_data = physics_data();
+                    if let Some(joint) = physics_data.joints.get(&joint) {
+                        // Return 0 for Impulse, 1 for MultiBody
+                        let joint_type = joint.get_base().get_joint_type();
+                        return match joint_type {
+                            RapierJointType::Impulse => 0.to_variant(),
+                            RapierJointType::MultiBody => 1.to_variant(),
+                        };
+                    }
+                }
+                0.to_variant()
             }
 
             #[cfg(feature = "serde-serialize")]

@@ -26,9 +26,9 @@ extends RigidBody2D
 			set_soft_ccd(value)
 
 func _ready() -> void:
-	RapierPhysicsServer2D.body_set_extra_param(get_rid(), RapierPhysicsServer2D.CONTACT_SKIN, body_skin)
-	RapierPhysicsServer2D.body_set_extra_param(get_rid(), RapierPhysicsServer2D.DOMINANCE, dominance)
-	RapierPhysicsServer2D.body_set_extra_param(get_rid(), RapierPhysicsServer2D.SOFT_CCD, soft_ccd)
+	set_body_skin(body_skin)
+	set_dominance(dominance)
+	set_soft_ccd(soft_ccd)
 
 func set_body_skin(value: float) -> void:
 	RapierPhysicsServer2D.body_set_extra_param(get_rid(), RapierPhysicsServer2D.CONTACT_SKIN, value)
