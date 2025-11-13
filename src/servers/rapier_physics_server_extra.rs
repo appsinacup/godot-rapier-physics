@@ -1,3 +1,6 @@
+use godot::prelude::*;
+#[derive(GodotConvert, Var, Export, Debug, Clone, Copy, PartialEq)]
+#[godot(via = i32)]
 pub enum RapierBodyParam {
     ContactSkin,
     Dominance,
@@ -24,11 +27,18 @@ macro_rules! make_rapier_server_godot_impl {
         use $crate::servers::rapier_physics_server_extra::RapierBodyParam;
         #[godot_api]
         impl $class {
+            #[constant]
+            const CONTACT_SKIN: i32 = 0;
+            #[constant]
+            const DOMINANCE: i32 = 1;
+            #[constant]
+            const SOFT_CCD: i32 = 2;
+
             #[func]
             /// Set an extra parameter for a body.
-            /// If [param param] is [code]0[/code], sets the body's contact skin value.
-            /// If [param param] is [code]1[/code], sets the body's dominance value.
-            /// If [param param] is [code]2[/code], sets the body's soft_ccd value.
+            /// If [param param] is [member CONTACT_SKIN] (0), sets the body's contact skin value.
+            /// If [param param] is [member DOMINANCE] (1), sets the body's dominance value.
+            /// If [param param] is [member SOFT_CCD] (2), sets the body's soft_ccd value.
             fn body_set_extra_param(body: Rid, param: i32, value: Variant) {
                 let physics_data = physics_data();
                 if let Some(body) = physics_data.collision_objects.get_mut(&body) {
@@ -44,9 +54,9 @@ macro_rules! make_rapier_server_godot_impl {
 
             #[func]
             /// Get an extra parameter for a body.
-            /// If [param param] is [code]0[/code], gets the body's contact skin value.
-            /// If [param param] is [code]1[/code], gets the body's dominance value.
-            /// If [param param] is [code]2[/code], gets the body's soft_ccd value.
+            /// If [param param] is [member CONTACT_SKIN] (0), gets the body's contact skin value.
+            /// If [param param] is [member DOMINANCE] (1), gets the body's dominance value.
+            /// If [param param] is [member SOFT_CCD] (2), gets the body's soft_ccd value.
             fn body_get_extra_param(body: Rid, param: i32) -> Variant {
                 let physics_data = physics_data();
                 if let Some(body) = physics_data.collision_objects.get(&body) {

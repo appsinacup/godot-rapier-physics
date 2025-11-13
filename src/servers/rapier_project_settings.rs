@@ -28,7 +28,6 @@ const CONTACT_NATURAL_FREQUENCY: &str = "physics/rapier/solver/contact_natural_f
 // Stability preset constants
 const STABILITY_PGS_ITERATIONS: i64 = 4;
 const STABILITY_STABILIZATION_ITERATIONS: i64 = 4;
-const STABILITY_CCD_SUBSTEPS: i64 = 4;
 const STABILITY_DAMPING_RATIO: f64 = 20.0;
 const STABILITY_NATURAL_FREQUENCY: f64 = 50.0;
 #[cfg(feature = "dim2")]
@@ -287,13 +286,11 @@ impl RapierProjectSettings {
         let pgs = RapierProjectSettings::get_setting_int(SOLVER_NUM_INTERNAL_PGS_ITERATIONS);
         let stab =
             RapierProjectSettings::get_setting_int(SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS);
-        let ccd = RapierProjectSettings::get_setting_int(SOLVER_MAX_CCD_SUBSTEPS);
         let damping = RapierProjectSettings::get_setting_double(CONTACT_DAMPING_RATIO);
         let freq = RapierProjectSettings::get_setting_double(CONTACT_NATURAL_FREQUENCY);
         // Check if matches Stability preset
         if pgs == STABILITY_PGS_ITERATIONS
             && stab == STABILITY_STABILIZATION_ITERATIONS
-            && ccd == STABILITY_CCD_SUBSTEPS
             && (damping - STABILITY_DAMPING_RATIO).abs() < 0.001
             && (freq - STABILITY_NATURAL_FREQUENCY).abs() < 0.001
         {
@@ -303,7 +300,6 @@ impl RapierProjectSettings {
         let integration_parameters = IntegrationParameters::default();
         if pgs == integration_parameters.num_internal_pgs_iterations as i64
             && stab == integration_parameters.num_internal_stabilization_iterations as i64
-            && ccd == integration_parameters.max_ccd_substeps as i64
             && (damping - integration_parameters.contact_damping_ratio as f64).abs() < 0.001
             && (freq - integration_parameters.contact_natural_frequency as f64).abs() < 0.001
         {
@@ -333,10 +329,6 @@ impl RapierProjectSettings {
                     &Variant::from(STABILITY_STABILIZATION_ITERATIONS as i32),
                 );
                 project_settings.set(
-                    SOLVER_MAX_CCD_SUBSTEPS,
-                    &Variant::from(STABILITY_CCD_SUBSTEPS as i32),
-                );
-                project_settings.set(
                     CONTACT_DAMPING_RATIO,
                     &Variant::from(STABILITY_DAMPING_RATIO),
                 );
@@ -357,10 +349,6 @@ impl RapierProjectSettings {
                     &Variant::from(
                         integration_parameters.num_internal_stabilization_iterations as i32,
                     ),
-                );
-                project_settings.set(
-                    SOLVER_MAX_CCD_SUBSTEPS,
-                    &Variant::from(integration_parameters.max_ccd_substeps as i32),
                 );
                 project_settings.set(
                     CONTACT_DAMPING_RATIO,
