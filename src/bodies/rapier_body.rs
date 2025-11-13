@@ -151,6 +151,7 @@ pub struct RapierBody {
     using_area_angular_damping: bool,
     exceptions: HashSet<Rid>,
     ccd_enabled: bool,
+    soft_ccd_prediction: real,
     omit_force_integration: bool,
     can_sleep: bool,
     sleep: bool,
@@ -187,6 +188,7 @@ impl RapierBody {
             using_area_angular_damping: false,
             exceptions: HashSet::default(),
             ccd_enabled: false,
+            soft_ccd_prediction: 0.0,
             omit_force_integration: false,
             can_sleep: true,
             sleep: false,
@@ -1554,6 +1556,20 @@ impl RapierBody {
                     physics_engine.body_update_material(space_handle, body_handle, &mat);
                 }
             }
+            RapierBodyParam::SoftCcd => {
+                if p_value.get_type() != VariantType::FLOAT
+                    && p_value.get_type() != VariantType::INT
+                {
+                    return;
+                }
+                self.soft_ccd_prediction = variant_to_float(&p_value);
+                let mat = self.init_material();
+                let body_handle = self.base.get_body_handle();
+                let space_handle = self.base.get_space_id();
+                if self.base.is_valid() {
+                    physics_engine.body_update_material(space_handle, body_handle, &mat);
+                }
+            }
         }
     }
 
@@ -1561,6 +1577,7 @@ impl RapierBody {
         match p_param {
             RapierBodyParam::ContactSkin => self.contact_skin.to_variant(),
             RapierBodyParam::Dominance => self.base.get_dominance().to_variant(),
+            RapierBodyParam::SoftCcd => self.soft_ccd_prediction.to_variant(),
         }
     }
 
@@ -2324,12 +2341,13 @@ impl IRapierCollisionObject for RapierBody {
 
     fn init_material(&self) -> Material {
         Material {
-            friction: Some(self.friction),
-            restitution: Some(self.bounce),
-            contact_skin: Some(self.contact_skin),
-            collision_layer: Some(self.base.get_collision_layer()),
-            collision_mask: Some(self.base.get_collision_mask()),
-            dominance: Some(self.base.get_dominance()),
+            friction: self.friction,
+            restitution: self.bounce,
+            contact_skin: self.contact_skin,
+            collision_layer: self.base.get_collision_layer(),
+            collision_mask: self.base.get_collision_mask(),
+            dominance: self.base.get_dominance(),
+            soft_ccd: self.soft_ccd_prediction,
         }
     }
 

@@ -403,7 +403,7 @@ dependencies = [
 
 [[package]]
 name = "godot-rapier"
-version = "0.8.22"
+version = "0.8.23"
 dependencies = [
  "bincode",
  "godot",

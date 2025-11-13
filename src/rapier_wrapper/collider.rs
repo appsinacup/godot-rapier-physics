@@ -187,22 +187,24 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
 }
 #[derive(Debug, Clone)]
 pub struct Material {
-    pub friction: Option<Real>,
-    pub restitution: Option<Real>,
-    pub contact_skin: Option<Real>,
-    pub collision_mask: Option<u32>,
-    pub collision_layer: Option<u32>,
-    pub dominance: Option<i8>,
+    pub friction: Real,
+    pub restitution: Real,
+    pub contact_skin: Real,
+    pub collision_mask: u32,
+    pub collision_layer: u32,
+    pub dominance: i8,
+    pub soft_ccd: Real,
 }
 impl Material {
     pub fn new(collision_layer: u32, collision_mask: u32, dominance: i8) -> Material {
         Material {
-            friction: None,
-            restitution: None,
-            contact_skin: None,
-            collision_layer: Some(collision_layer),
-            collision_mask: Some(collision_mask),
-            dominance: Some(dominance),
+            friction: 1.0,
+            restitution: 0.0,
+            contact_skin: 0.0,
+            collision_layer,
+            collision_mask,
+            dominance,
+            soft_ccd: 0.0,
         }
     }
 }
@@ -277,31 +279,21 @@ impl PhysicsEngine {
                 .contact_force_event_threshold(-Real::MAX)
                 .density(0.0)
                 .build();
-            if let Some(friction) = mat.friction {
-                collider.set_friction(friction);
-            }
-            if let Some(restitution) = mat.restitution {
-                collider.set_restitution(restitution);
-            }
+            collider.set_friction(mat.friction);
+            collider.set_restitution(mat.restitution);
             collider.set_friction_combine_rule(CoefficientCombineRule::Min);
             collider.set_restitution_combine_rule(CoefficientCombineRule::ClampedSum);
-            if let Some(collision_mask) = mat.collision_mask
-                && let Some(collision_layer) = mat.collision_layer
-            {
-                collider.set_collision_groups(InteractionGroups {
-                    memberships: Group::from(collision_layer),
-                    filter: Group::from(collision_mask),
-                    test_mode: InteractionTestMode::Or,
-                });
-            }
+            collider.set_collision_groups(InteractionGroups {
+                memberships: Group::from(mat.collision_layer),
+                filter: Group::from(mat.collision_mask),
+                test_mode: InteractionTestMode::Or,
+            });
             collider.set_solver_groups(InteractionGroups {
                 memberships: Group::GROUP_1,
                 filter: Group::GROUP_1,
                 test_mode: InteractionTestMode::Or,
             });
-            if let Some(contact_skin) = mat.contact_skin {
-                collider.set_contact_skin(contact_skin);
-            }
+            collider.set_contact_skin(mat.contact_skin);
             collider.set_contact_force_event_threshold(-Real::MAX);
             collider.user_data = user_data.get_data();
             if let Some(physics_world) = self.get_mut_world(world_handle) {
@@ -309,8 +301,8 @@ impl PhysicsEngine {
                 // register fluid coupling. Dynamic coupling doens't work for halfspace
                 if !is_shape_halfspace {
                     let interaction_groups = salva::object::interaction_groups::InteractionGroups {
-                        memberships: mat.collision_layer.unwrap_or(1).into(),
-                        filter: mat.collision_mask.unwrap_or(1).into(),
+                        memberships: mat.collision_layer.into(),
+                        filter: mat.collision_mask.into(),
                     };
                     let boundary_handle = physics_world
                         .fluids_pipeline
@@ -356,15 +348,11 @@ impl PhysicsEngine {
             let mut collider = ColliderBuilder::new(shape.clone()).build();
             collider.set_sensor(true);
             collider.set_active_events(ActiveEvents::COLLISION_EVENTS);
-            if let Some(collision_mask) = mat.collision_mask
-                && let Some(collision_layer) = mat.collision_layer
-            {
-                collider.set_collision_groups(InteractionGroups {
-                    memberships: Group::from(collision_layer),
-                    filter: Group::from(collision_mask),
-                    test_mode: InteractionTestMode::Or,
-                });
-            }
+            collider.set_collision_groups(InteractionGroups {
+                memberships: Group::from(mat.collision_layer),
+                filter: Group::from(mat.collision_mask),
+                test_mode: InteractionTestMode::Or,
+            });
             collider.set_solver_groups(InteractionGroups {
                 memberships: Group::GROUP_1,
                 filter: Group::GROUP_1,

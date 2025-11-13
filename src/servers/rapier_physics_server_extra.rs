@@ -1,12 +1,17 @@
+use godot::prelude::*;
+#[derive(GodotConvert, Var, Export, Debug, Clone, Copy, PartialEq)]
+#[godot(via = i32)]
 pub enum RapierBodyParam {
     ContactSkin,
     Dominance,
+    SoftCcd,
 }
 impl RapierBodyParam {
     pub fn from_i32(value: i32) -> RapierBodyParam {
         match value {
             0 => RapierBodyParam::ContactSkin,
             1 => RapierBodyParam::Dominance,
+            2 => RapierBodyParam::SoftCcd,
             _ => RapierBodyParam::ContactSkin,
         }
     }
@@ -18,15 +23,27 @@ macro_rules! make_rapier_server_godot_impl {
         use godot::global::rid_from_int64;
         use $crate::bodies::rapier_collision_object::IRapierCollisionObject;
         use $crate::fluids::rapier_fluid::RapierFluid;
+        use $crate::joints::rapier_joint::IRapierJoint;
+        use $crate::joints::rapier_joint_base::RapierJointType;
         use $crate::servers::RapierPhysicsServer;
         use $crate::servers::rapier_physics_server_extra::RapierBodyParam;
         #[godot_api]
         impl $class {
+            #[constant]
+            pub const CONTACT_SKIN: i32 = 0;
+            #[constant]
+            pub const DOMINANCE: i32 = 1;
+            #[constant]
+            pub const JOINT_TYPE: i32 = 0;
+            #[constant]
+            pub const SOFT_CCD: i32 = 2;
+
             #[func]
             /// Set an extra parameter for a body.
-            /// If [param param] is [code]0[/code], sets the body's contact skin value.
-            /// If [param param] is [code]1[/code], sets the body's dominance value.
-            fn body_set_extra_param(body: Rid, param: i32, value: Variant) {
+            /// If [param param] is [member CONTACT_SKIN] (0), sets the body's contact skin value.
+            /// If [param param] is [member DOMINANCE] (1), sets the body's dominance value.
+            /// If [param param] is [member SOFT_CCD] (2), sets the body's soft_ccd value.
+            pub fn body_set_extra_param(body: Rid, param: i32, value: Variant) {
                 let physics_data = physics_data();
                 if let Some(body) = physics_data.collision_objects.get_mut(&body) {
                     if let Some(body) = body.get_mut_body() {
@@ -41,9 +58,10 @@ macro_rules! make_rapier_server_godot_impl {
 
             #[func]
             /// Get an extra parameter for a body.
-            /// If [param param] is [code]0[/code], gets the body's contact skin value.
-            /// If [param param] is [code]1[/code], gets the body's dominance value.
-            fn body_get_extra_param(body: Rid, param: i32) -> Variant {
+            /// If [param param] is [member CONTACT_SKIN] (0), gets the body's contact skin value.
+            /// If [param param] is [member DOMINANCE] (1), gets the body's dominance value.
+            /// If [param param] is [member SOFT_CCD] (2), gets the body's soft_ccd value.
+            pub fn body_get_extra_param(body: Rid, param: i32) -> Variant {
                 let physics_data = physics_data();
                 if let Some(body) = physics_data.collision_objects.get(&body) {
                     if let Some(body) = body.get_body() {
@@ -51,6 +69,35 @@ macro_rules! make_rapier_server_godot_impl {
                     }
                 }
                 0.0.to_variant()
+            }
+
+            #[func]
+            /// Set an extra parameter for a joint.
+            /// If [param param] is [member JOINT_TYPE] (0), sets if multibody or not.
+            pub fn joint_set_extra_param(_joint: Rid, param: i32, _value: Variant) {
+                if param == Self::JOINT_TYPE {
+                    // TODO: Implement joint type change logic
+                    // For now, this is a placeholder
+                    godot_warn!("joint_set_extra_param for JOINT_TYPE not fully implemented yet");
+                }
+            }
+
+            #[func]
+            /// Get an extra parameter for a joint.
+            /// If [param param] is [member JOINT_TYPE] (0), gets if the joint is multibody or not.
+            pub fn joint_get_extra_param(joint: Rid, param: i32) -> Variant {
+                if param == Self::JOINT_TYPE {
+                    let physics_data = physics_data();
+                    if let Some(joint) = physics_data.joints.get(&joint) {
+                        // Return 0 for Impulse, 1 for MultiBody
+                        let joint_type = joint.get_base().get_joint_type();
+                        return match joint_type {
+                            RapierJointType::Impulse => 0.to_variant(),
+                            RapierJointType::MultiBody => 1.to_variant(),
+                        };
+                    }
+                }
+                0.to_variant()
             }
 
             #[cfg(feature = "serde-serialize")]
