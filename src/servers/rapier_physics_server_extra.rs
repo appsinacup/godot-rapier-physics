@@ -1,12 +1,14 @@
 pub enum RapierBodyParam {
     ContactSkin,
     Dominance,
+    SoftCcd,
 }
 impl RapierBodyParam {
     pub fn from_i32(value: i32) -> RapierBodyParam {
         match value {
             0 => RapierBodyParam::ContactSkin,
             1 => RapierBodyParam::Dominance,
+            2 => RapierBodyParam::SoftCcd,
             _ => RapierBodyParam::ContactSkin,
         }
     }
@@ -26,6 +28,7 @@ macro_rules! make_rapier_server_godot_impl {
             /// Set an extra parameter for a body.
             /// If [param param] is [code]0[/code], sets the body's contact skin value.
             /// If [param param] is [code]1[/code], sets the body's dominance value.
+            /// If [param param] is [code]2[/code], sets the body's soft_ccd value.
             fn body_set_extra_param(body: Rid, param: i32, value: Variant) {
                 let physics_data = physics_data();
                 if let Some(body) = physics_data.collision_objects.get_mut(&body) {
@@ -43,6 +46,7 @@ macro_rules! make_rapier_server_godot_impl {
             /// Get an extra parameter for a body.
             /// If [param param] is [code]0[/code], gets the body's contact skin value.
             /// If [param param] is [code]1[/code], gets the body's dominance value.
+            /// If [param param] is [code]2[/code], gets the body's soft_ccd value.
             fn body_get_extra_param(body: Rid, param: i32) -> Variant {
                 let physics_data = physics_data();
                 if let Some(body) = physics_data.collision_objects.get(&body) {

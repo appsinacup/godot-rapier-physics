@@ -266,12 +266,8 @@ impl PhysicsEngine {
                     .collider_set
                     .get_mut(*collider)
                 {
-                    if let Some(friction) = mat.friction {
-                        col.set_friction(friction);
-                    }
-                    if let Some(restitution) = mat.restitution {
-                        col.set_restitution(restitution);
-                    }
+                    col.set_friction(mat.friction);
+                    col.set_restitution(mat.restitution);
                     if let Some(coupling_boundary_entry) =
                         physics_world.fluids_pipeline.coupling.entries.get(collider)
                         && let Some(coupling_boundary) = physics_world
@@ -282,27 +278,20 @@ impl PhysicsEngine {
                     {
                         coupling_boundary.interaction_groups =
                             salva::object::interaction_groups::InteractionGroups {
-                                memberships: mat.collision_layer.unwrap_or(1).into(),
-                                filter: mat.collision_mask.unwrap_or(1).into(),
+                                memberships: mat.collision_layer.into(),
+                                filter: mat.collision_mask.into(),
                             };
                     }
-                    if let Some(contact_skin) = mat.contact_skin {
-                        col.set_contact_skin(contact_skin);
-                    }
-                    if let Some(collision_mask) = mat.collision_mask
-                        && let Some(collision_layer) = mat.collision_layer
-                    {
-                        col.set_collision_groups(InteractionGroups {
-                            memberships: Group::from(collision_layer),
-                            filter: Group::from(collision_mask),
-                            test_mode: InteractionTestMode::Or,
-                        });
-                    }
+                    col.set_contact_skin(mat.contact_skin);
+                    col.set_collision_groups(InteractionGroups {
+                        memberships: Group::from(mat.collision_layer),
+                        filter: Group::from(mat.collision_mask),
+                        test_mode: InteractionTestMode::Or,
+                    });
                 }
             }
-            if let Some(dominance) = mat.dominance {
-                body.set_dominance_group(dominance);
-            }
+            body.set_soft_ccd_prediction(mat.soft_ccd);
+            body.set_dominance_group(mat.dominance);
             body.wake_up(true);
         }
         self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
