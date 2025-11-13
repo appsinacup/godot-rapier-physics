@@ -45,7 +45,7 @@ fn print_version() {
         );
     } else {
         godot_print_rich!(
-            "[color=green]PHYSICS ENGINE 2D: {} v0.8.22[/color]",
+            "[color=green]PHYSICS ENGINE 2D: {} v0.8.23[/color]",
             physics_engine
         );
     }
@@ -64,7 +64,7 @@ fn print_version() {
         );
     } else {
         godot_print_rich!(
-            "[color=green]PHYSICS ENGINE 3D: {} v0.8.22[/color]",
+            "[color=green]PHYSICS ENGINE 3D: {} v0.8.23[/color]",
             physics_engine
         );
     }

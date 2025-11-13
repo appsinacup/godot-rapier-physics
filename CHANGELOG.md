@@ -1,5 +1,7 @@
 # Changelog
 
+## v0.8.23
+
 ## v0.8.22 - Nov 12
 
 ## What's Changed
