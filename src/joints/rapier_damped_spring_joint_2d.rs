@@ -2,6 +2,7 @@ use godot::classes::*;
 use godot::prelude::*;
 
 use super::rapier_joint_base::RapierJointBase;
+use super::rapier_joint_base::RapierJointType;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::bodies::rapier_collision_object::RapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
@@ -15,6 +16,7 @@ pub struct RapierDampedSpringJoint2D {
     base: RapierJointBase,
 }
 impl RapierDampedSpringJoint2D {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         id: RapierId,
         rid: Rid,
@@ -23,6 +25,7 @@ impl RapierDampedSpringJoint2D {
         body_a: &RapierCollisionObject,
         body_b: &RapierCollisionObject,
         physics_engine: &mut PhysicsEngine,
+        joint_type: RapierJointType,
     ) -> Self {
         let invalid_joint = Self {
             rest_length: 0.0,
@@ -58,7 +61,7 @@ impl RapierDampedSpringJoint2D {
             20.0,
             1.0,
             rest_length,
-            false,
+            matches!(joint_type, RapierJointType::MultiBody),
             false,
             true,
         );
@@ -66,7 +69,7 @@ impl RapierDampedSpringJoint2D {
             rest_length,
             stiffness: 20.0,
             damping: 1.0,
-            base: RapierJointBase::new(id, rid, space_id, space_handle, handle),
+            base: RapierJointBase::new(id, rid, space_id, space_handle, handle, joint_type),
         }
     }
 
