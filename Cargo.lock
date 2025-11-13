@@ -1162,7 +1162,6 @@ dependencies = [
  "bitflags",
  "fnv",
  "generational-arena",
- "instant",
  "itertools 0.14.0",
  "nalgebra 0.34.1",
  "num-traits",

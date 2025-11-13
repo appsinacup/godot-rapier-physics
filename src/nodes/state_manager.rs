@@ -1,7 +1,9 @@
 use godot::{prelude::*, classes::{CollisionObject2D, CollisionObject3D, Joint2D, Joint3D, Marshalls, Json}};
 use hashbrown::HashMap;
 
-use crate::{servers::{RapierPhysicsServer, rapier_physics_singleton::physics_data, rapier_physics_server_2d::RapierPhysicsServer2D}, types::{PhysicsServer, SerializationFormat, bin_to_packed_byte_array}, bodies::{rapier_collision_object::{RapierCollisionObject, IRapierCollisionObject}, rapier_area::RapierAreaState, exportable_object::{ExportableObject, ObjectExportState}}, spaces::rapier_space::SpaceExport, shapes::rapier_shape_base::ShapeExport};
+use crate::{servers::{RapierPhysicsServer, rapier_physics_singleton::physics_data, rapier_physics_server_2d::RapierPhysicsServer2D}, 
+types::{PhysicsServer, SerializationFormat, bin_to_packed_byte_array}, bodies::{rapier_collision_object::{RapierCollisionObject, IRapierCollisionObject}, 
+rapier_area::RapierAreaState, exportable_object::{ExportableObject, ObjectExportState}}, spaces::rapier_space::SpaceExport, shapes::rapier_shape_base::ShapeExport};
 
 // enum RapierStateData {
 //     A
@@ -12,7 +14,7 @@ enum StateData<'a> {
     Variant(Variant),
 }
 
-impl StateData<'_> {
+impl<'a> StateData<'a> {
     fn into_variant(self) -> Variant {
         match self {
             StateData::Variant(v) => v,
@@ -20,7 +22,7 @@ impl StateData<'_> {
         }
     }
 
-    fn get_raw_state<'a>(&'a self) -> &ObjectExportState<'a> {
+    fn take_raw_state(self) -> ObjectExportState<'a> {
         match self {
             StateData::RawState(r) => r,
             _ => panic!("called into_raw_state() on non-rust StateData"),
@@ -50,7 +52,7 @@ impl CollatedObjectState<'_> {
 )]
 struct BinaryPhysObjState<'a> {
     state: ObjectExportState<'a>,
-    shapes: HashMap<i32, ObjectExportState<'a>>,
+    shapes: HashMap<i32, Vec<ObjectExportState<'a>>>,
 }
 
 #[cfg_attr(
@@ -58,19 +60,32 @@ struct BinaryPhysObjState<'a> {
     derive(serde::Serialize)
 )]
 struct BinaryState<'a> {
-    space: SpaceExport,
+    space: SpaceExport<'a>,
     physics_server_id: i64,
     physics_objects_state: HashMap<String, BinaryPhysObjState<'a>>
 }
 
-impl BinaryState<'_> {
+#[derive(Clone)]
+pub struct PhysicsObjectRids {
+    node_path: String,
+    rid: Rid,
+    shape_owner_rids: Vec<ShapeOwnerRids>,
+}
+
+impl PhysicsObjectRids {
     fn new() -> Self {
-        Self{
-            space: Vec::new(),
-            physics_server_id: 0,
-            physics_objects_state: HashMap::new(),
+        Self {
+            node_path: String::new(),
+            rid: Rid::Invalid,
+            shape_owner_rids: Vec::new(),
         }
     }
+}
+
+#[derive(Clone)]
+pub struct ShapeOwnerRids {
+    owner_id: i32,
+    shape_rids: Vec<Rid>,
 }
 
 // To avoid mixing serialized and deserialized data in our state (which leads to double serialization during the final state serialization step), 
@@ -166,6 +181,8 @@ impl StateManager {
         return self.serialize_state(in_space, &format)
     }
 
+
+
     fn serialize_state(
         &mut self,
         in_space: Rid,
@@ -185,113 +202,100 @@ impl StateManager {
             for nodepath_str in physics_nodes {  
                 let full_path_string = root_nodepath.to_string() + "/" + &nodepath_str;
                 let nodepath = NodePath::from(&full_path_string);
-                if let Some(node) = self.base().try_get_node_as::<Node>(&nodepath) {
-                    let mut collated_state = CollatedObjectState::new();
-                    collated_state.node_path = nodepath_str;
+
+                let collated_state: CollatedObjectState = {
+                    let mut owned_states = CollatedObjectState::new();
                     
-                    // Messy tree here, unfortunately, to decipher the type of the node.
-                    match node.try_cast::<CollisionObject2D>(){
-                        Ok(mut co2d) => {
-                            let rid = co2d.get_rid();
-                            
-                            if !StateManager::check_space(
-                                rid,
-                                in_space,
-                                &physics_data.collision_objects,
-                                &physics_data.ids,
-                            ) { continue; }
+                    if let Some(mut co2d) = self.base().try_get_node_as::<CollisionObject2D>(&nodepath) {
+                        let this_rid = co2d.get_rid();
+                        if !StateManager::check_space(
+                            this_rid,
+                            in_space,
+                            &physics_data.collision_objects,
+                            &physics_data.ids,
+                        ) { continue; }
 
-                            collated_state.self_state = self.save_node(rid, format);
+                        owned_states.self_state = self.save_node(this_rid, format);
+                                                    
+                        let shape_owners: Vec<i32> = co2d.get_shape_owners().to_vec();
+                        for owner_shape_id in shape_owners.iter() {
+                            let mut this_owner_shapes: Vec<StateData> = Vec::new();
+                            let shape_count = co2d.shape_owner_get_shape_count(*owner_shape_id as u32);
+                            for i in 0..shape_count {
+                                if let Some(shape) = co2d.shape_owner_get_shape(*owner_shape_id as u32, i)
+                                {
+                                    this_owner_shapes.push(self.save_node(shape.get_rid(), format));
+                                }                            
+                            };
 
-                            // Each collision object gets its own dict. The dict is keyed by shape owner ID; each shape owner gets a vector, which contains its shape rids.
-                            let mut shape_owners_dict = Dictionary::new();
-                            let shape_owners: Vec<i32> = co2d.get_shape_owners().to_vec();
-                            for owner_shape_id in shape_owners.iter() {
-                                let mut this_owner_shapes: Vec<StateData> = Vec::new();
-                                let shape_count = co2d.shape_owner_get_shape_count(*owner_shape_id as u32);
-                                for i in 0..shape_count {
-                                    if let Some(shape) = co2d.shape_owner_get_shape(*owner_shape_id as u32, i)
-                                    {
-                                        let shape_rid = shape.get_rid();
-                                        this_owner_shapes.push(self.save_node(shape_rid, format));
-                                    }                            
-                                }
-                                
-                                collated_state.shape_owner_states.push((*owner_shape_id, this_owner_shapes));     
-                            }
-                        }
-                        Err(original) => {
-                            match original.try_cast::<CollisionObject3D>(){
-                                Ok(mut co3d) => {
-                                    let rid = co3d.get_rid();
+                            owned_states.shape_owner_states.push((*owner_shape_id, this_owner_shapes));
+                        }                          
+                    }
+                    
+                    // Maybe could be tidier as a macro, to avoid duplication between 2D and 3D.
+                    else if let Some(mut co3d) = self.base().try_get_node_as::<CollisionObject3D>(&nodepath) {
+                        let this_rid = co3d.get_rid();
+                        if !StateManager::check_space(
+                            this_rid,
+                            in_space,
+                            &physics_data.collision_objects,
+                            &physics_data.ids,
+                        ) { continue; }
 
-                                    if !StateManager::check_space(
-                                        rid,
-                                        in_space,
-                                        &physics_data.collision_objects,
-                                        &physics_data.ids,
-                                    ) { continue; }
+                        owned_states.self_state = self.save_node(this_rid, format);
+                                                    
+                        let shape_owners: Vec<i32> = co3d.get_shape_owners().to_vec();
+                        for owner_shape_id in shape_owners.iter() {
+                            let mut this_owner_shapes: Vec<StateData> = Vec::new();
+                            let shape_count = co3d.shape_owner_get_shape_count(*owner_shape_id as u32);
+                            for i in 0..shape_count {
+                                if let Some(shape) = co3d.shape_owner_get_shape(*owner_shape_id as u32, i)
+                                {
+                                    this_owner_shapes.push(self.save_node(shape.get_rid(), format));
+                                }                            
+                            };
 
-                                    collated_state.self_state = self.save_node(rid, format);
-
-                                    let mut shape_owners_dict = Dictionary::new();
-                                    let shape_owners: Vec<i32> = co3d.get_shape_owners().to_vec();
-                                    for owner_shape_id in shape_owners.iter() {
-                                        let mut this_owner_shapes: Vec<StateData> = Vec::new();
-                                        let shape_count = co3d.shape_owner_get_shape_count(*owner_shape_id as u32);
-                                        for i in 0..shape_count {
-                                            if let Some(shape) = co3d.shape_owner_get_shape(*owner_shape_id as u32, i)
-                                            {
-                                                let shape_rid = shape.get_rid();
-                                                this_owner_shapes.push(self.save_node(shape_rid, format));
-                                            }                                   
-                                        }
-
-                                        collated_state.shape_owner_states.push((*owner_shape_id, this_owner_shapes));
-                                    }
-                                }
-                                Err(original) => {
-                                    match original.try_cast::<Joint2D>(){
-                                        Ok(joint2d) => {
-                                            let rid = joint2d.get_rid();
-
-                                            if !StateManager::check_space(
-                                                rid,
-                                                in_space,
-                                                &physics_data.collision_objects,
-                                                &physics_data.ids,
-                                            ) { continue; }
-
-                                            collated_state.self_state = self.save_node(rid, format);
-                                        }
-                                        Err(original) => {
-                                            match original.try_cast::<Joint3D>(){
-                                                Ok(joint3d) => {                        
-                                                    let rid = joint3d.get_rid();
-
-                                                    if !StateManager::check_space(
-                                                        rid,
-                                                        in_space,
-                                                        &physics_data.collision_objects,
-                                                        &physics_data.ids,
-                                                    ) { continue; }
-
-                                                    collated_state.self_state = self.save_node(rid, format);
-                                                }
-                                                Err(_) => {
-                                                    godot_error!("Non-physics object!");
-                                                }
-                                            }
-                                        }
-                                    }        
-                                }
-                            }
-                        }
+                            owned_states.shape_owner_states.push((*owner_shape_id, this_owner_shapes));
+                        }                             
                     }
 
-                    object_states.push(collated_state);   
-                }
+                    else if let Some(joint2d) = self.base().try_get_node_as::<Joint2D>(&nodepath) {
+                        let this_rid = joint2d.get_rid();
+                        if !StateManager::check_space(
+                            this_rid,
+                            in_space,
+                            &physics_data.collision_objects,
+                            &physics_data.ids,
+                        ) { continue; }
+
+                        owned_states.self_state = self.save_node(this_rid, format);
+                    }
+
+                    else if let Some(joint3d) = self.base().try_get_node_as::<Joint3D>(&nodepath) {
+                        let this_rid = joint3d.get_rid();
+                        if !StateManager::check_space(
+                            this_rid,
+                            in_space,
+                            &physics_data.collision_objects,
+                            &physics_data.ids,
+                        ) { continue; }
+
+                        owned_states.self_state = self.save_node(this_rid, format);
+                    }
+
+                    else {
+                        godot_error!("Attempted to serialize state of non-physics object.");
+                    }
+
+                    owned_states
+                };
+
+                object_states.push(collated_state);
             }
+                     
+            // Now we've got references to all the owned states for our physics objects (for whatever export format we've selected).
+            // For the Godot encodings, that means the state is stored in Variants; for bincode, it's just references to the raw state objects.
+            // From this point, we need to build either a Godot dictionary (for JSON or GodotBase4 encoding) or a nested Rust Hashmap, for Bincode.
 
             let physics_server_index: i64 = {
                 match PhysicsServer::singleton().try_cast::<RapierPhysicsServer>() {
@@ -304,15 +308,8 @@ impl StateManager {
                 }
             };
 
-
-
-            // One final serialization pass, to convert the resulting dict into the desired format.
-            // This really just serializes the keys and the dict structure, which could be important-- if you're serializing a state,
-            // you want the whole object to be in consistent format (and potentially somewhat obfusated).
-
-            // As a note-- unfortunately, we can't encode our space into a string, because some of its components (like the broadphase pairs) can't
-            // conveniently be serialized to string.
             let encoded_space: StateData = self.save_node(in_space, format);// &SerializationFormat::RustBincode);
+
             match format {
                 SerializationFormat::None | SerializationFormat::GodotBase64 => {
                     let mut full_serialized_state = Dictionary::new();
@@ -348,30 +345,34 @@ impl StateManager {
                     }
                 }                
                 SerializationFormat::RustBincode => {
-                    let mut bin_state = BinaryState::new();
-                    bin_state.space = encoded_space.get_raw_state();
-                    bin_state.physics_server_id = physics_server_index;
+                    
+                    let mut bin_state: BinaryState;
+                    let space_state = encoded_space.take_raw_state();
+                    if let ObjectExportState::RapierSpace(export_space_state) = space_state {
+                        bin_state = BinaryState {
+                            space: export_space_state,
+                            physics_server_id: physics_server_index,
+                            physics_objects_state: HashMap::new(),
+                        };
+                    } else {
+                        godot_error!("Unable to serialize space state to RustBincode!");
+                        return Variant::nil()
+                    }
                     
                     let mut physics_objects_map: HashMap<String, BinaryPhysObjState> = HashMap::new();
 
                     for object_state in object_states {
-                        let mut composed_shape_owners_states: HashMap<i32, Vec<ShapeExport>> = HashMap::new();
+                        let mut composed_shape_owners_states: HashMap<i32, Vec<ObjectExportState>> = HashMap::new();
                         for (shape_owner_id, shape_states) in object_state.shape_owner_states {
-                            let mut composed_shape_states: Vec<ShapeExport> = Vec::new();
+                            let mut composed_shape_states: Vec<ObjectExportState> = Vec::new();
                             for shape_state in shape_states {
-                                let raw_state: ShapeExport = &shape_state.get_raw_state();
-
-
-                                if let Some(raw_shape_state) = ObjectExportState::RapierShapeBase(raw_state) {
-
-                                }
-                                composed_shape_states.push(shape_state.get_raw_state());
+                                composed_shape_states.push(shape_state.take_raw_state());
                             }
                             composed_shape_owners_states.insert(shape_owner_id, composed_shape_states);
                         }
 
                         let physics_object_state = BinaryPhysObjState {
-                            state: object_state.self_state.into_binary(),
+                            state: object_state.self_state.take_raw_state(),
                             shapes: composed_shape_owners_states,
                         };
 
@@ -468,7 +469,7 @@ impl StateManager {
     }
 
     fn save_node(
-        &mut self,
+        & self,
         rid: Rid,
         encoding: &SerializationFormat,
     ) -> StateData {
@@ -484,8 +485,12 @@ impl StateManager {
                     return StateData::Variant(Variant::nil())
                 }
             },
-            SerializationFormat::RustBincode => {
-                return StateData::Binary(RapierPhysicsServer::export_binary_internal(rid))
+            SerializationFormat::RustBincode => {   
+                if let Some(state) = RapierPhysicsServer::fetch_state_internal(rid) {
+                    return StateData::RawState(state);
+                } else {
+                    panic!("No physics state found for Rid {:?}", rid);
+                }
             },
         }
     }

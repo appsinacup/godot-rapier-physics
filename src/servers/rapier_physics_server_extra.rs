@@ -16,6 +16,7 @@ macro_rules! make_rapier_server_godot_impl {
     ($class: ident) => {
         use godot::global::rid_allocate_id;
         use godot::global::rid_from_int64;
+        use &crate::bodies::exportable_object::ObjectExportState;
         use $crate::bodies::rapier_collision_object::IRapierCollisionObject;
         use $crate::fluids::rapier_fluid::RapierFluid;
         use $crate::servers::RapierPhysicsServer;
@@ -80,28 +81,48 @@ macro_rules! make_rapier_server_godot_impl {
             #[func]
             /// Exports the physics object to a binary format.
             pub fn export_binary(physics_object: Rid) -> PackedByteArray {
-                return bin_to_packed_byte_array(RapierPhysicsServer::export_binary_internal(physics_object))
-            }
-
-            pub fn export_binary_internal(physics_object: Rid) -> Vec<u8> {
                 let physics_data = physics_data();
+                let data: Vec<u8> = Vec::new();
                 if let Some(body) = physics_data.collision_objects.get(&physics_object) {
-                    return body.export_binary()
+                    data = body.export_binary();
                 }
                 use $crate::shapes::rapier_shape::IRapierShape;
                 if let Some(shape) = physics_data.shapes.get(&physics_object) {
-                    return shape
+                    data = shape
                         .get_base()
                         .export_binary(&mut physics_data.physics_engine);
                 }
                 use $crate::joints::rapier_joint::IRapierJoint;
                 if let Some(joint) = physics_data.joints.get(&physics_object) {
-                    return joint.get_base().export_binary()
+                    data = joint.get_base().export_binary();
                 }
                 if let Some(space) = physics_data.spaces.get(&physics_object) {
-                    return space.export_binary(&mut physics_data.physics_engine)
+                    data = space.export_binary(&mut physics_data.physics_engine);
                 }
-                Vec::new()
+
+                return bin_to_packed_byte_array(data)
+            }
+
+            #[cfg(feature = "serde-serialize")]
+            pub fn fetch_state_internal(physics_object: Rid) -> Option<ObjectExportState> {
+                let physics_data = physics_data();
+                if let Some(body) = physics_data.collision_objects.get(&physics_object) {
+                    return body.get_export_state(&mut physics_data.physics_engine)
+                }
+                use $crate::shapes::rapier_shape::IRapierShape;
+                if let Some(shape) = physics_data.shapes.get(&physics_object) {
+                    return shape
+                        .get_base()
+                        .get_export_state(&mut physics_data.physics_engine);
+                }
+                use $crate::joints::rapier_joint::IRapierJoint;
+                if let Some(joint) = physics_data.joints.get(&physics_object) {
+                    return joint.get_base().get_export_state(&mut physics_data.physics_engine)
+                }
+                if let Some(space) = physics_data.spaces.get(&physics_object) {
+                    return space.get_export_state(&mut physics_data.physics_engine)
+                }
+                None
             }
 
             #[cfg(feature = "serde-serialize")]

@@ -36,7 +36,7 @@ const DEFAULT_GRAVITY_VECTOR: &str = "physics/3d/default_gravity_vector";
 const DEFAULT_GRAVITY: &str = "physics/2d/default_gravity";
 #[cfg(feature = "dim3")]
 const DEFAULT_GRAVITY: &str = "physics/3d/default_gravity";
-#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize, Clone))]
 pub struct SpaceExport<'a> {
     space: &'a RapierSpaceState,
     world: &'a PhysicsObjects,
