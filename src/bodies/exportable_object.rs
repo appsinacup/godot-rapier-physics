@@ -6,6 +6,7 @@ use super::{rapier_area::{AreaExport, RapierArea}, rapier_body::{BodyExport, Rap
 #[cfg(feature = "serde-serialize")]
 #[derive(serde::Serialize)]
 pub enum ObjectExportState<'a> {
+    RapierCollisionObject(AreaExport<'a>),
     RapierArea(AreaExport<'a>),
     RapierBody(BodyExport<'a>),
     RapierShapeBase(ShapeExport<'a>),

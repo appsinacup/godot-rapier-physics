@@ -4,6 +4,7 @@ use godot::prelude::*;
 use super::types::Fluid;
 use crate::servers::RapierPhysicsServer;
 use crate::types::PackedVectorArray;
+
 pub struct FluidImpl {}
 impl FluidImpl {
     pub fn set_points(fluid: &mut Fluid, points: PackedVectorArray) {

@@ -237,11 +237,10 @@ impl RapierArea {
             detected_bodies = area.state.monitored_objects.clone();
             space_rid = area.get_base().get_space(physics_ids);
         }
-        if let Some(space) = physics_spaces.get_mut(&space_rid) {
-            for (key, _) in detected_bodies.iter() {
-                let [body, area] = physics_collision_objects
-                    .get_many_mut([&get_id_rid(*key, physics_ids), &area_rid]);
-                if let (Some(body), Some(area)) = (body, area)
+        if let Some(space) = physics_spaces.get_mut(&space_rid) {            
+            for (_, monitor_info) in detected_bodies.iter() {
+                if let [Some(body), Some(area)] = physics_collision_objects
+                    .get_many_mut([&get_id_rid(monitor_info.other_collider_id, physics_ids), &area_rid])
                     && let Some(body) = body.get_mut_body()
                     && let Some(area) = area.get_mut_area()
                 {
@@ -256,6 +255,7 @@ impl RapierArea {
                 .area_remove_from_area_update_list(*area_id);
         }
     }
+
 
     pub fn disable_space_override(
         area_id: &RapierId,
@@ -304,10 +304,9 @@ impl RapierArea {
             space_rid = area.get_base().get_space(physics_ids);
         }
         if let Some(space) = physics_spaces.get_mut(&space_rid) {
-            for (key, _) in detected_bodies {
-                let [body, area] = physics_collision_objects
-                    .get_many_mut([&get_id_rid(key, physics_ids), &area_rid]);
-                if let (Some(body), Some(area)) = (body, area)
+            for (_, monitor_info) in detected_bodies {
+                if let [Some(body), Some(area)] = physics_collision_objects
+                    .get_many_mut([&get_id_rid(monitor_info.other_collider_id, physics_ids), &area_rid])
                     && let Some(body) = body.get_mut_body()
                     && let Some(area) = area.get_mut_area()
                 {
@@ -320,6 +319,7 @@ impl RapierArea {
                 .area_remove_from_area_update_list(*area_id);
         }
     }
+
 
     #[allow(clippy::too_many_arguments)]
     pub fn receive_event(

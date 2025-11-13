@@ -333,3 +333,26 @@ macro_rules! impl_rapier_collision_object_trait {
     };
 }
 impl_rapier_collision_object_trait!(RapierCollisionObject, RapierArea, RapierBody);
+
+macro_rules! impl_rapier_collision_object_exportable_trait {
+    ($enum_name:ident, $($variant:ident),*) => {
+        impl ExportableObject for $enum_name { 
+            type ExportState<'a> = ObjectExportState<'a>;
+            #[cfg(feature = "serde-serialize")]
+            fn get_export_state<'a>(
+                &'a self, 
+                physics_engine: &'a mut PhysicsEngine
+            ) -> Option<Self::ExportState<'a>> {
+                match self {
+                    $(
+                        Self::$variant(co) => {
+                            co.get_export_state(physics_engine)
+                            .map(ObjectExportState::$variant)
+                        }
+                    ,)*
+                }
+            }
+        }
+    };
+}
+impl_rapier_collision_object_exportable_trait!(RapierCollisionObject, RapierArea, RapierBody);

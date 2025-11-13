@@ -545,8 +545,6 @@ impl RapierSpace {
                 RapierProjectSettings::get_solver_num_internal_pgs_iterations() as usize,
             num_solver_iterations: RapierProjectSettings::get_solver_num_solver_iterations()
                 as usize,
-            joint_damping_ratio: RapierProjectSettings::get_joint_damping_ratio(),
-            joint_natural_frequency: RapierProjectSettings::get_joint_natural_frequency(),
             normalized_allowed_linear_error:
                 RapierProjectSettings::get_normalized_allowed_linear_error(),
             normalized_max_corrective_velocity:

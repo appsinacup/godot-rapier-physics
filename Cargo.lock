@@ -411,7 +411,7 @@ dependencies = [
 
 [[package]]
 name = "godot-rapier"
-version = "0.8.17"
+version = "0.8.22"
 dependencies = [
  "bincode",
  "godot",
@@ -493,6 +493,15 @@ dependencies = [
  "hashbrown 0.16.0",
  "serde",
  "serde_core",
+]
+
+[[package]]
+name = "instant"
+version = "0.1.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e0242819d153cba4b4b05a5a8f2a7e9bbf97b6055b2a002b395c96b5ff3c0222"
+dependencies = [
+ "cfg-if",
 ]
 
 [[package]]
@@ -1131,6 +1140,7 @@ dependencies = [
  "approx",
  "fnv",
  "generational-arena",
+ "instant",
  "itertools 0.13.0",
  "nalgebra",
  "num-traits",
@@ -1147,8 +1157,9 @@ dependencies = [
  "bitflags",
  "fnv",
  "generational-arena",
+ "instant",
  "itertools 0.14.0",
- "nalgebra 0.33.2",
+ "nalgebra",
  "num-traits",
  "parry3d",
  "rapier3d",
@@ -1162,6 +1173,7 @@ dependencies = [
  "approx",
  "fnv",
  "generational-arena",
+ "instant",
  "itertools 0.13.0",
  "nalgebra",
  "num-traits",
