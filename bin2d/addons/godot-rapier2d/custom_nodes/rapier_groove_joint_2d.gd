@@ -1,0 +1,2 @@
+class_name RapierGrooveJoint2D
+extends GrooveJoint2D

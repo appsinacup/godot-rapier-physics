@@ -1,0 +1,2 @@
+class_name RapierPinJoint2D
+extends PinJoint2D

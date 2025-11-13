@@ -1,0 +1,2 @@
+class_name RapierDampedSpringJoint2D
+extends DampedSpringJoint2D
