@@ -12,7 +12,7 @@ inputs:
     description: Rust extra flags.
   features:
     required: true
-    description: simd-nightly,simd-nightly,parallel,enhanced-determinism
+    description: simd-stable,simd-nightly,parallel,enhanced-determinism
 
 runs:
   using: composite
@@ -24,11 +24,13 @@ runs:
     - name: Rust Add target
       shell: sh
       run: |
-        rustup target add ${{ inputs.arch }}
+        rustup toolchain install nightly
+        rustup component add rust-src --toolchain nightly
+        rustup target add ${{ inputs.arch }} --toolchain nightly
     - name: Build
       shell: sh
       run: |
-        cargo build --target=${{ inputs.arch }} --release --features="${{ inputs.features }},api-custom" ${{ inputs.extra_flags }} --no-default-features
+        cargo +nightly build --target=${{ inputs.arch }} --release --features="${{ inputs.features }},api-custom" ${{ inputs.extra_flags }} --no-default-features
     - name: Copy to release
       shell: sh
       run: |
@@ -42,7 +44,7 @@ runs:
       run: |
         mkdir -p target/release
         rustup target add aarch64-apple-darwin
-        cargo build --target=aarch64-apple-darwin --release --features="${{ inputs.features }}" --no-default-features
+        cargo +nightly build --target=aarch64-apple-darwin --release --features="${{ inputs.features }},api-custom" ${{ inputs.extra_flags }} --no-default-features
         lipo -create -output target/release/libgodot_rapier.dylib target/aarch64-apple-darwin/release/libgodot_rapier.dylib target/x86_64-apple-darwin/release/libgodot_rapier.dylib
     - name: Move Static Libs macOS
       shell: sh

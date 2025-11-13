@@ -6,6 +6,9 @@ pub struct WorldSettings {
     ///   The kernel radius will be computed as `particle_radius * smoothing_factor * 2.0.
     pub smoothing_factor: Real,
     pub counters_enabled: bool,
+    pub boundary_coef: Real,
+    #[cfg(feature = "parallel")]
+    pub thread_count: usize,
 }
 pub struct SimulationSettings {
     /// The timestep length (default: `1.0 / 60.0`)
@@ -21,8 +24,6 @@ pub struct SimulationSettings {
     pub max_ccd_substeps: usize,
     pub contact_damping_ratio: Real,
     pub contact_natural_frequency: Real,
-    pub joint_damping_ratio: Real,
-    pub joint_natural_frequency: Real,
     pub normalized_allowed_linear_error: Real,
     pub normalized_max_corrective_velocity: Real,
     pub normalized_prediction_distance: Real,

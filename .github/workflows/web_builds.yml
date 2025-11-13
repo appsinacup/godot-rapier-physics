@@ -58,7 +58,7 @@ jobs:
         uses: ./.github/actions/build
         with:
           arch: ${{ matrix.arch }}
-          extra_flags: "-Z build-std=std"
+          extra_flags: "-Zbuild-std"
           features: ${{ matrix.features.feature }},${{ matrix.precision }}-${{ matrix.dimensions.feature }},${{ matrix.build_param.feature }}
       - name: Copy to bin
         shell: sh

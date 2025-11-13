@@ -185,6 +185,7 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
     }
     shape.clone()
 }
+#[derive(Debug, Clone)]
 pub struct Material {
     pub friction: Option<Real>,
     pub restitution: Option<Real>,
@@ -307,14 +308,14 @@ impl PhysicsEngine {
                 let collider_handle = physics_world.insert_collider(collider, body_handle);
                 // register fluid coupling. Dynamic coupling doens't work for halfspace
                 if !is_shape_halfspace {
-                    let boundary_handle =
-                        physics_world
-                            .fluids_pipeline
-                            .liquid_world
-                            .add_boundary(Boundary::new(
-                                Vec::new(),
-                                salva::object::interaction_groups::InteractionGroups::all(),
-                            ));
+                    let interaction_groups = salva::object::interaction_groups::InteractionGroups {
+                        memberships: mat.collision_layer.unwrap_or(1).into(),
+                        filter: mat.collision_mask.unwrap_or(1).into(),
+                    };
+                    let boundary_handle = physics_world
+                        .fluids_pipeline
+                        .liquid_world
+                        .add_boundary(Boundary::new(Vec::new(), interaction_groups));
                     physics_world.fluids_pipeline.coupling.register_coupling(
                         boundary_handle,
                         collider_handle,

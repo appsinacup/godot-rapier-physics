@@ -2,7 +2,7 @@ cargo fmt -- --config-path rustfmt.toml
 cargo clippy --fix --allow-dirty
 export GODOT4_BIN=/Applications/Godot.app/Contents/MacOS/Godot
 if [ "${OSTYPE#darwin}" != "$OSTYPE" ]; then
-    cargo build --features="build2d,test" --no-default-features # --verbose
+    cargo build --features="build2d,test,experimental-threads" --no-default-features # --verbose
     echo "Running on macOS"
     rm -f bin2d/addons/godot-rapier2d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
     cp target/debug/libgodot_rapier.dylib bin2d/addons/godot-rapier2d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib

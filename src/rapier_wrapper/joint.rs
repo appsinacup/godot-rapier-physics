@@ -74,6 +74,8 @@ impl PhysicsEngine {
         body_handle_2: RigidBodyHandle,
         anchor_1: Vector<Real>,
         anchor_2: Vector<Real>,
+        axis_1: Rotation<Real>,
+        axis_2: Rotation<Real>,
         angular_limit_lower: Real,
         angular_limit_upper: Real,
         angular_limit_enabled: bool,
@@ -86,24 +88,28 @@ impl PhysicsEngine {
         self.body_wake_up(world_handle, body_handle_1, false);
         self.body_wake_up(world_handle, body_handle_2, false);
         if let Some(physics_world) = self.get_mut_world(world_handle) {
-            let axis = anchor_1 - anchor_2;
-            let unit_axis = UnitVector::new_normalize(axis.normalize());
-            let mut joint = RevoluteJointBuilder::new(unit_axis)
+            // Extract the hinge axis (X-axis) from the rotation matrices
+            let axis1_vec = axis_1 * Vector::x_axis();
+            let axis2_vec = axis_2 * Vector::x_axis();
+            // Use GenericJointBuilder to set both local axes
+            let mut joint = GenericJointBuilder::new(JointAxesMask::LOCKED_REVOLUTE_AXES)
                 .local_anchor1(Point { coords: anchor_1 })
                 .local_anchor2(Point { coords: anchor_2 })
+                .local_axis1(axis1_vec)
+                .local_axis2(axis2_vec)
                 .contacts_enabled(!disable_collision);
             if angular_limit_enabled {
-                joint = joint.limits([angular_limit_lower, angular_limit_upper]);
+                joint = joint.limits(JointAxis::AngX, [angular_limit_lower, angular_limit_upper]);
             }
             if motor_enabled {
-                joint = joint.motor_velocity(motor_target_velocity, 0.0);
+                joint = joint.motor_velocity(JointAxis::AngX, motor_target_velocity, 0.0);
             }
             return physics_world.insert_joint(
                 body_handle_1,
                 body_handle_2,
                 multibody,
                 kinematic,
-                joint,
+                joint.build(),
             );
         }
         JointHandle::default()
@@ -149,6 +155,8 @@ impl PhysicsEngine {
         body_handle_2: RigidBodyHandle,
         anchor_1: Vector<Real>,
         anchor_2: Vector<Real>,
+        axis_1: Rotation<Real>,
+        axis_2: Rotation<Real>,
         linear_limit_upper: f32,
         linear_limit_lower: f32,
         multibody: bool,
@@ -158,19 +166,23 @@ impl PhysicsEngine {
         self.body_wake_up(world_handle, body_handle_1, false);
         self.body_wake_up(world_handle, body_handle_2, false);
         if let Some(physics_world) = self.get_mut_world(world_handle) {
-            let axis = anchor_1 - anchor_2;
-            let unit_axis = UnitVector::new_normalize(axis.normalize());
-            let joint = PrismaticJointBuilder::new(unit_axis)
+            // Extract the X axis from the rotation matrices
+            let axis1_vec = axis_1 * Vector::x_axis();
+            let axis2_vec = axis_2 * Vector::x_axis();
+            // Use GenericJointBuilder to set both local axes for prismatic joint
+            let joint = GenericJointBuilder::new(JointAxesMask::LOCKED_PRISMATIC_AXES)
                 .local_anchor1(Point { coords: anchor_1 })
                 .local_anchor2(Point { coords: anchor_2 })
-                .limits([linear_limit_lower, linear_limit_upper])
+                .local_axis1(axis1_vec)
+                .local_axis2(axis2_vec)
+                .limits(JointAxis::LinX, [linear_limit_lower, linear_limit_upper])
                 .contacts_enabled(!disable_collision);
             return physics_world.insert_joint(
                 body_handle_1,
                 body_handle_2,
                 multibody,
                 kinematic,
-                joint,
+                joint.build(),
             );
         }
         JointHandle::default()
@@ -222,6 +234,7 @@ impl PhysicsEngine {
         angular_limit_enabled: bool,
         motor_target_velocity: Real,
         motor_enabled: bool,
+        softness: Real,
     ) {
         self.joint_wake_up_connected_rigidbodies(world_handle, joint_handle);
         if let Some(physics_world) = self.get_mut_world(world_handle)
@@ -238,12 +251,17 @@ impl PhysicsEngine {
             if angular_limit_enabled {
                 joint.set_limits([angular_limit_lower, angular_limit_upper]);
             }
+            let softness = softness.clamp(Real::EPSILON, 16.0);
+            let frequency = 10_f32.powf(3.0 - softness * 0.2);
+            joint.data.natural_frequency = frequency;
+            let damping_ratio = 10_f32.powf(-softness * 0.4375);
+            joint.data.damping_ratio = damping_ratio;
         }
     }
 
     #[allow(clippy::too_many_arguments)]
     #[cfg(feature = "dim2")]
-    pub fn joint_create_prismatic(
+    pub fn joint_create_pin_slot(
         &mut self,
         world_handle: WorldHandle,
         body_handle_1: RigidBodyHandle,
@@ -259,7 +277,7 @@ impl PhysicsEngine {
         self.body_wake_up(world_handle, body_handle_1, false);
         self.body_wake_up(world_handle, body_handle_2, false);
         if let Some(physics_world) = self.get_mut_world(world_handle) {
-            let joint = PrismaticJointBuilder::new(UnitVector::new_unchecked(axis))
+            let joint = PinSlotJointBuilder::new(UnitVector::new_unchecked(axis))
                 .local_anchor1(Point { coords: anchor_1 })
                 .local_anchor2(Point { coords: anchor_2 })
                 .limits([limits.x, limits.y])
@@ -295,6 +313,7 @@ impl PhysicsEngine {
         self.body_wake_up(world_handle, body_handle_2, false);
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             let joint = SpringJointBuilder::new(rest_length, stiffness, damping)
+                .spring_model(MotorModel::AccelerationBased)
                 .local_anchor1(Point { coords: anchor_1 })
                 .local_anchor2(Point { coords: anchor_2 })
                 .contacts_enabled(!disable_collision);

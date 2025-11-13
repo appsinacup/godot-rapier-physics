@@ -341,6 +341,10 @@ impl RapierSpace {
             if let Some(body) = physics_collision_objects.get_mut(&get_id_rid(body, physics_ids))
                 && let Some(body) = body.get_mut_body()
             {
+                if body.is_sleeping(physics_engine) {
+                    body.set_active(false, self);
+                    continue;
+                }
                 body.on_update_active(self, physics_engine);
             }
         }
@@ -359,6 +363,9 @@ impl RapierSpace {
             particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
             smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
             counters_enabled: false,
+            boundary_coef: RapierProjectSettings::get_fluid_boundary_coef() as real,
+            #[cfg(feature = "parallel")]
+            thread_count: RapierProjectSettings::get_num_threads(),
         }
     }
 
@@ -424,6 +431,9 @@ impl RapierSpace {
                     particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
                     smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
                     counters_enabled: false,
+                    boundary_coef: RapierProjectSettings::get_fluid_boundary_coef() as real,
+                    #[cfg(feature = "parallel")]
+                    thread_count: RapierProjectSettings::get_num_threads(),
                 };
                 physics_engine.world_import(
                     self.get_state().get_id(),
