@@ -15,7 +15,7 @@ jobs:
         arch: [{"name" : "arm64", "rust": "aarch64-apple-ios"}, {"name" : "x86_64", "rust": "x86_64-apple-ios"}]
         precision: [single] #, double]
         dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
-        features: [{"feature":"simd-nightly,serde-serialize", "name": "simd-parallel"}, {"feature":"enhanced-determinism,serde-serialize", "name": "enhanced-determinism"}]
+        features: [{"feature":"simd-nightly,serde-serialize,parallel", "name": "simd-parallel"}, {"feature":"enhanced-determinism,serde-serialize", "name": "enhanced-determinism"}]
 
     steps:
       - uses: actions/checkout@v4

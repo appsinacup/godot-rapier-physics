@@ -66,7 +66,6 @@ The 2D part is pretty stable, though there are some issues, the 3D part is still
 
 # Limitations
 
-- Pin Softness is not supported
 - Double builds are disabled for now (until salva supports double builds)
 - No support for asymmetric collisions (eg. object 1 hitting object 2 but object 2 not hitting object 1). This is the exact check rapier does: `(A.layer & B.mask) != 0 || (B.layer & A.mask) != 0`
 

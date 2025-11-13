@@ -951,11 +951,6 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
             RapierPhysicsServerImpl::space_flush_queries(space);
         }
         drop(guard);
-        for space in physics_data.active_spaces.values() {
-            if let Some(space) = physics_data.spaces.get_mut(space) {
-                space.update_after_queries(&mut physics_data.collision_objects, &physics_data.ids);
-            }
-        }
         self.implementation.flushing_queries = false;
     }
 

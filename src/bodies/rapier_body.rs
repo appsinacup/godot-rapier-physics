@@ -1267,6 +1267,9 @@ impl RapierBody {
         space: &mut RapierSpace,
         physics_engine: &mut PhysicsEngine,
     ) {
+        if !self.state.active {
+            return;
+        }
         if !self.state.marked_active {
             self.set_active(false, space);
             return;
@@ -2121,6 +2124,10 @@ impl RapierBody {
             self.update_colliders_filters(physics_engine);
         }
     }
+
+    pub fn is_sleeping(&self, physics_engine: &PhysicsEngine) -> bool {
+        physics_engine.body_is_sleeping(self.base.get_space_id(), self.base.get_body_handle())
+    }
 }
 
 #[cfg(feature = "serde-serialize")]
@@ -2332,6 +2339,8 @@ impl IRapierCollisionObject for RapierBody {
             physics_spaces,
             physics_ids,
         );
+        // Reapply CCD setting after recreating shapes
+        self.set_continuous_collision_detection_mode(self.ccd_enabled, physics_engine);
     }
 
     fn init_material(&self) -> Material {

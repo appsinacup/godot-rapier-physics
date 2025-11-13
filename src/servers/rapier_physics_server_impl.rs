@@ -61,8 +61,6 @@ pub struct RapierPhysicsServerImpl {
     max_ccd_substeps: usize,
     num_internal_pgs_iterations: usize,
     num_solver_iterations: usize,
-    joint_damping_ratio: f32,
-    joint_natural_frequency: f32,
     normalized_allowed_linear_error: real,
     normalized_max_corrective_velocity: real,
     normalized_prediction_distance: real,
@@ -91,8 +89,6 @@ impl RapierPhysicsServerImpl {
                 RapierProjectSettings::get_solver_num_internal_pgs_iterations() as usize,
             num_solver_iterations: RapierProjectSettings::get_solver_num_solver_iterations()
                 as usize,
-            joint_damping_ratio: RapierProjectSettings::get_joint_damping_ratio(),
-            joint_natural_frequency: RapierProjectSettings::get_joint_natural_frequency(),
             normalized_allowed_linear_error:
                 RapierProjectSettings::get_normalized_allowed_linear_error(),
             normalized_max_corrective_velocity:
@@ -273,8 +269,8 @@ impl RapierPhysicsServerImpl {
         result_count: *mut i32,
     ) -> bool {
         let physics_data = physics_data();
-        let result = physics_data.shapes.get_many_mut([&shape_a, &shape_b]);
-        let Some([shape_a, shape_b]) = result else {
+        let [shape_a, shape_b] = physics_data.shapes.get_many_mut([&shape_a, &shape_b]);
+        let (Some(shape_a), Some(shape_b)) = (shape_a, shape_b) else {
             return false;
         };
         let shape_a_handle = shape_a.get_base().get_id();
@@ -1839,6 +1835,8 @@ impl RapierPhysicsServerImpl {
                 rid,
                 hinge_a.origin,
                 hinge_b.origin,
+                hinge_a.basis,
+                hinge_b.basis,
                 body_a,
                 body_b,
                 &mut physics_data.physics_engine,
@@ -1865,22 +1863,52 @@ impl RapierPhysicsServerImpl {
         rid: Rid,
         body_a: Rid,
         pivot_a: Vector3,
-        _axis_a: Vector3,
+        axis_a: Vector3,
         body_b: Rid,
         pivot_b: Vector3,
-        _axis_b: Vector3,
+        axis_b: Vector3,
     ) {
         let physics_data = physics_data();
         let mut joint: RapierJoint;
         if let Some(body_a) = physics_data.collision_objects.get(&body_a)
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
+            // Create basis from axis vectors
+            // The hinge axis should be the X-axis in the local frame
+            // Construct a basis where X-axis is aligned with the given axis
+            let basis_a = if axis_a.length_squared() > 0.0 {
+                let x_axis = axis_a.normalized();
+                // Choose an arbitrary perpendicular vector for Y
+                let y_axis = if x_axis.abs().dot(Vector3::UP) < 0.99 {
+                    x_axis.cross(Vector3::UP).normalized()
+                } else {
+                    x_axis.cross(Vector3::RIGHT).normalized()
+                };
+                let z_axis = x_axis.cross(y_axis).normalized();
+                godot::prelude::Basis::from_cols(x_axis, y_axis, z_axis)
+            } else {
+                godot::prelude::Basis::IDENTITY
+            };
+            let basis_b = if axis_b.length_squared() > 0.0 {
+                let x_axis = axis_b.normalized();
+                let y_axis = if x_axis.abs().dot(Vector3::UP) < 0.99 {
+                    x_axis.cross(Vector3::UP).normalized()
+                } else {
+                    x_axis.cross(Vector3::RIGHT).normalized()
+                };
+                let z_axis = x_axis.cross(y_axis).normalized();
+                godot::prelude::Basis::from_cols(x_axis, y_axis, z_axis)
+            } else {
+                godot::prelude::Basis::IDENTITY
+            };
             let id = self.next_id();
             joint = RapierJoint::RapierRevoluteJoint(RapierRevoluteJoint::new(
                 id,
                 rid,
                 pivot_a,
                 pivot_b,
+                basis_a,
+                basis_b,
                 body_a,
                 body_b,
                 &mut physics_data.physics_engine,
@@ -1953,8 +1981,10 @@ impl RapierPhysicsServerImpl {
             joint = RapierJoint::RapierSliderJoint3D(RapierSliderJoint3D::new(
                 id,
                 rid,
-                local_ref_a,
-                local_ref_b,
+                local_ref_a.origin,
+                local_ref_b.origin,
+                local_ref_a.basis,
+                local_ref_b.basis,
                 body_a,
                 body_b,
                 &mut physics_data.physics_engine,
@@ -2159,12 +2189,12 @@ impl RapierPhysicsServerImpl {
                     param,
                     value,
                 );
-            // Store the parameter in the joint struct
-            if let RapierJoint::RapierGeneric6DOFJoint3D(joint_6dof) =
-                physics_data.joints.get_mut(&joint).unwrap()
-            {
-                joint_6dof.set_param(axis, param, value);
-            }
+        }
+        // Store the parameter in the joint struct (separate borrow after immutable borrow ends)
+        if let Some(RapierJoint::RapierGeneric6DOFJoint3D(joint_6dof)) =
+            physics_data.joints.get_mut(&joint)
+        {
+            joint_6dof.set_param(axis, param, value);
         }
     }
 
@@ -2223,12 +2253,12 @@ impl RapierPhysicsServerImpl {
                     flag,
                     enable,
                 );
-            // Store the flag in the joint struct
-            if let RapierJoint::RapierGeneric6DOFJoint3D(joint_6dof) =
-                physics_data.joints.get_mut(&joint).unwrap()
-            {
-                joint_6dof.set_flag(axis, flag, enable);
-            }
+        }
+        // Store the flag in the joint struct (separate borrow after immutable borrow ends)
+        if let Some(RapierJoint::RapierGeneric6DOFJoint3D(joint_6dof)) =
+            physics_data.joints.get_mut(&joint)
+        {
+            joint_6dof.set_flag(axis, flag, enable);
         }
     }
 
@@ -2559,8 +2589,6 @@ impl RapierPhysicsServerImpl {
             max_ccd_substeps: self.max_ccd_substeps,
             num_internal_pgs_iterations: self.num_internal_pgs_iterations,
             num_solver_iterations: self.num_solver_iterations,
-            joint_damping_ratio: self.joint_damping_ratio,
-            joint_natural_frequency: self.joint_natural_frequency,
             pixel_gravity: vector_to_rapier(Vector::ZERO),
             pixel_liquid_gravity: vector_to_rapier(Vector::ZERO),
             normalized_allowed_linear_error: self.normalized_allowed_linear_error,

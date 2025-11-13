@@ -32,12 +32,14 @@ pub struct Fluid2D {
     pub(crate) points: PackedVectorArray,
     pub(crate) create_times: PackedFloat32Array,
 
-    #[export(flags_2d_physics)]
-    #[var(get = get_collision_mask, set = set_collision_mask)]
-    pub(crate) collision_mask: u32,
+    // add a group for collision layers/masks
+    #[export_group(name = "Collision", prefix = "collision_")]
     #[export(flags_2d_physics)]
     #[var(get = get_collision_layer, set = set_collision_layer)]
     pub(crate) collision_layer: u32,
+    #[export(flags_2d_physics)]
+    #[var(get = get_collision_mask, set = set_collision_mask)]
+    pub(crate) collision_mask: u32,
     base: Base<Node2D>,
 }
 #[godot_api]
@@ -179,6 +181,18 @@ impl Fluid2D {
     /// Set the collision layer of the fluid particles.
     fn set_collision_layer(&mut self, layer: u32) {
         FluidImpl::set_collision_layer(self, layer);
+    }
+
+    #[func]
+    /// Get the indices of the fluid particles inside an AABB.
+    fn get_particles_in_aabb(&self, aabb: Rect2) -> PackedInt32Array {
+        FluidImpl::get_particles_in_aabb(self, aabb)
+    }
+
+    #[func]
+    /// Get the indices of the fluid particles inside a circle.
+    fn get_particles_in_circle(&self, center: Vector2, radius: real) -> PackedInt32Array {
+        FluidImpl::get_particles_in_ball(self, center, radius)
     }
 }
 #[godot_api]

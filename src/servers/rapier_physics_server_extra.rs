@@ -259,6 +259,40 @@ macro_rules! make_rapier_server_godot_impl {
             }
 
             #[func]
+            /// Get the indices of the fluid particles inside an AABB.
+            pub(crate) fn fluid_get_particles_in_aabb(
+                fluid_rid: Rid,
+                aabb: $crate::types::Rect,
+            ) -> PackedInt32Array {
+                let physics_data = physics_data();
+                if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
+                    let indices =
+                        fluid.get_particles_in_aabb(aabb, &mut physics_data.physics_engine);
+                    return PackedInt32Array::from_iter(indices);
+                }
+                PackedInt32Array::default()
+            }
+
+            #[func]
+            /// Get the indices of the fluid particles inside a ball.
+            pub(crate) fn fluid_get_particles_in_ball(
+                fluid_rid: Rid,
+                center: $crate::types::Vector,
+                radius: real,
+            ) -> PackedInt32Array {
+                let physics_data = physics_data();
+                if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
+                    let indices = fluid.get_particles_in_ball(
+                        center,
+                        radius,
+                        &mut physics_data.physics_engine,
+                    );
+                    return PackedInt32Array::from_iter(indices);
+                }
+                PackedInt32Array::default()
+            }
+
+            #[func]
             /// Get interaction groups mask.
             pub(crate) fn fluid_get_collision_mask(fluid_rid: Rid) -> u32 {
                 let physics_data = physics_data();
@@ -271,11 +305,12 @@ macro_rules! make_rapier_server_godot_impl {
 
             #[func]
             /// Set interaction groups mask.
-            pub(crate) fn fluid_set_collision_mask(fluid_rid: Rid, mask: u32) {
+            pub(crate) fn fluid_set_collision_masks(fluid_rid: Rid, mask: u32, layer: u32) {
                 let physics_data = physics_data();
                 if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
                     let mut interaction_groups = fluid.get_interaction_groups();
                     interaction_groups.memberships = mask.into();
+                    interaction_groups.filter = layer.into();
                     fluid.set_interaction_groups(
                         interaction_groups,
                         &mut physics_data.physics_engine,
@@ -292,18 +327,6 @@ macro_rules! make_rapier_server_godot_impl {
                     return interaction_groups.filter.bits();
                 }
                 0
-            }
-
-            pub(crate) fn fluid_set_collision_layer(fluid_rid: Rid, layer: u32) {
-                let physics_data = physics_data();
-                if let Some(fluid) = physics_data.fluids.get_mut(&fluid_rid) {
-                    let mut interaction_groups = fluid.get_interaction_groups();
-                    interaction_groups.filter = layer.into();
-                    fluid.set_interaction_groups(
-                        interaction_groups,
-                        &mut physics_data.physics_engine,
-                    );
-                }
             }
 
             #[func]

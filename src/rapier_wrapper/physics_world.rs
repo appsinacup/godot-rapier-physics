@@ -108,6 +108,8 @@ pub struct PhysicsWorld {
     pub physics_objects: PhysicsObjects,
     pub physics_pipeline: PhysicsPipeline,
     pub fluids_pipeline: FluidsPipeline,
+    #[cfg(feature = "parallel")]
+    pub thread_pool: rapier::rayon::ThreadPool,
 }
 impl PhysicsWorld {
     pub fn new(settings: &WorldSettings) -> PhysicsWorld {
@@ -133,10 +135,16 @@ impl PhysicsWorld {
                 handle: WorldHandle::default(),
             },
             physics_pipeline,
-            fluids_pipeline: FluidsPipeline::new(
+            fluids_pipeline: FluidsPipeline::new_with_boundary_coef(
                 settings.particle_radius,
                 settings.smoothing_factor,
+                settings.boundary_coef,
             ),
+            #[cfg(feature = "parallel")]
+            thread_pool: rapier::rayon::ThreadPoolBuilder::new()
+                .num_threads(settings.thread_count)
+                .build()
+                .unwrap(),
         }
     }
 
@@ -168,8 +176,6 @@ impl PhysicsWorld {
             contact_damping_ratio: settings.contact_damping_ratio,
             contact_natural_frequency: settings.contact_natural_frequency,
             max_ccd_substeps: settings.max_ccd_substeps,
-            joint_damping_ratio: settings.joint_damping_ratio,
-            joint_natural_frequency: settings.joint_natural_frequency,
             normalized_allowed_linear_error: settings.normalized_allowed_linear_error,
             normalized_max_corrective_velocity: settings.normalized_max_corrective_velocity,
             normalized_prediction_distance: settings.normalized_prediction_distance,
@@ -194,6 +200,27 @@ impl PhysicsWorld {
         let (collision_send, collision_recv) = mpsc::channel();
         let (contact_force_send, contact_force_recv) = mpsc::channel();
         let event_handler = ContactEventHandler::new(collision_send, contact_force_send);
+        #[cfg(feature = "parallel")]
+        {
+            let physics_pipeline = &mut self.physics_pipeline;
+            self.thread_pool.install(|| {
+                physics_pipeline.step(
+                    &gravity,
+                    &integration_parameters,
+                    &mut self.physics_objects.island_manager,
+                    &mut self.physics_objects.broad_phase,
+                    &mut self.physics_objects.narrow_phase,
+                    &mut self.physics_objects.rigid_body_set,
+                    &mut self.physics_objects.collider_set,
+                    &mut self.physics_objects.impulse_joint_set,
+                    &mut self.physics_objects.multibody_joint_set,
+                    &mut self.physics_objects.ccd_solver,
+                    &physics_hooks,
+                    &event_handler,
+                );
+            });
+        }
+        #[cfg(not(feature = "parallel"))]
         self.physics_pipeline.step(
             &gravity,
             &integration_parameters,
