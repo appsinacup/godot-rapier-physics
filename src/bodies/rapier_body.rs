@@ -151,7 +151,7 @@ pub struct RapierBody {
     using_area_angular_damping: bool,
     exceptions: HashSet<Rid>,
     ccd_enabled: bool,
-    soft_ccd_enabled: real,
+    soft_ccd_prediction: real,
     omit_force_integration: bool,
     can_sleep: bool,
     sleep: bool,
@@ -188,7 +188,7 @@ impl RapierBody {
             using_area_angular_damping: false,
             exceptions: HashSet::default(),
             ccd_enabled: false,
-            soft_ccd_enabled: 0.0,
+            soft_ccd_prediction: 0.0,
             omit_force_integration: false,
             can_sleep: true,
             sleep: false,
@@ -1562,7 +1562,7 @@ impl RapierBody {
                 {
                     return;
                 }
-                self.soft_ccd_enabled = variant_to_float(&p_value);
+                self.soft_ccd_prediction = variant_to_float(&p_value);
                 let mat = self.init_material();
                 let body_handle = self.base.get_body_handle();
                 let space_handle = self.base.get_space_id();
@@ -1577,7 +1577,7 @@ impl RapierBody {
         match p_param {
             RapierBodyParam::ContactSkin => self.contact_skin.to_variant(),
             RapierBodyParam::Dominance => self.base.get_dominance().to_variant(),
-            RapierBodyParam::SoftCcd => self.soft_ccd_enabled.to_variant(),
+            RapierBodyParam::SoftCcd => self.soft_ccd_prediction.to_variant(),
         }
     }
 
@@ -2347,7 +2347,7 @@ impl IRapierCollisionObject for RapierBody {
             collision_layer: self.base.get_collision_layer(),
             collision_mask: self.base.get_collision_mask(),
             dominance: self.base.get_dominance(),
-            soft_ccd: self.soft_ccd_enabled,
+            soft_ccd: self.soft_ccd_prediction,
         }
     }
 
