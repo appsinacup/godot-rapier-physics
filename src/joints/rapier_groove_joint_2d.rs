@@ -2,6 +2,7 @@ use godot::classes::*;
 use godot::prelude::*;
 
 use super::rapier_joint_base::RapierJointBase;
+use super::rapier_joint_base::RapierJointType;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::bodies::rapier_collision_object::RapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
@@ -22,6 +23,7 @@ impl RapierGrooveJoint2D {
         body_a: &RapierCollisionObject,
         body_b: &RapierCollisionObject,
         physics_engine: &mut PhysicsEngine,
+        joint_type: RapierJointType,
     ) -> Self {
         let invalid_joint = Self {
             base: RapierJointBase::default(),
@@ -60,12 +62,12 @@ impl RapierGrooveJoint2D {
             rapier_anchor_a,
             rapier_anchor_b,
             rapier_limits,
-            false,
+            matches!(joint_type, RapierJointType::MultiBody),
             false,
             true,
         );
         Self {
-            base: RapierJointBase::new(id, rid, space_id, space_handle, handle),
+            base: RapierJointBase::new(id, rid, space_id, space_handle, handle, joint_type),
         }
     }
 }

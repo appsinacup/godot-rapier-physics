@@ -29,6 +29,7 @@ use crate::joints::rapier_empty_joint::RapierEmptyJoint;
 use crate::joints::rapier_groove_joint_2d::RapierGrooveJoint2D;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::joints::rapier_joint::RapierJoint;
+use crate::joints::rapier_joint_base::RapierJointType;
 use crate::joints::rapier_revolute_joint::RapierRevoluteJoint;
 #[cfg(feature = "dim3")]
 use crate::joints::rapier_spherical_joint_3d::RapierSphericalJoint3D;
@@ -1723,6 +1724,11 @@ impl RapierPhysicsServerImpl {
     ) {
         let physics_data = physics_data();
         let mut joint: RapierJoint;
+        let joint_type = if let Some(prev_joint) = physics_data.joints.get(&rid) {
+            prev_joint.get_base().get_joint_type()
+        } else {
+            RapierJointType::Impulse
+        };
         if let Some(body_a) = physics_data.collision_objects.get(&body_a)
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
@@ -1735,6 +1741,7 @@ impl RapierPhysicsServerImpl {
                 body_a,
                 body_b,
                 &mut physics_data.physics_engine,
+                joint_type,
             ));
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
                 joint
@@ -1819,6 +1826,11 @@ impl RapierPhysicsServerImpl {
     ) {
         let physics_data = physics_data();
         let mut joint: RapierJoint;
+        let joint_type = if let Some(prev_joint) = physics_data.joints.get(&rid) {
+            prev_joint.get_base().get_joint_type()
+        } else {
+            RapierJointType::Impulse
+        };
         if let Some(body_a) = physics_data.collision_objects.get(&body_a)
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
@@ -1833,6 +1845,7 @@ impl RapierPhysicsServerImpl {
                 body_a,
                 body_b,
                 &mut physics_data.physics_engine,
+                joint_type,
             ));
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
                 joint
@@ -1863,6 +1876,11 @@ impl RapierPhysicsServerImpl {
     ) {
         let physics_data = physics_data();
         let mut joint: RapierJoint;
+        let joint_type = if let Some(prev_joint) = physics_data.joints.get(&rid) {
+            prev_joint.get_base().get_joint_type()
+        } else {
+            RapierJointType::Impulse
+        };
         if let Some(body_a) = physics_data.collision_objects.get(&body_a)
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
@@ -1905,6 +1923,7 @@ impl RapierPhysicsServerImpl {
                 body_a,
                 body_b,
                 &mut physics_data.physics_engine,
+                joint_type,
             ));
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
                 joint
@@ -1967,6 +1986,11 @@ impl RapierPhysicsServerImpl {
         use crate::joints::rapier_slider_joint_3d::RapierSliderJoint3D;
         let physics_data = physics_data();
         let mut joint: RapierJoint;
+        let joint_type = if let Some(prev_joint) = physics_data.joints.get(&rid) {
+            prev_joint.get_base().get_joint_type()
+        } else {
+            RapierJointType::Impulse
+        };
         if let Some(body_a) = physics_data.collision_objects.get(&body_a)
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
@@ -1981,6 +2005,7 @@ impl RapierPhysicsServerImpl {
                 body_a,
                 body_b,
                 &mut physics_data.physics_engine,
+                joint_type,
             ));
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
                 joint
@@ -2035,6 +2060,11 @@ impl RapierPhysicsServerImpl {
         use crate::joints::rapier_cone_twist_joint_3d::RapierConeTwistJoint3D;
         let physics_data = physics_data();
         let mut joint: RapierJoint;
+        let joint_type = if let Some(prev_joint) = physics_data.joints.get(&rid) {
+            prev_joint.get_base().get_joint_type()
+        } else {
+            RapierJointType::Impulse
+        };
         if let Some(body_a) = physics_data.collision_objects.get(&body_a)
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
@@ -2049,6 +2079,7 @@ impl RapierPhysicsServerImpl {
                 body_a,
                 body_b,
                 &mut physics_data.physics_engine,
+                joint_type,
             ));
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
                 joint
@@ -2105,6 +2136,11 @@ impl RapierPhysicsServerImpl {
         use crate::joints::rapier_generic_6dof_joint_3d::RapierGeneric6DOFJoint3D;
         let physics_data = physics_data();
         let mut joint: RapierJoint;
+        let joint_type = if let Some(prev_joint) = physics_data.joints.get(&rid) {
+            prev_joint.get_base().get_joint_type()
+        } else {
+            RapierJointType::Impulse
+        };
         if let Some(body_a) = physics_data.collision_objects.get(&body_a)
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
@@ -2119,6 +2155,7 @@ impl RapierPhysicsServerImpl {
                 body_a,
                 body_b,
                 &mut physics_data.physics_engine,
+                joint_type,
             ));
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
                 joint
@@ -2275,6 +2312,11 @@ impl RapierPhysicsServerImpl {
     pub(super) fn joint_make_pin(&mut self, rid: Rid, anchor: Vector, body_a: Rid, body_b: Rid) {
         let physics_data = physics_data();
         let mut joint: RapierJoint;
+        let joint_type = if let Some(prev_joint) = physics_data.joints.get(&rid) {
+            prev_joint.get_base().get_joint_type()
+        } else {
+            RapierJointType::Impulse
+        };
         if let Some(body_a) = physics_data.collision_objects.get(&body_a)
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
@@ -2287,6 +2329,7 @@ impl RapierPhysicsServerImpl {
                 body_a,
                 body_b,
                 &mut physics_data.physics_engine,
+                joint_type,
             ));
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
                 joint
@@ -2315,6 +2358,11 @@ impl RapierPhysicsServerImpl {
     ) {
         let physics_data: &mut super::rapier_physics_singleton::PhysicsData = physics_data();
         let mut joint: RapierJoint;
+        let joint_type = if let Some(prev_joint) = physics_data.joints.get(&rid) {
+            prev_joint.get_base().get_joint_type()
+        } else {
+            RapierJointType::Impulse
+        };
         if let Some(body_a) = physics_data.collision_objects.get(&body_a)
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
@@ -2328,6 +2376,7 @@ impl RapierPhysicsServerImpl {
                 body_a,
                 body_b,
                 &mut physics_data.physics_engine,
+                joint_type,
             ));
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
                 joint
@@ -2355,6 +2404,11 @@ impl RapierPhysicsServerImpl {
     ) {
         let physics_data = physics_data();
         let mut joint: RapierJoint;
+        let joint_type = if let Some(prev_joint) = physics_data.joints.get(&rid) {
+            prev_joint.get_base().get_joint_type()
+        } else {
+            RapierJointType::Impulse
+        };
         if let Some(body_a) = physics_data.collision_objects.get(&body_a)
             && let Some(body_b) = physics_data.collision_objects.get(&body_b)
         {
@@ -2367,6 +2421,7 @@ impl RapierPhysicsServerImpl {
                 body_a,
                 body_b,
                 &mut physics_data.physics_engine,
+                joint_type,
             ));
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
                 joint
