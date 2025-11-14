@@ -2527,6 +2527,8 @@ impl RapierPhysicsServerImpl {
                 // Update the joint object's handle and type
                 joint_obj.get_mut_base().set_handle(new_handle);
                 joint_obj.get_mut_base().set_joint_type(joint_type);
+            } else {
+                godot_error!("Failed to change joint type for joint RID {:?}", joint);
             }
         }
     }

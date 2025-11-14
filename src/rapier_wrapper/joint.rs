@@ -374,6 +374,9 @@ impl PhysicsEngine {
         } else {
             return JointHandle::default();
         };
+        if body1 == RigidBodyHandle::default() || body2 == RigidBodyHandle::default() {
+            return JointHandle::default();
+        }
         // Wake up connected bodies
         self.body_wake_up(world_handle, body1, false);
         self.body_wake_up(world_handle, body2, false);

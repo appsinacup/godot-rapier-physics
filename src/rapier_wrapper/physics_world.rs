@@ -1,6 +1,7 @@
 use std::num::NonZeroUsize;
 use std::sync::mpsc;
 
+use godot::global::godot_error;
 use hashbrown::HashMap;
 use rapier::data::Index;
 use rapier::parry::utils::IsometryOpt;
@@ -557,12 +558,11 @@ impl PhysicsWorld {
         handle: JointHandle,
     ) -> Option<(RigidBodyHandle, RigidBodyHandle)> {
         match handle.multibody {
-            false => {
-                self
-                    .physics_objects
-                    .impulse_joint_set
-                    .get(ImpulseJointHandle(handle.index)).map(|impulse_joint| (impulse_joint.body1, impulse_joint.body2))
-            }
+            false => self
+                .physics_objects
+                .impulse_joint_set
+                .get(ImpulseJointHandle(handle.index))
+                .map(|impulse_joint| (impulse_joint.body1, impulse_joint.body2)),
             true => {
                 if let Some((multibody, link_id)) = self
                     .physics_objects
@@ -570,13 +570,15 @@ impl PhysicsWorld {
                     .get(MultibodyJointHandle(handle.index))
                     && let Some(link) = multibody.link(link_id)
                 {
-                    // For multibody joints, body1 is the root body, body2 is the link body
-                    // Note: This may not work if the MultibodyLink API doesn't expose the rigid body handle
                     Some((
                         multibody.root().rigid_body_handle(),
                         link.rigid_body_handle(),
                     ))
                 } else {
+                    godot_error!(
+                        "Failed to get bodies for multibody joint handle: {:?}",
+                        handle
+                    );
                     None
                 }
             }
