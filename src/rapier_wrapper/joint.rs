@@ -28,7 +28,7 @@ impl PhysicsEngine {
         joint_handle: JointHandle,
         target_transform: Isometry<Real>,
         options: InverseKinematicsOption,
-    ) -> bool {
+    ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some((multibody, link_id)) = physics_world
                 .physics_objects
@@ -45,9 +45,7 @@ impl PhysicsEngine {
                 &mut displacements,
             );
             multibody.apply_displacements(displacements.as_slice());
-            return true;
         }
-        false
     }
 
     pub fn multibody_get_link_transform(

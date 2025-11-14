@@ -58,22 +58,19 @@ extends PinJoint2D
 			_update_ik_options()
 
 ## Custom IK linear epsilon (threshold for position convergence)
-@export_range(0.001, 1.0, 0.001) var ik_epsilon_linear: float = 0.001:
+@export_range(0.0001, 1.0, 0.0001) var ik_epsilon_linear: float = 0.001:
 	set(value):
 		ik_epsilon_linear = value
 		if is_inside_tree():
 			_update_ik_options()
 
 ## Custom IK angular epsilon (threshold for rotation convergence)
-@export_range(0.001, 1.0, 0.001) var ik_epsilon_angular: float = 0.001:
+@export_range(0.0001, 1.0, 0.0001) var ik_epsilon_angular: float = 0.001:
 	set(value):
 		ik_epsilon_angular = value
 		if is_inside_tree():
 			_update_ik_options()
 
-# Internal state for tracking target changes
-var _last_target_position: Vector2
-var _last_target_rotation: float
 # Internal computed value
 var ik_constrained_axes: int = 3
 
@@ -85,16 +82,11 @@ func _ready() -> void:
 	update_configuration_warnings()
 	_update_constrained_axes()
 	_update_ik_options()
-	if ik_target:
-		_last_target_position = ik_target.global_position
-		_last_target_rotation = ik_target.global_rotation
 
 func _physics_process(_delta: float) -> void:
 	# Automatically solve IK if target is set and at least one constraint is enabled
 	if ik_target != null and ik_constrained_axes > 0:
 		_solve_ik_for_target()
-		_last_target_position = ik_target.global_position
-		_last_target_rotation = ik_target.global_rotation
 
 func _solve_ik_for_target() -> void:
 	if not is_inside_tree() or ik_target == null:
@@ -147,16 +139,15 @@ func set_joint_type(type: int) -> void:
 ## Solve inverse kinematics to move the end effector to a target transform.
 ## This only works for multibody joints (joint_type = 1 or 2).
 ## The constrained axes determine which parts of the transform are used.
-## Returns true if IK converged successfully.
-func solve_ik(target_transform: Transform2D) -> bool:
+func solve_ik(target_transform: Transform2D) -> void:
 	if not is_inside_tree():
-		return false
+		return
 	
 	var joint_rid := get_rid()
 	if not joint_rid.is_valid():
-		return false
+		return
 	
-	return RapierPhysicsServer2D.joint_solve_inverse_kinematics(joint_rid, target_transform)
+	RapierPhysicsServer2D.joint_solve_inverse_kinematics(joint_rid, target_transform)
 
 ## Get the current end effector transform for this multibody joint.
 ## This only works for multibody joints (joint_type = 1 or 2).

@@ -125,8 +125,8 @@ macro_rules! make_rapier_server_godot_impl {
 
             #[func]
             /// Solve inverse kinematics for a multibody joint to reach a target transform.
-            /// Returns true if IK converged successfully.
-            pub fn joint_solve_inverse_kinematics(joint: Rid, target_transform: Transform) -> bool {
+            /// This automatically applies the computed joint displacements.
+            pub fn joint_solve_inverse_kinematics(joint: Rid, target_transform: Transform) {
                 use $crate::rapier_wrapper::convert::vector_to_rapier;
                 let physics_data = physics_data();
                 if let Some(joint_obj) = physics_data.joints.get_mut(&joint) {
@@ -151,9 +151,7 @@ macro_rules! make_rapier_server_godot_impl {
                         joint_handle,
                         target_isometry,
                         custom_ik_options,
-                    )
-                } else {
-                    false
+                    );
                 }
             }
 
@@ -201,7 +199,7 @@ macro_rules! make_rapier_server_godot_impl {
             /// This overrides the default Rapier IK parameters.
             /// constrained_axes: bitmask for which axes to constrain (1=X/Lin, 2=Y/Lin, 4=Z/Lin, 8=AngX, 16=AngY, 32=AngZ)
             ///   Common values: 3=XY position (2D), 7=XYZ position (3D), 56=rotation (3D), 63=all (3D)
-            /// Default values: damping=1.0, max_iterations=8, constrained_axes=63, epsilon_linear=1e-6, epsilon_angular=1e-6
+            /// Default values: damping=1.0, max_iterations=10, constrained_axes=63, epsilon_linear=0.001, epsilon_angular=0.001
             pub fn joint_set_ik_options(
                 joint: Rid,
                 damping: real,
@@ -227,7 +225,7 @@ macro_rules! make_rapier_server_godot_impl {
 
             #[func]
             /// Reset IK options to Rapier's default values.
-            /// Default values: damping=1.0, max_iterations=8, constrained_axes=63, epsilon_linear=1e-6, epsilon_angular=1e-6
+            /// Default values: damping=1.0, max_iterations=10, constrained_axes=63, epsilon_linear=0.001, epsilon_angular=0.001
             pub fn joint_reset_ik_options(joint: Rid) {
                 let physics_data = physics_data();
                 if let Some(joint_obj) = physics_data.joints.get_mut(&joint) {
