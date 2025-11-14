@@ -1,4 +1,4 @@
-use rapier::prelude::InverseKinematicsOption;
+use rapier::prelude::*;
 use servers::rapier_physics_singleton::PhysicsIds;
 use servers::rapier_physics_singleton::RapierId;
 use servers::rapier_physics_singleton::get_id_rid;

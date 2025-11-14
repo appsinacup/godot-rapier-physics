@@ -156,45 +156,6 @@ macro_rules! make_rapier_server_godot_impl {
             }
 
             #[func]
-            /// Get the current end effector position/rotation for a multibody joint.
-            pub fn joint_get_link_transform(joint: Rid) -> Transform {
-                let physics_data = physics_data();
-                if let Some(joint_obj) = physics_data.joints.get(&joint) {
-                    let space_handle = joint_obj.get_base().get_space_id();
-                    let joint_handle = joint_obj.get_base().get_handle();
-                    if let Some(transform) = physics_data
-                        .physics_engine
-                        .multibody_get_link_transform(space_handle, joint_handle)
-                    {
-                        #[cfg(feature = "dim2")]
-                        {
-                            let angle = transform.rotation.angle();
-                            let origin =
-                                Vector2::new(transform.translation.x, transform.translation.y);
-                            return Transform2D {
-                                a: Vector2::new(angle.cos(), angle.sin()),
-                                b: Vector2::new(-angle.sin(), angle.cos()),
-                                origin,
-                            };
-                        }
-                        #[cfg(feature = "dim3")]
-                        {
-                            let quat = transform.rotation.quaternion();
-                            let basis =
-                                Basis::from_quat(Quaternion::new(quat.w, quat.x, quat.y, quat.z));
-                            let origin = Vector3::new(
-                                transform.translation.x,
-                                transform.translation.y,
-                                transform.translation.z,
-                            );
-                            return Transform3D { basis, origin };
-                        }
-                    }
-                }
-                Transform::IDENTITY
-            }
-
-            #[func]
             /// Set custom IK options for a specific joint.
             /// This overrides the default Rapier IK parameters.
             /// constrained_axes: bitmask for which axes to constrain (1=X/Lin, 2=Y/Lin, 4=Z/Lin, 8=AngX, 16=AngY, 32=AngZ)

@@ -29,47 +29,40 @@ impl PhysicsEngine {
         target_transform: Isometry<Real>,
         options: InverseKinematicsOption,
     ) {
-        if let Some(physics_world) = self.get_mut_world(world_handle)
-            && let Some((multibody, link_id)) = physics_world
-                .physics_objects
-                .multibody_joint_set
-                .get_mut(MultibodyJointHandle(joint_handle.index))
-        {
-            let mut displacements = nalgebra::DVector::zeros(multibody.ndofs());
-            multibody.inverse_kinematics(
-                &physics_world.physics_objects.rigid_body_set,
-                link_id,
-                &options,
-                &target_transform,
-                |_| true, // Accept all joint configurations
-                &mut displacements,
+        let Some(physics_world) = self.get_mut_world(world_handle) else {
+            return;
+        };
+        let Some((multibody, link_id)) = physics_world
+            .physics_objects
+            .multibody_joint_set
+            .get_mut(MultibodyJointHandle(joint_handle.index))
+        else {
+            godot_error!(
+                "Failed to solve IK: joint handle {:?} is not a valid multibody joint",
+                joint_handle
             );
-            multibody.apply_displacements(displacements.as_slice());
+            return;
+        };
+        let ndofs = multibody.ndofs();
+        if ndofs == 0 {
+            godot_error!("Cannot solve IK: multibody has 0 degrees of freedom");
+            return;
         }
-    }
-
-    pub fn multibody_get_link_transform(
-        &self,
-        world_handle: WorldHandle,
-        joint_handle: JointHandle,
-    ) -> Option<Isometry<Real>> {
-        if let Some(physics_world) = self.get_world(world_handle)
-            && let Some((multibody, link_id)) = physics_world
-                .physics_objects
-                .multibody_joint_set
-                .get(MultibodyJointHandle(joint_handle.index))
-            && let Some(link) = multibody.link(link_id)
-        {
-            let body_handle = link.rigid_body_handle();
-            if let Some(body) = physics_world
-                .physics_objects
-                .rigid_body_set
-                .get(body_handle)
-            {
-                return Some(*body.position());
-            }
+        let mut displacements = nalgebra::DVector::zeros(ndofs);
+        multibody.inverse_kinematics(
+            &physics_world.physics_objects.rigid_body_set,
+            link_id,
+            &options,
+            &target_transform,
+            |_| true,
+            &mut displacements,
+        );
+        // Validate displacements are finite before applying
+        if !displacements.iter().all(|&d| d.is_finite()) {
+            godot_error!("IK solver produced non-finite displacements, skipping application");
+            return;
         }
-        None
+        multibody.apply_displacements(displacements.as_slice());
     }
 
     fn joint_wake_up_connected_rigidbodies(
