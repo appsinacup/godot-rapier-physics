@@ -2,6 +2,7 @@ use godot::global::godot_error;
 use rapier::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_project_settings::RapierProjectSettings;
 impl PhysicsEngine {
     fn joint_wake_up_connected_rigidbodies(
         &mut self,
@@ -252,11 +253,18 @@ impl PhysicsEngine {
             if angular_limit_enabled {
                 joint.set_limits([angular_limit_lower, angular_limit_upper]);
             }
-            let softness = softness.clamp(Real::EPSILON, 16.0);
-            let frequency = 10_f32.powf(3.0 - softness * 0.2);
-            joint.data.natural_frequency = frequency;
-            let damping_ratio = 10_f32.powf(-softness * 0.4375);
-            joint.data.damping_ratio = damping_ratio;
+            if softness == 0.0 {
+                // Use project settings defaults when softness is 0.0
+                joint.data.natural_frequency = RapierProjectSettings::get_joint_natural_frequency();
+                joint.data.damping_ratio = RapierProjectSettings::get_joint_damping_ratio();
+            } else {
+                // Convert softness to damping parameters
+                let softness = softness.clamp(Real::EPSILON, 16.0);
+                let frequency = 10_f32.powf(3.0 - softness * 0.2);
+                joint.data.natural_frequency = frequency;
+                let damping_ratio = 10_f32.powf(-softness * 0.4375);
+                joint.data.damping_ratio = damping_ratio;
+            }
         }
     }
 
