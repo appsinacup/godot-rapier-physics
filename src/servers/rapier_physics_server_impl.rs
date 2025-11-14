@@ -1657,7 +1657,7 @@ impl RapierPhysicsServerImpl {
             let mut joint = RapierEmptyJoint::new(id);
             joint
                 .get_mut_base()
-                .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
+                .copy_settings_from(prev_joint.get_base());
             prev_joint
                 .get_mut_base()
                 .destroy_joint(&mut physics_data.physics_engine);
@@ -1746,7 +1746,7 @@ impl RapierPhysicsServerImpl {
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
                 joint
                     .get_mut_base()
-                    .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
+                    .copy_settings_from(prev_joint.get_base());
                 prev_joint
                     .get_mut_base()
                     .destroy_joint(&mut physics_data.physics_engine);
@@ -1850,7 +1850,7 @@ impl RapierPhysicsServerImpl {
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
                 joint
                     .get_mut_base()
-                    .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
+                    .copy_settings_from(prev_joint.get_base());
                 prev_joint
                     .get_mut_base()
                     .destroy_joint(&mut physics_data.physics_engine);
@@ -1928,7 +1928,7 @@ impl RapierPhysicsServerImpl {
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
                 joint
                     .get_mut_base()
-                    .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
+                    .copy_settings_from(prev_joint.get_base());
                 prev_joint
                     .get_mut_base()
                     .destroy_joint(&mut physics_data.physics_engine);
@@ -2010,7 +2010,7 @@ impl RapierPhysicsServerImpl {
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
                 joint
                     .get_mut_base()
-                    .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
+                    .copy_settings_from(prev_joint.get_base());
                 prev_joint
                     .get_mut_base()
                     .destroy_joint(&mut physics_data.physics_engine);
@@ -2084,7 +2084,7 @@ impl RapierPhysicsServerImpl {
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
                 joint
                     .get_mut_base()
-                    .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
+                    .copy_settings_from(prev_joint.get_base());
                 prev_joint
                     .get_mut_base()
                     .destroy_joint(&mut physics_data.physics_engine);
@@ -2160,7 +2160,7 @@ impl RapierPhysicsServerImpl {
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
                 joint
                     .get_mut_base()
-                    .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
+                    .copy_settings_from(prev_joint.get_base());
                 prev_joint
                     .get_mut_base()
                     .destroy_joint(&mut physics_data.physics_engine);
@@ -2334,7 +2334,7 @@ impl RapierPhysicsServerImpl {
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
                 joint
                     .get_mut_base()
-                    .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
+                    .copy_settings_from(prev_joint.get_base());
                 prev_joint
                     .get_mut_base()
                     .destroy_joint(&mut physics_data.physics_engine);
@@ -2381,7 +2381,7 @@ impl RapierPhysicsServerImpl {
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
                 joint
                     .get_mut_base()
-                    .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
+                    .copy_settings_from(prev_joint.get_base());
                 prev_joint
                     .get_mut_base()
                     .destroy_joint(&mut physics_data.physics_engine);
@@ -2426,7 +2426,7 @@ impl RapierPhysicsServerImpl {
             if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
                 joint
                     .get_mut_base()
-                    .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
+                    .copy_settings_from(prev_joint.get_base());
                 prev_joint
                     .get_mut_base()
                     .destroy_joint(&mut physics_data.physics_engine);
