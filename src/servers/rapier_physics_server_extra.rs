@@ -136,16 +136,12 @@ macro_rules! make_rapier_server_godot_impl {
                     // Convert Transform to Isometry
                     let translation = vector_to_rapier(target_transform.origin);
                     #[cfg(feature = "dim2")]
-                    let target_isometry =
-                        rapier::prelude::Isometry::new(translation, target_transform.rotation());
-                    #[cfg(feature = "dim3")]
                     let target_isometry = {
-                        let quat = target_transform.basis.to_quat();
-                        let rotation = rapier::prelude::Rotation::from_quaternion(
-                            rapier::prelude::Quaternion::new(quat.w, quat.x, quat.y, quat.z),
-                        );
+                        let rotation = rapier::na::UnitComplex::new(target_transform.rotation());
                         rapier::prelude::Isometry::from_parts(translation.into(), rotation)
                     };
+                    #[cfg(feature = "dim3")]
+                    let target_isometry = rapier::prelude::Isometry::from(translation);
                     physics_data.physics_engine.multibody_solve_ik(
                         space_handle,
                         joint_handle,
