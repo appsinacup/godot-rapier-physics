@@ -123,6 +123,119 @@ macro_rules! make_rapier_server_godot_impl {
                 0.to_variant()
             }
 
+            #[func]
+            /// Solve inverse kinematics for a multibody joint to reach a target transform.
+            /// Returns true if IK converged successfully.
+            pub fn joint_solve_inverse_kinematics(joint: Rid, target_transform: Transform) -> bool {
+                use $crate::rapier_wrapper::convert::vector_to_rapier;
+                let physics_data = physics_data();
+                if let Some(joint_obj) = physics_data.joints.get_mut(&joint) {
+                    let space_handle = joint_obj.get_base().get_space_id();
+                    let joint_handle = joint_obj.get_base().get_handle();
+                    let custom_ik_options = joint_obj.get_base().custom_ik_options;
+                    // Convert Transform to Isometry
+                    let translation = vector_to_rapier(target_transform.origin);
+                    #[cfg(feature = "dim2")]
+                    let target_isometry =
+                        rapier::prelude::Isometry::new(translation, target_transform.rotation());
+                    #[cfg(feature = "dim3")]
+                    let target_isometry = {
+                        let quat = target_transform.basis.to_quat();
+                        let rotation = rapier::prelude::Rotation::from_quaternion(
+                            rapier::prelude::Quaternion::new(quat.w, quat.x, quat.y, quat.z),
+                        );
+                        rapier::prelude::Isometry::from_parts(translation.into(), rotation)
+                    };
+                    physics_data.physics_engine.multibody_solve_ik(
+                        space_handle,
+                        joint_handle,
+                        target_isometry,
+                        custom_ik_options,
+                    )
+                } else {
+                    false
+                }
+            }
+
+            #[func]
+            /// Get the current end effector position/rotation for a multibody joint.
+            pub fn joint_get_link_transform(joint: Rid) -> Transform {
+                let physics_data = physics_data();
+                if let Some(joint_obj) = physics_data.joints.get(&joint) {
+                    let space_handle = joint_obj.get_base().get_space_id();
+                    let joint_handle = joint_obj.get_base().get_handle();
+                    if let Some(transform) = physics_data
+                        .physics_engine
+                        .multibody_get_link_transform(space_handle, joint_handle)
+                    {
+                        #[cfg(feature = "dim2")]
+                        {
+                            let angle = transform.rotation.angle();
+                            let origin =
+                                Vector2::new(transform.translation.x, transform.translation.y);
+                            return Transform2D {
+                                a: Vector2::new(angle.cos(), angle.sin()),
+                                b: Vector2::new(-angle.sin(), angle.cos()),
+                                origin,
+                            };
+                        }
+                        #[cfg(feature = "dim3")]
+                        {
+                            let quat = transform.rotation.quaternion();
+                            let basis =
+                                Basis::from_quat(Quaternion::new(quat.w, quat.x, quat.y, quat.z));
+                            let origin = Vector3::new(
+                                transform.translation.x,
+                                transform.translation.y,
+                                transform.translation.z,
+                            );
+                            return Transform3D { basis, origin };
+                        }
+                    }
+                }
+                Transform::IDENTITY
+            }
+
+            #[func]
+            /// Set custom IK options for a specific joint.
+            /// This overrides the default Rapier IK parameters.
+            /// constrained_axes: bitmask for which axes to constrain (1=X/Lin, 2=Y/Lin, 4=Z/Lin, 8=AngX, 16=AngY, 32=AngZ)
+            ///   Common values: 3=XY position (2D), 7=XYZ position (3D), 56=rotation (3D), 63=all (3D)
+            /// Default values: damping=1.0, max_iterations=8, constrained_axes=63, epsilon_linear=1e-6, epsilon_angular=1e-6
+            pub fn joint_set_ik_options(
+                joint: Rid,
+                damping: real,
+                max_iterations: i32,
+                constrained_axes: i32,
+                epsilon_linear: real,
+                epsilon_angular: real,
+            ) {
+                let physics_data = physics_data();
+                if let Some(joint_obj) = physics_data.joints.get_mut(&joint) {
+                    use rapier::dynamics::InverseKinematicsOption;
+                    use rapier::dynamics::JointAxesMask;
+                    let options = InverseKinematicsOption {
+                        damping,
+                        max_iters: max_iterations as usize,
+                        constrained_axes: JointAxesMask::from_bits_truncate(constrained_axes as u8),
+                        epsilon_linear,
+                        epsilon_angular,
+                    };
+                    joint_obj.get_mut_base().custom_ik_options = options;
+                }
+            }
+
+            #[func]
+            /// Reset IK options to Rapier's default values.
+            /// Default values: damping=1.0, max_iterations=8, constrained_axes=63, epsilon_linear=1e-6, epsilon_angular=1e-6
+            pub fn joint_reset_ik_options(joint: Rid) {
+                let physics_data = physics_data();
+                if let Some(joint_obj) = physics_data.joints.get_mut(&joint) {
+                    use rapier::dynamics::InverseKinematicsOption;
+                    joint_obj.get_mut_base().custom_ik_options = InverseKinematicsOption::default();
+                }
+            }
+
             #[cfg(feature = "serde-serialize")]
             #[func]
             /// Exports the physics object to a JSON string. This is slower than the binary export.

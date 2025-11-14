@@ -1,3 +1,4 @@
+use rapier::prelude::InverseKinematicsOption;
 use servers::rapier_physics_singleton::PhysicsIds;
 use servers::rapier_physics_singleton::RapierId;
 use servers::rapier_physics_singleton::get_id_rid;
@@ -32,6 +33,7 @@ pub struct RapierJointBase {
     max_force: f32,
     disabled_collisions_between_bodies: bool,
     state: RapierJointBaseState,
+    pub custom_ik_options: InverseKinematicsOption,
 }
 impl Default for RapierJointBase {
     fn default() -> Self {
@@ -65,6 +67,7 @@ impl RapierJointBase {
                 space_id,
                 joint_type,
             },
+            custom_ik_options: InverseKinematicsOption::default(),
         }
     }
 

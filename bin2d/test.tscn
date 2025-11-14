@@ -1,9 +1,97 @@
-[gd_scene load_steps=2 format=3 uid="uid://cn4jscixu2bmf"]
+[gd_scene load_steps=6 format=3 uid="uid://cn4jscixu2bmf"]
 
-[ext_resource type="Script" path="res://test.gd" id="1_fs1uw"]
+[ext_resource type="Script" uid="uid://bv2bc4lt5v7hu" path="res://addons/godot-rapier2d/custom_nodes/rapier_pin_joint_2d.gd" id="1_37kl0"]
+[ext_resource type="Script" uid="uid://c53qchbhmig8" path="res://marker_2d.gd" id="2_8uh7m"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_8uh7m"]
+size = Vector2(20, 30)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_6uqi0"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ppyta"]
+size = Vector2(287, 20)
 
 [node name="Test2D" type="Node2D"]
-script = ExtResource("1_fs1uw")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 zoom = Vector2(4, 4)
+
+[node name="RigidBody2D" type="RigidBody2D" parent="."]
+position = Vector2(0, -60)
+
+[node name="RapierPinJoint2D" type="PinJoint2D" parent="RigidBody2D"]
+position = Vector2(1, -9)
+node_a = NodePath("../../StaticBody2D")
+node_b = NodePath("..")
+disable_collision = false
+script = ExtResource("1_37kl0")
+joint_type = 1
+metadata/_custom_type_script = "uid://bv2bc4lt5v7hu"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D"]
+position = Vector2(0, 8)
+shape = SubResource("RectangleShape2D_8uh7m")
+
+[node name="RigidBody2D2" type="RigidBody2D" parent="."]
+position = Vector2(0, -17)
+
+[node name="RapierPinJoint2D2" type="PinJoint2D" parent="RigidBody2D2"]
+position = Vector2(0, -18)
+node_a = NodePath("../../RigidBody2D")
+node_b = NodePath("..")
+disable_collision = false
+script = ExtResource("1_37kl0")
+joint_type = 1
+metadata/_custom_type_script = "uid://bv2bc4lt5v7hu"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D2"]
+shape = SubResource("RectangleShape2D_8uh7m")
+
+[node name="RigidBody2D3" type="RigidBody2D" parent="."]
+position = Vector2(0, 18)
+
+[node name="RapierPinJoint2D3" type="PinJoint2D" parent="RigidBody2D3"]
+position = Vector2(0, -18)
+node_a = NodePath("../../RigidBody2D2")
+node_b = NodePath("..")
+disable_collision = false
+script = ExtResource("1_37kl0")
+joint_type = 1
+metadata/_custom_type_script = "uid://bv2bc4lt5v7hu"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D3"]
+shape = SubResource("RectangleShape2D_8uh7m")
+
+[node name="RigidBody2D4" type="RigidBody2D" parent="."]
+position = Vector2(0, 53)
+
+[node name="RapierPinJoint2D4" type="PinJoint2D" parent="RigidBody2D4" node_paths=PackedStringArray("ik_target")]
+position = Vector2(0, -17)
+node_a = NodePath("../../RigidBody2D3")
+node_b = NodePath("..")
+disable_collision = false
+script = ExtResource("1_37kl0")
+joint_type = 1
+ik_target = NodePath("../../Marker2D")
+metadata/_custom_type_script = "uid://bv2bc4lt5v7hu"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D4"]
+shape = SubResource("RectangleShape2D_8uh7m")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+position = Vector2(0, -44)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(1, -35)
+shape = SubResource("CircleShape2D_6uqi0")
+
+[node name="StaticBody2D2" type="StaticBody2D" parent="."]
+position = Vector2(-40, 78)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D2"]
+position = Vector2(20, 6)
+shape = SubResource("RectangleShape2D_ppyta")
+
+[node name="Marker2D" type="Marker2D" parent="."]
+position = Vector2(45, -83)
+script = ExtResource("2_8uh7m")

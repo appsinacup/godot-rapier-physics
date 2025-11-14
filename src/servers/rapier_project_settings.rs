@@ -25,8 +25,6 @@ const SOLVER_PREDICTIVE_CONTACT_ALLOWANCE_THRESHOLD: &str =
     "physics/rapier/solver/predictive_contact_allowance_threshold";
 const CONTACT_DAMPING_RATIO: &str = "physics/rapier/solver/contact_damping_ratio";
 const CONTACT_NATURAL_FREQUENCY: &str = "physics/rapier/solver/contact_natural_frequency";
-const JOINT_DAMPING_RATIO: &str = "physics/rapier/solver/joint_damping_ratio";
-const JOINT_NATURAL_FREQUENCY: &str = "physics/rapier/solver/joint_natural_frequency";
 // Stability preset constants
 const STABILITY_PGS_ITERATIONS: i64 = 4;
 const STABILITY_STABILIZATION_ITERATIONS: i64 = 4;
@@ -189,18 +187,6 @@ impl RapierProjectSettings {
             CONTACT_NATURAL_FREQUENCY,
             Variant::from(integration_parameters.contact_natural_frequency),
             "0,100,0.00001,or_greater",
-            false,
-        );
-        register_setting_ranged(
-            JOINT_DAMPING_RATIO,
-            Variant::from(1.0),
-            "0,1,0.00001,or_greater",
-            false,
-        );
-        register_setting_ranged(
-            JOINT_NATURAL_FREQUENCY,
-            Variant::from(1.0e6),
-            "0,100000,0.1,or_greater",
             false,
         );
         register_setting_ranged(
@@ -437,14 +423,6 @@ impl RapierProjectSettings {
 
     pub fn get_ghost_collision_distance() -> Real {
         RapierProjectSettings::get_setting_double(GHOST_COLLISION_DISTANCE) as Real
-    }
-
-    pub fn get_joint_damping_ratio() -> Real {
-        RapierProjectSettings::get_setting_double(JOINT_DAMPING_RATIO) as Real
-    }
-
-    pub fn get_joint_natural_frequency() -> Real {
-        RapierProjectSettings::get_setting_double(JOINT_NATURAL_FREQUENCY) as Real
     }
 
     #[cfg(feature = "parallel")]

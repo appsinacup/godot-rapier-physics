@@ -3,7 +3,6 @@ use rapier::prelude::*;
 
 use crate::joints::rapier_joint_base::RapierJointType;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_project_settings::RapierProjectSettings;
 impl PhysicsEngine {
     #[cfg(feature = "dim2")]
     fn godot_spring_to_rapier_accel(stiffness: Real, damping: Real) -> (Real, Real) {
@@ -21,6 +20,58 @@ impl PhysicsEngine {
         let rapier_stiffness = omega * omega;
         let rapier_damping = 2.0 * damping_ratio * omega;
         (rapier_stiffness, rapier_damping)
+    }
+
+    pub fn multibody_solve_ik(
+        &mut self,
+        world_handle: WorldHandle,
+        joint_handle: JointHandle,
+        target_transform: Isometry<Real>,
+        options: InverseKinematicsOption,
+    ) -> bool {
+        if let Some(physics_world) = self.get_mut_world(world_handle)
+            && let Some((multibody, link_id)) = physics_world
+                .physics_objects
+                .multibody_joint_set
+                .get_mut(MultibodyJointHandle(joint_handle.index))
+        {
+            let mut displacements = nalgebra::DVector::zeros(multibody.ndofs());
+            multibody.inverse_kinematics(
+                &physics_world.physics_objects.rigid_body_set,
+                link_id,
+                &options,
+                &target_transform,
+                |_| true, // Accept all joint configurations
+                &mut displacements,
+            );
+            multibody.apply_displacements(displacements.as_slice());
+            return true;
+        }
+        false
+    }
+
+    pub fn multibody_get_link_transform(
+        &self,
+        world_handle: WorldHandle,
+        joint_handle: JointHandle,
+    ) -> Option<Isometry<Real>> {
+        if let Some(physics_world) = self.get_world(world_handle)
+            && let Some((multibody, link_id)) = physics_world
+                .physics_objects
+                .multibody_joint_set
+                .get(MultibodyJointHandle(joint_handle.index))
+            && let Some(link) = multibody.link(link_id)
+        {
+            let body_handle = link.rigid_body_handle();
+            if let Some(body) = physics_world
+                .physics_objects
+                .rigid_body_set
+                .get(body_handle)
+            {
+                return Some(*body.position());
+            }
+        }
+        None
     }
 
     fn joint_wake_up_connected_rigidbodies(
@@ -255,15 +306,11 @@ impl PhysicsEngine {
             if angular_limit_enabled {
                 joint.set_limits([angular_limit_lower, angular_limit_upper]);
             }
-            if softness == 0.0 {
-                // Use project settings defaults when softness is 0.0
-                let frequency = RapierProjectSettings::get_joint_natural_frequency();
-                let damping_ratio = RapierProjectSettings::get_joint_damping_ratio();
-                joint.data.natural_frequency = frequency;
-                joint.data.damping_ratio = damping_ratio;
+            if softness <= 0.0 {
+                joint.data.natural_frequency = 1.0e6;
+                joint.data.damping_ratio = 1.0;
             } else {
                 // Convert softness to damping parameters
-                // For 2D revolute joints, we use the data fields as Rapier handles them internally
                 let softness_clamped = softness.clamp(Real::EPSILON, 16.0);
                 joint.data.natural_frequency = 10_f32.powf(3.0 - softness_clamped * 0.2);
                 joint.data.damping_ratio = 10_f32.powf(-softness_clamped * 0.4375);
