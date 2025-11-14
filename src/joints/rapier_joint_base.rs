@@ -1,10 +1,11 @@
+use rapier::prelude::*;
 use servers::rapier_physics_singleton::PhysicsIds;
 use servers::rapier_physics_singleton::RapierId;
 use servers::rapier_physics_singleton::get_id_rid;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::*;
-#[derive(Default, Debug, PartialEq, Clone, Copy)]
+#[derive(Default, Debug, PartialEq, Eq, Clone, Copy)]
 #[cfg_attr(
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
@@ -13,6 +14,7 @@ pub enum RapierJointType {
     #[default]
     Impulse,
     MultiBody,
+    MultiBodyKinematic,
 }
 #[cfg_attr(
     feature = "serde-serialize",
@@ -31,6 +33,7 @@ pub struct RapierJointBase {
     max_force: f32,
     disabled_collisions_between_bodies: bool,
     state: RapierJointBaseState,
+    pub custom_ik_options: InverseKinematicsOption,
 }
 impl Default for RapierJointBase {
     fn default() -> Self {
@@ -64,11 +67,16 @@ impl RapierJointBase {
                 space_id,
                 joint_type,
             },
+            custom_ik_options: InverseKinematicsOption::default(),
         }
     }
 
     pub fn get_handle(&self) -> JointHandle {
         self.state.handle
+    }
+
+    pub fn set_handle(&mut self, handle: JointHandle) {
+        self.state.handle = handle;
     }
 
     pub fn get_id(&self) -> RapierId {

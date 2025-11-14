@@ -1723,7 +1723,7 @@ impl RapierPhysicsServerImpl {
         local_b: Vector3,
     ) {
         let physics_data = physics_data();
-        let mut joint: RapierJoint;
+        let joint: RapierJoint;
         let joint_type = if let Some(prev_joint) = physics_data.joints.get(&rid) {
             prev_joint.get_base().get_joint_type()
         } else {
@@ -1743,10 +1743,15 @@ impl RapierPhysicsServerImpl {
                 &mut physics_data.physics_engine,
                 joint_type,
             ));
-            if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
-                joint
-                    .get_mut_base()
-                    .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
+            let prev_joint = physics_data.joints.remove(&rid);
+            physics_data.joints.insert(rid, joint);
+            if let Some(mut prev_joint) = prev_joint {
+                if let Some(joint) = physics_data.joints.get_mut(&rid) {
+                    joint.get_mut_base().copy_settings_from(
+                        prev_joint.get_base(),
+                        &mut physics_data.physics_engine,
+                    );
+                }
                 prev_joint
                     .get_mut_base()
                     .destroy_joint(&mut physics_data.physics_engine);
@@ -1754,8 +1759,8 @@ impl RapierPhysicsServerImpl {
         } else {
             let id = self.next_id();
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new(id));
+            physics_data.joints.insert(rid, joint);
         }
-        physics_data.joints.insert(rid, joint);
     }
 
     #[cfg(feature = "dim3")]
@@ -1825,7 +1830,7 @@ impl RapierPhysicsServerImpl {
         hinge_b: Transform3D,
     ) {
         let physics_data = physics_data();
-        let mut joint: RapierJoint;
+        let joint: RapierJoint;
         let joint_type = if let Some(prev_joint) = physics_data.joints.get(&rid) {
             prev_joint.get_base().get_joint_type()
         } else {
@@ -1847,10 +1852,15 @@ impl RapierPhysicsServerImpl {
                 &mut physics_data.physics_engine,
                 joint_type,
             ));
-            if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
-                joint
-                    .get_mut_base()
-                    .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
+            let prev_joint = physics_data.joints.remove(&rid);
+            physics_data.joints.insert(rid, joint);
+            if let Some(mut prev_joint) = prev_joint {
+                if let Some(joint) = physics_data.joints.get_mut(&rid) {
+                    joint.get_mut_base().copy_settings_from(
+                        prev_joint.get_base(),
+                        &mut physics_data.physics_engine,
+                    );
+                }
                 prev_joint
                     .get_mut_base()
                     .destroy_joint(&mut physics_data.physics_engine);
@@ -1858,8 +1868,8 @@ impl RapierPhysicsServerImpl {
         } else {
             let id = self.next_id();
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new(id));
+            physics_data.joints.insert(rid, joint);
         }
-        physics_data.joints.insert(rid, joint);
     }
 
     #[cfg(feature = "dim3")]
@@ -1875,7 +1885,7 @@ impl RapierPhysicsServerImpl {
         axis_b: Vector3,
     ) {
         let physics_data = physics_data();
-        let mut joint: RapierJoint;
+        let joint: RapierJoint;
         let joint_type = if let Some(prev_joint) = physics_data.joints.get(&rid) {
             prev_joint.get_base().get_joint_type()
         } else {
@@ -1925,10 +1935,15 @@ impl RapierPhysicsServerImpl {
                 &mut physics_data.physics_engine,
                 joint_type,
             ));
-            if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
-                joint
-                    .get_mut_base()
-                    .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
+            let prev_joint = physics_data.joints.remove(&rid);
+            physics_data.joints.insert(rid, joint);
+            if let Some(mut prev_joint) = prev_joint {
+                if let Some(joint) = physics_data.joints.get_mut(&rid) {
+                    joint.get_mut_base().copy_settings_from(
+                        prev_joint.get_base(),
+                        &mut physics_data.physics_engine,
+                    );
+                }
                 prev_joint
                     .get_mut_base()
                     .destroy_joint(&mut physics_data.physics_engine);
@@ -1936,8 +1951,8 @@ impl RapierPhysicsServerImpl {
         } else {
             let id = self.next_id();
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new(id));
+            physics_data.joints.insert(rid, joint);
         }
-        physics_data.joints.insert(rid, joint);
     }
 
     #[cfg(feature = "dim3")]
@@ -1985,7 +2000,7 @@ impl RapierPhysicsServerImpl {
     ) {
         use crate::joints::rapier_slider_joint_3d::RapierSliderJoint3D;
         let physics_data = physics_data();
-        let mut joint: RapierJoint;
+        let joint: RapierJoint;
         let joint_type = if let Some(prev_joint) = physics_data.joints.get(&rid) {
             prev_joint.get_base().get_joint_type()
         } else {
@@ -2007,10 +2022,15 @@ impl RapierPhysicsServerImpl {
                 &mut physics_data.physics_engine,
                 joint_type,
             ));
-            if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
-                joint
-                    .get_mut_base()
-                    .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
+            let prev_joint = physics_data.joints.remove(&rid);
+            physics_data.joints.insert(rid, joint);
+            if let Some(mut prev_joint) = prev_joint {
+                if let Some(joint) = physics_data.joints.get_mut(&rid) {
+                    joint.get_mut_base().copy_settings_from(
+                        prev_joint.get_base(),
+                        &mut physics_data.physics_engine,
+                    );
+                }
                 prev_joint
                     .get_mut_base()
                     .destroy_joint(&mut physics_data.physics_engine);
@@ -2018,8 +2038,8 @@ impl RapierPhysicsServerImpl {
         } else {
             let id = self.next_id();
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new(id));
+            physics_data.joints.insert(rid, joint);
         }
-        physics_data.joints.insert(rid, joint);
     }
 
     #[cfg(feature = "dim3")]
@@ -2059,7 +2079,7 @@ impl RapierPhysicsServerImpl {
     ) {
         use crate::joints::rapier_cone_twist_joint_3d::RapierConeTwistJoint3D;
         let physics_data = physics_data();
-        let mut joint: RapierJoint;
+        let joint: RapierJoint;
         let joint_type = if let Some(prev_joint) = physics_data.joints.get(&rid) {
             prev_joint.get_base().get_joint_type()
         } else {
@@ -2081,10 +2101,15 @@ impl RapierPhysicsServerImpl {
                 &mut physics_data.physics_engine,
                 joint_type,
             ));
-            if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
-                joint
-                    .get_mut_base()
-                    .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
+            let prev_joint = physics_data.joints.remove(&rid);
+            physics_data.joints.insert(rid, joint);
+            if let Some(mut prev_joint) = prev_joint {
+                if let Some(joint) = physics_data.joints.get_mut(&rid) {
+                    joint.get_mut_base().copy_settings_from(
+                        prev_joint.get_base(),
+                        &mut physics_data.physics_engine,
+                    );
+                }
                 prev_joint
                     .get_mut_base()
                     .destroy_joint(&mut physics_data.physics_engine);
@@ -2092,8 +2117,8 @@ impl RapierPhysicsServerImpl {
         } else {
             let id = self.next_id();
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new(id));
+            physics_data.joints.insert(rid, joint);
         }
-        physics_data.joints.insert(rid, joint);
     }
 
     #[cfg(feature = "dim3")]
@@ -2135,7 +2160,7 @@ impl RapierPhysicsServerImpl {
     ) {
         use crate::joints::rapier_generic_6dof_joint_3d::RapierGeneric6DOFJoint3D;
         let physics_data = physics_data();
-        let mut joint: RapierJoint;
+        let joint: RapierJoint;
         let joint_type = if let Some(prev_joint) = physics_data.joints.get(&rid) {
             prev_joint.get_base().get_joint_type()
         } else {
@@ -2157,10 +2182,15 @@ impl RapierPhysicsServerImpl {
                 &mut physics_data.physics_engine,
                 joint_type,
             ));
-            if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
-                joint
-                    .get_mut_base()
-                    .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
+            let prev_joint = physics_data.joints.remove(&rid);
+            physics_data.joints.insert(rid, joint);
+            if let Some(mut prev_joint) = prev_joint {
+                if let Some(joint) = physics_data.joints.get_mut(&rid) {
+                    joint.get_mut_base().copy_settings_from(
+                        prev_joint.get_base(),
+                        &mut physics_data.physics_engine,
+                    );
+                }
                 prev_joint
                     .get_mut_base()
                     .destroy_joint(&mut physics_data.physics_engine);
@@ -2168,8 +2198,8 @@ impl RapierPhysicsServerImpl {
         } else {
             let id = self.next_id();
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new(id));
+            physics_data.joints.insert(rid, joint);
         }
-        physics_data.joints.insert(rid, joint);
     }
 
     #[cfg(feature = "dim3")]
@@ -2311,7 +2341,7 @@ impl RapierPhysicsServerImpl {
     #[cfg(feature = "dim2")]
     pub(super) fn joint_make_pin(&mut self, rid: Rid, anchor: Vector, body_a: Rid, body_b: Rid) {
         let physics_data = physics_data();
-        let mut joint: RapierJoint;
+        let joint: RapierJoint;
         let joint_type = if let Some(prev_joint) = physics_data.joints.get(&rid) {
             prev_joint.get_base().get_joint_type()
         } else {
@@ -2331,10 +2361,15 @@ impl RapierPhysicsServerImpl {
                 &mut physics_data.physics_engine,
                 joint_type,
             ));
-            if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
-                joint
-                    .get_mut_base()
-                    .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
+            let prev_joint = physics_data.joints.remove(&rid);
+            physics_data.joints.insert(rid, joint);
+            if let Some(mut prev_joint) = prev_joint {
+                if let Some(joint) = physics_data.joints.get_mut(&rid) {
+                    joint.get_mut_base().copy_settings_from(
+                        prev_joint.get_base(),
+                        &mut physics_data.physics_engine,
+                    );
+                }
                 prev_joint
                     .get_mut_base()
                     .destroy_joint(&mut physics_data.physics_engine);
@@ -2342,8 +2377,8 @@ impl RapierPhysicsServerImpl {
         } else {
             let id = self.next_id();
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new(id));
+            physics_data.joints.insert(rid, joint);
         }
-        physics_data.joints.insert(rid, joint);
     }
 
     #[cfg(feature = "dim2")]
@@ -2357,7 +2392,7 @@ impl RapierPhysicsServerImpl {
         body_b: Rid,
     ) {
         let physics_data: &mut super::rapier_physics_singleton::PhysicsData = physics_data();
-        let mut joint: RapierJoint;
+        let joint: RapierJoint;
         let joint_type = if let Some(prev_joint) = physics_data.joints.get(&rid) {
             prev_joint.get_base().get_joint_type()
         } else {
@@ -2378,10 +2413,15 @@ impl RapierPhysicsServerImpl {
                 &mut physics_data.physics_engine,
                 joint_type,
             ));
-            if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
-                joint
-                    .get_mut_base()
-                    .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
+            let prev_joint = physics_data.joints.remove(&rid);
+            physics_data.joints.insert(rid, joint);
+            if let Some(mut prev_joint) = prev_joint {
+                if let Some(joint) = physics_data.joints.get_mut(&rid) {
+                    joint.get_mut_base().copy_settings_from(
+                        prev_joint.get_base(),
+                        &mut physics_data.physics_engine,
+                    );
+                }
                 prev_joint
                     .get_mut_base()
                     .destroy_joint(&mut physics_data.physics_engine);
@@ -2389,8 +2429,8 @@ impl RapierPhysicsServerImpl {
         } else {
             let id = self.next_id();
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new(id));
+            physics_data.joints.insert(rid, joint);
         }
-        physics_data.joints.insert(rid, joint);
     }
 
     #[cfg(feature = "dim2")]
@@ -2403,7 +2443,7 @@ impl RapierPhysicsServerImpl {
         body_b: Rid,
     ) {
         let physics_data = physics_data();
-        let mut joint: RapierJoint;
+        let joint: RapierJoint;
         let joint_type = if let Some(prev_joint) = physics_data.joints.get(&rid) {
             prev_joint.get_base().get_joint_type()
         } else {
@@ -2423,10 +2463,15 @@ impl RapierPhysicsServerImpl {
                 &mut physics_data.physics_engine,
                 joint_type,
             ));
-            if let Some(mut prev_joint) = physics_data.joints.remove(&rid) {
-                joint
-                    .get_mut_base()
-                    .copy_settings_from(prev_joint.get_base(), &mut physics_data.physics_engine);
+            let prev_joint = physics_data.joints.remove(&rid);
+            physics_data.joints.insert(rid, joint);
+            if let Some(mut prev_joint) = prev_joint {
+                if let Some(joint) = physics_data.joints.get_mut(&rid) {
+                    joint.get_mut_base().copy_settings_from(
+                        prev_joint.get_base(),
+                        &mut physics_data.physics_engine,
+                    );
+                }
                 prev_joint
                     .get_mut_base()
                     .destroy_joint(&mut physics_data.physics_engine);
@@ -2434,8 +2479,8 @@ impl RapierPhysicsServerImpl {
         } else {
             let id = self.next_id();
             joint = RapierJoint::RapierEmptyJoint(RapierEmptyJoint::new(id));
+            physics_data.joints.insert(rid, joint);
         }
-        physics_data.joints.insert(rid, joint);
     }
 
     #[cfg(feature = "dim2")]
@@ -2507,6 +2552,24 @@ impl RapierPhysicsServerImpl {
             return joint.get_type();
         }
         JointType::MAX
+    }
+
+    pub(super) fn joint_change_type(&mut self, joint: Rid, joint_type: RapierJointType) {
+        let physics_data = physics_data();
+        if let Some(joint_obj) = physics_data.joints.get_mut(&joint) {
+            let space_handle = joint_obj.get_base().get_space_id();
+            let joint_handle = joint_obj.get_base().get_handle();
+            // Call the physics engine to recreate the joint
+            let new_handle =
+                physics_data
+                    .physics_engine
+                    .recreate_joint(space_handle, joint_handle, joint_type);
+            if new_handle != JointHandle::default() {
+                // Update the joint object's handle and type
+                joint_obj.get_mut_base().set_handle(new_handle);
+            }
+            joint_obj.get_mut_base().set_joint_type(joint_type);
+        }
     }
 
     pub(super) fn free_rid(&mut self, rid: Rid) {

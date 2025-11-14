@@ -79,8 +79,7 @@ impl RapierRevoluteJoint {
             false,
             0.0,
             false,
-            matches!(joint_type, RapierJointType::MultiBody),
-            false,
+            joint_type,
             true,
         );
         Self {
@@ -146,8 +145,7 @@ impl RapierRevoluteJoint {
             false,
             0.0,
             false,
-            matches!(joint_type, RapierJointType::MultiBody),
-            false,
+            joint_type,
             true,
         );
         Self {

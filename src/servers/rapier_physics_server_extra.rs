@@ -30,19 +30,25 @@ macro_rules! make_rapier_server_godot_impl {
         #[godot_api]
         impl $class {
             #[constant]
-            pub const CONTACT_SKIN: i32 = 0;
+            pub const BODY_PARAM_CONTACT_SKIN: i32 = 0;
             #[constant]
-            pub const DOMINANCE: i32 = 1;
+            pub const BODY_PARAM_DOMINANCE: i32 = 1;
+            #[constant]
+            pub const BODY_PARAM_SOFT_CCD: i32 = 2;
             #[constant]
             pub const JOINT_TYPE: i32 = 0;
             #[constant]
-            pub const SOFT_CCD: i32 = 2;
+            pub const JOINT_TYPE_INPULSE_JOINT: i32 = 0;
+            #[constant]
+            pub const JOINT_TYPE_MULTIBODY_JOINT: i32 = 1;
+            #[constant]
+            pub const JOINT_TYPE_MULTIBODY_KINEMATIC_JOINT: i32 = 2;
 
             #[func]
             /// Set an extra parameter for a body.
-            /// If [param param] is [member CONTACT_SKIN] (0), sets the body's contact skin value.
-            /// If [param param] is [member DOMINANCE] (1), sets the body's dominance value.
-            /// If [param param] is [member SOFT_CCD] (2), sets the body's soft_ccd value.
+            /// If [param param] is [member BODY_PARAM_CONTACT_SKIN] (0), sets the body's contact skin value.
+            /// If [param param] is [member BODY_PARAM_DOMINANCE] (1), sets the body's dominance value.
+            /// If [param param] is [member BODY_PARAM_SOFT_CCD] (2), sets the body's soft_ccd value.
             pub fn body_set_extra_param(body: Rid, param: i32, value: Variant) {
                 let physics_data = physics_data();
                 if let Some(body) = physics_data.collision_objects.get_mut(&body) {
@@ -58,9 +64,9 @@ macro_rules! make_rapier_server_godot_impl {
 
             #[func]
             /// Get an extra parameter for a body.
-            /// If [param param] is [member CONTACT_SKIN] (0), gets the body's contact skin value.
-            /// If [param param] is [member DOMINANCE] (1), gets the body's dominance value.
-            /// If [param param] is [member SOFT_CCD] (2), gets the body's soft_ccd value.
+            /// If [param param] is [member BODY_PARAM_CONTACT_SKIN] (0), gets the body's contact skin value.
+            /// If [param param] is [member BODY_PARAM_DOMINANCE] (1), gets the body's dominance value.
+            /// If [param param] is [member BODY_PARAM_SOFT_CCD] (2), gets the body's soft_ccd value.
             pub fn body_get_extra_param(body: Rid, param: i32) -> Variant {
                 let physics_data = physics_data();
                 if let Some(body) = physics_data.collision_objects.get(&body) {
@@ -74,17 +80,33 @@ macro_rules! make_rapier_server_godot_impl {
             #[func]
             /// Set an extra parameter for a joint.
             /// If [param param] is [member JOINT_TYPE] (0), sets if multibody or not.
-            pub fn joint_set_extra_param(_joint: Rid, param: i32, _value: Variant) {
+            /// Use [member JOINT_TYPE_INPULSE_JOINT] (0) for impulse joints, [member JOINT_TYPE_MULTIBODY_JOINT] (1) for multibody joints or [member JOINT_TYPE_MULTIBODY_KINEMATIC_JOINT] (2) for multibody kinematic joint.
+            pub fn joint_set_extra_param(joint: Rid, param: i32, value: Variant) {
                 if param == Self::JOINT_TYPE {
-                    // TODO: Implement joint type change logic
-                    // For now, this is a placeholder
-                    godot_warn!("joint_set_extra_param for JOINT_TYPE not fully implemented yet");
+                    if let Ok(value) = value.try_to::<i32>() {
+                        let joint_type = match value {
+                            0 => RapierJointType::Impulse,
+                            1 => RapierJointType::MultiBody,
+                            2 => RapierJointType::MultiBodyKinematic,
+                            _ => RapierJointType::Impulse, // default to Impulse
+                        };
+                        let Ok(mut physics_singleton) =
+                            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+                        else {
+                            return;
+                        };
+                        physics_singleton
+                            .bind_mut()
+                            .implementation
+                            .joint_change_type(joint, joint_type);
+                    }
                 }
             }
 
             #[func]
             /// Get an extra parameter for a joint.
             /// If [param param] is [member JOINT_TYPE] (0), gets if the joint is multibody or not.
+            /// Returns [member JOINT_TYPE_INPULSE_JOINT] (0) for impulse joints, [member JOINT_TYPE_MULTIBODY_JOINT] (1) for multibody joints or [member JOINT_TYPE_MULTIBODY_KINEMATIC_JOINT] (2) for multibody kinematic joint.
             pub fn joint_get_extra_param(joint: Rid, param: i32) -> Variant {
                 if param == Self::JOINT_TYPE {
                     let physics_data = physics_data();
@@ -94,10 +116,79 @@ macro_rules! make_rapier_server_godot_impl {
                         return match joint_type {
                             RapierJointType::Impulse => 0.to_variant(),
                             RapierJointType::MultiBody => 1.to_variant(),
+                            RapierJointType::MultiBodyKinematic => 2.to_variant(),
                         };
                     }
                 }
                 0.to_variant()
+            }
+
+            #[func]
+            /// Solve inverse kinematics for a multibody joint to reach a target transform.
+            /// This automatically applies the computed joint displacements.
+            pub fn joint_solve_inverse_kinematics(joint: Rid, target_transform: Transform) {
+                use $crate::rapier_wrapper::convert::vector_to_rapier;
+                let physics_data = physics_data();
+                if let Some(joint_obj) = physics_data.joints.get_mut(&joint) {
+                    let space_handle = joint_obj.get_base().get_space_id();
+                    let joint_handle = joint_obj.get_base().get_handle();
+                    let custom_ik_options = joint_obj.get_base().custom_ik_options;
+                    // Convert Transform to Isometry
+                    let translation = vector_to_rapier(target_transform.origin);
+                    #[cfg(feature = "dim2")]
+                    let target_isometry = {
+                        let rotation = rapier::na::UnitComplex::new(target_transform.rotation());
+                        rapier::prelude::Isometry::from_parts(translation.into(), rotation)
+                    };
+                    #[cfg(feature = "dim3")]
+                    let target_isometry = rapier::prelude::Isometry::from(translation);
+                    physics_data.physics_engine.multibody_solve_ik(
+                        space_handle,
+                        joint_handle,
+                        target_isometry,
+                        custom_ik_options,
+                    );
+                }
+            }
+
+            #[func]
+            /// Set custom IK options for a specific joint.
+            /// This overrides the default Rapier IK parameters.
+            /// constrained_axes: bitmask for which axes to constrain (1=X/Lin, 2=Y/Lin, 4=Z/Lin, 8=AngX, 16=AngY, 32=AngZ)
+            ///   Common values: 3=XY position (2D), 7=XYZ position (3D), 56=rotation (3D), 63=all (3D)
+            /// Default values: damping=1.0, max_iterations=10, constrained_axes=63, epsilon_linear=0.001, epsilon_angular=0.001
+            pub fn joint_set_ik_options(
+                joint: Rid,
+                damping: real,
+                max_iterations: i32,
+                constrained_axes: i32,
+                epsilon_linear: real,
+                epsilon_angular: real,
+            ) {
+                let physics_data = physics_data();
+                if let Some(joint_obj) = physics_data.joints.get_mut(&joint) {
+                    use rapier::dynamics::InverseKinematicsOption;
+                    use rapier::dynamics::JointAxesMask;
+                    let options = InverseKinematicsOption {
+                        damping,
+                        max_iters: max_iterations as usize,
+                        constrained_axes: JointAxesMask::from_bits_truncate(constrained_axes as u8),
+                        epsilon_linear,
+                        epsilon_angular,
+                    };
+                    joint_obj.get_mut_base().custom_ik_options = options;
+                }
+            }
+
+            #[func]
+            /// Reset IK options to Rapier's default values.
+            /// Default values: damping=1.0, max_iterations=10, constrained_axes=63, epsilon_linear=0.001, epsilon_angular=0.001
+            pub fn joint_reset_ik_options(joint: Rid) {
+                let physics_data = physics_data();
+                if let Some(joint_obj) = physics_data.joints.get_mut(&joint) {
+                    use rapier::dynamics::InverseKinematicsOption;
+                    joint_obj.get_mut_base().custom_ik_options = InverseKinematicsOption::default();
+                }
             }
 
             #[cfg(feature = "serde-serialize")]

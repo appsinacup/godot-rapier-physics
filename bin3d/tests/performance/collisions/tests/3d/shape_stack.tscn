@@ -1,9 +1,10 @@
 [gd_scene load_steps=2 format=3 uid="uid://c5sp0bvxuhqev"]
 
-[ext_resource type="Script" path="res://tests/performance/collisions/tests/3d/shape_stack.gd" id="1_rhabn"]
+[ext_resource type="Script" uid="uid://jubqtudyi8us" path="res://tests/performance/collisions/tests/3d/shape_stack.gd" id="1_rhabn"]
 
 [node name="shape_stack" type="Node3D"]
 script = ExtResource("1_rhabn")
+stack_height = 40
 
 [node name="Camera" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.984808, 0.173648, 0, -0.173648, 0.984808, 0, 12, 15)

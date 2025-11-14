@@ -57,8 +57,7 @@ impl RapierSphericalJoint3D {
             body_b.get_base().get_body_handle(),
             rapier_anchor_a,
             rapier_anchor_b,
-            matches!(joint_type, RapierJointType::MultiBody),
-            false,
+            joint_type,
             true,
         );
         Self {

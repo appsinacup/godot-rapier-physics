@@ -1,9 +1,14 @@
 [gd_scene load_steps=2 format=3 uid="uid://cn4jscixu2bmf"]
 
-[ext_resource type="Script" path="res://test.gd" id="1_fs1uw"]
+[ext_resource type="Script" uid="uid://cq8yt1u113he" path="res://chain.gd" id="1_8uh7m"]
 
 [node name="Test2D" type="Node2D"]
-script = ExtResource("1_fs1uw")
 
 [node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(4, 4)
+zoom = Vector2(30, 30)
+
+[node name="Chain" type="Node2D" parent="."]
+script = ExtResource("1_8uh7m")
+num_segments = 9
+segment_size = 10.0
+joint_type = 1

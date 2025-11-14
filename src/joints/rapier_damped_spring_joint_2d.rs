@@ -61,8 +61,7 @@ impl RapierDampedSpringJoint2D {
             20.0,
             1.0,
             rest_length,
-            matches!(joint_type, RapierJointType::MultiBody),
-            false,
+            joint_type,
             true,
         );
         Self {

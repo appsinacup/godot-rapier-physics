@@ -43,6 +43,10 @@ const GHOST_COLLISION_DISTANCE: &str = "physics/rapier/logic/ghost_collision_dis
 #[cfg(feature = "dim3")]
 const GHOST_COLLISION_DISTANCE: &str = "physics/rapier/logic/ghost_collision_distance_3d";
 #[cfg(feature = "dim2")]
+const GHOST_COLLISION_DISTANCE_DEFAULT: real = 0.15;
+#[cfg(feature = "dim3")]
+const GHOST_COLLISION_DISTANCE_DEFAULT: real = 0.0015;
+#[cfg(feature = "dim2")]
 const LENGTH_UNIT_VALUE: real = 100.0;
 #[cfg(feature = "dim2")]
 const FLUID_PARTICLE_VALUE: real = 20.0;
@@ -191,7 +195,7 @@ impl RapierProjectSettings {
         );
         register_setting_ranged(
             GHOST_COLLISION_DISTANCE,
-            Variant::from(0.15),
+            Variant::from(GHOST_COLLISION_DISTANCE_DEFAULT),
             "0,10,0.00001,or_greater",
             false,
         );

@@ -60,8 +60,7 @@ impl RapierSliderJoint3D {
             rapier_axis_b,
             0.0,
             0.0,
-            matches!(joint_type, RapierJointType::MultiBody),
-            false,
+            joint_type,
             true,
         );
         Self {
