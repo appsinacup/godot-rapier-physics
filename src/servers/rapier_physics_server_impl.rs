@@ -1723,7 +1723,7 @@ impl RapierPhysicsServerImpl {
         local_b: Vector3,
     ) {
         let physics_data = physics_data();
-        let mut joint: RapierJoint;
+        let joint: RapierJoint;
         let joint_type = if let Some(prev_joint) = physics_data.joints.get(&rid) {
             prev_joint.get_base().get_joint_type()
         } else {
@@ -1830,7 +1830,7 @@ impl RapierPhysicsServerImpl {
         hinge_b: Transform3D,
     ) {
         let physics_data = physics_data();
-        let mut joint: RapierJoint;
+        let joint: RapierJoint;
         let joint_type = if let Some(prev_joint) = physics_data.joints.get(&rid) {
             prev_joint.get_base().get_joint_type()
         } else {
@@ -1885,7 +1885,7 @@ impl RapierPhysicsServerImpl {
         axis_b: Vector3,
     ) {
         let physics_data = physics_data();
-        let mut joint: RapierJoint;
+        let joint: RapierJoint;
         let joint_type = if let Some(prev_joint) = physics_data.joints.get(&rid) {
             prev_joint.get_base().get_joint_type()
         } else {
@@ -2000,7 +2000,7 @@ impl RapierPhysicsServerImpl {
     ) {
         use crate::joints::rapier_slider_joint_3d::RapierSliderJoint3D;
         let physics_data = physics_data();
-        let mut joint: RapierJoint;
+        let joint: RapierJoint;
         let joint_type = if let Some(prev_joint) = physics_data.joints.get(&rid) {
             prev_joint.get_base().get_joint_type()
         } else {
@@ -2079,7 +2079,7 @@ impl RapierPhysicsServerImpl {
     ) {
         use crate::joints::rapier_cone_twist_joint_3d::RapierConeTwistJoint3D;
         let physics_data = physics_data();
-        let mut joint: RapierJoint;
+        let joint: RapierJoint;
         let joint_type = if let Some(prev_joint) = physics_data.joints.get(&rid) {
             prev_joint.get_base().get_joint_type()
         } else {
@@ -2160,7 +2160,7 @@ impl RapierPhysicsServerImpl {
     ) {
         use crate::joints::rapier_generic_6dof_joint_3d::RapierGeneric6DOFJoint3D;
         let physics_data = physics_data();
-        let mut joint: RapierJoint;
+        let joint: RapierJoint;
         let joint_type = if let Some(prev_joint) = physics_data.joints.get(&rid) {
             prev_joint.get_base().get_joint_type()
         } else {

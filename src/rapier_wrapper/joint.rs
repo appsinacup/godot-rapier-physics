@@ -5,6 +5,7 @@ use crate::joints::rapier_joint_base::RapierJointType;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_project_settings::RapierProjectSettings;
 impl PhysicsEngine {
+    #[cfg(feature = "dim2")]
     fn godot_spring_to_rapier_accel(stiffness: Real, damping: Real) -> (Real, Real) {
         // Godot stiffness is in N/m, convert to frequency: omega = sqrt(k/m)
         // For AccelerationBased, assume unit mass (m=1)
@@ -120,7 +121,7 @@ impl PhysicsEngine {
             return physics_world.insert_joint(
                 body_handle_1,
                 body_handle_2,
-                Self::joint_type_from_flags(multibody, kinematic),
+                joint_type,
                 joint.build(),
             );
         }

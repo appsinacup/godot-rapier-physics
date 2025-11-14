@@ -68,8 +68,7 @@ impl RapierConeTwistJoint3D {
             rapier_axis_b,
             swing_span,
             twist_span,
-            matches!(joint_type, RapierJointType::MultiBody),
-            false,
+            joint_type,
             true,
         );
         Self {

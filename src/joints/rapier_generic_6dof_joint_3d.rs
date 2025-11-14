@@ -117,8 +117,7 @@ impl RapierGeneric6DOFJoint3D {
             rapier_anchor_b,
             rapier_axis_a,
             rapier_axis_b,
-            matches!(joint_type, RapierJointType::MultiBody),
-            false,
+            joint_type,
             true,
         );
         Self {
