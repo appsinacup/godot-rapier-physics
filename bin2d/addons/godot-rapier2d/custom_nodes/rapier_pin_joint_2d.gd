@@ -29,7 +29,7 @@ extends PinJoint2D
 
 @export_group("IK Solver Settings")
 
-@export_range(0.0, 100.0, 0.01) var ik_damping: float = 1000.0:
+@export_range(0.0, 100.0, 0.01) var ik_damping: float = 1.0:
 	set(value):
 		ik_damping = value
 		if is_inside_tree():

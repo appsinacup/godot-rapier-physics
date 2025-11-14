@@ -41,7 +41,7 @@ extends HingeJoint3D
 
 @export_group("IK Solver Settings")
 
-@export_range(0.0, 100.0, 0.01) var ik_damping: float = 1000.0:
+@export_range(0.0, 100.0, 0.01) var ik_damping: float = 1.0:
 	set(value):
 		ik_damping = value
 		if is_inside_tree():
@@ -53,7 +53,7 @@ extends HingeJoint3D
 		if is_inside_tree():
 			_update_ik_options()
 
-var _ik_constrained_axes: int = 3
+var _ik_constrained_axes: int = 7
 
 
 func _init() -> void:

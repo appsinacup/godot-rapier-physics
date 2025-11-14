@@ -5,9 +5,10 @@
 [node name="Test2D" type="Node2D"]
 
 [node name="Camera2D" type="Camera2D" parent="."]
-position = Vector2(0, 269)
+zoom = Vector2(30, 30)
 
-[node name="Node2D" type="Node2D" parent="."]
+[node name="Chain" type="Node2D" parent="."]
 script = ExtResource("1_8uh7m")
-segment_size = 100.0
+num_segments = 9
+segment_size = 10.0
 joint_type = 1
