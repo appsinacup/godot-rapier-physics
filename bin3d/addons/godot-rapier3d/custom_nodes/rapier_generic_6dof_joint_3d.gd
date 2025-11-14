@@ -13,4 +13,7 @@ func _ready() -> void:
 	set_is_multibody(is_multibody)
 
 func set_is_multibody(enabled: bool) -> void:
-	RapierPhysicsServer3D.joint_set_extra_param(get_rid(), RapierPhysicsServer3D.JOINT_TYPE, enabled)
+	if enabled:
+		RapierPhysicsServer3D.joint_set_extra_param(get_rid(), RapierPhysicsServer3D.JOINT_TYPE, RapierPhysicsServer3D.MULTIBODY_JOINT)
+	else:
+		RapierPhysicsServer3D.joint_set_extra_param(get_rid(), RapierPhysicsServer3D.JOINT_TYPE, RapierPhysicsServer3D.IMPULSE_JOINT)
