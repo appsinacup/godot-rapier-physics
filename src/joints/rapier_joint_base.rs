@@ -131,7 +131,11 @@ impl RapierJointBase {
         self.disabled_collisions_between_bodies
     }
 
-    pub fn copy_settings_from(&mut self, joint: &RapierJointBase) {
+    pub fn copy_settings_from(
+        &mut self,
+        joint: &RapierJointBase,
+        physics_engine: &mut PhysicsEngine,
+    ) {
         self.set_max_force(joint.get_max_force());
         // Copy the disabled collisions flag without immediately applying it
         // The actual physics engine update will happen later when the joint is fully initialized
@@ -139,6 +143,14 @@ impl RapierJointBase {
         self.set_joint_type(joint.get_joint_type());
         self.state.id = joint.get_id();
         self.rid = joint.get_rid();
+        // Now apply the collision settings to the physics engine if the joint is valid
+        if self.is_valid() {
+            physics_engine.joint_change_disable_collision(
+                self.state.space_handle,
+                self.state.handle,
+                self.disabled_collisions_between_bodies,
+            );
+        }
     }
 
     pub fn destroy_joint(&mut self, physics_engine: &mut PhysicsEngine) {
