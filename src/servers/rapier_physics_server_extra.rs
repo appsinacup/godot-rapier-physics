@@ -30,23 +30,25 @@ macro_rules! make_rapier_server_godot_impl {
         #[godot_api]
         impl $class {
             #[constant]
-            pub const CONTACT_SKIN: i32 = 0;
+            pub const BODY_PARAM_CONTACT_SKIN: i32 = 0;
             #[constant]
-            pub const DOMINANCE: i32 = 1;
+            pub const BODY_PARAM_DOMINANCE: i32 = 1;
             #[constant]
-            pub const IMPULSE_JOINT: i32 = 0;
+            pub const BODY_PARAM_SOFT_CCD: i32 = 2;
             #[constant]
             pub const JOINT_TYPE: i32 = 0;
             #[constant]
-            pub const MULTIBODY_JOINT: i32 = 1;
+            pub const JOINT_TYPE_INPULSE_JOINT: i32 = 0;
             #[constant]
-            pub const SOFT_CCD: i32 = 2;
+            pub const JOINT_TYPE_MULTIBODY_JOINT: i32 = 1;
+            #[constant]
+            pub const JOINT_TYPE_MULTIBODY_KINEMATIC_JOINT: i32 = 2;
 
             #[func]
             /// Set an extra parameter for a body.
-            /// If [param param] is [member CONTACT_SKIN] (0), sets the body's contact skin value.
-            /// If [param param] is [member DOMINANCE] (1), sets the body's dominance value.
-            /// If [param param] is [member SOFT_CCD] (2), sets the body's soft_ccd value.
+            /// If [param param] is [member BODY_PARAM_CONTACT_SKIN] (0), sets the body's contact skin value.
+            /// If [param param] is [member BODY_PARAM_DOMINANCE] (1), sets the body's dominance value.
+            /// If [param param] is [member BODY_PARAM_SOFT_CCD] (2), sets the body's soft_ccd value.
             pub fn body_set_extra_param(body: Rid, param: i32, value: Variant) {
                 let physics_data = physics_data();
                 if let Some(body) = physics_data.collision_objects.get_mut(&body) {
@@ -62,9 +64,9 @@ macro_rules! make_rapier_server_godot_impl {
 
             #[func]
             /// Get an extra parameter for a body.
-            /// If [param param] is [member CONTACT_SKIN] (0), gets the body's contact skin value.
-            /// If [param param] is [member DOMINANCE] (1), gets the body's dominance value.
-            /// If [param param] is [member SOFT_CCD] (2), gets the body's soft_ccd value.
+            /// If [param param] is [member BODY_PARAM_CONTACT_SKIN] (0), gets the body's contact skin value.
+            /// If [param param] is [member BODY_PARAM_DOMINANCE] (1), gets the body's dominance value.
+            /// If [param param] is [member BODY_PARAM_SOFT_CCD] (2), gets the body's soft_ccd value.
             pub fn body_get_extra_param(body: Rid, param: i32) -> Variant {
                 let physics_data = physics_data();
                 if let Some(body) = physics_data.collision_objects.get(&body) {
@@ -78,14 +80,15 @@ macro_rules! make_rapier_server_godot_impl {
             #[func]
             /// Set an extra parameter for a joint.
             /// If [param param] is [member JOINT_TYPE] (0), sets if multibody or not.
-            /// Use [member IMPULSE_JOINT] (0) for impulse joints or [member MULTIBODY_JOINT] (1) for multibody joints.
+            /// Use [member JOINT_TYPE_INPULSE_JOINT] (0) for impulse joints, [member JOINT_TYPE_MULTIBODY_JOINT] (1) for multibody joints or [member JOINT_TYPE_MULTIBODY_KINEMATIC_JOINT] (2) for multibody kinematic joint.
             pub fn joint_set_extra_param(joint: Rid, param: i32, value: Variant) {
                 if param == Self::JOINT_TYPE {
                     if let Ok(value) = value.try_to::<i32>() {
                         let joint_type = match value {
                             0 => RapierJointType::Impulse,
                             1 => RapierJointType::MultiBody,
-                            _ => return, // Invalid value
+                            2 => RapierJointType::MultiBodyKinematic,
+                            _ => RapierJointType::Impulse, // default to Impulse
                         };
                         let Ok(mut physics_singleton) =
                             PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
@@ -103,7 +106,7 @@ macro_rules! make_rapier_server_godot_impl {
             #[func]
             /// Get an extra parameter for a joint.
             /// If [param param] is [member JOINT_TYPE] (0), gets if the joint is multibody or not.
-            /// Returns [member IMPULSE_JOINT] (0) for impulse joints or [member MULTIBODY_JOINT] (1) for multibody joints.
+            /// Returns [member JOINT_TYPE_INPULSE_JOINT] (0) for impulse joints, [member JOINT_TYPE_MULTIBODY_JOINT] (1) for multibody joints or [member JOINT_TYPE_MULTIBODY_KINEMATIC_JOINT] (2) for multibody kinematic joint.
             pub fn joint_get_extra_param(joint: Rid, param: i32) -> Variant {
                 if param == Self::JOINT_TYPE {
                     let physics_data = physics_data();
@@ -113,6 +116,7 @@ macro_rules! make_rapier_server_godot_impl {
                         return match joint_type {
                             RapierJointType::Impulse => 0.to_variant(),
                             RapierJointType::MultiBody => 1.to_variant(),
+                            RapierJointType::MultiBodyKinematic => 2.to_variant(),
                         };
                     }
                 }

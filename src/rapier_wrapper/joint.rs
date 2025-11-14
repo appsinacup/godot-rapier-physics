@@ -1,6 +1,7 @@
 use godot::global::godot_error;
 use rapier::prelude::*;
 
+use crate::joints::rapier_joint_base::RapierJointType;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_project_settings::RapierProjectSettings;
 impl PhysicsEngine {
@@ -39,8 +40,7 @@ impl PhysicsEngine {
         angular_limit_enabled: bool,
         motor_target_velocity: Real,
         motor_enabled: bool,
-        multibody: bool,
-        kinematic: bool,
+        joint_type: RapierJointType,
         disable_collision: bool,
     ) -> JointHandle {
         self.body_wake_up(world_handle, body_handle_1, false);
@@ -56,13 +56,7 @@ impl PhysicsEngine {
             if motor_enabled {
                 joint = joint.motor_velocity(motor_target_velocity, 0.0);
             }
-            return physics_world.insert_joint(
-                body_handle_1,
-                body_handle_2,
-                multibody,
-                kinematic,
-                joint,
-            );
+            return physics_world.insert_joint(body_handle_1, body_handle_2, joint_type, joint);
         }
         JointHandle::default()
     }
@@ -83,8 +77,7 @@ impl PhysicsEngine {
         angular_limit_enabled: bool,
         motor_target_velocity: Real,
         motor_enabled: bool,
-        multibody: bool,
-        kinematic: bool,
+        joint_type: RapierJointType,
         disable_collision: bool,
     ) -> JointHandle {
         self.body_wake_up(world_handle, body_handle_1, false);
@@ -109,8 +102,7 @@ impl PhysicsEngine {
             return physics_world.insert_joint(
                 body_handle_1,
                 body_handle_2,
-                multibody,
-                kinematic,
+                Self::joint_type_from_flags(multibody, kinematic),
                 joint.build(),
             );
         }
@@ -126,8 +118,7 @@ impl PhysicsEngine {
         body_handle_2: RigidBodyHandle,
         anchor_1: Vector<Real>,
         anchor_2: Vector<Real>,
-        multibody: bool,
-        kinematic: bool,
+        joint_type: RapierJointType,
         disable_collision: bool,
     ) -> JointHandle {
         self.body_wake_up(world_handle, body_handle_1, false);
@@ -137,13 +128,7 @@ impl PhysicsEngine {
                 .local_anchor1(Point { coords: anchor_1 })
                 .local_anchor2(Point { coords: anchor_2 })
                 .contacts_enabled(!disable_collision);
-            return physics_world.insert_joint(
-                body_handle_1,
-                body_handle_2,
-                multibody,
-                kinematic,
-                joint,
-            );
+            return physics_world.insert_joint(body_handle_1, body_handle_2, joint_type, joint);
         }
         JointHandle::default()
     }
@@ -161,8 +146,7 @@ impl PhysicsEngine {
         axis_2: Rotation<Real>,
         linear_limit_upper: f32,
         linear_limit_lower: f32,
-        multibody: bool,
-        kinematic: bool,
+        joint_type: RapierJointType,
         disable_collision: bool,
     ) -> JointHandle {
         self.body_wake_up(world_handle, body_handle_1, false);
@@ -182,8 +166,7 @@ impl PhysicsEngine {
             return physics_world.insert_joint(
                 body_handle_1,
                 body_handle_2,
-                multibody,
-                kinematic,
+                joint_type,
                 joint.build(),
             );
         }
@@ -279,8 +262,7 @@ impl PhysicsEngine {
         anchor_1: Vector<Real>,
         anchor_2: Vector<Real>,
         limits: Vector<Real>,
-        multibody: bool,
-        kinematic: bool,
+        joint_type: RapierJointType,
         disable_collision: bool,
     ) -> JointHandle {
         self.body_wake_up(world_handle, body_handle_1, false);
@@ -291,13 +273,7 @@ impl PhysicsEngine {
                 .local_anchor2(Point { coords: anchor_2 })
                 .limits([limits.x, limits.y])
                 .contacts_enabled(!disable_collision);
-            return physics_world.insert_joint(
-                body_handle_1,
-                body_handle_2,
-                multibody,
-                kinematic,
-                joint,
-            );
+            return physics_world.insert_joint(body_handle_1, body_handle_2, joint_type, joint);
         }
         JointHandle::default()
     }
@@ -314,8 +290,7 @@ impl PhysicsEngine {
         stiffness: Real,
         damping: Real,
         rest_length: Real,
-        multibody: bool,
-        kinematic: bool,
+        joint_type: RapierJointType,
         disable_collision: bool,
     ) -> JointHandle {
         self.body_wake_up(world_handle, body_handle_1, false);
@@ -326,13 +301,7 @@ impl PhysicsEngine {
                 .local_anchor1(Point { coords: anchor_1 })
                 .local_anchor2(Point { coords: anchor_2 })
                 .contacts_enabled(!disable_collision);
-            return physics_world.insert_joint(
-                body_handle_1,
-                body_handle_2,
-                multibody,
-                kinematic,
-                joint,
-            );
+            return physics_world.insert_joint(body_handle_1, body_handle_2, joint_type, joint);
         }
         JointHandle::default()
     }
@@ -366,8 +335,7 @@ impl PhysicsEngine {
         &mut self,
         world_handle: WorldHandle,
         joint_handle: JointHandle,
-        new_multibody: bool,
-        new_kinematic: bool,
+        new_joint_type: RapierJointType,
     ) -> JointHandle {
         // Get the joint data and connected bodies
         let (joint_data, body1, body2) = if let Some(physics_world) = self.get_world(world_handle) {
@@ -398,7 +366,7 @@ impl PhysicsEngine {
         }
         // Insert the joint into the new set
         if let Some(physics_world) = self.get_mut_world(world_handle) {
-            physics_world.insert_joint(body1, body2, new_multibody, new_kinematic, joint_data)
+            physics_world.insert_joint(body1, body2, new_joint_type, joint_data)
         } else {
             godot_error!("Invalid joint data");
             JointHandle::default()
@@ -430,8 +398,7 @@ impl PhysicsEngine {
         anchor_2: Vector<Real>,
         axis_1: Rotation<Real>,
         axis_2: Rotation<Real>,
-        multibody: bool,
-        kinematic: bool,
+        joint_type: RapierJointType,
         disable_collision: bool,
     ) -> JointHandle {
         self.body_wake_up(world_handle, body_handle_1, false);
@@ -447,13 +414,7 @@ impl PhysicsEngine {
                 .local_axis1(axis1_vec)
                 .local_axis2(axis2_vec)
                 .contacts_enabled(!disable_collision);
-            return physics_world.insert_joint(
-                body_handle_1,
-                body_handle_2,
-                multibody,
-                kinematic,
-                joint,
-            );
+            return physics_world.insert_joint(body_handle_1, body_handle_2, joint_type, joint);
         }
         JointHandle::default()
     }
@@ -471,8 +432,7 @@ impl PhysicsEngine {
         axis_2: Rotation<Real>,
         swing_span: Real,
         twist_span: Real,
-        multibody: bool,
-        kinematic: bool,
+        joint_type: RapierJointType,
         disable_collision: bool,
     ) -> JointHandle {
         self.body_wake_up(world_handle, body_handle_1, false);
@@ -495,13 +455,7 @@ impl PhysicsEngine {
                 .limits(JointAxis::AngY, [-swing_limit, swing_limit])
                 .limits(JointAxis::AngZ, [-twist_limit, twist_limit])
                 .contacts_enabled(!disable_collision);
-            return physics_world.insert_joint(
-                body_handle_1,
-                body_handle_2,
-                multibody,
-                kinematic,
-                joint,
-            );
+            return physics_world.insert_joint(body_handle_1, body_handle_2, joint_type, joint);
         }
         JointHandle::default()
     }

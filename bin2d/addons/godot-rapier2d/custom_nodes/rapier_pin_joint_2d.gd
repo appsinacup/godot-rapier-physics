@@ -1,19 +1,16 @@
 class_name RapierPinJoint2D
 extends PinJoint2D
 
-@export var is_multibody: bool = false:
+@export_enum("Impulse", "Multibody", "Multibody Kinematic") var joint_type: int = 0:
 	get:
-		return is_multibody
+		return joint_type
 	set(value):
-		if value != is_multibody:
-			is_multibody = value
-			set_is_multibody(value)
+		if value != joint_type:
+			joint_type = value
+			set_joint_type(value)
 
 func _ready() -> void:
-	set_is_multibody(is_multibody)
+	set_joint_type(joint_type)
 
-func set_is_multibody(enabled: bool) -> void:
-	if enabled:
-		RapierPhysicsServer2D.joint_set_extra_param(get_rid(), RapierPhysicsServer2D.JOINT_TYPE, RapierPhysicsServer2D.MULTIBODY_JOINT)
-	else:
-		RapierPhysicsServer2D.joint_set_extra_param(get_rid(), RapierPhysicsServer2D.JOINT_TYPE, RapierPhysicsServer2D.IMPULSE_JOINT)
+func set_joint_type(joint_type: int) -> void:
+	RapierPhysicsServer2D.joint_set_extra_param(get_rid(), RapierPhysicsServer2D.JOINT_TYPE, joint_type)

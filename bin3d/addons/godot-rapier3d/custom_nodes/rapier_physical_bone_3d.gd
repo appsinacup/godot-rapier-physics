@@ -31,10 +31,10 @@ func _ready() -> void:
 	set_soft_ccd(soft_ccd)
 
 func set_body_skin(value: float) -> void:
-	RapierPhysicsServer3D.body_set_extra_param(get_rid(), RapierPhysicsServer3D.CONTACT_SKIN, value)
+	RapierPhysicsServer3D.body_set_extra_param(get_rid(), RapierPhysicsServer3D.BODY_PARAM_CONTACT_SKIN, value)
 
 func set_dominance(value: int) -> void:
-	RapierPhysicsServer3D.body_set_extra_param(get_rid(), RapierPhysicsServer3D.DOMINANCE, value)
+	RapierPhysicsServer3D.body_set_extra_param(get_rid(), RapierPhysicsServer3D.BODY_PARAM_DOMINANCE, value)
 
 func set_soft_ccd(value: float) -> void:
-	RapierPhysicsServer3D.body_set_extra_param(get_rid(), RapierPhysicsServer3D.SOFT_CCD, value)
+	RapierPhysicsServer3D.body_set_extra_param(get_rid(), RapierPhysicsServer3D.BODY_PARAM_SOFT_CCD, value)

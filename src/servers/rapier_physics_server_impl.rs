@@ -2559,15 +2559,11 @@ impl RapierPhysicsServerImpl {
         if let Some(joint_obj) = physics_data.joints.get_mut(&joint) {
             let space_handle = joint_obj.get_base().get_space_id();
             let joint_handle = joint_obj.get_base().get_handle();
-            let new_multibody = matches!(joint_type, RapierJointType::MultiBody);
-            let new_kinematic = joint_handle.kinematic; // Preserve kinematic flag
             // Call the physics engine to recreate the joint
-            let new_handle = physics_data.physics_engine.recreate_joint(
-                space_handle,
-                joint_handle,
-                new_multibody,
-                new_kinematic,
-            );
+            let new_handle =
+                physics_data
+                    .physics_engine
+                    .recreate_joint(space_handle, joint_handle, joint_type);
             if new_handle != JointHandle::default() {
                 // Update the joint object's handle and type
                 joint_obj.get_mut_base().set_handle(new_handle);

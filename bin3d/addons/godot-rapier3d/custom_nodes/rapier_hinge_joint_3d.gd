@@ -1,19 +1,16 @@
 class_name RapierHingeJoint3D
 extends HingeJoint3D
 
-@export var is_multibody: bool = false:
+@export_enum("Impulse", "Multibody", "Multibody Kinematic") var joint_type: int = 0:
 	get:
-		return is_multibody
+		return joint_type
 	set(value):
-		if value != is_multibody:
-			is_multibody = value
-			set_is_multibody(value)
+		if value != joint_type:
+			joint_type = value
+			set_joint_type(value)
 
 func _ready() -> void:
-	set_is_multibody(is_multibody)
+	set_joint_type(joint_type)
 
-func set_is_multibody(enabled: bool) -> void:
-	if enabled:
-		RapierPhysicsServer3D.joint_set_extra_param(get_rid(), RapierPhysicsServer3D.JOINT_TYPE, RapierPhysicsServer3D.MULTIBODY_JOINT)
-	else:
-		RapierPhysicsServer3D.joint_set_extra_param(get_rid(), RapierPhysicsServer3D.JOINT_TYPE, RapierPhysicsServer3D.IMPULSE_JOINT)
+func set_joint_type(joint_type: int) -> void:
+	RapierPhysicsServer3D.joint_set_extra_param(get_rid(), RapierPhysicsServer3D.JOINT_TYPE, joint_type)

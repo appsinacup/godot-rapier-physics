@@ -62,8 +62,7 @@ impl RapierGrooveJoint2D {
             rapier_anchor_a,
             rapier_anchor_b,
             rapier_limits,
-            matches!(joint_type, RapierJointType::MultiBody),
-            false,
+            joint_type,
             true,
         );
         Self {

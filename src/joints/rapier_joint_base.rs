@@ -4,7 +4,7 @@ use servers::rapier_physics_singleton::get_id_rid;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::*;
-#[derive(Default, Debug, PartialEq, Clone, Copy)]
+#[derive(Default, Debug, PartialEq, Eq, Clone, Copy)]
 #[cfg_attr(
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
@@ -13,6 +13,7 @@ pub enum RapierJointType {
     #[default]
     Impulse,
     MultiBody,
+    MultiBodyKinematic,
 }
 #[cfg_attr(
     feature = "serde-serialize",
