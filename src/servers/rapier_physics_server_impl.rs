@@ -1747,15 +1747,8 @@ impl RapierPhysicsServerImpl {
             physics_data.joints.insert(rid, joint);
             if let Some(mut prev_joint) = prev_joint {
                 if let Some(joint) = physics_data.joints.get_mut(&rid) {
-                    let disabled = prev_joint
-                        .get_base()
-                        .is_disabled_collisions_between_bodies();
                     joint.get_mut_base().copy_settings_from(
                         prev_joint.get_base(),
-                        &mut physics_data.physics_engine,
-                    );
-                    joint.get_mut_base().disable_collisions_between_bodies(
-                        disabled,
                         &mut physics_data.physics_engine,
                     );
                 }
@@ -1863,15 +1856,8 @@ impl RapierPhysicsServerImpl {
             physics_data.joints.insert(rid, joint);
             if let Some(mut prev_joint) = prev_joint {
                 if let Some(joint) = physics_data.joints.get_mut(&rid) {
-                    let disabled = prev_joint
-                        .get_base()
-                        .is_disabled_collisions_between_bodies();
                     joint.get_mut_base().copy_settings_from(
                         prev_joint.get_base(),
-                        &mut physics_data.physics_engine,
-                    );
-                    joint.get_mut_base().disable_collisions_between_bodies(
-                        disabled,
                         &mut physics_data.physics_engine,
                     );
                 }
@@ -2040,15 +2026,8 @@ impl RapierPhysicsServerImpl {
             physics_data.joints.insert(rid, joint);
             if let Some(mut prev_joint) = prev_joint {
                 if let Some(joint) = physics_data.joints.get_mut(&rid) {
-                    let disabled = prev_joint
-                        .get_base()
-                        .is_disabled_collisions_between_bodies();
                     joint.get_mut_base().copy_settings_from(
                         prev_joint.get_base(),
-                        &mut physics_data.physics_engine,
-                    );
-                    joint.get_mut_base().disable_collisions_between_bodies(
-                        disabled,
                         &mut physics_data.physics_engine,
                     );
                 }
@@ -2126,15 +2105,8 @@ impl RapierPhysicsServerImpl {
             physics_data.joints.insert(rid, joint);
             if let Some(mut prev_joint) = prev_joint {
                 if let Some(joint) = physics_data.joints.get_mut(&rid) {
-                    let disabled = prev_joint
-                        .get_base()
-                        .is_disabled_collisions_between_bodies();
                     joint.get_mut_base().copy_settings_from(
                         prev_joint.get_base(),
-                        &mut physics_data.physics_engine,
-                    );
-                    joint.get_mut_base().disable_collisions_between_bodies(
-                        disabled,
                         &mut physics_data.physics_engine,
                     );
                 }
@@ -2214,15 +2186,8 @@ impl RapierPhysicsServerImpl {
             physics_data.joints.insert(rid, joint);
             if let Some(mut prev_joint) = prev_joint {
                 if let Some(joint) = physics_data.joints.get_mut(&rid) {
-                    let disabled = prev_joint
-                        .get_base()
-                        .is_disabled_collisions_between_bodies();
                     joint.get_mut_base().copy_settings_from(
                         prev_joint.get_base(),
-                        &mut physics_data.physics_engine,
-                    );
-                    joint.get_mut_base().disable_collisions_between_bodies(
-                        disabled,
                         &mut physics_data.physics_engine,
                     );
                 }
