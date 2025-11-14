@@ -9,7 +9,7 @@ extends ConeTwistJoint3D
 			joint_type = value
 			set_joint_type(value)
 
-func _ready() -> void:
+func _init() -> void:
 	set_joint_type(joint_type)
 
 func set_joint_type(joint_type: int) -> void:
