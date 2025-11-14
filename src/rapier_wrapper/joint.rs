@@ -1,3 +1,4 @@
+use godot::global::godot_error;
 use rapier::prelude::*;
 
 use crate::rapier_wrapper::prelude::*;
@@ -366,15 +367,18 @@ impl PhysicsEngine {
                 if let Some((body1, body2)) = physics_world.get_joint_bodies(joint_handle) {
                     (*joint, body1, body2)
                 } else {
+                    godot_error!("Invalid joint bodies");
                     return JointHandle::default();
                 }
             } else {
+                godot_error!("Invalid joint");
                 return JointHandle::default();
             }
         } else {
             return JointHandle::default();
         };
         if body1 == RigidBodyHandle::default() || body2 == RigidBodyHandle::default() {
+            godot_error!("Invalid joint bodies");
             return JointHandle::default();
         }
         // Wake up connected bodies
@@ -388,6 +392,7 @@ impl PhysicsEngine {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             physics_world.insert_joint(body1, body2, new_multibody, new_kinematic, joint_data)
         } else {
+            godot_error!("Invalid joint data");
             JointHandle::default()
         }
     }
