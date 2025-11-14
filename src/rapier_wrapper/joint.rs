@@ -353,6 +353,42 @@ impl PhysicsEngine {
         }
     }
 
+    pub fn recreate_joint(
+        &mut self,
+        world_handle: WorldHandle,
+        joint_handle: JointHandle,
+        new_multibody: bool,
+        new_kinematic: bool,
+    ) -> JointHandle {
+        // Get the joint data and connected bodies
+        let (joint_data, body1, body2) = if let Some(physics_world) = self.get_world(world_handle) {
+            if let Some(joint) = physics_world.get_joint(joint_handle) {
+                if let Some((body1, body2)) = physics_world.get_joint_bodies(joint_handle) {
+                    (*joint, body1, body2)
+                } else {
+                    return JointHandle::default();
+                }
+            } else {
+                return JointHandle::default();
+            }
+        } else {
+            return JointHandle::default();
+        };
+        // Wake up connected bodies
+        self.body_wake_up(world_handle, body1, false);
+        self.body_wake_up(world_handle, body2, false);
+        // Remove the old joint
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
+            physics_world.remove_joint(joint_handle);
+        }
+        // Insert the joint into the new set
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
+            physics_world.insert_joint(body1, body2, new_multibody, new_kinematic, joint_data)
+        } else {
+            JointHandle::default()
+        }
+    }
+
     pub fn joint_change_disable_collision(
         &mut self,
         world_handle: WorldHandle,

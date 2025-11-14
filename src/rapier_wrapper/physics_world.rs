@@ -516,7 +516,6 @@ impl PhysicsWorld {
     }
 
     // TODO multibody joints
-    /*
     pub fn get_joint(&self, handle: JointHandle) -> Option<&GenericJoint> {
         match handle.multibody {
             false => {
@@ -541,7 +540,8 @@ impl PhysicsWorld {
             }
         }
         None
-    } */
+    }
+
     pub fn get_impulse_joint(&self, handle: JointHandle) -> Option<&ImpulseJoint> {
         match handle.multibody {
             false => self
@@ -549,6 +549,37 @@ impl PhysicsWorld {
                 .impulse_joint_set
                 .get(ImpulseJointHandle(handle.index)),
             true => None,
+        }
+    }
+
+    pub fn get_joint_bodies(
+        &self,
+        handle: JointHandle,
+    ) -> Option<(RigidBodyHandle, RigidBodyHandle)> {
+        match handle.multibody {
+            false => {
+                self
+                    .physics_objects
+                    .impulse_joint_set
+                    .get(ImpulseJointHandle(handle.index)).map(|impulse_joint| (impulse_joint.body1, impulse_joint.body2))
+            }
+            true => {
+                if let Some((multibody, link_id)) = self
+                    .physics_objects
+                    .multibody_joint_set
+                    .get(MultibodyJointHandle(handle.index))
+                    && let Some(link) = multibody.link(link_id)
+                {
+                    // For multibody joints, body1 is the root body, body2 is the link body
+                    // Note: This may not work if the MultibodyLink API doesn't expose the rigid body handle
+                    Some((
+                        multibody.root().rigid_body_handle(),
+                        link.rigid_body_handle(),
+                    ))
+                } else {
+                    None
+                }
+            }
         }
     }
 

@@ -2509,6 +2509,28 @@ impl RapierPhysicsServerImpl {
         JointType::MAX
     }
 
+    pub(super) fn joint_change_type(&mut self, joint: Rid, joint_type: RapierJointType) {
+        let physics_data = physics_data();
+        if let Some(joint_obj) = physics_data.joints.get_mut(&joint) {
+            let space_handle = joint_obj.get_base().get_space_id();
+            let joint_handle = joint_obj.get_base().get_handle();
+            let new_multibody = matches!(joint_type, RapierJointType::MultiBody);
+            let new_kinematic = joint_handle.kinematic; // Preserve kinematic flag
+            // Call the physics engine to recreate the joint
+            let new_handle = physics_data.physics_engine.recreate_joint(
+                space_handle,
+                joint_handle,
+                new_multibody,
+                new_kinematic,
+            );
+            if new_handle != JointHandle::default() {
+                // Update the joint object's handle and type
+                joint_obj.get_mut_base().set_handle(new_handle);
+                joint_obj.get_mut_base().set_joint_type(joint_type);
+            }
+        }
+    }
+
     pub(super) fn free_rid(&mut self, rid: Rid) {
         let physics_data = physics_data();
         let mut space_to_reset = Rid::Invalid;

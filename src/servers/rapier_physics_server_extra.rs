@@ -74,11 +74,24 @@ macro_rules! make_rapier_server_godot_impl {
             #[func]
             /// Set an extra parameter for a joint.
             /// If [param param] is [member JOINT_TYPE] (0), sets if multibody or not.
-            pub fn joint_set_extra_param(_joint: Rid, param: i32, _value: Variant) {
+            pub fn joint_set_extra_param(joint: Rid, param: i32, value: Variant) {
                 if param == Self::JOINT_TYPE {
-                    // TODO: Implement joint type change logic
-                    // For now, this is a placeholder
-                    godot_warn!("joint_set_extra_param for JOINT_TYPE not fully implemented yet");
+                    if let Ok(value) = value.try_to::<i32>() {
+                        let joint_type = match value {
+                            0 => RapierJointType::Impulse,
+                            1 => RapierJointType::MultiBody,
+                            _ => return, // Invalid value
+                        };
+                        let Ok(mut physics_singleton) =
+                            PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
+                        else {
+                            return;
+                        };
+                        physics_singleton
+                            .bind_mut()
+                            .implementation
+                            .joint_change_type(joint, joint_type);
+                    }
                 }
             }
 

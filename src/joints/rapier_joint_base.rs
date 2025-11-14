@@ -71,6 +71,10 @@ impl RapierJointBase {
         self.state.handle
     }
 
+    pub fn set_handle(&mut self, handle: JointHandle) {
+        self.state.handle = handle;
+    }
+
     pub fn get_id(&self) -> RapierId {
         self.state.id
     }
