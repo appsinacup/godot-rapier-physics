@@ -14,7 +14,7 @@ enum Aspect {
 
 @export var wall_type: WallType = WallType.BOX
 @export var speed: float = 25000
-@export var simulation_duration: float = 0.1
+@export var simulation_duration: float = 2.1
 @export var expected_to_fail: Array[Aspect] = []
 
 func test_description() -> String:
@@ -88,8 +88,8 @@ func test_start() -> void:
 		y_collision_monitor.expected_to_fail = true
 
 	#process_mode = Node.PROCESS_MODE_DISABLED # to be able to see something
-	#await get_tree().create_timer(.1).timeout
-	#process_mode = Node.PROCESS_MODE_INHERIT
+	await get_tree().create_timer(.1).timeout
+	process_mode = Node.PROCESS_MODE_INHERIT
 
 func create_rigid_body(p_horizontal := true) -> RigidBody3D:
 	var player = RigidBody3D.new()
@@ -105,8 +105,8 @@ func create_rigid_body(p_horizontal := true) -> RigidBody3D:
 		player.rotation = Vector3(45, 0, 0)
 		player.position = Vector3(8, 8, 0)
 	var force = Vector3(speed, 0, 0) if p_horizontal else Vector3(0, -speed, 0)
-	player.apply_central_impulse(force)
 	add_child(player)
+	player.apply_central_impulse(force)
 	return player
 
 func x_collide(_body, _player):

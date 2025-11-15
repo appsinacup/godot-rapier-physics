@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://f833p245gj24"]
 
-[ext_resource type="Script" path="res://tests/performance/collisions/tests/3d/convex_fps_performance.gd" id="1_k6d6r"]
+[ext_resource type="Script" uid="uid://7wv53d5rujv5" path="res://tests/performance/collisions/tests/3d/convex_fps_performance.gd" id="1_k6d6r"]
 
 [node name="convex_fps_performance" type="Node3D"]
 script = ExtResource("1_k6d6r")

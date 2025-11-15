@@ -5,6 +5,7 @@
 [node name="shape_stack" type="Node3D"]
 script = ExtResource("1_rhabn")
 stack_height = 40
+body_spacing = 0.0
 
 [node name="Camera" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.984808, 0.173648, 0, -0.173648, 0.984808, 0, 12, 15)
