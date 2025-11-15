@@ -223,11 +223,7 @@ impl INode2D for Fluid2D {
                     FluidImpl::delete_old_particles(self);
                 }
             }
-            CanvasItemNotification::ENTER_TREE
-            | CanvasItemNotification::WORLD_2D_CHANGED
-            | CanvasItemNotification::TRANSFORM_CHANGED
-            | CanvasItemNotification::LOCAL_TRANSFORM_CHANGED
-            | CanvasItemNotification::TRANSLATION_CHANGED => {
+            CanvasItemNotification::ENTER_TREE | CanvasItemNotification::WORLD_2D_CHANGED => {
                 let mut space_rid = Rid::Invalid;
                 if let Some(space) = self.to_gd().get_world_2d() {
                     space_rid = space.get_space();
@@ -241,6 +237,14 @@ impl INode2D for Fluid2D {
                 fluid_gd.set_notify_transform(self.debug_draw);
                 fluid_gd.queue_redraw();
             }
+            CanvasItemNotification::TRANSFORM_CHANGED
+            | CanvasItemNotification::LOCAL_TRANSFORM_CHANGED
+            | CanvasItemNotification::TRANSLATION_CHANGED => {
+                // Only update debug draw, do not re-add points to Rapier (prevents duplication)
+                let mut fluid_gd = self.to_gd();
+                fluid_gd.set_notify_transform(self.debug_draw);
+                fluid_gd.queue_redraw();
+            }
             CanvasItemNotification::EXIT_TREE => {
                 let rid = self.rid;
                 let guard = self.base_mut();
@@ -249,8 +253,7 @@ impl INode2D for Fluid2D {
             }
             CanvasItemNotification::DRAW => {
                 if self.debug_draw {
-                    self.points = self.get_points();
-                    for point in self.points.as_slice() {
+                    for point in self.get_points().as_slice() {
                         let mut color = Color::WHITE;
                         color.a = 0.4;
                         self.to_gd().draw_rect(

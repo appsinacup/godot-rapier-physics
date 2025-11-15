@@ -133,21 +133,25 @@ macro_rules! make_rapier_server_godot_impl {
                     let space_handle = joint_obj.get_base().get_space_id();
                     let joint_handle = joint_obj.get_base().get_handle();
                     let custom_ik_options = joint_obj.get_base().custom_ik_options;
-                    // Convert Transform to Isometry
-                    let translation = vector_to_rapier(target_transform.origin);
-                    #[cfg(feature = "dim2")]
                     let target_isometry = {
-                        let rotation = rapier::na::UnitComplex::new(target_transform.rotation());
-                        rapier::prelude::Isometry::from_parts(translation.into(), rotation)
+                        let position = vector_to_rapier(target_transform.origin);
+                        let rotation = transform_rotation_rapier(&target_transform);
+                        rapier::prelude::Isometry::from_parts(position.into(), rotation)
                     };
-                    #[cfg(feature = "dim3")]
-                    let target_isometry = rapier::prelude::Isometry::from(translation);
                     physics_data.physics_engine.multibody_solve_ik(
                         space_handle,
                         joint_handle,
                         target_isometry,
                         custom_ik_options,
                     );
+                    for body in physics_data
+                        .physics_engine
+                        .get_multibody_rigidbodies(space_handle, joint_handle)
+                    {
+                        physics_data
+                            .physics_engine
+                            .body_wake_up(space_handle, body, true);
+                    }
                 }
             }
 

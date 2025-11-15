@@ -1,14 +1,248 @@
-[gd_scene load_steps=2 format=3 uid="uid://cn4jscixu2bmf"]
+[gd_scene load_steps=8 format=3 uid="uid://cn4jscixu2bmf"]
 
-[ext_resource type="Script" uid="uid://cq8yt1u113he" path="res://chain.gd" id="1_8uh7m"]
+[ext_resource type="Script" uid="uid://bv2bc4lt5v7hu" path="res://addons/godot-rapier2d/custom_nodes/rapier_pin_joint_2d.gd" id="1_37kl0"]
+[ext_resource type="Script" uid="uid://c5cyiafgmvb8h" path="res://follower_click.gd" id="2_6uqi0"]
+[ext_resource type="Script" uid="uid://unwhnooi7g2c" path="res://addons/godot-rapier2d/custom_nodes/rapier_rigid_body_2d.gd" id="2_8uh7m"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_37kl0"]
+size = Vector2(30.455826, 2.8284378)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6uqi0"]
+size = Vector2(16.46859, 2.8284378)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_mf4mk"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_8uh7m"]
+size = Vector2(10, 20)
 
 [node name="Test2D" type="Node2D"]
 
 [node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(10, 10)
+position = Vector2(14, 321)
+zoom = Vector2(2, 2)
 
-[node name="Chain" type="Node2D" parent="."]
-script = ExtResource("1_8uh7m")
-num_segments = 9
-segment_size = 100.0
+[node name="RapierPinJoint2D" type="PinJoint2D" parent="."]
+position = Vector2(0, 10)
+node_a = NodePath("../StaticBody2D")
+node_b = NodePath("../RigidBody2D")
+script = ExtResource("1_37kl0")
 joint_type = 1
+metadata/_custom_type_script = "uid://bv2bc4lt5v7hu"
+
+[node name="RapierPinJoint2D2" type="PinJoint2D" parent="."]
+position = Vector2(0, 30)
+node_a = NodePath("../RigidBody2D")
+node_b = NodePath("../RigidBody2D2")
+script = ExtResource("1_37kl0")
+joint_type = 1
+metadata/_custom_type_script = "uid://bv2bc4lt5v7hu"
+
+[node name="RapierPinJoint2D3" type="PinJoint2D" parent="."]
+position = Vector2(0, 51)
+node_a = NodePath("../RigidBody2D2")
+node_b = NodePath("../RigidBody2D3")
+script = ExtResource("1_37kl0")
+joint_type = 1
+metadata/_custom_type_script = "uid://bv2bc4lt5v7hu"
+
+[node name="RapierPinJoint2D4" type="PinJoint2D" parent="."]
+position = Vector2(0, 71)
+node_a = NodePath("../RigidBody2D3")
+node_b = NodePath("../RigidBody2D4")
+script = ExtResource("1_37kl0")
+joint_type = 1
+metadata/_custom_type_script = "uid://bv2bc4lt5v7hu"
+
+[node name="RapierPinJoint2D10" type="PinJoint2D" parent="." node_paths=PackedStringArray("ik_target")]
+position = Vector2(0, 200)
+node_a = NodePath("../RigidBody2D9")
+node_b = NodePath("../RigidBody2D10")
+script = ExtResource("1_37kl0")
+joint_type = 1
+ik_target = NodePath("../Marker2D")
+ik_constrain_rotation = true
+ik_max_iterations = 40
+metadata/_custom_type_script = "uid://bv2bc4lt5v7hu"
+
+[node name="RapierPinJoint2D5" type="PinJoint2D" parent="."]
+position = Vector2(0, 92)
+node_a = NodePath("../RigidBody2D4")
+node_b = NodePath("../RigidBody2D5")
+script = ExtResource("1_37kl0")
+joint_type = 1
+ik_constrain_rotation = true
+ik_max_iterations = 40
+metadata/_custom_type_script = "uid://bv2bc4lt5v7hu"
+
+[node name="RapierPinJoint2D6" type="PinJoint2D" parent="."]
+position = Vector2(0, 114)
+node_a = NodePath("../RigidBody2D5")
+node_b = NodePath("../RigidBody2D6")
+script = ExtResource("1_37kl0")
+joint_type = 1
+metadata/_custom_type_script = "uid://bv2bc4lt5v7hu"
+
+[node name="RapierPinJoint2D7" type="PinJoint2D" parent="."]
+position = Vector2(0, 135)
+node_a = NodePath("../RigidBody2D6")
+node_b = NodePath("../RigidBody2D7")
+script = ExtResource("1_37kl0")
+joint_type = 1
+metadata/_custom_type_script = "uid://bv2bc4lt5v7hu"
+
+[node name="RapierPinJoint2D8" type="PinJoint2D" parent="."]
+position = Vector2(0, 157)
+node_a = NodePath("../RigidBody2D7")
+node_b = NodePath("../RigidBody2D8")
+script = ExtResource("1_37kl0")
+joint_type = 1
+metadata/_custom_type_script = "uid://bv2bc4lt5v7hu"
+
+[node name="RapierPinJoint2D9" type="PinJoint2D" parent="."]
+position = Vector2(0, 178)
+node_a = NodePath("../RigidBody2D8")
+node_b = NodePath("../RigidBody2D9")
+script = ExtResource("1_37kl0")
+joint_type = 1
+metadata/_custom_type_script = "uid://bv2bc4lt5v7hu"
+
+[node name="Marker2D" type="Marker2D" parent="."]
+position = Vector2(-60.999996, 143)
+script = ExtResource("2_6uqi0")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Marker2D"]
+position = Vector2(-15.227905, 0)
+shape = SubResource("RectangleShape2D_37kl0")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="Marker2D"]
+position = Vector2(-5.885376, -4.421524)
+rotation = 0.50060797
+shape = SubResource("RectangleShape2D_6uqi0")
+
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="Marker2D"]
+position = Vector2(-7.071065, 2.8284316)
+rotation = -0.387843
+shape = SubResource("RectangleShape2D_6uqi0")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+shape = SubResource("CircleShape2D_mf4mk")
+
+[node name="RigidBody2D" type="RigidBody2D" parent="."]
+position = Vector2(0, 20)
+collision_layer = 0
+collision_mask = 0
+mass = 0.001
+script = ExtResource("2_8uh7m")
+massless = true
+metadata/_custom_type_script = "uid://unwhnooi7g2c"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D"]
+shape = SubResource("RectangleShape2D_8uh7m")
+
+[node name="RigidBody2D2" type="RigidBody2D" parent="."]
+position = Vector2(0, 41)
+collision_layer = 0
+collision_mask = 0
+mass = 0.001
+script = ExtResource("2_8uh7m")
+massless = true
+metadata/_custom_type_script = "uid://unwhnooi7g2c"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D2"]
+shape = SubResource("RectangleShape2D_8uh7m")
+
+[node name="RigidBody2D3" type="RigidBody2D" parent="."]
+position = Vector2(0, 62)
+collision_layer = 0
+collision_mask = 0
+mass = 0.001
+script = ExtResource("2_8uh7m")
+massless = true
+metadata/_custom_type_script = "uid://unwhnooi7g2c"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D3"]
+shape = SubResource("RectangleShape2D_8uh7m")
+
+[node name="RigidBody2D4" type="RigidBody2D" parent="."]
+position = Vector2(0, 82)
+collision_layer = 0
+collision_mask = 0
+mass = 0.001
+script = ExtResource("2_8uh7m")
+massless = true
+metadata/_custom_type_script = "uid://unwhnooi7g2c"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D4"]
+shape = SubResource("RectangleShape2D_8uh7m")
+
+[node name="RigidBody2D5" type="RigidBody2D" parent="."]
+position = Vector2(0, 103)
+collision_layer = 0
+collision_mask = 0
+mass = 0.001
+script = ExtResource("2_8uh7m")
+massless = true
+metadata/_custom_type_script = "uid://unwhnooi7g2c"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D5"]
+shape = SubResource("RectangleShape2D_8uh7m")
+
+[node name="RigidBody2D6" type="RigidBody2D" parent="."]
+position = Vector2(0, 124)
+collision_layer = 0
+collision_mask = 0
+mass = 0.001
+script = ExtResource("2_8uh7m")
+massless = true
+metadata/_custom_type_script = "uid://unwhnooi7g2c"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D6"]
+shape = SubResource("RectangleShape2D_8uh7m")
+
+[node name="RigidBody2D7" type="RigidBody2D" parent="."]
+position = Vector2(0, 146)
+collision_layer = 0
+collision_mask = 0
+mass = 0.001
+script = ExtResource("2_8uh7m")
+massless = true
+metadata/_custom_type_script = "uid://unwhnooi7g2c"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D7"]
+shape = SubResource("RectangleShape2D_8uh7m")
+
+[node name="RigidBody2D8" type="RigidBody2D" parent="."]
+position = Vector2(0, 168)
+collision_layer = 0
+collision_mask = 0
+mass = 0.001
+script = ExtResource("2_8uh7m")
+massless = true
+metadata/_custom_type_script = "uid://unwhnooi7g2c"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D8"]
+shape = SubResource("RectangleShape2D_8uh7m")
+
+[node name="RigidBody2D9" type="RigidBody2D" parent="."]
+position = Vector2(0, 189)
+collision_layer = 0
+collision_mask = 0
+mass = 0.001
+script = ExtResource("2_8uh7m")
+metadata/_custom_type_script = "uid://unwhnooi7g2c"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D9"]
+shape = SubResource("RectangleShape2D_8uh7m")
+
+[node name="RigidBody2D10" type="RigidBody2D" parent="."]
+position = Vector2(0, 211)
+collision_layer = 0
+collision_mask = 0
+mass = 0.001
+script = ExtResource("2_8uh7m")
+metadata/_custom_type_script = "uid://unwhnooi7g2c"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D10"]
+shape = SubResource("RectangleShape2D_8uh7m")

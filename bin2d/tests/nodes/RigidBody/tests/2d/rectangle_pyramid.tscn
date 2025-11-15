@@ -1,7 +1,31 @@
-[gd_scene load_steps=2 format=3 uid="uid://bn1ox1w8nnydx"]
+[gd_scene load_steps=6 format=3 uid="uid://bn1ox1w8nnydx"]
 
 [ext_resource type="Script" uid="uid://cscgle4a0v01r" path="res://tests/nodes/RigidBody/tests/2d/rectangle_pyramid.gd" id="1_33db6"]
+[ext_resource type="Script" uid="uid://cburu6b4ckehs" path="res://addons/godot-rapier2d/custom_nodes/rapier_area_2d.gd" id="2_dqx15"]
+[ext_resource type="Script" uid="uid://unwhnooi7g2c" path="res://addons/godot-rapier2d/custom_nodes/rapier_rigid_body_2d.gd" id="3_gtnx8"]
+[ext_resource type="Script" uid="uid://cpnkbppqchh48" path="res://addons/godot-rapier2d/custom_nodes/rapier_damped_spring_joint_2d.gd" id="4_7b7xb"]
+[ext_resource type="Script" uid="uid://bv2bc4lt5v7hu" path="res://addons/godot-rapier2d/custom_nodes/rapier_pin_joint_2d.gd" id="5_lwvi2"]
 
 [node name="rectangle_pyramid" type="Node2D"]
 script = ExtResource("1_33db6")
 height = 30
+
+[node name="RapierArea2D" type="Area2D" parent="."]
+script = ExtResource("2_dqx15")
+metadata/_custom_type_script = "uid://cburu6b4ckehs"
+
+[node name="RapierRigidBody2D" type="RigidBody2D" parent="."]
+script = ExtResource("3_gtnx8")
+metadata/_custom_type_script = "uid://unwhnooi7g2c"
+
+[node name="RapierDampedSpringJoint2D" type="DampedSpringJoint2D" parent="." node_paths=PackedStringArray("ik_target")]
+script = ExtResource("4_7b7xb")
+joint_type = 1
+ik_target = NodePath("")
+metadata/_custom_type_script = "uid://cpnkbppqchh48"
+
+[node name="Marker2D" type="PinJoint2D" parent="." node_paths=PackedStringArray("ik_target")]
+script = ExtResource("5_lwvi2")
+joint_type = 1
+ik_target = NodePath(".")
+metadata/_custom_type_script = "uid://bv2bc4lt5v7hu"

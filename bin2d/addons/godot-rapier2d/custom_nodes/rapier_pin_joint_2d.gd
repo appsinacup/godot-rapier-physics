@@ -103,5 +103,4 @@ func solve_ik(target_transform: Transform2D) -> void:
 	var joint_rid := get_rid()
 	if not joint_rid.is_valid():
 		return
-	
 	RapierPhysicsServer2D.joint_solve_inverse_kinematics(joint_rid, target_transform)

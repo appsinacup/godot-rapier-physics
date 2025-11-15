@@ -218,10 +218,7 @@ impl INode3D for Fluid3D {
     fn on_notification(&mut self, p_what: Node3DNotification) {
         match p_what {
             Node3DNotification::PROCESS => {
-                if self.debug_draw {
-                    // TODO
-                    //self.to_gd().queue_redraw();
-                }
+                
                 if !Engine::singleton().is_editor_hint() {
                     FluidImpl::delete_old_particles(self);
                 }
@@ -241,8 +238,6 @@ impl INode3D for Fluid3D {
                 RapierPhysicsServer::fluid_set_space(rid, space_rid);
                 drop(guard);
                 self.set_points(self.points.clone());
-                let mut fluid_gd = self.to_gd();
-                fluid_gd.set_notify_transform(self.debug_draw);
             }
             Node3DNotification::TRANSFORM_CHANGED
             | Node3DNotification::LOCAL_TRANSFORM_CHANGED
@@ -250,10 +245,8 @@ impl INode3D for Fluid3D {
                 if !self.to_gd().is_inside_tree() {
                     return;
                 }
-                self.set_points(self.points.clone());
                 let mut fluid_gd = self.to_gd();
                 fluid_gd.set_notify_transform(self.debug_draw);
-                // TODO
                 //fluid_gd.queue_redraw();
             }
             Node3DNotification::EXIT_TREE | Node3DNotification::EXIT_WORLD => {

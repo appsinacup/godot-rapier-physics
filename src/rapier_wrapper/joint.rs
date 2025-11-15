@@ -22,6 +22,36 @@ impl PhysicsEngine {
         (rapier_stiffness, rapier_damping)
     }
 
+    pub fn get_multibody_rigidbodies(
+        &mut self,
+        world_handle: WorldHandle,
+        joint_handle: JointHandle,
+    ) -> Vec<RigidBodyHandle> {
+        let mut result = Vec::new();
+        let Some(physics_world) = self.get_mut_world(world_handle) else {
+            godot_error!(
+                "Failed to wake up multibody: world handle {:?} is not valid",
+                world_handle
+            );
+            return result;
+        };
+        let Some((multibody, _)) = physics_world
+            .physics_objects
+            .multibody_joint_set
+            .get_mut(MultibodyJointHandle(joint_handle.index))
+        else {
+            godot_error!(
+                "Failed to solve IK: joint handle {:?} is not a valid multibody joint",
+                joint_handle
+            );
+            return result;
+        };
+        for link in multibody.links() {
+            result.push(link.rigid_body_handle());
+        }
+        result
+    }
+
     pub fn multibody_solve_ik(
         &mut self,
         world_handle: WorldHandle,
@@ -30,6 +60,10 @@ impl PhysicsEngine {
         options: InverseKinematicsOption,
     ) {
         let Some(physics_world) = self.get_mut_world(world_handle) else {
+            godot_error!(
+                "Failed to solve IK: world handle {:?} is not valid",
+                world_handle
+            );
             return;
         };
         let Some((multibody, link_id)) = physics_world

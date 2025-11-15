@@ -454,7 +454,7 @@ impl PhysicsEngine {
         &mut self,
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
-        mass: Real,
+        _mass: Real,
         inertia: AngVector<Real>,
         local_com: Vector<Real>,
         wake_up: bool,
@@ -482,7 +482,7 @@ impl PhysicsEngine {
                 }
             }
             body.set_additional_mass_properties(
-                MassProperties::new(Point { coords: local_com }, mass, inertia),
+                MassProperties::new(Point { coords: local_com }, 0.0, inertia),
                 wake_up,
             );
             if force_update {
