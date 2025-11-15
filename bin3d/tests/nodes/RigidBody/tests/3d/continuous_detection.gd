@@ -87,9 +87,9 @@ func test_start() -> void:
 	if Aspect.VERTICAL_DETECTION in expected_to_fail:
 		y_collision_monitor.expected_to_fail = true
 
-	process_mode = Node.PROCESS_MODE_DISABLED # to be able to see something
-	await get_tree().create_timer(.1).timeout
-	process_mode = Node.PROCESS_MODE_INHERIT
+	#process_mode = Node.PROCESS_MODE_DISABLED # to be able to see something
+	#await get_tree().create_timer(.1).timeout
+	#process_mode = Node.PROCESS_MODE_INHERIT
 
 func create_rigid_body(p_horizontal := true) -> RigidBody3D:
 	var player = RigidBody3D.new()
