@@ -402,7 +402,8 @@ impl RapierSpace {
                 space: &self.state,
                 world: inner,
             };
-            match serde_json::to_string_pretty(&export) {
+
+            match serde_json::to_string(&export) {
                 Ok(s) => return s,
                 Err(e) => {
                     godot_error!("Failed to serialize space to json: {}", e);
@@ -443,87 +444,103 @@ impl RapierSpace {
         Vec::new()
     }
 
-    #[cfg(feature = "serde-serialize")]
-    pub fn import_binary(&mut self, physics_engine: &mut PhysicsEngine, data: PackedByteArray) {
-        use rapier::geometry::ColliderPair;
-        
+    fn _import(&mut self, physics_engine: &mut PhysicsEngine, import: SpaceImport) {
+        use rapier::geometry::ColliderPair;        
         use crate::servers::rapier_physics_singleton::physics_data;
-     
+
+        let physics_data = physics_data();                
+        let imported_physics_objects = import.world;
+        
+        // Here, we compare our narrowphase to the imported narrowphase. Any collisions present in our pre-load state
+        // that don't exist in the imported state will be manually cleaned up.
+        let mut stale_collider_pairs: Vec<ColliderPair> = Vec::new();
+        if let Some(current_world) = physics_engine.get_mut_world(self.get_state().get_id())
+        {
+            let imported_narrowphase = imported_physics_objects.narrow_phase.clone();
+            let current_narrowphase = current_world.physics_objects.narrow_phase.clone();
+
+            // Do I need to check the reversed pair too? eg handle2, handle1?
+            for (handle1, handle2, _intersecting) in current_narrowphase.intersection_pairs()
+            {
+                match imported_narrowphase.intersection_pair(handle1, handle2) {
+                    Some(true) => continue,
+                    Some(false) | None => stale_collider_pairs.push(ColliderPair::new(handle1, handle2)),
+                }
+            }
+
+            // let b = physics_data.collision_objects.iter_mut();
+            // current_world.physics_objects.rigid_body_set
+            //current_world.physics_objects.collider_set.iter_mut()
+                                
+            // for (a,b) in current_world.physics_objects.collider_set.iter_mut()
+            // {
+            //     b.is_sensor()
+            //     //let rb1 = co1.parent.map(|co_parent1| &bodies[co_parent1.handle]);
+            //     if let Some(parent) = b.parent() {
+
+            //     }
+
+            // }
+            // for (a,b) in current_world.physics_objects.rigid_body_set.iter_mut()
+            // {
+            //     let rb1 = co1.parent.map(|co_parent1| &bodies[co_parent1.handle]);
+            // }
+
+            // Is there a better way to iterate through the areas of this specific space?
+            for (_, collision_object) in physics_data.collision_objects.iter_mut()
+            {
+                if collision_object.get_base().get_space_id() == self.get_state().get_id()                     
+                    && let Some(area) = collision_object.get_mut_area()
+                {
+                    area.close_stale_contacts(self, &stale_collider_pairs);
+                }
+            }
+        }
+
+
+        
+        self.flush(physics_data);
+
+        self.state = import.space;
+                        
+        let world_settings = WorldSettings {
+            particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
+            smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
+            counters_enabled: false,
+            boundary_coef: RapierProjectSettings::get_fluid_boundary_coef() as real,
+            #[cfg(feature = "parallel")]
+            thread_count: RapierProjectSettings::get_num_threads(),
+        };
+
+        let physics_objects = imported_physics_objects;             
+        physics_engine.world_import(
+            self.get_state().get_id(),
+            &world_settings,
+            physics_objects,
+        );
+
+        self.zero_tick(physics_data);
+        self.flush(physics_data);
+
+    }
+
+    #[cfg(feature = "serde-serialize")]
+    pub fn import_json(&mut self, physics_engine: &mut PhysicsEngine, data: String) {
+        match serde_json::from_str::<SpaceImport>(&data) {
+            Ok(import) => {
+                self._import(physics_engine, import);
+            }
+            Err(e) => {
+                godot_error!("Failed to deserialize space from JSON: {}", e);
+            }
+        }
+    }
+
+    #[cfg(feature = "serde-serialize")]
+    pub fn import_binary(&mut self, physics_engine: &mut PhysicsEngine, data: PackedByteArray) {     
         match bincode::deserialize::<SpaceImport>(data.as_slice()) {
             Ok(import) => {
-                let physics_data = physics_data();                
-                let imported_physics_objects = import.world;
-               
-                // Here, we compare our narrowphase to the imported narrowphase. Any collisions present in our pre-load state
-                // that don't exist in the imported state will be manually cleaned up.
-                let mut stale_collider_pairs: Vec<ColliderPair> = Vec::new();
-                if let Some(current_world) = physics_engine.get_mut_world(self.get_state().get_id())
-                {
-                    let imported_narrowphase = imported_physics_objects.narrow_phase.clone();
-                    let current_narrowphase = current_world.physics_objects.narrow_phase.clone();
-
-                    // Do I need to check the reversed pair too? eg handle2, handle1?
-                    for (handle1, handle2, _intersecting) in current_narrowphase.intersection_pairs()
-                    {
-                        match imported_narrowphase.intersection_pair(handle1, handle2) {
-                            Some(true) => continue,
-                            Some(false) | None => stale_collider_pairs.push(ColliderPair::new(handle1, handle2)),
-                        }
-                    }
-
-                    // let b = physics_data.collision_objects.iter_mut();
-                    // current_world.physics_objects.rigid_body_set
-                    //current_world.physics_objects.collider_set.iter_mut()
-                                        
-                    // for (a,b) in current_world.physics_objects.collider_set.iter_mut()
-                    // {
-                    //     b.is_sensor()
-                    //     //let rb1 = co1.parent.map(|co_parent1| &bodies[co_parent1.handle]);
-                    //     if let Some(parent) = b.parent() {
-
-                    //     }
-
-                    // }
-                    // for (a,b) in current_world.physics_objects.rigid_body_set.iter_mut()
-                    // {
-                    //     let rb1 = co1.parent.map(|co_parent1| &bodies[co_parent1.handle]);
-                    // }
-
-                    // Is there a better way to iterate through the areas of this specific space?
-                    for (_, collision_object) in physics_data.collision_objects.iter_mut()
-                    {
-                        if collision_object.get_base().get_space_id() == self.get_state().get_id()                     
-                            && let Some(area) = collision_object.get_mut_area()
-                        {
-                            area.close_stale_contacts(self, &stale_collider_pairs);
-                        }
-                    }
-                }
-
-
-                
-                self.flush(physics_data);
-
-                self.state = import.space;
-                                
-                let world_settings = WorldSettings {
-                    particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
-                    smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
-                    counters_enabled: false,
-                    boundary_coef: RapierProjectSettings::get_fluid_boundary_coef() as real,
-                    #[cfg(feature = "parallel")]
-                    thread_count: RapierProjectSettings::get_num_threads(),
-                };
-
-                let physics_objects = imported_physics_objects;             
-                physics_engine.world_import(
-                    self.get_state().get_id(),
-                    &world_settings,
-                    physics_objects,
-                );
-
-                self.zero_tick(physics_data);
-                self.flush(physics_data);
+                self._import(physics_engine, import);
             }
             Err(e) => {
                 godot_error!("Failed to deserialize space from binary: {}", e);

@@ -124,6 +124,19 @@ macro_rules! make_rapier_server_godot_impl {
 
             #[cfg(feature = "serde-serialize")]
             #[func]
+            pub fn import_json(physics_object: Rid, data: String) {
+                use $crate::joints::rapier_joint::IRapierJoint;
+                use $crate::servers::rapier_physics_singleton::insert_id_rid;
+                use $crate::servers::rapier_physics_singleton::remove_id_rid;
+                use $crate::shapes::rapier_shape::IRapierShape;
+                let physics_data = physics_data();
+                if let Some(space) = physics_data.spaces.get_mut(&physics_object) {
+                    space.import_json(&mut physics_data.physics_engine, data);
+                }
+            }
+
+            #[cfg(feature = "serde-serialize")]
+            #[func]
             /// Imports the physics object from a binary format.
             pub fn import_binary(physics_object: Rid, data: PackedByteArray) {
                 use $crate::joints::rapier_joint::IRapierJoint;

@@ -1,9 +1,10 @@
-use godot::{prelude::*, classes::{CollisionObject2D, CollisionObject3D, Joint2D, Joint3D, Marshalls, Json}};
+use godot::{prelude::*, classes::{CollisionObject2D, CollisionObject3D, Joint2D, Joint3D, Marshalls, Json, CollisionShape2D}};
 use hashbrown::HashMap;
+use serde_json::Map;
 
 use crate::{servers::{RapierPhysicsServer, rapier_physics_singleton::physics_data, rapier_physics_server_2d::RapierPhysicsServer2D}, 
 types::{PhysicsServer, SerializationFormat, bin_to_packed_byte_array}, bodies::{rapier_collision_object::{RapierCollisionObject, IRapierCollisionObject}, 
-rapier_area::RapierAreaState, exportable_object::{ExportableObject, ObjectExportState}}, spaces::rapier_space::SpaceExport, shapes::rapier_shape_base::ShapeExport};
+rapier_area::RapierAreaState, exportable_object::{ExportableObject, ObjectExportState}}, spaces::rapier_space::{SpaceExport, RapierSpace}, shapes::rapier_shape_base::ShapeExport};
 
 // enum RapierStateData {
 //     A
@@ -11,6 +12,7 @@ rapier_area::RapierAreaState, exportable_object::{ExportableObject, ObjectExport
 
 enum StateData<'a> {
     RawState(ObjectExportState<'a>),
+    SerdeJson(serde_json::Value),
     Variant(Variant),
 }
 
@@ -132,9 +134,11 @@ pub fn get_state_for_export<'a>(physics_object: Rid) -> Option<ObjectExportState
             joint.get_base().get_export_state(&mut physics_data.physics_engine)?,
         ));
     }
-    // if let Some(space) = physics_data.spaces.get(&physics_object) {
-    //     return space.export_json(&mut physics_data.physics_engine);
-    // }
+    if let Some(space) = physics_data.spaces.get(&physics_object) {
+        return Some(ObjectExportState::RapierSpace(
+            space.get_export_state(&mut physics_data.physics_engine)?,
+        ));
+    }
     None
 }
 
@@ -181,6 +185,70 @@ impl StateManager {
         return self.serialize_state(in_space, &format)
     }
 
+    #[func]
+    fn load_state(
+        &mut self,
+        in_space: Rid,
+        load_state: Variant,
+    ) {
+        let physics_data = physics_data();
+        
+        let Some(space) = physics_data.spaces.get_mut(&in_space) else {
+            godot_error!("Provided RID didn't correspond to a valid space!");
+            return
+        };
+
+        match load_state.get_type() {
+            VariantType::PACKED_BYTE_ARRAY => {
+                godot_print!("Todo");
+            },
+            VariantType::STRING => {
+                match load_state.try_to::<String>() {
+                    Ok(as_string) => {
+
+                        match serde_json::from_str::<serde_json::Value>(&as_string) {
+                            Ok(serde_json::Value::Object(state_map)) => {
+                                godot_print!("Top-level keys: {:?}", state_map.keys());
+                                if let Some(space_state) = state_map.get("RapierSpace") {
+                                    let space_json_string = serde_json::to_string(space_state)
+                                    .expect("Failed to serialize space JSON");
+                                    space.import_json(&mut physics_data.physics_engine, space_json_string);
+                                }
+                            },
+                            Ok(other) => {
+                                panic!("Expected a JSON object, but got: {:?}", other);
+                            }
+                            Err(err) => {
+                                panic!("Failed to parse JSON: {}", err);
+                            }
+                        }
+
+
+                        
+                        // Dictionary-ize the string.
+                        // let as_json = Json::parse_string(&as_string);
+                        // match as_json.try_to::<Dictionary>() {
+                        //     Ok(as_dict) => {
+                        //         // Grab the space state. We'll need to convert it into a string, and then use serde to deserialize it to space data.
+                        //         let as_string = Json::stringify(&as_dict.to_variant()).to_string();
+                        //         space.import_json(&mut physics_data.physics_engine, as_string);
+                        //     }
+                        //     Err(err) => {
+                        //         godot_error!("Failed to load state dictionary!");
+                        //     }
+                        // }
+                    }
+                    Err(err) => {
+                        godot_error!("Failed to load state string!");
+                    }
+                }
+            },
+            _ => {
+                godot_error!("Loaded state is not a valid variant type!");
+            }
+        }
+    }
+
 
 
     fn serialize_state(
@@ -205,6 +273,7 @@ impl StateManager {
 
                 let collated_state: CollatedObjectState = {
                     let mut owned_states = CollatedObjectState::new();
+                    owned_states.node_path = nodepath_str;
                     
                     if let Some(mut co2d) = self.base().try_get_node_as::<CollisionObject2D>(&nodepath) {
                         let this_rid = co2d.get_rid();
@@ -224,7 +293,7 @@ impl StateManager {
                             for i in 0..shape_count {
                                 if let Some(shape) = co2d.shape_owner_get_shape(*owner_shape_id as u32, i)
                                 {
-                                    this_owner_shapes.push(self.save_node(shape.get_rid(), format));
+                                    this_owner_shapes.push(self.save_node(shape.get_rid(), format));                                    
                                 }                            
                             };
 
@@ -283,6 +352,10 @@ impl StateManager {
                         owned_states.self_state = self.save_node(this_rid, format);
                     }
 
+                    // else if let Some(mut shape_node) = self.base().try_get_node_as::<CollisionShape2D>(&nodepath) {
+                    //     shape_node.
+                    // }
+
                     else {
                         godot_error!("Attempted to serialize state of non-physics object.");
                     }
@@ -312,36 +385,55 @@ impl StateManager {
 
             match format {
                 SerializationFormat::None | SerializationFormat::GodotBase64 => {
-                    let mut full_serialized_state = Dictionary::new();
-                    full_serialized_state.set("space", encoded_space.into_variant()); //.into_binary()));
-                    full_serialized_state.set("physics_server_id", physics_server_index.to_variant());
+                    
+                    let mut full_physics_server_state = serde_json::Value::Object(Map::new());
+
+                    if let serde_json::Value::Object(map) = &mut full_physics_server_state {
+                        
+                        if let StateData::SerdeJson(as_json) = encoded_space {
+                            if let serde_json::Value::Object(space_map) = as_json {
+                                for (key, val) in space_map {
+                                    map.insert(key,val);
+                                }
+                            }
+                            //map.insert("space".to_string(), as_json);
+                        }
+
+                        map.insert("physics_server_id".to_string(), physics_server_index.into());
+
+                        
+                    }
+
+                    //let mut full_physics_server_state = Dictionary::new();
+                    // full_physics_server_state.set("space", encoded_space.into_variant()); //.into_binary()));
+                    // full_physics_server_state.set("physics_server_id", physics_server_index.to_variant());
 
                     // We need to compose the collated object states into a convenient dictionary.
                     let mut physics_objects_state = Dictionary::new();
 
-                    for object_state in object_states {
-                        let mut object_dict_entry = Dictionary::new();
-                        object_dict_entry.set("state", object_state.self_state.into_variant());
+                    // for object_state in object_states {
+                    //     let mut object_dict_entry = Dictionary::new();
+                    //     object_dict_entry.set("state", object_state.self_state.into_variant());
                                                     
-                        let mut shapes_dict = Dictionary::new();
-                        for shape_owner in object_state.shape_owner_states {
-                            let mut shape_states: Array<Variant> = Array::new();
-                            for shape_state in shape_owner.1 {
-                                shape_states.push(&shape_state.into_variant());
-                            }
-                            shapes_dict.set(shape_owner.0, shape_states);
-                        }
-                        object_dict_entry.set("shapes", shapes_dict);  
-                        physics_objects_state.set(object_state.node_path, object_dict_entry);                          
-                    }
+                    //     let mut shapes_dict = Dictionary::new();
+                    //     for shape_owner in object_state.shape_owner_states {
+                    //         let mut shape_states: Array<Variant> = Array::new();
+                    //         for shape_state in shape_owner.1 {
+                    //             shape_states.push(&shape_state.into_variant());
+                    //         }
+                    //         shapes_dict.set(shape_owner.0, shape_states);
+                    //     }
+                    //     object_dict_entry.set("shape_owners", shapes_dict);  
+                    //     physics_objects_state.set(object_state.node_path, object_dict_entry);                          
+                    // }
 
-                    full_serialized_state.set("physics_objects_state", physics_objects_state);
+                    //full_physics_server_state.set("physics_objects_state", physics_objects_state);
 
                     if matches!(format, SerializationFormat::GodotBase64) {
-                        let serialized_string = Marshalls::singleton().variant_to_base64(&full_serialized_state.to_variant());
+                        let serialized_string = Marshalls::singleton().variant_to_base64(&full_physics_server_state.to_string().to_variant());
                         return serialized_string.to_variant()
                     } else {
-                        return full_serialized_state.to_variant()
+                        return full_physics_server_state.to_string().to_variant()
                     }
                 }                
                 SerializationFormat::RustBincode => {
@@ -475,15 +567,22 @@ impl StateManager {
     ) -> StateData {
         // Exporting to JSON is a bit awkward; we have our states as json strings from Serde,
         // but we need to coerce it into a Godot json object.
+        
         match encoding {
             // In this first case, we want to treat unserialized (eg raw Json) and GodotBase64 string encoding in the same way.
             // That essentially means that for GodotBase64, encoding to base64 only happens at the final serialization step.
             SerializationFormat::None | SerializationFormat::GodotBase64 => {
-                if let Some(variant) = serde_json_string_to_variant(RapierPhysicsServer::export_json(rid)) {
-                    return StateData::Variant(variant)
+                if let Some(state) = RapierPhysicsServer::fetch_state_internal(rid) {
+                    return StateData::SerdeJson(serde_json::json!(state));
                 } else {
-                    return StateData::Variant(Variant::nil())
+                    panic!("No physics state found for Rid {:?}", rid);
                 }
+
+                // if let Some(variant) = serde_json_string_to_variant(RapierPhysicsServer::export_json(rid)) {
+                //     return StateData::Variant(variant)
+                // } else {
+                //     return StateData::Variant(Variant::nil())
+                // }
             },
             SerializationFormat::RustBincode => {   
                 if let Some(state) = RapierPhysicsServer::fetch_state_internal(rid) {
