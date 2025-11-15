@@ -85,7 +85,7 @@ func test_completed() -> void:
 			assert(false, "Monitor without is_test_passed or get_score method")
 	if Global.VERBOSE:
 		print_rich(output)
-	process_mode = PROCESS_MODE_DISABLED
+	#process_mode = PROCESS_MODE_DISABLED
 	completed.emit()
 	if get_tree().get_root() == get_parent(): # autostart is the scene is alone
 		var label := Label.new()

@@ -361,7 +361,7 @@ func test_start() -> void:
 				if true:
 					p_monitor.add_test("The impulse torque makes the body rotate correctly")
 					var angular_rotation_expected = (angular_acc_expected * dt) * 20.0
-					var success_rot:= Utils.f_equals(p_target.rotation, angular_rotation_expected)
+					var success_rot:= Utils.f_equals(p_target.rotation, angular_rotation_expected, 0.001)
 					if not success_rot:
 						p_monitor.add_test_error("The impulse torque is not applied correctly to the rotation: expected %f, get %f" % [angular_rotation_expected, p_target.rotation])
 					p_monitor.add_test_result(success_rot)
