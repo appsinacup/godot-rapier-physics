@@ -1,4 +1,12 @@
 use godot::classes::Engine;
+use godot::classes::Material;
+use godot::classes::Mesh;
+use godot::classes::MultiMesh;
+use godot::classes::MultiMeshInstance3D;
+use godot::classes::SphereMesh;
+use godot::classes::StandardMaterial3D;
+use godot::classes::base_material_3d::ShadingMode;
+use godot::classes::multi_mesh::TransformFormat as MultiMeshTransformFormat;
 use godot::classes::notify::Node3DNotification;
 use godot::prelude::*;
 
@@ -31,6 +39,8 @@ pub struct Fluid3D {
     #[var(get = get_points, set = set_points)]
     pub(crate) points: PackedVectorArray,
     pub(crate) create_times: PackedFloat32Array,
+    pub(crate) debug_multimesh: Option<Gd<MultiMesh>>,
+    pub(crate) debug_multimesh_instance: Option<Gd<MultiMeshInstance3D>>,
 
     #[export_group(name = "Collision", prefix = "collision_")]
     #[export(flags_2d_physics)]
@@ -44,9 +54,69 @@ pub struct Fluid3D {
 #[godot_api]
 impl Fluid3D {
     #[func]
+    fn _ensure_debug_multimesh(&mut self) {
+        if !self.debug_draw {
+            return;
+        }
+        // Ensure we are in the tree (or defer until ready)
+        let mut gd = self.to_gd();
+        if !gd.is_inside_tree() {
+            gd.call_deferred("_ensure_debug_multimesh", &[]);
+            return;
+        }
+        if let Some(mm_inst) = &self.debug_multimesh_instance {
+            if mm_inst.is_inside_tree() {
+                self._update_debug_multimesh();
+                return;
+            }
+        }
+        let mut mm = MultiMesh::new_gd();
+        mm.set_instance_count(0);
+        mm.set_transform_format(MultiMeshTransformFormat::TRANSFORM_3D);
+        mm.set_use_colors(true);
+        let mut sphere = SphereMesh::new_gd();
+        sphere.set_radius(self.radius);
+        let mesh_as_mesh: Gd<Mesh> = sphere.clone().upcast();
+        mm.set_mesh(Some(&mesh_as_mesh));
+        mm.set_instance_count(self.points.len() as i32);
+        let mut mm_inst = MultiMeshInstance3D::new_alloc();
+        mm_inst.set_multimesh(Some(&mm));
+        let mut mat = StandardMaterial3D::new_gd();
+        mat.set_albedo(Color::from_rgba(1.0, 1.0, 1.0, 0.5));
+        mat.set_emission(Color::from_rgba(1.0, 1.0, 1.0, 0.5));
+        mat.set_shading_mode(ShadingMode::UNSHADED);
+        mm_inst.set_material_override(Some(&mat.upcast::<Material>()));
+        self.debug_multimesh = Some(mm);
+        self.debug_multimesh_instance = Some(mm_inst.clone());
+        let node_variant = mm_inst.clone().upcast::<Node>().to_variant();
+        gd.call_deferred("add_child", &[node_variant]);
+    }
+
+    #[func]
+    fn _update_debug_multimesh(&mut self) {
+        if !self.debug_draw {
+            return;
+        }
+        let points = self.get_points();
+        if points.is_empty() {
+            return;
+        }
+        if let Some(mm) = self.debug_multimesh.as_mut() {
+            let count = points.len() as i32;
+            mm.set_instance_count(count);
+            for (i, p) in points.as_slice().iter().enumerate() {
+                let t = Transform3D::new(Basis::IDENTITY, *p);
+                mm.set_instance_transform(i as i32, t);
+                mm.set_instance_color(i as i32, Color::from_rgba(1.0, 1.0, 1.0, 0.5));
+            }
+        }
+    }
+
+    #[func]
     /// Set the points of the fluid.
     fn set_points(&mut self, points: PackedVectorArray) {
         FluidImpl::set_points(self, points);
+        self.to_gd().call_deferred("_update_debug_multimesh", &[]);
     }
 
     #[func]
@@ -65,6 +135,16 @@ impl Fluid3D {
     /// Set the debug draw of the fluid.
     fn set_debug_draw(&mut self, debug_draw: bool) {
         FluidImpl::set_debug_draw(self, debug_draw);
+        if debug_draw {
+            self.to_gd().call_deferred("_ensure_debug_multimesh", &[]);
+        } else {
+            if let Some(mut mm_inst) = self.debug_multimesh_instance.take() {
+                if mm_inst.is_inside_tree() {
+                    mm_inst.queue_free();
+                }
+            }
+            self.debug_multimesh = None;
+        }
     }
 
     #[func]
@@ -100,9 +180,9 @@ impl Fluid3D {
             for j in 0..height {
                 for k in 0..depth {
                     new_points[(i + j * width + k * width * height) as usize] = Vector::new(
-                        i as f32 * self.radius * 2.0,
-                        j as f32 * self.radius * 2.0,
-                        k as f32 * self.radius * 2.0,
+                        i as f32 * self.radius,
+                        j as f32 * self.radius,
+                        k as f32 * self.radius,
                     );
                 }
             }
@@ -117,9 +197,9 @@ impl Fluid3D {
         for i in -radius..radius {
             for j in -radius..radius {
                 for k in -radius..radius {
-                    let x = i as f32 * self.radius * 2.0;
-                    let y = j as f32 * self.radius * 2.0;
-                    let z = k as f32 * self.radius * 2.0;
+                    let x = i as f32 * self.radius;
+                    let y = j as f32 * self.radius;
+                    let z = k as f32 * self.radius;
                     if i * i + j * j * k * k <= radius * radius {
                         new_points.push(Vector::new(x, y, z));
                     }
@@ -211,6 +291,8 @@ impl INode3D for Fluid3D {
             create_times: PackedFloat32Array::new(),
             collision_mask: 1,
             collision_layer: 1,
+            debug_multimesh: None,
+            debug_multimesh_instance: None,
             base,
         }
     }
@@ -218,6 +300,9 @@ impl INode3D for Fluid3D {
     fn on_notification(&mut self, p_what: Node3DNotification) {
         match p_what {
             Node3DNotification::PROCESS => {
+                if self.debug_draw {
+                    self._update_debug_multimesh();
+                }
                 if !Engine::singleton().is_editor_hint() {
                     FluidImpl::delete_old_particles(self);
                 }
@@ -237,6 +322,9 @@ impl INode3D for Fluid3D {
                 RapierPhysicsServer::fluid_set_space(rid, space_rid);
                 drop(guard);
                 self.set_points(self.points.clone());
+                if self.debug_draw {
+                    self.to_gd().call_deferred("_ensure_debug_multimesh", &[]);
+                }
             }
             Node3DNotification::TRANSFORM_CHANGED
             | Node3DNotification::LOCAL_TRANSFORM_CHANGED
@@ -254,23 +342,6 @@ impl INode3D for Fluid3D {
                 RapierPhysicsServer::fluid_set_space(rid, Rid::Invalid);
                 drop(guard);
             }
-            /*
-            Node3DNotification::DRAW => {
-                if self.debug_draw {
-                    self.points = self.get_points();
-                    for point in self.points.as_slice() {
-                        let mut color = Color::WHITE;
-                        color.a = 0.4;
-                        self.to_gd().draw_rect(
-                            Rect2::new(
-                                *point - Vector2::new(self.radius / 2.0, self.radius / 2.0),
-                                Vector2::new(self.radius, self.radius),
-                            ),
-                            color,
-                        );
-                    }
-                }
-            } */
             _ => {}
         }
     }
