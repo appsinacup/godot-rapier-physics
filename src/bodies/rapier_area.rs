@@ -23,6 +23,7 @@ use servers::rapier_physics_singleton::RapierId;
 use servers::rapier_physics_singleton::get_id_rid;
 
 use super::exportable_object::ExportableObject;
+use super::exportable_object::ObjectImportState;
 use super::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::collider;
@@ -865,6 +866,18 @@ impl ExportableObject for RapierArea {
             area_state: &self.state,
             base_state: &self.base.state,
         })
+    }
+
+    fn import_state(&mut self, _: &mut PhysicsEngine, data: ObjectImportState) {
+        match data {
+            bodies::exportable_object::ObjectImportState::RapierArea(area_import) => {
+                self.state = area_import.area_state;
+                self.base.state = area_import.base_state;
+            },
+            _ => {
+                godot_error!("Attempted to import invalid state data.");
+            }
+        }        
     }
 }
 

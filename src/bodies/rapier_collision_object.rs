@@ -2,6 +2,7 @@ use bodies::rapier_collision_object_base::CollisionObjectShape;
 use bodies::rapier_collision_object_base::RapierCollisionObjectBase;
 use bodies::exportable_object::ExportableObject;
 use crate::bodies::exportable_object::ObjectExportState;
+use crate::bodies::exportable_object::ObjectImportState;
 use godot::prelude::*;
 use rapier::geometry::ColliderHandle;
 use servers::rapier_physics_singleton::PhysicsIds;
@@ -351,6 +352,17 @@ macro_rules! impl_rapier_collision_object_exportable_trait {
                         }
                     ,)*
                 }
+            }
+
+            #[cfg(feature = "serde-serialize")]
+            fn import_state(&mut self, physics_engine: &mut PhysicsEngine, data: ObjectImportState) {
+                match self {
+                    $(
+                        Self::$variant(co) => {
+                            co.import_state(physics_engine, data)
+                        }
+                    ,)*
+                }     
             }
         }
     };

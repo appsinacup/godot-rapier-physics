@@ -8,6 +8,7 @@ use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
 use godot::classes::physics_server_3d::*;
 use godot::prelude::*;
+use hashbrown::HashMap;
 use hashbrown::HashSet;
 use rapier::dynamics::IntegrationParameters;
 use rapier::geometry::BroadPhasePairEvent;
@@ -22,9 +23,11 @@ use spaces::rapier_space_state::RapierSpaceState;
 use super::PhysicsDirectSpaceState;
 use super::RapierDirectSpaceState;
 use crate::bodies::exportable_object::ExportableObject;
+use crate::bodies::exportable_object::ObjectImportState;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::RapierPhysicsServer;
+use crate::servers::rapier_physics_singleton::physics_data;
 use crate::servers::rapier_project_settings::*;
 use crate::types::*;
 use crate::*;
@@ -54,6 +57,17 @@ impl ExportableObject for RapierSpace {
         } else {
             return None
         }   
+    }
+
+    fn import_state(&mut self, physics_engine: &mut PhysicsEngine, data: ObjectImportState) {
+        match data {
+            bodies::exportable_object::ObjectImportState::RapierSpace(space_import) => {
+                self._import(physics_engine, space_import);
+            },
+            _ => {
+                godot_error!("Attempted to import invalid state data.");
+            }
+        }        
     }
 }
 #[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize))]
@@ -468,24 +482,6 @@ impl RapierSpace {
                 }
             }
 
-            // let b = physics_data.collision_objects.iter_mut();
-            // current_world.physics_objects.rigid_body_set
-            //current_world.physics_objects.collider_set.iter_mut()
-                                
-            // for (a,b) in current_world.physics_objects.collider_set.iter_mut()
-            // {
-            //     b.is_sensor()
-            //     //let rb1 = co1.parent.map(|co_parent1| &bodies[co_parent1.handle]);
-            //     if let Some(parent) = b.parent() {
-
-            //     }
-
-            // }
-            // for (a,b) in current_world.physics_objects.rigid_body_set.iter_mut()
-            // {
-            //     let rb1 = co1.parent.map(|co_parent1| &bodies[co_parent1.handle]);
-            // }
-
             // Is there a better way to iterate through the areas of this specific space?
             for (_, collision_object) in physics_data.collision_objects.iter_mut()
             {
@@ -496,10 +492,9 @@ impl RapierSpace {
                 }
             }
         }
-
-
         
-        self.flush(physics_data);
+        // Flush to emit any area-exit signals.
+        self.flush();
 
         self.state = import.space;
                         
@@ -519,22 +514,12 @@ impl RapierSpace {
             physics_objects,
         );
 
-        self.zero_tick(physics_data);
-        self.flush(physics_data);
+        //self.zero_tick(physics_data);
+        //self.flush();
 
     }
 
-    #[cfg(feature = "serde-serialize")]
-    pub fn import_json(&mut self, physics_engine: &mut PhysicsEngine, data: String) {
-        match serde_json::from_str::<SpaceImport>(&data) {
-            Ok(import) => {
-                self._import(physics_engine, import);
-            }
-            Err(e) => {
-                godot_error!("Failed to deserialize space from JSON: {}", e);
-            }
-        }
-    }
+
 
     #[cfg(feature = "serde-serialize")]
     pub fn import_binary(&mut self, physics_engine: &mut PhysicsEngine, data: PackedByteArray) {     
@@ -548,51 +533,51 @@ impl RapierSpace {
         }
     }
 
-    fn zero_tick(
-        &mut self,
-        physics_data: &mut PhysicsData,
-    )
-    {
-        // Fetch project settings.
-        let settings = SimulationSettings {
-            dt: 0.0,
-            length_unit: RapierProjectSettings::get_length_unit(),
-            max_ccd_substeps: RapierProjectSettings::get_solver_max_ccd_substeps() as usize,
-            num_internal_pgs_iterations:
-                RapierProjectSettings::get_solver_num_internal_pgs_iterations() as usize,
-            num_solver_iterations: RapierProjectSettings::get_solver_num_solver_iterations()
-                as usize,
-            normalized_allowed_linear_error:
-                RapierProjectSettings::get_normalized_allowed_linear_error(),
-            normalized_max_corrective_velocity:
-                RapierProjectSettings::get_normalized_max_corrective_velocity(),
-            normalized_prediction_distance:
-                RapierProjectSettings::get_normalized_prediction_distance(),
-            predictive_contact_allowance_threshold:
-                RapierProjectSettings::get_predictive_contact_allowance_threshold(),
-            num_internal_stabilization_iterations:
-                RapierProjectSettings::get_num_internal_stabilization_iterations() as usize,
-            contact_damping_ratio: RapierProjectSettings::get_contact_damping_ratio(),
-            contact_natural_frequency: RapierProjectSettings::get_contact_natural_frequency(),
-            pixel_gravity: vector_to_rapier(Vector::ZERO),
-            pixel_liquid_gravity: vector_to_rapier(Vector::ZERO),
-        };
+    // fn zero_tick(
+    //     &mut self,
+    //     physics_data: &mut PhysicsData,
+    // )
+    // {
+    //     // Fetch project settings.
+    //     let settings = SimulationSettings {
+    //         dt: 0.0,
+    //         length_unit: RapierProjectSettings::get_length_unit(),
+    //         max_ccd_substeps: RapierProjectSettings::get_solver_max_ccd_substeps() as usize,
+    //         num_internal_pgs_iterations:
+    //             RapierProjectSettings::get_solver_num_internal_pgs_iterations() as usize,
+    //         num_solver_iterations: RapierProjectSettings::get_solver_num_solver_iterations()
+    //             as usize,
+    //         normalized_allowed_linear_error:
+    //             RapierProjectSettings::get_normalized_allowed_linear_error(),
+    //         normalized_max_corrective_velocity:
+    //             RapierProjectSettings::get_normalized_max_corrective_velocity(),
+    //         normalized_prediction_distance:
+    //             RapierProjectSettings::get_normalized_prediction_distance(),
+    //         predictive_contact_allowance_threshold:
+    //             RapierProjectSettings::get_predictive_contact_allowance_threshold(),
+    //         num_internal_stabilization_iterations:
+    //             RapierProjectSettings::get_num_internal_stabilization_iterations() as usize,
+    //         contact_damping_ratio: RapierProjectSettings::get_contact_damping_ratio(),
+    //         contact_natural_frequency: RapierProjectSettings::get_contact_natural_frequency(),
+    //         pixel_gravity: vector_to_rapier(Vector::ZERO),
+    //         pixel_liquid_gravity: vector_to_rapier(Vector::ZERO),
+    //     };
 
-        let space_rid = physics_data.spaces
-            .iter()
-            .find(|(_, space)| std::ptr::eq(*space, self))
-            .map(|(rid, _)| *rid);
+    //     let space_rid = physics_data.spaces
+    //         .iter()
+    //         .find(|(_, space)| std::ptr::eq(*space, self))
+    //         .map(|(rid, _)| *rid);
 
-        if let Some(rid) = space_rid {                    
-            // Use our space's RID to tick for a zero timestep.
-            RapierSpace::step( 0.0, &rid, physics_data, settings);            
-        }
-    }
+    //     if let Some(rid) = space_rid {                    
+    //         // Use our space's RID to tick for a zero timestep.
+    //         RapierSpace::step( 0.0, &rid, physics_data, settings);            
+    //     }
+    // }
 
-    fn flush(
-        &mut self,
-        physics_data: &mut PhysicsData
+    pub fn flush(
+        &mut self
     ){
+        let physics_data = physics_data();
         let state_query_list = Some(self.get_state().get_state_query_list());
         let force_integrate_query_list = Some(self.get_state().get_force_integrate_query_list());
         let monitor_query_list = Some(self.get_state().get_monitor_query_list());

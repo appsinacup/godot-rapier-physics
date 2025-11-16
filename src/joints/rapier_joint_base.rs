@@ -3,6 +3,7 @@ use servers::rapier_physics_singleton::RapierId;
 use servers::rapier_physics_singleton::get_id_rid;
 
 use crate::bodies::exportable_object::ExportableObject;
+use crate::bodies::exportable_object::ObjectImportState;
 use crate::rapier_wrapper::prelude::*;
 use crate::*;
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
@@ -10,6 +11,12 @@ use crate::*;
 pub struct JointExport<'a> {
     state: &'a RapierJointBaseState,
 }
+
+#[derive(serde::Deserialize)]
+pub struct JointImport {
+    state: RapierJointBaseState,
+}
+
 #[cfg_attr(
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
@@ -46,6 +53,17 @@ impl ExportableObject for RapierJointBase {
         Some(JointExport {
             state: &self.state,
         })  
+    }
+    
+    fn import_state(&mut self, _: &mut PhysicsEngine, data: ObjectImportState) {
+        match data {
+            bodies::exportable_object::ObjectImportState::RapierJointBase(joint_import) => {
+                self.state = joint_import.state;
+            },
+            _ => {
+                godot_error!("Attempted to import invalid state data.");
+            }
+        }        
     }
 }
 impl RapierJointBase {

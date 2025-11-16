@@ -2604,29 +2604,10 @@ impl RapierPhysicsServerImpl {
 
     pub(super) fn space_flush_queries(space: &Rid) {
         let physics_data = physics_data();
-        let mut state_query_list = None;
-        let mut force_integrate_query_list = None;
-        let mut monitor_query_list = None;
+
         if let Some(space) = physics_data.spaces.get_mut(space) {
-            state_query_list = Some(space.get_state().get_state_query_list());
-            force_integrate_query_list = Some(space.get_state().get_force_integrate_query_list());
-            monitor_query_list = Some(space.get_state().get_monitor_query_list());
-        }
-        if let Some(state_query_list) = state_query_list
-            && let Some(force_integrate_query_list) = force_integrate_query_list
-            && let Some(monitor_query_list) = monitor_query_list
-        {
-            RapierSpace::call_queries(
-                state_query_list,
-                force_integrate_query_list,
-                monitor_query_list,
-                &mut physics_data.collision_objects,
-                &physics_data.ids,
-            );
-        }
-        if let Some(space) = physics_data.spaces.get_mut(space) {
-            space.update_after_queries(&mut physics_data.collision_objects, &physics_data.ids);
-        }
+            space.flush();
+        }       
     }
 
     pub(super) fn get_id(&self, rid: Rid) -> u64 {

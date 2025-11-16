@@ -122,18 +122,18 @@ macro_rules! make_rapier_server_godot_impl {
                 None
             }
 
-            #[cfg(feature = "serde-serialize")]
-            #[func]
-            pub fn import_json(physics_object: Rid, data: String) {
-                use $crate::joints::rapier_joint::IRapierJoint;
-                use $crate::servers::rapier_physics_singleton::insert_id_rid;
-                use $crate::servers::rapier_physics_singleton::remove_id_rid;
-                use $crate::shapes::rapier_shape::IRapierShape;
-                let physics_data = physics_data();
-                if let Some(space) = physics_data.spaces.get_mut(&physics_object) {
-                    space.import_json(&mut physics_data.physics_engine, data);
-                }
-            }
+            // #[cfg(feature = "serde-serialize")]
+            // #[func]
+            // pub fn import_json(physics_object: Rid, data: String) {
+            //     use $crate::joints::rapier_joint::IRapierJoint;
+            //     use $crate::servers::rapier_physics_singleton::insert_id_rid;
+            //     use $crate::servers::rapier_physics_singleton::remove_id_rid;
+            //     use $crate::shapes::rapier_shape::IRapierShape;
+            //     let physics_data = physics_data();
+            //     if let Some(space) = physics_data.spaces.get_mut(&physics_object) {
+            //         space.import_json(&mut physics_data.physics_engine, data);
+            //     }
+            // }
 
             #[cfg(feature = "serde-serialize")]
             #[func]
@@ -424,7 +424,7 @@ macro_rules! make_rapier_server_godot_impl {
 
             #[func]
             /// Step the space forward.
-            fn space_step(space: Rid, delta: f32) {
+            pub fn space_step(space: Rid, delta: f32) {
                 let Ok(mut physics_singleton) =
                     PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
                 else {

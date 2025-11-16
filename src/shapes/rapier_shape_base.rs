@@ -3,6 +3,7 @@ use hashbrown::HashMap;
 use rapier::prelude::SharedShape;
 
 use crate::bodies::exportable_object::ExportableObject;
+use crate::bodies::exportable_object::ObjectImportState;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsData;
@@ -198,6 +199,17 @@ impl ExportableObject for RapierShapeBase {
         } else {
             return None
         }   
+    }
+
+    fn import_state(&mut self, _: &mut PhysicsEngine, data: ObjectImportState) {
+        match data {
+            crate::bodies::exportable_object::ObjectImportState::RapierShapeBase(shape_import) => {
+                self.state = shape_import.state;
+            },
+            _ => {
+                godot_error!("Attempted to import invalid state data.");
+            }
+        }        
     }
 }
 #[cfg(test)]
