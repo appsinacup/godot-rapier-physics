@@ -49,8 +49,4 @@ func set_soft_ccd(value: float) -> void:
 	RapierPhysicsServer2D.body_set_extra_param(get_rid(), RapierPhysicsServer2D.BODY_PARAM_SOFT_CCD, value)
 
 func set_massless(value: bool) -> void:
-	if value:
-		PhysicsServer2D.body_set_param(get_rid(), PhysicsServer2D.BODY_PARAM_MASS, 0)
-	else:
-		PhysicsServer2D.body_set_param(get_rid(), PhysicsServer2D.BODY_PARAM_MASS, mass)
-	
+	RapierPhysicsServer2D.body_set_extra_param(get_rid(), RapierPhysicsServer2D.BODY_PARAM_MASSLESS, value)

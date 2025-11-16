@@ -1,6 +1,14 @@
 class_name RapierRigidBody3D
 extends RigidBody3D
 
+@export var massless: bool = false:
+	get:
+		return massless
+	set(value):
+		if value != massless:
+			massless = value
+			set_massless(value)
+
 @export var body_skin: float = 0.0:
 	get:
 		return body_skin
@@ -26,6 +34,7 @@ extends RigidBody3D
 			set_soft_ccd(value)
 
 func _ready() -> void:
+	set_massless(massless)
 	set_body_skin(body_skin)
 	set_dominance(dominance)
 	set_soft_ccd(soft_ccd)
@@ -38,3 +47,6 @@ func set_dominance(value: int) -> void:
 
 func set_soft_ccd(value: float) -> void:
 	RapierPhysicsServer3D.body_set_extra_param(get_rid(), RapierPhysicsServer3D.BODY_PARAM_SOFT_CCD, value)
+
+func set_massless(value: bool) -> void:
+	RapierPhysicsServer3D.body_set_extra_param(get_rid(), RapierPhysicsServer3D.BODY_PARAM_MASSLESS, value)

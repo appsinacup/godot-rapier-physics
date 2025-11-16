@@ -5,6 +5,7 @@ pub enum RapierBodyParam {
     ContactSkin,
     Dominance,
     SoftCcd,
+    Massless,
 }
 impl RapierBodyParam {
     pub fn from_i32(value: i32) -> RapierBodyParam {
@@ -12,6 +13,7 @@ impl RapierBodyParam {
             0 => RapierBodyParam::ContactSkin,
             1 => RapierBodyParam::Dominance,
             2 => RapierBodyParam::SoftCcd,
+            3 => RapierBodyParam::Massless,
             _ => RapierBodyParam::ContactSkin,
         }
     }
@@ -34,6 +36,8 @@ macro_rules! make_rapier_server_godot_impl {
             #[constant]
             pub const BODY_PARAM_DOMINANCE: i32 = 1;
             #[constant]
+            pub const BODY_PARAM_MASSLESS: i32 = 3;
+            #[constant]
             pub const BODY_PARAM_SOFT_CCD: i32 = 2;
             #[constant]
             pub const JOINT_TYPE: i32 = 0;
@@ -49,6 +53,7 @@ macro_rules! make_rapier_server_godot_impl {
             /// If [param param] is [member BODY_PARAM_CONTACT_SKIN] (0), sets the body's contact skin value.
             /// If [param param] is [member BODY_PARAM_DOMINANCE] (1), sets the body's dominance value.
             /// If [param param] is [member BODY_PARAM_SOFT_CCD] (2), sets the body's soft_ccd value.
+            /// If [param param] is [member BODY_PARAM_MASSLESS] (3), sets if the body is massless or not.
             pub fn body_set_extra_param(body: Rid, param: i32, value: Variant) {
                 let physics_data = physics_data();
                 if let Some(body) = physics_data.collision_objects.get_mut(&body) {
@@ -67,6 +72,7 @@ macro_rules! make_rapier_server_godot_impl {
             /// If [param param] is [member BODY_PARAM_CONTACT_SKIN] (0), gets the body's contact skin value.
             /// If [param param] is [member BODY_PARAM_DOMINANCE] (1), gets the body's dominance value.
             /// If [param param] is [member BODY_PARAM_SOFT_CCD] (2), gets the body's soft_ccd value.
+            /// If [param param] is [member BODY_PARAM_MASSLESS] (3), gets if the body is massless or not.
             pub fn body_get_extra_param(body: Rid, param: i32) -> Variant {
                 let physics_data = physics_data();
                 if let Some(body) = physics_data.collision_objects.get(&body) {

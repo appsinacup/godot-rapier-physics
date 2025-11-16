@@ -231,12 +231,16 @@ impl RapierBody {
         if self.base.mode == BodyMode::RIGID_LINEAR {
             inertia_value = ANGLE_ZERO;
         }
+        let mut mass_value = self.state.mass;
+        if self.base.is_massless() {
+            mass_value = 0.0;
+        }
         // Force update means local properties will be re-calculated internally,
         // it's needed for applying forces right away (otherwise it's updated on next step)
         physics_engine.body_set_mass_properties(
             self.base.get_space_id(),
             self.base.get_body_handle(),
-            self.state.mass,
+            mass_value,
             angle_to_rapier(inertia_value),
             vector_to_rapier(self.state.center_of_mass),
             false,
@@ -1570,6 +1574,14 @@ impl RapierBody {
                     physics_engine.body_update_material(space_handle, body_handle, &mat);
                 }
             }
+            RapierBodyParam::Massless => {
+                if p_value.get_type() != VariantType::BOOL {
+                    return;
+                }
+                let massless = p_value.try_to().unwrap_or_default();
+                self.base.set_massless(massless);
+                self.apply_mass_properties(true, physics_engine);
+            }
         }
     }
 
@@ -1578,6 +1590,7 @@ impl RapierBody {
             RapierBodyParam::ContactSkin => self.contact_skin.to_variant(),
             RapierBodyParam::Dominance => self.base.get_dominance().to_variant(),
             RapierBodyParam::SoftCcd => self.soft_ccd_prediction.to_variant(),
+            RapierBodyParam::Massless => self.base.is_massless().to_variant(),
         }
     }
 
