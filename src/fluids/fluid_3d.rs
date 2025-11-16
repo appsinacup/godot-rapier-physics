@@ -1,11 +1,8 @@
 use godot::classes::Engine;
-use godot::classes::Material;
 use godot::classes::Mesh;
 use godot::classes::MultiMesh;
 use godot::classes::MultiMeshInstance3D;
 use godot::classes::SphereMesh;
-use godot::classes::StandardMaterial3D;
-use godot::classes::base_material_3d::ShadingMode;
 use godot::classes::multi_mesh::TransformFormat as MultiMeshTransformFormat;
 use godot::classes::notify::Node3DNotification;
 use godot::prelude::*;
@@ -65,10 +62,11 @@ impl Fluid3D {
             return;
         }
         if let Some(mm_inst) = &self.debug_multimesh_instance
-            && mm_inst.is_inside_tree() {
-                self._update_debug_multimesh();
-                return;
-            }
+            && mm_inst.is_inside_tree()
+        {
+            self._update_debug_multimesh();
+            return;
+        }
         let mut mm = MultiMesh::new_gd();
         mm.set_instance_count(0);
         mm.set_transform_format(MultiMeshTransformFormat::TRANSFORM_3D);
@@ -80,11 +78,7 @@ impl Fluid3D {
         mm.set_instance_count(self.points.len() as i32);
         let mut mm_inst = MultiMeshInstance3D::new_alloc();
         mm_inst.set_multimesh(Some(&mm));
-        let mut mat = StandardMaterial3D::new_gd();
-        mat.set_albedo(Color::from_rgba(0.3, 0.3, 0.3, 1.0));
-        mat.set_emission(Color::from_rgba(0.3, 0.3, 0.3, 1.0));
-        mat.set_shading_mode(ShadingMode::UNSHADED);
-        mm_inst.set_material_override(Some(&mat.upcast::<Material>()));
+        mm_inst.set_visible(true);
         self.debug_multimesh = Some(mm);
         self.debug_multimesh_instance = Some(mm_inst.clone());
         let node_variant = mm_inst.clone().upcast::<Node>().to_variant();
@@ -97,9 +91,6 @@ impl Fluid3D {
             return;
         }
         let points = self.get_points();
-        if points.is_empty() {
-            return;
-        }
         if let Some(mm) = self.debug_multimesh.as_mut() {
             let count = points.len() as i32;
             mm.set_instance_count(count);
@@ -138,9 +129,10 @@ impl Fluid3D {
             self.to_gd().call_deferred("_ensure_debug_multimesh", &[]);
         } else {
             if let Some(mut mm_inst) = self.debug_multimesh_instance.take()
-                && mm_inst.is_inside_tree() {
-                    mm_inst.queue_free();
-                }
+                && mm_inst.is_inside_tree()
+            {
+                mm_inst.queue_free();
+            }
             self.debug_multimesh = None;
         }
     }

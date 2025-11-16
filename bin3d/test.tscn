@@ -16,8 +16,8 @@ shape = SubResource("SphereShape3D_vm613")
 
 [node name="Fluid3D" type="Fluid3D" parent="."]
 debug_draw = true
-points = PackedVector3Array(0, 0, 0, 1, 1, 1, 0.99, 0, 0)
-transform = Transform3D(1, 0, 0, 0, 0.9995071, 0.031393312, 0, -0.031393312, 0.9995071, -0.29568672, 0.58962274, -1.7403655)
+lifetime = 1.0
+transform = Transform3D(1, 0, 0, 0, 0.9995071, 0.031393312, 0, -0.031393312, 0.9995071, -0.63648474, 0.58962274, -1.7403655)
 script = ExtResource("1_37kl0")
 
 [node name="Camera3D" type="Camera3D" parent="."]
