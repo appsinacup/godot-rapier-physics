@@ -218,7 +218,6 @@ impl INode3D for Fluid3D {
     fn on_notification(&mut self, p_what: Node3DNotification) {
         match p_what {
             Node3DNotification::PROCESS => {
-                
                 if !Engine::singleton().is_editor_hint() {
                     FluidImpl::delete_old_particles(self);
                 }
