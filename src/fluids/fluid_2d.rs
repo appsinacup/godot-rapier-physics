@@ -233,6 +233,7 @@ impl INode2D for Fluid2D {
                 RapierPhysicsServer::fluid_set_space(rid, space_rid);
                 drop(guard);
                 self.set_points(self.points.clone());
+                self.set_effects(self.effects.clone());
                 let mut fluid_gd = self.to_gd();
                 fluid_gd.set_notify_transform(self.debug_draw);
                 fluid_gd.queue_redraw();

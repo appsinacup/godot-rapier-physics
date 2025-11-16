@@ -312,6 +312,7 @@ impl INode3D for Fluid3D {
                 RapierPhysicsServer::fluid_set_space(rid, space_rid);
                 drop(guard);
                 self.set_points(self.points.clone());
+                self.set_effects(self.effects.clone());
                 if self.debug_draw {
                     self.to_gd().call_deferred("_ensure_debug_multimesh", &[]);
                 }

@@ -283,7 +283,7 @@ impl RapierFluid {
                     self.interaction_groups,
                 );
                 // Only set points and effects if fluid was actually created
-                if self.fluid_handle.is_valid() && !self.points.is_empty() {
+                if self.fluid_handle.is_valid() {
                     self.set_points(self.points.clone(), physics_engine);
                     self.set_effects(self.effects.clone(), physics_engine);
                 }
