@@ -16,7 +16,7 @@ use crate::servers::rapier_project_settings::RapierProjectSettings;
 use crate::types::*;
 #[derive(GodotClass)]
 #[class(base=Node3D,tool)]
-/// The fluid node. Use this node to simulate fluids in 2D.
+/// The fluid node. Use this node to simulate fluids in 3D.
 pub struct Fluid3D {
     #[var(get)]
     pub(crate) rid: Rid,
@@ -64,12 +64,11 @@ impl Fluid3D {
             gd.call_deferred("_ensure_debug_multimesh", &[]);
             return;
         }
-        if let Some(mm_inst) = &self.debug_multimesh_instance {
-            if mm_inst.is_inside_tree() {
+        if let Some(mm_inst) = &self.debug_multimesh_instance
+            && mm_inst.is_inside_tree() {
                 self._update_debug_multimesh();
                 return;
             }
-        }
         let mut mm = MultiMesh::new_gd();
         mm.set_instance_count(0);
         mm.set_transform_format(MultiMeshTransformFormat::TRANSFORM_3D);
@@ -82,8 +81,8 @@ impl Fluid3D {
         let mut mm_inst = MultiMeshInstance3D::new_alloc();
         mm_inst.set_multimesh(Some(&mm));
         let mut mat = StandardMaterial3D::new_gd();
-        mat.set_albedo(Color::from_rgba(1.0, 1.0, 1.0, 0.5));
-        mat.set_emission(Color::from_rgba(1.0, 1.0, 1.0, 0.5));
+        mat.set_albedo(Color::from_rgba(0.3, 0.3, 0.3, 1.0));
+        mat.set_emission(Color::from_rgba(0.3, 0.3, 0.3, 1.0));
         mat.set_shading_mode(ShadingMode::UNSHADED);
         mm_inst.set_material_override(Some(&mat.upcast::<Material>()));
         self.debug_multimesh = Some(mm);
@@ -107,7 +106,7 @@ impl Fluid3D {
             for (i, p) in points.as_slice().iter().enumerate() {
                 let t = Transform3D::new(Basis::IDENTITY, *p);
                 mm.set_instance_transform(i as i32, t);
-                mm.set_instance_color(i as i32, Color::from_rgba(1.0, 1.0, 1.0, 0.5));
+                mm.set_instance_color(i as i32, Color::from_rgba(0.3, 0.3, 0.3, 1.0));
             }
         }
     }
@@ -138,11 +137,10 @@ impl Fluid3D {
         if debug_draw {
             self.to_gd().call_deferred("_ensure_debug_multimesh", &[]);
         } else {
-            if let Some(mut mm_inst) = self.debug_multimesh_instance.take() {
-                if mm_inst.is_inside_tree() {
+            if let Some(mut mm_inst) = self.debug_multimesh_instance.take()
+                && mm_inst.is_inside_tree() {
                     mm_inst.queue_free();
                 }
-            }
             self.debug_multimesh = None;
         }
     }
@@ -334,7 +332,6 @@ impl INode3D for Fluid3D {
                 }
                 let mut fluid_gd = self.to_gd();
                 fluid_gd.set_notify_transform(self.debug_draw);
-                //fluid_gd.queue_redraw();
             }
             Node3DNotification::EXIT_TREE | Node3DNotification::EXIT_WORLD => {
                 let rid = self.rid;

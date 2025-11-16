@@ -25,3 +25,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.93339044)
 
 [node name="OmniLight3D" type="OmniLight3D" parent="."]
 visible = false
+
+[node name="OmniLight3D2" type="OmniLight3D" parent="."]
+visible = false
