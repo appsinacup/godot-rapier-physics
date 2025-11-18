@@ -201,10 +201,11 @@ impl ExportableObject for RapierShapeBase {
         }   
     }
 
-    fn import_state(&mut self, _: &mut PhysicsEngine, data: ObjectImportState) {
+    fn import_state(&mut self, physics_engine: &mut PhysicsEngine, data: ObjectImportState) {
         match data {
             crate::bodies::exportable_object::ObjectImportState::RapierShapeBase(shape_import) => {
                 self.state = shape_import.state;
+                physics_engine.insert_shape(shape_import.shape, self.get_id());
             },
             _ => {
                 godot_error!("Attempted to import invalid state data.");
