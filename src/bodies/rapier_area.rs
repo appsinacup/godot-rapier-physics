@@ -400,9 +400,7 @@ impl RapierArea {
             // See if we currently have a pending unhandled event (eg an event from this frame) that is the opposite of this one.
             // If so, this event will cancel that one out.
             if current_event_in_queue.state == -new_event_state {
-                self.state
-                    .unhandled_events
-                    .remove(&other_collider_handle);
+                self.state.unhandled_events.remove(&other_collider_handle);
                 if self.state.unhandled_events.is_empty() {
                     space
                         .get_mut_state()

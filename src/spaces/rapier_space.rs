@@ -430,7 +430,7 @@ impl RapierSpace {
                 .intersection_pairs()
                 .collect();
             let only_in_imported: Vec<_> = imp_set.difference(&cur_set).cloned().collect();
-            let only_in_current: Vec<_> = cur_set.difference(&imp_set).cloned().collect();            
+            let only_in_current: Vec<_> = cur_set.difference(&imp_set).cloned().collect();
             for (handle1, handle2, _intersecting) in only_in_current {
                 stale_collider_pairs.push(ColliderPair::new(handle1, handle2));
             }
