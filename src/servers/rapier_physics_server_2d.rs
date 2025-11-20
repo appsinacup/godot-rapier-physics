@@ -274,11 +274,6 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             .area_set_area_monitor_callback(area, callback);
     }
 
-    fn body_predict_next_frame_position(&self, body: Rid, timestep: f64) -> Vector {
-        self.implementation
-            .body_predict_next_frame_position(body, timestep)
-    }
-
     fn body_create(&mut self) -> Rid {
         self.implementation.body_create()
     }
