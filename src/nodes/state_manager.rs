@@ -115,9 +115,10 @@ impl INode for StateManager {
 }
 #[godot_api]
 impl StateManager {
-    //
-    // GODOT-EXPOSED METHODS
-    //
+    /*---------------------------------------    
+      GODOT-EXPOSED METHODS   
+    ---------------------------------------*/
+    
     // CACHE HANDLING: If a user wants to store some small number of states in memory for fast reloads, they can use these cache functionalities.
     #[func]
     fn get_max_cache_length(&self) -> i32 {
@@ -254,12 +255,17 @@ impl StateManager {
         false
     }
 
+    // STATE EXPORT/IMPORT: Methods for serializing state for storage on disk.
     #[func]
+    // Exports state to serialized variant; for "None" encoding, it outputs a stringified JSON dict. For "GodotBase64",
+    // it outputs a GodotBase64 string. For RustBincode, it exports binary. This is mostly intended for saving states to file,
+    // but exporting state to JSON can also be useful for debugging.
     fn export_state(&mut self, in_space: Rid, format: SerializationFormat) -> Variant {
         self.serialize_state(in_space, &format)
     }
 
     #[func]
+    // Import any of the allowed variant-type serialized states.
     fn import_state(&mut self, in_space: Rid, load_state: Variant) {
         let loaded_state: RawImportState = match load_state.get_type() {
             VariantType::PACKED_BYTE_ARRAY => {
@@ -321,6 +327,9 @@ impl StateManager {
         self.load_state_internal(in_space, loaded_state);
     }
 
+    /*---------------------------------------    
+      INTERNAL METHODS    
+    ---------------------------------------*/
     fn check_space(
         collision_object_rid: Rid,
         space_rid: Rid,
