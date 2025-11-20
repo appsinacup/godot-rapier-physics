@@ -29,9 +29,7 @@ pub struct JointImport {
 }
 impl<'a> JointExport<'a> {
     pub fn into_import(self) -> JointImport {
-        JointImport {
-            state: *self.state,
-        }
+        JointImport { state: *self.state }
     }
 }
 #[cfg_attr(

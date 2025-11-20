@@ -47,12 +47,10 @@ pub struct SpaceImport {
 }
 impl<'a> SpaceExport<'a> {
     pub fn into_import(self) -> Box<SpaceImport> {
-        Box::new(
-            SpaceImport {
-                space: self.space.clone(),
-                world: self.world.clone(),
-            }
-        )
+        Box::new(SpaceImport {
+            space: self.space.clone(),
+            world: self.world.clone(),
+        })
     }
 }
 #[cfg(feature = "serde-serialize")]
@@ -63,10 +61,12 @@ impl ExportableObject for RapierSpace {
         &'a self,
         physics_engine: &'a mut PhysicsEngine,
     ) -> Option<Self::ExportState<'a>> {
-        physics_engine.world_export(self.state.get_id()).map(|inner| SpaceExport {
-            space: &self.state,
-            world: inner,
-        })
+        physics_engine
+            .world_export(self.state.get_id())
+            .map(|inner| SpaceExport {
+                space: &self.state,
+                world: inner,
+            })
     }
 
     fn import_state(&mut self, physics_engine: &mut PhysicsEngine, data: ObjectImportState) {

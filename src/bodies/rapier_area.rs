@@ -330,9 +330,9 @@ impl RapierArea {
             && (self.area_monitor_callback.is_none()
                 || !self.is_monitorable()
                 || !other_area.is_monitorable())
-            {
-                return;
-            }
+        {
+            return;
+        }
         let event_report = EventReport {
             id: other_collider_id,
             collision_object_type: other_collider_type,

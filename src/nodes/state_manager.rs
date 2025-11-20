@@ -115,10 +115,9 @@ impl INode for StateManager {
 }
 #[godot_api]
 impl StateManager {
-    /*---------------------------------------    
-      GODOT-EXPOSED METHODS   
+    /*---------------------------------------
+      GODOT-EXPOSED METHODS
     ---------------------------------------*/
-    
     // CACHE HANDLING: If a user wants to store some small number of states in memory for fast reloads, they can use these cache functionalities.
     #[func]
     fn get_max_cache_length(&self) -> i32 {
@@ -327,8 +326,8 @@ impl StateManager {
         self.load_state_internal(in_space, loaded_state);
     }
 
-    /*---------------------------------------    
-      INTERNAL METHODS    
+    /*---------------------------------------
+      INTERNAL METHODS
     ---------------------------------------*/
     fn check_space(
         collision_object_rid: Rid,
@@ -401,15 +400,11 @@ impl StateManager {
             }
         }
         space.flush();
-
         // 3) Update space and step 0.
         // Note here that because Space state has a much larger minimum size than other variants, we store the state in a box to keep
         // the enum size down; as such we need to box up the raw state before we can pass it to methods expecting an ObjectImportState.
         let space_state = ObjectImportState::Space(Box::new(loaded_state.rapier_space));
-        space.import_state(
-            &mut physics_data.physics_engine,
-            space_state,
-        );
+        space.import_state(&mut physics_data.physics_engine, space_state);
         // Zero-step to update our contact graphs. Then flush to broadcast any relevant event signals.
         RapierPhysicsServer::space_step(space_rid, 0.0);
         space.flush();
@@ -562,13 +557,11 @@ impl StateManager {
                             for i in 0..shape_count {
                                 if let Some(shape) =
                                     co2d.shape_owner_get_shape(*owner_shape_id as u32, i)
-                                {
-                                    if let Some(shape_state) =
+                                    && let Some(shape_state) =
                                         self.get_physics_node_state(shape.get_rid())
                                     {
                                         this_owner_shapes.push(shape_state);
                                     }
-                                }
                             }
                             collated_shape_owners
                                 .insert(owner_shape_id.to_string(), this_owner_shapes);
@@ -588,13 +581,11 @@ impl StateManager {
                             for i in 0..shape_count {
                                 if let Some(shape) =
                                     co3d.shape_owner_get_shape(*owner_shape_id as u32, i)
-                                {
-                                    if let Some(shape_state) =
+                                    && let Some(shape_state) =
                                         self.get_physics_node_state(shape.get_rid())
                                     {
                                         this_owner_shapes.push(shape_state);
                                     }
-                                }
                             }
                             collated_shape_owners
                                 .insert(owner_shape_id.to_string(), this_owner_shapes);

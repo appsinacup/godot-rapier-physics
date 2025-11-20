@@ -150,7 +150,9 @@ impl ExportableObject for RapierShapeBase {
         &'a self,
         physics_engine: &'a mut PhysicsEngine,
     ) -> Option<Self::ExportState<'a>> {
-        physics_engine.get_shape(self.get_id()).map(|inner| ShapeExport {
+        physics_engine
+            .get_shape(self.get_id())
+            .map(|inner| ShapeExport {
                 state: &self.state,
                 shape: inner,
             })

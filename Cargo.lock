@@ -213,8 +213,7 @@ checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
 [[package]]
 name = "gdextension-api"
 version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e25d88dabe9fdb2e064cb545312178ec4025eefb62d9a3bbce1769088e2c381d"
+source = "git+https://github.com/godot-rust/godot4-prebuilt?branch=release-v0.3#f70baca72747869aaac7781a0cf139f53a2aac19"
 
 [[package]]
 name = "generational-arena"
@@ -330,8 +329,7 @@ checksum = "0cc23270f6e1808e30a928bdc84dea0b9b4136a8bc82338574f23baf47bbd280"
 [[package]]
 name = "godot"
 version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1a9b5fac6f08345fe81f840353b433c3e8cd07a105cb23ea080251173c149625"
+source = "git+https://github.com/ughuuu/gdext?branch=custom-rapier-branch#d7ebd5b26724d3bde9143e922a4ed41aa796cd29"
 dependencies = [
  "godot-core",
  "godot-macros",
@@ -340,8 +338,7 @@ dependencies = [
 [[package]]
 name = "godot-bindings"
 version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96920225203f1ccee3d1fd4513402a31a4d6567e437367c704682f7eee43eda3"
+source = "git+https://github.com/ughuuu/gdext?branch=custom-rapier-branch#d7ebd5b26724d3bde9143e922a4ed41aa796cd29"
 dependencies = [
  "bindgen",
  "gdextension-api",
@@ -352,14 +349,12 @@ dependencies = [
 [[package]]
 name = "godot-cell"
 version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bdb34522bce7b863ef4dbf154be53392f23e32747877b4c7e759a0ec43876b3f"
+source = "git+https://github.com/ughuuu/gdext?branch=custom-rapier-branch#d7ebd5b26724d3bde9143e922a4ed41aa796cd29"
 
 [[package]]
 name = "godot-codegen"
 version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "396303aaca6c212cf85442e78afcf28844b06b564bbc23f37c40ec57885f4395"
+source = "git+https://github.com/ughuuu/gdext?branch=custom-rapier-branch#d7ebd5b26724d3bde9143e922a4ed41aa796cd29"
 dependencies = [
  "godot-bindings",
  "heck",
@@ -372,8 +367,7 @@ dependencies = [
 [[package]]
 name = "godot-core"
 version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be623c121c8cd24a0e173771d73a0cbf8180840abd4389f4c78e698018d729ae"
+source = "git+https://github.com/ughuuu/gdext?branch=custom-rapier-branch#d7ebd5b26724d3bde9143e922a4ed41aa796cd29"
 dependencies = [
  "glam 0.30.9",
  "godot-bindings",
@@ -386,8 +380,7 @@ dependencies = [
 [[package]]
 name = "godot-ffi"
 version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10a8358c83761a174b33640944e72ec2fabf0274f516520b68ab8a140ac25d97"
+source = "git+https://github.com/ughuuu/gdext?branch=custom-rapier-branch#d7ebd5b26724d3bde9143e922a4ed41aa796cd29"
 dependencies = [
  "godot-bindings",
  "godot-codegen",
@@ -398,8 +391,7 @@ dependencies = [
 [[package]]
 name = "godot-macros"
 version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96066983ab510b0f89ea2f5b3e1dc47eaf9126f0f9e595da6cba4e7bf49a84dd"
+source = "git+https://github.com/ughuuu/gdext?branch=custom-rapier-branch#d7ebd5b26724d3bde9143e922a4ed41aa796cd29"
 dependencies = [
  "godot-bindings",
  "litrs",
@@ -745,6 +737,7 @@ dependencies = [
 [[package]]
 name = "parry2d"
 version = "0.25.1"
+source = "git+https://github.com/ughuuu/parry?branch=master#9db68641adf69e1f307ac9199d34d82b6d049219"
 dependencies = [
  "approx",
  "arrayvec",
@@ -771,8 +764,8 @@ dependencies = [
 
 [[package]]
 name = "parry2d-f64"
-version = "0.24.0"
-source = "git+https://github.com/ughuuu/parry?branch=custom-changes-v24#71ad6d274c476e455a0373b924fa4629b6a564df"
+version = "0.25.1"
+source = "git+https://github.com/ughuuu/parry?branch=master#9db68641adf69e1f307ac9199d34d82b6d049219"
 dependencies = [
  "approx",
  "arrayvec",
@@ -789,6 +782,7 @@ dependencies = [
  "num-traits",
  "ordered-float",
  "serde",
+ "serde_arrays",
  "simba",
  "slab",
  "smallvec",
@@ -798,8 +792,8 @@ dependencies = [
 
 [[package]]
 name = "parry3d"
-version = "0.24.0"
-source = "git+https://github.com/ughuuu/parry?branch=custom-changes-v24#71ad6d274c476e455a0373b924fa4629b6a564df"
+version = "0.25.1"
+source = "git+https://github.com/ughuuu/parry?branch=master#9db68641adf69e1f307ac9199d34d82b6d049219"
 dependencies = [
  "approx",
  "arrayvec",
@@ -818,6 +812,7 @@ dependencies = [
  "ordered-float",
  "rstar",
  "serde",
+ "serde_arrays",
  "simba",
  "slab",
  "smallvec",
@@ -828,8 +823,8 @@ dependencies = [
 
 [[package]]
 name = "parry3d-f64"
-version = "0.24.0"
-source = "git+https://github.com/ughuuu/parry?branch=custom-changes-v24#71ad6d274c476e455a0373b924fa4629b6a564df"
+version = "0.25.1"
+source = "git+https://github.com/ughuuu/parry?branch=master#9db68641adf69e1f307ac9199d34d82b6d049219"
 dependencies = [
  "approx",
  "arrayvec",
@@ -847,6 +842,7 @@ dependencies = [
  "ordered-float",
  "rstar",
  "serde",
+ "serde_arrays",
  "simba",
  "slab",
  "smallvec",
@@ -900,6 +896,7 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.30.1"
+source = "git+https://github.com/ughuuu/rapier?branch=master#f2b5d7401c47037c0410c4f1fa1d6b52b1dc0eeb"
 dependencies = [
  "approx",
  "arrayvec",
@@ -925,8 +922,8 @@ dependencies = [
 
 [[package]]
 name = "rapier2d-f64"
-version = "0.29.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes-v29#15dee20b535317d30614aafbeb378173a7675190"
+version = "0.30.1"
+source = "git+https://github.com/ughuuu/rapier?branch=master#f2b5d7401c47037c0410c4f1fa1d6b52b1dc0eeb"
 dependencies = [
  "approx",
  "arrayvec",
@@ -946,13 +943,12 @@ dependencies = [
  "simba",
  "static_assertions",
  "thiserror",
- "wide",
 ]
 
 [[package]]
 name = "rapier3d"
-version = "0.29.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes-v29#15dee20b535317d30614aafbeb378173a7675190"
+version = "0.30.1"
+source = "git+https://github.com/ughuuu/rapier?branch=master#f2b5d7401c47037c0410c4f1fa1d6b52b1dc0eeb"
 dependencies = [
  "approx",
  "arrayvec",
@@ -978,8 +974,8 @@ dependencies = [
 
 [[package]]
 name = "rapier3d-f64"
-version = "0.29.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes-v29#15dee20b535317d30614aafbeb378173a7675190"
+version = "0.30.1"
+source = "git+https://github.com/ughuuu/rapier?branch=master#f2b5d7401c47037c0410c4f1fa1d6b52b1dc0eeb"
 dependencies = [
  "approx",
  "arrayvec",
@@ -999,7 +995,6 @@ dependencies = [
  "simba",
  "static_assertions",
  "thiserror",
- "wide",
 ]
 
 [[package]]
@@ -1111,6 +1106,7 @@ dependencies = [
 [[package]]
 name = "salva2d"
 version = "0.9.0"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#3c0a04b6bd444ce0516cbfe9ec6faa738a6d3866"
 dependencies = [
  "approx",
  "bitflags",
