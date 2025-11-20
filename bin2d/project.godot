@@ -64,12 +64,6 @@ zoom_out={
 [physics]
 
 2d/physics_engine="Rapier2D"
-rapier/solver/preset=1
-rapier/solver/num_internal_pgs_iterations=4
-rapier/solver/num_internal_stabilization_iterations=4
-rapier/solver/contact_damping_ratio=20.0
-rapier/solver/contact_natural_frequency=50.0
-rapier/logic/ghost_collision_distance_2d=0.1
 
 [rendering]
 

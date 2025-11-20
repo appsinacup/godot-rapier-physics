@@ -172,7 +172,7 @@ impl RapierSpace {
                 physics_collision_objects.get(&get_id_rid(*area_handle, physics_ids))
                 && let Some(area) = area.get_area()
             {
-                unhandled_event_queue = Some(area.state.unhandled_event_queue.clone());
+                unhandled_event_queue = Some(area.state.unhandled_events.clone());
                 monitor_callback = area.monitor_callback.clone();
                 area_monitor_callback = area.area_monitor_callback.clone();
             }
@@ -430,8 +430,7 @@ impl RapierSpace {
                 .intersection_pairs()
                 .collect();
             let only_in_imported: Vec<_> = imp_set.difference(&cur_set).cloned().collect();
-            let only_in_current: Vec<_> = cur_set.difference(&imp_set).cloned().collect();
-            //let common_to_both: Vec<_> = imp_set.intersection(&cur_set).cloned().collect();
+            let only_in_current: Vec<_> = cur_set.difference(&imp_set).cloned().collect();            
             for (handle1, handle2, _intersecting) in only_in_current {
                 stale_collider_pairs.push(ColliderPair::new(handle1, handle2));
             }

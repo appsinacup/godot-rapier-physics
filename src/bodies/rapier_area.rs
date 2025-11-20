@@ -101,7 +101,7 @@ impl<'a> AreaExport<'a> {
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct RapierAreaState {
     // New events go into this queue; once handled (eg once reported to Godot), they are removed. No need to serialize this, I think.
-    pub unhandled_event_queue: HashMap<ColliderHandle, EventReport>,
+    pub unhandled_events: HashMap<ColliderHandle, EventReport>,
     // This is a persistent list of all current contacts. Entries only disappear when contact ceases, or when contacts are manually cleared.
     #[cfg_attr(
         feature = "serde-serialize",
@@ -112,68 +112,6 @@ pub struct RapierAreaState {
     )]
     pub monitored_objects: HashMap<(ColliderHandle, ColliderHandle), MonitorInfo>,
 }
-// This serialization is required for serializing collider-handle objects to strings as part of our json/godotbase46 export;
-// however, it's also used by bincode export, where it's not really needed.
-// impl Serialize for RapierAreaState {
-//     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-//     where
-//         S: Serializer,
-//     {
-//         use serde::ser::SerializeMap;
-//         let mut inner_map = serializer.serialize_map(Some(self.monitored_objects.len()))?;
-//         for ((a, b), info) in &self.monitored_objects {
-//             let (a_id, a_gen) = a.into_raw_parts();
-//             let (b_id, b_gen) = b.into_raw_parts();
-//             let key = format!("{}_{}_{}_{}", a_id, a_gen, b_id, b_gen);
-//             inner_map.serialize_entry(&key, info)?;
-//         }
-//         inner_map.end()
-//     }
-// }
-// impl<'de> Deserialize<'de> for RapierAreaState {
-//     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-//     where
-//         D: Deserializer<'de>,
-//     {
-//         use serde::de::{MapAccess, Visitor};
-//         use std::fmt;
-//         struct StateVisitor;
-//         impl<'de> Visitor<'de> for StateVisitor {
-//             type Value = RapierAreaState;
-//             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-//                 formatter.write_str("RapierAreaState with string keys for monitored_objects")
-//             }
-//             fn visit_map<M>(self, mut map: M) -> Result<Self::Value, M::Error>
-//             where
-//                 M: MapAccess<'de>,
-//             {
-//                 let mut monitored_objects = HashMap::new();
-//                 while let Some((key, info)) = map.next_entry::<String, MonitorInfo>()? {
-//                     // parse "a_id_a_gen_b_id_b_gen" -> tuple
-//                     let parts: Vec<_> = key.split('_').collect();
-//                     if parts.len() != 4 {
-//                         return Err(serde::de::Error::custom(format!(
-//                             "invalid key format: {}",
-//                             key
-//                         )));
-//                     }
-//                     let a_id = parts[0].parse::<u32>().map_err(serde::de::Error::custom)?;
-//                     let a_gen = parts[1].parse::<u32>().map_err(serde::de::Error::custom)?;
-//                     let b_id = parts[2].parse::<u32>().map_err(serde::de::Error::custom)?;
-//                     let b_gen = parts[3].parse::<u32>().map_err(serde::de::Error::custom)?;
-//                     let a = ColliderHandle::from_raw_parts(a_id, a_gen);
-//                     let b = ColliderHandle::from_raw_parts(b_id, b_gen);
-//                     monitored_objects.insert((a, b), info);
-//                 }
-//                 Ok(RapierAreaState {
-//                     monitored_objects,
-//                     unhandled_event_queue: HashMap::new(), // skipped anyway
-//                 })
-//             }
-//         }
-//         deserializer.deserialize_map(StateVisitor)
-//     }
-// }
 #[derive(Debug)]
 pub struct RapierArea {
     gravity_override_mode: AreaSpaceOverrideMode,
@@ -393,7 +331,8 @@ impl RapierArea {
                             .remove(&(other_collider_handle, this_collider_handle));
                     }
                 } else {
-                    // If we don't have a current monitor, then something has gone wrong-- but we don't want to send an exit event.
+                    // If we don't have a current monitor, then we don't want to send an exit event.
+                    // To my knowledge, this should never happen.
                     return None;
                 }
             }
@@ -440,7 +379,7 @@ impl RapierArea {
         new_event: EventReport,
     ) {
         self.state
-            .unhandled_event_queue
+            .unhandled_events
             .insert(other_collider_handle, new_event);
         // Finally, we tell the space that we have events in our queue.
         space
@@ -456,15 +395,15 @@ impl RapierArea {
         new_event_state: i32,
     ) -> bool {
         if let Some(current_event_in_queue) =
-            self.state.unhandled_event_queue.get(&other_collider_handle)
+            self.state.unhandled_events.get(&other_collider_handle)
         {
             // See if we currently have a pending unhandled event (eg an event from this frame) that is the opposite of this one.
             // If so, this event will cancel that one out.
             if current_event_in_queue.state == -new_event_state {
                 self.state
-                    .unhandled_event_queue
+                    .unhandled_events
                     .remove(&other_collider_handle);
-                if self.state.unhandled_event_queue.is_empty() {
+                if self.state.unhandled_events.is_empty() {
                     space
                         .get_mut_state()
                         .area_remove_from_area_update_list(self.base.get_id());
@@ -794,7 +733,7 @@ impl RapierArea {
                 add_to_monitored_list = true;
                 let new_exit_event = EventReport::from_monitor_info(*monitor_info, -1);
                 self.state
-                    .unhandled_event_queue
+                    .unhandled_events
                     .insert(*handle_1, new_exit_event);
                 monitors_to_remove.push((*handle_1, *handle_2));
             }
@@ -823,7 +762,7 @@ impl RapierArea {
                 add_to_monitored_list = true;
                 let new_exit_event = EventReport::from_monitor_info(*monitor_info, 1);
                 self.state
-                    .unhandled_event_queue
+                    .unhandled_events
                     .insert(*handle_1, new_exit_event);
             }
         }
@@ -839,7 +778,7 @@ impl RapierArea {
     }
 
     pub fn clear_event_queue(&mut self) {
-        self.state.unhandled_event_queue.clear();
+        self.state.unhandled_events.clear();
     }
 
     pub fn compute_gravity(&self, position: Vector) -> Vector {

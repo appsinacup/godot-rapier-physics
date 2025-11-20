@@ -70,11 +70,11 @@ pub fn transform_scale(transform: &Transform) -> Vector {
 }
 #[derive(GodotConvert, Var, Export, Debug)]
 #[godot(via = GString)]
-// An anum to allow easy export into various formats; None outputs a json string (plaintext, good for debugging),
+// An enum to allow easy export into various formats; Json outputs a json string (plaintext, good for debugging),
 // GodotBase64 uses Godot's Marshalls to produce an encoded Godot String (for if you need to decode the data in gdscript or elsewhere on the Godot side),
 // and RustBincode uses, well, Rust's bincode for maximum speed and efficiency.
 pub enum SerializationFormat {
-    None, // first enumerator is default.
+    Json, // first enumerator is default.
     GodotBase64,
     RustBincode,
 }

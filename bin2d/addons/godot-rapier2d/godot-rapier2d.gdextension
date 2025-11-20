@@ -1,6 +1,5 @@
 [configuration]
 
-#entry_symbol = "gdext_rust_init"
 entry_symbol = "rapier_2d_init"
 compatibility_minimum = 4.3
 
@@ -9,10 +8,7 @@ compatibility_minimum = 4.3
 
 macos.debug = "bin/libgodot_rapier.macos.framework"
 macos.release = "bin/libgodot_rapier.macos.framework"
-
-#windows.debug.x86_64 = "bin/libgodot_rapier.windows.x86_64-pc-windows-msvc.dll"
-windows.debug.x86_64 = "E:/Repos/godot-rapier-physics/target/debug/godot_rapier.dll"
-
+windows.debug.x86_64 = "bin/libgodot_rapier.windows.x86_64-pc-windows-msvc.dll"
 windows.release.x86_64 = "bin/libgodot_rapier.windows.x86_64-pc-windows-msvc.dll"
 windows.debug.x86_32 = "bin/libgodot_rapier.windows.i686-pc-windows-msvc.dll"
 windows.release.x86_32 = "bin/libgodot_rapier.windows.i686-pc-windows-msvc.dll"

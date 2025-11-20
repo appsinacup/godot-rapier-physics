@@ -44,9 +44,6 @@ pub trait ExportableObject {
     type ExportState<'a>: serde::Serialize
     where
         Self: 'a;
-    //#[cfg(feature = "serde-serialize")]
-    // Unfortunately, shapes require a physics engine reference to fetch their Rapier-side data.
-    // I'm not 100% sure if this is necessary-- perhaps the space export can automatically rebuild shapes?
     fn get_export_state<'a>(
         &'a self,
         physics_engine: &'a mut crate::rapier_wrapper::prelude::PhysicsEngine,

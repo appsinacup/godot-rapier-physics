@@ -144,7 +144,7 @@ impl StateManager {
     #[func]
     // A method to fetch all the tags in the cache; this lets the user load from cached states at their discretion.
     // The return vector has the same order as the cached states vector.
-    fn peek_cache(&self) -> Vec<Variant> {
+    fn peek_cache_tags(&self) -> Vec<Variant> {
         self.cached_states.iter().map(|s| s.tag.clone()).collect()
     }
 
@@ -650,7 +650,7 @@ impl StateManager {
     fn serialize_state(&mut self, in_space: Rid, format: &SerializationFormat) -> Variant {
         if let Some(raw_state) = self.fetch_state(in_space) {
             match format {
-                SerializationFormat::None | SerializationFormat::GodotBase64 => {
+                SerializationFormat::Json | SerializationFormat::GodotBase64 => {
                     let serialized_state = match serde_json::to_value(raw_state) {
                         Ok(v) => v,
                         Err(err) => {
