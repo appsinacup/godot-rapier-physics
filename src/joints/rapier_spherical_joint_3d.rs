@@ -2,6 +2,7 @@ use godot::classes::*;
 use godot::prelude::*;
 
 use super::rapier_joint_base::RapierJointBase;
+use super::rapier_joint_base::RapierJointType;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::bodies::rapier_collision_object::RapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
@@ -16,6 +17,7 @@ pub struct RapierSphericalJoint3D {
     base: RapierJointBase,
 }
 impl RapierSphericalJoint3D {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         id: RapierId,
         rid: Rid,
@@ -24,6 +26,7 @@ impl RapierSphericalJoint3D {
         body_a: &RapierCollisionObject,
         body_b: &RapierCollisionObject,
         physics_engine: &mut PhysicsEngine,
+        joint_type: RapierJointType,
     ) -> Self {
         let invalid_joint = Self {
             anchor_a,
@@ -54,8 +57,7 @@ impl RapierSphericalJoint3D {
             body_b.get_base().get_body_handle(),
             rapier_anchor_a,
             rapier_anchor_b,
-            false,
-            false,
+            joint_type,
             true,
         );
         Self {
@@ -64,7 +66,7 @@ impl RapierSphericalJoint3D {
             bias: 0.3,
             damping: 1.0,
             impulse_clamp: 0.0,
-            base: RapierJointBase::new(id, rid, space_id, space_handle, handle),
+            base: RapierJointBase::new(id, rid, space_id, space_handle, handle, joint_type),
         }
     }
 

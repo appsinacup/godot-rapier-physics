@@ -411,7 +411,7 @@ dependencies = [
 
 [[package]]
 name = "godot-rapier"
-version = "0.8.22"
+version = "0.8.24"
 dependencies = [
  "bincode",
  "godot",
@@ -909,6 +909,7 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.30.1"
+source = "git+https://github.com/ughuuu/rapier?branch=master#3cf8955c84b29c87c2a27bca2353a2a687646882"
 dependencies = [
  "approx",
  "arrayvec",
@@ -934,8 +935,8 @@ dependencies = [
 
 [[package]]
 name = "rapier2d-f64"
-version = "0.29.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes-v29#15dee20b535317d30614aafbeb378173a7675190"
+version = "0.30.1"
+source = "git+https://github.com/ughuuu/rapier?branch=master#3cf8955c84b29c87c2a27bca2353a2a687646882"
 dependencies = [
  "approx",
  "arrayvec",
@@ -960,8 +961,8 @@ dependencies = [
 
 [[package]]
 name = "rapier3d"
-version = "0.29.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes-v29#15dee20b535317d30614aafbeb378173a7675190"
+version = "0.30.1"
+source = "git+https://github.com/ughuuu/rapier?branch=master#3cf8955c84b29c87c2a27bca2353a2a687646882"
 dependencies = [
  "approx",
  "arrayvec",
@@ -987,8 +988,8 @@ dependencies = [
 
 [[package]]
 name = "rapier3d-f64"
-version = "0.29.0"
-source = "git+https://github.com/ughuuu/rapier?branch=custom-changes-v29#15dee20b535317d30614aafbeb378173a7675190"
+version = "0.30.1"
+source = "git+https://github.com/ughuuu/rapier?branch=master#3cf8955c84b29c87c2a27bca2353a2a687646882"
 dependencies = [
  "approx",
  "arrayvec",
@@ -1120,6 +1121,7 @@ dependencies = [
 [[package]]
 name = "salva2d"
 version = "0.9.0"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#3c0a04b6bd444ce0516cbfe9ec6faa738a6d3866"
 dependencies = [
  "approx",
  "bitflags",
@@ -1135,7 +1137,7 @@ dependencies = [
 [[package]]
 name = "salva2d-f64"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=custom-changes#13b2b4ce3db1fdf0a325f308afe00b89df772ddb"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#3c0a04b6bd444ce0516cbfe9ec6faa738a6d3866"
 dependencies = [
  "approx",
  "fnv",
@@ -1151,7 +1153,7 @@ dependencies = [
 [[package]]
 name = "salva3d"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=custom-changes#13b2b4ce3db1fdf0a325f308afe00b89df772ddb"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#3c0a04b6bd444ce0516cbfe9ec6faa738a6d3866"
 dependencies = [
  "approx",
  "bitflags",
@@ -1168,7 +1170,7 @@ dependencies = [
 [[package]]
 name = "salva3d-f64"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=custom-changes#13b2b4ce3db1fdf0a325f308afe00b89df772ddb"
+source = "git+https://github.com/ughuuu/salva?branch=custom-changes#3c0a04b6bd444ce0516cbfe9ec6faa738a6d3866"
 dependencies = [
  "approx",
  "fnv",
@@ -1292,9 +1294,9 @@ checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 
 [[package]]
 name = "syn"
-version = "2.0.109"
+version = "2.0.110"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f17c7e013e88258aa9543dcbe81aca68a667a9ac37cd69c9fbc07858bfe0e2f"
+checksum = "a99801b5bd34ede4cf3fc688c5919368fea4e4814a4664359503e6015b280aea"
 dependencies = [
  "proc-macro2",
  "quote",

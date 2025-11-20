@@ -257,13 +257,30 @@ impl PhysicsEngine {
         indices: Option<Vec<[u32; 3]>>,
         handle: ShapeHandle,
     ) {
+        if points.is_empty() {
+            self.remove_shape(handle);
+            return;
+        }
         let points_vec = point_array_to_vec(points);
-        let shape = SharedShape::trimesh_with_flags(
-            points_vec,
-            indices.unwrap(),
-            TriMeshFlags::FIX_INTERNAL_EDGES,
-        );
-        self.insert_shape(shape.unwrap(), handle)
+        let Some(indices) = indices else {
+            godot_error!("Trimesh requires indices");
+            self.remove_shape(handle);
+            return;
+        };
+        if indices.is_empty() {
+            godot_error!("Trimesh cannot have empty indices");
+            self.remove_shape(handle);
+            return;
+        }
+        let shape =
+            SharedShape::trimesh_with_flags(points_vec, indices, TriMeshFlags::FIX_INTERNAL_EDGES);
+        match shape {
+            Ok(s) => self.insert_shape(s, handle),
+            Err(e) => {
+                godot_error!("Failed to create trimesh: {:?}", e);
+                self.remove_shape(handle);
+            }
+        }
     }
 
     #[cfg(feature = "dim2")]

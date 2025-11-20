@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.8.24
+
+## v0.8.23 - Nov 16
+
+## What's Changed
+* Add multibody_joints in code by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/448
+* add soft ccd and presets and rapier 2d extra nodes(wip) - 1/2 by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/449
+* Add extra 3d rapier nodes by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/451
+* Implement multibody joints by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/452
+* Fix 3d constants by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/453
+* update fluid debug draw wip by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/455
+
+
+**Full Changelog**: https://github.com/appsinacup/godot-rapier-physics/compare/v0.8.22...nightly
+
 ## v0.8.22 - Nov 12
 
 ## What's Changed

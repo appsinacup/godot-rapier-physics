@@ -35,13 +35,18 @@ Stability|No Vibrations
 -|-
 ![](docs/rapier-vid.gif)|![](docs/stability-comparison.gif)
 
+Fluids 2D| Fluids 3D
+-|-
+![](docs/fluid_shader.gif)|![](docs/water_3d.gif)
+
+Body Skin| Inverse Kinematics
+-|-
+![](docs/body_skin.gif)|![](docs/ik2.gif)
+
 No Ghost Collisions|Improved Stacking
 -|-
 ![](docs/ghost_collisions.gif)|![](docs/stacking.png)
 
-Fluids 2D| Fluids 3D
--|-
-![](docs/fluid_shader.gif)|![](docs/water_3d.gif)
 **Serialization**|**Deserialization**
 Save Physics State|Load Physics State
 **Locally Deterministic**|***Optionally Cross Platform Deterministic**

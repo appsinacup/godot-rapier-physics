@@ -23,8 +23,29 @@ use crate::*;
 const TEST_MOTION_MARGIN: Real = 1e-4;
 const TEST_MOTION_MIN_CONTACT_DEPTH_FACTOR: Real = 0.05;
 const BODY_MOTION_RECOVER_ATTEMPTS: i32 = 4;
+#[cfg(feature = "dim2")]
 const BODY_MOTION_RECOVER_RATIO: Real = 0.4;
+#[cfg(feature = "dim3")]
+const BODY_MOTION_RECOVER_RATIO: Real = 0.5;
 const MAX_EXCLUDED_SHAPE_PAIRS: usize = 32;
+#[cfg(feature = "dim2")]
+const MIN_MOTION_THRESHOLD: Real = 1e-3;
+#[cfg(feature = "dim3")]
+const MIN_MOTION_THRESHOLD: Real = 1e-4;
+#[cfg(feature = "dim2")]
+const MOTION_EPSILON: Real = 1e-3;
+#[cfg(feature = "dim3")]
+const MOTION_EPSILON: Real = 1e-4;
+#[cfg(feature = "dim2")]
+const MIN_RECOVERY_THRESHOLD: Real = 1e-3;
+#[cfg(feature = "dim3")]
+const MIN_RECOVERY_THRESHOLD: Real = 1e-4;
+#[cfg(feature = "dim2")]
+const STUCK_PENETRATION_THRESHOLD: Real = 0.1;
+#[cfg(feature = "dim3")]
+const STUCK_PENETRATION_THRESHOLD: Real = 0.01;
+const NORMAL_EPSILON: Real = 0.01;
+const ONE_WAY_PERPENDICULAR_THRESHOLD: Real = 0.1;
 #[derive(Clone, Copy)]
 struct ExcludedShapePair {
     local_shape_index: usize,
@@ -99,7 +120,6 @@ impl RapierSpace {
     ) -> bool {
         result.travel = Vector::default();
         // Skip processing if motion is too small (prevents infinite micro-adjustments)
-        const MIN_MOTION_THRESHOLD: Real = 0.001;
         if motion.length() < MIN_MOTION_THRESHOLD {
             result.remainder = Vector::default();
             result.collision_safe_fraction = 1.0;
@@ -152,7 +172,6 @@ impl RapierSpace {
         // If cast motion resulted in near-zero movement but recovery found no collision,
         // treat this as a numerical precision issue and allow the motion
         // Only apply this when the actual distance traveled is tiny, not just the fraction
-        const MOTION_EPSILON: Real = 0.001;
         let actual_safe_distance = motion.length() * best_safe;
         let actual_unsafe_distance = motion.length() * best_unsafe;
         if !recovered
@@ -428,7 +447,6 @@ impl RapierSpace {
                 }
             }
             // Break if recovery motion is too small to be meaningful
-            const MIN_RECOVERY_THRESHOLD: Real = 0.001;
             if recover_motion.length() < MIN_RECOVERY_THRESHOLD {
                 recovered = false;
                 break;
@@ -567,17 +585,14 @@ impl RapierSpace {
                                 // Doesn't collide at end, skip
                                 continue;
                             }
-                            // Test initial overlap - if colliding at start position, body is stuck
+                            // Test initial overlap - if colliding at start position, body might be stuck
                             body_shape_info.transform.translation.vector =
                                 vector_to_rapier(body_shape_transform.origin);
                             let initial_contact = physics_engine.shapes_contact(
                                 body_shape_info,
                                 col_shape_info,
-                                p_margin, // Use same margin as recovery
+                                p_margin,
                             );
-                            // Only consider it stuck if there's deep actual penetration that recovery can't handle
-                            // Shallow penetrations (< 0.1 pixels) should be handled by recovery
-                            const STUCK_PENETRATION_THRESHOLD: Real = 0.1;
                             let penetration_depth = -initial_contact.pixel_distance;
                             if initial_contact.collided
                                 && !initial_contact.within_margin
@@ -978,10 +993,8 @@ impl PhysicsEngine {
             }
             // Check if contact normal is valid (non-zero)
             let normal_length_sq = contact_normal.length_squared();
-            const NORMAL_EPSILON: Real = 0.01;
             if normal_length_sq > NORMAL_EPSILON {
                 // Skip side edges (perpendicular contacts)
-                const ONE_WAY_PERPENDICULAR_THRESHOLD: Real = 0.1;
                 if normal_dot_direction.abs() < ONE_WAY_PERPENDICULAR_THRESHOLD {
                     return true;
                 }

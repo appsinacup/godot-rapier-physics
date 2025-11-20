@@ -1,3 +1,4 @@
+use rapier::prelude::*;
 use servers::rapier_physics_singleton::PhysicsIds;
 use servers::rapier_physics_singleton::RapierId;
 use servers::rapier_physics_singleton::get_id_rid;
@@ -32,12 +33,14 @@ pub struct RapierJointBaseState {
     handle: JointHandle,
     space_handle: WorldHandle,
     space_id: RapierId,
+    joint_type: RapierJointType,
 }
 pub struct RapierJointBase {
     rid: Rid,
     max_force: f32,
     disabled_collisions_between_bodies: bool,
     state: RapierJointBaseState,
+    pub custom_ik_options: InverseKinematicsOption,
 }
 impl Default for RapierJointBase {
     fn default() -> Self {
@@ -47,6 +50,7 @@ impl Default for RapierJointBase {
             RapierId::default(),
             WorldHandle::default(),
             JointHandle::default(),
+            RapierJointType::default(),
         )
     }
 }
@@ -76,6 +80,7 @@ impl RapierJointBase {
         space_id: RapierId,
         space_handle: WorldHandle,
         handle: JointHandle,
+        joint_type: RapierJointType,
     ) -> Self {
         Self {
             rid,
@@ -86,12 +91,18 @@ impl RapierJointBase {
                 handle,
                 space_handle,
                 space_id,
+                joint_type,
             },
+            custom_ik_options: InverseKinematicsOption::default(),
         }
     }
 
     pub fn get_handle(&self) -> JointHandle {
         self.state.handle
+    }
+
+    pub fn set_handle(&mut self, handle: JointHandle) {
+        self.state.handle = handle;
     }
 
     pub fn get_id(&self) -> RapierId {
@@ -138,6 +149,14 @@ impl RapierJointBase {
         }
     }
 
+    pub fn get_joint_type(&self) -> RapierJointType {
+        self.state.joint_type
+    }
+
+    pub fn set_joint_type(&mut self, joint_type: RapierJointType) {
+        self.state.joint_type = joint_type;
+    }
+
     pub fn is_disabled_collisions_between_bodies(&self) -> bool {
         self.disabled_collisions_between_bodies
     }
@@ -152,6 +171,7 @@ impl RapierJointBase {
             joint.is_disabled_collisions_between_bodies(),
             physics_engine,
         );
+        self.set_joint_type(joint.get_joint_type());
         self.state.id = joint.get_id();
         self.rid = joint.get_rid();
     }

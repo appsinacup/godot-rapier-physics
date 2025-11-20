@@ -1,3 +1,4 @@
+use godot::classes::Engine;
 use godot::classes::Time;
 use godot::prelude::*;
 
@@ -13,6 +14,13 @@ impl FluidImpl {
         let ticks = Time::singleton().get_ticks_msec();
         for i in old_times..fluid.points.len() {
             fluid.create_times[i] = ticks as f32;
+        }
+        // Only apply world transform and update the physics server when the node
+        // is inside the scene tree and we're not in the editor preview. This
+        // prevents calls to `get_global_transform()` (which asserts) during
+        // scene instantiation or editor previews.
+        if Engine::singleton().is_editor_hint() || !fluid.to_gd().is_inside_tree() {
+            return;
         }
         let gl_transform = fluid.to_gd().get_global_transform();
         let mut rapier_points = fluid.points.clone();
@@ -82,6 +90,12 @@ impl FluidImpl {
     }
 
     pub fn get_points(fluid: &Fluid) -> PackedVectorArray {
+        // If we're in the editor or not inside the tree yet, return the local-space cached points
+        if Engine::singleton().is_editor_hint() || !fluid.to_gd().is_inside_tree() {
+            return fluid.points.clone();
+        }
+        // Runtime: query the backend for current simulated positions (world-space), then transform
+        // them into local space for drawing/debugging/inspector.
         let rid = fluid.rid;
         let guard = fluid.base();
         let mut new_points = RapierPhysicsServer::fluid_get_points(rid);
@@ -107,6 +121,9 @@ impl FluidImpl {
         let ticks = Time::singleton().get_ticks_msec();
         for _i in old_times..fluid.points.len() {
             fluid.create_times.push(ticks as f32);
+        }
+        if Engine::singleton().is_editor_hint() || !fluid.to_gd().is_inside_tree() {
+            return;
         }
         let gl_transform = fluid.to_gd().get_global_transform();
         let mut rapier_points = points.clone();
@@ -134,6 +151,9 @@ impl FluidImpl {
         let ticks = Time::singleton().get_ticks_msec();
         for i in old_times..fluid.points.len() {
             fluid.create_times[i] = ticks as f32;
+        }
+        if Engine::singleton().is_editor_hint() || !fluid.to_gd().is_inside_tree() {
+            return;
         }
         let gl_transform = fluid.to_gd().get_global_transform();
         let mut rapier_points = fluid.points.clone();
