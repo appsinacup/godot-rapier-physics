@@ -1,28 +1,35 @@
 [gd_scene load_steps=5 format=3 uid="uid://clemidbbr2cib"]
 
-[ext_resource type="Script" path="res://test/integration/scene_change.gd" id="1_crxgh"]
-[ext_resource type="Script" path="res://addons/godot-rapier3d/rapier_state_3d.gd" id="2_jt58v"]
+[ext_resource type="Script" uid="uid://dyfjtvbnkguif" path="res://test/integration/scene_change.gd" id="1_crxgh"]
+[ext_resource type="Script" uid="uid://gukslbm1ptrh" path="res://addons/godot-rapier3d/rapier_state_3d.gd" id="2_jt58v"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_ohnsv"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_28p6p"]
 
-[node name="SceneChange" type="Node3D" node_paths=PackedStringArray("rapier_state")]
+[node name="SceneChange" type="Node3D" node_paths=PackedStringArray("rapier_state", "label")]
 script = ExtResource("1_crxgh")
 rapier_state = NodePath("Rapier3DState")
-save_state = false
+label = NodePath("Label")
+
+[node name="Label" type="Label" parent="."]
+offset_right = 198.0
+offset_bottom = 67.0
 
 [node name="RigidBody3D" type="RigidBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 122, 81, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.533371, 0)
 
 [node name="CollisionShape2D" type="CollisionShape3D" parent="RigidBody3D"]
 shape = SubResource("SphereShape3D_ohnsv")
 
 [node name="StaticBody3D" type="StaticBody3D" parent="."]
+transform = Transform3D(0.987535, 0.15739974, 0, -0.15739974, 0.987535, 0, 0, 0, 1, 0, -4.160774, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 192, 219, 0)
 shape = SubResource("BoxShape3D_28p6p")
 
 [node name="Rapier3DState" type="Node" parent="."]
 script = ExtResource("2_jt58v")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 19.469122)

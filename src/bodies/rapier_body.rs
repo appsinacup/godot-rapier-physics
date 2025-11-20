@@ -21,6 +21,8 @@ use servers::rapier_physics_singleton::RapierId;
 use servers::rapier_physics_singleton::get_id_rid;
 use shapes::rapier_shape::IRapierShape;
 
+use super::exportable_object::ExportableObject;
+use super::exportable_object::ObjectImportState;
 use super::rapier_area::RapierArea;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
@@ -74,11 +76,6 @@ impl Default for Contact {
         }
     }
 }
-#[derive(Debug)]
-pub struct ForceIntegrationCallbackData {
-    pub callable: Callable,
-    pub udata: Variant,
-}
 #[derive(Clone, Copy, Default, Debug)]
 #[cfg_attr(
     feature = "serde-serialize",
@@ -94,19 +91,28 @@ impl IdWithPriority {
     }
 }
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
+#[derive(Debug)]
 pub struct BodyExport<'a> {
     body_state: &'a RapierBodyState,
     base_state: &'a RapierCollisionObjectBaseState,
 }
-#[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize, Clone))]
 pub struct BodyImport {
     body_state: RapierBodyState,
     base_state: RapierCollisionObjectBaseState,
 }
+impl<'a> BodyExport<'a> {
+    pub fn into_import(self) -> BodyImport {
+        BodyImport {
+            body_state: self.body_state.clone(),
+            base_state: self.base_state.clone(),
+        }
+    }
+}
 #[derive(Default, Debug)]
 #[cfg_attr(
     feature = "serde-serialize",
-    derive(serde::Serialize, serde::Deserialize)
+    derive(serde::Serialize, serde::Deserialize, Clone)
 )]
 pub struct RapierBodyState {
     pub(crate) total_gravity: Vector,
@@ -160,8 +166,10 @@ pub struct RapierBody {
     can_sleep: bool,
     sleep: bool,
     body_state_callback: Option<Callable>,
-    fi_callback_data: Option<ForceIntegrationCallbackData>,
+    force_integration_callback: Option<Callable>,
     direct_state: Option<Gd<PhysicsDirectBodyState>>,
+    direct_state_array: VariantArray,
+    force_integration_array: VariantArray,
     state: RapierBodyState,
     base: RapierCollisionObjectBase,
 }
@@ -194,8 +202,10 @@ impl RapierBody {
             can_sleep: true,
             sleep: false,
             body_state_callback: None,
-            fi_callback_data: None,
+            force_integration_callback: None,
             direct_state: None,
+            direct_state_array: VariantArray::new(),
+            force_integration_array: VariantArray::new(),
             state,
             base: RapierCollisionObjectBase::new(id, rid, CollisionObjectType::Body),
         }
@@ -309,10 +319,14 @@ impl RapierBody {
         space_handle: WorldHandle,
         physics_engine: &mut PhysicsEngine,
     ) {
-        // Send contact infos for dynamic bodies
-        if self.base.mode.ord() >= BodyMode::KINEMATIC.ord() {
+        // Send contact infos for dynamic bodies, or for static bodies with static linear velocity
+        let is_with_static_linear_velocity = self.get_static_linear_velocity() != Vector::default();
+        if self.base.mode.ord() >= BodyMode::KINEMATIC.ord() || is_with_static_linear_velocity {
             let mut send_contacts = self.can_report_contacts();
             if self.base.is_debugging_contacts && godot::classes::Os::singleton().is_debug_build() {
+                send_contacts = true;
+            }
+            if is_with_static_linear_velocity {
                 send_contacts = true;
             }
             physics_engine.collider_set_contact_force_events_enabled(
@@ -346,7 +360,8 @@ impl RapierBody {
     }
 
     fn update_colliders_contact_events(&self, physics_engine: &mut PhysicsEngine) {
-        if self.base.mode.ord() < BodyMode::KINEMATIC.ord() {
+        let is_with_static_linear_velocity = self.get_static_linear_velocity() != Vector::default();
+        if self.base.mode.ord() < BodyMode::KINEMATIC.ord() && !is_with_static_linear_velocity {
             return;
         }
         let colliders = physics_engine
@@ -354,6 +369,9 @@ impl RapierBody {
             .to_vec();
         let mut send_contacts = self.can_report_contacts();
         if self.base.is_debugging_contacts && godot::classes::Os::singleton().is_debug_build() {
+            send_contacts = true;
+        }
+        if is_with_static_linear_velocity {
             send_contacts = true;
         }
         for collider in colliders {
@@ -409,6 +427,7 @@ impl RapierBody {
         self.state.linear_velocity = p_linear_velocity;
         self.update_colliders_filters(physics_engine);
         if self.base.mode == BodyMode::STATIC || !self.base.is_valid() {
+            self.update_colliders_contact_events(physics_engine);
             return;
         }
         physics_engine.body_set_linear_velocity(
@@ -470,10 +489,17 @@ impl RapierBody {
         }
         Vector::default()
     }
-    
-    pub fn predict_next_frame_position(&self, timestep: f64, physics_engine: &mut PhysicsEngine) -> Vector {
-        let vel = physics_engine
-            .body_predict_next_frame_position(timestep, self.base.get_space_id(), self.base.get_body_handle());
+
+    pub fn predict_next_frame_position(
+        &self,
+        timestep: f64,
+        physics_engine: &mut PhysicsEngine,
+    ) -> Vector {
+        let vel = physics_engine.body_predict_next_frame_position(
+            timestep,
+            self.base.get_space_id(),
+            self.base.get_body_handle(),
+        );
         vector_to_godot(vel)
     }
 
@@ -546,40 +572,56 @@ impl RapierBody {
         physics_spaces: &mut PhysicsSpaces,
         physics_ids: &PhysicsIds,
     ) {
+        self.force_integration_array.clear();
+        self.force_integration_callback = None;
         if callable.is_valid() {
-            self.fi_callback_data = Some(ForceIntegrationCallbackData { callable, udata });
+            self.force_integration_callback = Some(callable);
+            if let Some(ds) = &self.direct_state {
+                self.force_integration_array.push(&ds.to_variant());
+                if !udata.is_nil() {
+                    self.force_integration_array.push(&udata);
+                }
+            }
             if let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_ids)) {
                 space
                     .get_mut_state()
                     .body_add_to_force_integrate_list(self.base.get_id());
             }
-        } else {
-            self.fi_callback_data = None;
-            if let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_ids)) {
-                space
-                    .get_mut_state()
-                    .body_remove_from_force_integrate_list(self.base.get_id());
-            }
+        } else if let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_ids)) {
+            space
+                .get_mut_state()
+                .body_remove_from_force_integrate_list(self.base.get_id());
         }
     }
 
-    pub fn get_force_integration_callback(&self) -> Option<&ForceIntegrationCallbackData> {
-        self.fi_callback_data.as_ref()
+    pub fn get_force_integration_array(&self) -> &VariantArray {
+        &self.force_integration_array
+    }
+
+    pub fn get_force_integration_callable(&self) -> Option<&Callable> {
+        self.force_integration_callback.as_ref()
     }
 
     pub fn create_direct_state(&mut self) {
         if self.direct_state.is_none() {
+            self.direct_state_array.clear();
             let mut direct_space_state = RapierDirectBodyState::new_alloc();
             {
                 let mut direct_state = direct_space_state.bind_mut();
                 direct_state.set_body(self.base.get_rid());
             }
+            self.direct_state_array
+                .push(&direct_space_state.clone().to_variant());
             self.direct_state = Some(direct_space_state.upcast());
         }
     }
 
     pub fn get_direct_state(&self) -> Option<&Gd<PhysicsDirectBodyState>> {
         self.direct_state.as_ref()
+    }
+
+    pub fn get_direct_state_array(&self) -> &VariantArray {
+        &self.direct_state_array
     }
 
     pub fn add_area(&mut self, p_area: &RapierArea, space: &mut RapierSpace) {
@@ -616,26 +658,25 @@ impl RapierBody {
         physics_ids: &PhysicsIds,
     ) {
         let mut area_override_settings = None;
-        if let Some(body) = physics_collision_objects.get(&get_id_rid(*body, physics_ids)) {
-            if let Some(body) = body.get_body() {
-                area_override_settings = Some(body.get_area_override_settings(
-                    physics_spaces,
-                    physics_collision_objects,
-                    physics_ids,
-                ));
-            }
+        if let Some(body) = physics_collision_objects.get(&get_id_rid(*body, physics_ids))
+            && let Some(body) = body.get_body()
+        {
+            area_override_settings = Some(body.get_area_override_settings(
+                physics_spaces,
+                physics_collision_objects,
+                physics_ids,
+            ));
         }
-        if let Some(area_override_settings) = area_override_settings {
-            if let Some(body) = physics_collision_objects.get_mut(&get_id_rid(*body, physics_ids)) {
-                if let Some(body) = body.get_mut_body() {
-                    body.apply_area_override(
-                        area_override_settings,
-                        physics_engine,
-                        physics_spaces,
-                        physics_ids,
-                    );
-                }
-            }
+        if let Some(area_override_settings) = area_override_settings
+            && let Some(body) = physics_collision_objects.get_mut(&get_id_rid(*body, physics_ids))
+            && let Some(body) = body.get_mut_body()
+        {
+            body.apply_area_override(
+                area_override_settings,
+                physics_engine,
+                physics_spaces,
+                physics_ids,
+            );
         }
     }
 
@@ -671,89 +712,88 @@ impl RapierBody {
             for area_handle in areas.iter() {
                 if let Some(area) =
                     physics_collision_objects.get(&get_id_rid(area_handle.id, physics_ids))
+                    && let Some(aa) = area.get_area()
                 {
-                    if let Some(aa) = area.get_area() {
-                        if !gravity_done {
-                            let area_gravity_mode = aa
-                                .get_param(AreaParameter::GRAVITY_OVERRIDE_MODE)
-                                .try_to()
-                                .unwrap_or(AreaSpaceOverrideMode::DISABLED);
-                            if area_gravity_mode != AreaSpaceOverrideMode::DISABLED {
-                                let area_gravity = aa.compute_gravity(origin);
-                                match area_gravity_mode {
-                                    AreaSpaceOverrideMode::COMBINE
-                                    | AreaSpaceOverrideMode::COMBINE_REPLACE => {
-                                        using_area_gravity = true;
-                                        total_gravity += area_gravity;
-                                        gravity_done = area_gravity_mode
-                                            == AreaSpaceOverrideMode::COMBINE_REPLACE;
-                                    }
-                                    AreaSpaceOverrideMode::REPLACE
-                                    | AreaSpaceOverrideMode::REPLACE_COMBINE => {
-                                        using_area_gravity = true;
-                                        total_gravity = area_gravity;
-                                        gravity_done =
-                                            area_gravity_mode == AreaSpaceOverrideMode::REPLACE;
-                                    }
-                                    _ => {}
+                    if !gravity_done {
+                        let area_gravity_mode = aa
+                            .get_param(AreaParameter::GRAVITY_OVERRIDE_MODE)
+                            .try_to()
+                            .unwrap_or(AreaSpaceOverrideMode::DISABLED);
+                        if area_gravity_mode != AreaSpaceOverrideMode::DISABLED {
+                            let area_gravity = aa.compute_gravity(origin);
+                            match area_gravity_mode {
+                                AreaSpaceOverrideMode::COMBINE
+                                | AreaSpaceOverrideMode::COMBINE_REPLACE => {
+                                    using_area_gravity = true;
+                                    total_gravity += area_gravity;
+                                    gravity_done =
+                                        area_gravity_mode == AreaSpaceOverrideMode::COMBINE_REPLACE;
                                 }
+                                AreaSpaceOverrideMode::REPLACE
+                                | AreaSpaceOverrideMode::REPLACE_COMBINE => {
+                                    using_area_gravity = true;
+                                    total_gravity = area_gravity;
+                                    gravity_done =
+                                        area_gravity_mode == AreaSpaceOverrideMode::REPLACE;
+                                }
+                                _ => {}
                             }
                         }
-                        if !linear_damping_done {
-                            let area_linear_damping_mode = aa
-                                .get_param(AreaParameter::LINEAR_DAMP_OVERRIDE_MODE)
-                                .try_to()
-                                .unwrap_or(AreaSpaceOverrideMode::DISABLED);
-                            if area_linear_damping_mode != AreaSpaceOverrideMode::DISABLED {
-                                let area_linear_damping = aa.get_linear_damp();
-                                match area_linear_damping_mode {
-                                    AreaSpaceOverrideMode::COMBINE
-                                    | AreaSpaceOverrideMode::COMBINE_REPLACE => {
-                                        using_area_linear_damping = true;
-                                        total_linear_damping += area_linear_damping;
-                                        linear_damping_done = area_linear_damping_mode
-                                            == AreaSpaceOverrideMode::COMBINE_REPLACE;
-                                    }
-                                    AreaSpaceOverrideMode::REPLACE
-                                    | AreaSpaceOverrideMode::REPLACE_COMBINE => {
-                                        using_area_linear_damping = true;
-                                        total_linear_damping = area_linear_damping;
-                                        linear_damping_done = area_linear_damping_mode
-                                            == AreaSpaceOverrideMode::REPLACE;
-                                    }
-                                    _ => {}
+                    }
+                    if !linear_damping_done {
+                        let area_linear_damping_mode = aa
+                            .get_param(AreaParameter::LINEAR_DAMP_OVERRIDE_MODE)
+                            .try_to()
+                            .unwrap_or(AreaSpaceOverrideMode::DISABLED);
+                        if area_linear_damping_mode != AreaSpaceOverrideMode::DISABLED {
+                            let area_linear_damping = aa.get_linear_damp();
+                            match area_linear_damping_mode {
+                                AreaSpaceOverrideMode::COMBINE
+                                | AreaSpaceOverrideMode::COMBINE_REPLACE => {
+                                    using_area_linear_damping = true;
+                                    total_linear_damping += area_linear_damping;
+                                    linear_damping_done = area_linear_damping_mode
+                                        == AreaSpaceOverrideMode::COMBINE_REPLACE;
                                 }
+                                AreaSpaceOverrideMode::REPLACE
+                                | AreaSpaceOverrideMode::REPLACE_COMBINE => {
+                                    using_area_linear_damping = true;
+                                    total_linear_damping = area_linear_damping;
+                                    linear_damping_done =
+                                        area_linear_damping_mode == AreaSpaceOverrideMode::REPLACE;
+                                }
+                                _ => {}
                             }
                         }
-                        if !angular_damping_done {
-                            let area_angular_damping_mode = aa
-                                .get_param(AreaParameter::ANGULAR_DAMP_OVERRIDE_MODE)
-                                .try_to()
-                                .unwrap_or(AreaSpaceOverrideMode::DISABLED);
-                            if area_angular_damping_mode != AreaSpaceOverrideMode::DISABLED {
-                                let area_angular_damping = aa.get_angular_damp();
-                                match area_angular_damping_mode {
-                                    AreaSpaceOverrideMode::COMBINE
-                                    | AreaSpaceOverrideMode::COMBINE_REPLACE => {
-                                        using_area_angular_damping = true;
-                                        total_angular_damping += area_angular_damping;
-                                        angular_damping_done = area_angular_damping_mode
-                                            == AreaSpaceOverrideMode::COMBINE_REPLACE;
-                                    }
-                                    AreaSpaceOverrideMode::REPLACE
-                                    | AreaSpaceOverrideMode::REPLACE_COMBINE => {
-                                        using_area_angular_damping = true;
-                                        total_angular_damping = area_angular_damping;
-                                        angular_damping_done = area_angular_damping_mode
-                                            == AreaSpaceOverrideMode::REPLACE;
-                                    }
-                                    _ => {}
+                    }
+                    if !angular_damping_done {
+                        let area_angular_damping_mode = aa
+                            .get_param(AreaParameter::ANGULAR_DAMP_OVERRIDE_MODE)
+                            .try_to()
+                            .unwrap_or(AreaSpaceOverrideMode::DISABLED);
+                        if area_angular_damping_mode != AreaSpaceOverrideMode::DISABLED {
+                            let area_angular_damping = aa.get_angular_damp();
+                            match area_angular_damping_mode {
+                                AreaSpaceOverrideMode::COMBINE
+                                | AreaSpaceOverrideMode::COMBINE_REPLACE => {
+                                    using_area_angular_damping = true;
+                                    total_angular_damping += area_angular_damping;
+                                    angular_damping_done = area_angular_damping_mode
+                                        == AreaSpaceOverrideMode::COMBINE_REPLACE;
                                 }
+                                AreaSpaceOverrideMode::REPLACE
+                                | AreaSpaceOverrideMode::REPLACE_COMBINE => {
+                                    using_area_angular_damping = true;
+                                    total_angular_damping = area_angular_damping;
+                                    angular_damping_done =
+                                        area_angular_damping_mode == AreaSpaceOverrideMode::REPLACE;
+                                }
+                                _ => {}
                             }
                         }
-                        if gravity_done && linear_damping_done && angular_damping_done {
-                            break;
-                        }
+                    }
+                    if gravity_done && linear_damping_done && angular_damping_done {
+                        break;
                     }
                 }
             }
@@ -1243,6 +1283,9 @@ impl RapierBody {
         space: &mut RapierSpace,
         physics_engine: &mut PhysicsEngine,
     ) {
+        if !self.state.active {
+            return;
+        }
         if !self.state.marked_active {
             self.set_active(false, space);
             return;
@@ -1990,15 +2033,15 @@ impl RapierBody {
     ) {
         let id = self.base.get_id();
         if self.base.is_space_valid() && self.base.mode.ord() >= BodyMode::KINEMATIC.ord() {
-            if self.get_force_integration_callback().is_some() {
-                if let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_ids)) {
-                    space.get_mut_state().body_add_to_force_integrate_list(id);
-                }
+            if self.get_force_integration_callable().is_some()
+                && let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_ids))
+            {
+                space.get_mut_state().body_add_to_force_integrate_list(id);
             }
-            if self.get_state_sync_callback().is_some() {
-                if let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_ids)) {
-                    space.get_mut_state().body_add_to_state_query_list(id);
-                }
+            if self.get_state_sync_callback().is_some()
+                && let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_ids))
+            {
+                space.get_mut_state().body_add_to_state_query_list(id);
             }
             if !self.can_sleep {
                 self.set_can_sleep(false, physics_engine);
@@ -2095,6 +2138,33 @@ impl RapierBody {
         if self.base.get_collision_mask() != mask {
             self.base.set_collision_mask(mask, physics_engine);
             self.update_colliders_filters(physics_engine);
+        }
+    }
+
+    pub fn is_sleeping(&self, physics_engine: &PhysicsEngine) -> bool {
+        physics_engine.body_is_sleeping(self.base.get_space_id(), self.base.get_body_handle())
+    }
+}
+#[cfg(feature = "serde-serialize")]
+impl ExportableObject for RapierBody {
+    type ExportState<'a> = BodyExport<'a>;
+
+    fn get_export_state<'a>(&'a self, _: &'a mut PhysicsEngine) -> Option<Self::ExportState<'a>> {
+        Some(BodyExport {
+            body_state: &self.state,
+            base_state: &self.base.state,
+        })
+    }
+
+    fn import_state(&mut self, _: &mut PhysicsEngine, data: ObjectImportState) {
+        match data {
+            bodies::exportable_object::ObjectImportState::Body(body_import) => {
+                self.state = body_import.body_state;
+                self.base.state = body_import.base_state;
+            }
+            _ => {
+                godot_error!("Attempted to import invalid state data.");
+            }
         }
     }
 }
@@ -2295,6 +2365,8 @@ impl IRapierCollisionObject for RapierBody {
             physics_spaces,
             physics_ids,
         );
+        // Reapply CCD setting after recreating shapes
+        self.set_continuous_collision_detection_mode(self.ccd_enabled, physics_engine);
     }
 
     fn init_material(&self) -> Material {
@@ -2334,57 +2406,6 @@ impl IRapierCollisionObject for RapierBody {
             physics_spaces,
             physics_ids,
         );
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    fn export_json(&self) -> String {
-        let state = BodyExport {
-            body_state: &self.state,
-            base_state: &self.base.state,
-        };
-        match serde_json::to_string_pretty(&state) {
-            Ok(s) => {
-                return s;
-            }
-            Err(e) => {
-                godot_error!("Failed to serialize body to json: {}", e);
-            }
-        }
-        "{}".to_string()
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    fn export_binary(&self) -> PackedByteArray {
-        let mut buf = PackedByteArray::new();
-        let state = BodyExport {
-            body_state: &self.state,
-            base_state: &self.base.state,
-        };
-        match bincode::serialize(&state) {
-            Ok(binary_data) => {
-                buf.resize(binary_data.len());
-                for i in 0..binary_data.len() {
-                    buf[i] = binary_data[i];
-                }
-            }
-            Err(e) => {
-                godot_error!("Failed to serialize body to binary: {}", e);
-            }
-        }
-        buf
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    fn import_binary(&mut self, data: PackedByteArray) {
-        match bincode::deserialize::<BodyImport>(data.as_slice()) {
-            Ok(import) => {
-                self.state = import.body_state;
-                self.base.state = import.base_state;
-            }
-            Err(e) => {
-                godot_error!("Failed to deserialize body from binary: {}", e);
-            }
-        }
     }
 }
 impl Drop for RapierBody {

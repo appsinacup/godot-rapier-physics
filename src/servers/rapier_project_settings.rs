@@ -3,6 +3,8 @@ use godot::global::*;
 use godot::prelude::*;
 use rapier::dynamics::IntegrationParameters;
 use rapier::math::Real;
+#[cfg(feature = "parallel")]
+const NUM_THREADS: &str = "physics/rapier/parallel/num_threads";
 const SOLVER_NUM_ITERATIONS: &str = "physics/rapier/solver/num_iterations";
 const SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS: &str =
     "physics/rapier/solver/num_internal_stabilization_iterations";
@@ -15,6 +17,8 @@ const SOLVER_NORMALIZED_MAX_CORRECTIVE_VELOCITY: &str =
     "physics/rapier/solver/normalized_max_corrective_velocity";
 const SOLVER_NORMALIZED_PREDICTION_DISTANCE: &str =
     "physics/rapier/solver/normalized_prediction_distance";
+const SOLVER_PREDICTIVE_CONTACT_ALLOWANCE_THRESHOLD: &str =
+    "physics/rapier/solver/predictive_contact_allowance_threshold";
 const CONTACT_DAMPING_RATIO: &str = "physics/rapier/solver/contact_damping_ratio";
 const CONTACT_NATURAL_FREQUENCY: &str = "physics/rapier/solver/contact_natural_frequency";
 #[cfg(feature = "dim2")]
@@ -22,6 +26,7 @@ const FLUID_PARTICLE_RADIUS: &str = "physics/rapier/fluid/fluid_particle_radius_
 #[cfg(feature = "dim3")]
 const FLUID_PARTICLE_RADIUS: &str = "physics/rapier/fluid/fluid_particle_radius_3d";
 const FLUID_SMOOTHING_FACTOR: &str = "physics/rapier/fluid/fluid_smoothing_factor";
+const FLUID_BOUNDARY_COEFF: &str = "physics/rapier/fluid/fluid_boundary_coefficient";
 #[cfg(feature = "dim2")]
 const LENGTH_UNIT: &str = "physics/rapier/solver/length_unit_2d";
 #[cfg(feature = "dim2")]
@@ -38,8 +43,6 @@ const FLUID_PARTICLE_VALUE: real = 0.5;
 const LENGTH_UNIT: &str = "physics/rapier/solver/length_unit_3d";
 #[cfg(feature = "dim3")]
 const LENGTH_UNIT_VALUE: real = 1.0;
-const JOINT_DAMPING_RATIO: &str = "physics/rapier/joint/damping_ratio";
-const JOINT_NATURAL_FREQUENCY: &str = "physics/rapier/joint/natural_frequency";
 pub fn register_setting(
     p_name: &str,
     p_value: Variant,
@@ -84,6 +87,16 @@ pub struct RapierProjectSettings;
 impl RapierProjectSettings {
     pub fn register_settings() {
         let integration_parameters = IntegrationParameters::default();
+        #[cfg(feature = "parallel")]
+        {
+            let num_threads = num_cpus::get_physical();
+            register_setting_ranged(
+                NUM_THREADS,
+                Variant::from(num_threads as i32),
+                "1,64,or_greater",
+                false,
+            );
+        }
         register_setting_ranged(
             SOLVER_NUM_INTERNAL_PGS_ITERATIONS,
             Variant::from(integration_parameters.num_internal_pgs_iterations as i32),
@@ -127,6 +140,12 @@ impl RapierProjectSettings {
             false,
         );
         register_setting_ranged(
+            SOLVER_PREDICTIVE_CONTACT_ALLOWANCE_THRESHOLD,
+            Variant::from(integration_parameters.normalized_prediction_distance),
+            "0,1,0.00001,or_greater",
+            false,
+        );
+        register_setting_ranged(
             CONTACT_DAMPING_RATIO,
             Variant::from(integration_parameters.contact_damping_ratio),
             "0,100,0.00001,or_greater",
@@ -139,20 +158,8 @@ impl RapierProjectSettings {
             false,
         );
         register_setting_ranged(
-            JOINT_DAMPING_RATIO,
-            Variant::from(integration_parameters.joint_damping_ratio),
-            "0,10,0.00001,or_greater",
-            false,
-        );
-        register_setting_ranged(
-            JOINT_NATURAL_FREQUENCY,
-            Variant::from(integration_parameters.joint_natural_frequency),
-            "0,1000000,0.00001,or_greater",
-            false,
-        );
-        register_setting_ranged(
             GHOST_COLLISION_DISTANCE,
-            Variant::from(0.0),
+            Variant::from(0.15),
             "0,10,0.00001,or_greater",
             false,
         );
@@ -166,6 +173,12 @@ impl RapierProjectSettings {
             FLUID_SMOOTHING_FACTOR,
             Variant::from(2.0),
             "0,10,0.00001,suffix:%,or_greater",
+            false,
+        );
+        register_setting_ranged(
+            FLUID_BOUNDARY_COEFF,
+            Variant::from(0.00001),
+            "0,10,0.00001,or_greater",
             false,
         );
         register_setting_ranged(
@@ -208,16 +221,12 @@ impl RapierProjectSettings {
         RapierProjectSettings::get_setting_double(FLUID_SMOOTHING_FACTOR) as Real
     }
 
+    pub fn get_fluid_boundary_coef() -> Real {
+        RapierProjectSettings::get_setting_double(FLUID_BOUNDARY_COEFF) as Real
+    }
+
     pub fn get_length_unit() -> Real {
         RapierProjectSettings::get_setting_double(LENGTH_UNIT) as Real
-    }
-
-    pub fn get_joint_damping_ratio() -> Real {
-        RapierProjectSettings::get_setting_double(JOINT_DAMPING_RATIO) as Real
-    }
-
-    pub fn get_joint_natural_frequency() -> Real {
-        RapierProjectSettings::get_setting_double(JOINT_NATURAL_FREQUENCY) as Real
     }
 
     pub fn get_normalized_allowed_linear_error() -> Real {
@@ -230,6 +239,11 @@ impl RapierProjectSettings {
 
     pub fn get_normalized_prediction_distance() -> Real {
         RapierProjectSettings::get_setting_double(SOLVER_NORMALIZED_PREDICTION_DISTANCE) as Real
+    }
+
+    pub fn get_predictive_contact_allowance_threshold() -> Real {
+        RapierProjectSettings::get_setting_double(SOLVER_PREDICTIVE_CONTACT_ALLOWANCE_THRESHOLD)
+            as Real
     }
 
     pub fn get_num_internal_stabilization_iterations() -> i64 {
@@ -246,5 +260,10 @@ impl RapierProjectSettings {
 
     pub fn get_ghost_collision_distance() -> Real {
         RapierProjectSettings::get_setting_double(GHOST_COLLISION_DISTANCE) as Real
+    }
+
+    #[cfg(feature = "parallel")]
+    pub fn get_num_threads() -> usize {
+        RapierProjectSettings::get_setting_int(NUM_THREADS) as usize
     }
 }

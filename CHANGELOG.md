@@ -1,9 +1,61 @@
 # Changelog
 
-## v0.8.17 - Oct 31
+## v0.8.22 - Nov 12
+
+## What's Changed
+* Add joint softness finally by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/439
+* update hashbrown. Also add threadcount. by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/442
+* Fluid: Implement get_particle_in_circle/sphere and Salva Particle Logic Refactors by @iLLsen in https://github.com/appsinacup/godot-rapier-physics/pull/440
+* Add stuck logic to the chracter controller by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/443
+* fix character bodies not using excepted bodies by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/444
+* fix ccd not setting after shape recreate by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/445
+* always send 1 collision, even if predictive contact by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/446
+* small fix to cast motion by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/447
+
+
+**Full Changelog**: https://github.com/appsinacup/godot-rapier-physics/compare/v0.8.21...nightly
+
+## v0.8.21 - Nov 8
+
+## What's New?
+* fix sleeping not working by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/434
+* Fix character controller by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/436
+
+## v0.8.20 - Nov 7
+
+## What's Changed
+* Fix fluid2d mask and layer by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/426
+* Fluid get particle in aabb by @iLLsen in https://github.com/appsinacup/godot-rapier-physics/pull/429
+* re-enable web builds and linux 32 bit builds by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/430
+* fix joint scale for 2d by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/431
+
+## New Contributors
+* @iLLsen made their first contribution in https://github.com/appsinacup/godot-rapier-physics/pull/429
+
+## v0.8.19 - Nov 4
+
+## What's Changed
+* re-enable parallel feature by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/421
+* Fix groove joint from @legendofa by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/422
+* Update to use yarwin/gdext by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/425
+* fix joints axis to use basis correctly by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/423
+
+## v0.8.18 - Nov 2
+
+## What's Changed
+* fix contact force not set for static bodies by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/417
+* Predictive pruning threshold by @dog-molecule in https://github.com/appsinacup/godot-rapier-physics/pull/418
+* Canvas layer parentage fix by @dog-molecule in https://github.com/appsinacup/godot-rapier-physics/pull/420
+* update to latest rust and use simd-nightly by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/419
+
+## v0.8.17 - Nov 1
 
 ## What's Changed
 * Predictive contact culling by @dog-molecule in https://github.com/appsinacup/godot-rapier-physics/pull/412
+* Fix calls to create_shape by @dog-molecule in https://github.com/appsinacup/godot-rapier-physics/pull/413
+* fix fluid tool level error by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/414
+* add 6dof by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/415
+* Corrects normal directions for concave polygon 3D collision shapes by @dog-molecule in https://github.com/appsinacup/godot-rapier-physics/pull/416
 
 ## v0.8.16 - Oct 29
 

@@ -88,7 +88,7 @@ pub struct ContactResult {
 #[derive(Default)]
 pub struct QueryExcludedInfo {
     pub query_collision_layer_mask: u32,
-    pub query_canvas_instance_id: u64,
+    pub query_canvas_instance_id: Option<u64>,
     // Pointer to array of objects
     pub query_exclude: Vec<ColliderHandle>,
     pub query_exclude_size: usize,

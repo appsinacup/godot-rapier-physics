@@ -243,7 +243,10 @@ mod tests {
         WorldSettings {
             particle_radius: 1.0,
             smoothing_factor: 1.0,
-            counters_enabled: true,
+            counters_enabled: false,
+            boundary_coef: 1.0,
+            #[cfg(feature = "parallel")]
+            thread_count: 1,
         }
     }
     #[test]

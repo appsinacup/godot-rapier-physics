@@ -68,6 +68,24 @@ pub type PhysicsServerExtensionShapeRestInfo = native::PhysicsServer3DExtensionS
 pub fn transform_scale(transform: &Transform) -> Vector {
     transform.basis.get_scale()
 }
+#[derive(GodotConvert, Var, Export, Debug)]
+#[godot(via = GString)]
+// An anum to allow easy export into various formats; None outputs a json string (plaintext, good for debugging),
+// GodotBase64 uses Godot's Marshalls to produce an encoded Godot String (for if you need to decode the data in gdscript or elsewhere on the Godot side),
+// and RustBincode uses, well, Rust's bincode for maximum speed and efficiency.
+pub enum SerializationFormat {
+    None, // first enumerator is default.
+    GodotBase64,
+    RustBincode,
+}
+pub fn bin_to_packed_byte_array(bin: Vec<u8>) -> PackedByteArray {
+    let mut pba = PackedByteArray::new();
+    pba.resize(bin.len());
+    for i in 0..(bin.len()) {
+        pba[i] = bin[i];
+    }
+    pba
+}
 #[cfg(feature = "dim2")]
 pub fn transform_scale(transform: &Transform) -> Vector {
     transform.scale()
@@ -89,6 +107,27 @@ pub fn transform_inverse(transform: &Transform) -> Transform {
     } else {
         transform.affine_inverse()
     }
+}
+/// Converts a world position to local position without applying scale.
+/// This is needed for joint anchors to work correctly with scaled bodies.
+#[cfg(feature = "dim2")]
+pub fn world_to_local_no_scale(transform: &Transform, world_pos: Vector) -> Vector {
+    // Create a transform without scale for proper anchor conversion
+    let scale = transform.scale();
+    if scale.x.is_zero_approx() || scale.y.is_zero_approx() {
+        // Degenerate scale, return as-is
+        return transform.affine_inverse() * world_pos;
+    }
+    // Remove scale from the transform
+    let rotation = transform.rotation();
+    let origin = transform.origin;
+    let transform_no_scale = Transform::from_angle_scale_skew_origin(
+        rotation,
+        Vector::new(1.0, 1.0),
+        transform.skew(),
+        origin,
+    );
+    transform_no_scale.affine_inverse() * world_pos
 }
 #[cfg(feature = "dim2")]
 pub fn transform_update(
@@ -134,6 +173,14 @@ pub fn transform_rotation_rapier(transform: &godot::builtin::Transform3D) -> Rot
 pub fn transform_rotation_rapier(transform: &godot::builtin::Transform2D) -> Rotation<Real> {
     let angle = transform.rotation();
     Rotation::from_angle(angle)
+}
+#[cfg(feature = "dim3")]
+pub fn basis_to_rapier(basis: godot::builtin::Basis) -> Rotation<Real> {
+    use rapier::na::Vector4;
+    let quaternion = basis.get_quaternion();
+    Rotation::from_quaternion(rapier::na::Quaternion {
+        coords: Vector4::new(quaternion.x, quaternion.y, quaternion.z, quaternion.w),
+    })
 }
 pub fn vector_normalized(vector: Vector) -> Vector {
     if vector != Vector::ZERO {

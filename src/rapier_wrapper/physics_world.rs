@@ -3,11 +3,8 @@ use std::sync::mpsc;
 
 use hashbrown::HashMap;
 use rapier::data::Index;
+use rapier::parry::utils::IsometryOpt;
 use rapier::prelude::*;
-#[cfg(feature = "dim2")]
-use rapier2d::parry::utils::IsometryOpt;
-#[cfg(feature = "dim3")]
-use rapier3d::parry::utils::IsometryOpt;
 use salva::integrations::rapier::FluidsPipeline;
 
 use crate::rapier_wrapper::prelude::*;
@@ -86,10 +83,32 @@ pub struct PhysicsObjects {
 
     pub handle: WorldHandle,
 }
+impl Clone for PhysicsObjects {
+    fn clone(&self) -> Self {
+        Self {
+            island_manager: self.island_manager.clone(),
+            broad_phase: self.broad_phase.clone(),
+            narrow_phase: self.narrow_phase.clone(),
+            impulse_joint_set: self.impulse_joint_set.clone(),
+            multibody_joint_set: self.multibody_joint_set.clone(),
+            ccd_solver: self.ccd_solver.clone(),
+
+            collider_set: self.collider_set.clone(),
+            rigid_body_set: self.rigid_body_set.clone(),
+
+            removed_rigid_bodies_user_data: self.removed_rigid_bodies_user_data.clone(),
+            removed_colliders_user_data: self.removed_colliders_user_data.clone(),
+
+            handle: self.handle,
+        }
+    }
+}
 pub struct PhysicsWorld {
     pub physics_objects: PhysicsObjects,
     pub physics_pipeline: PhysicsPipeline,
     pub fluids_pipeline: FluidsPipeline,
+    #[cfg(feature = "parallel")]
+    pub thread_pool: rapier::rayon::ThreadPool,
 }
 impl PhysicsWorld {
     pub fn new(settings: &WorldSettings) -> PhysicsWorld {
@@ -115,10 +134,16 @@ impl PhysicsWorld {
                 handle: WorldHandle::default(),
             },
             physics_pipeline,
-            fluids_pipeline: FluidsPipeline::new(
+            fluids_pipeline: FluidsPipeline::new_with_boundary_coef(
                 settings.particle_radius,
                 settings.smoothing_factor,
+                settings.boundary_coef,
             ),
+            #[cfg(feature = "parallel")]
+            thread_pool: rapier::rayon::ThreadPoolBuilder::new()
+                .num_threads(settings.thread_count)
+                .build()
+                .unwrap(),
         }
     }
 
@@ -150,8 +175,6 @@ impl PhysicsWorld {
             contact_damping_ratio: settings.contact_damping_ratio,
             contact_natural_frequency: settings.contact_natural_frequency,
             max_ccd_substeps: settings.max_ccd_substeps,
-            joint_damping_ratio: settings.joint_damping_ratio,
-            joint_natural_frequency: settings.joint_natural_frequency,
             normalized_allowed_linear_error: settings.normalized_allowed_linear_error,
             normalized_max_corrective_velocity: settings.normalized_max_corrective_velocity,
             normalized_prediction_distance: settings.normalized_prediction_distance,
@@ -176,6 +199,27 @@ impl PhysicsWorld {
         let (collision_send, collision_recv) = mpsc::channel();
         let (contact_force_send, contact_force_recv) = mpsc::channel();
         let event_handler = ContactEventHandler::new(collision_send, contact_force_send);
+        #[cfg(feature = "parallel")]
+        {
+            let physics_pipeline = &mut self.physics_pipeline;
+            self.thread_pool.install(|| {
+                physics_pipeline.step(
+                    &gravity,
+                    &integration_parameters,
+                    &mut self.physics_objects.island_manager,
+                    &mut self.physics_objects.broad_phase,
+                    &mut self.physics_objects.narrow_phase,
+                    &mut self.physics_objects.rigid_body_set,
+                    &mut self.physics_objects.collider_set,
+                    &mut self.physics_objects.impulse_joint_set,
+                    &mut self.physics_objects.multibody_joint_set,
+                    &mut self.physics_objects.ccd_solver,
+                    &physics_hooks,
+                    &event_handler,
+                );
+            });
+        }
+        #[cfg(not(feature = "parallel"))]
         self.physics_pipeline.step(
             &gravity,
             &integration_parameters,
@@ -190,7 +234,6 @@ impl PhysicsWorld {
             &physics_hooks,
             &event_handler,
         );
-        // TODO do I still need to call query pipeline update manually?
         if self.fluids_pipeline.liquid_world.fluids().len() > 0 {
             self.fluids_pipeline.step(
                 &liquid_gravity,
@@ -264,7 +307,8 @@ impl PhysicsWorld {
                             let world_pos2 =
                                 manifold.subshape_pos2.prepend_to(collider2.position());
                             let keep_solver_contact = effective_contact_dist
-                                < settings.normalized_prediction_distance * settings.length_unit
+                                < settings.predictive_contact_allowance_threshold
+                                    * settings.length_unit
                                 || {
                                     let world_pt1 = world_pos1 * contact_point.local_p1;
                                     let world_pt2 = world_pos2 * contact_point.local_p2;
@@ -278,7 +322,7 @@ impl PhysicsWorld {
                                         .unwrap_or_default();
                                     effective_contact_dist
                                         + (vel2 - vel1).dot(&manifold.data.normal) * settings.dt
-                                        < settings.normalized_prediction_distance
+                                        < settings.predictive_contact_allowance_threshold
                                             * settings.length_unit
                                 };
                             if keep_solver_contact {
@@ -585,23 +629,22 @@ impl PhysicsEngine {
     }
 
     pub fn world_reset_if_empty(&mut self, world_handle: WorldHandle, settings: &WorldSettings) {
-        if let Some(physics_world) = self.get_mut_world(world_handle) {
-            if physics_world.physics_objects.impulse_joint_set.is_empty()
-                && physics_world
-                    .physics_objects
-                    .multibody_joint_set
-                    .multibodies()
-                    .peekable()
-                    .peek()
-                    .is_none()
-                && physics_world.physics_objects.rigid_body_set.is_empty()
-                && physics_world.physics_objects.collider_set.is_empty()
-            {
-                let new_physics_world = PhysicsWorld::new(settings);
-                physics_world.fluids_pipeline = new_physics_world.fluids_pipeline;
-                physics_world.physics_pipeline = new_physics_world.physics_pipeline;
-                physics_world.physics_objects = new_physics_world.physics_objects;
-            }
+        if let Some(physics_world) = self.get_mut_world(world_handle)
+            && physics_world.physics_objects.impulse_joint_set.is_empty()
+            && physics_world
+                .physics_objects
+                .multibody_joint_set
+                .multibodies()
+                .peekable()
+                .peek()
+                .is_none()
+            && physics_world.physics_objects.rigid_body_set.is_empty()
+            && physics_world.physics_objects.collider_set.is_empty()
+        {
+            let new_physics_world = PhysicsWorld::new(settings);
+            physics_world.fluids_pipeline = new_physics_world.fluids_pipeline;
+            physics_world.physics_pipeline = new_physics_world.physics_pipeline;
+            physics_world.physics_objects = new_physics_world.physics_objects;
         }
     }
 

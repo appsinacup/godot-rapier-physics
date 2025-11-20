@@ -10,6 +10,9 @@ use crate::servers::rapier_physics_singleton::RapierId;
 pub struct RapierSphericalJoint3D {
     anchor_a: Vector3,
     anchor_b: Vector3,
+    bias: f32,
+    damping: f32,
+    impulse_clamp: f32,
     base: RapierJointBase,
 }
 impl RapierSphericalJoint3D {
@@ -25,6 +28,9 @@ impl RapierSphericalJoint3D {
         let invalid_joint = Self {
             anchor_a,
             anchor_b,
+            bias: 0.3,
+            damping: 1.0,
+            impulse_clamp: 0.0,
             base: RapierJointBase::default(),
         };
         let body_a_rid = body_a.get_base().get_rid();
@@ -55,7 +61,41 @@ impl RapierSphericalJoint3D {
         Self {
             anchor_a,
             anchor_b,
+            bias: 0.3,
+            damping: 1.0,
+            impulse_clamp: 0.0,
             base: RapierJointBase::new(id, rid, space_id, space_handle, handle),
+        }
+    }
+
+    pub fn set_param(
+        &mut self,
+        param: physics_server_3d::PinJointParam,
+        value: f32,
+        _physics_engine: &mut PhysicsEngine,
+    ) {
+        match param {
+            physics_server_3d::PinJointParam::BIAS => {
+                self.bias = value;
+            }
+            physics_server_3d::PinJointParam::DAMPING => {
+                self.damping = value;
+            }
+            physics_server_3d::PinJointParam::IMPULSE_CLAMP => {
+                self.impulse_clamp = value;
+            }
+            _ => {}
+        }
+        // Note: Rapier's SphericalJoint doesn't expose direct control over these solver parameters
+        // They are handled internally by the constraint solver
+    }
+
+    pub fn get_param(&self, param: physics_server_3d::PinJointParam) -> f32 {
+        match param {
+            physics_server_3d::PinJointParam::BIAS => self.bias,
+            physics_server_3d::PinJointParam::DAMPING => self.damping,
+            physics_server_3d::PinJointParam::IMPULSE_CLAMP => self.impulse_clamp,
+            _ => 0.0,
         }
     }
 

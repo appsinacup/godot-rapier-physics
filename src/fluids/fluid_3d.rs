@@ -7,7 +7,7 @@ use crate::servers::RapierPhysicsServer;
 use crate::servers::rapier_project_settings::RapierProjectSettings;
 use crate::types::*;
 #[derive(GodotClass)]
-#[class(base=Node3D)]
+#[class(base=Node3D,tool)]
 /// The fluid node. Use this node to simulate fluids in 2D.
 pub struct Fluid3D {
     #[var(get)]
@@ -32,12 +32,13 @@ pub struct Fluid3D {
     pub(crate) points: PackedVectorArray,
     pub(crate) create_times: PackedFloat32Array,
 
-    #[export(flags_2d_physics)]
-    #[var(get = get_collision_mask, set = set_collision_mask)]
-    pub(crate) collision_mask: u32,
+    #[export_group(name = "Collision", prefix = "collision_")]
     #[export(flags_2d_physics)]
     #[var(get = get_collision_layer, set = set_collision_layer)]
     pub(crate) collision_layer: u32,
+    #[export(flags_2d_physics)]
+    #[var(get = get_collision_mask, set = set_collision_mask)]
+    pub(crate) collision_mask: u32,
     base: Base<Node3D>,
 }
 #[godot_api]
@@ -182,6 +183,18 @@ impl Fluid3D {
     /// Set the collision layer of the fluid particles.
     fn set_collision_layer(&mut self, layer: u32) {
         FluidImpl::set_collision_layer(self, layer);
+    }
+
+    #[func]
+    /// Get the indices of the fluid particles inside an AABB.
+    fn get_particles_in_aabb(&self, aabb: Aabb) -> PackedInt32Array {
+        FluidImpl::get_particles_in_aabb(self, aabb)
+    }
+
+    #[func]
+    /// Get the indices of the fluid particles inside a sphere.
+    fn get_particles_in_sphere(&self, center: Vector3, radius: real) -> PackedInt32Array {
+        FluidImpl::get_particles_in_ball(self, center, radius)
     }
 }
 #[godot_api]

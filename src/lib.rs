@@ -18,6 +18,7 @@ extern crate salva3d_f64 as salva;
 mod bodies;
 mod fluids;
 mod joints;
+mod nodes;
 mod rapier_wrapper;
 mod servers;
 mod shapes;

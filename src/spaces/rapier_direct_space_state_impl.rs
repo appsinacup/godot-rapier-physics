@@ -84,12 +84,11 @@ impl RapierDirectSpaceStateImpl {
             if let Some(collision_object_2d) = physics_data.collision_objects.get(&result.rid) {
                 let instance_id = collision_object_2d.get_base().get_instance_id();
                 result.collider_id = ObjectId { id: instance_id };
-                if instance_id != 0 {
-                    if let Ok(object) =
+                if instance_id != 0
+                    && let Ok(object) =
                         Gd::<Node>::try_from_instance_id(InstanceId::from_i64(instance_id as i64))
-                    {
-                        result.set_collider(object)
-                    }
+                {
+                    result.set_collider(object)
                 }
             }
             #[cfg(feature = "dim3")]
@@ -129,7 +128,7 @@ impl RapierDirectSpaceStateImpl {
         let hit_info_ptr = hit_info_array.as_mut_ptr();
         // Initialize query_excluded_info
         let query_excluded_info = QueryExcludedInfo {
-            query_canvas_instance_id: canvas_instance_id,
+            query_canvas_instance_id: Some(canvas_instance_id),
             query_collision_layer_mask: collision_mask,
             ..Default::default()
         };
@@ -163,12 +162,11 @@ impl RapierDirectSpaceStateImpl {
             if let Some(collision_object_2d) = collision_object_2d {
                 let instance_id = collision_object_2d.get_base().get_instance_id();
                 result_slice.collider_id = ObjectId { id: instance_id };
-                if instance_id != 0 {
-                    if let Ok(object) =
+                if instance_id != 0
+                    && let Ok(object) =
                         Gd::<Node>::try_from_instance_id(InstanceId::from_i64(instance_id as i64))
-                    {
-                        result_slice.set_collider(object)
-                    }
+                {
+                    result_slice.set_collider(object)
                 }
             }
         }
@@ -237,12 +235,11 @@ impl RapierDirectSpaceStateImpl {
                 results_slice[cpt].rid = rid;
                 let instance_id = collision_object_2d.get_base().get_instance_id();
                 results_slice[cpt].collider_id = ObjectId { id: instance_id };
-                if instance_id != 0 {
-                    if let Ok(object) =
+                if instance_id != 0
+                    && let Ok(object) =
                         Gd::<Node>::try_from_instance_id(InstanceId::from_i64(instance_id as i64))
-                    {
-                        results_slice[cpt].set_collider(object)
-                    }
+                {
+                    results_slice[cpt].set_collider(object)
                 }
             }
             cpt += 1;
@@ -291,9 +288,6 @@ impl RapierDirectSpaceStateImpl {
             space,
             true,
         );
-        if results.is_empty() {
-            return false;
-        }
         let mut closest_located_safe = 1.0;
         let mut closest_located_unsafe = 1.0;
         for result in results {
@@ -301,6 +295,12 @@ impl RapierDirectSpaceStateImpl {
                 closest_located_safe = result.toi;
                 closest_located_unsafe = result.toi_unsafe;
             }
+        }
+        // If the shape is already penetrating at the start position (toi = 0),
+        // Godot expects [1, 1] to indicate no blocking (shape is already inside)
+        if closest_located_safe == 0.0 && closest_located_unsafe == 0.0 {
+            closest_located_safe = 1.0;
+            closest_located_unsafe = 1.0;
         }
         let closest_safe = closest_safe as *mut real;
         let closest_unsafe = closest_unsafe as *mut real;
