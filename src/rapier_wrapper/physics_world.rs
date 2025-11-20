@@ -99,11 +99,10 @@ impl Clone for PhysicsObjects {
             removed_rigid_bodies_user_data: self.removed_rigid_bodies_user_data.clone(),
             removed_colliders_user_data: self.removed_colliders_user_data.clone(),
 
-            handle: self.handle.clone(),
+            handle: self.handle,
         }
     }
 }
-
 pub struct PhysicsWorld {
     pub physics_objects: PhysicsObjects,
     pub physics_pipeline: PhysicsPipeline,

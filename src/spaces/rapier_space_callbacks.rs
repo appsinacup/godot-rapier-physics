@@ -200,21 +200,27 @@ impl RapierSpace {
             } else if let Some(p_object2) = physics_collision_objects.get_mut(&p_object2) {
                 p_collision_object2 = Some(p_object2);
             }
-            let event_as_int = if event_info.is_started { 1 } else if event_info.is_stopped { -1 } else { 0 };
+            let event_as_int = if event_info.is_started {
+                1
+            } else if event_info.is_stopped {
+                -1
+            } else {
+                0
+            };
             // collision object 1 area
             if let Some(ref mut p_collision_object1) = p_collision_object1
                 && let Some(p_area1) = p_collision_object1.get_mut_area()
             {
                 p_area1.receive_event(
                     event_as_int,
-                    type2, 
-                    collider_handle2, 
-                    &mut p_collision_object2, 
-                    shape2, 
-                    body_id2, 
-                    instance_id2, 
-                    collider_handle1, 
-                    shape1, 
+                    type2,
+                    collider_handle2,
+                    &mut p_collision_object2,
+                    shape2,
+                    body_id2,
+                    instance_id2,
+                    collider_handle1,
+                    shape1,
                     self,
                 );
             }
@@ -224,14 +230,14 @@ impl RapierSpace {
             {
                 p_area2.receive_event(
                     event_as_int,
-                    type1, 
-                    collider_handle1, 
-                    &mut p_collision_object1, 
-                    shape1, 
-                    body_id1, 
-                    instance_id1, 
-                    collider_handle2, 
-                    shape2, 
+                    type1,
+                    collider_handle1,
+                    &mut p_collision_object1,
+                    shape1,
+                    body_id1,
+                    instance_id1,
+                    collider_handle2,
+                    shape2,
                     self,
                 );
             }

@@ -21,16 +21,14 @@ pub struct ShapeImport {
     state: RapierShapeState,
     shape: SharedShape,
 }
-
 impl<'a> ShapeExport<'a> {
-    pub fn to_import(self) -> ShapeImport {
+    pub fn into_import(self) -> ShapeImport {
         ShapeImport {
             state: self.state.clone(),
             shape: self.shape.clone(),
         }
     }
 }
-
 #[cfg_attr(
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
@@ -48,7 +46,6 @@ pub struct RapierShapeState {
     owners: HashMap<RapierId, i32>,
     id: RapierId,
 }
-
 #[derive(Debug)]
 pub struct RapierShapeBase {
     rid: Rid,
@@ -149,27 +146,26 @@ impl Drop for RapierShapeBase {
 impl ExportableObject for RapierShapeBase {
     type ExportState<'a> = ShapeExport<'a>;
 
-    fn get_export_state<'a>(&'a self, physics_engine: &'a mut PhysicsEngine) -> Option<Self::ExportState<'a>> {
-        if let Some(inner) = physics_engine.get_shape(self.get_id()) {
-            Some(ShapeExport {
+    fn get_export_state<'a>(
+        &'a self,
+        physics_engine: &'a mut PhysicsEngine,
+    ) -> Option<Self::ExportState<'a>> {
+        physics_engine.get_shape(self.get_id()).map(|inner| ShapeExport {
                 state: &self.state,
                 shape: inner,
             })
-        } else {
-            return None
-        }   
     }
 
     fn import_state(&mut self, physics_engine: &mut PhysicsEngine, data: ObjectImportState) {
         match data {
-            crate::bodies::exportable_object::ObjectImportState::RapierShapeBase(shape_import) => {
+            crate::bodies::exportable_object::ObjectImportState::ShapeBase(shape_import) => {
                 self.state = shape_import.state;
                 physics_engine.insert_shape(shape_import.shape, self.get_id());
-            },
+            }
             _ => {
                 godot_error!("Attempted to import invalid state data.");
             }
-        }        
+        }
     }
 }
 #[cfg(test)]

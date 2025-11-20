@@ -1,8 +1,6 @@
+use bodies::exportable_object::ExportableObject;
 use bodies::rapier_collision_object_base::CollisionObjectShape;
 use bodies::rapier_collision_object_base::RapierCollisionObjectBase;
-use bodies::exportable_object::ExportableObject;
-use crate::bodies::exportable_object::ObjectExportState;
-use crate::bodies::exportable_object::ObjectImportState;
 use godot::prelude::*;
 use rapier::geometry::ColliderHandle;
 use servers::rapier_physics_singleton::PhysicsIds;
@@ -12,10 +10,11 @@ use servers::rapier_physics_singleton::RapierId;
 
 use super::rapier_area::RapierArea;
 use super::rapier_body::RapierBody;
+use crate::bodies::exportable_object::ObjectExportState;
+use crate::bodies::exportable_object::ObjectImportState;
 use crate::rapier_wrapper::prelude::*;
 use crate::types::*;
 use crate::*;
-
 pub trait IRapierCollisionObject: Sync {
     fn get_base(&self) -> &RapierCollisionObjectBase;
     fn get_mut_base(&mut self) -> &mut RapierCollisionObjectBase;
@@ -113,8 +112,8 @@ pub trait IRapierCollisionObject: Sync {
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
 pub enum RapierCollisionObject {
-    RapierArea(RapierArea),
-    RapierBody(RapierBody),
+    Area(RapierArea),
+    Body(RapierBody),
 }
 macro_rules! impl_rapier_collision_object_trait {
     ($enum_name:ident, $($variant:ident),*) => {
@@ -301,15 +300,14 @@ macro_rules! impl_rapier_collision_object_trait {
         }
     };
 }
-impl_rapier_collision_object_trait!(RapierCollisionObject, RapierArea, RapierBody);
-
+impl_rapier_collision_object_trait!(RapierCollisionObject, Area, Body);
 macro_rules! impl_rapier_collision_object_exportable_trait {
     ($enum_name:ident, $($variant:ident),*) => {
-        impl ExportableObject for $enum_name { 
+        impl ExportableObject for $enum_name {
             type ExportState<'a> = ObjectExportState<'a>;
             #[cfg(feature = "serde-serialize")]
             fn get_export_state<'a>(
-                &'a self, 
+                &'a self,
                 physics_engine: &'a mut PhysicsEngine
             ) -> Option<Self::ExportState<'a>> {
                 match self {
@@ -330,9 +328,9 @@ macro_rules! impl_rapier_collision_object_exportable_trait {
                             co.import_state(physics_engine, data)
                         }
                     ,)*
-                }     
+                }
             }
         }
     };
 }
-impl_rapier_collision_object_exportable_trait!(RapierCollisionObject, RapierArea, RapierBody);
+impl_rapier_collision_object_exportable_trait!(RapierCollisionObject, Area, Body);

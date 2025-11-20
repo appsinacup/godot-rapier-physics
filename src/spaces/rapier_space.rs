@@ -40,49 +40,46 @@ pub struct SpaceExport<'a> {
     space: &'a RapierSpaceState,
     world: &'a PhysicsObjects,
 }
-
 #[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize, Clone))]
 pub struct SpaceImport {
     space: RapierSpaceState,
     pub(crate) world: PhysicsObjects,
 }
-
 impl<'a> SpaceExport<'a> {
-    pub fn to_import(self) -> SpaceImport {
-        SpaceImport {
-            space: self.space.clone(),
-            world: self.world.clone(),
-        }
+    pub fn into_import(self) -> Box<SpaceImport> {
+        Box::new(
+            SpaceImport {
+                space: self.space.clone(),
+                world: self.world.clone(),
+            }
+        )
     }
 }
-
 #[cfg(feature = "serde-serialize")]
 impl ExportableObject for RapierSpace {
     type ExportState<'a> = SpaceExport<'a>;
 
-    fn get_export_state<'a>(&'a self, physics_engine: &'a mut PhysicsEngine) -> Option<Self::ExportState<'a>> {
-        if let Some(inner) = physics_engine.world_export(self.state.get_id()) {
-            Some(SpaceExport {
-                space: &self.state,
-                world: inner, 
-            })
-        } else {
-            return None
-        }   
+    fn get_export_state<'a>(
+        &'a self,
+        physics_engine: &'a mut PhysicsEngine,
+    ) -> Option<Self::ExportState<'a>> {
+        physics_engine.world_export(self.state.get_id()).map(|inner| SpaceExport {
+            space: &self.state,
+            world: inner,
+        })
     }
 
     fn import_state(&mut self, physics_engine: &mut PhysicsEngine, data: ObjectImportState) {
         match data {
-            bodies::exportable_object::ObjectImportState::RapierSpace(space_import) => {
-                self.import(physics_engine, space_import);
-            },
+            bodies::exportable_object::ObjectImportState::Space(space_import) => {
+                self.import(physics_engine, *space_import);
+            }
             _ => {
                 godot_error!("Attempted to import invalid state data.");
             }
-        }        
+        }
     }
 }
-
 pub struct RapierSpace {
     direct_access: Option<Gd<PhysicsDirectSpaceState>>,
     contact_max_allowed_penetration: real,
@@ -180,10 +177,11 @@ impl RapierSpace {
                 area_monitor_callback = area.area_monitor_callback.clone();
             }
             if let Some(unhandled_event_queue) = unhandled_event_queue {
-                
                 let mon_obj_len = unhandled_event_queue.len();
-                godot_print!("monitored_objects length passed into call_queries is {}", mon_obj_len);
-                
+                godot_print!(
+                    "monitored_objects length passed into call_queries is {}",
+                    mon_obj_len
+                );
                 RapierArea::call_queries(
                     &unhandled_event_queue,
                     monitor_callback,
@@ -420,39 +418,34 @@ impl RapierSpace {
         &self,
         physics_engine: &mut PhysicsEngine,
         new_narrowphase: &NarrowPhase,
-    ) -> Option<(Vec<ColliderPair>, Vec<ColliderPair>)>{
+    ) -> Option<(Vec<ColliderPair>, Vec<ColliderPair>)> {
         let mut stale_collider_pairs: Vec<ColliderPair> = Vec::new();
         let mut new_collider_pairs: Vec<ColliderPair> = Vec::new();
-        if let Some(current_world) = physics_engine.get_mut_world(self.get_state().get_id())
-        {
+        if let Some(current_world) = physics_engine.get_mut_world(self.get_state().get_id()) {
             // Convert the narrowphases into hashsets so we can idiomatically get their differences and intersections.
             let imp_set: HashSet<_> = new_narrowphase.intersection_pairs().collect();
-            let cur_set: HashSet<_> = current_world.physics_objects.narrow_phase.intersection_pairs().collect();
-
+            let cur_set: HashSet<_> = current_world
+                .physics_objects
+                .narrow_phase
+                .intersection_pairs()
+                .collect();
             let only_in_imported: Vec<_> = imp_set.difference(&cur_set).cloned().collect();
             let only_in_current: Vec<_> = cur_set.difference(&imp_set).cloned().collect();
             //let common_to_both: Vec<_> = imp_set.intersection(&cur_set).cloned().collect();
-
             for (handle1, handle2, _intersecting) in only_in_current {
                 stale_collider_pairs.push(ColliderPair::new(handle1, handle2));
             }
-
             for (handle1, handle2, _intersecting) in only_in_imported {
                 new_collider_pairs.push(ColliderPair::new(handle1, handle2));
             }
-
-            return Some((stale_collider_pairs, new_collider_pairs))
+            return Some((stale_collider_pairs, new_collider_pairs));
         }
-
-        return None
+        None
     }
 
-    fn import(&mut self, physics_engine: &mut PhysicsEngine, import: SpaceImport) {             
+    fn import(&mut self, physics_engine: &mut PhysicsEngine, import: SpaceImport) {
         // NOTE: Areas in this space MUST be made to clean up their stale intersections before import is called here.
-        let imported_physics_objects = import.world; 
-
         self.state = import.space;
-                        
         let world_settings = WorldSettings {
             particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
             smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
@@ -461,23 +454,15 @@ impl RapierSpace {
             #[cfg(feature = "parallel")]
             thread_count: RapierProjectSettings::get_num_threads(),
         };
-
-        let physics_objects = imported_physics_objects;             
-        physics_engine.world_import(
-            self.get_state().get_id(),
-            &world_settings,
-            physics_objects,
-        );
+        let physics_objects = import.world;
+        physics_engine.world_import(self.get_state().get_id(), &world_settings, physics_objects);
     }
 
-    pub fn flush(
-        &mut self
-    ){
+    pub fn flush(&mut self) {
         let physics_data = physics_data();
         let state_query_list = Some(self.get_state().get_state_query_list());
         let force_integrate_query_list = Some(self.get_state().get_force_integrate_query_list());
         let monitor_query_list = Some(self.get_state().get_monitor_query_list());
-
         if let Some(state_query_list) = state_query_list
             && let Some(force_integrate_query_list) = force_integrate_query_list
             && let Some(monitor_query_list) = monitor_query_list
@@ -490,7 +475,6 @@ impl RapierSpace {
                 &physics_data.ids,
             );
         }
-
         self.update_after_queries(&mut physics_data.collision_objects, &physics_data.ids);
     }
 

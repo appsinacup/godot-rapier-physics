@@ -11,20 +11,17 @@ use crate::*;
 pub struct JointExport<'a> {
     state: &'a RapierJointBaseState,
 }
-
 #[derive(serde::Deserialize, Clone)]
 pub struct JointImport {
     state: RapierJointBaseState,
 }
-
 impl<'a> JointExport<'a> {
-    pub fn to_import(self) -> JointImport {
+    pub fn into_import(self) -> JointImport {
         JointImport {
-            state: self.state.clone(),
+            state: *self.state,
         }
     }
 }
-
 #[cfg_attr(
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
@@ -58,20 +55,18 @@ impl ExportableObject for RapierJointBase {
     type ExportState<'a> = JointExport<'a>;
 
     fn get_export_state<'a>(&'a self, _: &'a mut PhysicsEngine) -> Option<Self::ExportState<'a>> {
-        Some(JointExport {
-            state: &self.state,
-        })  
+        Some(JointExport { state: &self.state })
     }
-    
+
     fn import_state(&mut self, _: &mut PhysicsEngine, data: ObjectImportState) {
         match data {
-            bodies::exportable_object::ObjectImportState::RapierJointBase(joint_import) => {
+            bodies::exportable_object::ObjectImportState::JointBase(joint_import) => {
                 self.state = joint_import.state;
-            },
+            }
             _ => {
                 godot_error!("Attempted to import invalid state data.");
             }
-        }        
+        }
     }
 }
 impl RapierJointBase {

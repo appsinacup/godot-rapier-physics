@@ -418,14 +418,14 @@ impl RapierPhysicsServerImpl {
         insert_id_rid(area.get_base().get_id(), rid, &mut physics_data.ids);
         physics_data
             .collision_objects
-            .insert(rid, RapierCollisionObject::RapierArea(area));
+            .insert(rid, RapierCollisionObject::Area(area));
         rid
     }
 
     pub(super) fn area_set_space(&mut self, area: Rid, space: Rid) {
-        let physics_data = physics_data();        
+        let physics_data = physics_data();
         if let Some(area) = physics_data.collision_objects.get_mut(&area) {
-            if let Some(area) = area.get_mut_area() {                
+            if let Some(area) = area.get_mut_area() {
                 area.clear_monitored_objects();
             }
             area.set_space(
@@ -771,7 +771,8 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get(&body) {
             if let Some(body) = body.get_body() {
-                return body.predict_next_frame_position(timestep, &mut physics_data.physics_engine);
+                return body
+                    .predict_next_frame_position(timestep, &mut physics_data.physics_engine);
             }
         }
         Vector::default()
@@ -785,7 +786,7 @@ impl RapierPhysicsServerImpl {
         insert_id_rid(body.get_base().get_id(), rid, &mut physics_data.ids);
         physics_data
             .collision_objects
-            .insert(rid, RapierCollisionObject::RapierBody(body));
+            .insert(rid, RapierCollisionObject::Body(body));
         rid
     }
 
@@ -2604,10 +2605,9 @@ impl RapierPhysicsServerImpl {
 
     pub(super) fn space_flush_queries(space: &Rid) {
         let physics_data = physics_data();
-
         if let Some(space) = physics_data.spaces.get_mut(space) {
             space.flush();
-        }       
+        }
     }
 
     pub(super) fn get_id(&self, rid: Rid) -> u64 {

@@ -16,9 +16,9 @@ macro_rules! make_rapier_server_godot_impl {
     ($class: ident) => {
         use godot::global::rid_allocate_id;
         use godot::global::rid_from_int64;
+        use $crate::bodies::exportable_object::ExportableObject;
         use $crate::bodies::exportable_object::ObjectExportState;
         use $crate::bodies::exportable_object::ObjectImportState;
-        use $crate::bodies::exportable_object::ExportableObject;
         use $crate::bodies::rapier_collision_object::IRapierCollisionObject;
         use $crate::fluids::rapier_fluid::RapierFluid;
         use $crate::servers::RapierPhysicsServer;
@@ -59,19 +59,24 @@ macro_rules! make_rapier_server_godot_impl {
             #[cfg(feature = "serde-serialize")]
             pub fn fetch_state_internal<'a>(physics_object: Rid) -> Option<ObjectExportState<'a>> {
                 let physics_data = physics_data();
-                use $crate::shapes::rapier_shape::IRapierShape;
                 use $crate::joints::rapier_joint::IRapierJoint;
+                use $crate::shapes::rapier_shape::IRapierShape;
                 if let Some(body) = physics_data.collision_objects.get(&physics_object) {
-                    return body.get_export_state(&mut physics_data.physics_engine)
-                }
-                else if let Some(joint) = physics_data.joints.get(&physics_object) {
-                    return joint.get_base().get_export_state(&mut physics_data.physics_engine).map(ObjectExportState::RapierJointBase);
-                }
-                else if let Some(shape) = physics_data.shapes.get(&physics_object) {
-                    return shape.get_base().get_export_state(&mut physics_data.physics_engine).map(ObjectExportState::RapierShapeBase);
-                }
-                else if let Some(space) = physics_data.spaces.get(&physics_object) {
-                    return space.get_export_state(&mut physics_data.physics_engine).map(ObjectExportState::RapierSpace);
+                    return body.get_export_state(&mut physics_data.physics_engine);
+                } else if let Some(joint) = physics_data.joints.get(&physics_object) {
+                    return joint
+                        .get_base()
+                        .get_export_state(&mut physics_data.physics_engine)
+                        .map(ObjectExportState::JointBase);
+                } else if let Some(shape) = physics_data.shapes.get(&physics_object) {
+                    return shape
+                        .get_base()
+                        .get_export_state(&mut physics_data.physics_engine)
+                        .map(ObjectExportState::ShapeBase);
+                } else if let Some(space) = physics_data.spaces.get(&physics_object) {
+                    return space
+                        .get_export_state(&mut physics_data.physics_engine)
+                        .map(ObjectExportState::Space);
                 }
                 None
             }
@@ -79,10 +84,10 @@ macro_rules! make_rapier_server_godot_impl {
             #[cfg(feature = "serde-serialize")]
             pub fn load_state_internal(physics_object: Rid, data: ObjectImportState) {
                 let physics_data = physics_data();
-                use $crate::shapes::rapier_shape::IRapierShape;
                 use $crate::joints::rapier_joint::IRapierJoint;
                 use $crate::servers::rapier_physics_singleton::insert_id_rid;
                 use $crate::servers::rapier_physics_singleton::remove_id_rid;
+                use $crate::shapes::rapier_shape::IRapierShape;
                 if let Some(body) = physics_data.collision_objects.get_mut(&physics_object) {
                     remove_id_rid(body.get_base().get_id(), &mut physics_data.ids);
                     body.import_state(&mut physics_data.physics_engine, data);
@@ -91,31 +96,34 @@ macro_rules! make_rapier_server_godot_impl {
                         body.get_base().get_rid(),
                         &mut physics_data.ids,
                     );
-                    return 
-                }
-                else if let Some(joint) = physics_data.joints.get_mut(&physics_object) {
+                    return;
+                } else if let Some(joint) = physics_data.joints.get_mut(&physics_object) {
                     remove_id_rid(joint.get_base().get_id(), &mut physics_data.ids);
-                    joint.get_mut_base().import_state(&mut physics_data.physics_engine, data);
+                    joint
+                        .get_mut_base()
+                        .import_state(&mut physics_data.physics_engine, data);
                     insert_id_rid(
                         joint.get_base().get_id(),
                         joint.get_base().get_rid(),
                         &mut physics_data.ids,
                     );
-                    return
-                }
-                else if let Some(shape) = physics_data.shapes.get_mut(&physics_object) {
+                    return;
+                } else if let Some(shape) = physics_data.shapes.get_mut(&physics_object) {
                     remove_id_rid(shape.get_base().get_id(), &mut physics_data.ids);
                     // Recreate shape handle:
-                    shape.get_mut_base().destroy_shape(&mut physics_data.physics_engine);
-                    shape.get_mut_base().import_state(&mut physics_data.physics_engine, data);
+                    shape
+                        .get_mut_base()
+                        .destroy_shape(&mut physics_data.physics_engine);
+                    shape
+                        .get_mut_base()
+                        .import_state(&mut physics_data.physics_engine, data);
                     insert_id_rid(
                         shape.get_base().get_id(),
                         shape.get_base().get_rid(),
                         &mut physics_data.ids,
                     );
                     return;
-                }
-                else if let Some(space) = physics_data.spaces.get_mut(&physics_object) {
+                } else if let Some(space) = physics_data.spaces.get_mut(&physics_object) {
                     return space.import_state(&mut physics_data.physics_engine, data);
                 }
             }

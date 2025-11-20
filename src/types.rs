@@ -68,7 +68,6 @@ pub type PhysicsServerExtensionShapeRestInfo = native::PhysicsServer3DExtensionS
 pub fn transform_scale(transform: &Transform) -> Vector {
     transform.basis.get_scale()
 }
-
 #[derive(GodotConvert, Var, Export, Debug)]
 #[godot(via = GString)]
 // An anum to allow easy export into various formats; None outputs a json string (plaintext, good for debugging),
@@ -79,7 +78,6 @@ pub enum SerializationFormat {
     GodotBase64,
     RustBincode,
 }
-
 pub fn bin_to_packed_byte_array(bin: Vec<u8>) -> PackedByteArray {
     let mut pba = PackedByteArray::new();
     pba.resize(bin.len());
@@ -88,7 +86,6 @@ pub fn bin_to_packed_byte_array(bin: Vec<u8>) -> PackedByteArray {
     }
     pba
 }
-
 #[cfg(feature = "dim2")]
 pub fn transform_scale(transform: &Transform) -> Vector {
     transform.scale()

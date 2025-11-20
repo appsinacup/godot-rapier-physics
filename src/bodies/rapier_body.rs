@@ -101,16 +101,14 @@ pub struct BodyImport {
     body_state: RapierBodyState,
     base_state: RapierCollisionObjectBaseState,
 }
-
 impl<'a> BodyExport<'a> {
-    pub fn to_import(self) -> BodyImport {
+    pub fn into_import(self) -> BodyImport {
         BodyImport {
             body_state: self.body_state.clone(),
             base_state: self.base_state.clone(),
         }
     }
 }
-
 #[derive(Default, Debug)]
 #[cfg_attr(
     feature = "serde-serialize",
@@ -491,10 +489,17 @@ impl RapierBody {
         }
         Vector::default()
     }
-    
-    pub fn predict_next_frame_position(&self, timestep: f64, physics_engine: &mut PhysicsEngine) -> Vector {
-        let vel = physics_engine
-            .body_predict_next_frame_position(timestep, self.base.get_space_id(), self.base.get_body_handle());
+
+    pub fn predict_next_frame_position(
+        &self,
+        timestep: f64,
+        physics_engine: &mut PhysicsEngine,
+    ) -> Vector {
+        let vel = physics_engine.body_predict_next_frame_position(
+            timestep,
+            self.base.get_space_id(),
+            self.base.get_body_handle(),
+        );
         vector_to_godot(vel)
     }
 
@@ -2140,7 +2145,6 @@ impl RapierBody {
         physics_engine.body_is_sleeping(self.base.get_space_id(), self.base.get_body_handle())
     }
 }
-
 #[cfg(feature = "serde-serialize")]
 impl ExportableObject for RapierBody {
     type ExportState<'a> = BodyExport<'a>;
@@ -2154,17 +2158,16 @@ impl ExportableObject for RapierBody {
 
     fn import_state(&mut self, _: &mut PhysicsEngine, data: ObjectImportState) {
         match data {
-            bodies::exportable_object::ObjectImportState::RapierBody(body_import) => {
+            bodies::exportable_object::ObjectImportState::Body(body_import) => {
                 self.state = body_import.body_state;
                 self.base.state = body_import.base_state;
-            },
+            }
             _ => {
                 godot_error!("Attempted to import invalid state data.");
             }
-        }        
+        }
     }
 }
-
 // We won't use the pointers between threads, so it should be safe.
 unsafe impl Sync for RapierBody {}
 impl IRapierCollisionObject for RapierBody {
