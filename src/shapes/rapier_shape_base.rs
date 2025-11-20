@@ -16,11 +16,21 @@ pub struct ShapeExport<'a> {
     state: &'a RapierShapeState,
     shape: &'a SharedShape,
 }
-#[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize, Clone))]
 pub struct ShapeImport {
     state: RapierShapeState,
     shape: SharedShape,
 }
+
+impl<'a> ShapeExport<'a> {
+    pub fn to_import(self) -> ShapeImport {
+        ShapeImport {
+            state: self.state.clone(),
+            shape: self.shape.clone(),
+        }
+    }
+}
+
 #[cfg_attr(
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
@@ -126,57 +136,6 @@ impl RapierShapeBase {
     pub fn destroy_shape(&mut self, physics_engine: &mut PhysicsEngine) {
         physics_engine.shape_destroy(self.get_id());
         self.state.owners.clear();
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    pub fn export_json(&self, physics_engine: &mut PhysicsEngine) -> String {
-        if let Some(inner) = physics_engine.get_shape(self.get_id()) {
-            let export = ShapeExport {
-                state: &self.state,
-                shape: inner,
-            };
-            match serde_json::to_string_pretty(&export) {
-                Ok(s) => {
-                    return s
-                }
-                Err(e) => {
-                    godot_error!("Failed to serialize shape to string: {}", e);
-                }
-            }
-        }
-        "{}".to_string()
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    pub fn export_binary(&self, physics_engine: &mut PhysicsEngine) -> Vec<u8> {
-        if let Some(inner) = physics_engine.get_shape(self.get_id()) {
-            let export = ShapeExport {
-                state: &self.state,
-                shape: inner,
-            };
-            match bincode::serialize(&export) {
-                Ok(binary_data) => {
-                    return binary_data
-                }
-                Err(e) => {
-                    godot_error!("Failed to serialize shape to binary: {}", e);
-                }
-            }
-        }
-        Vec::new()
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    pub fn import_binary(&mut self, data: PackedByteArray, physics_engine: &mut PhysicsEngine) {
-        match bincode::deserialize::<ShapeImport>(data.as_slice()) {
-            Ok(import) => {
-                self.state = import.state;
-                physics_engine.insert_shape(import.shape, self.get_id());
-            }
-            Err(e) => {
-                godot_error!("Failed to deserialize shape from binary: {}", e);
-            }
-        }
     }
 }
 impl Drop for RapierShapeBase {

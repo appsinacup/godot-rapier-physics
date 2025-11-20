@@ -10,9 +10,7 @@ use servers::rapier_physics_singleton::PhysicsShapes;
 use servers::rapier_physics_singleton::PhysicsSpaces;
 use servers::rapier_physics_singleton::RapierId;
 
-use super::rapier_area::AreaExport;
 use super::rapier_area::RapierArea;
-use super::rapier_body::BodyExport;
 use super::rapier_body::RapierBody;
 use crate::rapier_wrapper::prelude::*;
 use crate::types::*;
@@ -110,12 +108,6 @@ pub trait IRapierCollisionObject: Sync {
         physics_spaces: &mut PhysicsSpaces,
         physics_ids: &PhysicsIds,
     );
-    #[cfg(feature = "serde-serialize")]
-    fn export_json(&self) -> String;
-    #[cfg(feature = "serde-serialize")]
-    fn export_binary(&self) -> Vec<u8>;
-    #[cfg(feature = "serde-serialize")]
-    fn import_binary(&mut self, data: PackedByteArray);
 }
 // TODO investigate large enum variant
 #[allow(clippy::large_enum_variant)]
@@ -304,30 +296,6 @@ macro_rules! impl_rapier_collision_object_trait {
             ) {
                 match self {
                     $(Self::$variant(co) => co.shape_changed(shape_id, physics_engine, physics_spaces, physics_ids),)*
-                }
-            }
-
-            #[cfg(feature = "serde-serialize")]
-            fn export_json(&self) -> String {
-                match self {
-                    $(Self::$variant(co) => co.export_json(),)*
-                }
-            }
-
-            #[cfg(feature = "serde-serialize")]
-            fn export_binary(&self) -> Vec<u8> {
-                match self {
-                    $(Self::$variant(co) => co.export_binary(),)*
-                }
-            }
-
-            #[cfg(feature = "serde-serialize")]
-            fn import_binary(
-                &mut self,
-                data: PackedByteArray,
-            ) {
-                match self {
-                    $(Self::$variant(co) => co.import_binary(data),)*
                 }
             }
         }

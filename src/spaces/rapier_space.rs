@@ -1,5 +1,3 @@
-use std::sync::mpsc;
-
 use bodies::rapier_area::RapierArea;
 use bodies::rapier_body::RapierBody;
 use godot::classes::ProjectSettings;
@@ -8,10 +6,9 @@ use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
 use godot::classes::physics_server_3d::*;
 use godot::prelude::*;
-use hashbrown::HashMap;
 use hashbrown::HashSet;
-use rapier::dynamics::IntegrationParameters;
-use rapier::geometry::BroadPhasePairEvent;
+use rapier::geometry::ColliderPair;
+use rapier::geometry::NarrowPhase;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsData;
 use servers::rapier_physics_singleton::PhysicsIds;
@@ -26,7 +23,6 @@ use crate::bodies::exportable_object::ExportableObject;
 use crate::bodies::exportable_object::ObjectImportState;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::RapierPhysicsServer;
 use crate::servers::rapier_physics_singleton::physics_data;
 use crate::servers::rapier_project_settings::*;
 use crate::types::*;
@@ -44,6 +40,22 @@ pub struct SpaceExport<'a> {
     space: &'a RapierSpaceState,
     world: &'a PhysicsObjects,
 }
+
+#[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize, Clone))]
+pub struct SpaceImport {
+    space: RapierSpaceState,
+    pub(crate) world: PhysicsObjects,
+}
+
+impl<'a> SpaceExport<'a> {
+    pub fn to_import(self) -> SpaceImport {
+        SpaceImport {
+            space: self.space.clone(),
+            world: self.world.clone(),
+        }
+    }
+}
+
 #[cfg(feature = "serde-serialize")]
 impl ExportableObject for RapierSpace {
     type ExportState<'a> = SpaceExport<'a>;
@@ -62,7 +74,7 @@ impl ExportableObject for RapierSpace {
     fn import_state(&mut self, physics_engine: &mut PhysicsEngine, data: ObjectImportState) {
         match data {
             bodies::exportable_object::ObjectImportState::RapierSpace(space_import) => {
-                self._import(physics_engine, space_import);
+                self.import(physics_engine, space_import);
             },
             _ => {
                 godot_error!("Attempted to import invalid state data.");
@@ -70,11 +82,7 @@ impl ExportableObject for RapierSpace {
         }        
     }
 }
-#[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize))]
-pub struct SpaceImport {
-    space: RapierSpaceState,
-    world: PhysicsObjects,
-}
+
 pub struct RapierSpace {
     direct_access: Option<Gd<PhysicsDirectSpaceState>>,
     contact_max_allowed_penetration: real,
@@ -408,93 +416,40 @@ impl RapierSpace {
         }
     }
 
-    #[cfg(feature = "serde-serialize")]
-    pub fn export_json(&self, physics_engine: &mut PhysicsEngine) -> String {
-        godot_warn!("WARNING: export_json() of a space is broken due to errors while serializing Rapier's Broadphase.");
-        if let Some(inner) = physics_engine.world_export(self.state.get_id()) {
-            let export = SpaceExport {
-                space: &self.state,
-                world: inner,
-            };
-
-            match serde_json::to_string(&export) {
-                Ok(s) => return s,
-                Err(e) => {
-                    godot_error!("Failed to serialize space to json: {}", e);
-                    match serde_json::to_string(&self.state) {
-                        Ok(_) => {}
-                        Err(e) => {
-                            godot_error!("Failed to serialize space state to json: {}", e);
-                        }
-                    }
-                    match serde_json::to_string(&inner) {
-                        Ok(_) => {}
-                        Err(e) => {
-                            godot_error!("Failed to serialize space world to json: {}", e);                            
-                        }
-                    }
-                }
-            }
-        }
-        "{}".to_string()
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    pub fn export_binary(&self, physics_engine: &mut PhysicsEngine) -> Vec<u8> {
-        if let Some(inner) = physics_engine.world_export(self.state.get_id()) {
-            let export = SpaceExport {
-                space: &self.state,
-                world: inner,
-            };
-            match bincode::serialize(&export) {
-                Ok(binary_data) => {
-                    return binary_data
-                }
-                Err(e) => {
-                    godot_error!("Failed to serialize space to binary: {}", e);
-                }
-            }
-        }
-        Vec::new()
-    }
-
-    fn _import(&mut self, physics_engine: &mut PhysicsEngine, import: SpaceImport) {
-        use rapier::geometry::ColliderPair;        
-        use crate::servers::rapier_physics_singleton::physics_data;
-
-        let physics_data = physics_data();                
-        let imported_physics_objects = import.world;
-        
-        // Here, we compare our narrowphase to the imported narrowphase. Any collisions present in our pre-load state
-        // that don't exist in the imported state will be manually cleaned up.
+    pub fn get_intersection_deltas(
+        &self,
+        physics_engine: &mut PhysicsEngine,
+        new_narrowphase: &NarrowPhase,
+    ) -> Option<(Vec<ColliderPair>, Vec<ColliderPair>)>{
         let mut stale_collider_pairs: Vec<ColliderPair> = Vec::new();
+        let mut new_collider_pairs: Vec<ColliderPair> = Vec::new();
         if let Some(current_world) = physics_engine.get_mut_world(self.get_state().get_id())
         {
-            let imported_narrowphase = imported_physics_objects.narrow_phase.clone();
-            let current_narrowphase = current_world.physics_objects.narrow_phase.clone();
+            // Convert the narrowphases into hashsets so we can idiomatically get their differences and intersections.
+            let imp_set: HashSet<_> = new_narrowphase.intersection_pairs().collect();
+            let cur_set: HashSet<_> = current_world.physics_objects.narrow_phase.intersection_pairs().collect();
 
-            // Do I need to check the reversed pair too? eg handle2, handle1?
-            for (handle1, handle2, _intersecting) in current_narrowphase.intersection_pairs()
-            {
-                match imported_narrowphase.intersection_pair(handle1, handle2) {
-                    Some(true) => continue,
-                    Some(false) | None => stale_collider_pairs.push(ColliderPair::new(handle1, handle2)),
-                }
+            let only_in_imported: Vec<_> = imp_set.difference(&cur_set).cloned().collect();
+            let only_in_current: Vec<_> = cur_set.difference(&imp_set).cloned().collect();
+            //let common_to_both: Vec<_> = imp_set.intersection(&cur_set).cloned().collect();
+
+            for (handle1, handle2, _intersecting) in only_in_current {
+                stale_collider_pairs.push(ColliderPair::new(handle1, handle2));
             }
 
-            // Is there a better way to iterate through the areas of this specific space?
-            for (_, collision_object) in physics_data.collision_objects.iter_mut()
-            {
-                if collision_object.get_base().get_space_id() == self.get_state().get_id()                     
-                    && let Some(area) = collision_object.get_mut_area()
-                {
-                    area.close_stale_contacts(self, &stale_collider_pairs);
-                }
+            for (handle1, handle2, _intersecting) in only_in_imported {
+                new_collider_pairs.push(ColliderPair::new(handle1, handle2));
             }
+
+            return Some((stale_collider_pairs, new_collider_pairs))
         }
-        
-        // Flush to emit any area-exit signals.
-        self.flush();
+
+        return None
+    }
+
+    fn import(&mut self, physics_engine: &mut PhysicsEngine, import: SpaceImport) {             
+        // NOTE: Areas in this space MUST be made to clean up their stale intersections before import is called here.
+        let imported_physics_objects = import.world; 
 
         self.state = import.space;
                         
@@ -513,66 +468,7 @@ impl RapierSpace {
             &world_settings,
             physics_objects,
         );
-
-        //self.zero_tick(physics_data);
-        //self.flush();
-
     }
-
-
-
-    #[cfg(feature = "serde-serialize")]
-    pub fn import_binary(&mut self, physics_engine: &mut PhysicsEngine, data: PackedByteArray) {     
-        match bincode::deserialize::<SpaceImport>(data.as_slice()) {
-            Ok(import) => {
-                self._import(physics_engine, import);
-            }
-            Err(e) => {
-                godot_error!("Failed to deserialize space from binary: {}", e);
-            }
-        }
-    }
-
-    // fn zero_tick(
-    //     &mut self,
-    //     physics_data: &mut PhysicsData,
-    // )
-    // {
-    //     // Fetch project settings.
-    //     let settings = SimulationSettings {
-    //         dt: 0.0,
-    //         length_unit: RapierProjectSettings::get_length_unit(),
-    //         max_ccd_substeps: RapierProjectSettings::get_solver_max_ccd_substeps() as usize,
-    //         num_internal_pgs_iterations:
-    //             RapierProjectSettings::get_solver_num_internal_pgs_iterations() as usize,
-    //         num_solver_iterations: RapierProjectSettings::get_solver_num_solver_iterations()
-    //             as usize,
-    //         normalized_allowed_linear_error:
-    //             RapierProjectSettings::get_normalized_allowed_linear_error(),
-    //         normalized_max_corrective_velocity:
-    //             RapierProjectSettings::get_normalized_max_corrective_velocity(),
-    //         normalized_prediction_distance:
-    //             RapierProjectSettings::get_normalized_prediction_distance(),
-    //         predictive_contact_allowance_threshold:
-    //             RapierProjectSettings::get_predictive_contact_allowance_threshold(),
-    //         num_internal_stabilization_iterations:
-    //             RapierProjectSettings::get_num_internal_stabilization_iterations() as usize,
-    //         contact_damping_ratio: RapierProjectSettings::get_contact_damping_ratio(),
-    //         contact_natural_frequency: RapierProjectSettings::get_contact_natural_frequency(),
-    //         pixel_gravity: vector_to_rapier(Vector::ZERO),
-    //         pixel_liquid_gravity: vector_to_rapier(Vector::ZERO),
-    //     };
-
-    //     let space_rid = physics_data.spaces
-    //         .iter()
-    //         .find(|(_, space)| std::ptr::eq(*space, self))
-    //         .map(|(rid, _)| *rid);
-
-    //     if let Some(rid) = space_rid {                    
-    //         // Use our space's RID to tick for a zero timestep.
-    //         RapierSpace::step( 0.0, &rid, physics_data, settings);            
-    //     }
-    // }
 
     pub fn flush(
         &mut self

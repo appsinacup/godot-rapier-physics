@@ -1,11 +1,10 @@
-use godot::{prelude::*, classes::{CollisionObject2D, CollisionObject3D, Joint2D, Joint3D, Marshalls, Json, CollisionShape2D}};
+use godot::{prelude::*, classes::{CollisionObject2D, CollisionObject3D, Joint2D, Joint3D, Marshalls}};
 use hashbrown::{HashMap, HashSet};
-use serde::de::Error;
-use serde_json::Map;
+use rapier::geometry::ColliderPair;
 
-use crate::{servers::{RapierPhysicsServer, rapier_physics_singleton::physics_data, rapier_physics_server_2d::RapierPhysicsServer2D}, 
+use crate::{servers::{RapierPhysicsServer, rapier_physics_singleton::physics_data}, 
 types::{PhysicsServer, SerializationFormat, bin_to_packed_byte_array}, bodies::{rapier_collision_object::{RapierCollisionObject, IRapierCollisionObject}, 
-rapier_area::RapierAreaState, exportable_object::{ExportableObject, ObjectExportState, ObjectImportState}}, spaces::{rapier_space::{SpaceExport, RapierSpace}, rapier_direct_space_state_impl}, shapes::rapier_shape_base::ShapeExport};
+exportable_object::{ExportableObject, ObjectExportState, ObjectImportState, ExportToImport}}, spaces::rapier_space::SpaceExport};
 use crate::spaces::rapier_space::SpaceImport;
 
 #[cfg_attr(
@@ -21,9 +20,30 @@ struct CollatedObjectExportState<'a> {
     shape_owners: HashMap<String, Vec<ObjectExportState<'a>>>,
 }
 
+impl<'a> CollatedObjectExportState<'a> {
+    pub fn to_collated_import(self) -> CollatedObjectImportState {
+        let mut import_state_map = HashMap::new();
+        
+        for (key, val) in self.shape_owners {
+            let mut shape_imports: Vec<ObjectImportState> = Vec::new();
+
+            // Move the export states out.
+            for export_state in val {
+                shape_imports.push(export_state.to_import());
+            }
+            import_state_map.insert(key.to_string(), shape_imports);
+        }
+        
+        CollatedObjectImportState {
+            state: self.state.to_import(),
+            shape_owners: import_state_map,
+        }
+    }
+}
+
 #[cfg_attr(
     feature = "serde-serialize",
-    derive(serde::Deserialize)
+    derive(serde::Deserialize, Clone)
 )]
 struct CollatedObjectImportState {
     state: ObjectImportState,
@@ -34,6 +54,7 @@ struct CollatedObjectImportState {
     feature = "serde-serialize",
     derive(serde::Serialize)
 )]
+// The entire state of the physics server, with physics node states stored too.
 struct RawExportState<'a> {
     root_node: String,
     rapier_space: SpaceExport<'a>,
@@ -43,7 +64,7 @@ struct RawExportState<'a> {
 
 #[cfg_attr(
     feature = "serde-serialize",
-    derive(serde::Deserialize)
+    derive(serde::Deserialize, Clone)
 )]
 struct RawImportState {
     root_node: String,
@@ -52,42 +73,29 @@ struct RawImportState {
     physics_objects_state: HashMap<String, CollatedObjectImportState>
 }
 
-// Grabs the state for a physics object; the object has to implement ExportableObject.
-pub fn get_state_for_export<'a>(physics_object: Rid) -> Option<ObjectExportState<'a>> {
-    let physics_data = physics_data();
-    if let Some(collision_object) = physics_data.collision_objects.get(&physics_object) 
-    {
-        match collision_object {
-            RapierCollisionObject::RapierArea(area) => {
-                return Some(ObjectExportState::RapierArea(
-                    area.get_export_state(&mut physics_data.physics_engine)?,
-                ));
-            }
-            RapierCollisionObject::RapierBody(body) => {
-                return Some(ObjectExportState::RapierBody(
-                    body.get_export_state(&mut physics_data.physics_engine)?,
-                ));
-            }
+impl RawImportState {
+    // Destroys (takes ownership of) the export object.
+    fn from_export_state(
+        export_state: RawExportState
+    ) -> Self {
+        RawImportState {
+            root_node: export_state.root_node.clone(),
+            rapier_space: export_state.rapier_space.to_import(),
+            physics_server_id: export_state.physics_server_id.clone(),
+            physics_objects_state: {
+                let mut phys_objs = HashMap::new();
+                for (key, val) in export_state.physics_objects_state {
+                    phys_objs.insert(key.clone(), val.to_collated_import());
+                };
+                phys_objs
+            },
         }
     }
-    use crate::shapes::rapier_shape::IRapierShape;
-    if let Some(shape) = physics_data.shapes.get(&physics_object) {
-        return Some(ObjectExportState::RapierShapeBase(
-            shape.get_base().get_export_state(&mut physics_data.physics_engine)?,
-        ));
-    }
-    use crate::joints::rapier_joint::IRapierJoint;
-    if let Some(joint) = physics_data.joints.get(&physics_object) {
-        return Some(ObjectExportState::RapierJointBase(
-            joint.get_base().get_export_state(&mut physics_data.physics_engine)?,
-        ));
-    }
-    if let Some(space) = physics_data.spaces.get(&physics_object) {
-        return Some(ObjectExportState::RapierSpace(
-            space.get_export_state(&mut physics_data.physics_engine)?,
-        ));
-    }
-    None
+}
+
+struct CachedState {
+    state: RawImportState,
+    tag: Variant,
 }
 
 #[derive(GodotClass)]
@@ -96,6 +104,12 @@ struct StateManager {
     #[export]
     root_node: Option<Gd<Node>>,
     base: Base<Node>,
+    cached_states: Vec<CachedState>,
+    #[export]
+    #[var(get = get_max_cache_length, set = set_max_cache_length)]
+    max_cache_length: u32,
+    #[export]
+    rolling_cache: bool,
 }
 
 #[godot_api]
@@ -104,28 +118,163 @@ impl INode for StateManager {
         StateManager {
             root_node: None,
             base: base_in,
+            cached_states: Vec::new(),
+            max_cache_length: 10,
+            rolling_cache: false,
         }
     }
 }
 
 #[godot_api]
 impl StateManager {
-    fn check_space(
-        collision_object_rid: Rid,
-        space_rid: Rid,
-        collision_objects: &HashMap<Rid, RapierCollisionObject>,
-        physics_objects_ids: &HashMap<u64, Rid>,
-    ) -> bool {
-        if space_rid != Rid::Invalid
-        && let Some(collision_object) = collision_objects.get(&collision_object_rid) {
-            return collision_object.get_base().get_space(&physics_objects_ids) == space_rid
-        };
-    
-        false
+    //
+    // GODOT-EXPOSED METHODS
+    //
+
+    // CACHE HANDLING: If a user wants to store some small number of states in memory for fast reloads, they can use these cache functionalities.
+    #[func]
+    fn get_max_cache_length(
+        &self, 
+    ) -> i32 {
+        return self.max_cache_length as i32
     }
 
     #[func]
-    fn save_state(
+    fn set_max_cache_length(
+        &mut self,
+        new_max_length: u32,
+    ) {
+        self.max_cache_length = new_max_length;
+
+        // If the current cache is longer than max, drain the oldest elements until it's not.
+        let excess = self.cached_states.len().saturating_sub(self.max_cache_length as usize);
+        if excess > 0 {
+            godot_warn!("Count of cached states exceeds the new maximum limit; the oldest {} states will be removed.", excess); 
+            self.cached_states.drain(..excess);
+        }
+    }
+
+    #[func]
+    // A method to fetch all the tags in the cache; this lets the user load from cached states at their discretion.
+    // The return vector has the same order as the cached states vector.
+    fn peek_cache(&self) -> Vec<Variant> {
+        self.cached_states.iter()
+            .map(|s| s.tag.clone())
+            .collect()
+    }
+
+    #[func]
+    // Can submit an index of -1 to remove the last cached state.
+    fn remove_cache_by_index(
+        &mut self,
+        at_index: i32,
+    ) {
+        let usize_index = {
+            if at_index < -1 {
+                godot_error!("Tried to remove invalid negative index from cache: {}", at_index);
+                return
+            } else if at_index == -1 {
+                self.cached_states.len() - 1
+            } else {
+                at_index as usize
+            }
+        };
+
+        if usize_index >= self.cached_states.len() {
+            godot_error!("Specified cache index out of bounds; index is {} but cache length is {}!", usize_index, self.cached_states.len());
+            return
+        }
+
+        self.cached_states.remove(usize_index as usize);
+    }
+
+    #[func]    
+    // A cached state has a tag associated with it; this tag can be any variant type.
+    // Tags are not unique, but are the only way for a user to associate some custom item with their cached state.
+    fn cache_state_with_tag(
+        &mut self,
+        in_space: Rid,
+        tag: Variant,
+    ) {
+        if let Some(export_state) = self.fetch_state(in_space) {
+            let cached_state = CachedState {
+                state: RawImportState::from_export_state(export_state),
+                tag: tag,
+            };
+
+            self.push_state_to_cache(cached_state);
+        }
+    }
+
+    #[func]
+    // A variation with no tag.
+    fn cache_state(
+        &mut self,
+        in_space: Rid,
+    ) {
+        if let Some(export_state) = self.fetch_state(in_space) {
+            let cached_state = CachedState {
+                state: RawImportState::from_export_state(export_state),
+                tag: Variant::nil(),
+            };
+            
+            self.push_state_to_cache(cached_state);
+        }
+    }
+
+    #[func]
+    // Loads the nth state from the cache. -1 grabs last entry. Only the subset of the cache with a matching tag will be considered.
+    fn load_cached_state_with_tag(&mut self, in_space: Rid, mut index: i32, with_tag: Variant) -> bool {
+        // If no tag was provided, consider our subset to be all our cached states.
+        let subset: Vec<&CachedState> = {
+            if with_tag.is_nil() {
+                self.cached_states
+                .iter()
+                .collect()
+            } else {                
+                // Otherwise, if a tag was provided, our subset is the cache members that match the tag.
+                self.cached_states
+                .iter()
+                .filter(|c| c.tag == with_tag)
+                .collect()
+            }
+        };
+
+        if subset.is_empty() {
+            return false
+        };
+        
+        if index == -1 {
+            index = (subset.len() as i32)-1;
+        }
+
+        if let Some (cached_state) = subset.get(index as usize) {
+            self.load_state_internal(in_space, cached_state.state.clone());
+            return true;
+        }
+        return false;
+    }
+
+    #[func]
+    // Variation with no tag.
+    fn load_cached_state(&mut self, in_space: Rid, mut index: i32) -> bool {
+        if self.cached_states.is_empty() {
+            return false
+        };
+        
+        if index == -1 {
+            index = (self.cached_states.len() as i32)-1;
+        }
+
+        if let Some (cached_state) = self.cached_states.get(index as usize) {
+            self.load_state_internal(in_space, cached_state.state.clone());
+            return true;
+        }
+        return false;
+    }
+
+    #[func]
+    fn export_state(
         &mut self,
         in_space: Rid,
         format: SerializationFormat,
@@ -134,18 +283,12 @@ impl StateManager {
     }
 
     #[func]
-    fn load_state(
+    fn import_state(
         &mut self,
         in_space: Rid,
         load_state: Variant,
-    ) {        
-        let physics_data = physics_data();
-        let Some(space) = physics_data.spaces.get_mut(&in_space) else {
-            godot_error!("Provided RID didn't correspond to a valid space!");
-            return
-        };
-      
-        let mut loaded_state: RawImportState = match load_state.get_type() {
+    ) {
+        let loaded_state: RawImportState = match load_state.get_type() {
             VariantType::PACKED_BYTE_ARRAY => {
                 let pba = match load_state.try_to::<PackedByteArray>() {
                     Ok(p) => p,
@@ -194,14 +337,98 @@ impl StateManager {
             }
         };
 
-        // Now we have our imported state. First load up the space:
+        // Now we have our imported state. Load it up:
+        self.load_state_internal(in_space, loaded_state);
+ 
+    }
+
+    fn check_space(
+        collision_object_rid: Rid,
+        space_rid: Rid,
+        collision_objects: &HashMap<Rid, RapierCollisionObject>,
+        physics_objects_ids: &HashMap<u64, Rid>,
+    ) -> bool {
+        if space_rid != Rid::Invalid
+        && let Some(collision_object) = collision_objects.get(&collision_object_rid) {
+            return collision_object.get_base().get_space(&physics_objects_ids) == space_rid
+        };
+    
+        false
+    }
+    
+    fn push_state_to_cache(
+        &mut self,
+        cached_state: CachedState,
+    ) {
+        if self.cached_states.len() < self.max_cache_length as usize {
+            self.cached_states.push(cached_state);
+            return
+        }
+
+        if self.rolling_cache {
+            self.cached_states.remove(0);
+            self.cached_states.push(cached_state);
+            return
+        } else {
+            godot_error!("Attempted to cache state, but max number of cached states has been reached; either manually delete an existing state, or enable rolling cache to automatically delete oldest cached state.");
+            return
+        }
+    }
+    
+    fn load_state_internal(
+        &mut self,
+        space_rid: Rid,
+        mut loaded_state: RawImportState,
+    ) {
+        let physics_data = physics_data();
+        
+        let Some(space) = physics_data.spaces.get_mut(&space_rid) else {
+            godot_error!("Provided RID didn't correspond to a valid space!");
+            return
+        };
+
+        // The complexity here comes from the fact that area intersections aren't handled in a very convenient way by Godot;
+        // we update Godot's knowledge of area intersections by sending out events whenever Rapier reports the beginning or end of an intersection.
+        // But these intersection changes only get emitted when Rapier detects a change in the narrowphase intersection graph-- notably, if we're loading
+        // a saved state with a different intersection graph, this won't get flagged by Rapier, so no event is dispatched to Godot.
+        // To get around this, I've injected each area's state with information about colliders it's currently monitoring.
+        // The flow is like this:
+        // 1) Via the space state, compare pre-load narrowphase to post-load narrowphase. This will tell us which areas have stale or new intersections.
+        // 2) For any areas with stale intersections, dispatch events to Godot to close out those stale intersections BEFORE loading the area's state.
+        // 3) Import the space state and step once to update all the physics object's positions.
+        // 4) Load the areas' states (along with all the other physics objects).
+        // 5) After loading, go through the areas' new states and emit events for any monitored collider pairs that are in the new intersections list.
+        
+        // 1) So first, we get our intersection deltas.
+        let mut stale_intersections: Vec<ColliderPair> = Vec::new();
+        let mut new_intersections: Vec<ColliderPair> = Vec::new();
+        if let Some((stale, new)) = space.get_intersection_deltas(&mut physics_data.physics_engine, &loaded_state.rapier_space.world.narrow_phase) {
+            stale_intersections = stale;
+            new_intersections = new;
+        } else {
+            godot_error!("Failed to gather narrowphase deltas!");
+            return
+        }
+
+        // 2) Close the stale intersections for our areas.
+        // Is there a better way to iterate through the areas of this specific space?
+        for (_, collision_object) in physics_data.collision_objects.iter_mut()
+        {
+            if collision_object.get_base().get_space_id() == space.get_state().get_id()                     
+                && let Some(area) = collision_object.get_mut_area()
+            {
+                area.close_stale_contacts(space, &stale_intersections);
+            }
+        }
+
+        // 3) Update space and step 0.
         space.import_state(&mut physics_data.physics_engine, ObjectImportState::RapierSpace(loaded_state.rapier_space));
 
         // Zero-step to update our contact graphs. Then flush to broadcast any relevant event signals.
-        RapierPhysicsServer::space_step(in_space, 0.0);
+        RapierPhysicsServer::space_step(space_rid, 0.0);
         space.flush();
 
-        // Now we start loading all the objects' states.
+        // 4) Now we start loading all the objects' states.
         // We can do this by first iterating through all the physics objects in the scene tree; whenever we find an object
         // with state in our loaded state, we apply the state and remove it from our state map.
         // That way, any remaining states come from objects we need to re-instantiate.
@@ -212,7 +439,7 @@ impl StateManager {
         };
 
         // These nodepaths are relative to the root node.
-        let physics_nodes = StateManager::get_all_physics_nodes_in_space(&root_node, in_space);
+        let physics_nodes = StateManager::get_all_physics_nodes_in_space(&root_node, space_rid);
 
         // Store all our node keys here. When we load state for a node, we can delete that node from this set.
         // This should be faster than removing the traversed elements from the objects_state map.
@@ -230,9 +457,10 @@ impl StateManager {
             let full_path_string = loaded_state.root_node.clone().to_string() + "/" + &nodepath_str;
             let nodepath = NodePath::from(&full_path_string);
             
+            // I think if the body's shapes have changed, this won't necessarily catch it smoothly.
             if let Some(object_state_with_shapes) = loaded_state.physics_objects_state.remove(&nodepath_str) {
                 let object_state = object_state_with_shapes.state;
-                if let Some(mut co2d) = self.base().try_get_node_as::<CollisionObject2D>(&nodepath) {
+                if let Some(co2d) = self.base().try_get_node_as::<CollisionObject2D>(&nodepath) {
                     let this_rid = co2d.get_rid();
 
                     // Load the object's personal state (doesn't include shapes):
@@ -250,6 +478,8 @@ impl StateManager {
                         };
 
                         for i in 0..shape_states.len() {
+                            // Yeah, see, this part grabs the shape from the existing node, which isn't reliable (what if the shapes have changed?).
+                            // Since the shape import literally deletes and recreates the shape anyway, we should just clear all the shape owners and rebuild.
                             if let Some(shape) = co2d.shape_owner_get_shape(shape_owner_id, i as i32) {                      
                                 RapierPhysicsServer::load_state_internal(shape.get_rid(), shape_states.remove(i));
                             };
@@ -301,28 +531,39 @@ impl StateManager {
                 // Remove the node from the pending list.
                 nodes_pending_load.remove(&nodepath_str);
             } else {
-                // We'll remove the node later.
+                // TODO: We'll remove the node later.
                 nodes_to_remove.insert(nodepath_str);
             }
         }
 
+        // 5) Open the new intersections for our areas.
+        for (_, collision_object) in physics_data.collision_objects.iter_mut()
+        {
+            if collision_object.get_base().get_space_id() == space.get_state().get_id()                     
+                && let Some(area) = collision_object.get_mut_area()
+            {
+                area.open_new_contacts(space, &new_intersections);
+            }
+        }
+
+        // Flush space queries one last time, to emit the newly opened events.
+        space.flush();
+
         RapierPhysicsServer::set_global_id(loaded_state.physics_server_id);
     }
 
-    fn serialize_state(
-        &mut self,
+    // Outputs the whole state of our physics server, along with the states of all the physics nodes.
+    fn fetch_state<'a>(
+        &'a mut self,
         in_space: Rid,
-        format: &SerializationFormat,
-    ) -> Variant {
+    ) -> Option<RawExportState<'a>> {
         if let Some(root_node) = &self.root_node {
-            let physics_data = physics_data();
             let root_nodepath = root_node.get_path();
 
             // Each physics node gets its own variant vector. The first entry in this vector will be that node's serialized data;
             // if the node has nested data (eg if it's a 2D or 3D CollisionObject), then it will also have a second entry, 
             // which will be a nested dictionary containing data on all its shapes.
             let physics_nodes = StateManager::get_all_physics_nodes_in_space(&root_node, in_space);
-            godot_print!("this many physics nodes: {}", physics_nodes.len());
             let mut object_states: HashMap<String, CollatedObjectExportState> = HashMap::new();
 
             for nodepath_str in physics_nodes {  
@@ -330,8 +571,6 @@ impl StateManager {
                 let nodepath = NodePath::from(&full_path_string);
 
                 let collated_state: CollatedObjectExportState = {
-                    //let mut owned_states = CollatedObjectState::new();
-                    //owned_states.node_path = nodepath_str;
                     let mut self_state: Option<ObjectExportState> = None;
                     let mut collated_shape_owners: HashMap<String, Vec<ObjectExportState>> = HashMap::new();
 
@@ -354,7 +593,6 @@ impl StateManager {
                             };
 
                             collated_shape_owners.insert(owner_shape_id.to_string(), this_owner_shapes);
-                            //owned_states.shape_owner_states.push((*owner_shape_id, this_owner_shapes));
                         }                          
                     }
                     
@@ -404,7 +642,7 @@ impl StateManager {
 
                 object_states.insert(nodepath_str, collated_state);
             }
-                     
+                        
             // Now we've got references to all the owned states for our physics objects (for whatever export format we've selected).
             // For the Godot encodings, that means the state is stored in Variants; for bincode, it's just references to the raw state objects.
             // From this point, we need to build either a Godot dictionary (for JSON or GodotBase4 encoding) or a nested Rust Hashmap, for Bincode.
@@ -422,15 +660,13 @@ impl StateManager {
 
             let Some(space_state) =  self.get_physics_node_state(in_space) else {
                 godot_error!("Failed to export space state for RID {}!", in_space);
-                return Variant::nil()
+                return None
             };
 
             let ObjectExportState::RapierSpace(space_state) = space_state else {
                 godot_error!("Exported state for RID {} was not RapierSpace state!", in_space);
-                return Variant::nil()
+                return None
             };
-
-            let root_nodepath_string = root_nodepath.to_string();
 
             // So now we have our whole composed raw state, ready to serialize to json or binary.
             let raw_state = RawExportState{
@@ -440,6 +676,20 @@ impl StateManager {
                 physics_objects_state: object_states,
             };
 
+            return Some(raw_state)
+        }
+
+        godot_error!("No root node specified for StateManager!");
+        return None
+    }
+
+    // Grabs physics state via fetch_state and serializes it to a specified format.
+    fn serialize_state(
+        &mut self,
+        in_space: Rid,
+        format: &SerializationFormat,
+    ) -> Variant {        
+        if let Some(raw_state) = self.fetch_state(in_space) { 
             match format {
                 SerializationFormat::None | SerializationFormat::GodotBase64 => {     
                     let serialized_state = match serde_json::to_value(raw_state) {
@@ -452,7 +702,6 @@ impl StateManager {
 
                     // Here we switch on format; for GodotBase64, we let Godot's marshall do all the work. For "none", we just return Serde's JSON string.
                     if matches!(format, SerializationFormat::GodotBase64) {
-                        //let serialized_string = Marshalls::singleton().variant_to_base64(&full_physics_server_state.to_string().to_variant());
                         let serialized_string = Marshalls::singleton().utf8_to_base64(&serialized_state.to_string());
                         return serialized_string.to_variant()
                     } else {
@@ -471,193 +720,11 @@ impl StateManager {
                     return bin_to_packed_byte_array(serialized_state).to_variant();
                 },
             }
-
-            // That concludes the format-agnostic state gathering. Now, depending on format, we need to start serializing the state.
-            // match format {
-            //     SerializationFormat::None | SerializationFormat::GodotBase64 => {                    
-            //         let mut full_physics_server_state = serde_json::Value::Object(Map::new());
-
-            //         if let serde_json::Value::Object(map) = &mut full_physics_server_state {
-            //             let root_node_as_val = match serde_json::to_value(root_nodepath_string) {
-            //                 Ok(v) => v,
-            //                 Err(err) => {
-            //                     godot_error!("Failed to serialize root node path! {}", err);
-            //                     return Variant::nil()
-            //                 },
-            //             };
-            //             map.insert("root_node".to_string(), root_node_as_val);
-
-            //             let physics_server_index_as_val = match serde_json::to_value(physics_server_index) {
-            //                 Ok(v) => v,
-            //                 Err(err) => {
-            //                     godot_error!("Failed to serialize physics server index! {}", err);
-            //                     return Variant::nil()
-            //                 },
-            //             };
-            //             map.insert("physics_server_id".to_string(), physics_server_index_as_val);
-
-            //             let space_as_json = match serde_json::to_value(space_state) {
-            //                 Ok(v) => v,
-            //                 Err(err) => {
-            //                     godot_error!("Error serializing space state: {}", err);
-            //                     return Variant::nil();
-            //                 }
-            //             };
-
-            //             if let serde_json::Value::Object(space_map) = space_as_json {
-            //                 for (key, val) in space_map {
-            //                     map.insert(key,val);
-            //                 }
-            //             } 
-
-            //             // Now we iterate through all our physics objects' states and push them to our map.
-            //             let mut physics_objects_state = serde_json::Value::Object(Map::new());
-
-            //             for object_state in object_states {
-            //                 // Serialize the state we'e collated.
-            //                 let mut object_collated_state_as_json = serde_json::Value::Object(Map::new());
-
-            //                 // Serialize the object's own state.
-            //                 let object_self_state = match serde_json::to_value(object_state.self_state) {
-            //                     Ok(v) => v,
-            //                     Err(err) => {
-            //                         godot_error!("Error serializing object state: {}", err);
-            //                         continue;
-            //                     }
-            //                 };
-
-            //                 if let Some(object_collated_state_as_json) = object_collated_state_as_json.as_object_mut() {
-            //                     object_collated_state_as_json.insert("state".to_string(), object_self_state);                            
-                            
-            //                     // Now we iterate through the shape owners and add in their state.
-            //                     let mut shape_owner_states = serde_json::Value::Object(Map::new());
-            //                     if let Some(shape_owner_states) = shape_owner_states.as_object_mut() {
-            //                         for (owner_id, shape_states) in object_state.shape_owner_states {
-            //                             // Serialize the shape states.
-            //                             let serialized_shape_states = match serde_json::to_value(shape_states) {
-            //                                 Ok(v) => v,
-            //                                 Err(err) => {
-            //                                     godot_error!("Error serializing shape states: {}", err);
-            //                                     continue;
-            //                                 }
-            //                             };
-
-            //                             let string_owner_id = match serde_json::to_string(&owner_id) {
-            //                                 Ok(s) => s,
-            //                                 Err(err) => {
-            //                                     godot_error!("Error serializing shape owner ID: {}", err);
-            //                                     continue;
-            //                                 }
-            //                             };
-
-            //                             shape_owner_states.insert(string_owner_id, serialized_shape_states);
-            //                         }     
-            //                     } 
-
-            //                     object_collated_state_as_json.insert("shape_owners".to_string(), shape_owner_states);
-            //                 }
-
-            //                 if let Some(objects_map) = physics_objects_state.as_object_mut() {
-            //                     objects_map.insert(object_state.node_path, object_collated_state_as_json);
-            //                 }                                                 
-            //             }
-                        
-            //             // Push our map of all physics objects states to our full-state map.
-            //             map.insert("physics_objects_state".to_string(), physics_objects_state);                
-            //         }
-                   
-            //         // Here we switch on format; for GodotBase64, we let Godot's marshall do all the work. For "none", we just return Serde's JSON string.
-            //         if matches!(format, SerializationFormat::GodotBase64) {
-            //             //let serialized_string = Marshalls::singleton().variant_to_base64(&full_physics_server_state.to_string().to_variant());
-            //             let serialized_string = Marshalls::singleton().utf8_to_base64(&full_physics_server_state.to_string());
-            //             return serialized_string.to_variant()
-            //         } else {
-            //             return full_physics_server_state.to_string().to_variant()
-            //         }
-            //     }                
-            //     SerializationFormat::RustBincode => {                    
-            //         let mut bin_state: BinaryState;
-            //         if let ObjectExportState::RapierSpace(export_space_state) = space_state {
-            //             bin_state = BinaryState {
-            //                 root_node: root_nodepath_string,
-            //                 space: export_space_state,
-            //                 physics_server_id: physics_server_index,
-            //                 physics_objects_state: HashMap::new(),
-            //             };
-            //         } else {
-            //             godot_error!("Unable to serialize space state to RustBincode!");
-            //             return Variant::nil()
-            //         }
-                    
-            //         let mut physics_objects_map: HashMap<String, BinaryPhysObjState> = HashMap::new();
-
-            //         for object_state in object_states {
-            //             let Some(self_state) = object_state.self_state else {
-            //                 godot_error!("State serialization for {} unsuccessful.", object_state.node_path);
-            //                 continue;
-            //             };
-
-            //             let mut composed_shape_owners_states: HashMap<i32, Vec<ObjectExportState>> = HashMap::new();
-            //             for (shape_owner_id, shape_states) in object_state.shape_owner_states {
-            //                 let mut composed_shape_states: Vec<ObjectExportState> = Vec::new();
-            //                 for shape_state in shape_states {
-            //                     composed_shape_states.push(shape_state);
-            //                 }
-            //                 composed_shape_owners_states.insert(shape_owner_id, composed_shape_states);
-            //             }
-
-            //             let physics_object_state = BinaryPhysObjState {
-            //                 state: self_state,
-            //                 shapes: composed_shape_owners_states,
-            //             };
-
-            //             physics_objects_map.insert(object_state.node_path, physics_object_state);
-            //         }
-
-            //         bin_state.physics_objects_state = physics_objects_map;
-                    
-            //         match bincode::serialize(&bin_state) {
-            //             Ok(binary_data) => {
-            //                 return bin_to_packed_byte_array(binary_data).to_variant()
-            //             }
-            //             Err(e) => {
-            //                 godot_error!("Failed to serialize area to binary: {}", e);
-            //             }
-            //         }
-
-            //         Variant::nil()
-            //     },
-            // }
         } else {
-            godot_error!("No root node specified for StateManager!");
+            godot_error!("Failed to serialize state.");
             Variant::nil()
         }
     }
-
-    // fn serialize_string(
-    //     string: String,
-    //     format: SerializationFormat,
-    // ) -> Variant {
-    //     match format {
-    //         SerializationFormat::None => string.to_variant(),
-    //         SerializationFormat::GodotBase64 => Marshalls::singleton().variant_to_base64(&string.to_variant()).to_variant(),
-    //         SerializationFormat::RustBincode => {
-    //             let mut buf = PackedByteArray::new();
-    //             match bincode::serialize(&string) {
-    //                 Ok(binary_data) => {
-    //                     buf.resize(binary_data.len());
-    //                     for i in 0..binary_data.len() {
-    //                         buf[i] = binary_data[i];
-    //                     }
-    //                 },
-    //                 Err(e) => {
-    //                     godot_error!("Failed to serialize area to binary: {}", e);
-    //                 }
-    //             }
-    //             buf.to_variant()
-    //         },
-    //     }
-    // }
 
     fn is_physics_node(
         node: &Gd<Node>,
@@ -737,63 +804,11 @@ impl StateManager {
     fn get_physics_node_state(
         & self,
         rid: Rid
-    ) -> Option<ObjectExportState> {
+    ) -> Option<ObjectExportState<'_>> {
         if let Some(state) = RapierPhysicsServer::fetch_state_internal(rid) {
             return Some(state);
         } else {
             panic!("No physics state found for Rid {:?}", rid);
         }
-        None
     }
-
-    // fn save_node(
-    //     & self,
-    //     rid: Rid,
-    //     encoding: &SerializationFormat,
-    // ) -> ExportStateData {
-    //     // Exporting to JSON is a bit awkward; we have our states as json strings from Serde,
-    //     // but we need to coerce it into a Godot json object.
-        
-    //     match encoding {
-    //         // In this first case, we want to treat unserialized (eg raw Json) and GodotBase64 string encoding in the same way.
-    //         // That essentially means that for GodotBase64, encoding to base64 only happens at the final serialization step.
-    //         SerializationFormat::None | SerializationFormat::GodotBase64 => {
-    //             if let Some(state) = RapierPhysicsServer::fetch_state_internal(rid) {
-    //                 return ExportStateData::SerdeJson(serde_json::json!(state));
-    //             } else {
-    //                 panic!("No physics state found for Rid {:?}", rid);
-    //             }
-
-    //             // if let Some(variant) = serde_json_string_to_variant(RapierPhysicsServer::export_json(rid)) {
-    //             //     return StateData::Variant(variant)
-    //             // } else {
-    //             //     return StateData::Variant(Variant::nil())
-    //             // }
-    //         },
-    //         SerializationFormat::RustBincode => {   
-    //             if let Some(state) = RapierPhysicsServer::fetch_state_internal(rid) {
-    //                 return ExportStateData::RawState(state);
-    //             } else {
-    //                 panic!("No physics state found for Rid {:?}", rid);
-    //             }
-    //         },
-    //     }
-    // }
-
-    // fn load_node(
-    //     &mut self,
-    //     rid: Rid,
-    //     data: ExportStateData,
-    // ) {
-    //     match data {
-    //         ExportStateData::SerdeJson(json_state) => {
-    //             RapierPhysicsServer::import_json(rid, data)
-    //         },
-    //         ExportStateData::RawState(raw_state) => {
-
-    //         },
-    //     }
-
-    //     //RapierPhysicsServer::import_binary(rid, data);
-    // }
 }

@@ -1,7 +1,7 @@
-use crate::{joints::rapier_joint_base::{RapierJointBase, JointExport, JointImport}, shapes::rapier_shape_base::{RapierShapeBase, ShapeExport, ShapeImport}, spaces::rapier_space::{SpaceExport, SpaceImport}};
-use crate::rapier_wrapper::prelude::PhysicsEngine;
 
-use super::{rapier_area::{AreaExport, RapierArea, AreaImport}, rapier_body::{BodyExport, RapierBody, BodyImport}};
+use crate::rapier_wrapper::prelude::PhysicsEngine;
+use crate::{joints::rapier_joint_base::{JointExport, JointImport}, shapes::rapier_shape_base::{ShapeExport, ShapeImport}, spaces::rapier_space::{SpaceExport, SpaceImport}};
+use super::{rapier_area::{AreaExport, AreaImport}, rapier_body::{BodyExport, BodyImport}};
 
 // The difference between Export and Import states is just that Exports contain non-owning references into state data
 // (essentially they're just windows into the present state of a physics object). 
@@ -9,7 +9,6 @@ use super::{rapier_area::{AreaExport, RapierArea, AreaImport}, rapier_body::{Bod
 #[cfg(feature = "serde-serialize")]
 #[derive(serde::Serialize)]
 pub enum ObjectExportState<'a> {
-    RapierCollisionObject(AreaExport<'a>),
     RapierArea(AreaExport<'a>),
     RapierBody(BodyExport<'a>),
     RapierShapeBase(ShapeExport<'a>),
@@ -18,9 +17,8 @@ pub enum ObjectExportState<'a> {
 }
 
 #[cfg(feature = "serde-serialize")]
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Clone)]
 pub enum ObjectImportState {
-    RapierCollisionObject(AreaImport),
     RapierArea(AreaImport),
     RapierBody(BodyImport),
     RapierShapeBase(ShapeImport),
@@ -28,21 +26,9 @@ pub enum ObjectImportState {
     RapierSpace(SpaceImport),
 }
 
-// pub enum ImportStateData {
-//     RawState(ObjectImportState),
-//     SerdeJson(serde_json::Value),
-// }
-
-// impl ImportStateData {
-//     pub fn take_raw_state(self) -> ObjectImportState {
-//         match self {
-//             ImportStateData::RawState(r) => r,
-//             _ => panic!("called into_raw_state() on non-rust ImportStateData"),
-//         }
-//     }
-// }
-
-
+pub trait ExportToImport{
+    fn to_import(self) -> ObjectImportState;
+}
 
 #[cfg(feature = "serde-serialize")]
 pub trait ExportableObject {    
@@ -54,38 +40,30 @@ pub trait ExportableObject {
     fn get_export_state<'a>(&'a self, physics_engine: &'a mut crate::rapier_wrapper::prelude::PhysicsEngine) -> Option<Self::ExportState<'a>>;
 
     fn import_state(&mut self, physics_engine: &mut PhysicsEngine, data: ObjectImportState);
-
-    //#[cfg(feature = "serde-serialize")]
-    //fn import_json(&mut self, physics_engine: &mut PhysicsEngine, data: String);
 }
 
-// #[cfg(feature = "serde-serialize")]
-// #[derive(Debug)]
-// pub enum RapierPhysicsObject {
-//     //RapierShapeBase(RapierShapeBase),
-//     RapierArea(RapierArea),
-//     RapierBody(RapierBody),
-//     //RapierJointBase(RapierJointBase),
-// }
-// #[cfg(feature = "serde-serialize")]
-// #[derive(Debug, serde::Serialize)]
-// pub enum ObjectExportState<'a> {
-//     //RapierShapeBase(ShapeExport<'a>),
-//     RapierArea(AreaExport<'a>),
-//     RapierBody(BodyExport<'a>),
-//     //RapierJointBase(),
-// }
-// macro_rules! impl_rapier_exportable_object_trait {
-//     ($enum_name:ident, $($variant:ident),*) => {
-//         impl<'a> ExportableObject for $enum_name {
-//             type ExportState<'b> = ObjectExportState<'b> where Self: 'b;
-
-//             fn get_export_state(&self, physics_engine: &mut PhysicsEngine) -> Self::ExportState<'_> {
-//                 match self {
-//                     $(Self::$variant(co) => ObjectExportState::$variant(co.get_export_state(physics_engine)),)*
-//                 }
-//             }
-//         }
-//     };
-// }
-// impl_rapier_exportable_object_trait!(RapierPhysicsObject, RapierArea, RapierBody);
+// This macro facilitates cloning of export types' internal state into owned copies, which are handed to a new import object.
+macro_rules! impl_convert_to_import {
+    ($export_enum:ident, $import_enum:ident, $($variant:ident),+) => {
+        impl<'a> ExportToImport for $export_enum<'a> {
+            fn to_import(self) -> $import_enum {
+                match self {
+                    $(
+                        $export_enum::$variant(data) => {
+                            $import_enum::$variant(data.to_import())
+                        }
+                    ),+
+                }
+            }
+        }
+    };
+}
+impl_convert_to_import!(
+    ObjectExportState,
+    ObjectImportState,
+    RapierArea,
+    RapierBody,
+    RapierShapeBase,
+    RapierJointBase,
+    RapierSpace
+);

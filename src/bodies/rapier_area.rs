@@ -14,7 +14,6 @@ use godot::prelude::*;
 use hashbrown::HashMap;
 use rapier::geometry::ColliderHandle;
 use rapier::geometry::ColliderPair;
-use serde::{Serialize, Deserialize, Serializer, Deserializer};
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsIds;
 use servers::rapier_physics_singleton::PhysicsShapes;
@@ -26,7 +25,6 @@ use super::exportable_object::ExportableObject;
 use super::exportable_object::ObjectImportState;
 use super::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;
-use crate::rapier_wrapper::collider;
 use crate::rapier_wrapper::prelude::*;
 use crate::spaces::rapier_space::*;
 use crate::types::*;
@@ -88,10 +86,19 @@ pub struct AreaExport<'a> {
     area_state: &'a RapierAreaState,
     base_state: &'a RapierCollisionObjectBaseState,
 }
-#[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize, Clone))]
 pub struct AreaImport {
     area_state: RapierAreaState,
     base_state: RapierCollisionObjectBaseState,
+}
+
+impl<'a> AreaExport<'a> {
+    pub fn to_import(self) -> AreaImport {
+        AreaImport {
+            area_state: self.area_state.clone(),
+            base_state: self.base_state.clone(),
+        }
+    }
 }
 
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize, serde::Deserialize))]
@@ -394,7 +401,7 @@ impl RapierArea {
         entry_report: &EventReport,
     ) -> Option<i32> {
         let current_monitor = self.state.monitored_objects.get_mut(&(other_collider_handle, this_collider_handle));
-        let mut num_contacts: Option<i32> = None;
+        let num_contacts: Option<i32>;
         match entry_report.state {
             // Exit event:
             -1 => {
@@ -828,6 +835,33 @@ impl RapierArea {
         }
     }
 
+    pub fn open_new_contacts(
+        &mut self,
+        space: &mut RapierSpace,
+        new_collider_pairs: &Vec<ColliderPair>,
+    ) {
+        let mut add_to_monitored_list = false;
+        for ((handle_1, handle_2), monitor_info) in &mut self.state.monitored_objects
+        {
+            // If our stale colliders contain a pair in either order:
+            let ab = ColliderPair::new(*handle_1, *handle_2);
+            let ba = ColliderPair::new(*handle_2, *handle_1);
+            if new_collider_pairs.contains(&ab)
+                || new_collider_pairs.contains(&ba)
+            {
+                add_to_monitored_list = true;
+                let new_exit_event = EventReport::from_monitor_info(*monitor_info, 1);
+                self.state.unhandled_event_queue.insert(*handle_1, new_exit_event);
+            }
+        }
+
+        if add_to_monitored_list {
+            space
+            .get_mut_state()
+            .area_add_to_monitor_query_list(self.base.get_id());
+        }
+    }
+
     pub fn clear_monitored_objects(&mut self) {
         self.state.monitored_objects.clear();
     }
@@ -1104,61 +1138,5 @@ impl IRapierCollisionObject for RapierArea {
         _physics_spaces: &mut PhysicsSpaces,
         _physics_ids: &PhysicsIds,
     ) {
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    fn export_json(&self) -> String {
-        let state = AreaExport {
-            area_state: &self.state,
-            base_state: &self.base.state,
-        };
-        match serde_json::to_string_pretty(&state) {
-            Ok(s) => {
-                return s;
-            }
-            Err(e) => {
-                godot_error!("Failed to serialize area to json: {}", e);
-
-                match serde_json::to_string_pretty(&state.area_state) {
-                    Ok(s) => {                        
-                    }
-                    Err(e) => {
-                        godot_error!("Failed to serialize area state to json: {}", e);
-                    }
-                }
-
-            }
-        }
-        "{}".to_string()
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    fn export_binary(&self) -> Vec<u8> {
-        let state = AreaExport {
-            area_state: &self.state,
-            base_state: &self.base.state,
-        };
-        match bincode::serialize(&state) {
-            Ok(binary_data) => {
-                return binary_data
-            }
-            Err(e) => {
-                godot_error!("Failed to serialize area to binary: {}", e);
-            }
-        }
-        Vec::new()
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    fn import_binary(&mut self, data: PackedByteArray) {
-        match bincode::deserialize::<AreaImport>(data.as_slice()) {
-            Ok(import) => {
-                self.state = import.area_state;
-                self.base.state = import.base_state;
-            }
-            Err(e) => {
-                godot_error!("Failed to deserialize area from binary: {}", e);
-            }
-        }
     }
 }

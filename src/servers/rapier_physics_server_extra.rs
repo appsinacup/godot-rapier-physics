@@ -57,53 +57,6 @@ macro_rules! make_rapier_server_godot_impl {
             }
 
             #[cfg(feature = "serde-serialize")]
-            #[func]
-            /// Exports the physics object to a JSON string. This is slower than the binary export.
-            pub fn export_json(physics_object: Rid) -> String {
-                let physics_data = physics_data();
-                if let Some(body) = physics_data.collision_objects.get(&physics_object) {
-                    return body.export_json();
-                }
-                use $crate::shapes::rapier_shape::IRapierShape;
-                if let Some(shape) = physics_data.shapes.get(&physics_object) {
-                    //return shape.get_base().export_json();
-                    return shape.get_base().export_json(&mut physics_data.physics_engine);
-                }
-                use $crate::joints::rapier_joint::IRapierJoint;
-                if let Some(joint) = physics_data.joints.get(&physics_object) {
-                    return joint.get_base().export_json();
-                }
-                if let Some(space) = physics_data.spaces.get(&physics_object) {
-                    return space.export_json(&mut physics_data.physics_engine);
-                }
-                "".to_string()
-            }
-
-            #[cfg(feature = "serde-serialize")]
-            #[func]
-            /// Exports the physics object to a binary format.
-            pub fn export_binary(physics_object: Rid) -> PackedByteArray {
-                let physics_data = physics_data();
-                if let Some(body) = physics_data.collision_objects.get(&physics_object) {
-                    return bin_to_packed_byte_array(body.export_binary())
-                }
-                use $crate::shapes::rapier_shape::IRapierShape;
-                if let Some(shape) = physics_data.shapes.get(&physics_object) {
-                    return bin_to_packed_byte_array(shape
-                        .get_base()
-                        .export_binary(&mut physics_data.physics_engine))
-                }
-                use $crate::joints::rapier_joint::IRapierJoint;
-                if let Some(joint) = physics_data.joints.get(&physics_object) {
-                    return bin_to_packed_byte_array(joint.get_base().export_binary())
-                }
-                if let Some(space) = physics_data.spaces.get(&physics_object) {
-                    return bin_to_packed_byte_array(space.export_binary(&mut physics_data.physics_engine))
-                }
-                PackedByteArray::default()
-            }
-
-            #[cfg(feature = "serde-serialize")]
             pub fn fetch_state_internal<'a>(physics_object: Rid) -> Option<ObjectExportState<'a>> {
                 let physics_data = physics_data();
                 use $crate::shapes::rapier_shape::IRapierShape;
@@ -164,65 +117,6 @@ macro_rules! make_rapier_server_godot_impl {
                 }
                 else if let Some(space) = physics_data.spaces.get_mut(&physics_object) {
                     return space.import_state(&mut physics_data.physics_engine, data);
-                }
-            }
-
-
-
-            // #[cfg(feature = "serde-serialize")]
-            // #[func]
-            // pub fn import_json(physics_object: Rid, data: String) {
-            //     use $crate::joints::rapier_joint::IRapierJoint;
-            //     use $crate::servers::rapier_physics_singleton::insert_id_rid;
-            //     use $crate::servers::rapier_physics_singleton::remove_id_rid;
-            //     use $crate::shapes::rapier_shape::IRapierShape;
-            //     let physics_data = physics_data();
-            //     if let Some(space) = physics_data.spaces.get_mut(&physics_object) {
-            //         space.import_json(&mut physics_data.physics_engine, data);
-            //     }
-            // }
-
-            #[cfg(feature = "serde-serialize")]
-            #[func]
-            /// Imports the physics object from a binary format.
-            pub fn import_binary(physics_object: Rid, data: PackedByteArray) {
-                use $crate::joints::rapier_joint::IRapierJoint;
-                use $crate::servers::rapier_physics_singleton::insert_id_rid;
-                use $crate::servers::rapier_physics_singleton::remove_id_rid;
-                use $crate::shapes::rapier_shape::IRapierShape;
-                let physics_data = physics_data();
-                if let Some(body) = physics_data.collision_objects.get_mut(&physics_object) {
-                    remove_id_rid(body.get_base().get_id(), &mut physics_data.ids);
-                    body.import_binary(data);
-                    insert_id_rid(
-                        body.get_base().get_id(),
-                        body.get_base().get_rid(),
-                        &mut physics_data.ids,
-                    );
-                } else if let Some(shape) = physics_data.shapes.get_mut(&physics_object) {
-                    remove_id_rid(shape.get_base().get_id(), &mut physics_data.ids);
-                    // recreate shape handle
-                    shape
-                        .get_mut_base()
-                        .destroy_shape(&mut physics_data.physics_engine);
-                    shape
-                        .get_mut_base()
-                        .import_binary(data, &mut physics_data.physics_engine);
-                    insert_id_rid(
-                        shape.get_base().get_id(),
-                        shape.get_base().get_rid(),
-                        &mut physics_data.ids,
-                    );
-                } else if let Some(joint) = physics_data.joints.get_mut(&physics_object) {
-                    remove_id_rid(joint.get_base().get_id(), &mut physics_data.ids);
-                    joint.get_mut_base().import_binary(data);
-                    insert_id_rid(
-                        joint.get_base().get_id(),
-                        joint.get_base().get_rid(),
-                        &mut physics_data.ids,
-                    );
-                } else if let Some(space) = physics_data.spaces.get_mut(&physics_object) {
-                    space.import_binary(&mut physics_data.physics_engine, data);
                 }
             }
 
