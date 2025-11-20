@@ -559,9 +559,9 @@ impl StateManager {
                                     co2d.shape_owner_get_shape(*owner_shape_id as u32, i)
                                     && let Some(shape_state) =
                                         self.get_physics_node_state(shape.get_rid())
-                                    {
-                                        this_owner_shapes.push(shape_state);
-                                    }
+                                {
+                                    this_owner_shapes.push(shape_state);
+                                }
                             }
                             collated_shape_owners
                                 .insert(owner_shape_id.to_string(), this_owner_shapes);
@@ -583,9 +583,9 @@ impl StateManager {
                                     co3d.shape_owner_get_shape(*owner_shape_id as u32, i)
                                     && let Some(shape_state) =
                                         self.get_physics_node_state(shape.get_rid())
-                                    {
-                                        this_owner_shapes.push(shape_state);
-                                    }
+                                {
+                                    this_owner_shapes.push(shape_state);
+                                }
                             }
                             collated_shape_owners
                                 .insert(owner_shape_id.to_string(), this_owner_shapes);

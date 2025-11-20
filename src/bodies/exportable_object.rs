@@ -23,6 +23,12 @@ pub enum ObjectExportState<'a> {
 }
 #[cfg(feature = "serde-serialize")]
 #[derive(serde::Deserialize, Clone)]
+#[allow(clippy::large_enum_variant)]
+// Here we put the SpaceImport in a box; this is because Space state contains much more data than the other states,
+// and Rust enums are sized depending on their largest member. Putting it in a box lets us refer to it as a pointer instead.
+// Note that I've also told Clippy to allow large enum variants, which is because specifically in 3D,
+// the BodyState is at least 448 bytes, which is twice the minimum size of AreaState.
+// However, it's still pretty small, so I think this is fine.
 pub enum ObjectImportState {
     Area(AreaImport),
     Body(BodyImport),
