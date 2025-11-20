@@ -7,6 +7,17 @@ use crate::bodies::exportable_object::ExportableObject;
 use crate::bodies::exportable_object::ObjectImportState;
 use crate::rapier_wrapper::prelude::*;
 use crate::*;
+#[derive(Default, Debug, PartialEq, Eq, Clone, Copy)]
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
+pub enum RapierJointType {
+    #[default]
+    Impulse,
+    MultiBody,
+    MultiBodyKinematic,
+}
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
 #[derive(Debug)]
 pub struct JointExport<'a> {
