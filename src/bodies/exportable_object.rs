@@ -1,14 +1,9 @@
-use super::rapier_area::AreaExport;
-use super::rapier_area::AreaImport;
-use super::rapier_body::BodyExport;
-use super::rapier_body::BodyImport;
-use crate::joints::rapier_joint_base::JointExport;
-use crate::joints::rapier_joint_base::JointImport;
 use crate::rapier_wrapper::prelude::PhysicsEngine;
-use crate::shapes::rapier_shape_base::ShapeExport;
-use crate::shapes::rapier_shape_base::ShapeImport;
-use crate::spaces::rapier_space::SpaceExport;
-use crate::spaces::rapier_space::SpaceImport;
+use super::rapier_area::{AreaExport, AreaImport};
+use super::rapier_body::{BodyExport, BodyImport};
+use crate::joints::rapier_joint_base::{JointExport, JointImport};
+use crate::shapes::rapier_shape_base::{ShapeExport, ShapeImport};
+use crate::spaces::rapier_space::{SpaceExport, SpaceImport};
 // The difference between Export and Import states is just that Exports contain non-owning references into state data
 // (essentially they're just windows into the present state of a physics object).
 // Imports contain owned data pulled from serialized data, which can then be moved out into the objects.
