@@ -496,15 +496,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "instant"
-version = "0.1.13"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e0242819d153cba4b4b05a5a8f2a7e9bbf97b6055b2a002b395c96b5ff3c0222"
-dependencies = [
- "cfg-if",
-]
-
-[[package]]
 name = "itertools"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -909,7 +900,6 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.30.1"
-source = "git+https://github.com/ughuuu/rapier?branch=master#3cf8955c84b29c87c2a27bca2353a2a687646882"
 dependencies = [
  "approx",
  "arrayvec",
@@ -935,8 +925,8 @@ dependencies = [
 
 [[package]]
 name = "rapier2d-f64"
-version = "0.30.1"
-source = "git+https://github.com/ughuuu/rapier?branch=master#3cf8955c84b29c87c2a27bca2353a2a687646882"
+version = "0.29.0"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes-v29#15dee20b535317d30614aafbeb378173a7675190"
 dependencies = [
  "approx",
  "arrayvec",
@@ -961,8 +951,8 @@ dependencies = [
 
 [[package]]
 name = "rapier3d"
-version = "0.30.1"
-source = "git+https://github.com/ughuuu/rapier?branch=master#3cf8955c84b29c87c2a27bca2353a2a687646882"
+version = "0.29.0"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes-v29#15dee20b535317d30614aafbeb378173a7675190"
 dependencies = [
  "approx",
  "arrayvec",
@@ -988,8 +978,8 @@ dependencies = [
 
 [[package]]
 name = "rapier3d-f64"
-version = "0.30.1"
-source = "git+https://github.com/ughuuu/rapier?branch=master#3cf8955c84b29c87c2a27bca2353a2a687646882"
+version = "0.29.0"
+source = "git+https://github.com/ughuuu/rapier?branch=custom-changes-v29#15dee20b535317d30614aafbeb378173a7675190"
 dependencies = [
  "approx",
  "arrayvec",
@@ -1121,7 +1111,6 @@ dependencies = [
 [[package]]
 name = "salva2d"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=custom-changes#3c0a04b6bd444ce0516cbfe9ec6faa738a6d3866"
 dependencies = [
  "approx",
  "bitflags",
@@ -1142,7 +1131,6 @@ dependencies = [
  "approx",
  "fnv",
  "generational-arena",
- "instant",
  "itertools 0.13.0",
  "nalgebra",
  "num-traits",
@@ -1159,7 +1147,6 @@ dependencies = [
  "bitflags",
  "fnv",
  "generational-arena",
- "instant",
  "itertools 0.14.0",
  "nalgebra",
  "num-traits",
@@ -1175,7 +1162,6 @@ dependencies = [
  "approx",
  "fnv",
  "generational-arena",
- "instant",
  "itertools 0.13.0",
  "nalgebra",
  "num-traits",
