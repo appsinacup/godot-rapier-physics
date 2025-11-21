@@ -144,7 +144,7 @@ impl StateManager {
     #[func]
     // A method to fetch all the tags in the cache; this lets the user load from cached states at their discretion.
     // The return vector has the same order as the cached states vector.
-    fn peek_cache_tags(&self) -> Vec<Variant> {
+    fn ordered_cache_tags(&self) -> Vec<Variant> {
         self.cached_states.iter().map(|s| s.tag.clone()).collect()
     }
 
@@ -155,7 +155,7 @@ impl StateManager {
 
     #[func]
     // Can submit an index of -1 to remove the last cached state.
-    fn remove_cache_by_index(&mut self, at_index: i32) {
+    fn remove_cached_by_index(&mut self, at_index: i32) {
         let usize_index = {
             if at_index < -1 {
                 godot_error!(
@@ -182,8 +182,8 @@ impl StateManager {
 
     #[func]
     // A cached state has a tag associated with it; this tag can be any variant type.
-    // Tags are not unique, but are the only way for a user to associate some custom item with their cached state.
-    fn cache_state_with_tag(&mut self, in_space: Rid, tag: Variant) {
+    // Tags are not unique, but are the only way for a user to associate some custom information with their cached state.
+    fn cache_state(&mut self, in_space: Rid, tag: Variant) {
         if let Some(export_state) = self.fetch_state(in_space) {
             let cached_state = CachedState {
                 state: RawImportState::from_export_state(export_state),
@@ -194,52 +194,6 @@ impl StateManager {
     }
 
     #[func]
-    // A variation with no tag.
-    fn cache_state(&mut self, in_space: Rid) {
-        if let Some(export_state) = self.fetch_state(in_space) {
-            let cached_state = CachedState {
-                state: RawImportState::from_export_state(export_state),
-                tag: Variant::nil(),
-            };
-            self.push_state_to_cache(cached_state);
-        }
-    }
-
-    #[func]
-    // Loads the nth state from the cache. -1 grabs last entry. Only the subset of the cache with a matching tag will be considered.
-    fn load_cached_state_with_tag(
-        &mut self,
-        in_space: Rid,
-        mut index: i32,
-        with_tag: Variant,
-    ) -> bool {
-        // If no tag was provided, consider our subset to be all our cached states.
-        let subset: Vec<&CachedState> = {
-            if with_tag.is_nil() {
-                self.cached_states.iter().collect()
-            } else {
-                // Otherwise, if a tag was provided, our subset is the cache members that match the tag.
-                self.cached_states
-                    .iter()
-                    .filter(|c| c.tag == with_tag)
-                    .collect()
-            }
-        };
-        if subset.is_empty() {
-            return false;
-        };
-        if index == -1 {
-            index = (subset.len() as i32) - 1;
-        }
-        if let Some(cached_state) = subset.get(index as usize) {
-            self.load_state_internal(in_space, cached_state.state.clone());
-            return true;
-        }
-        false
-    }
-
-    #[func]
-    // Variation with no tag.
     fn load_cached_state(&mut self, in_space: Rid, mut index: i32) -> bool {
         if self.cached_states.is_empty() {
             return false;

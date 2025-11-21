@@ -333,6 +333,7 @@ impl RapierArea {
                 } else {
                     // If we don't have a current monitor, then we don't want to send an exit event.
                     // To my knowledge, this should never happen.
+                    godot_warn!("Area has received an Exit Event for a collider with no recorded Entry Event.");
                     return None;
                 }
             }
