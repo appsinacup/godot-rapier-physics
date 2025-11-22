@@ -37,8 +37,15 @@ pub enum ObjectImportState {
     Space(Box<SpaceImport>),
 }
 pub trait ExportToImport {
-    fn into_import(self) -> ObjectImportState;
+    type Import;
+    fn into_import(self) -> Self::Import;
 }
+
+pub trait ImportToExport {
+    type Export<'a> where Self: 'a;    
+    fn from_import<'a>(&'a self) -> Self::Export<'a>;
+}
+
 #[cfg(feature = "serde-serialize")]
 pub trait ExportableObject {
     type ExportState<'a>: serde::Serialize
@@ -54,11 +61,25 @@ pub trait ExportableObject {
 macro_rules! impl_convert_to_import {
     ($export_enum:ident, $import_enum:ident, $($variant:ident),+) => {
         impl<'a> ExportToImport for $export_enum<'a> {
+            type Import = $import_enum;
             fn into_import(self) -> $import_enum {
                 match self {
                     $(
                         $export_enum::$variant(data) => {
                             $import_enum::$variant(data.into_import())
+                        }
+                    ),+
+                }
+            }
+        }
+
+        impl ImportToExport for $import_enum {
+            type Export<'a> = $export_enum<'a>;
+            fn from_import<'a>(&'a self) -> $export_enum<'a> {
+                match self {
+                    $(
+                        $import_enum::$variant(data) => {
+                            $export_enum::$variant(data.from_import())
                         }
                     ),+
                 }

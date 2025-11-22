@@ -21,7 +21,9 @@ use servers::rapier_physics_singleton::RapierId;
 use servers::rapier_physics_singleton::get_id_rid;
 
 use super::exportable_object::ExportableObject;
+use super::exportable_object::ImportToExport;
 use super::exportable_object::ObjectImportState;
+use super::exportable_object::ExportToImport;
 use super::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
@@ -81,19 +83,31 @@ pub struct AreaExport<'a> {
     area_state: &'a RapierAreaState,
     base_state: &'a RapierCollisionObjectBaseState,
 }
-#[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize, Clone))]
-pub struct AreaImport {
-    area_state: RapierAreaState,
-    base_state: RapierCollisionObjectBaseState,
-}
-impl<'a> AreaExport<'a> {
-    pub fn into_import(self) -> AreaImport {
+impl ExportToImport for AreaExport<'_> {
+    type Import = AreaImport;
+    fn into_import(self) -> Self::Import {
         AreaImport {
             area_state: self.area_state.clone(),
             base_state: self.base_state.clone(),
         }
     }
 }
+#[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize, Clone))]
+pub struct AreaImport {
+    area_state: RapierAreaState,
+    base_state: RapierCollisionObjectBaseState,
+}
+impl ImportToExport for AreaImport {
+    type Export<'a> = AreaExport<'a>;
+
+    fn from_import<'a>(&'a self) -> Self::Export<'a> {
+        AreaExport {
+            area_state: &self.area_state,
+            base_state: &self.base_state,
+        }
+    }    
+}
+
 #[cfg_attr(
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)

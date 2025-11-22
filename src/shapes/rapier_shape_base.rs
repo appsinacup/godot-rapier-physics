@@ -3,7 +3,9 @@ use hashbrown::HashMap;
 use rapier::prelude::SharedShape;
 
 use crate::bodies::exportable_object::ExportableObject;
+use crate::bodies::exportable_object::ImportToExport;
 use crate::bodies::exportable_object::ObjectImportState;
+use crate::bodies::exportable_object::ExportToImport;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsData;
@@ -16,19 +18,31 @@ pub struct ShapeExport<'a> {
     state: &'a RapierShapeState,
     shape: &'a SharedShape,
 }
-#[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize, Clone))]
-pub struct ShapeImport {
-    state: RapierShapeState,
-    shape: SharedShape,
-}
-impl<'a> ShapeExport<'a> {
-    pub fn into_import(self) -> ShapeImport {
+impl<'a> ExportToImport for ShapeExport<'a> {
+    type Import = ShapeImport;
+    fn into_import(self) -> Self::Import {
         ShapeImport {
             state: self.state.clone(),
             shape: self.shape.clone(),
         }
     }
 }
+#[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize, Clone))]
+pub struct ShapeImport {
+    state: RapierShapeState,
+    shape: SharedShape,
+}
+impl ImportToExport for ShapeImport {
+    type Export<'a> = ShapeExport<'a>;
+
+    fn from_import<'a>(&'a self) -> Self::Export<'a> {
+        ShapeExport { 
+            state: &self.state,
+            shape: &self.shape,
+        }
+    }    
+}
+
 #[cfg_attr(
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)

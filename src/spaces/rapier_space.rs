@@ -20,7 +20,9 @@ use spaces::rapier_space_state::RapierSpaceState;
 use super::PhysicsDirectSpaceState;
 use super::RapierDirectSpaceState;
 use crate::bodies::exportable_object::ExportableObject;
+use crate::bodies::exportable_object::ImportToExport;
 use crate::bodies::exportable_object::ObjectImportState;
+use crate::bodies::exportable_object::ExportToImport;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::physics_data;
@@ -40,18 +42,29 @@ pub struct SpaceExport<'a> {
     space: &'a RapierSpaceState,
     world: &'a PhysicsObjects,
 }
-#[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize, Clone))]
-pub struct SpaceImport {
-    space: RapierSpaceState,
-    pub(crate) world: PhysicsObjects,
-}
-impl<'a> SpaceExport<'a> {
-    pub fn into_import(self) -> Box<SpaceImport> {
+impl<'a> ExportToImport for SpaceExport<'a> {
+    type Import = Box<SpaceImport>;    
+    fn into_import(self) -> Self::Import {
         Box::new(SpaceImport {
             space: self.space.clone(),
             world: self.world.clone(),
         })
     }
+}
+#[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize, Clone))]
+pub struct SpaceImport {
+    space: RapierSpaceState,
+    pub(crate) world: PhysicsObjects,
+}
+impl ImportToExport for SpaceImport {
+    type Export<'a> = SpaceExport<'a>;
+
+    fn from_import<'a>(&'a self) -> Self::Export<'a> {
+        SpaceExport { 
+            space: &self.space,
+            world: &self.world,
+        }
+    }    
 }
 #[cfg(feature = "serde-serialize")]
 impl ExportableObject for RapierSpace {

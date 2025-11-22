@@ -10,6 +10,7 @@ use rapier::geometry::ColliderPair;
 
 use crate::bodies::exportable_object::ExportToImport;
 use crate::bodies::exportable_object::ExportableObject;
+use crate::bodies::exportable_object::ImportToExport;
 use crate::bodies::exportable_object::ObjectExportState;
 use crate::bodies::exportable_object::ObjectImportState;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
@@ -52,6 +53,24 @@ struct CollatedObjectImportState {
     state: ObjectImportState,
     shape_owners: HashMap<String, Vec<ObjectImportState>>,
 }
+impl CollatedObjectImportState {
+    pub fn into_collated_export<'a>(&'a self) -> CollatedObjectExportState<'a> {
+        let mut export_state_map = HashMap::new();
+        for (key, val) in &self.shape_owners {
+            let mut shape_exports: Vec<ObjectExportState<'a>> = Vec::new();
+            // Move the export states out.
+            for import_state in val {
+                shape_exports.push(import_state.from_import());
+            }
+            export_state_map.insert(key.to_string(), shape_exports);
+        }
+        CollatedObjectExportState {
+            state: self.state.from_import(),
+            shape_owners: export_state_map,
+        }
+    }
+}
+
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
 // The entire state of the physics server, with physics node states stored too.
 struct RawExportState<'a> {
@@ -59,6 +78,21 @@ struct RawExportState<'a> {
     rapier_space: SpaceExport<'a>,
     physics_server_id: i64,
     physics_objects_state: HashMap<String, CollatedObjectExportState<'a>>,
+}
+impl<'a> RawExportState<'a> {
+    fn from_import_state(import_state: &'a RawImportState) -> Self {
+        let mut phys_objs = HashMap::new();
+        for (key, val) in &import_state.physics_objects_state {
+            phys_objs.insert(key.clone(), val.into_collated_export());
+        };
+        
+        RawExportState {
+            root_node: import_state.root_node.clone(),
+            rapier_space: import_state.rapier_space.from_import(),
+            physics_server_id: import_state.physics_server_id.clone(),
+            physics_objects_state: phys_objs,
+        }
+    }
 }
 #[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize, Clone))]
 struct RawImportState {
@@ -214,7 +248,30 @@ impl StateManager {
     // it outputs a GodotBase64 string. For RustBincode, it exports binary. This is mostly intended for saving states to file,
     // but exporting state to JSON can also be useful for debugging.
     fn export_state(&mut self, in_space: Rid, format: SerializationFormat) -> Variant {
-        self.serialize_state(in_space, &format)
+        if let Some(raw_state) = self.fetch_state(in_space) {
+            self.serialize_state(raw_state, &format)
+        } else {
+            Variant::nil()
+        }        
+    }
+
+    #[func]
+    fn export_state_from_cache(
+        &mut self,
+        mut cache_index: i32,
+        format: SerializationFormat,
+    ) -> Variant {
+        if self.cached_states.is_empty() {
+            return Variant::nil()
+        };
+        if cache_index == -1 {
+            cache_index = (self.cached_states.len() as i32) - 1;
+        }
+        if let Some(cached_state) = self.cached_states.get(cache_index as usize) {
+            let raw_state = RawExportState::from_import_state(&cached_state.state);
+            return self.serialize_state(raw_state, &format)
+        }
+        return Variant::nil()
     }
 
     #[func]
@@ -483,7 +540,7 @@ impl StateManager {
     }
 
     // Outputs the whole state of our physics server, along with the states of all the physics nodes.
-    fn fetch_state<'a>(&'a mut self, in_space: Rid) -> Option<RawExportState<'a>> {
+    fn fetch_state<'a>(&'a self, in_space: Rid) -> Option<RawExportState<'a>> {
         if let Some(root_node) = &self.root_node {
             let root_nodepath = root_node.get_path();
             // Each physics node gets its own variant vector. The first entry in this vector will be that node's serialized data;
@@ -601,40 +658,35 @@ impl StateManager {
     }
 
     // Grabs physics state via fetch_state and serializes it to a specified format.
-    fn serialize_state(&mut self, in_space: Rid, format: &SerializationFormat) -> Variant {
-        if let Some(raw_state) = self.fetch_state(in_space) {
-            match format {
-                SerializationFormat::Json | SerializationFormat::GodotBase64 => {
-                    let serialized_state = match serde_json::to_value(raw_state) {
-                        Ok(v) => v,
-                        Err(err) => {
-                            godot_error!("Failed to serialize physics state to JSON: {}", err);
-                            return Variant::nil();
-                        }
-                    };
-                    // Here we switch on format; for GodotBase64, we let Godot's marshall do all the work. For "none", we just return Serde's JSON string.
-                    if matches!(format, SerializationFormat::GodotBase64) {
-                        let serialized_string =
-                            Marshalls::singleton().utf8_to_base64(&serialized_state.to_string());
-                        serialized_string.to_variant()
-                    } else {
-                        serialized_state.to_string().to_variant()
+    fn serialize_state(&self, raw_state: RawExportState<'_>, format: &SerializationFormat) -> Variant {
+        match format {
+            SerializationFormat::Json | SerializationFormat::GodotBase64 => {
+                let serialized_state = match serde_json::to_value(raw_state) {
+                    Ok(v) => v,
+                    Err(err) => {
+                        godot_error!("Failed to serialize physics state to JSON: {}", err);
+                        return Variant::nil();
                     }
-                }
-                SerializationFormat::RustBincode => {
-                    let serialized_state = match bincode::serialize(&raw_state) {
-                        Ok(b) => b,
-                        Err(err) => {
-                            godot_error!("Failed to serialize physics state to binary: {}", err);
-                            return Variant::nil();
-                        }
-                    };
-                    bin_to_packed_byte_array(serialized_state).to_variant()
+                };
+                // Here we switch on format; for GodotBase64, we let Godot's marshall do all the work. For "none", we just return Serde's JSON string.
+                if matches!(format, SerializationFormat::GodotBase64) {
+                    let serialized_string =
+                        Marshalls::singleton().utf8_to_base64(&serialized_state.to_string());
+                    serialized_string.to_variant()
+                } else {
+                    serialized_state.to_string().to_variant()
                 }
             }
-        } else {
-            godot_error!("Failed to serialize state.");
-            Variant::nil()
+            SerializationFormat::RustBincode => {
+                let serialized_state = match bincode::serialize(&raw_state) {
+                    Ok(b) => b,
+                    Err(err) => {
+                        godot_error!("Failed to serialize physics state to binary: {}", err);
+                        return Variant::nil();
+                    }
+                };
+                bin_to_packed_byte_array(serialized_state).to_variant()
+            }
         }
     }
 
@@ -643,7 +695,6 @@ impl StateManager {
             || node.is_class("CollisionObject3D")
             || node.is_class("Joint2D")
             || node.is_class("Joint3D")
-        //|| node.is_class("CollisionShape2D") || node.is_class("CollisionPolygon2D") || node.is_class("CollisionShape3D") || node.is_class("CollisionPolygon3D")
     }
 
     fn get_all_physics_nodes_in_space(root_node: &Gd<Node>, in_space: Rid) -> Vec<String> {
