@@ -509,7 +509,7 @@ impl PhysicsEngine {
             // Extract the X axis from the rotation as UnitVector
             let axis1_vec = axis_1 * Vector::x_axis();
             let axis2_vec = axis_2 * Vector::x_axis();
-            let joint = GenericJointBuilder::new(JointAxesMask::LOCKED_SPHERICAL_AXES)
+            let joint = GenericJointBuilder::new(JointAxesMask::FREE_FIXED_AXES)
                 .local_anchor1(Point { coords: anchor_1 })
                 .local_anchor2(Point { coords: anchor_2 })
                 .local_axis1(axis1_vec)
