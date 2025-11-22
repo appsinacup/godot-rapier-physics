@@ -60,7 +60,7 @@ pub struct SpaceImport {
 impl ImportToExport for SpaceImport {
     type Export<'a> = SpaceExport<'a>;
 
-    fn from_import<'a>(&'a self) -> Self::Export<'a> {
+    fn as_export<'a>(&'a self) -> Self::Export<'a> {
         SpaceExport {
             space: &self.space,
             world: &self.world,

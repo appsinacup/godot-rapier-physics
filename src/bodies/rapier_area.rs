@@ -101,7 +101,7 @@ pub struct AreaImport {
 impl ImportToExport for AreaImport {
     type Export<'a> = AreaExport<'a>;
 
-    fn from_import<'a>(&'a self) -> Self::Export<'a> {
+    fn as_export<'a>(&'a self) -> Self::Export<'a> {
         AreaExport {
             area_state: &self.area_state,
             base_state: &self.base_state,

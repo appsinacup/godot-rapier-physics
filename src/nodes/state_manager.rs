@@ -54,18 +54,18 @@ struct CollatedObjectImportState {
     shape_owners: HashMap<String, Vec<ObjectImportState>>,
 }
 impl CollatedObjectImportState {
-    pub fn into_collated_export<'a>(&'a self) -> CollatedObjectExportState<'a> {
+    pub fn as_collated_export<'a>(&'a self) -> CollatedObjectExportState<'a> {
         let mut export_state_map = HashMap::new();
         for (key, val) in &self.shape_owners {
             let mut shape_exports: Vec<ObjectExportState<'a>> = Vec::new();
             // Move the export states out.
             for import_state in val {
-                shape_exports.push(import_state.from_import());
+                shape_exports.push(import_state.as_export());
             }
             export_state_map.insert(key.to_string(), shape_exports);
         }
         CollatedObjectExportState {
-            state: self.state.from_import(),
+            state: self.state.as_export(),
             shape_owners: export_state_map,
         }
     }
@@ -82,11 +82,11 @@ impl<'a> RawExportState<'a> {
     fn from_import_state(import_state: &'a RawImportState) -> Self {
         let mut phys_objs = HashMap::new();
         for (key, val) in &import_state.physics_objects_state {
-            phys_objs.insert(key.clone(), val.into_collated_export());
+            phys_objs.insert(key.clone(), val.as_collated_export());
         }
         RawExportState {
             root_node: import_state.root_node.clone(),
-            rapier_space: import_state.rapier_space.from_import(),
+            rapier_space: import_state.rapier_space.as_export(),
             physics_server_id: import_state.physics_server_id,
             physics_objects_state: phys_objs,
         }

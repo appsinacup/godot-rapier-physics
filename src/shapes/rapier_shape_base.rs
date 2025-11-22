@@ -36,7 +36,7 @@ pub struct ShapeImport {
 impl ImportToExport for ShapeImport {
     type Export<'a> = ShapeExport<'a>;
 
-    fn from_import<'a>(&'a self) -> Self::Export<'a> {
+    fn as_export<'a>(&'a self) -> Self::Export<'a> {
         ShapeExport {
             state: &self.state,
             shape: &self.shape,

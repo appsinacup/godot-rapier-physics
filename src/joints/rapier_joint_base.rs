@@ -39,7 +39,7 @@ pub struct JointImport {
 impl ImportToExport for JointImport {
     type Export<'a> = JointExport<'a>;
 
-    fn from_import<'a>(&'a self) -> Self::Export<'a> {
+    fn as_export<'a>(&'a self) -> Self::Export<'a> {
         JointExport { state: &self.state }
     }
 }

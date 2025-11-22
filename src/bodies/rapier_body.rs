@@ -116,7 +116,7 @@ pub struct BodyImport {
 impl ImportToExport for BodyImport {
     type Export<'a> = BodyExport<'a>;
 
-    fn from_import<'a>(&'a self) -> Self::Export<'a> {
+    fn as_export<'a>(&'a self) -> Self::Export<'a> {
         BodyExport {
             body_state: &self.body_state,
             base_state: &self.base_state,

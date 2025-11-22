@@ -44,7 +44,7 @@ pub trait ImportToExport {
     type Export<'a>
     where
         Self: 'a;
-    fn from_import<'a>(&'a self) -> Self::Export<'a>;
+    fn as_export<'a>(&'a self) -> Self::Export<'a>;
 }
 #[cfg(feature = "serde-serialize")]
 pub trait ExportableObject {
@@ -75,11 +75,11 @@ macro_rules! impl_convert_to_import {
 
         impl ImportToExport for $import_enum {
             type Export<'a> = $export_enum<'a>;
-            fn from_import<'a>(&'a self) -> $export_enum<'a> {
+            fn as_export<'a>(&'a self) -> $export_enum<'a> {
                 match self {
                     $(
                         $import_enum::$variant(data) => {
-                            $export_enum::$variant(data.from_import())
+                            $export_enum::$variant(data.as_export())
                         }
                     ),+
                 }
