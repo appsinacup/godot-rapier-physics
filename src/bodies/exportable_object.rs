@@ -40,12 +40,12 @@ pub trait ExportToImport {
     type Import;
     fn into_import(self) -> Self::Import;
 }
-
 pub trait ImportToExport {
-    type Export<'a> where Self: 'a;    
+    type Export<'a>
+    where
+        Self: 'a;
     fn from_import<'a>(&'a self) -> Self::Export<'a>;
 }
-
 #[cfg(feature = "serde-serialize")]
 pub trait ExportableObject {
     type ExportState<'a>: serde::Serialize

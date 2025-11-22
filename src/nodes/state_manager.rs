@@ -70,7 +70,6 @@ impl CollatedObjectImportState {
         }
     }
 }
-
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
 // The entire state of the physics server, with physics node states stored too.
 struct RawExportState<'a> {
@@ -84,12 +83,11 @@ impl<'a> RawExportState<'a> {
         let mut phys_objs = HashMap::new();
         for (key, val) in &import_state.physics_objects_state {
             phys_objs.insert(key.clone(), val.into_collated_export());
-        };
-        
+        }
         RawExportState {
             root_node: import_state.root_node.clone(),
             rapier_space: import_state.rapier_space.from_import(),
-            physics_server_id: import_state.physics_server_id.clone(),
+            physics_server_id: import_state.physics_server_id,
             physics_objects_state: phys_objs,
         }
     }
@@ -252,7 +250,7 @@ impl StateManager {
             self.serialize_state(raw_state, &format)
         } else {
             Variant::nil()
-        }        
+        }
     }
 
     #[func]
@@ -262,16 +260,16 @@ impl StateManager {
         format: SerializationFormat,
     ) -> Variant {
         if self.cached_states.is_empty() {
-            return Variant::nil()
+            return Variant::nil();
         };
         if cache_index == -1 {
             cache_index = (self.cached_states.len() as i32) - 1;
         }
         if let Some(cached_state) = self.cached_states.get(cache_index as usize) {
             let raw_state = RawExportState::from_import_state(&cached_state.state);
-            return self.serialize_state(raw_state, &format)
+            return self.serialize_state(raw_state, &format);
         }
-        return Variant::nil()
+        Variant::nil()
     }
 
     #[func]
@@ -658,7 +656,11 @@ impl StateManager {
     }
 
     // Grabs physics state via fetch_state and serializes it to a specified format.
-    fn serialize_state(&self, raw_state: RawExportState<'_>, format: &SerializationFormat) -> Variant {
+    fn serialize_state(
+        &self,
+        raw_state: RawExportState<'_>,
+        format: &SerializationFormat,
+    ) -> Variant {
         match format {
             SerializationFormat::Json | SerializationFormat::GodotBase64 => {
                 let serialized_state = match serde_json::to_value(raw_state) {

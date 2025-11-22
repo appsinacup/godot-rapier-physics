@@ -20,10 +20,10 @@ use servers::rapier_physics_singleton::PhysicsSpaces;
 use servers::rapier_physics_singleton::RapierId;
 use servers::rapier_physics_singleton::get_id_rid;
 
+use super::exportable_object::ExportToImport;
 use super::exportable_object::ExportableObject;
 use super::exportable_object::ImportToExport;
 use super::exportable_object::ObjectImportState;
-use super::exportable_object::ExportToImport;
 use super::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
@@ -85,6 +85,7 @@ pub struct AreaExport<'a> {
 }
 impl ExportToImport for AreaExport<'_> {
     type Import = AreaImport;
+
     fn into_import(self) -> Self::Import {
         AreaImport {
             area_state: self.area_state.clone(),
@@ -105,9 +106,8 @@ impl ImportToExport for AreaImport {
             area_state: &self.area_state,
             base_state: &self.base_state,
         }
-    }    
+    }
 }
-
 #[cfg_attr(
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
@@ -347,7 +347,9 @@ impl RapierArea {
                 } else {
                     // If we don't have a current monitor, then we don't want to send an exit event.
                     // To my knowledge, this should never happen.
-                    godot_warn!("Area has received an Exit Event for a collider with no recorded Entry Event.");
+                    godot_warn!(
+                        "Area has received an Exit Event for a collider with no recorded Entry Event."
+                    );
                     return None;
                 }
             }

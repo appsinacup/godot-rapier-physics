@@ -3,10 +3,10 @@ use servers::rapier_physics_singleton::PhysicsIds;
 use servers::rapier_physics_singleton::RapierId;
 use servers::rapier_physics_singleton::get_id_rid;
 
+use crate::bodies::exportable_object::ExportToImport;
 use crate::bodies::exportable_object::ExportableObject;
 use crate::bodies::exportable_object::ImportToExport;
 use crate::bodies::exportable_object::ObjectImportState;
-use crate::bodies::exportable_object::ExportToImport;
 use crate::rapier_wrapper::prelude::*;
 use crate::*;
 #[derive(Default, Debug, PartialEq, Eq, Clone, Copy)]
@@ -27,6 +27,7 @@ pub struct JointExport<'a> {
 }
 impl<'a> ExportToImport for JointExport<'a> {
     type Import = JointImport;
+
     fn into_import(self) -> Self::Import {
         JointImport { state: *self.state }
     }
@@ -40,7 +41,7 @@ impl ImportToExport for JointImport {
 
     fn from_import<'a>(&'a self) -> Self::Export<'a> {
         JointExport { state: &self.state }
-    }    
+    }
 }
 #[cfg_attr(
     feature = "serde-serialize",

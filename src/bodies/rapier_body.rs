@@ -21,10 +21,10 @@ use servers::rapier_physics_singleton::RapierId;
 use servers::rapier_physics_singleton::get_id_rid;
 use shapes::rapier_shape::IRapierShape;
 
+use super::exportable_object::ExportToImport;
 use super::exportable_object::ExportableObject;
 use super::exportable_object::ImportToExport;
 use super::exportable_object::ObjectImportState;
-use super::exportable_object::ExportToImport;
 use super::rapier_area::RapierArea;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
@@ -100,6 +100,7 @@ pub struct BodyExport<'a> {
 }
 impl<'a> ExportToImport for BodyExport<'a> {
     type Import = BodyImport;
+
     fn into_import(self) -> Self::Import {
         BodyImport {
             body_state: self.body_state.clone(),
@@ -120,7 +121,7 @@ impl ImportToExport for BodyImport {
             body_state: &self.body_state,
             base_state: &self.base_state,
         }
-    }    
+    }
 }
 #[derive(Default, Debug)]
 #[cfg_attr(
