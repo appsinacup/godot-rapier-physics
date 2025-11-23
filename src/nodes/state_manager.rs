@@ -237,7 +237,11 @@ impl StateManager {
             self.load_state_internal(in_space, cached_state.state.clone());
             true
         } else {
-            godot_error!("Load Cached State attempted to load state at index {}, but cache only has {} entries", index, self.cached_states.len());
+            godot_error!(
+                "Load Cached State attempted to load state at index {}, but cache only has {} entries",
+                index,
+                self.cached_states.len()
+            );
             false
         }
     }
@@ -271,7 +275,11 @@ impl StateManager {
             let raw_state = RawExportState::from_import_state(&cached_state.state);
             self.serialize_state(raw_state, &format)
         } else {
-            godot_error!("Export State from Cache attempted to export state at index {}, but cache only has {} entries", cache_index, self.cached_states.len());
+            godot_error!(
+                "Export State from Cache attempted to export state at index {}, but cache only has {} entries",
+                cache_index,
+                self.cached_states.len()
+            );
             Variant::nil()
         }
     }

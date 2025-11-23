@@ -7,12 +7,12 @@ use crate::rapier_wrapper::handle::WorldHandle;
 use crate::rapier_wrapper::prelude::PhysicsEngine;
 use crate::rapier_wrapper::prelude::WorldSettings;
 use crate::servers::rapier_physics_singleton::RapierId;
-
 mod serde_hashset_as_vec {
-    use serde::{Serializer, Deserializer, Serialize, Deserialize};
     use hashbrown::HashSet;
-    use std::hash::Hash;
-
+    use serde::Deserialize;
+    use serde::Deserializer;
+    use serde::Serialize;
+    use serde::Serializer;
     pub fn serialize<S, T>(set: &HashSet<T>, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -21,7 +21,6 @@ mod serde_hashset_as_vec {
         let vec: Vec<&T> = set.iter().collect();
         vec.serialize(serializer)
     }
-
     pub fn deserialize<'de, D, T>(deserializer: D) -> Result<HashSet<T>, D::Error>
     where
         D: Deserializer<'de>,
@@ -31,7 +30,6 @@ mod serde_hashset_as_vec {
         Ok(vec.into_iter().collect())
     }
 }
-
 impl RemovedColliderInfo {
     pub fn new(
         rb_id: RapierId,
