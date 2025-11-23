@@ -41,4 +41,5 @@ web.release.wasm32 = "bin/wasm-nothreads/godot_rapier.wasm"
 
 [icons]
 
-Fluid2D = "Fluid2D.svg"
+Fluid2D = "icons/Fluid2D.svg"
+StateManager = "icons/StateManager.svg"

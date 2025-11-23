@@ -79,7 +79,21 @@ pub struct PhysicsObjects {
     pub collider_set: ColliderSet,
     pub rigid_body_set: RigidBodySet,
 
+    #[cfg_attr(
+        feature = "serde-serialize",
+        serde(
+            serialize_with = "rapier::utils::serde::serialize_to_vec_tuple",
+            deserialize_with = "rapier::utils::serde::deserialize_from_vec_tuple"
+        )
+    )]
     pub removed_rigid_bodies_user_data: HashMap<RigidBodyHandle, UserData>,
+    #[cfg_attr(
+        feature = "serde-serialize",
+        serde(
+            serialize_with = "rapier::utils::serde::serialize_to_vec_tuple",
+            deserialize_with = "rapier::utils::serde::deserialize_from_vec_tuple"
+        )
+    )]
     pub removed_colliders_user_data: HashMap<ColliderHandle, UserData>,
 
     pub handle: WorldHandle,

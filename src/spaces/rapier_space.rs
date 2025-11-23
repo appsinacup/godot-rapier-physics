@@ -191,11 +191,6 @@ impl RapierSpace {
                 area_monitor_callback = area.area_monitor_callback.clone();
             }
             if let Some(unhandled_event_queue) = unhandled_event_queue {
-                let mon_obj_len = unhandled_event_queue.len();
-                godot_print!(
-                    "monitored_objects length passed into call_queries is {}",
-                    mon_obj_len
-                );
                 RapierArea::call_queries(
                     &unhandled_event_queue,
                     monitor_callback,

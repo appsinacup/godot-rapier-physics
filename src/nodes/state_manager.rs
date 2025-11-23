@@ -203,7 +203,7 @@ impl StateManager {
         };
         if usize_index >= self.cached_states.len() {
             godot_error!(
-                "Specified cache index out of bounds; index is {} but cache length is {}!",
+                "Remove Cached by Index attempted to remove state at index {}, but cache only has {} entries",
                 usize_index,
                 self.cached_states.len()
             );
@@ -235,9 +235,11 @@ impl StateManager {
         }
         if let Some(cached_state) = self.cached_states.get(index as usize) {
             self.load_state_internal(in_space, cached_state.state.clone());
-            return true;
+            true
+        } else {
+            godot_error!("Load Cached State attempted to load state at index {}, but cache only has {} entries", index, self.cached_states.len());
+            false
         }
-        false
     }
 
     // STATE EXPORT/IMPORT: Methods for serializing state for storage on disk.
@@ -267,9 +269,11 @@ impl StateManager {
         }
         if let Some(cached_state) = self.cached_states.get(cache_index as usize) {
             let raw_state = RawExportState::from_import_state(&cached_state.state);
-            return self.serialize_state(raw_state, &format);
+            self.serialize_state(raw_state, &format)
+        } else {
+            godot_error!("Export State from Cache attempted to export state at index {}, but cache only has {} entries", cache_index, self.cached_states.len());
+            Variant::nil()
         }
-        Variant::nil()
     }
 
     #[func]
@@ -434,6 +438,8 @@ impl StateManager {
             loaded_state.physics_objects_state.keys().cloned().collect();
         let mut nodes_to_remove: HashSet<String> = HashSet::new();
         // Iterate through the nodes in our current scene tree.
+        // TODO: For node collision objects, state loading doesn't currently support added or removed shapes.
+        // Future improvements have to aim to address this.
         for nodepath_str in physics_nodes {
             // If this node doesn't exist in our saved states, then we'll have to remove it.
             if !nodes_pending_load.contains(&nodepath_str) {
@@ -463,9 +469,7 @@ impl StateManager {
                                 continue;
                             }
                         };
-                        for i in 0..shape_states.len() {
-                            // Yeah, see, this part grabs the shape from the existing node, which isn't reliable (what if the shapes have changed?).
-                            // Since the shape import literally deletes and recreates the shape anyway, we should just clear all the shape owners and rebuild.
+                        for i in shape_states.len()..0 {
                             if let Some(shape) =
                                 co2d.shape_owner_get_shape(shape_owner_id, i as i32)
                             {
@@ -496,7 +500,7 @@ impl StateManager {
                                 continue;
                             }
                         };
-                        for i in 0..shape_states.len() {
+                        for i in shape_states.len()..0 {
                             if let Some(shape) =
                                 co3d.shape_owner_get_shape(shape_owner_id, i as i32)
                             {
@@ -504,7 +508,6 @@ impl StateManager {
                                     shape.get_rid(),
                                     shape_states.remove(i),
                                 );
-                                godot_print!("Loaded shape state.");
                             };
                         }
                     }
@@ -663,7 +666,7 @@ impl StateManager {
     ) -> Variant {
         match format {
             SerializationFormat::Json | SerializationFormat::GodotBase64 => {
-                let serialized_state = match serde_json::to_value(raw_state) {
+                let serialized_state = match serde_json::to_string(&raw_state) {
                     Ok(v) => v,
                     Err(err) => {
                         godot_error!("Failed to serialize physics state to JSON: {}", err);

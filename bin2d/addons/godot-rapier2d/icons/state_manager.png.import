@@ -2,17 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cv17s0qjrqj16"
-path="res://.godot/imported/Fluid2D.svg-947567c51a8b586a0e695be7cba2d975.ctex"
+uid="uid://bkovmxhg51ngj"
+path="res://.godot/imported/state_manager.png-50dfc2198b1d66fa41dcd33e5ec5b130.ctex"
 metadata={
-"has_editor_variant": true,
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/godot-rapier2d/Fluid2D.svg"
-dest_files=["res://.godot/imported/Fluid2D.svg-947567c51a8b586a0e695be7cba2d975.ctex"]
+source_file="res://addons/godot-rapier2d/icons/state_manager.png"
+dest_files=["res://.godot/imported/state_manager.png-50dfc2198b1d66fa41dcd33e5ec5b130.ctex"]
 
 [params]
 
@@ -39,6 +38,3 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
-svg/scale=1.0
-editor/scale_with_editor_scale=true
-editor/convert_colors_with_editor_theme=false

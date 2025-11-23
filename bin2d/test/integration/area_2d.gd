@@ -7,8 +7,8 @@ func _physics_process(delta: float) -> void:
 
 
 func _on_body_exited(body: Node2D) -> void:
-	print("BODY EXITED!!!!!!!!!!!!!!")
+	print("BODY EXITED")
 
 
 func _on_body_entered(body: Node2D) -> void:
-	print("BODY ENTERRRRRRRRRRRRRRED!!!!!!!!!!")
+	print("BODY ENTERED")
