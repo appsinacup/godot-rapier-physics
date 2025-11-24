@@ -1,6 +1,13 @@
 # Changelog
 
-## v0.8.24
+## v0.8.24 - Nov 24
+
+## What's Changed
+* Fix: Generic6DOFJoint does not allow for translation only rotation by @Stefan-5422 in https://github.com/appsinacup/godot-rapier-physics/pull/458
+* Fix fluid effects not working.
+
+
+**Full Changelog**: https://github.com/appsinacup/godot-rapier-physics/compare/v0.8.23...nightly
 
 ## v0.8.23 - Nov 16
 
