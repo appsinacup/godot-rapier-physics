@@ -121,7 +121,8 @@ struct CachedState {
     tag: Variant,
 }
 #[derive(GodotClass)]
-#[class(base = Node)]
+#[cfg(feature = "dim3")]
+#[class(base = Node, rename=StateManager3D)]
 struct StateManager {
     #[export]
     root_node: Option<Gd<Node>>,
@@ -133,6 +134,21 @@ struct StateManager {
     #[export]
     rolling_cache: bool,
 }
+#[derive(GodotClass)]
+#[cfg(feature = "dim2")]
+#[class(base = Node, rename=StateManager2D)]
+struct StateManager {
+    #[export]
+    root_node: Option<Gd<Node>>,
+    base: Base<Node>,
+    cached_states: Vec<CachedState>,
+    #[export]
+    #[var(get = get_max_cache_length, set = set_max_cache_length)]
+    max_cache_length: u32,
+    #[export]
+    rolling_cache: bool,
+}
+
 #[godot_api]
 impl INode for StateManager {
     fn init(base_in: Base<Node>) -> Self {

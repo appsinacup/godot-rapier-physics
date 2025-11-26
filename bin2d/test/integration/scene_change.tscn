@@ -16,7 +16,7 @@ size = Vector2(87, 20)
 
 [node name="SceneChange" type="Node2D" node_paths=PackedStringArray("rapier_state_manager", "label")]
 script = ExtResource("1_2h8nx")
-rapier_state_manager = NodePath("StateManager")
+rapier_state_manager = NodePath("")
 label = NodePath("Label")
 
 [node name="RigidBody2D" type="RigidBody2D" parent="."]
@@ -77,8 +77,11 @@ visible = false
 position = Vector2(33.5, 0)
 shape = SubResource("RectangleShape2D_2h8nx")
 
-[node name="StateManager" type="StateManager" parent="." node_paths=PackedStringArray("root_node")]
+[node name="StateManager" type="StateManager2D" parent="." node_paths=PackedStringArray("root_node")]
 root_node = NodePath("..")
+rolling_cache = true
+
+[node name="Node" type="Node" parent="."]
 
 [connection signal="body_entered" from="Area2D" to="Area2D" method="_on_body_entered"]
 [connection signal="body_exited" from="Area2D" to="Area2D" method="_on_body_exited"]

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dyemp73q1vumn"
-path="res://.godot/imported/StateManager.svg-0bdd07c8f2b192c0d4cf63d538655cba.ctex"
+uid="uid://sgyu0ulapun8"
+path="res://.godot/imported/StateManager2D.svg-1a4e1b526e80995b692903b1eb5c9c70.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/godot-rapier2d/icons/StateManager.svg"
-dest_files=["res://.godot/imported/StateManager.svg-0bdd07c8f2b192c0d4cf63d538655cba.ctex"]
+source_file="res://addons/godot-rapier2d/icons/StateManager2D.svg"
+dest_files=["res://.godot/imported/StateManager2D.svg-1a4e1b526e80995b692903b1eb5c9c70.ctex"]
 
 [params]
 

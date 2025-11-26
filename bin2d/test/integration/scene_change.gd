@@ -1,6 +1,6 @@
 extends Node2D
 
-@export var rapier_state_manager : StateManager
+@export var rapier_state_manager : StateManager2D
 @export var label: Label
 
 var saved_state: Variant
