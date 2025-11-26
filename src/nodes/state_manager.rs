@@ -148,7 +148,6 @@ struct StateManager {
     #[export]
     rolling_cache: bool,
 }
-
 #[godot_api]
 impl INode for StateManager {
     fn init(base_in: Base<Node>) -> Self {
