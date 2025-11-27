@@ -7,6 +7,8 @@ use godot::classes::physics_server_2d::*;
 use godot::classes::physics_server_3d::*;
 use godot::prelude::*;
 use hashbrown::HashSet;
+use rapier::geometry::ColliderPair;
+use rapier::geometry::NarrowPhase;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsData;
 use servers::rapier_physics_singleton::PhysicsIds;
@@ -17,8 +19,13 @@ use spaces::rapier_space_state::RapierSpaceState;
 
 use super::PhysicsDirectSpaceState;
 use super::RapierDirectSpaceState;
+use crate::bodies::exportable_object::ExportToImport;
+use crate::bodies::exportable_object::ExportableObject;
+use crate::bodies::exportable_object::ImportToExport;
+use crate::bodies::exportable_object::ObjectImportState;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
+use crate::servers::rapier_physics_singleton::physics_data;
 use crate::servers::rapier_project_settings::*;
 use crate::types::*;
 use crate::*;
@@ -30,15 +37,62 @@ const DEFAULT_GRAVITY_VECTOR: &str = "physics/3d/default_gravity_vector";
 const DEFAULT_GRAVITY: &str = "physics/2d/default_gravity";
 #[cfg(feature = "dim3")]
 const DEFAULT_GRAVITY: &str = "physics/3d/default_gravity";
-#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize, Clone))]
 pub struct SpaceExport<'a> {
     space: &'a RapierSpaceState,
     world: &'a PhysicsObjects,
 }
-#[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize))]
+impl<'a> ExportToImport for SpaceExport<'a> {
+    type Import = Box<SpaceImport>;
+
+    fn into_import(self) -> Self::Import {
+        Box::new(SpaceImport {
+            space: self.space.clone(),
+            world: self.world.clone(),
+        })
+    }
+}
+#[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize, Clone))]
 pub struct SpaceImport {
     space: RapierSpaceState,
-    world: PhysicsObjects,
+    pub(crate) world: PhysicsObjects,
+}
+impl ImportToExport for SpaceImport {
+    type Export<'a> = SpaceExport<'a>;
+
+    fn as_export<'a>(&'a self) -> Self::Export<'a> {
+        SpaceExport {
+            space: &self.space,
+            world: &self.world,
+        }
+    }
+}
+#[cfg(feature = "serde-serialize")]
+impl ExportableObject for RapierSpace {
+    type ExportState<'a> = SpaceExport<'a>;
+
+    fn get_export_state<'a>(
+        &'a self,
+        physics_engine: &'a mut PhysicsEngine,
+    ) -> Option<Self::ExportState<'a>> {
+        physics_engine
+            .world_export(self.state.get_id())
+            .map(|inner| SpaceExport {
+                space: &self.state,
+                world: inner,
+            })
+    }
+
+    fn import_state(&mut self, physics_engine: &mut PhysicsEngine, data: ObjectImportState) {
+        match data {
+            bodies::exportable_object::ObjectImportState::Space(space_import) => {
+                self.import(physics_engine, *space_import);
+            }
+            _ => {
+                godot_error!("Attempted to import invalid state data.");
+            }
+        }
+    }
 }
 pub struct RapierSpace {
     direct_access: Option<Gd<PhysicsDirectSpaceState>>,
@@ -125,20 +179,20 @@ impl RapierSpace {
             }
         }
         for area_handle in monitor_query_list {
-            let mut monitored_objects = None;
+            let mut unhandled_event_queue = None;
             let mut monitor_callback = None;
             let mut area_monitor_callback = None;
             if let Some(area) =
                 physics_collision_objects.get(&get_id_rid(*area_handle, physics_ids))
                 && let Some(area) = area.get_area()
             {
-                monitored_objects = Some(area.state.monitored_objects.clone());
+                unhandled_event_queue = Some(area.state.unhandled_events.clone());
                 monitor_callback = area.monitor_callback.clone();
                 area_monitor_callback = area.area_monitor_callback.clone();
             }
-            if let Some(monitored_objects) = monitored_objects {
+            if let Some(unhandled_event_queue) = unhandled_event_queue {
                 RapierArea::call_queries(
-                    &monitored_objects,
+                    &unhandled_event_queue,
                     monitor_callback,
                     area_monitor_callback,
                     physics_ids,
@@ -157,7 +211,7 @@ impl RapierSpace {
                 physics_collision_objects.get_mut(&get_id_rid(area_handle, physics_ids))
                 && let Some(area) = area.get_mut_area()
             {
-                area.clear_monitored_objects();
+                area.clear_event_queue();
             }
         }
         self.state.reset_monitor_query_list();
@@ -369,82 +423,67 @@ impl RapierSpace {
         }
     }
 
-    #[cfg(feature = "serde-serialize")]
-    pub fn export_json(&self, physics_engine: &mut PhysicsEngine) -> String {
-        if let Some(inner) = physics_engine.world_export(self.state.get_id()) {
-            let export = SpaceExport {
-                space: &self.state,
-                world: inner,
-            };
-            match serde_json::to_string_pretty(&export) {
-                Ok(s) => return s,
-                Err(e) => {
-                    godot_error!("Failed to serialize space to json: {}", e);
-                    match serde_json::to_string_pretty(&self.state) {
-                        Ok(_) => {}
-                        Err(e) => {
-                            godot_error!("Failed to serialize space state to json: {}", e);
-                        }
-                    }
-                    match serde_json::to_string_pretty(&inner) {
-                        Ok(_) => {}
-                        Err(e) => {
-                            godot_error!("Failed to serialize space world to json: {}", e);
-                        }
-                    }
-                }
+    pub fn get_intersection_deltas(
+        &self,
+        physics_engine: &mut PhysicsEngine,
+        new_narrowphase: &NarrowPhase,
+    ) -> Option<(Vec<ColliderPair>, Vec<ColliderPair>)> {
+        let mut stale_collider_pairs: Vec<ColliderPair> = Vec::new();
+        let mut new_collider_pairs: Vec<ColliderPair> = Vec::new();
+        if let Some(current_world) = physics_engine.get_mut_world(self.get_state().get_id()) {
+            // Convert the narrowphases into hashsets so we can idiomatically get their differences and intersections.
+            let imp_set: HashSet<_> = new_narrowphase.intersection_pairs().collect();
+            let cur_set: HashSet<_> = current_world
+                .physics_objects
+                .narrow_phase
+                .intersection_pairs()
+                .collect();
+            let only_in_imported: Vec<_> = imp_set.difference(&cur_set).cloned().collect();
+            let only_in_current: Vec<_> = cur_set.difference(&imp_set).cloned().collect();
+            for (handle1, handle2, _intersecting) in only_in_current {
+                stale_collider_pairs.push(ColliderPair::new(handle1, handle2));
             }
+            for (handle1, handle2, _intersecting) in only_in_imported {
+                new_collider_pairs.push(ColliderPair::new(handle1, handle2));
+            }
+            return Some((stale_collider_pairs, new_collider_pairs));
         }
-        "{}".to_string()
+        None
     }
 
-    #[cfg(feature = "serde-serialize")]
-    pub fn export_binary(&self, physics_engine: &mut PhysicsEngine) -> PackedByteArray {
-        let mut buf = PackedByteArray::new();
-        if let Some(inner) = physics_engine.world_export(self.state.get_id()) {
-            let export = SpaceExport {
-                space: &self.state,
-                world: inner,
-            };
-            match bincode::serialize(&export) {
-                Ok(binary_data) => {
-                    buf.resize(binary_data.len());
-                    for i in 0..binary_data.len() {
-                        buf[i] = binary_data[i];
-                    }
-                }
-                Err(e) => {
-                    godot_error!("Failed to serialize space to binary: {}", e);
-                }
-            }
-        }
-        buf
+    fn import(&mut self, physics_engine: &mut PhysicsEngine, import: SpaceImport) {
+        // NOTE: Areas in this space MUST be made to clean up their stale intersections before import is called here.
+        self.state = import.space;
+        let world_settings = WorldSettings {
+            particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
+            smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
+            counters_enabled: false,
+            boundary_coef: RapierProjectSettings::get_fluid_boundary_coef() as real,
+            #[cfg(feature = "parallel")]
+            thread_count: RapierProjectSettings::get_num_threads(),
+        };
+        let physics_objects = import.world;
+        physics_engine.world_import(self.get_state().get_id(), &world_settings, physics_objects);
     }
 
-    #[cfg(feature = "serde-serialize")]
-    pub fn import_binary(&mut self, physics_engine: &mut PhysicsEngine, data: PackedByteArray) {
-        match bincode::deserialize::<SpaceImport>(data.as_slice()) {
-            Ok(import) => {
-                self.state = import.space;
-                let physics_objects = import.world;
-                let world_settings = WorldSettings {
-                    particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
-                    smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
-                    counters_enabled: false,
-                    boundary_coef: RapierProjectSettings::get_fluid_boundary_coef() as real,
-                    #[cfg(feature = "parallel")]
-                    thread_count: RapierProjectSettings::get_num_threads(),
-                };
-                physics_engine.world_import(
-                    self.get_state().get_id(),
-                    &world_settings,
-                    physics_objects,
-                );
-            }
-            Err(e) => {
-                godot_error!("Failed to deserialize space from binary: {}", e);
-            }
+    pub fn flush(&mut self) {
+        let physics_data = physics_data();
+        let state_query_list = Some(self.get_state().get_state_query_list());
+        let force_integrate_query_list = Some(self.get_state().get_force_integrate_query_list());
+        let monitor_query_list = Some(self.get_state().get_monitor_query_list());
+        if let Some(state_query_list) = state_query_list
+            && let Some(force_integrate_query_list) = force_integrate_query_list
+            && let Some(monitor_query_list) = monitor_query_list
+        {
+            RapierSpace::call_queries(
+                state_query_list,
+                force_integrate_query_list,
+                monitor_query_list,
+                &mut physics_data.collision_objects,
+                &physics_data.ids,
+            );
         }
+        self.update_after_queries(&mut physics_data.collision_objects, &physics_data.ids);
     }
 
     pub fn get_ghost_collision_distance(&self) -> real {

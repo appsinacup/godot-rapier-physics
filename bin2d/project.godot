@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Godot Rapier 2D"
-run/main_scene="res://start.tscn"
+run/main_scene="uid://clemidbbr2cib"
 config/features=PackedStringArray("4.5")
 run/low_processor_mode_sleep_usec=1
 config/icon="res://addons/godot-rapier2d/logo_square_2d.png"
@@ -26,6 +26,10 @@ Utils="*res://base/Utils.gd"
 
 window/size/mode=2
 window/subwindows/embed_subwindows=false
+
+[dotnet]
+
+project/assembly_name="Godot Rapier 2D"
 
 [editor]
 
@@ -60,12 +64,6 @@ zoom_out={
 [physics]
 
 2d/physics_engine="Rapier2D"
-rapier/solver/preset=1
-rapier/solver/num_internal_pgs_iterations=4
-rapier/solver/num_internal_stabilization_iterations=4
-rapier/solver/contact_damping_ratio=20.0
-rapier/solver/contact_natural_frequency=50.0
-rapier/logic/ghost_collision_distance_2d=0.1
 
 [rendering]
 

@@ -79,10 +79,44 @@ pub struct PhysicsObjects {
     pub collider_set: ColliderSet,
     pub rigid_body_set: RigidBodySet,
 
+    #[cfg_attr(
+        feature = "serde-serialize",
+        serde(
+            serialize_with = "rapier::utils::serde::serialize_to_vec_tuple",
+            deserialize_with = "rapier::utils::serde::deserialize_from_vec_tuple"
+        )
+    )]
     pub removed_rigid_bodies_user_data: HashMap<RigidBodyHandle, UserData>,
+    #[cfg_attr(
+        feature = "serde-serialize",
+        serde(
+            serialize_with = "rapier::utils::serde::serialize_to_vec_tuple",
+            deserialize_with = "rapier::utils::serde::deserialize_from_vec_tuple"
+        )
+    )]
     pub removed_colliders_user_data: HashMap<ColliderHandle, UserData>,
 
     pub handle: WorldHandle,
+}
+impl Clone for PhysicsObjects {
+    fn clone(&self) -> Self {
+        Self {
+            island_manager: self.island_manager.clone(),
+            broad_phase: self.broad_phase.clone(),
+            narrow_phase: self.narrow_phase.clone(),
+            impulse_joint_set: self.impulse_joint_set.clone(),
+            multibody_joint_set: self.multibody_joint_set.clone(),
+            ccd_solver: self.ccd_solver.clone(),
+
+            collider_set: self.collider_set.clone(),
+            rigid_body_set: self.rigid_body_set.clone(),
+
+            removed_rigid_bodies_user_data: self.removed_rigid_bodies_user_data.clone(),
+            removed_colliders_user_data: self.removed_colliders_user_data.clone(),
+
+            handle: self.handle,
+        }
+    }
 }
 pub struct PhysicsWorld {
     pub physics_objects: PhysicsObjects,

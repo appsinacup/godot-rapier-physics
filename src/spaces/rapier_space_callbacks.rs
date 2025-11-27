@@ -200,113 +200,46 @@ impl RapierSpace {
             } else if let Some(p_object2) = physics_collision_objects.get_mut(&p_object2) {
                 p_collision_object2 = Some(p_object2);
             }
+            let event_as_int = if event_info.is_started {
+                1
+            } else if event_info.is_stopped {
+                -1
+            } else {
+                0
+            };
             // collision object 1 area
             if let Some(ref mut p_collision_object1) = p_collision_object1
                 && let Some(p_area1) = p_collision_object1.get_mut_area()
             {
-                if type2 == CollisionObjectType::Area {
-                    if event_info.is_started {
-                        p_area1.on_area_enter(
-                            collider_handle2,
-                            &mut p_collision_object2,
-                            shape2,
-                            body_id2,
-                            instance_id2,
-                            collider_handle1,
-                            shape1,
-                            self,
-                        );
-                    } else if event_info.is_stopped {
-                        p_area1.on_area_exit(
-                            collider_handle2,
-                            &mut p_collision_object2,
-                            shape2,
-                            body_id2,
-                            instance_id2,
-                            collider_handle1,
-                            shape1,
-                            self,
-                        );
-                    }
-                } else if event_info.is_started {
-                    p_area1.on_body_enter(
-                        collider_handle2,
-                        &mut p_collision_object2,
-                        shape2,
-                        body_id2,
-                        instance_id2,
-                        collider_handle1,
-                        shape1,
-                        self,
-                    );
-                } else if event_info.is_stopped {
-                    p_area1.on_body_exit(
-                        collider_handle2,
-                        &mut p_collision_object2,
-                        shape2,
-                        body_id2,
-                        instance_id2,
-                        collider_handle1,
-                        shape1,
-                        self,
-                    );
-                }
+                p_area1.receive_event(
+                    event_as_int,
+                    type2,
+                    collider_handle2,
+                    &mut p_collision_object2,
+                    shape2,
+                    body_id2,
+                    instance_id2,
+                    collider_handle1,
+                    shape1,
+                    self,
+                );
             }
             // collision object 2 area
             if let Some(ref mut p_collision_object2) = p_collision_object2
                 && let Some(p_area2) = p_collision_object2.get_mut_area()
             {
-                if type1 == CollisionObjectType::Area {
-                    if event_info.is_started {
-                        p_area2.on_area_enter(
-                            collider_handle1,
-                            &mut p_collision_object1,
-                            shape1,
-                            body_id1,
-                            instance_id1,
-                            collider_handle2,
-                            shape2,
-                            self,
-                        );
-                    }
-                    if event_info.is_stopped {
-                        p_area2.on_area_exit(
-                            collider_handle1,
-                            &mut p_collision_object1,
-                            shape1,
-                            body_id1,
-                            instance_id1,
-                            collider_handle2,
-                            shape2,
-                            self,
-                        );
-                    }
-                } else {
-                    if event_info.is_started {
-                        p_area2.on_body_enter(
-                            collider_handle1,
-                            &mut p_collision_object1,
-                            shape1,
-                            body_id1,
-                            instance_id1,
-                            collider_handle2,
-                            shape2,
-                            self,
-                        );
-                    }
-                    if event_info.is_stopped {
-                        p_area2.on_body_exit(
-                            collider_handle1,
-                            &mut p_collision_object1,
-                            shape1,
-                            body_id1,
-                            instance_id1,
-                            collider_handle2,
-                            shape2,
-                            self,
-                        );
-                    }
-                }
+                p_area2.receive_event(
+                    event_as_int,
+                    type1,
+                    collider_handle1,
+                    &mut p_collision_object1,
+                    shape1,
+                    body_id1,
+                    instance_id1,
+                    collider_handle2,
+                    shape2,
+                    self,
+                );
             }
         } else {
             // Body contacts use contact_force_event_callback instead

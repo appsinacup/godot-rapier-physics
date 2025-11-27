@@ -7,6 +7,29 @@ use crate::rapier_wrapper::handle::WorldHandle;
 use crate::rapier_wrapper::prelude::PhysicsEngine;
 use crate::rapier_wrapper::prelude::WorldSettings;
 use crate::servers::rapier_physics_singleton::RapierId;
+mod serde_hashset_as_vec {
+    use hashbrown::HashSet;
+    use serde::Deserialize;
+    use serde::Deserializer;
+    use serde::Serialize;
+    use serde::Serializer;
+    pub fn serialize<S, T>(set: &HashSet<T>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+        T: serde::Serialize + Eq + std::hash::Hash,
+    {
+        let vec: Vec<&T> = set.iter().collect();
+        vec.serialize(serializer)
+    }
+    pub fn deserialize<'de, D, T>(deserializer: D) -> Result<HashSet<T>, D::Error>
+    where
+        D: Deserializer<'de>,
+        T: serde::Deserialize<'de> + Eq + std::hash::Hash,
+    {
+        let vec = Vec::<T>::deserialize(deserializer)?;
+        Ok(vec.into_iter().collect())
+    }
+}
 impl RemovedColliderInfo {
     pub fn new(
         rb_id: RapierId,
@@ -48,13 +71,77 @@ pub struct RapierSpaceState {
         )
     )]
     removed_colliders: HashMap<ColliderHandle, RemovedColliderInfo>,
+
+    #[cfg_attr(
+        feature = "serde-serialize",
+        serde(
+            serialize_with = "serde_hashset_as_vec::serialize",
+            deserialize_with = "serde_hashset_as_vec::deserialize"
+        )
+    )]
     active_list: HashSet<RapierId>,
+
+    #[cfg_attr(
+        feature = "serde-serialize",
+        serde(
+            serialize_with = "serde_hashset_as_vec::serialize",
+            deserialize_with = "serde_hashset_as_vec::deserialize"
+        )
+    )]
     mass_properties_update_list: HashSet<RapierId>,
+
+    #[cfg_attr(
+        feature = "serde-serialize",
+        serde(
+            serialize_with = "serde_hashset_as_vec::serialize",
+            deserialize_with = "serde_hashset_as_vec::deserialize"
+        )
+    )]
     gravity_update_list: HashSet<RapierId>,
+
+    #[cfg_attr(
+        feature = "serde-serialize",
+        serde(
+            serialize_with = "serde_hashset_as_vec::serialize",
+            deserialize_with = "serde_hashset_as_vec::deserialize"
+        )
+    )]
     state_query_list: HashSet<RapierId>,
+
+    #[cfg_attr(
+        feature = "serde-serialize",
+        serde(
+            serialize_with = "serde_hashset_as_vec::serialize",
+            deserialize_with = "serde_hashset_as_vec::deserialize"
+        )
+    )]
     force_integrate_query_list: HashSet<RapierId>,
+
+    #[cfg_attr(
+        feature = "serde-serialize",
+        serde(
+            serialize_with = "serde_hashset_as_vec::serialize",
+            deserialize_with = "serde_hashset_as_vec::deserialize"
+        )
+    )]
     monitor_query_list: HashSet<RapierId>,
+
+    #[cfg_attr(
+        feature = "serde-serialize",
+        serde(
+            serialize_with = "serde_hashset_as_vec::serialize",
+            deserialize_with = "serde_hashset_as_vec::deserialize"
+        )
+    )]
     area_update_list: HashSet<RapierId>,
+
+    #[cfg_attr(
+        feature = "serde-serialize",
+        serde(
+            serialize_with = "serde_hashset_as_vec::serialize",
+            deserialize_with = "serde_hashset_as_vec::deserialize"
+        )
+    )]
     body_area_update_list: HashSet<RapierId>,
     time_stepped: f32,
     active_objects: i32,

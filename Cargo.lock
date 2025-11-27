@@ -896,7 +896,7 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.30.1"
-source = "git+https://github.com/ughuuu/rapier?branch=master#3cf8955c84b29c87c2a27bca2353a2a687646882"
+source = "git+https://github.com/ughuuu/rapier?branch=master#f2b5d7401c47037c0410c4f1fa1d6b52b1dc0eeb"
 dependencies = [
  "approx",
  "arrayvec",
@@ -923,7 +923,7 @@ dependencies = [
 [[package]]
 name = "rapier2d-f64"
 version = "0.30.1"
-source = "git+https://github.com/ughuuu/rapier?branch=master#3cf8955c84b29c87c2a27bca2353a2a687646882"
+source = "git+https://github.com/ughuuu/rapier?branch=master#f2b5d7401c47037c0410c4f1fa1d6b52b1dc0eeb"
 dependencies = [
  "approx",
  "arrayvec",
@@ -948,7 +948,7 @@ dependencies = [
 [[package]]
 name = "rapier3d"
 version = "0.30.1"
-source = "git+https://github.com/ughuuu/rapier?branch=master#3cf8955c84b29c87c2a27bca2353a2a687646882"
+source = "git+https://github.com/ughuuu/rapier?branch=master#f2b5d7401c47037c0410c4f1fa1d6b52b1dc0eeb"
 dependencies = [
  "approx",
  "arrayvec",
@@ -975,7 +975,7 @@ dependencies = [
 [[package]]
 name = "rapier3d-f64"
 version = "0.30.1"
-source = "git+https://github.com/ughuuu/rapier?branch=master#3cf8955c84b29c87c2a27bca2353a2a687646882"
+source = "git+https://github.com/ughuuu/rapier?branch=master#f2b5d7401c47037c0410c4f1fa1d6b52b1dc0eeb"
 dependencies = [
  "approx",
  "arrayvec",

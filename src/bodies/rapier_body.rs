@@ -21,6 +21,10 @@ use servers::rapier_physics_singleton::RapierId;
 use servers::rapier_physics_singleton::get_id_rid;
 use shapes::rapier_shape::IRapierShape;
 
+use super::exportable_object::ExportToImport;
+use super::exportable_object::ExportableObject;
+use super::exportable_object::ImportToExport;
+use super::exportable_object::ObjectImportState;
 use super::rapier_area::RapierArea;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
@@ -89,19 +93,40 @@ impl IdWithPriority {
     }
 }
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
+#[derive(Debug)]
 pub struct BodyExport<'a> {
     body_state: &'a RapierBodyState,
     base_state: &'a RapierCollisionObjectBaseState,
 }
-#[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize))]
+impl<'a> ExportToImport for BodyExport<'a> {
+    type Import = BodyImport;
+
+    fn into_import(self) -> Self::Import {
+        BodyImport {
+            body_state: self.body_state.clone(),
+            base_state: self.base_state.clone(),
+        }
+    }
+}
+#[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize, Clone))]
 pub struct BodyImport {
     body_state: RapierBodyState,
     base_state: RapierCollisionObjectBaseState,
 }
+impl ImportToExport for BodyImport {
+    type Export<'a> = BodyExport<'a>;
+
+    fn as_export<'a>(&'a self) -> Self::Export<'a> {
+        BodyExport {
+            body_state: &self.body_state,
+            base_state: &self.base_state,
+        }
+    }
+}
 #[derive(Default, Debug)]
 #[cfg_attr(
     feature = "serde-serialize",
-    derive(serde::Serialize, serde::Deserialize)
+    derive(serde::Serialize, serde::Deserialize, Clone)
 )]
 pub struct RapierBodyState {
     pub(crate) total_gravity: Vector,
@@ -2151,6 +2176,29 @@ impl RapierBody {
         physics_engine.body_is_sleeping(self.base.get_space_id(), self.base.get_body_handle())
     }
 }
+#[cfg(feature = "serde-serialize")]
+impl ExportableObject for RapierBody {
+    type ExportState<'a> = BodyExport<'a>;
+
+    fn get_export_state<'a>(&'a self, _: &'a mut PhysicsEngine) -> Option<Self::ExportState<'a>> {
+        Some(BodyExport {
+            body_state: &self.state,
+            base_state: &self.base.state,
+        })
+    }
+
+    fn import_state(&mut self, _: &mut PhysicsEngine, data: ObjectImportState) {
+        match data {
+            bodies::exportable_object::ObjectImportState::Body(body_import) => {
+                self.state = body_import.body_state;
+                self.base.state = body_import.base_state;
+            }
+            _ => {
+                godot_error!("Attempted to import invalid state data.");
+            }
+        }
+    }
+}
 // We won't use the pointers between threads, so it should be safe.
 unsafe impl Sync for RapierBody {}
 impl IRapierCollisionObject for RapierBody {
@@ -2390,57 +2438,6 @@ impl IRapierCollisionObject for RapierBody {
             physics_spaces,
             physics_ids,
         );
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    fn export_json(&self) -> String {
-        let state = BodyExport {
-            body_state: &self.state,
-            base_state: &self.base.state,
-        };
-        match serde_json::to_string_pretty(&state) {
-            Ok(s) => {
-                return s;
-            }
-            Err(e) => {
-                godot_error!("Failed to serialize body to json: {}", e);
-            }
-        }
-        "{}".to_string()
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    fn export_binary(&self) -> PackedByteArray {
-        let mut buf = PackedByteArray::new();
-        let state = BodyExport {
-            body_state: &self.state,
-            base_state: &self.base.state,
-        };
-        match bincode::serialize(&state) {
-            Ok(binary_data) => {
-                buf.resize(binary_data.len());
-                for i in 0..binary_data.len() {
-                    buf[i] = binary_data[i];
-                }
-            }
-            Err(e) => {
-                godot_error!("Failed to serialize body to binary: {}", e);
-            }
-        }
-        buf
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    fn import_binary(&mut self, data: PackedByteArray) {
-        match bincode::deserialize::<BodyImport>(data.as_slice()) {
-            Ok(import) => {
-                self.state = import.body_state;
-                self.base.state = import.base_state;
-            }
-            Err(e) => {
-                godot_error!("Failed to deserialize body from binary: {}", e);
-            }
-        }
     }
 }
 impl Drop for RapierBody {

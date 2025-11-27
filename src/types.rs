@@ -68,6 +68,24 @@ pub type PhysicsServerExtensionShapeRestInfo = native::PhysicsServer3DExtensionS
 pub fn transform_scale(transform: &Transform) -> Vector {
     transform.basis.get_scale()
 }
+#[derive(GodotConvert, Var, Export, Debug)]
+#[godot(via = GString)]
+// An enum to allow easy export into various formats; Json outputs a json string (plaintext, good for debugging),
+// GodotBase64 uses Godot's Marshalls to produce an encoded Godot String (for if you need to decode the data in gdscript or elsewhere on the Godot side),
+// and RustBincode uses, well, Rust's bincode for maximum speed and efficiency.
+pub enum SerializationFormat {
+    Json, // first enumerator is default.
+    GodotBase64,
+    RustBincode,
+}
+pub fn bin_to_packed_byte_array(bin: Vec<u8>) -> PackedByteArray {
+    let mut pba = PackedByteArray::new();
+    pba.resize(bin.len());
+    for i in 0..(bin.len()) {
+        pba[i] = bin[i];
+    }
+    pba
+}
 #[cfg(feature = "dim2")]
 pub fn transform_scale(transform: &Transform) -> Vector {
     transform.scale()
