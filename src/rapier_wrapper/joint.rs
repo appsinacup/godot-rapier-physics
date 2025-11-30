@@ -581,140 +581,50 @@ impl PhysicsEngine {
         }
     }
 
+    //TODO: Remove motor_enabled and spring_enabled once we have guidance on how to implement this properly
     #[cfg(feature = "dim3")]
+    #[allow(clippy::too_many_arguments)]
     pub fn joint_change_generic_6dof_axis_param(
         &mut self,
         world_handle: WorldHandle,
         joint_handle: JointHandle,
         axis: JointAxis,
-        param: godot::classes::physics_server_3d::G6dofJointAxisParam,
-        value: Real,
+        lower_limit: Real,
+        limit_upper: Real,
+        enable_motor: bool,
+        motor_target_velocity: Real,
+        motor_force_limit: Real,
+        enable_spring: bool,
+        spring_damping: Real,
+        spring_stiffness: Real,
+        spring_equilibrium_point: Real,
     ) {
-        use godot::classes::physics_server_3d::G6dofJointAxisParam;
         self.joint_wake_up_connected_rigidbodies(world_handle, joint_handle);
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(joint) = physics_world.get_mut_joint(joint_handle)
         {
-            match param {
-                G6dofJointAxisParam::LINEAR_LOWER_LIMIT => {
-                    if let Some(limits) = joint.limits(axis) {
-                        joint.set_limits(axis, [value, limits.max]);
-                    } else {
-                        joint.set_limits(axis, [value, Real::MAX]);
-                    }
-                }
-                G6dofJointAxisParam::LINEAR_UPPER_LIMIT => {
-                    if let Some(limits) = joint.limits(axis) {
-                        joint.set_limits(axis, [limits.min, value]);
-                    } else {
-                        joint.set_limits(axis, [-Real::MAX, value]);
-                    }
-                }
-                G6dofJointAxisParam::ANGULAR_LOWER_LIMIT => {
-                    if let Some(limits) = joint.limits(axis) {
-                        joint.set_limits(axis, [value, limits.max]);
-                    } else {
-                        joint.set_limits(axis, [value, Real::MAX]);
-                    }
-                }
-                G6dofJointAxisParam::ANGULAR_UPPER_LIMIT => {
-                    if let Some(limits) = joint.limits(axis) {
-                        joint.set_limits(axis, [limits.min, value]);
-                    } else {
-                        joint.set_limits(axis, [-Real::MAX, value]);
-                    }
-                }
-                G6dofJointAxisParam::LINEAR_MOTOR_TARGET_VELOCITY => {
-                    joint.set_motor_velocity(axis, value, 0.0);
-                }
-                G6dofJointAxisParam::LINEAR_MOTOR_FORCE_LIMIT => {
-                    joint.set_motor_max_force(axis, value);
-                }
-                G6dofJointAxisParam::ANGULAR_MOTOR_TARGET_VELOCITY => {
-                    joint.set_motor_velocity(axis, value, 0.0);
-                }
-                G6dofJointAxisParam::ANGULAR_MOTOR_FORCE_LIMIT => {
-                    joint.set_motor_max_force(axis, value);
-                }
-                G6dofJointAxisParam::LINEAR_SPRING_STIFFNESS => {
-                    // Spring stiffness needs to be set with motor_position
-                    let motor = joint.motors[axis as usize];
-                    joint.set_motor_position(axis, motor.target_pos, value, motor.damping);
-                    joint.set_motor_model(axis, MotorModel::AccelerationBased);
-                }
-                G6dofJointAxisParam::LINEAR_SPRING_DAMPING => {
-                    let motor = joint.motors[axis as usize];
-                    joint.set_motor_position(axis, motor.target_pos, motor.stiffness, value);
-                    joint.set_motor_model(axis, MotorModel::AccelerationBased);
-                }
-                G6dofJointAxisParam::LINEAR_SPRING_EQUILIBRIUM_POINT => {
-                    let motor = joint.motors[axis as usize];
-                    joint.set_motor_position(axis, value, motor.stiffness, motor.damping);
-                }
-                G6dofJointAxisParam::ANGULAR_SPRING_STIFFNESS => {
-                    let motor = joint.motors[axis as usize];
-                    joint.set_motor_position(axis, motor.target_pos, value, motor.damping);
-                    joint.set_motor_model(axis, MotorModel::AccelerationBased);
-                }
-                G6dofJointAxisParam::ANGULAR_SPRING_DAMPING => {
-                    let motor = joint.motors[axis as usize];
-                    joint.set_motor_position(axis, motor.target_pos, motor.stiffness, value);
-                    joint.set_motor_model(axis, MotorModel::AccelerationBased);
-                }
-                G6dofJointAxisParam::ANGULAR_SPRING_EQUILIBRIUM_POINT => {
-                    let motor = joint.motors[axis as usize];
-                    joint.set_motor_position(axis, value, motor.stiffness, motor.damping);
-                }
-                _ => {}
+            if enable_motor && enable_spring {
+                godot::global::godot_warn!(
+                    "Both spring and motor model are enabled on joint, this is currently not implemented, motor will be given precidence!"
+                );
             }
-        }
-    }
-
-    #[cfg(feature = "dim3")]
-    pub fn joint_change_generic_6dof_axis_flag(
-        &mut self,
-        world_handle: WorldHandle,
-        joint_handle: JointHandle,
-        axis: JointAxis,
-        flag: godot::classes::physics_server_3d::G6dofJointAxisFlag,
-        enable: bool,
-    ) {
-        use godot::classes::physics_server_3d::G6dofJointAxisFlag;
-        self.joint_wake_up_connected_rigidbodies(world_handle, joint_handle);
-        if let Some(physics_world) = self.get_mut_world(world_handle)
-            && let Some(joint) = physics_world.get_mut_joint(joint_handle)
-        {
-            match flag {
-                G6dofJointAxisFlag::ENABLE_LINEAR_LIMIT
-                | G6dofJointAxisFlag::ENABLE_ANGULAR_LIMIT => {
-                    if enable {
-                        // Enable limits by setting default limits if not already set
-                        if joint.limits(axis).is_none() {
-                            joint.set_limits(axis, [-1.0, 1.0]);
-                        }
-                    } else {
-                        // Disable limits by setting them to max range
-                        joint.set_limits(axis, [-Real::MAX, Real::MAX]);
-                    }
-                }
-                G6dofJointAxisFlag::ENABLE_MOTOR | G6dofJointAxisFlag::ENABLE_LINEAR_MOTOR => {
-                    if enable {
-                        joint.set_motor_velocity(axis, 0.0, 0.0);
-                        joint.set_motor_max_force(axis, 0.0);
-                    } else {
-                        joint.set_motor_max_force(axis, 0.0);
-                    }
-                }
-                G6dofJointAxisFlag::ENABLE_LINEAR_SPRING
-                | G6dofJointAxisFlag::ENABLE_ANGULAR_SPRING => {
-                    if enable {
-                        joint.set_motor_position(axis, 0.0, 0.0, 0.0);
-                        joint.set_motor_model(axis, MotorModel::AccelerationBased);
-                    } else {
-                        joint.set_motor_position(axis, 0.0, 0.0, 0.0);
-                    }
-                }
-                _ => {}
+            joint.set_limits(axis, [lower_limit, limit_upper]);
+            if enable_motor {
+                joint.set_motor_model(axis, MotorModel::ForceBased);
+                joint.set_motor_max_force(axis, motor_force_limit);
+                //TODO: where do we want to get the damping factor from: Higher in this case means the target velocity is approched more aggresively
+                joint.set_motor_velocity(axis, motor_target_velocity, 10.0);
+            } else if enable_spring {
+                joint.set_motor_model(axis, MotorModel::AccelerationBased);
+                joint.set_motor_position(
+                    axis,
+                    spring_equilibrium_point,
+                    spring_stiffness,
+                    spring_damping,
+                );
+            } else {
+                joint.set_motor_max_force(axis, 0.0);
+                joint.set_motor(axis, 0.0, 0.0, 0.0, 0.0);
             }
         }
     }
