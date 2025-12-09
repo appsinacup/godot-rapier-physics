@@ -1,5 +1,6 @@
 use godot::classes::*;
 use godot::prelude::*;
+use rapier::prelude::JointAxis;
 
 use super::rapier_joint_base::RapierJointBase;
 use super::rapier_joint_base::RapierJointType;
@@ -126,11 +127,72 @@ impl RapierGeneric6DOFJoint3D {
         }
     }
 
+    fn update_joint(
+        &mut self,
+        axis: Vector3Axis,
+        is_angular: bool,
+        physics_engine: &mut PhysicsEngine,
+    ) {
+        let axis_idx = axis.ord() as usize;
+        if axis_idx >= 3 {
+            return;
+        }
+        let axis_params = &mut self.axis_data[axis_idx];
+        let rapier_axis = if is_angular {
+            match axis {
+                Vector3Axis::X => JointAxis::AngX,
+                Vector3Axis::Y => JointAxis::AngY,
+                Vector3Axis::Z => JointAxis::AngZ,
+            }
+        } else {
+            match axis {
+                Vector3Axis::X => JointAxis::LinX,
+                Vector3Axis::Y => JointAxis::LinY,
+                Vector3Axis::Z => JointAxis::LinZ,
+            }
+        };
+        if !self.base.is_valid() {
+            return;
+        }
+        if is_angular {
+            physics_engine.joint_change_generic_6dof_axis_param(
+                self.base.get_space_id(),
+                self.base.get_handle(),
+                rapier_axis,
+                axis_params.angular_lower_limit,
+                axis_params.angular_upper_limit,
+                axis_params.enable_angular_motor,
+                axis_params.angular_motor_target_velocity,
+                axis_params.angular_motor_force_limit,
+                axis_params.enable_angular_spring,
+                axis_params.angular_spring_damping,
+                axis_params.angular_spring_stiffness,
+                axis_params.angular_spring_equilibrium_point,
+            );
+        } else {
+            physics_engine.joint_change_generic_6dof_axis_param(
+                self.base.get_space_id(),
+                self.base.get_handle(),
+                rapier_axis,
+                axis_params.linear_lower_limit,
+                axis_params.linear_upper_limit,
+                axis_params.enable_linear_motor,
+                axis_params.linear_motor_target_velocity,
+                axis_params.linear_motor_force_limit,
+                axis_params.enable_linear_spring,
+                axis_params.linear_spring_damping,
+                axis_params.linear_spring_stiffness,
+                axis_params.linear_spring_equilibrium_point,
+            );
+        }
+    }
+
     pub fn set_param(
         &mut self,
         axis: Vector3Axis,
         param: physics_server_3d::G6dofJointAxisParam,
         value: f32,
+        physics_engine: &mut PhysicsEngine,
     ) {
         let axis_idx = axis.ord() as usize;
         if axis_idx >= 3 {
@@ -200,6 +262,21 @@ impl RapierGeneric6DOFJoint3D {
             }
             _ => {}
         }
+        // Determine if this is a linear or angular parameter
+        let is_angular = matches!(
+            param,
+            physics_server_3d::G6dofJointAxisParam::ANGULAR_LOWER_LIMIT
+                | physics_server_3d::G6dofJointAxisParam::ANGULAR_UPPER_LIMIT
+                | physics_server_3d::G6dofJointAxisParam::ANGULAR_LIMIT_SOFTNESS
+                | physics_server_3d::G6dofJointAxisParam::ANGULAR_RESTITUTION
+                | physics_server_3d::G6dofJointAxisParam::ANGULAR_DAMPING
+                | physics_server_3d::G6dofJointAxisParam::ANGULAR_MOTOR_TARGET_VELOCITY
+                | physics_server_3d::G6dofJointAxisParam::ANGULAR_MOTOR_FORCE_LIMIT
+                | physics_server_3d::G6dofJointAxisParam::ANGULAR_SPRING_STIFFNESS
+                | physics_server_3d::G6dofJointAxisParam::ANGULAR_SPRING_DAMPING
+                | physics_server_3d::G6dofJointAxisParam::ANGULAR_SPRING_EQUILIBRIUM_POINT
+        );
+        self.update_joint(axis, is_angular, physics_engine);
     }
 
     pub fn get_param(
@@ -278,6 +355,7 @@ impl RapierGeneric6DOFJoint3D {
         axis: Vector3Axis,
         flag: physics_server_3d::G6dofJointAxisFlag,
         enable: bool,
+        physics_engine: &mut PhysicsEngine,
     ) {
         let axis_idx = axis.ord() as usize;
         if axis_idx >= 3 {
@@ -291,8 +369,10 @@ impl RapierGeneric6DOFJoint3D {
             physics_server_3d::G6dofJointAxisFlag::ENABLE_ANGULAR_LIMIT => {
                 axis_params.enable_angular_limit = enable;
             }
-            physics_server_3d::G6dofJointAxisFlag::ENABLE_MOTOR => {
+            physics_server_3d::G6dofJointAxisFlag::ENABLE_LINEAR_MOTOR => {
                 axis_params.enable_linear_motor = enable;
+            }
+            physics_server_3d::G6dofJointAxisFlag::ENABLE_MOTOR => {
                 axis_params.enable_angular_motor = enable;
             }
             physics_server_3d::G6dofJointAxisFlag::ENABLE_LINEAR_SPRING => {
@@ -303,6 +383,13 @@ impl RapierGeneric6DOFJoint3D {
             }
             _ => {}
         }
+        let is_angular = matches!(
+            flag,
+            physics_server_3d::G6dofJointAxisFlag::ENABLE_ANGULAR_LIMIT
+                | physics_server_3d::G6dofJointAxisFlag::ENABLE_ANGULAR_SPRING
+                | physics_server_3d::G6dofJointAxisFlag::ENABLE_MOTOR
+        );
+        self.update_joint(axis, is_angular, physics_engine);
     }
 
     pub fn get_flag(&self, axis: Vector3Axis, flag: physics_server_3d::G6dofJointAxisFlag) -> bool {

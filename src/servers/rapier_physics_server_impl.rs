@@ -2207,51 +2207,12 @@ impl RapierPhysicsServerImpl {
         param: physics_server_3d::G6dofJointAxisParam,
         value: f32,
     ) {
-        use rapier::prelude::JointAxis;
         let physics_data = physics_data();
-        if let Some(joint_data) = physics_data.joints.get(&joint) {
-            // Determine if this is a linear or angular parameter
-            let is_angular = matches!(
-                param,
-                physics_server_3d::G6dofJointAxisParam::ANGULAR_LOWER_LIMIT
-                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_UPPER_LIMIT
-                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_LIMIT_SOFTNESS
-                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_RESTITUTION
-                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_DAMPING
-                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_MOTOR_TARGET_VELOCITY
-                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_MOTOR_FORCE_LIMIT
-                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_SPRING_STIFFNESS
-                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_SPRING_DAMPING
-                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_SPRING_EQUILIBRIUM_POINT
-            );
-            let rapier_axis = if is_angular {
-                match axis {
-                    Vector3Axis::X => JointAxis::AngX,
-                    Vector3Axis::Y => JointAxis::AngY,
-                    Vector3Axis::Z => JointAxis::AngZ,
-                }
-            } else {
-                match axis {
-                    Vector3Axis::X => JointAxis::LinX,
-                    Vector3Axis::Y => JointAxis::LinY,
-                    Vector3Axis::Z => JointAxis::LinZ,
-                }
-            };
-            physics_data
-                .physics_engine
-                .joint_change_generic_6dof_axis_param(
-                    joint_data.get_base().get_space_id(),
-                    joint_data.get_base().get_handle(),
-                    rapier_axis,
-                    param,
-                    value,
-                );
-        }
         // Store the parameter in the joint struct (separate borrow after immutable borrow ends)
         if let Some(RapierJoint::RapierGeneric6DOFJoint3D(joint_6dof)) =
             physics_data.joints.get_mut(&joint)
         {
-            joint_6dof.set_param(axis, param, value);
+            joint_6dof.set_param(axis, param, value, &mut physics_data.physics_engine);
         }
     }
 
@@ -2279,43 +2240,12 @@ impl RapierPhysicsServerImpl {
         flag: physics_server_3d::G6dofJointAxisFlag,
         enable: bool,
     ) {
-        use rapier::prelude::JointAxis;
         let physics_data = physics_data();
-        if let Some(joint_data) = physics_data.joints.get(&joint) {
-            // Determine if this is a linear or angular flag
-            let is_angular = matches!(
-                flag,
-                physics_server_3d::G6dofJointAxisFlag::ENABLE_ANGULAR_LIMIT
-                    | physics_server_3d::G6dofJointAxisFlag::ENABLE_ANGULAR_SPRING
-            );
-            let rapier_axis = if is_angular {
-                match axis {
-                    Vector3Axis::X => JointAxis::AngX,
-                    Vector3Axis::Y => JointAxis::AngY,
-                    Vector3Axis::Z => JointAxis::AngZ,
-                }
-            } else {
-                match axis {
-                    Vector3Axis::X => JointAxis::LinX,
-                    Vector3Axis::Y => JointAxis::LinY,
-                    Vector3Axis::Z => JointAxis::LinZ,
-                }
-            };
-            physics_data
-                .physics_engine
-                .joint_change_generic_6dof_axis_flag(
-                    joint_data.get_base().get_space_id(),
-                    joint_data.get_base().get_handle(),
-                    rapier_axis,
-                    flag,
-                    enable,
-                );
-        }
         // Store the flag in the joint struct (separate borrow after immutable borrow ends)
         if let Some(RapierJoint::RapierGeneric6DOFJoint3D(joint_6dof)) =
             physics_data.joints.get_mut(&joint)
         {
-            joint_6dof.set_flag(axis, flag, enable);
+            joint_6dof.set_flag(axis, flag, enable, &mut physics_data.physics_engine);
         }
     }
 
