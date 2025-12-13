@@ -1204,7 +1204,7 @@ dependencies = [
  "fnv",
  "generational-arena",
  "itertools 0.14.0",
- "nalgebra 0.33.2",
+ "nalgebra",
  "num-traits",
  "parry3d",
  "rapier3d",
