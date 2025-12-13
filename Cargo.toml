@@ -44,7 +44,7 @@ hashbrown = { version = "0.16", features=["nightly", "inline-more", "default-has
 num_cpus = { version = "1", optional = true }
 
 # has blocklist max_align_t for web builds
-godot = { git = "https://github.com/ughuuu/gdext", branch = "custom-rapier-branch", features=["register-docs", "safeguards-release-disengaged"] }
+godot = { git = "https://github.com/yarwin/gdext", branch = "feature/remove-mutex-from-gdcellinner", features=["register-docs", "safeguards-release-disengaged"] }
 # godot = { git = "https://github.com/yarwin/gdext", branch = "custom-rapier-branch", features=["register-docs", "safeguards-release-disengaged"] }
 # godot = { git = "https://github.com/godot-rust/gdext", branch = "master", features=["register-docs", "safeguards-release-disengaged"] }
 
