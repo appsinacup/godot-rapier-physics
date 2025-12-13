@@ -23,6 +23,9 @@ macro_rules! make_rapier_server_godot_impl {
     ($class: ident) => {
         use godot::global::rid_allocate_id;
         use godot::global::rid_from_int64;
+        use $crate::bodies::exportable_object::ExportableObject;
+        use $crate::bodies::exportable_object::ObjectExportState;
+        use $crate::bodies::exportable_object::ObjectImportState;
         use $crate::bodies::rapier_collision_object::IRapierCollisionObject;
         use $crate::fluids::rapier_fluid::RapierFluid;
         use $crate::joints::rapier_joint::IRapierJoint;
@@ -202,92 +205,74 @@ macro_rules! make_rapier_server_godot_impl {
             }
 
             #[cfg(feature = "serde-serialize")]
-            #[func]
-            /// Exports the physics object to a JSON string. This is slower than the binary export.
-            fn export_json(physics_object: Rid) -> String {
+            pub fn fetch_state_internal<'a>(physics_object: Rid) -> Option<ObjectExportState<'a>> {
                 let physics_data = physics_data();
-                if let Some(body) = physics_data.collision_objects.get(&physics_object) {
-                    return body.export_json();
-                }
-                use $crate::shapes::rapier_shape::IRapierShape;
-                if let Some(shape) = physics_data.shapes.get(&physics_object) {
-                    return shape.get_base().export_json();
-                }
                 use $crate::joints::rapier_joint::IRapierJoint;
-                if let Some(joint) = physics_data.joints.get(&physics_object) {
-                    return joint.get_base().export_json();
-                }
-                if let Some(space) = physics_data.spaces.get(&physics_object) {
-                    return space.export_json(&mut physics_data.physics_engine);
-                }
-                "".to_string()
-            }
-
-            #[cfg(feature = "serde-serialize")]
-            #[func]
-            /// Exports the physics object to a binary format.
-            fn export_binary(physics_object: Rid) -> PackedByteArray {
-                let physics_data = physics_data();
-                if let Some(body) = physics_data.collision_objects.get(&physics_object) {
-                    return body.export_binary();
-                }
                 use $crate::shapes::rapier_shape::IRapierShape;
-                if let Some(shape) = physics_data.shapes.get(&physics_object) {
+                if let Some(body) = physics_data.collision_objects.get(&physics_object) {
+                    return body.get_export_state(&mut physics_data.physics_engine);
+                } else if let Some(joint) = physics_data.joints.get(&physics_object) {
+                    return joint
+                        .get_base()
+                        .get_export_state(&mut physics_data.physics_engine)
+                        .map(ObjectExportState::JointBase);
+                } else if let Some(shape) = physics_data.shapes.get(&physics_object) {
                     return shape
                         .get_base()
-                        .export_binary(&mut physics_data.physics_engine);
+                        .get_export_state(&mut physics_data.physics_engine)
+                        .map(ObjectExportState::ShapeBase);
+                } else if let Some(space) = physics_data.spaces.get(&physics_object) {
+                    return space
+                        .get_export_state(&mut physics_data.physics_engine)
+                        .map(ObjectExportState::Space);
                 }
-                use $crate::joints::rapier_joint::IRapierJoint;
-                if let Some(joint) = physics_data.joints.get(&physics_object) {
-                    return joint.get_base().export_binary();
-                }
-                if let Some(space) = physics_data.spaces.get(&physics_object) {
-                    return space.export_binary(&mut physics_data.physics_engine);
-                }
-                PackedByteArray::default()
+                None
             }
 
             #[cfg(feature = "serde-serialize")]
-            #[func]
-            /// Imports the physics object from a binary format.
-            fn import_binary(physics_object: Rid, data: PackedByteArray) {
+            pub fn load_state_internal(physics_object: Rid, data: ObjectImportState) {
+                let physics_data = physics_data();
                 use $crate::joints::rapier_joint::IRapierJoint;
                 use $crate::servers::rapier_physics_singleton::insert_id_rid;
                 use $crate::servers::rapier_physics_singleton::remove_id_rid;
                 use $crate::shapes::rapier_shape::IRapierShape;
-                let physics_data = physics_data();
                 if let Some(body) = physics_data.collision_objects.get_mut(&physics_object) {
                     remove_id_rid(body.get_base().get_id(), &mut physics_data.ids);
-                    body.import_binary(data);
+                    body.import_state(&mut physics_data.physics_engine, data);
                     insert_id_rid(
                         body.get_base().get_id(),
                         body.get_base().get_rid(),
                         &mut physics_data.ids,
                     );
-                } else if let Some(shape) = physics_data.shapes.get_mut(&physics_object) {
-                    remove_id_rid(shape.get_base().get_id(), &mut physics_data.ids);
-                    // recreate shape handle
-                    shape
-                        .get_mut_base()
-                        .destroy_shape(&mut physics_data.physics_engine);
-                    shape
-                        .get_mut_base()
-                        .import_binary(data, &mut physics_data.physics_engine);
-                    insert_id_rid(
-                        shape.get_base().get_id(),
-                        shape.get_base().get_rid(),
-                        &mut physics_data.ids,
-                    );
+                    return;
                 } else if let Some(joint) = physics_data.joints.get_mut(&physics_object) {
                     remove_id_rid(joint.get_base().get_id(), &mut physics_data.ids);
-                    joint.get_mut_base().import_binary(data);
+                    joint
+                        .get_mut_base()
+                        .import_state(&mut physics_data.physics_engine, data);
                     insert_id_rid(
                         joint.get_base().get_id(),
                         joint.get_base().get_rid(),
                         &mut physics_data.ids,
                     );
+                    return;
+                } else if let Some(shape) = physics_data.shapes.get_mut(&physics_object) {
+                    remove_id_rid(shape.get_base().get_id(), &mut physics_data.ids);
+                    // Recreate shape handle:
+                    shape
+                        .get_mut_base()
+                        .destroy_shape(&mut physics_data.physics_engine);
+                    shape
+                        .get_mut_base()
+                        .import_state(&mut physics_data.physics_engine, data);
+                    insert_id_rid(
+                        shape.get_base().get_id(),
+                        shape.get_base().get_rid(),
+                        &mut physics_data.ids,
+                    );
+                    return;
                 } else if let Some(space) = physics_data.spaces.get_mut(&physics_object) {
-                    space.import_binary(&mut physics_data.physics_engine, data);
+                    return space.import_state(&mut physics_data.physics_engine, data);
                 }
             }
 
@@ -536,7 +521,7 @@ macro_rules! make_rapier_server_godot_impl {
 
             #[func]
             /// Step the space forward.
-            fn space_step(space: Rid, delta: f32) {
+            pub fn space_step(space: Rid, delta: f32) {
                 let Ok(mut physics_singleton) =
                     PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
                 else {
@@ -578,7 +563,7 @@ macro_rules! make_rapier_server_godot_impl {
 
             #[func]
             /// Set the global id of the physics server.
-            fn set_global_id(id: i64) {
+            pub fn set_global_id(id: i64) {
                 let Ok(mut physics_singleton) =
                     PhysicsServer::singleton().try_cast::<RapierPhysicsServer>()
                 else {

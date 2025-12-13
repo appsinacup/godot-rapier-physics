@@ -3,6 +3,10 @@ use servers::rapier_physics_singleton::PhysicsIds;
 use servers::rapier_physics_singleton::RapierId;
 use servers::rapier_physics_singleton::get_id_rid;
 
+use crate::bodies::exportable_object::ExportToImport;
+use crate::bodies::exportable_object::ExportableObject;
+use crate::bodies::exportable_object::ImportToExport;
+use crate::bodies::exportable_object::ObjectImportState;
 use crate::rapier_wrapper::prelude::*;
 use crate::*;
 #[derive(Default, Debug, PartialEq, Eq, Clone, Copy)]
@@ -15,6 +19,29 @@ pub enum RapierJointType {
     Impulse,
     MultiBody,
     MultiBodyKinematic,
+}
+#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
+#[derive(Debug)]
+pub struct JointExport<'a> {
+    state: &'a RapierJointBaseState,
+}
+impl<'a> ExportToImport for JointExport<'a> {
+    type Import = JointImport;
+
+    fn into_import(self) -> Self::Import {
+        JointImport { state: *self.state }
+    }
+}
+#[derive(serde::Deserialize, Clone)]
+pub struct JointImport {
+    state: RapierJointBaseState,
+}
+impl ImportToExport for JointImport {
+    type Export<'a> = JointExport<'a>;
+
+    fn as_export<'a>(&'a self) -> Self::Export<'a> {
+        JointExport { state: &self.state }
+    }
 }
 #[cfg_attr(
     feature = "serde-serialize",
@@ -45,6 +72,25 @@ impl Default for RapierJointBase {
             JointHandle::default(),
             RapierJointType::default(),
         )
+    }
+}
+#[cfg(feature = "serde-serialize")]
+impl ExportableObject for RapierJointBase {
+    type ExportState<'a> = JointExport<'a>;
+
+    fn get_export_state<'a>(&'a self, _: &'a mut PhysicsEngine) -> Option<Self::ExportState<'a>> {
+        Some(JointExport { state: &self.state })
+    }
+
+    fn import_state(&mut self, _: &mut PhysicsEngine, data: ObjectImportState) {
+        match data {
+            bodies::exportable_object::ObjectImportState::JointBase(joint_import) => {
+                self.state = joint_import.state;
+            }
+            _ => {
+                godot_error!("Attempted to import invalid state data.");
+            }
+        }
     }
 }
 impl RapierJointBase {
@@ -153,45 +199,5 @@ impl RapierJointBase {
     pub fn destroy_joint(&mut self, physics_engine: &mut PhysicsEngine) {
         physics_engine.destroy_joint(self.state.space_handle, self.state.handle);
         self.state.handle = JointHandle::default();
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    pub fn export_json(&self) -> String {
-        match serde_json::to_string_pretty(&self.state) {
-            Ok(s) => return s,
-            Err(e) => {
-                godot_error!("Failed to serialize joint to json: {}", e);
-            }
-        }
-        "{}".to_string()
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    pub fn export_binary(&self) -> PackedByteArray {
-        let mut buf = PackedByteArray::new();
-        match bincode::serialize(&self.state) {
-            Ok(binary_data) => {
-                buf.resize(binary_data.len());
-                for i in 0..binary_data.len() {
-                    buf[i] = binary_data[i];
-                }
-            }
-            Err(e) => {
-                godot_error!("Failed to serialize joint to binary: {}", e);
-            }
-        }
-        buf
-    }
-
-    #[cfg(feature = "serde-serialize")]
-    pub fn import_binary(&mut self, data: PackedByteArray) {
-        match bincode::deserialize::<RapierJointBaseState>(data.as_slice()) {
-            Ok(import) => {
-                self.state = import;
-            }
-            Err(e) => {
-                godot_error!("Failed to deserialize joint from binary: {}", e);
-            }
-        }
     }
 }

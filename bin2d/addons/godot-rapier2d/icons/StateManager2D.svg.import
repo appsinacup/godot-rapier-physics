@@ -2,17 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cho3shol3rky2"
-path="res://.godot/imported/Radial2D.svg-4380d9841bddc115105cff2016be7c6a.ctex"
+uid="uid://sgyu0ulapun8"
+path="res://.godot/imported/StateManager2D.svg-1a4e1b526e80995b692903b1eb5c9c70.ctex"
 metadata={
-"has_editor_variant": true,
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/godot-rapier2d/Radial2D.svg"
-dest_files=["res://.godot/imported/Radial2D.svg-4380d9841bddc115105cff2016be7c6a.ctex"]
+source_file="res://addons/godot-rapier2d/icons/StateManager2D.svg"
+dest_files=["res://.godot/imported/StateManager2D.svg-1a4e1b526e80995b692903b1eb5c9c70.ctex"]
 
 [params]
 
@@ -40,5 +39,5 @@ process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
 svg/scale=1.0
-editor/scale_with_editor_scale=true
+editor/scale_with_editor_scale=false
 editor/convert_colors_with_editor_theme=false

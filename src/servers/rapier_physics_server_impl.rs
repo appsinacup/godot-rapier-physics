@@ -419,19 +419,16 @@ impl RapierPhysicsServerImpl {
         insert_id_rid(area.get_base().get_id(), rid, &mut physics_data.ids);
         physics_data
             .collision_objects
-            .insert(rid, RapierCollisionObject::RapierArea(area));
+            .insert(rid, RapierCollisionObject::Area(area));
         rid
     }
 
     pub(super) fn area_set_space(&mut self, area: Rid, space: Rid) {
         let physics_data = physics_data();
-        RapierArea::clear_detected_bodies(
-            &area,
-            &mut physics_data.spaces,
-            &mut physics_data.collision_objects,
-            &physics_data.ids,
-        );
         if let Some(area) = physics_data.collision_objects.get_mut(&area) {
+            if let Some(area) = area.get_mut_area() {
+                area.clear_monitored_objects();
+            }
             area.set_space(
                 space,
                 &mut physics_data.physics_engine,
@@ -799,7 +796,7 @@ impl RapierPhysicsServerImpl {
         insert_id_rid(body.get_base().get_id(), rid, &mut physics_data.ids);
         physics_data
             .collision_objects
-            .insert(rid, RapierCollisionObject::RapierBody(body));
+            .insert(rid, RapierCollisionObject::Body(body));
         rid
     }
 
@@ -2230,51 +2227,12 @@ impl RapierPhysicsServerImpl {
         param: physics_server_3d::G6dofJointAxisParam,
         value: f32,
     ) {
-        use rapier::prelude::JointAxis;
         let physics_data = physics_data();
-        if let Some(joint_data) = physics_data.joints.get(&joint) {
-            // Determine if this is a linear or angular parameter
-            let is_angular = matches!(
-                param,
-                physics_server_3d::G6dofJointAxisParam::ANGULAR_LOWER_LIMIT
-                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_UPPER_LIMIT
-                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_LIMIT_SOFTNESS
-                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_RESTITUTION
-                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_DAMPING
-                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_MOTOR_TARGET_VELOCITY
-                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_MOTOR_FORCE_LIMIT
-                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_SPRING_STIFFNESS
-                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_SPRING_DAMPING
-                    | physics_server_3d::G6dofJointAxisParam::ANGULAR_SPRING_EQUILIBRIUM_POINT
-            );
-            let rapier_axis = if is_angular {
-                match axis {
-                    Vector3Axis::X => JointAxis::AngX,
-                    Vector3Axis::Y => JointAxis::AngY,
-                    Vector3Axis::Z => JointAxis::AngZ,
-                }
-            } else {
-                match axis {
-                    Vector3Axis::X => JointAxis::LinX,
-                    Vector3Axis::Y => JointAxis::LinY,
-                    Vector3Axis::Z => JointAxis::LinZ,
-                }
-            };
-            physics_data
-                .physics_engine
-                .joint_change_generic_6dof_axis_param(
-                    joint_data.get_base().get_space_id(),
-                    joint_data.get_base().get_handle(),
-                    rapier_axis,
-                    param,
-                    value,
-                );
-        }
         // Store the parameter in the joint struct (separate borrow after immutable borrow ends)
         if let Some(RapierJoint::RapierGeneric6DOFJoint3D(joint_6dof)) =
             physics_data.joints.get_mut(&joint)
         {
-            joint_6dof.set_param(axis, param, value);
+            joint_6dof.set_param(axis, param, value, &mut physics_data.physics_engine);
         }
     }
 
@@ -2302,43 +2260,12 @@ impl RapierPhysicsServerImpl {
         flag: physics_server_3d::G6dofJointAxisFlag,
         enable: bool,
     ) {
-        use rapier::prelude::JointAxis;
         let physics_data = physics_data();
-        if let Some(joint_data) = physics_data.joints.get(&joint) {
-            // Determine if this is a linear or angular flag
-            let is_angular = matches!(
-                flag,
-                physics_server_3d::G6dofJointAxisFlag::ENABLE_ANGULAR_LIMIT
-                    | physics_server_3d::G6dofJointAxisFlag::ENABLE_ANGULAR_SPRING
-            );
-            let rapier_axis = if is_angular {
-                match axis {
-                    Vector3Axis::X => JointAxis::AngX,
-                    Vector3Axis::Y => JointAxis::AngY,
-                    Vector3Axis::Z => JointAxis::AngZ,
-                }
-            } else {
-                match axis {
-                    Vector3Axis::X => JointAxis::LinX,
-                    Vector3Axis::Y => JointAxis::LinY,
-                    Vector3Axis::Z => JointAxis::LinZ,
-                }
-            };
-            physics_data
-                .physics_engine
-                .joint_change_generic_6dof_axis_flag(
-                    joint_data.get_base().get_space_id(),
-                    joint_data.get_base().get_handle(),
-                    rapier_axis,
-                    flag,
-                    enable,
-                );
-        }
         // Store the flag in the joint struct (separate borrow after immutable borrow ends)
         if let Some(RapierJoint::RapierGeneric6DOFJoint3D(joint_6dof)) =
             physics_data.joints.get_mut(&joint)
         {
-            joint_6dof.set_flag(axis, flag, enable);
+            joint_6dof.set_flag(axis, flag, enable, &mut physics_data.physics_engine);
         }
     }
 
@@ -2735,28 +2662,8 @@ impl RapierPhysicsServerImpl {
 
     pub(super) fn space_flush_queries(space: &Rid) {
         let physics_data = physics_data();
-        let mut state_query_list = None;
-        let mut force_integrate_query_list = None;
-        let mut monitor_query_list = None;
         if let Some(space) = physics_data.spaces.get_mut(space) {
-            state_query_list = Some(space.get_state().get_state_query_list());
-            force_integrate_query_list = Some(space.get_state().get_force_integrate_query_list());
-            monitor_query_list = Some(space.get_state().get_monitor_query_list());
-        }
-        if let Some(state_query_list) = state_query_list
-            && let Some(force_integrate_query_list) = force_integrate_query_list
-            && let Some(monitor_query_list) = monitor_query_list
-        {
-            RapierSpace::call_queries(
-                state_query_list,
-                force_integrate_query_list,
-                monitor_query_list,
-                &mut physics_data.collision_objects,
-                &physics_data.ids,
-            );
-        }
-        if let Some(space) = physics_data.spaces.get_mut(space) {
-            space.update_after_queries(&mut physics_data.collision_objects, &physics_data.ids);
+            space.flush();
         }
     }
 

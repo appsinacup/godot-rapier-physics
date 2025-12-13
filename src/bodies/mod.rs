@@ -1,3 +1,4 @@
+pub mod exportable_object;
 pub mod rapier_area;
 pub mod rapier_body;
 pub mod rapier_collision_object;

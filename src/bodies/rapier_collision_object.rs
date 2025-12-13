@@ -1,3 +1,4 @@
+use bodies::exportable_object::ExportableObject;
 use bodies::rapier_collision_object_base::CollisionObjectShape;
 use bodies::rapier_collision_object_base::RapierCollisionObjectBase;
 use godot::prelude::*;
@@ -9,6 +10,8 @@ use servers::rapier_physics_singleton::RapierId;
 
 use super::rapier_area::RapierArea;
 use super::rapier_body::RapierBody;
+use crate::bodies::exportable_object::ObjectExportState;
+use crate::bodies::exportable_object::ObjectImportState;
 use crate::rapier_wrapper::prelude::*;
 use crate::types::*;
 use crate::*;
@@ -104,19 +107,13 @@ pub trait IRapierCollisionObject: Sync {
         physics_spaces: &mut PhysicsSpaces,
         physics_ids: &PhysicsIds,
     );
-    #[cfg(feature = "serde-serialize")]
-    fn export_json(&self) -> String;
-    #[cfg(feature = "serde-serialize")]
-    fn export_binary(&self) -> PackedByteArray;
-    #[cfg(feature = "serde-serialize")]
-    fn import_binary(&mut self, data: PackedByteArray);
 }
 // TODO investigate large enum variant
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
 pub enum RapierCollisionObject {
-    RapierArea(RapierArea),
-    RapierBody(RapierBody),
+    Area(RapierArea),
+    Body(RapierBody),
 }
 macro_rules! impl_rapier_collision_object_trait {
     ($enum_name:ident, $($variant:ident),*) => {
@@ -300,31 +297,40 @@ macro_rules! impl_rapier_collision_object_trait {
                     $(Self::$variant(co) => co.shape_changed(shape_id, physics_engine, physics_spaces, physics_ids),)*
                 }
             }
-
+        }
+    };
+}
+impl_rapier_collision_object_trait!(RapierCollisionObject, Area, Body);
+macro_rules! impl_rapier_collision_object_exportable_trait {
+    ($enum_name:ident, $($variant:ident),*) => {
+        impl ExportableObject for $enum_name {
+            type ExportState<'a> = ObjectExportState<'a>;
             #[cfg(feature = "serde-serialize")]
-            fn export_json(&self) -> String {
+            fn get_export_state<'a>(
+                &'a self,
+                physics_engine: &'a mut PhysicsEngine
+            ) -> Option<Self::ExportState<'a>> {
                 match self {
-                    $(Self::$variant(co) => co.export_json(),)*
+                    $(
+                        Self::$variant(co) => {
+                            co.get_export_state(physics_engine)
+                            .map(ObjectExportState::$variant)
+                        }
+                    ,)*
                 }
             }
 
             #[cfg(feature = "serde-serialize")]
-            fn export_binary(&self) -> PackedByteArray {
+            fn import_state(&mut self, physics_engine: &mut PhysicsEngine, data: ObjectImportState) {
                 match self {
-                    $(Self::$variant(co) => co.export_binary(),)*
-                }
-            }
-
-            #[cfg(feature = "serde-serialize")]
-            fn import_binary(
-                &mut self,
-                data: PackedByteArray,
-            ) {
-                match self {
-                    $(Self::$variant(co) => co.import_binary(data),)*
+                    $(
+                        Self::$variant(co) => {
+                            co.import_state(physics_engine, data)
+                        }
+                    ,)*
                 }
             }
         }
     };
 }
-impl_rapier_collision_object_trait!(RapierCollisionObject, RapierArea, RapierBody);
+impl_rapier_collision_object_exportable_trait!(RapierCollisionObject, Area, Body);
