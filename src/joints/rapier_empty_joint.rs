@@ -7,6 +7,7 @@ use physics_server_3d::JointType;
 use servers::rapier_physics_singleton::RapierId;
 
 use super::rapier_joint_base::RapierJointBase;
+use super::rapier_joint_base::RapierJointType;
 use crate::rapier_wrapper::prelude::*;
 use crate::*;
 pub struct RapierEmptyJoint {
@@ -21,6 +22,7 @@ impl RapierEmptyJoint {
                 RapierId::default(),
                 WorldHandle::default(),
                 JointHandle::default(),
+                RapierJointType::Impulse,
             ),
         }
     }

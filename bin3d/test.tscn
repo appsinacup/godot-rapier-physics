@@ -1,11 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://cxk72km78prwd"]
-
-[ext_resource type="Script" uid="uid://dr2enkhxl210b" path="res://test.gd" id="1_jlqln"]
+[gd_scene load_steps=2 format=3 uid="uid://cxk72km78prwd"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_vm613"]
 
 [node name="Test" type="Node3D"]
-script = ExtResource("1_jlqln")
 
 [node name="RigidBody3D" type="RigidBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.82603)
@@ -14,3 +11,6 @@ sleeping = true
 [node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.82603)
 shape = SubResource("SphereShape3D_vm613")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.93339044)

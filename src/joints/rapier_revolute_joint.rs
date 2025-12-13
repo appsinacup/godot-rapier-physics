@@ -6,6 +6,7 @@ use physics_server_2d::JointType;
 use physics_server_3d::JointType;
 
 use super::rapier_joint_base::RapierJointBase;
+use super::rapier_joint_base::RapierJointType;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::bodies::rapier_collision_object::RapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
@@ -28,6 +29,7 @@ pub struct RapierRevoluteJoint {
 }
 impl RapierRevoluteJoint {
     #[cfg(feature = "dim2")]
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         id: RapierId,
         rid: Rid,
@@ -36,6 +38,7 @@ impl RapierRevoluteJoint {
         body_a: &RapierCollisionObject,
         body_b: &RapierCollisionObject,
         physics_engine: &mut PhysicsEngine,
+        joint_type: RapierJointType,
     ) -> Self {
         let invalid_joint = Self {
             angular_limit_lower: 0.0,
@@ -76,8 +79,7 @@ impl RapierRevoluteJoint {
             false,
             0.0,
             false,
-            false,
-            false,
+            joint_type,
             true,
         );
         Self {
@@ -87,7 +89,7 @@ impl RapierRevoluteJoint {
             motor_enabled: false,
             angular_limit_enabled: false,
             softness: 0.0,
-            base: RapierJointBase::new(id, rid, space_id, space_handle, handle),
+            base: RapierJointBase::new(id, rid, space_id, space_handle, handle, joint_type),
         }
     }
 
@@ -103,6 +105,7 @@ impl RapierRevoluteJoint {
         body_a: &RapierCollisionObject,
         body_b: &RapierCollisionObject,
         physics_engine: &mut PhysicsEngine,
+        joint_type: RapierJointType,
     ) -> Self {
         let invalid_joint = Self {
             angular_limit_lower: 0.0,
@@ -142,8 +145,7 @@ impl RapierRevoluteJoint {
             false,
             0.0,
             false,
-            false,
-            false,
+            joint_type,
             true,
         );
         Self {
@@ -152,7 +154,7 @@ impl RapierRevoluteJoint {
             motor_target_velocity: 0.0,
             motor_enabled: false,
             angular_limit_enabled: false,
-            base: RapierJointBase::new(id, rid, space_id, space_handle, handle),
+            base: RapierJointBase::new(id, rid, space_id, space_handle, handle, joint_type),
         }
     }
 

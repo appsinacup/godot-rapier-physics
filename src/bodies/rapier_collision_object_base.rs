@@ -90,6 +90,7 @@ pub struct RapierCollisionObjectBase {
     dominance: i8,
     pub(crate) is_debugging_contacts: bool,
     pub(crate) mode: BodyMode,
+    massless: bool,
     pub(crate) activation_angular_threshold: real,
     pub(crate) activation_linear_threshold: real,
     pub(crate) activation_time_until_sleep: real,
@@ -141,6 +142,7 @@ impl RapierCollisionObjectBase {
             dominance: 0,
             is_debugging_contacts: false,
             mode,
+            massless: false,
             activation_angular_threshold,
             activation_linear_threshold,
             activation_time_until_sleep,
@@ -561,6 +563,14 @@ impl RapierCollisionObjectBase {
     #[cfg(feature = "dim3")]
     pub fn get_user_flags(&self) -> u32 {
         self.user_flags
+    }
+
+    pub fn set_massless(&mut self, p_massless: bool) {
+        self.massless = p_massless;
+    }
+
+    pub fn is_massless(&self) -> bool {
+        self.massless
     }
 }
 impl Drop for RapierCollisionObjectBase {

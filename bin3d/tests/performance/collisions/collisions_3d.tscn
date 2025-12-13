@@ -9,15 +9,34 @@ script/source = "extends TestScene
 [node name="collisions_3d" type="Node3D"]
 script = SubResource("GDScript_n4cxb")
 
+[node name="capsule box" parent="." instance=ExtResource("1_myy22")]
+shape1 = 4
+shape2 = 3
+NB_BODY_FOR_ONE_STEP = 10
+NUMBER_BODIES_PER_SPAWN = 2
+SPAWN_DELAY = 0.1
+GROUND_TYPE = 1
+
+[node name="spehere cyl" parent="." instance=ExtResource("1_myy22")]
+shape1 = 2
+shape2 = 5
+NB_BODY_FOR_ONE_STEP = 10
+NUMBER_BODIES_PER_SPAWN = 2
+SPAWN_DELAY = 0.1
+GROUND_TYPE = 1
+
 [node name="convex 1026v" parent="." instance=ExtResource("1_myy22")]
 shape1 = 100
 shape2 = 100
 NB_BODY_FOR_ONE_STEP = 50
+SPAWN_DELAY = 0.1
 
 [node name="convex 8v plus convex 8v" parent="." instance=ExtResource("1_myy22")]
 shape2 = 6
 NB_BODY_FOR_ONE_STEP = 25
+SPAWN_DELAY = 0.1
 
 [node name="convex 8v plus convex 24v" parent="." instance=ExtResource("1_myy22")]
 NB_BODY_FOR_ONE_STEP = 10
 NUMBER_BODIES_PER_SPAWN = 2
+SPAWN_DELAY = 0.1

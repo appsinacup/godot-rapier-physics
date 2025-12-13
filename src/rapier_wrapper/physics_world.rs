@@ -1,12 +1,14 @@
 use std::num::NonZeroUsize;
 use std::sync::mpsc;
 
+use godot::global::godot_error;
 use hashbrown::HashMap;
 use rapier::data::Index;
 use rapier::parry::utils::IsometryOpt;
 use rapier::prelude::*;
 use salva::integrations::rapier::FluidsPipeline;
 
+use crate::joints::rapier_joint_base::RapierJointType;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use crate::servers::rapier_physics_singleton::PhysicsIds;
@@ -19,8 +21,7 @@ use crate::spaces::rapier_space::RapierSpace;
 #[derive(PartialEq, Eq, Clone, Copy, Debug, Default)]
 pub struct JointHandle {
     pub index: Index,
-    pub kinematic: bool,
-    pub multibody: bool,
+    pub joint_type: RapierJointType,
 }
 pub struct ActiveBodyInfo {
     pub body_user_data: UserData,
@@ -437,14 +438,13 @@ impl PhysicsWorld {
         &mut self,
         body_handle_1: RigidBodyHandle,
         body_handle_2: RigidBodyHandle,
-        multibody: bool,
-        kinematic: bool,
+        joint_type: RapierJointType,
         joint: impl Into<GenericJoint>,
     ) -> JointHandle {
         let rigid_body_1_handle = body_handle_1;
         let rigid_body_2_handle = body_handle_2;
-        match (multibody, kinematic) {
-            (false, _) => {
+        match joint_type {
+            RapierJointType::Impulse => {
                 let impulse_joint_handle = self.physics_objects.impulse_joint_set.insert(
                     rigid_body_1_handle,
                     rigid_body_2_handle,
@@ -453,11 +453,10 @@ impl PhysicsWorld {
                 );
                 return JointHandle {
                     index: impulse_joint_handle.0,
-                    kinematic,
-                    multibody,
+                    joint_type,
                 };
             }
-            (true, true) => {
+            RapierJointType::MultiBodyKinematic => {
                 let multibody_joint_handle = self
                     .physics_objects
                     .multibody_joint_set
@@ -465,12 +464,11 @@ impl PhysicsWorld {
                 if let Some(multibody_joint_handle) = multibody_joint_handle {
                     return JointHandle {
                         index: multibody_joint_handle.0,
-                        kinematic,
-                        multibody,
+                        joint_type,
                     };
                 }
             }
-            (true, false) => {
+            RapierJointType::MultiBody => {
                 let multibody_joint_handle = self.physics_objects.multibody_joint_set.insert(
                     rigid_body_1_handle,
                     rigid_body_2_handle,
@@ -480,8 +478,7 @@ impl PhysicsWorld {
                 if let Some(multibody_joint_handle) = multibody_joint_handle {
                     return JointHandle {
                         index: multibody_joint_handle.0,
-                        kinematic,
-                        multibody,
+                        joint_type,
                     };
                 }
             }
@@ -490,8 +487,8 @@ impl PhysicsWorld {
     }
 
     pub fn get_mut_joint(&mut self, handle: JointHandle) -> Option<&mut GenericJoint> {
-        match handle.multibody {
-            false => {
+        match handle.joint_type {
+            RapierJointType::Impulse => {
                 let joint = self
                     .physics_objects
                     .impulse_joint_set
@@ -500,7 +497,7 @@ impl PhysicsWorld {
                     return Some(&mut joint.data);
                 }
             }
-            true => {
+            RapierJointType::MultiBody | RapierJointType::MultiBodyKinematic => {
                 let joint = self
                     .physics_objects
                     .multibody_joint_set
@@ -515,11 +512,9 @@ impl PhysicsWorld {
         None
     }
 
-    // TODO multibody joints
-    /*
     pub fn get_joint(&self, handle: JointHandle) -> Option<&GenericJoint> {
-        match handle.multibody {
-            false => {
+        match handle.joint_type {
+            RapierJointType::Impulse => {
                 let joint = self
                     .physics_objects
                     .impulse_joint_set
@@ -528,7 +523,7 @@ impl PhysicsWorld {
                     return Some(&joint.data);
                 }
             }
-            true => {
+            RapierJointType::MultiBody | RapierJointType::MultiBodyKinematic => {
                 let joint = self
                     .physics_objects
                     .multibody_joint_set
@@ -541,30 +536,61 @@ impl PhysicsWorld {
             }
         }
         None
-    } */
+    }
+
     pub fn get_impulse_joint(&self, handle: JointHandle) -> Option<&ImpulseJoint> {
-        match handle.multibody {
-            false => self
+        match handle.joint_type {
+            RapierJointType::Impulse => self
                 .physics_objects
                 .impulse_joint_set
                 .get(ImpulseJointHandle(handle.index)),
-            true => None,
+            _ => None,
+        }
+    }
+
+    pub fn get_joint_bodies(
+        &self,
+        handle: JointHandle,
+    ) -> Option<(RigidBodyHandle, RigidBodyHandle)> {
+        match handle.joint_type {
+            RapierJointType::Impulse => self
+                .physics_objects
+                .impulse_joint_set
+                .get(ImpulseJointHandle(handle.index))
+                .map(|impulse_joint| (impulse_joint.body1, impulse_joint.body2)),
+            RapierJointType::MultiBody | RapierJointType::MultiBodyKinematic => {
+                if let Some((multibody, link_id)) = self
+                    .physics_objects
+                    .multibody_joint_set
+                    .get(MultibodyJointHandle(handle.index))
+                    && let Some(link) = multibody.link(link_id)
+                {
+                    Some((
+                        multibody.root().rigid_body_handle(),
+                        link.rigid_body_handle(),
+                    ))
+                } else {
+                    godot_error!(
+                        "Failed to get bodies for multibody joint handle: {:?}",
+                        handle
+                    );
+                    None
+                }
+            }
         }
     }
 
     pub fn remove_joint(&mut self, handle: JointHandle) {
-        match handle.multibody {
-            false => {
-                let joint_handle = handle;
+        match handle.joint_type {
+            RapierJointType::Impulse => {
                 self.physics_objects
                     .impulse_joint_set
-                    .remove(ImpulseJointHandle(joint_handle.index), true);
+                    .remove(ImpulseJointHandle(handle.index), true);
             }
-            true => {
-                let joint_handle = handle;
+            RapierJointType::MultiBody | RapierJointType::MultiBodyKinematic => {
                 self.physics_objects
                     .multibody_joint_set
-                    .remove(MultibodyJointHandle(joint_handle.index), true);
+                    .remove(MultibodyJointHandle(handle.index), true);
             }
         }
     }
