@@ -1,7 +1,7 @@
 [target.wasm32-unknown-emscripten]
 rustflags = [
   "-C", "link-args=-sSIDE_MODULE=2",
-  "-C", "target-feature=+atomics,+bulk-memory,+mutable-globals",
+  "-C", "target-feature=+bulk-memory,+mutable-globals",
   "-C", "link-arg=-fwasm-exceptions",
   "-C", "llvm-args=-enable-emscripten-cxx-exceptions=0",
   "-Z", "link-native-libraries=no",
