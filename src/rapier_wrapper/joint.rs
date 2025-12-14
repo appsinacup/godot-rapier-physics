@@ -332,13 +332,13 @@ impl PhysicsEngine {
                 joint.set_limits([angular_limit_lower, angular_limit_upper]);
             }
             if softness <= 0.0 {
-                joint.data.natural_frequency = 1.0e6;
-                joint.data.damping_ratio = 1.0;
+                joint.data.softness.natural_frequency = 1.0e6;
+                joint.data.softness.damping_ratio = 1.0;
             } else {
                 // Convert softness to damping parameters
                 let softness_clamped = softness.clamp(Real::EPSILON, 16.0);
-                joint.data.natural_frequency = 10_f32.powf(3.0 - softness_clamped * 0.2);
-                joint.data.damping_ratio = 10_f32.powf(-softness_clamped * 0.4375);
+                joint.data.softness.natural_frequency = 10_f32.powf(3.0 - softness_clamped * 0.2);
+                joint.data.softness.damping_ratio = 10_f32.powf(-softness_clamped * 0.4375);
             }
         }
     }

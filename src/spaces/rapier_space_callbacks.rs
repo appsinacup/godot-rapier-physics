@@ -188,7 +188,7 @@ impl RapierSpace {
                 && physics_collision_objects.contains_key(&p_object2)
             {
                 let [p_obj1, p_obj2] =
-                    physics_collision_objects.get_many_mut([&p_object1, &p_object2]);
+                    physics_collision_objects.get_disjoint_mut([&p_object1, &p_object2]);
                 if let (Some(p_obj1), Some(p_obj2)) = (p_obj1, p_obj2) {
                     p_collision_object1 = Some(p_obj1);
                     p_collision_object2 = Some(p_obj2);
@@ -291,7 +291,7 @@ impl RapierSpace {
         let (p_object2, shape2) =
             RapierCollisionObjectBase::get_collider_user_data(&event_info.user_data2, physics_ids);
         let [p_object1, p_object2] =
-            physics_collision_objects.get_many_mut([&p_object1, &p_object2]);
+            physics_collision_objects.get_disjoint_mut([&p_object1, &p_object2]);
         if let (Some(p_object1), Some(p_object2)) = (p_object1, p_object2) {
             let depth = real::max(0.0, -contact_info.pixel_distance); // negative distance means penetration
             let normal = contact_info.normal;

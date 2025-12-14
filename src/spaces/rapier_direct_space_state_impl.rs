@@ -1,5 +1,6 @@
 use godot::builtin::math::ApproxEq;
 use godot::classes::native::*;
+use godot::meta::RawPtr;
 use godot::prelude::*;
 #[cfg(feature = "dim3")]
 use rapier::prelude::FeatureId;
@@ -37,7 +38,7 @@ impl RapierDirectSpaceStateImpl {
         collide_with_bodies: bool,
         collide_with_areas: bool,
         hit_from_inside: bool,
-        result: *mut PhysicsServerExtensionRayResult,
+        result: RawPtr<*mut PhysicsServerExtensionRayResult>,
         physics_data: &PhysicsData,
     ) -> bool {
         let Some(space) = physics_data.spaces.get(&self.space) else {
@@ -72,7 +73,7 @@ impl RapierDirectSpaceStateImpl {
             space,
         );
         if collide {
-            let result = unsafe { &mut *result };
+            let result = unsafe { &mut *result.ptr() };
             result.position = vector_to_godot(hit_info.pixel_position);
             result.normal = vector_to_godot(hit_info.normal);
             let (rid, shape_index) = RapierCollisionObjectBase::get_collider_user_data(
@@ -88,7 +89,7 @@ impl RapierDirectSpaceStateImpl {
                     && let Ok(object) =
                         Gd::<Node>::try_from_instance_id(InstanceId::from_i64(instance_id as i64))
                 {
-                    result.set_collider(object)
+                    unsafe { result.set_collider(object) }
                 }
             }
             #[cfg(feature = "dim3")]
@@ -111,7 +112,7 @@ impl RapierDirectSpaceStateImpl {
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
-        results: *mut PhysicsServerExtensionShapeResult,
+        results: RawPtr<*mut PhysicsServerExtensionShapeResult>,
         max_results: i32,
         physics_data: &PhysicsData,
     ) -> i32 {
@@ -149,7 +150,7 @@ impl RapierDirectSpaceStateImpl {
             result_count = max_results;
         }
         let results_slice: &mut [PhysicsServerExtensionShapeResult] =
-            unsafe { std::slice::from_raw_parts_mut(results, max_results) };
+            unsafe { std::slice::from_raw_parts_mut(results.ptr(), max_results) };
         for (i, result_slice) in results_slice.iter_mut().enumerate().take(max_results) {
             let hit_info = unsafe { &mut *hit_info_ptr.add(i) };
             let (rid, shape_index) = RapierCollisionObjectBase::get_collider_user_data(
@@ -166,7 +167,7 @@ impl RapierDirectSpaceStateImpl {
                     && let Ok(object) =
                         Gd::<Node>::try_from_instance_id(InstanceId::from_i64(instance_id as i64))
                 {
-                    result_slice.set_collider(object)
+                    unsafe { result_slice.set_collider(object) }
                 }
             }
         }
@@ -183,7 +184,7 @@ impl RapierDirectSpaceStateImpl {
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
-        results: *mut PhysicsServerExtensionShapeResult,
+        results: RawPtr<*mut PhysicsServerExtensionShapeResult>,
         max_results: i32,
         physics_data: &PhysicsData,
     ) -> i32 {
@@ -204,7 +205,7 @@ impl RapierDirectSpaceStateImpl {
         query_excluded_info.query_exclude = query_exclude;
         query_excluded_info.query_exclude_size = 0;
         let results_slice: &mut [PhysicsServerExtensionShapeResult] =
-            unsafe { std::slice::from_raw_parts_mut(results, max_results) };
+            unsafe { std::slice::from_raw_parts_mut(results.ptr(), max_results) };
         let results: Vec<ShapeCastResult> = physics_data.physics_engine.shape_casting(
             space.get_state().get_id(),
             vector_to_rapier(motion),
@@ -239,7 +240,7 @@ impl RapierDirectSpaceStateImpl {
                     && let Ok(object) =
                         Gd::<Node>::try_from_instance_id(InstanceId::from_i64(instance_id as i64))
                 {
-                    results_slice[cpt].set_collider(object)
+                    unsafe { results_slice[cpt].set_collider(object) }
                 }
             }
             cpt += 1;
@@ -260,8 +261,8 @@ impl RapierDirectSpaceStateImpl {
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
-        closest_safe: *mut f64,
-        closest_unsafe: *mut f64,
+        closest_safe: RawPtr<*mut f64>,
+        closest_unsafe: RawPtr<*mut f64>,
         physics_data: &PhysicsData,
     ) -> bool {
         let Some(shape) = physics_data.shapes.get(&shape_rid) else {
@@ -302,8 +303,8 @@ impl RapierDirectSpaceStateImpl {
             closest_located_safe = 1.0;
             closest_located_unsafe = 1.0;
         }
-        let closest_safe = closest_safe as *mut real;
-        let closest_unsafe = closest_unsafe as *mut real;
+        let closest_safe = closest_safe.ptr() as *mut real;
+        let closest_unsafe = closest_unsafe.ptr() as *mut real;
         unsafe {
             *closest_safe = closest_located_safe;
             *closest_unsafe = closest_located_unsafe;
@@ -321,13 +322,13 @@ impl RapierDirectSpaceStateImpl {
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
-        results: *mut std::ffi::c_void,
+        results: RawPtr<*mut std::ffi::c_void>,
         max_results: i32,
-        result_count: *mut i32,
+        result_count: RawPtr<*mut i32>,
         physics_data: &PhysicsData,
     ) -> bool {
         let max_results = max_results as usize;
-        let results_out = results as *mut Vector;
+        let results_out = results.ptr() as *mut Vector;
         let Some(shape) = physics_data.shapes.get(&shape_rid) else {
             return false;
         };
@@ -359,7 +360,7 @@ impl RapierDirectSpaceStateImpl {
             max_results,
         );
         unsafe {
-            *result_count = results_count as i32;
+            *result_count.ptr() = results_count as i32;
         }
         if results_count == 0 {
             return false;
@@ -383,7 +384,7 @@ impl RapierDirectSpaceStateImpl {
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
-        rest_info: *mut PhysicsServerExtensionShapeRestInfo,
+        rest_info: RawPtr<*mut PhysicsServerExtensionShapeRestInfo>,
         physics_data: &PhysicsData,
     ) -> bool {
         let Some(shape) = physics_data.shapes.get(&shape_rid) else {
@@ -443,7 +444,7 @@ impl RapierDirectSpaceStateImpl {
                 &deepest_collision.user_data,
                 &physics_data.ids,
             );
-            let r_info = unsafe { &mut *rest_info };
+            let r_info = unsafe { &mut *rest_info.ptr() };
             if let Some(collision_object_2d) = physics_data.collision_objects.get(&rid) {
                 let instance_id = collision_object_2d.get_base().get_instance_id();
                 r_info.collider_id = ObjectId { id: instance_id };

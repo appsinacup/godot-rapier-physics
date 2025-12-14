@@ -187,8 +187,10 @@ impl PhysicsWorld {
         let mut integration_parameters = IntegrationParameters {
             length_unit: settings.length_unit,
             dt: settings.dt,
-            contact_damping_ratio: settings.contact_damping_ratio,
-            contact_natural_frequency: settings.contact_natural_frequency,
+            contact_softness: SpringCoefficients {
+                natural_frequency: settings.contact_natural_frequency,
+                damping_ratio: settings.contact_damping_ratio,
+            },
             max_ccd_substeps: settings.max_ccd_substeps,
             normalized_allowed_linear_error: settings.normalized_allowed_linear_error,
             normalized_max_corrective_velocity: settings.normalized_max_corrective_velocity,

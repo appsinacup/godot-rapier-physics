@@ -43,7 +43,7 @@ impl IRapierShape for RapierHeightMapShape3D {
         let width;
         let depth;
         let heights;
-        if let Ok(dictionary) = data.try_to::<Dictionary>() {
+        if let Ok(dictionary) = data.try_to::<VarDictionary>() {
             let in_width = dictionary.get_or_nil("width");
             let in_depth = dictionary.get_or_nil("depth");
             let new_heights = dictionary.get_or_nil("heights");
@@ -103,7 +103,7 @@ impl IRapierShape for RapierHeightMapShape3D {
     }
 
     fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
-        let mut dictionary = Dictionary::new();
+        let mut dictionary = VarDictionary::new();
         let (heights, depth, width) = physics_engine.shape_get_heightmap(self.base.get_id());
         let _ = dictionary.insert("width", width);
         let _ = dictionary.insert("depth", depth);

@@ -183,8 +183,8 @@ pub struct RapierBody {
     body_state_callback: Option<Callable>,
     force_integration_callback: Option<Callable>,
     direct_state: Option<Gd<PhysicsDirectBodyState>>,
-    direct_state_array: VariantArray,
-    force_integration_array: VariantArray,
+    direct_state_array: VarArray,
+    force_integration_array: VarArray,
     state: RapierBodyState,
     base: RapierCollisionObjectBase,
 }
@@ -220,8 +220,8 @@ impl RapierBody {
             body_state_callback: None,
             force_integration_callback: None,
             direct_state: None,
-            direct_state_array: VariantArray::new(),
-            force_integration_array: VariantArray::new(),
+            direct_state_array: VarArray::new(),
+            force_integration_array: VarArray::new(),
             state,
             base: RapierCollisionObjectBase::new(id, rid, CollisionObjectType::Body),
         }
@@ -601,7 +601,7 @@ impl RapierBody {
         }
     }
 
-    pub fn get_force_integration_array(&self) -> &VariantArray {
+    pub fn get_force_integration_array(&self) -> &VarArray {
         &self.force_integration_array
     }
 
@@ -627,7 +627,7 @@ impl RapierBody {
         self.direct_state.as_ref()
     }
 
-    pub fn get_direct_state_array(&self) -> &VariantArray {
+    pub fn get_direct_state_array(&self) -> &VarArray {
         &self.direct_state_array
     }
 

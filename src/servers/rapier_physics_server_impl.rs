@@ -9,6 +9,7 @@ use godot::classes::physics_server_3d;
 use godot::classes::physics_server_3d::*;
 use godot::global::rid_allocate_id;
 use godot::global::rid_from_int64;
+use godot::meta::RawPtr;
 use godot::prelude::*;
 
 use super::rapier_physics_singleton::RapierId;
@@ -265,12 +266,12 @@ impl RapierPhysicsServerImpl {
         shape_b: Rid,
         xform_b: Transform,
         motion_b: Vector,
-        results: *mut c_void,
+        results: RawPtr<*mut c_void>,
         result_max: i32,
-        result_count: *mut i32,
+        result_count: RawPtr<*mut i32>,
     ) -> bool {
         let physics_data = physics_data();
-        let [shape_a, shape_b] = physics_data.shapes.get_many_mut([&shape_a, &shape_b]);
+        let [shape_a, shape_b] = physics_data.shapes.get_disjoint_mut([&shape_a, &shape_b]);
         let (Some(shape_a), Some(shape_b)) = (shape_a, shape_b) else {
             return false;
         };
@@ -280,7 +281,7 @@ impl RapierPhysicsServerImpl {
         let shape_b_info = shape_info_from_body_shape(shape_b_handle, xform_b);
         let rapier_a_motion = vector_to_rapier(motion_a);
         let rapier_b_motion = vector_to_rapier(motion_b);
-        let results_out: *mut Vector = results as *mut Vector;
+        let results_out: *mut Vector = results.ptr() as *mut Vector;
         let result = physics_data.physics_engine.shape_collide(
             rapier_a_motion,
             shape_a_info,
@@ -291,7 +292,7 @@ impl RapierPhysicsServerImpl {
             return false;
         }
         if result_max >= 1 {
-            unsafe { *result_count = 1 };
+            unsafe { *result_count.ptr() = 1 };
             let vector2_slice: &mut [Vector] =
                 unsafe { std::slice::from_raw_parts_mut(results_out, result_max as usize) };
             vector2_slice[0] = vector_to_godot(result.pixel_witness1);
@@ -1534,9 +1535,9 @@ impl RapierPhysicsServerImpl {
         shape: Rid,
         shape_xform: Transform,
         motion: Vector,
-        results: *mut c_void,
+        results: RawPtr<*mut c_void>,
         result_max: i32,
-        result_count: *mut i32,
+        result_count: RawPtr<*mut i32>,
     ) -> bool {
         let physics_data = physics_data();
         let mut body_shape_rid = Rid::Invalid;
@@ -1608,7 +1609,7 @@ impl RapierPhysicsServerImpl {
         _max_collisions: i32,
         collide_separation_ray: bool,
         recovery_as_collision: bool,
-        result: *mut PhysicsServerExtensionMotionResult,
+        result: RawPtr<*mut PhysicsServerExtensionMotionResult>,
     ) -> bool {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get(&body)
@@ -1617,7 +1618,7 @@ impl RapierPhysicsServerImpl {
                 .spaces
                 .get(&body.get_base().get_space(&physics_data.ids))
         {
-            let result: &mut PhysicsServerExtensionMotionResult = unsafe { &mut *result };
+            let result: &mut PhysicsServerExtensionMotionResult = unsafe { &mut *result.ptr() };
             return space.test_body_motion(
                 body,
                 from,

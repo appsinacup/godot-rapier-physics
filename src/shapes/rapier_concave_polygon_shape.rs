@@ -73,7 +73,7 @@ impl IRapierShape for RapierConcavePolygonShape {
         match data.get_type() {
             #[cfg(feature = "dim3")]
             VariantType::DICTIONARY => {
-                if let Ok(dictionary) = data.try_to::<Dictionary>()
+                if let Ok(dictionary) = data.try_to::<VarDictionary>()
                     && let Some(points) = dictionary.get("faces")
                     && let Ok(arr) = points.try_to::<PackedVector3Array>()
                 {
@@ -229,7 +229,7 @@ mod tests {
             let mut concave_shape = RapierConcavePolygonShape {
                 base: RapierShapeBase::new(RapierId::default(), Rid::Invalid),
             };
-            let mut dict = Dictionary::new();
+            let mut dict = VarDictionary::new();
             let arr = PackedVectorArray::from(vec![
                 Vector::splat(0.0),
                 Vector::splat(1.0),

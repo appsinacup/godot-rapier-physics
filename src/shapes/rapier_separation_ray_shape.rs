@@ -50,7 +50,7 @@ impl IRapierShape for RapierSeparationRayShape {
             );
             return;
         }
-        let dictionary: Dictionary = data.try_to().unwrap_or_default();
+        let dictionary: VarDictionary = data.try_to().unwrap_or_default();
         if !dictionary.contains_key("length") && !dictionary.contains_key("slide_on_slope") {
             godot_error!(
                 "RapierSeparationRayShape data must contain 'length' and 'slide_on_slope' keys. Got {}",
@@ -66,7 +66,7 @@ impl IRapierShape for RapierSeparationRayShape {
     }
 
     fn get_data(&self, _physics_engine: &PhysicsEngine) -> Variant {
-        let mut dictionary = Dictionary::new();
+        let mut dictionary = VarDictionary::new();
         dictionary.set("length", self.length);
         dictionary.set("slide_on_slope", self.slide_on_slope);
         dictionary.to_variant()
