@@ -182,7 +182,7 @@ impl RapierArea {
         }
         if let Some(space) = physics_spaces.get_mut(&space_rid) {
             for (_, monitor_info) in detected_bodies.iter() {
-                if let [Some(body), Some(area)] = physics_collision_objects.get_many_mut([
+                if let [Some(body), Some(area)] = physics_collision_objects.get_disjoint_mut([
                     &get_id_rid(monitor_info.other_collider_id, physics_ids),
                     &area_rid,
                 ]) && let Some(body) = body.get_mut_body()
@@ -246,7 +246,7 @@ impl RapierArea {
         }
         if let Some(space) = physics_spaces.get_mut(&space_rid) {
             for (_, monitor_info) in detected_bodies {
-                if let [Some(body), Some(area)] = physics_collision_objects.get_many_mut([
+                if let [Some(body), Some(area)] = physics_collision_objects.get_disjoint_mut([
                     &get_id_rid(monitor_info.other_collider_id, physics_ids),
                     &area_rid,
                 ]) && let Some(body) = body.get_mut_body()
@@ -707,7 +707,7 @@ impl RapierArea {
                 vec![
                     AreaBodyStatus::ADDED.to_variant(),
                     rid.to_variant(),
-                    monitor_report.instance_id.to_variant(),
+                    (monitor_report.instance_id as i64).to_variant(),
                     monitor_report.object_shape_index.to_variant(),
                     monitor_report.this_area_shape_index.to_variant(),
                 ]
@@ -715,7 +715,7 @@ impl RapierArea {
                 vec![
                     AreaBodyStatus::REMOVED.to_variant(),
                     rid.to_variant(),
-                    monitor_report.instance_id.to_variant(),
+                    (monitor_report.instance_id as i64).to_variant(),
                     monitor_report.object_shape_index.to_variant(),
                     monitor_report.this_area_shape_index.to_variant(),
                 ]
