@@ -329,7 +329,7 @@ checksum = "0cc23270f6e1808e30a928bdc84dea0b9b4136a8bc82338574f23baf47bbd280"
 [[package]]
 name = "godot"
 version = "0.4.4"
-source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#6f9e0119a43b9bc68450a410e05761f905318ee6"
+source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#3ae4d55c4dcaa75c03fe85c53cd073a2e41047cf"
 dependencies = [
  "godot-core",
  "godot-macros",
@@ -338,7 +338,7 @@ dependencies = [
 [[package]]
 name = "godot-bindings"
 version = "0.4.4"
-source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#6f9e0119a43b9bc68450a410e05761f905318ee6"
+source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#3ae4d55c4dcaa75c03fe85c53cd073a2e41047cf"
 dependencies = [
  "bindgen",
  "gdextension-api",
@@ -349,12 +349,12 @@ dependencies = [
 [[package]]
 name = "godot-cell"
 version = "0.4.4"
-source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#6f9e0119a43b9bc68450a410e05761f905318ee6"
+source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#3ae4d55c4dcaa75c03fe85c53cd073a2e41047cf"
 
 [[package]]
 name = "godot-codegen"
 version = "0.4.4"
-source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#6f9e0119a43b9bc68450a410e05761f905318ee6"
+source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#3ae4d55c4dcaa75c03fe85c53cd073a2e41047cf"
 dependencies = [
  "godot-bindings",
  "heck",
@@ -367,7 +367,7 @@ dependencies = [
 [[package]]
 name = "godot-core"
 version = "0.4.4"
-source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#6f9e0119a43b9bc68450a410e05761f905318ee6"
+source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#3ae4d55c4dcaa75c03fe85c53cd073a2e41047cf"
 dependencies = [
  "glam 0.30.9",
  "godot-bindings",
@@ -380,7 +380,7 @@ dependencies = [
 [[package]]
 name = "godot-ffi"
 version = "0.4.4"
-source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#6f9e0119a43b9bc68450a410e05761f905318ee6"
+source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#3ae4d55c4dcaa75c03fe85c53cd073a2e41047cf"
 dependencies = [
  "godot-bindings",
  "godot-codegen",
@@ -391,7 +391,7 @@ dependencies = [
 [[package]]
 name = "godot-macros"
 version = "0.4.4"
-source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#6f9e0119a43b9bc68450a410e05761f905318ee6"
+source = "git+https://github.com/yarwin/gdext?branch=feature%2Fremove-mutex-from-gdcellinner#3ae4d55c4dcaa75c03fe85c53cd073a2e41047cf"
 dependencies = [
  "godot-bindings",
  "litrs",
