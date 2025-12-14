@@ -67,7 +67,7 @@ pub fn register_setting(
     if !project_settings.has_setting(p_name) {
         project_settings.set(p_name, &p_value.clone());
     }
-    let mut property_info = Dictionary::new();
+    let mut property_info = VarDictionary::new();
     let _ = property_info.insert("name", p_name);
     let _ = property_info.insert("type", p_value.get_type());
     let _ = property_info.insert("hint", p_hint);
@@ -183,13 +183,13 @@ impl RapierProjectSettings {
         );
         register_setting_ranged(
             CONTACT_DAMPING_RATIO,
-            Variant::from(integration_parameters.contact_damping_ratio),
+            Variant::from(integration_parameters.contact_softness.damping_ratio),
             "0,100,0.00001,or_greater",
             false,
         );
         register_setting_ranged(
             CONTACT_NATURAL_FREQUENCY,
-            Variant::from(integration_parameters.contact_natural_frequency),
+            Variant::from(integration_parameters.contact_softness.natural_frequency),
             "0,100,0.00001,or_greater",
             false,
         );
@@ -304,8 +304,10 @@ impl RapierProjectSettings {
         let integration_parameters = IntegrationParameters::default();
         if pgs == integration_parameters.num_internal_pgs_iterations as i64
             && stab == integration_parameters.num_internal_stabilization_iterations as i64
-            && (damping - integration_parameters.contact_damping_ratio as f64).abs() < 0.001
-            && (freq - integration_parameters.contact_natural_frequency as f64).abs() < 0.001
+            && (damping - integration_parameters.contact_softness.damping_ratio as f64).abs()
+                < 0.001
+            && (freq - integration_parameters.contact_softness.natural_frequency as f64).abs()
+                < 0.001
         {
             return RapierSolverPreset::Performance;
         }
@@ -356,11 +358,11 @@ impl RapierProjectSettings {
                 );
                 project_settings.set(
                     CONTACT_DAMPING_RATIO,
-                    &Variant::from(integration_parameters.contact_damping_ratio),
+                    &Variant::from(integration_parameters.contact_softness.damping_ratio),
                 );
                 project_settings.set(
                     CONTACT_NATURAL_FREQUENCY,
-                    &Variant::from(integration_parameters.contact_natural_frequency),
+                    &Variant::from(integration_parameters.contact_softness.natural_frequency),
                 );
             }
             RapierSolverPreset::Custom => {} // Do nothing for Custom

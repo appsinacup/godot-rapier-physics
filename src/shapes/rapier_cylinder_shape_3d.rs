@@ -53,7 +53,7 @@ impl IRapierShape for RapierCylinderShape3D {
                 radius = vector_data.x;
             }
             VariantType::DICTIONARY => {
-                let dictionary: Dictionary = data.try_to().unwrap_or_default();
+                let dictionary: VarDictionary = data.try_to().unwrap_or_default();
                 if let Some(in_height) = dictionary.get("height")
                     && let Some(in_radius) = dictionary.get("radius")
                 {
@@ -172,7 +172,7 @@ mod tests {
             let mut cylinder_shape = RapierCylinderShape3D {
                 base: RapierShapeBase::new(0, rid),
             };
-            let mut dict = Dictionary::new();
+            let mut dict = VarDictionary::new();
             let _ = dict.insert("height", 1.0);
             let _ = dict.insert("radius", 0.5);
             cylinder_shape.set_data(dict.to_variant(), &mut physics_data().physics_engine);

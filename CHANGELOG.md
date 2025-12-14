@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.8.25 - 
+
+* Update to latest gdext.
+
 ## v0.8.24 - Nov 24
 
 ## What's Changed

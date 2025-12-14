@@ -414,8 +414,8 @@ impl StateManager {
         // 5) After loading, go through the areas' new states and emit events for any monitored collider pairs that are in the new intersections list.
         //------------------------------------------------
         // 1) So first, we get our intersection deltas.
-        let mut stale_intersections: Vec<ColliderPair> = Vec::new();
-        let mut new_intersections: Vec<ColliderPair> = Vec::new();
+        let stale_intersections: Vec<ColliderPair>;
+        let new_intersections: Vec<ColliderPair>;
         if let Some((stale, new)) = space.get_intersection_deltas(
             &mut physics_data.physics_engine,
             &loaded_state.rapier_space.world.narrow_phase,

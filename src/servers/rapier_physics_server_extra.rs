@@ -574,8 +574,8 @@ macro_rules! make_rapier_server_godot_impl {
 
             #[func]
             /// Get the stats of the physics server.
-            fn get_stats() -> Dictionary {
-                let mut dictionary = Dictionary::new();
+            fn get_stats() -> VarDictionary {
+                let mut dictionary = VarDictionary::new();
                 dictionary.set("ids", physics_data().ids.len() as i64);
                 dictionary.set("active_spaces", physics_data().active_spaces.len() as i64);
                 dictionary.set("spaces", physics_data().spaces.len() as i64);

@@ -60,7 +60,7 @@ impl IRapierShape for RapierCapsuleShape {
                 radius = vector_data.x;
             }
             VariantType::DICTIONARY => {
-                let dictionary: Dictionary = data.try_to().unwrap_or_default();
+                let dictionary: VarDictionary = data.try_to().unwrap_or_default();
                 if !dictionary.contains_key("length") && !dictionary.contains_key("height") {
                     godot_error!(
                         "RapierCapsuleShape data must be a dictionary with 'length' and 'height' keys. Got {}",
@@ -184,7 +184,7 @@ mod tests {
             let mut capsule_shape = RapierCapsuleShape {
                 base: RapierShapeBase::new(RapierId::default(), Rid::Invalid),
             };
-            let mut dict = Dictionary::new();
+            let mut dict = VarDictionary::new();
             let _ = dict.insert("radius", 1.0);
             let _ = dict.insert("height", 2.0);
             capsule_shape.set_data(dict.to_variant(), &mut physics_data().physics_engine);

@@ -1,5 +1,6 @@
 use godot::classes::native::*;
 use godot::classes::*;
+use godot::meta::RawPtr;
 use godot::prelude::*;
 
 use super::rapier_direct_space_state_impl::RapierDirectSpaceStateImpl;
@@ -38,7 +39,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         collide_with_bodies: bool,
         collide_with_areas: bool,
         hit_from_inside: bool,
-        result: *mut PhysicsServer2DExtensionRayResult,
+        result: RawPtr<*mut PhysicsServer2DExtensionRayResult>,
     ) -> bool {
         let physics_data = physics_data();
         unsafe {
@@ -62,7 +63,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
-        results: *mut godot::classes::native::PhysicsServer2DExtensionShapeResult,
+        results: RawPtr<*mut godot::classes::native::PhysicsServer2DExtensionShapeResult>,
         max_results: i32,
     ) -> i32 {
         let physics_data = physics_data();
@@ -89,7 +90,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
-        results: *mut godot::classes::native::PhysicsServer2DExtensionShapeResult,
+        results: RawPtr<*mut godot::classes::native::PhysicsServer2DExtensionShapeResult>,
         max_results: i32,
     ) -> i32 {
         let physics_data = physics_data();
@@ -118,8 +119,8 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
-        closest_safe: *mut f64,
-        closest_unsafe: *mut f64,
+        closest_safe: RawPtr<*mut f64>,
+        closest_unsafe: RawPtr<*mut f64>,
     ) -> bool {
         let physics_data = physics_data();
         unsafe {
@@ -147,9 +148,9 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
-        results: *mut std::ffi::c_void,
+        results: RawPtr<*mut std::ffi::c_void>,
         max_results: i32,
-        result_count: *mut i32,
+        result_count: RawPtr<*mut i32>,
     ) -> bool {
         let physics_data = physics_data();
         unsafe {
@@ -178,7 +179,7 @@ impl IPhysicsDirectSpaceState2DExtension for RapierDirectSpaceState2D {
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
-        rest_info: *mut godot::classes::native::PhysicsServer2DExtensionShapeRestInfo,
+        rest_info: RawPtr<*mut godot::classes::native::PhysicsServer2DExtensionShapeRestInfo>,
     ) -> bool {
         let physics_data = physics_data();
         unsafe {
