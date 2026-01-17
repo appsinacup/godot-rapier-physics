@@ -136,7 +136,7 @@ pub fn transform_update(
     origin: Vector,
 ) -> Transform {
     let mut skew = 0.0;
-    if !transform.determinant().is_zero_approx() {
+    if !transform.skew().is_zero_approx() {
         skew = transform.skew();
     }
     Transform::from_angle_scale_skew_origin(rotation.angle(), transform.scale(), skew, origin)
