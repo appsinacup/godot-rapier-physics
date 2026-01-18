@@ -63,17 +63,17 @@ unsafe impl ExtensionLibrary for RapierPhysics3DExtensionLibrary {
         InitLevel::Servers
     }
 
-    fn on_stage_init(level: InitLevel) {
+    fn on_stage_init(level: InitStage) {
         match level {
-            InitLevel::Scene => {
+            InitStage::Scene => {
                 servers::register_scene();
             }
-            InitLevel::Servers => {
+            InitStage::Servers => {
                 servers::register_server();
             }
             _ => (),
         }
     }
 
-    fn on_stage_deinit(_level: InitLevel) {}
+    fn on_stage_deinit(_level: InitStage) {}
 }
