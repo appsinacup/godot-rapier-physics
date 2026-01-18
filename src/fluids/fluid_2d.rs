@@ -95,6 +95,12 @@ impl Fluid2D {
     }
 
     #[func]
+    /// Get the underlying RID for the fluid instance.
+    fn get_rid(&self) -> Rid {
+        self.rid
+    }
+
+    #[func]
     /// Create the points of the fluid particles inside a rectangle.
     fn create_rectangle_points(&self, width: i32, height: i32) -> PackedVectorArray {
         let mut new_points = PackedVectorArray::default();
@@ -122,6 +128,36 @@ impl Fluid2D {
             }
         }
         new_points
+    }
+
+    #[func]
+    /// Get the configured particle radius.
+    fn get_radius(&self) -> real {
+        self.radius
+    }
+
+    #[func]
+    /// Get whether debug draw is enabled.
+    fn get_debug_draw(&self) -> bool {
+        self.debug_draw
+    }
+
+    #[func]
+    /// Get configured density.
+    fn get_density(&self) -> real {
+        self.density
+    }
+
+    #[func]
+    /// Get configured lifetime.
+    fn get_lifetime(&self) -> real {
+        self.lifetime
+    }
+
+    #[func]
+    /// Get configured effects.
+    fn get_effects(&self) -> Array<Option<Gd<Resource>>> {
+        self.effects.clone()
     }
 
     #[func]

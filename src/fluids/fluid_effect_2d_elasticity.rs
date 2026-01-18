@@ -3,10 +3,13 @@ use godot::prelude::*;
 #[class(base=Resource)]
 pub struct FluidEffect2DElasticity {
     #[export]
+    #[var(pub)]
     young_modulus: real,
     #[export]
+    #[var(pub)]
     poisson_ratio: real,
     #[export]
+    #[var(pub)]
     nonlinear_strain: bool,
 
     base: Base<Resource>,
