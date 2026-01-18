@@ -68,7 +68,7 @@ pub type PhysicsServerExtensionShapeRestInfo = native::PhysicsServer3DExtensionS
 pub fn transform_scale(transform: &Transform) -> Vector {
     transform.basis.get_scale()
 }
-#[derive(GodotConvert, Var, Export, Debug)]
+#[derive(Clone, GodotConvert, Var, Export, Debug)]
 #[godot(via = GString)]
 // An enum to allow easy export into various formats; Json outputs a json string (plaintext, good for debugging),
 // GodotBase64 uses Godot's Marshalls to produce an encoded Godot String (for if you need to decode the data in gdscript or elsewhere on the Godot side),

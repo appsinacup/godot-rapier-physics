@@ -3,8 +3,10 @@ use godot::prelude::*;
 #[class(base=Resource)]
 pub struct FluidEffect2DViscosityXSPH {
     #[export]
+    #[var(pub)]
     fluid_viscosity_coefficient: real,
     #[export]
+    #[var(pub)]
     boundary_adhesion_coefficient: real,
 
     base: Base<Resource>,

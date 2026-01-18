@@ -3,6 +3,7 @@ use godot::prelude::*;
 #[class(base=Resource)]
 pub struct FluidEffect3DViscosityDFSPH {
     #[export]
+    #[var(pub)]
     fluid_viscosity_coefficient: real,
 
     base: Base<Resource>,

@@ -167,8 +167,8 @@ impl StateManager {
     ---------------------------------------*/
     // CACHE HANDLING: If a user wants to store some small number of states in memory for fast reloads, they can use these cache functionalities.
     #[func]
-    fn get_max_cache_length(&self) -> i32 {
-        self.max_cache_length as i32
+    fn get_max_cache_length(&self) -> u32 {
+        self.max_cache_length
     }
 
     #[func]

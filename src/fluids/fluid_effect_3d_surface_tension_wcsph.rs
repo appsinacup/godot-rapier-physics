@@ -3,8 +3,10 @@ use godot::prelude::*;
 #[class(base=Resource)]
 pub struct FluidEffect3DSurfaceTensionWCSPH {
     #[export]
+    #[var(pub)]
     fluid_tension_coefficient: real,
     #[export]
+    #[var(pub)]
     boundary_adhesion_coefficient: real,
 
     base: Base<Resource>,
