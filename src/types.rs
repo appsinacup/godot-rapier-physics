@@ -1,5 +1,7 @@
 use godot::classes::*;
 use godot::prelude::*;
+#[cfg(feature = "dim2")]
+use rapier::math::Matrix;
 use rapier::math::Real;
 use rapier::math::Rotation;
 #[cfg(feature = "single")]
@@ -135,11 +137,15 @@ pub fn transform_update(
     rotation: Rotation<Real>,
     origin: Vector,
 ) -> Transform {
-    let mut skew = 0.0;
-    if !transform.determinant().is_zero_approx() {
-        skew = transform.skew();
+    let shear_matrix = get_shear_matrix(transform);
+    let shear_rotation_matrix = Matrix::<Real>::from(rotation) * shear_matrix;
+    let a = shear_rotation_matrix.column(0).normalize() * transform.scale().x;
+    let b = shear_rotation_matrix.column(1).normalize() * transform.scale().y;
+    Transform2D {
+        a: Vector2::new(a.x, a.y),
+        b: Vector2::new(b.x, b.y),
+        origin,
     }
-    Transform::from_angle_scale_skew_origin(rotation.angle(), transform.scale(), skew, origin)
 }
 #[cfg(feature = "dim3")]
 pub fn transform_update(
@@ -199,5 +205,107 @@ pub fn variant_to_int(variant: &Variant) -> i32 {
     match variant.get_type() {
         VariantType::INT => variant.to::<i32>(),
         _ => 0,
+    }
+}
+#[cfg(feature = "dim2")]
+fn get_shear_matrix(transform: &Transform) -> Matrix<Real> {
+    let det_sign = transform.determinant().signum();
+    let minus_sin_skew = transform
+        .a
+        .normalized_or_zero()
+        .dot(det_sign * transform.b.normalized_or_zero());
+    let cos_skew = (1. - minus_sin_skew * minus_sin_skew).sqrt();
+    Matrix::new(1., minus_sin_skew, 0., cos_skew)
+}
+#[cfg(feature = "dim2")]
+#[cfg(test)]
+mod tests {
+    use std::f32::consts::PI;
+
+    use godot::builtin::math::assert_eq_approx;
+
+    use super::*;
+    #[test]
+    fn test_transform_update_does_not_panic() {
+        let transform = Transform2D::from_cols(
+            Vector2::new(0., 0.),
+            Vector2::new(0., 0.),
+            Vector2::new(0., 0.),
+        );
+        let new_transform =
+            transform_update(&transform, Rotation::identity(), Vector2::new(-0., 0.));
+        assert_eq!(
+            new_transform,
+            Transform2D::from_cols(
+                Vector2::new(0., 0.),
+                Vector2::new(0., 0.),
+                Vector2::new(0., 0.),
+            )
+        );
+    }
+    #[test]
+    fn test_transform_update() {
+        let transforms = [
+            Transform2D::from_cols(
+                Vector2::new(1., 1.),
+                Vector2::new(0., 1.),
+                Vector2::new(0., 0.),
+            ),
+            Transform2D::from_cols(
+                Vector2::new(1., 2.),
+                Vector2::new(0., 3.),
+                Vector2::new(0., 0.),
+            ),
+            Transform2D::from_cols(
+                Vector2::new(5., 0.),
+                Vector2::new(0., 2.),
+                Vector2::new(0., 0.),
+            ),
+            Transform2D::from_cols(
+                Vector2::new(5., -5.),
+                Vector2::new(0., 2.),
+                Vector2::new(0., 0.),
+            ),
+        ];
+        let new_rotations = [0., -PI, PI / 2., PI / 5.];
+        for i in 0..transforms.len() {
+            let transform = transforms[i];
+            let new_rotation = new_rotations[i];
+            let new_origin = Vector2::new(-50., 30.);
+            let new_transform =
+                transform_update(&transform, Rotation::from_angle(new_rotation), new_origin);
+            let skew = if !transform.determinant().is_zero_approx() {
+                transform.skew()
+            } else {
+                0.
+            };
+            assert_eq_approx!(
+                new_transform,
+                Transform::from_angle_scale_skew_origin(
+                    new_rotation,
+                    transform.scale(),
+                    skew,
+                    new_origin
+                )
+            );
+        }
+    }
+    #[test]
+    fn test_transform_update_accuracy() {
+        let mut transform = Transform2D::from_cols(
+            Vector2::new(1., 0.),
+            Vector2::new(0., 1.),
+            Vector2::new(0., 0.),
+        );
+        for i in 0..1000 {
+            println!("{}", PI * (3123. * i as f32).cos());
+            transform = transform_update(
+                &transform,
+                Rotation::from_angle(PI * (3123. * i as f32).cos()),
+                Vector2::new(0., 0.),
+            );
+        }
+        assert_eq_approx!(transform.scale(), Vector2::ONE);
+        assert_eq_approx!(transform.skew(), 0.);
     }
 }
