@@ -215,6 +215,8 @@ name = "gdextension-api"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e25d88dabe9fdb2e064cb545312178ec4025eefb62d9a3bbce1769088e2c381d"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e25d88dabe9fdb2e064cb545312178ec4025eefb62d9a3bbce1769088e2c381d"
 
 [[package]]
 name = "generational-arena"
@@ -901,7 +903,6 @@ dependencies = [
  "ordered-float",
  "rstar",
  "serde",
- "serde_arrays",
  "simba",
  "slab",
  "smallvec",

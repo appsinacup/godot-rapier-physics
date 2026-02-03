@@ -4,6 +4,7 @@ version = "0.8.13"
 edition = "2024"
 license = "MIT"
 rust-version = "1.85"
+rust-version = "1.85"
 publish = false
 
 [lib]
@@ -16,13 +17,20 @@ build2d = ["single-dim2", "serde-serialize", "simd-stable"]
 build3d = ["single-dim3", "serde-serialize", "simd-stable"]
 build2d-f64 = ["double-dim2", "serde-serialize", "simd-stable"]
 build3d-f64 = ["double-dim3", "serde-serialize", "simd-stable"]
+build2d = ["single-dim2", "serde-serialize", "simd-stable"]
+build3d = ["single-dim3", "serde-serialize", "simd-stable"]
+build2d-f64 = ["double-dim2", "serde-serialize", "simd-stable"]
+build3d-f64 = ["double-dim3", "serde-serialize", "simd-stable"]
 dim2 = []
 dim3 = []
+single = ["godot/api-custom"]
+double = ["godot/double-precision", "godot/api-custom"]
 single = ["godot/api-custom"]
 double = ["godot/double-precision", "godot/api-custom"]
 enhanced-determinism = ["rapier2d/enhanced-determinism", "rapier2d-f64/enhanced-determinism", "rapier3d/enhanced-determinism", "rapier3d-f64/enhanced-determinism"]
 serde-serialize = ["serde", "hashbrown/serde", "bincode", "serde_json", "godot/serde", "rapier2d/serde-serialize", "rapier2d-f64/serde-serialize", "rapier3d/serde-serialize", "rapier3d-f64/serde-serialize" ]
 # Note: SIMD disabled for f64 builds due to upstream rapier bugs with f64 SIMD implementation
+# simd-stable = ["rapier2d/simd-stable", "rapier2d-f64/simd-stable", "rapier3d/simd-stable", "rapier3d-f64/simd-stable"]
 # simd-stable = ["rapier2d/simd-stable", "rapier2d-f64/simd-stable", "rapier3d/simd-stable", "rapier3d-f64/simd-stable"]
 # simd-nightly = ["rapier2d/simd-nightly", "rapier2d-f64/simd-nightly", "rapier3d/simd-nightly", "rapier3d-f64/simd-nightly"]
 simd-stable = ["rapier2d/simd-stable", "rapier3d/simd-stable"]
@@ -43,9 +51,18 @@ hashbrown = { version = "0.14" }
 #godot = { git = "https://github.com/Ughuuu/gdext", branch = "disable-layout-tests", features=["register-docs"] }
 godot = { version = "0.4.0", features=["register-docs"] }
 
+#godot = { git = "https://github.com/Ughuuu/gdext", branch = "disable-layout-tests", features=["register-docs"] }
+godot = { version = "0.4.0", features=["register-docs"] }
+
 rapier2d = { path = "E:/Repos/ughuuu_forks/rapier/crates/rapier2d", optional = true }
 salva2d = { path = "E:/Repos/ughuuu_forks/salva/build/salva2d", features = ["rapier"], optional = true }
 
+# rapier2d = { git = "https://github.com/ughuuu/rapier", branch = "custom-changes-v29", optional = true }
+# rapier2d = { version = "*", optional = true }
+rapier2d-f64 = { git = "https://github.com/ughuuu/rapier", branch = "custom-changes-v29", optional = true}
+rapier3d = { git = "https://github.com/ughuuu/rapier", branch = "custom-changes-v29", optional = true}
+rapier3d-f64 = { git = "https://github.com/ughuuu/rapier", branch = "custom-changes-v29", optional = true}
+# salva2d = { git = "https://github.com/ughuuu/salva", branch = "custom-changes", features = ["rapier"], optional = true }
 # rapier2d = { git = "https://github.com/ughuuu/rapier", branch = "custom-changes-v29", optional = true }
 # rapier2d = { version = "*", optional = true }
 rapier2d-f64 = { git = "https://github.com/ughuuu/rapier", branch = "custom-changes-v29", optional = true}
@@ -61,7 +78,18 @@ serde_json = { version = "1.0", optional = true }
 
 
 
+
+
+
 [patch.crates-io]
+parry2d = { path = "E:/Repos/ughuuu_forks/parry/crates/parry2d" }
+
+
+
+# rapier2d = {git = "https://github.com/ughuuu/rapier", branch = "custom-changes-v29"}
+rapier2d-f64 = {git = "https://github.com/ughuuu/rapier", branch = "custom-changes-v29"}
+# parry2d = {git = "https://github.com/ughuuu/parry", branch = "custom-changes-v24"}
+parry2d-f64 = {git = "https://github.com/ughuuu/parry", branch = "custom-changes-v24"}
 parry2d = { path = "E:/Repos/ughuuu_forks/parry/crates/parry2d" }
 
 
@@ -86,6 +114,13 @@ codegen-units = 1
 opt-level = 0
 
 [package.metadata.docs.rs]
+license-file = "../LICENSE"
+
+# [patch."https://github.com/ughuuu/rapier"]
+# rapier2d = { path = "E:/Repos/ughuuu_forks/rapier/crates/rapier2d" }
+
+# [patch."https://github.com/ughuuu/parry"]
+# parry2d = { path = "E:/Repos/ughuuu_forks/parry/crates/parry2d" }
 license-file = "../LICENSE"
 
 # [patch."https://github.com/ughuuu/rapier"]
