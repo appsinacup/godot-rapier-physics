@@ -24,13 +24,15 @@ runs:
     - name: Rust Add target
       shell: sh
       run: |
-        rustup toolchain install nightly
-        rustup component add rust-src --toolchain nightly
-        rustup target add ${{ inputs.arch }} --toolchain nightly
+        TOOLCHAIN=$(grep -E '^channel' rust-toolchain.toml | sed -E 's/channel = "(.*)"/\1/')
+        rustup toolchain install "$TOOLCHAIN"
+        rustup component add rust-src --toolchain "$TOOLCHAIN"
+        rustup target add ${{ inputs.arch }} --toolchain "$TOOLCHAIN"
     - name: Build
       shell: sh
       run: |
-        cargo +nightly build --target=${{ inputs.arch }} --release --features="${{ inputs.features }},api-custom" ${{ inputs.extra_flags }} --no-default-features
+        TOOLCHAIN=$(grep -E '^channel' rust-toolchain.toml | sed -E 's/channel = "(.*)"/\1/')
+        cargo +"$TOOLCHAIN" build --target=${{ inputs.arch }} --release --features="${{ inputs.features }},api-custom" ${{ inputs.extra_flags }} --no-default-features
     - name: Copy to release
       shell: sh
       run: |
@@ -43,8 +45,9 @@ runs:
       if: ${{ inputs.arch == 'x86_64-apple-darwin'}}
       run: |
         mkdir -p target/release
-        rustup target add aarch64-apple-darwin
-        cargo +nightly build --target=aarch64-apple-darwin --release --features="${{ inputs.features }},api-custom" ${{ inputs.extra_flags }} --no-default-features
+        TOOLCHAIN=$(grep -E '^channel' rust-toolchain.toml | sed -E 's/channel = "(.*)"/\1/')
+        rustup target add aarch64-apple-darwin --toolchain "$TOOLCHAIN"
+        cargo +"$TOOLCHAIN" build --target=aarch64-apple-darwin --release --features="${{ inputs.features }},api-custom" ${{ inputs.extra_flags }} --no-default-features
         lipo -create -output target/release/libgodot_rapier.dylib target/aarch64-apple-darwin/release/libgodot_rapier.dylib target/x86_64-apple-darwin/release/libgodot_rapier.dylib
     - name: Move Static Libs macOS
       shell: sh
