@@ -213,9 +213,10 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
             && let Some(space) = physics_data
                 .spaces
                 .get(&body.get_base().get_space(&physics_data.ids))
-            && let Some(state) = space.get_direct_state().clone() {
-                return state;
-            }
+            && let Some(state) = space.get_direct_state().clone()
+        {
+            return state;
+        }
         // Error case, should never happen
         godot_error!(
             "RapierDirectBodyState3D: could not get space state for body {:?}",
