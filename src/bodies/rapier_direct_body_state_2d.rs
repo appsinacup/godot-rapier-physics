@@ -204,7 +204,7 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
         self.implementation.integrate_forces();
     }
 
-    fn get_space_state(&mut self) -> Option<Gd<PhysicsDirectSpaceState2D>> {
+    fn get_space_state(&mut self) -> Gd<PhysicsDirectSpaceState2D> {
         let physics_data = physics_data();
         if let Some(body) = physics_data
             .collision_objects
@@ -213,9 +213,11 @@ impl IPhysicsDirectBodyState2DExtension for RapierDirectBodyState2D {
                 .spaces
                 .get(&body.get_base().get_space(&physics_data.ids))
         {
-            return space.get_direct_state().clone();
+            if let Some(state) = space.get_direct_state().clone() {
+                return state;
+            }
         }
-        None
+        Gd::default()
     }
 
     fn set_collision_layer(&mut self, layer: u32) {
