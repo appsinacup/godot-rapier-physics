@@ -52,10 +52,6 @@ Save Physics State|Load Physics State
 **Locally Deterministic**|***Optionally Cross Platform Deterministic**
 Exact simulation every time (on same platform)|Exact simulation on multiple platforms
 
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=appsinacup/godot-rapier-physics&type=date&legend=top-left)](https://www.star-history.com/#appsinacup/godot-rapier-physics&type=date&legend=top-left)
-
 # Installation
 
 - Automatic (Recommended): Download the plugin from the official [Godot Asset Store](https://godotengine.org/asset-library/asset/2267) using the `AssetLib` tab in Godot:
@@ -69,6 +65,10 @@ Exact simulation every time (on same platform)|Exact simulation on multiple plat
 - Manual: Download the [latest github release](https://github.com/appsinacup/godot-rapier-physics/releases/latest) and move only the `addons` folder into your project `addons` folder.
 
 After installing, go to `Advanced Settings` -> `Physics` -> `2D` or `3D`. Change `Physics Engine` to `Rapier2D` or `Rapier3D`.
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=appsinacup/godot-rapier-physics&type=date&legend=top-left)](https://www.star-history.com/#appsinacup/godot-rapier-physics&type=date&legend=top-left)
 
 # Implementation Progress
 
