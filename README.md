@@ -51,6 +51,11 @@ No Ghost Collisions|Improved Stacking
 Save Physics State|Load Physics State
 **Locally Deterministic**|***Optionally Cross Platform Deterministic**
 Exact simulation every time (on same platform)|Exact simulation on multiple platforms
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=appsinacup/godot-rapier-physics&type=date&legend=top-left)](https://www.star-history.com/#appsinacup/godot-rapier-physics&type=date&legend=top-left)
+
 # Installation
 
 - Automatic (Recommended): Download the plugin from the official [Godot Asset Store](https://godotengine.org/asset-library/asset/2267) using the `AssetLib` tab in Godot:
