@@ -66,10 +66,6 @@ Exact simulation every time (on same platform)|Exact simulation on multiple plat
 
 After installing, go to `Advanced Settings` -> `Physics` -> `2D` or `3D`. Change `Physics Engine` to `Rapier2D` or `Rapier3D`.
 
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=appsinacup/godot-rapier-physics&type=date&legend=top-left)](https://www.star-history.com/#appsinacup/godot-rapier-physics&type=date&legend=top-left)
-
 # Implementation Progress
 
 The 2D part is pretty stable, though there are some issues, the 3D part is still missing some things. See the [Implementation Progress](https://godot.rapier.rs/docs/progress/) to get an idea of what status it is in and what features it has.
@@ -84,3 +80,7 @@ The 2D part is pretty stable, though there are some issues, the 3D part is still
 In order to build it as a module, go to:
 - [Godot Rapier Physics Module 2D](https://github.com/appsinacup/godot-rapier-physics-module-2d)
 - [Godot Rapier Physics Module 3D](https://github.com/appsinacup/godot-rapier-physics-module-3d)
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=appsinacup/godot-rapier-physics&type=date&legend=top-left)](https://www.star-history.com/#appsinacup/godot-rapier-physics&type=date&legend=top-left)
