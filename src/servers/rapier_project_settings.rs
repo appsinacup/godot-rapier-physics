@@ -221,12 +221,7 @@ impl RapierProjectSettings {
             "0,10,0.00001,or_greater",
             false,
         );
-        register_setting_ranged(
-            LENGTH_UNIT,
-            Variant::from(LENGTH_UNIT_VALUE),
-            "",
-            false,
-        );
+        register_setting_ranged(LENGTH_UNIT, Variant::from(LENGTH_UNIT_VALUE), "", false);
         static SIGNAL_CONNECTED: AtomicBool = AtomicBool::new(false);
         if !SIGNAL_CONNECTED.swap(true, Ordering::AcqRel) {
             let project_settings = ProjectSettings::singleton();
