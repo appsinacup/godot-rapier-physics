@@ -49,6 +49,8 @@ const GHOST_COLLISION_DISTANCE_DEFAULT: real = 0.001;
 #[cfg(feature = "dim2")]
 const LENGTH_UNIT_VALUE: real = 100.0;
 #[cfg(feature = "dim2")]
+const LENGTH_UNIT_HINT: &str = "1,100,1,suffix:length_unit,or_greater";
+#[cfg(feature = "dim2")]
 const FLUID_PARTICLE_VALUE: real = 20.0;
 #[cfg(feature = "dim3")]
 const FLUID_PARTICLE_VALUE: real = 0.5;
@@ -56,6 +58,8 @@ const FLUID_PARTICLE_VALUE: real = 0.5;
 const LENGTH_UNIT: &str = "physics/rapier/solver/length_unit_3d";
 #[cfg(feature = "dim3")]
 const LENGTH_UNIT_VALUE: real = 1.0;
+#[cfg(feature = "dim3")]
+const LENGTH_UNIT_HINT: &str = "0,1,0.0001,suffix:length_unit,or_greater";
 pub fn register_setting(
     p_name: &str,
     p_value: Variant,
@@ -220,7 +224,7 @@ impl RapierProjectSettings {
         register_setting_ranged(
             LENGTH_UNIT,
             Variant::from(LENGTH_UNIT_VALUE),
-            "1,100,1,suffix:length_unit,or_greater",
+            "",
             false,
         );
         static SIGNAL_CONNECTED: AtomicBool = AtomicBool::new(false);
