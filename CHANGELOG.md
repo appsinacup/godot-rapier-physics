@@ -1,8 +1,9 @@
 # Changelog
 
-## v0.8.25 - 
+## v0.8.25 - Feb 13
 
 * Update to latest gdext.
+* Update to Godot 4.6
 
 ## v0.8.24 - Nov 24
 
