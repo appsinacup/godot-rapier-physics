@@ -578,7 +578,7 @@ impl PhysicsEngine {
                 .get_mut(body_handle)
         {
             let mut local_point = Point { coords: point };
-            local_point += body.center_of_mass().coords;
+            local_point += body.position().translation.vector;
             body.apply_impulse_at_point(impulse, local_point, true);
         }
         self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
