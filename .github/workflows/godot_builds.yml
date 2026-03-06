@@ -29,10 +29,17 @@ jobs:
             !bin${{ matrix.dimensions }}/test/*
             !bin${{ matrix.dimensions }}/tests/*
             !bin${{ matrix.dimensions }}/base/*
-            !bin${{ matrix.dimensions }}/export_presets.cfg
-            !bin${{ matrix.dimensions }}/project.godot
-            !bin${{ matrix.dimensions }}/test.gd
-            !bin${{ matrix.dimensions }}/start.gd
-            !bin${{ matrix.dimensions }}/start.tscn
-            !bin${{ matrix.dimensions }}/test.tscn
+            !bin${{ matrix.dimensions }}/bin2d/export_presets.cfg
+            !bin${{ matrix.dimensions }}/bin2d/follower_click.gd
+            !bin${{ matrix.dimensions }}/bin2d/follower_click.gd.uid
+            !bin${{ matrix.dimensions }}/bin2d/marker_2d.gd
+            !bin${{ matrix.dimensions }}/bin2d/marker_2d.gd.uid
+            !bin${{ matrix.dimensions }}/bin2d/project.godot
+            !bin${{ matrix.dimensions }}/bin2d/start.gd
+            !bin${{ matrix.dimensions }}/bin2d/start.gd.uid
+            !bin${{ matrix.dimensions }}/bin2d/start.tscn
+            !bin${{ matrix.dimensions }}/bin2d/test_fluid.tscn
+            !bin${{ matrix.dimensions }}/bin2d/test.gd
+            !bin${{ matrix.dimensions }}/bin2d/test.gd.uid
+            !bin${{ matrix.dimensions }}/bin2d/test.tscn
           if-no-files-found: error

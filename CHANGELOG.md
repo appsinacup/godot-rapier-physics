@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.8.26 - Mar 13
+
+* Update to latest godot-rust version by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/474
+* use pinned nightly version. by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/477
+* Fix skew changing after collision by @LeaoLuciano in https://github.com/appsinacup/godot-rapier-physics/pull/473
+* Fix length unit precision by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/483
+* Fix godot rust get space state error by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/482
+* Fix center of mass not being used correctly for forces applied at points by @Ardot66 in https://github.com/appsinacup/godot-rapier-physics/pull/487
+
 ## v0.8.25 - Feb 13
 
 * Update to latest gdext.
