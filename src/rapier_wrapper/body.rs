@@ -253,6 +253,7 @@ impl PhysicsEngine {
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
         mat: &Material,
+        base_only: bool,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(body) = physics_world
@@ -266,8 +267,10 @@ impl PhysicsEngine {
                     .collider_set
                     .get_mut(*collider)
                 {
-                    col.set_friction(mat.friction);
-                    col.set_restitution(mat.restitution);
+                    if !base_only {
+                        col.set_friction(mat.friction);
+                        col.set_restitution(mat.restitution);
+                    }
                     if let Some(coupling_boundary_entry) =
                         physics_world.fluids_pipeline.coupling.entries.get(collider)
                         && let Some(coupling_boundary) = physics_world
@@ -282,7 +285,9 @@ impl PhysicsEngine {
                                 filter: mat.collision_mask.into(),
                             };
                     }
-                    col.set_contact_skin(mat.contact_skin);
+                    if !base_only {
+                        col.set_contact_skin(mat.contact_skin);
+                    }
                     col.set_collision_groups(InteractionGroups {
                         memberships: Group::from(mat.collision_layer),
                         filter: Group::from(mat.collision_mask),
@@ -290,7 +295,9 @@ impl PhysicsEngine {
                     });
                 }
             }
-            body.set_soft_ccd_prediction(mat.soft_ccd);
+            if !base_only {
+                body.set_soft_ccd_prediction(mat.soft_ccd);
+            }
             body.set_dominance_group(mat.dominance);
             body.wake_up(true);
         }

@@ -1358,6 +1358,7 @@ impl RapierBody {
                     self.base.get_space_id(),
                     self.base.get_body_handle(),
                     &mat,
+                    false,
                 );
             }
             BodyParameter::MASS => {
@@ -1569,7 +1570,7 @@ impl RapierBody {
                 let body_handle = self.base.get_body_handle();
                 let space_handle = self.base.get_space_id();
                 if self.base.is_valid() {
-                    physics_engine.body_update_material(space_handle, body_handle, &mat);
+                    physics_engine.body_update_material(space_handle, body_handle, &mat, false);
                 }
             }
             RapierBodyParam::Dominance => {
@@ -1582,7 +1583,7 @@ impl RapierBody {
                 let body_handle = self.base.get_body_handle();
                 let space_handle = self.base.get_space_id();
                 if self.base.is_valid() {
-                    physics_engine.body_update_material(space_handle, body_handle, &mat);
+                    physics_engine.body_update_material(space_handle, body_handle, &mat, false);
                 }
             }
             RapierBodyParam::SoftCcd => {
@@ -1596,7 +1597,7 @@ impl RapierBody {
                 let body_handle = self.base.get_body_handle();
                 let space_handle = self.base.get_space_id();
                 if self.base.is_valid() {
-                    physics_engine.body_update_material(space_handle, body_handle, &mat);
+                    physics_engine.body_update_material(space_handle, body_handle, &mat, false);
                 }
             }
             RapierBodyParam::Massless => {
@@ -2145,6 +2146,7 @@ impl RapierBody {
                     self.base.get_space_id(),
                     self.base.get_body_handle(),
                     &self.init_material(),
+                    false,
                 );
             }
         }
