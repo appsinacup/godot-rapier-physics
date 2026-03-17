@@ -500,6 +500,7 @@ impl RapierCollisionObjectBase {
                 self.state.space_id,
                 self.state.body_handle,
                 &material,
+                true,
             );
         }
     }
@@ -516,6 +517,7 @@ impl RapierCollisionObjectBase {
                 self.state.space_id,
                 self.state.body_handle,
                 &material,
+                true,
             );
         }
     }
@@ -532,6 +534,7 @@ impl RapierCollisionObjectBase {
                 self.state.space_id,
                 self.state.body_handle,
                 &material,
+                true,
             );
         }
     }

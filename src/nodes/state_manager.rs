@@ -579,8 +579,7 @@ impl StateManager {
                     let mut self_state: Option<ObjectExportState> = None;
                     let mut collated_shape_owners: HashMap<String, Vec<ObjectExportState>> =
                         HashMap::new();
-                    if let Some(mut co2d) =
-                        self.base().try_get_node_as::<CollisionObject2D>(&nodepath)
+                    if let Some(co2d) = self.base().try_get_node_as::<CollisionObject2D>(&nodepath)
                     {
                         let this_rid = co2d.get_rid();
                         self_state = self.get_physics_node_state(this_rid);
@@ -603,7 +602,7 @@ impl StateManager {
                         }
                     }
                     // Maybe could be tidier as a macro, to avoid duplication between 2D and 3D.
-                    else if let Some(mut co3d) =
+                    else if let Some(co3d) =
                         self.base().try_get_node_as::<CollisionObject3D>(&nodepath)
                     {
                         let this_rid = co3d.get_rid();

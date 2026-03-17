@@ -4,6 +4,7 @@ use godot::prelude::*;
 use super::rapier_collision_object::IRapierCollisionObject;
 use super::rapier_direct_body_state_impl::RapierDirectBodyStateImpl;
 use crate::servers::rapier_physics_singleton::physics_data;
+use crate::spaces::RapierDirectSpaceState;
 use crate::spaces::rapier_space::RapierSpace;
 use crate::types::*;
 #[derive(GodotClass)]
@@ -212,7 +213,7 @@ impl IPhysicsDirectBodyState3DExtension for RapierDirectBodyState3D {
         self.implementation.integrate_forces();
     }
 
-    fn get_space_state(&mut self) -> Option<Gd<PhysicsDirectSpaceState3D>> {
+    fn get_space_state(&mut self) -> Gd<PhysicsDirectSpaceState3D> {
         let physics_data = physics_data();
         if let Some(body) = physics_data
             .collision_objects
@@ -220,10 +221,16 @@ impl IPhysicsDirectBodyState3DExtension for RapierDirectBodyState3D {
             && let Some(space) = physics_data
                 .spaces
                 .get(&body.get_base().get_space(&physics_data.ids))
+            && let Some(state) = space.get_direct_state().clone()
         {
-            return space.get_direct_state().clone();
+            return state;
         }
-        None
+        // Error case, should never happen
+        godot_error!(
+            "RapierDirectBodyState3D: could not get space state for body {:?}",
+            self.implementation.get_body()
+        );
+        RapierDirectSpaceState::new_alloc().upcast()
     }
 
     fn set_collision_layer(&mut self, layer: u32) {

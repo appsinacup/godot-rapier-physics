@@ -5,13 +5,13 @@
 <p align="center">
         <img src="https://github.com/appsinacup/godot-rapier-physics/actions/workflows/runner.yml/badge.svg?branch=main"
             alt="Godot Rapier Build"></a>
-        <img src="https://img.shields.io/badge/Godot-4.5-%23478cbf?logo=godot-engine&logoColor=white" />
+        <img src="https://img.shields.io/badge/Godot-4.6-%23478cbf?logo=godot-engine&logoColor=white" />
 </p>
 
 
 <p align = "center">
     <strong>
-        <a href="https://godot.rapier.rs">Documentation</a> | <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/CHANGELOG.md">Changelog</a> | <a href="https://discord.gg/56dMud8HYn">Discord</a> | <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/CONTRIBUTING.md">Contributing</a> | <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/ARCHITECTURE.md">Architecture</a>
+        <a href="https://godot.rapier.rs">Documentation</a> | <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/CHANGELOG.md">Changelog</a> | <a href="https://discord.gg/v649emcpAu">Discord</a> | <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/CONTRIBUTING.md">Contributing</a> | <a href="https://github.com/appsinacup/godot-rapier-physics/blob/main/ARCHITECTURE.md">Architecture</a>
     </strong>
 </p>
 
@@ -51,6 +51,7 @@ No Ghost Collisions|Improved Stacking
 Save Physics State|Load Physics State
 **Locally Deterministic**|***Optionally Cross Platform Deterministic**
 Exact simulation every time (on same platform)|Exact simulation on multiple platforms
+
 # Installation
 
 - Automatic (Recommended): Download the plugin from the official [Godot Asset Store](https://godotengine.org/asset-library/asset/2267) using the `AssetLib` tab in Godot:
@@ -79,3 +80,7 @@ The 2D part is pretty stable, though there are some issues, the 3D part is still
 In order to build it as a module, go to:
 - [Godot Rapier Physics Module 2D](https://github.com/appsinacup/godot-rapier-physics-module-2d)
 - [Godot Rapier Physics Module 3D](https://github.com/appsinacup/godot-rapier-physics-module-3d)
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=appsinacup/godot-rapier-physics&type=date&legend=top-left)](https://www.star-history.com/#appsinacup/godot-rapier-physics&type=date&legend=top-left)
