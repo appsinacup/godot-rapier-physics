@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.8.27 - Mar 19
+
+- Fix crash on startup by upgrading to latest godot-rust.
+
 ## v0.8.26 - Mar 13
 
 * Update to latest godot-rust version by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/474

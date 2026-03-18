@@ -1,6 +1,6 @@
 [package]
 name = "godot-rapier"
-version = "0.8.26"
+version = "0.8.27"
 edition = "2024"
 license = "MIT"
 rust-version = "1.91"
@@ -43,10 +43,8 @@ hashbrown = { version = "0.16", features=["nightly", "inline-more", "default-has
 
 num_cpus = { version = "1", optional = true }
 
-# has blocklist max_align_t for web builds
-# godot = { git = "https://github.com/yarwin/gdext", branch = "feature/remove-mutex-from-gdcellinner", features=["register-docs", "safeguards-release-disengaged"] }
-# godot = { git = "https://github.com/yarwin/gdext", branch = "custom-rapier-branch", features=["register-docs", "safeguards-release-disengaged"] }
-godot = { git = "https://github.com/godot-rust/gdext", branch = "master", features=["register-docs", "safeguards-release-disengaged"] }
+# Disabled for now "safeguards-release-disengaged"] }
+godot = { version = "0.4.5", features=["register-docs"] }
 
 rapier2d = { git = "https://github.com/ughuuu/rapier", branch = "master", optional = true }
 rapier2d-f64 = { git = "https://github.com/ughuuu/rapier", branch = "master", optional = true}

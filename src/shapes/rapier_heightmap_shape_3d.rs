@@ -112,7 +112,7 @@ impl IRapierShape for RapierHeightMapShape3D {
             packed_heights.push(*h)
         }
         let heights_variant = packed_heights.to_variant();
-        let _ = dictionary.insert("heights", &heights_variant);
+        let _ = dictionary.insert("heights", heights_variant);
         dictionary.to_variant()
     }
 }
