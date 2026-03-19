@@ -22,7 +22,7 @@ jobs:
       - name: Setup Godot
         uses: appsinacup/setup-godot-action@main
         with:
-          version: '4.6-stable'
+          version: '4.6.1-stable'
       - name: Clippy 2D
         shell: sh
         run: |
@@ -37,7 +37,7 @@ jobs:
       - name: Setup Godot
         uses: appsinacup/setup-godot-action@main
         with:
-          version: '4.6-stable'
+          version: '4.6.1-stable'
       - name: Clippy 3D
         shell: sh
         run: |
