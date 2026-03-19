@@ -19,7 +19,7 @@ jobs:
       - name: Setup Godot
         uses: appsinacup/setup-godot-action@main
         with:
-          version: '4.6.1-stable'
+          version: '4.5-stable'
       - name: "Install dependencies"
         shell: sh
         run: |
