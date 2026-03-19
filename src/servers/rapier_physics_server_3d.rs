@@ -1,6 +1,7 @@
 use godot::classes::IPhysicsServer3DExtension;
 use godot::classes::PhysicsServer3DExtension;
 use godot::classes::PhysicsServer3DRenderingServerHandler;
+use godot::classes::native::PhysicsServer3DExtensionMotionResult;
 use godot::classes::physics_server_3d;
 use godot::classes::physics_server_3d::*;
 use godot::classes::{self};
@@ -518,6 +519,31 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
 
     fn body_get_direct_state(&mut self, body: Rid) -> Option<Gd<PhysicsDirectBodyState>> {
         self.implementation.body_get_direct_state(body)
+    }
+
+    unsafe fn body_test_motion_rawptr(
+        &self,
+        body: Rid,
+        from: Transform,
+        motion: Vector,
+        margin: f32,
+        max_collisions: i32,
+        collide_separation_ray: bool,
+        recovery_as_collision: bool,
+        result: *mut PhysicsServer3DExtensionMotionResult,
+    ) -> bool {
+        unsafe {
+            self.implementation.body_test_motion(
+                body,
+                from,
+                motion,
+                margin,
+                max_collisions,
+                collide_separation_ray,
+                recovery_as_collision,
+                result,
+            )
+        }
     }
 
     fn soft_body_create(&mut self) -> Rid {

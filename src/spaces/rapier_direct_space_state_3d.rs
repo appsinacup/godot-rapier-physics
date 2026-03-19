@@ -1,4 +1,3 @@
-use godot::classes::native::*;
 use godot::classes::*;
 use godot::prelude::*;
 
@@ -30,7 +29,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         }
     }
 
-    unsafe fn intersect_ray(
+    unsafe fn intersect_ray_rawptr(
         &mut self,
         from: Vector,
         to: Vector,
@@ -57,7 +56,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         }
     }
 
-    unsafe fn intersect_point(
+    unsafe fn intersect_point_rawptr(
         &mut self,
         position: Vector,
         collision_mask: u32,
@@ -81,7 +80,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         }
     }
 
-    unsafe fn intersect_shape(
+    unsafe fn intersect_shape_rawptr(
         &mut self,
         shape_rid: Rid,
         transform: Transform,
@@ -110,7 +109,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         }
     }
 
-    unsafe fn cast_motion(
+    unsafe fn cast_motion_rawptr(
         &mut self,
         shape_rid: Rid,
         transform: Transform,
@@ -140,7 +139,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         }
     }
 
-    unsafe fn collide_shape(
+    unsafe fn collide_shape_rawptr(
         &mut self,
         shape_rid: Rid,
         transform: Transform,
@@ -171,7 +170,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         }
     }
 
-    unsafe fn rest_info(
+    unsafe fn rest_info_rawptr(
         &mut self,
         shape_rid: Rid,
         transform: Transform,
