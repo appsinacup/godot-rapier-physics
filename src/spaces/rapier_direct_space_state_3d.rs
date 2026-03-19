@@ -1,5 +1,5 @@
+use godot::classes::native::*;
 use godot::classes::*;
-use godot::meta::RawPtr;
 use godot::prelude::*;
 
 use super::rapier_direct_space_state_impl::RapierDirectSpaceStateImpl;
@@ -30,7 +30,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         }
     }
 
-    unsafe fn intersect_ray_rawptr(
+    unsafe fn intersect_ray(
         &mut self,
         from: Vector,
         to: Vector,
@@ -40,7 +40,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         hit_from_inside: bool,
         _hit_back_faces: bool,
         _pick_ray: bool,
-        result: RawPtr<*mut PhysicsServerExtensionRayResult>,
+        result: *mut PhysicsServerExtensionRayResult,
     ) -> bool {
         let physics_data = physics_data();
         unsafe {
@@ -57,13 +57,13 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         }
     }
 
-    unsafe fn intersect_point_rawptr(
+    unsafe fn intersect_point(
         &mut self,
         position: Vector,
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
-        results: RawPtr<*mut PhysicsServerExtensionShapeResult>,
+        results: *mut PhysicsServerExtensionShapeResult,
         max_results: i32,
     ) -> i32 {
         let physics_data = physics_data();
@@ -81,7 +81,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         }
     }
 
-    unsafe fn intersect_shape_rawptr(
+    unsafe fn intersect_shape(
         &mut self,
         shape_rid: Rid,
         transform: Transform,
@@ -90,7 +90,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
-        results: RawPtr<*mut PhysicsServerExtensionShapeResult>,
+        results: *mut PhysicsServerExtensionShapeResult,
         max_results: i32,
     ) -> i32 {
         let physics_data = physics_data();
@@ -110,7 +110,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         }
     }
 
-    unsafe fn cast_motion_rawptr(
+    unsafe fn cast_motion(
         &mut self,
         shape_rid: Rid,
         transform: Transform,
@@ -119,9 +119,9 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
-        closest_safe: RawPtr<*mut f64>,
-        closest_unsafe: RawPtr<*mut f64>,
-        _info: RawPtr<*mut PhysicsServerExtensionShapeRestInfo>,
+        closest_safe: *mut f64,
+        closest_unsafe: *mut f64,
+        _info: *mut PhysicsServerExtensionShapeRestInfo,
     ) -> bool {
         let physics_data = physics_data();
         unsafe {
@@ -140,7 +140,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         }
     }
 
-    unsafe fn collide_shape_rawptr(
+    unsafe fn collide_shape(
         &mut self,
         shape_rid: Rid,
         transform: Transform,
@@ -149,9 +149,9 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
-        results: RawPtr<*mut std::ffi::c_void>,
+        results: *mut std::ffi::c_void,
         max_results: i32,
-        result_count: RawPtr<*mut i32>,
+        result_count: *mut i32,
     ) -> bool {
         let physics_data = physics_data();
         unsafe {
@@ -171,7 +171,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         }
     }
 
-    unsafe fn rest_info_rawptr(
+    unsafe fn rest_info(
         &mut self,
         shape_rid: Rid,
         transform: Transform,
@@ -180,7 +180,7 @@ impl IPhysicsDirectSpaceState3DExtension for RapierDirectSpaceState3D {
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
-        rest_info: RawPtr<*mut PhysicsServerExtensionShapeRestInfo>,
+        rest_info: *mut PhysicsServerExtensionShapeRestInfo,
     ) -> bool {
         let physics_data = physics_data();
         unsafe {

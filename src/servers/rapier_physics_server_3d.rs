@@ -4,7 +4,6 @@ use godot::classes::PhysicsServer3DRenderingServerHandler;
 use godot::classes::physics_server_3d;
 use godot::classes::physics_server_3d::*;
 use godot::classes::{self};
-use godot::meta::RawPtr;
 use godot::prelude::*;
 
 use super::rapier_physics_server_impl::RapierPhysicsServerImpl;
@@ -664,31 +663,6 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         _: godot::prelude::Rid,
         _: godot::prelude::Vector3,
     ) {
-    }
-
-    unsafe fn body_test_motion_rawptr(
-        &self,
-        body: Rid,
-        from: Transform3D,
-        motion: Vector3,
-        margin: f32,
-        max_collisions: i32,
-        collide_separation_ray: bool,
-        recovery_as_collision: bool,
-        result: RawPtr<*mut PhysicsServerExtensionMotionResult>,
-    ) -> bool {
-        unsafe {
-            self.implementation.body_test_motion(
-                body,
-                from,
-                motion,
-                margin,
-                max_collisions,
-                collide_separation_ray,
-                recovery_as_collision,
-                result,
-            )
-        }
     }
 
     fn joint_create(&mut self) -> Rid {

@@ -2,9 +2,9 @@ use std::ffi::c_void;
 
 use godot::classes::IPhysicsServer2DExtension;
 use godot::classes::PhysicsServer2DExtension;
+use godot::classes::native::PhysicsServer2DExtensionMotionResult;
 use godot::classes::physics_server_2d::*;
 use godot::classes::{self};
-use godot::meta::RawPtr;
 use godot::prelude::*;
 
 use super::rapier_physics_server_impl::RapierPhysicsServerImpl;
@@ -98,9 +98,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         shape_b: Rid,
         xform_b: Transform,
         motion_b: Vector,
-        results: RawPtr<*mut c_void>,
+        results: *mut c_void,
         result_max: i32,
-        result_count: RawPtr<*mut i32>,
+        result_count: *mut i32,
     ) -> bool {
         unsafe {
             self.implementation.shape_collide(
@@ -542,9 +542,9 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         shape: Rid,
         shape_xform: Transform,
         motion: Vector,
-        results: RawPtr<*mut c_void>,
+        results: *mut c_void,
         result_max: i32,
-        result_count: RawPtr<*mut i32>,
+        result_count: *mut i32,
     ) -> bool {
         unsafe {
             self.implementation.body_collide_shape(
@@ -576,7 +576,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         margin: f32,
         collide_separation_ray: bool,
         recovery_as_collision: bool,
-        result: RawPtr<*mut PhysicsServerExtensionMotionResult>,
+        result: *mut PhysicsServer2DExtensionMotionResult,
     ) -> bool {
         unsafe {
             self.implementation.body_test_motion(
