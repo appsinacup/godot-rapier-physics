@@ -66,6 +66,12 @@ Exact simulation every time (on same platform)|Exact simulation on multiple plat
 
 After installing, go to `Advanced Settings` -> `Physics` -> `2D` or `3D`. Change `Physics Engine` to `Rapier2D` or `Rapier3D`.
 
+# Youtube Videos
+
+GamesFromScratch:
+
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/rJ91iNMtF1Q/0.jpg)](https://www.youtube.com/watch?v=rJ91iNMtF1Q)
+
 # Implementation Progress
 
 The 2D part is pretty stable, though there are some issues, the 3D part is still missing some things. See the [Implementation Progress](https://godot.rapier.rs/docs/progress/) to get an idea of what status it is in and what features it has.
