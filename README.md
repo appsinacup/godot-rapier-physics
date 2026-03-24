@@ -72,6 +72,10 @@ GamesFromScratch:
 
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/rJ91iNMtF1Q/0.jpg)](https://www.youtube.com/watch?v=rJ91iNMtF1Q)
 
+# Showcase
+
+Got a game or app you built with this addon? We showcase them on [godot.rapier.rs/showcase](https://godot.rapier.rs/showcase). Submit your entry [here](https://github.com/appsinacup/godot-rapier-physics-docs/issues/new).
+
 # Implementation Progress
 
 The 2D part is pretty stable, though there are some issues, the 3D part is still missing some things. See the [Implementation Progress](https://godot.rapier.rs/docs/progress/) to get an idea of what status it is in and what features it has.
