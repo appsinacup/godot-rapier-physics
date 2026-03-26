@@ -1,5 +1,7 @@
-use hashbrown::HashMap;
-use hashbrown::HashSet;
+use std::cmp::Ordering;
+use std::collections::BTreeMap;
+use std::collections::BTreeSet;
+
 use rapier::prelude::ColliderHandle;
 
 use crate::bodies::rapier_collision_object_base::CollisionObjectType;
@@ -7,29 +9,7 @@ use crate::rapier_wrapper::handle::WorldHandle;
 use crate::rapier_wrapper::prelude::PhysicsEngine;
 use crate::rapier_wrapper::prelude::WorldSettings;
 use crate::servers::rapier_physics_singleton::RapierId;
-mod serde_hashset_as_vec {
-    use hashbrown::HashSet;
-    use serde::Deserialize;
-    use serde::Deserializer;
-    use serde::Serialize;
-    use serde::Serializer;
-    pub fn serialize<S, T>(set: &HashSet<T>, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-        T: serde::Serialize + Eq + std::hash::Hash,
-    {
-        let vec: Vec<&T> = set.iter().collect();
-        vec.serialize(serializer)
-    }
-    pub fn deserialize<'de, D, T>(deserializer: D) -> Result<HashSet<T>, D::Error>
-    where
-        D: Deserializer<'de>,
-        T: serde::Deserialize<'de> + Eq + std::hash::Hash,
-    {
-        let vec = Vec::<T>::deserialize(deserializer)?;
-        Ok(vec.into_iter().collect())
-    }
-}
+
 impl RemovedColliderInfo {
     pub fn new(
         rb_id: RapierId,
@@ -56,6 +36,25 @@ pub struct RemovedColliderInfo {
     pub shape_index: usize,
     pub collision_object_type: CollisionObjectType,
 }
+// A wrapper around CollisionHandle which allows ordering; this lets it function as a serializable key for BTreeMap.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
+struct OrderedColliderHandle(ColliderHandle);
+impl Ord for OrderedColliderHandle {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.0.into_raw_parts().cmp(&other.0.into_raw_parts())
+    }
+}
+
+impl PartialOrd for OrderedColliderHandle {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 #[cfg_attr(
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
@@ -63,86 +62,15 @@ pub struct RemovedColliderInfo {
 #[serde(default)]
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct RapierSpaceState {
-    #[cfg_attr(
-        feature = "serde-serialize",
-        serde(
-            serialize_with = "rapier::utils::serde::serialize_to_vec_tuple",
-            deserialize_with = "rapier::utils::serde::deserialize_from_vec_tuple"
-        )
-    )]
-    removed_colliders: HashMap<ColliderHandle, RemovedColliderInfo>,
-
-    #[cfg_attr(
-        feature = "serde-serialize",
-        serde(
-            serialize_with = "serde_hashset_as_vec::serialize",
-            deserialize_with = "serde_hashset_as_vec::deserialize"
-        )
-    )]
-    active_list: HashSet<RapierId>,
-
-    #[cfg_attr(
-        feature = "serde-serialize",
-        serde(
-            serialize_with = "serde_hashset_as_vec::serialize",
-            deserialize_with = "serde_hashset_as_vec::deserialize"
-        )
-    )]
-    mass_properties_update_list: HashSet<RapierId>,
-
-    #[cfg_attr(
-        feature = "serde-serialize",
-        serde(
-            serialize_with = "serde_hashset_as_vec::serialize",
-            deserialize_with = "serde_hashset_as_vec::deserialize"
-        )
-    )]
-    gravity_update_list: HashSet<RapierId>,
-
-    #[cfg_attr(
-        feature = "serde-serialize",
-        serde(
-            serialize_with = "serde_hashset_as_vec::serialize",
-            deserialize_with = "serde_hashset_as_vec::deserialize"
-        )
-    )]
-    state_query_list: HashSet<RapierId>,
-
-    #[cfg_attr(
-        feature = "serde-serialize",
-        serde(
-            serialize_with = "serde_hashset_as_vec::serialize",
-            deserialize_with = "serde_hashset_as_vec::deserialize"
-        )
-    )]
-    force_integrate_query_list: HashSet<RapierId>,
-
-    #[cfg_attr(
-        feature = "serde-serialize",
-        serde(
-            serialize_with = "serde_hashset_as_vec::serialize",
-            deserialize_with = "serde_hashset_as_vec::deserialize"
-        )
-    )]
-    monitor_query_list: HashSet<RapierId>,
-
-    #[cfg_attr(
-        feature = "serde-serialize",
-        serde(
-            serialize_with = "serde_hashset_as_vec::serialize",
-            deserialize_with = "serde_hashset_as_vec::deserialize"
-        )
-    )]
-    area_update_list: HashSet<RapierId>,
-
-    #[cfg_attr(
-        feature = "serde-serialize",
-        serde(
-            serialize_with = "serde_hashset_as_vec::serialize",
-            deserialize_with = "serde_hashset_as_vec::deserialize"
-        )
-    )]
-    body_area_update_list: HashSet<RapierId>,
+    removed_colliders: BTreeMap<OrderedColliderHandle, RemovedColliderInfo>,
+    active_list: BTreeSet<RapierId>,
+    mass_properties_update_list: BTreeSet<RapierId>,
+    gravity_update_list: BTreeSet<RapierId>,
+    state_query_list: BTreeSet<RapierId>,
+    force_integrate_query_list: BTreeSet<RapierId>,
+    monitor_query_list: BTreeSet<RapierId>,
+    area_update_list: BTreeSet<RapierId>,
+    body_area_update_list: BTreeSet<RapierId>,
     time_stepped: f32,
     active_objects: i32,
     id: WorldHandle,
@@ -229,7 +157,7 @@ impl RapierSpaceState {
         collision_object_type: CollisionObjectType,
     ) {
         self.removed_colliders.insert(
-            handle,
+            OrderedColliderHandle(handle),
             RemovedColliderInfo::new(rb_id, instance_id, shape_index, collision_object_type),
         );
     }
@@ -238,7 +166,7 @@ impl RapierSpaceState {
         &self,
         handle: &ColliderHandle,
     ) -> Option<&RemovedColliderInfo> {
-        self.removed_colliders.get(handle)
+        self.removed_colliders.get(&OrderedColliderHandle(*handle))
     }
 
     pub fn get_id(&self) -> RapierId {
@@ -261,23 +189,23 @@ impl RapierSpaceState {
         self.time_stepped = time;
     }
 
-    pub fn get_active_list(&self) -> &HashSet<RapierId> {
+    pub fn get_active_list(&self) -> &BTreeSet<RapierId> {
         &self.active_list
     }
 
-    pub fn get_mass_properties_update_list(&self) -> &HashSet<RapierId> {
+    pub fn get_mass_properties_update_list(&self) -> &BTreeSet<RapierId> {
         &self.mass_properties_update_list
     }
 
-    pub fn get_area_update_list(&self) -> &HashSet<RapierId> {
+    pub fn get_area_update_list(&self) -> &BTreeSet<RapierId> {
         &self.area_update_list
     }
 
-    pub fn get_body_area_update_list(&self) -> &HashSet<RapierId> {
+    pub fn get_body_area_update_list(&self) -> &BTreeSet<RapierId> {
         &self.body_area_update_list
     }
 
-    pub fn get_gravity_update_list(&self) -> &HashSet<RapierId> {
+    pub fn get_gravity_update_list(&self) -> &BTreeSet<RapierId> {
         &self.gravity_update_list
     }
 
@@ -285,15 +213,15 @@ impl RapierSpaceState {
         self.active_list.clone().into_iter().collect()
     }
 
-    pub fn get_state_query_list(&self) -> &HashSet<RapierId> {
+    pub fn get_state_query_list(&self) -> &BTreeSet<RapierId> {
         &self.state_query_list
     }
 
-    pub fn get_force_integrate_query_list(&self) -> &HashSet<RapierId> {
+    pub fn get_force_integrate_query_list(&self) -> &BTreeSet<RapierId> {
         &self.force_integrate_query_list
     }
 
-    pub fn get_monitor_query_list(&self) -> &HashSet<RapierId> {
+    pub fn get_monitor_query_list(&self) -> &BTreeSet<RapierId> {
         &self.monitor_query_list
     }
 
