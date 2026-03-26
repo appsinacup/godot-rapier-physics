@@ -9,7 +9,6 @@ use crate::rapier_wrapper::handle::WorldHandle;
 use crate::rapier_wrapper::prelude::PhysicsEngine;
 use crate::rapier_wrapper::prelude::WorldSettings;
 use crate::servers::rapier_physics_singleton::RapierId;
-
 impl RemovedColliderInfo {
     pub fn new(
         rb_id: RapierId,
@@ -48,13 +47,11 @@ impl Ord for OrderedColliderHandle {
         self.0.into_raw_parts().cmp(&other.0.into_raw_parts())
     }
 }
-
 impl PartialOrd for OrderedColliderHandle {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
-
 #[cfg_attr(
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
