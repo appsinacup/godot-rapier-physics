@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use godot::classes::CollisionObject2D;
 use godot::classes::CollisionObject3D;
 use godot::classes::Joint2D;
@@ -29,11 +31,11 @@ struct CollatedObjectExportState<'a> {
     // Shape data variables use a string key for json serialization purposes,
     // but actually it's just a stringified i32.
     // Note that these shapes _might_ exist purely on the physics server; there's no guarantee that they'll have shape nodes in the scene.
-    shape_owners: HashMap<String, Vec<ObjectExportState<'a>>>,
+    shape_owners: BTreeMap<String, Vec<ObjectExportState<'a>>>,
 }
 impl<'a> CollatedObjectExportState<'a> {
     pub fn into_collated_import(self) -> CollatedObjectImportState {
-        let mut import_state_map = HashMap::new();
+        let mut import_state_map = BTreeMap::new();
         for (key, val) in self.shape_owners {
             let mut shape_imports: Vec<ObjectImportState> = Vec::new();
             // Move the export states out.
@@ -51,11 +53,11 @@ impl<'a> CollatedObjectExportState<'a> {
 #[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize, Clone))]
 struct CollatedObjectImportState {
     state: ObjectImportState,
-    shape_owners: HashMap<String, Vec<ObjectImportState>>,
+    shape_owners: BTreeMap<String, Vec<ObjectImportState>>,
 }
 impl CollatedObjectImportState {
     pub fn as_collated_export<'a>(&'a self) -> CollatedObjectExportState<'a> {
-        let mut export_state_map = HashMap::new();
+        let mut export_state_map = BTreeMap::new();
         for (key, val) in &self.shape_owners {
             let mut shape_exports: Vec<ObjectExportState<'a>> = Vec::new();
             // Move the export states out.
@@ -76,11 +78,11 @@ struct RawExportState<'a> {
     root_node: String,
     rapier_space: SpaceExport<'a>,
     physics_server_id: i64,
-    physics_objects_state: HashMap<String, CollatedObjectExportState<'a>>,
+    physics_objects_state: BTreeMap<String, CollatedObjectExportState<'a>>,
 }
 impl<'a> RawExportState<'a> {
     fn from_import_state(import_state: &'a RawImportState) -> Self {
-        let mut phys_objs = HashMap::new();
+        let mut phys_objs = BTreeMap::new();
         for (key, val) in &import_state.physics_objects_state {
             phys_objs.insert(key.clone(), val.as_collated_export());
         }
@@ -442,7 +444,8 @@ impl StateManager {
         let space_state = ObjectImportState::Space(Box::new(loaded_state.rapier_space));
         space.import_state(&mut physics_data.physics_engine, space_state);
         // Zero-step to update our contact graphs. Then flush to broadcast any relevant event signals.
-        RapierPhysicsServer::space_step(space_rid, 0.0);
+        // NOTE: This has been commented out to avoid incrementing the physics state's internal tick counter. This has been done to try to address bugs in determinism after state load.
+        //RapierPhysicsServer::space_step(space_rid, 0.0);
         space.flush();
         // 4) Now we start loading all the objects' states.
         // We can do this by first iterating through all the physics objects in the scene tree; whenever we find an object
@@ -571,14 +574,14 @@ impl StateManager {
             // if the node has nested data (eg if it's a 2D or 3D CollisionObject), then it will also have a second entry,
             // which will be a nested dictionary containing data on all its shapes.
             let physics_nodes = StateManager::get_all_physics_nodes_in_space(root_node, in_space);
-            let mut object_states: HashMap<String, CollatedObjectExportState> = HashMap::new();
+            let mut object_states: BTreeMap<String, CollatedObjectExportState> = BTreeMap::new();
             for nodepath_str in physics_nodes {
                 let full_path_string = root_nodepath.to_string() + "/" + &nodepath_str;
                 let nodepath = NodePath::from(&full_path_string);
                 let collated_state: CollatedObjectExportState = {
                     let mut self_state: Option<ObjectExportState> = None;
-                    let mut collated_shape_owners: HashMap<String, Vec<ObjectExportState>> =
-                        HashMap::new();
+                    let mut collated_shape_owners: BTreeMap<String, Vec<ObjectExportState>> =
+                        BTreeMap::new();
                     if let Some(co2d) = self.base().try_get_node_as::<CollisionObject2D>(&nodepath)
                     {
                         let this_rid = co2d.get_rid();

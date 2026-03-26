@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+
 use bodies::rapier_area::RapierArea;
 use bodies::rapier_body::RapierBody;
 use godot::classes::ProjectSettings;
@@ -146,9 +148,9 @@ impl RapierSpace {
     }
 
     pub fn call_queries(
-        state_query_list: &HashSet<RapierId>,
-        force_integrate_query_list: &HashSet<RapierId>,
-        monitor_query_list: &HashSet<RapierId>,
+        state_query_list: &BTreeSet<RapierId>,
+        force_integrate_query_list: &BTreeSet<RapierId>,
+        monitor_query_list: &BTreeSet<RapierId>,
         physics_collision_objects: &mut PhysicsCollisionObjects,
         physics_ids: &PhysicsIds,
     ) {
@@ -223,7 +225,7 @@ impl RapierSpace {
         physics_data: &mut PhysicsData,
         settings: SimulationSettings,
     ) {
-        let mut area_update_list = HashSet::default();
+        let mut area_update_list = BTreeSet::default();
         if let Some(space) = physics_data.spaces.get_mut(space_rid) {
             space
                 .state
