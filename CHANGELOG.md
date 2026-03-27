@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.8.28 - Mar 27
+
+- Saved State Congruence by @dog-molecule in https://github.com/appsinacup/godot-rapier-physics/pull/499
+
 ## v0.8.27 - Mar 19
 
 - Fix crash on startup by upgrading to latest godot-rust.
