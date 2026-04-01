@@ -1713,7 +1713,17 @@ impl RapierBody {
                 let new_scale = transform_scale(&transform);
                 self.base.set_transform(transform, true, physics_engine);
                 if old_scale != new_scale {
-                    self.recreate_shapes(physics_engine, physics_spaces, physics_ids);
+                    // Update shape transforms instead of recreating shapes to avoid
+                    // temporary collision issues during scale changes.
+                    // Fixes issue #398: negative scale breaking collision shapes.
+                    for i in 0..self.base.get_shape_count() as usize {
+                        if !self.base.state.shapes[i].disabled {
+                            self.base.update_shape_transform(
+                                &self.base.state.shapes[i],
+                                physics_engine,
+                            );
+                        }
+                    }
                 }
                 // set_transform updates mass properties
                 self.mass_properties_changed(physics_engine, physics_spaces, physics_ids);
