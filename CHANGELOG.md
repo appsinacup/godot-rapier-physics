@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.8.29 - Apr 15
+
+- Update to latest rapier and parry.
+
 ## v0.8.28 - Mar 27
 
 - Saved State Congruence by @dog-molecule in https://github.com/appsinacup/godot-rapier-physics/pull/499
