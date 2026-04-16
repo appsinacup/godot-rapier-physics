@@ -69,12 +69,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bit-vec"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e764a1d40d510daf35e07be9eb06e75770908c27d411ee6c92109c9840eaaf7"
-
-[[package]]
 name = "bitflags"
 version = "2.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -439,10 +433,10 @@ dependencies = [
  "godot",
  "hashbrown 0.16.1",
  "num_cpus",
- "rapier2d 0.32.0 (git+https://github.com/dimforge/rapier?branch=master)",
- "rapier2d-f64 0.32.0 (git+https://github.com/dimforge/rapier?branch=master)",
- "rapier3d 0.32.0 (git+https://github.com/dimforge/rapier?branch=master)",
- "rapier3d-f64 0.32.0 (git+https://github.com/dimforge/rapier?branch=master)",
+ "rapier2d",
+ "rapier2d-f64",
+ "rapier3d",
+ "rapier3d-f64",
  "salva2d",
  "salva2d-f64",
  "salva3d",
@@ -927,33 +921,6 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.32.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "73edcbebd2c2a9eb0041e40b046b5136da32990fcd2ac76b9414ebff45908e18"
-dependencies = [
- "approx",
- "arrayvec",
- "bit-vec",
- "bitflags",
- "downcast-rs",
- "glamx",
- "log",
- "nalgebra",
- "num-derive",
- "num-traits",
- "ordered-float",
- "parry2d",
- "profiling",
- "rustc-hash",
- "simba",
- "static_assertions",
- "thiserror",
- "vec_map",
- "wide",
-]
-
-[[package]]
-name = "rapier2d"
-version = "0.32.0"
 source = "git+https://github.com/dimforge/rapier?branch=master#a14c947143e5f597ac4c040e26015766bd9befb9"
 dependencies = [
  "approx",
@@ -970,32 +937,6 @@ dependencies = [
  "static_assertions",
  "thiserror",
  "wide",
-]
-
-[[package]]
-name = "rapier2d-f64"
-version = "0.32.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "faca9bd58ab61858b3ec6497a9aa6dfd87f48a302481f18db934cfd979c430f1"
-dependencies = [
- "approx",
- "arrayvec",
- "bit-vec",
- "bitflags",
- "downcast-rs",
- "glamx",
- "log",
- "nalgebra",
- "num-derive",
- "num-traits",
- "ordered-float",
- "parry2d-f64",
- "profiling",
- "rustc-hash",
- "simba",
- "static_assertions",
- "thiserror",
- "vec_map",
 ]
 
 [[package]]
@@ -1021,33 +962,6 @@ dependencies = [
 [[package]]
 name = "rapier3d"
 version = "0.32.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a576251c9dc2d6aff08470b7433096a04019c8b7bea9bbb7087f092c180feaea"
-dependencies = [
- "approx",
- "arrayvec",
- "bit-vec",
- "bitflags",
- "downcast-rs",
- "glamx",
- "log",
- "nalgebra",
- "num-derive",
- "num-traits",
- "ordered-float",
- "parry3d",
- "profiling",
- "rustc-hash",
- "simba",
- "static_assertions",
- "thiserror",
- "vec_map",
- "wide",
-]
-
-[[package]]
-name = "rapier3d"
-version = "0.32.0"
 source = "git+https://github.com/dimforge/rapier?branch=master#a14c947143e5f597ac4c040e26015766bd9befb9"
 dependencies = [
  "approx",
@@ -1064,32 +978,6 @@ dependencies = [
  "static_assertions",
  "thiserror",
  "wide",
-]
-
-[[package]]
-name = "rapier3d-f64"
-version = "0.32.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d27cfdde4915e866a008d520328b1236ad199990370965f944589d006140e6db"
-dependencies = [
- "approx",
- "arrayvec",
- "bit-vec",
- "bitflags",
- "downcast-rs",
- "glamx",
- "log",
- "nalgebra",
- "num-derive",
- "num-traits",
- "ordered-float",
- "parry3d-f64",
- "profiling",
- "rustc-hash",
- "simba",
- "static_assertions",
- "thiserror",
- "vec_map",
 ]
 
 [[package]]
@@ -1215,7 +1103,7 @@ dependencies = [
 [[package]]
 name = "salva2d"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=update-to-latest-rapier#fd8e8120ca8d9443928c66cabc188a7432cf0109"
+source = "git+https://github.com/ughuuu/salva?branch=update-to-latest-rapier#b30c622534ac6c0c1010f88192b8834e95262e69"
 dependencies = [
  "approx",
  "bitflags",
@@ -1225,29 +1113,30 @@ dependencies = [
  "nalgebra",
  "num-traits",
  "parry2d",
- "rapier2d 0.32.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rapier2d",
  "rayon",
 ]
 
 [[package]]
 name = "salva2d-f64"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=update-to-latest-rapier#fd8e8120ca8d9443928c66cabc188a7432cf0109"
+source = "git+https://github.com/ughuuu/salva?branch=update-to-latest-rapier#b30c622534ac6c0c1010f88192b8834e95262e69"
 dependencies = [
  "approx",
+ "bitflags",
  "fnv",
  "generational-arena",
  "itertools 0.13.0",
  "nalgebra",
  "num-traits",
  "parry2d-f64",
- "rapier2d-f64 0.32.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rapier2d-f64",
 ]
 
 [[package]]
 name = "salva3d"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=update-to-latest-rapier#fd8e8120ca8d9443928c66cabc188a7432cf0109"
+source = "git+https://github.com/ughuuu/salva?branch=update-to-latest-rapier#b30c622534ac6c0c1010f88192b8834e95262e69"
 dependencies = [
  "approx",
  "bitflags",
@@ -1257,23 +1146,24 @@ dependencies = [
  "nalgebra",
  "num-traits",
  "parry3d",
- "rapier3d 0.32.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rapier3d",
  "rayon",
 ]
 
 [[package]]
 name = "salva3d-f64"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=update-to-latest-rapier#fd8e8120ca8d9443928c66cabc188a7432cf0109"
+source = "git+https://github.com/ughuuu/salva?branch=update-to-latest-rapier#b30c622534ac6c0c1010f88192b8834e95262e69"
 dependencies = [
  "approx",
+ "bitflags",
  "fnv",
  "generational-arena",
  "itertools 0.13.0",
  "nalgebra",
  "num-traits",
  "parry3d-f64",
- "rapier3d-f64 0.32.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rapier3d-f64",
 ]
 
 [[package]]
@@ -1433,12 +1323,6 @@ name = "unicode-ident"
 version = "1.0.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75"
-
-[[package]]
-name = "vec_map"
-version = "0.8.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f1bddf1187be692e79c5ffeab891132dfb0f236ed36a43c7ed39f1165ee20191"
 
 [[package]]
 name = "venial"

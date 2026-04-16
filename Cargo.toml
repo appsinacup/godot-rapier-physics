@@ -57,16 +57,11 @@ salva3d-f64 = { git = "https://github.com/ughuuu/salva", branch = "update-to-lat
 serde = { version = "1.0", features = ["derive"], optional = true }
 serde_json = { version = "1.0", optional = true }
 
-#[patch.crates-io]
-#rapier2d = {git = "https://github.com/ughuuu/rapier", branch = "master"}
-#rapier2d-f64 = {git = "https://github.com/ughuuu/rapier", branch = "master"}
-#parry2d = {git = "https://github.com/ughuuu/parry", branch = "master"}
-#parry2d-f64 = {git = "https://github.com/ughuuu/parry", branch = "master"}
-
-#rapier3d = {git = "https://github.com/ughuuu/rapier", branch = "master"}
-#rapier3d-f64 = {git = "https://github.com/ughuuu/rapier", branch = "master"}
-#parry3d = {git = "https://github.com/ughuuu/parry", branch = "master"}
-#parry3d-f64 = {git = "https://github.com/ughuuu/parry", branch = "master"}
+[patch.crates-io]
+rapier2d = { git = "https://github.com/dimforge/rapier", branch = "master" }
+rapier2d-f64 = { git = "https://github.com/dimforge/rapier", branch = "master" }
+rapier3d = { git = "https://github.com/dimforge/rapier", branch = "master" }
+rapier3d-f64 = { git = "https://github.com/dimforge/rapier", branch = "master" }
 
 [profile.release]
 opt-level = 3
