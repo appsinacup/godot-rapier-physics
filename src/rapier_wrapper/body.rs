@@ -320,7 +320,7 @@ impl PhysicsEngine {
                 .rigid_body_set
                 .get(body_handle)
         {
-            return *body.angvel();
+            return body.angvel();
         }
         ANG_ZERO
     }

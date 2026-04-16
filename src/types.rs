@@ -144,13 +144,12 @@ pub fn transform_update(transform: &Transform, rotation: Rotation, origin: Vecto
 #[cfg(feature = "dim3")]
 pub fn transform_update(transform: &Transform, rotation: Rotation, origin: Vector) -> Transform {
     use godot::builtin::Basis;
-    let quaternion = rotation.quaternion();
     let new_transform = Transform::new(
         Basis::from_quaternion(Quaternion::new(
-            quaternion.coords.x,
-            quaternion.coords.y,
-            quaternion.coords.z,
-            quaternion.coords.w,
+            rotation.x,
+            rotation.y,
+            rotation.z,
+            rotation.w,
         )),
         origin,
     );
@@ -159,11 +158,8 @@ pub fn transform_update(transform: &Transform, rotation: Rotation, origin: Vecto
 }
 #[cfg(feature = "dim3")]
 pub fn transform_rotation_rapier(transform: &godot::builtin::Transform3D) -> Rotation {
-    use rapier::na::Vector4;
     let quaternion = transform.basis.get_quaternion();
-    Rotation::from_quaternion(rapier::na::Quaternion {
-        coords: Vector4::new(quaternion.x, quaternion.y, quaternion.z, quaternion.w),
-    })
+    Rotation::from_xyzw(quaternion.x, quaternion.y, quaternion.z, quaternion.w)
 }
 #[cfg(feature = "dim2")]
 pub fn transform_rotation_rapier(transform: &godot::builtin::Transform2D) -> Rotation {
@@ -172,11 +168,8 @@ pub fn transform_rotation_rapier(transform: &godot::builtin::Transform2D) -> Rot
 }
 #[cfg(feature = "dim3")]
 pub fn basis_to_rapier(basis: godot::builtin::Basis) -> Rotation {
-    use rapier::na::Vector4;
     let quaternion = basis.get_quaternion();
-    Rotation::from_quaternion(rapier::na::Quaternion {
-        coords: Vector4::new(quaternion.x, quaternion.y, quaternion.z, quaternion.w),
-    })
+    Rotation::from_xyzw(quaternion.x, quaternion.y, quaternion.z, quaternion.w)
 }
 pub fn vector_normalized(vector: Vector) -> Vector {
     if vector != Vector::ZERO {

@@ -12,7 +12,6 @@ use hashbrown::hash_set::HashSet;
 use rapier::dynamics::LockedAxes;
 use rapier::geometry::ColliderHandle;
 #[cfg(feature = "dim3")]
-use rapier::math::DEFAULT_EPSILON;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsIds;
 use servers::rapier_physics_singleton::PhysicsShapes;
@@ -1885,21 +1884,11 @@ impl RapierBody {
             let rotation_matrix = rigid_body_mass_properties
                 .0
                 .local_mprops
-                .principal_inertia_local_frame
-                .to_rotation_matrix();
-            let vector = rotation_matrix.matrix();
-            let column_0 = vector
-                .column(0)
-                .pseudo_inverse(DEFAULT_EPSILON)
-                .unwrap_or_default();
-            let column_1 = vector
-                .column(1)
-                .pseudo_inverse(DEFAULT_EPSILON)
-                .unwrap_or_default();
-            let column_2 = vector
-                .column(2)
-                .pseudo_inverse(DEFAULT_EPSILON)
-                .unwrap_or_default();
+                .principal_inertia_local_frame;
+            let vector = rapier::prelude::Matrix::from_quat(rotation_matrix);
+            let column_0 = vector.x_axis;
+            let column_1 = vector.y_axis;
+            let column_2 = vector.z_axis;
             self.state.principal_inertia_axes = Basis::from_cols(
                 Vector3::new(column_0.x, column_0.y, column_0.z),
                 Vector3::new(column_1.x, column_1.y, column_1.z),

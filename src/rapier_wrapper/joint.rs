@@ -179,8 +179,8 @@ impl PhysicsEngine {
         self.body_wake_up(world_handle, body_handle_2, false);
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             // Extract the hinge axis (X-axis) from the rotation matrices
-            let axis1_vec = axis_1 * Vector::x_axis();
-            let axis2_vec = axis_2 * Vector::x_axis();
+            let axis1_vec = axis_1 * Vector::X;
+            let axis2_vec = axis_2 * Vector::X;
             // Use GenericJointBuilder to set both local axes
             let mut joint = GenericJointBuilder::new(JointAxesMask::LOCKED_REVOLUTE_AXES)
                 .local_anchor1(anchor_1)
@@ -248,8 +248,8 @@ impl PhysicsEngine {
         self.body_wake_up(world_handle, body_handle_2, false);
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             // Extract the X axis from the rotation matrices
-            let axis1_vec = axis_1 * Vector::x_axis();
-            let axis2_vec = axis_2 * Vector::x_axis();
+            let axis1_vec = axis_1 * Vector::X;
+            let axis2_vec = axis_2 * Vector::X;
             // Use GenericJointBuilder to set both local axes for prismatic joint
             let joint = GenericJointBuilder::new(JointAxesMask::LOCKED_PRISMATIC_AXES)
                 .local_anchor1(anchor_1)
@@ -507,8 +507,8 @@ impl PhysicsEngine {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             // Create a generic joint that allows all 6 degrees of freedom
             // Extract the X axis from the rotation as UnitVector
-            let axis1_vec = axis_1 * Vector::x_axis();
-            let axis2_vec = axis_2 * Vector::x_axis();
+            let axis1_vec = axis_1 * Vector::X;
+            let axis2_vec = axis_2 * Vector::X;
             let joint = GenericJointBuilder::new(JointAxesMask::FREE_FIXED_AXES)
                 .local_anchor1(anchor_1)
                 .local_anchor2(anchor_2)
@@ -544,8 +544,8 @@ impl PhysicsEngine {
             let swing_limit = swing_span / 2.0f32.sqrt();
             let twist_limit = twist_span / 2.0;
             // Extract the X axis from the rotation as UnitVector
-            let axis1_vec = axis_1 * Vector::x_axis();
-            let axis2_vec = axis_2 * Vector::x_axis();
+            let axis1_vec = axis_1 * Vector::X;
+            let axis2_vec = axis_2 * Vector::X;
             // Create a generic joint with locked translations and limited rotations
             let joint = GenericJointBuilder::new(JointAxesMask::LOCKED_SPHERICAL_AXES)
                 .local_anchor1(anchor_1)

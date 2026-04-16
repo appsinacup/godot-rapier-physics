@@ -39,21 +39,11 @@ pub fn shape_info_from_body_shape(shape_handle: ShapeHandle, transform: Transfor
 }
 #[cfg(feature = "dim3")]
 pub fn shape_info_from_body_shape(shape_handle: ShapeHandle, transform: Transform) -> ShapeInfo {
-    use nalgebra::Isometry3;
-    use nalgebra::Quaternion;
-    use nalgebra::Translation3;
     let quaternion = transform.basis.get_quaternion();
-    let rotation = Rotation::from_quaternion(Quaternion::new(
-        quaternion.w,
-        quaternion.x,
-        quaternion.y,
-        quaternion.z,
-    ));
-    let translation = Translation3::from(vector_to_rapier(transform.origin));
-    let isometry = Isometry3::from_parts(translation, rotation);
+    let rotation = Rotation::from_xyzw(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
     ShapeInfo {
         handle: shape_handle,
-        transform: isometry,
+        transform: Pose::from_parts(vector_to_rapier(transform.origin), rotation),
         scale: vector_to_rapier(transform.basis.get_scale()),
     }
 }
@@ -190,36 +180,39 @@ impl PhysicsEngine {
         depth: i32,
         handle: ShapeHandle,
     ) {
-        use nalgebra::Vector3;
+        use rapier::parry::utils::Array2;
         let width = width as usize;
         let depth = depth as usize;
-        // Create the height matrix from the input heights
-        let original_heights = DMatrix::from_fn(width, depth, |i, j| heights[j * width + i]);
-        // Transpose the matrix to swap width and depth
-        let rotated_heights = original_heights.transpose();
+        let mut rotated_data = Vec::with_capacity(width * depth);
+        for j in 0..width {
+            for i in 0..depth {
+                rotated_data.push(heights[i * width + j]);
+            }
+        }
+        let rotated_heights = Array2::new(depth, width, rotated_data);
         // The new dimensions after rotating the heightmap
         let new_width = depth;
         let new_depth = width;
         // Create the shape with the rotated dimensions
         let shape = SharedShape::heightfield_with_flags(
             rotated_heights,
-            Vector3::new(new_depth as Real, 1.0, new_width as Real),
+            Vector::new(new_depth as Real, 1.0, new_width as Real),
             HeightFieldFlags::FIX_INTERNAL_EDGES,
         );
         self.insert_shape(shape, handle)
     }
 
     #[cfg(feature = "dim3")]
-    pub fn shape_get_heightmap(&self, shape_handle: ShapeHandle) -> (DMatrix<Real>, i32, i32) {
+    pub fn shape_get_heightmap(&self, shape_handle: ShapeHandle) -> (Vec<Real>, i32, i32) {
         if let Some(shape) = self.get_shape(shape_handle)
             && let Some(shape) = shape.as_heightfield()
         {
             let scale = shape.scale();
             let depth = scale.x as i32;
             let width = scale.z as i32;
-            return (shape.heights().clone(), depth, width);
+            return (shape.heights().data().to_vec(), depth, width);
         }
-        (DMatrix::default(), 0, 0)
+        (Vec::new(), 0, 0)
     }
 
     #[cfg(feature = "dim2")]

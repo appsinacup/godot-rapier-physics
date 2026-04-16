@@ -285,7 +285,10 @@ impl PhysicsEngine {
             let liquid_world = &physics_world.fluids_pipeline.liquid_world;
             let r_fluid_handle = handle_to_fluid_handle(fluid_handle);
             let radius_sq = radius * radius;
+            #[cfg(feature = "dim2")]
             let r_center = salva::math::Vector::new(center.x, center.y);
+            #[cfg(feature = "dim3")]
+            let r_center = salva::math::Vector::new(center.x, center.y, center.z);
             for particle in liquid_world.particles_intersecting_aabb(salva_aabb) {
                 if let salva::object::ParticleId::FluidParticle(found_fluid_handle, particle_index) =
                     particle
