@@ -1,7 +1,5 @@
 use godot::classes::*;
 use godot::prelude::*;
-#[cfg(feature = "dim2")]
-use rapier::math::Matrix;
 use rapier::math::Rotation;
 #[cfg(feature = "single")]
 pub type PackedFloatArray = PackedFloat32Array;
@@ -132,14 +130,21 @@ pub fn world_to_local_no_scale(transform: &Transform, world_pos: Vector) -> Vect
 }
 #[cfg(feature = "dim2")]
 pub fn transform_update(transform: &Transform, rotation: Rotation, origin: Vector) -> Transform {
-    let shear_matrix = get_shear_matrix(transform);
-    let a = (rotation * shear_matrix.x_axis).normalize_or_zero() * transform.scale().x;
-    let b = (rotation * shear_matrix.y_axis).normalize_or_zero() * transform.scale().y;
-    Transform2D {
-        a: Vector2::new(a.x, a.y),
-        b: Vector2::new(b.x, b.y),
-        origin,
+    let delta_rotation = rotation.angle() - transform.rotation();
+    let scale_x = transform.a.length();
+    let scale_y = transform.b.length();
+
+    let mut a = transform.a.rotated(delta_rotation);
+    let mut b = transform.b.rotated(delta_rotation);
+
+    if !scale_x.is_zero_approx() {
+        a *= scale_x / a.length();
     }
+    if !scale_y.is_zero_approx() {
+        b *= scale_y / b.length();
+    }
+
+    Transform2D { a, b, origin }
 }
 #[cfg(feature = "dim3")]
 pub fn transform_update(transform: &Transform, rotation: Rotation, origin: Vector) -> Transform {
@@ -186,19 +191,6 @@ pub fn variant_to_int(variant: &Variant) -> i32 {
         VariantType::INT => variant.to::<i32>(),
         _ => 0,
     }
-}
-#[cfg(feature = "dim2")]
-fn get_shear_matrix(transform: &Transform) -> Matrix {
-    let det_sign = transform.determinant().signum();
-    let minus_sin_skew = transform
-        .a
-        .normalized_or_zero()
-        .dot(det_sign * transform.b.normalized_or_zero());
-    let cos_skew = (1. - minus_sin_skew * minus_sin_skew).sqrt();
-    Matrix::from_cols(
-        rapier::math::Vector::new(1.0, 0.0),
-        rapier::math::Vector::new(minus_sin_skew, cos_skew),
-    )
 }
 #[cfg(feature = "dim2")]
 #[cfg(test)]
