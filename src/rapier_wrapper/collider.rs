@@ -9,7 +9,7 @@ use salva::parry::either::Either::Right;
 use crate::rapier_wrapper::prelude::*;
 const SUBDIVISIONS: u32 = 20;
 #[cfg(feature = "dim2")]
-fn skew_polyline(vertices: &Vec<Point<Real>>, skew: Real) -> SharedShape {
+fn skew_polyline(vertices: &Vec<Vector>, skew: Real) -> SharedShape {
     // Apply skew transformation to the vertices
     let mut skewed_vertices = Vec::new();
     for vertex in vertices {
@@ -84,16 +84,13 @@ fn skew_shape(shape: &SharedShape, _shape_info: ShapeInfo) -> SharedShape {
 pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
     let shape = skew_shape(&shape.clone(), shape_info);
     let scale = shape_info.scale;
-    if (scale - Vector::repeat(1.0))
-        .norm_squared()
-        .is_zero_approx()
-    {
+    if (scale - Vector::ONE).length_squared().is_zero_approx() {
         return shape.clone();
     }
     match shape.shape_type() {
         ShapeType::Ball => {
             if let Some(new_shape) = shape.as_ball()
-                && let Some(new_shape) = new_shape.scaled(&scale.abs(), SUBDIVISIONS)
+                && let Some(new_shape) = new_shape.scaled(scale.abs(), SUBDIVISIONS)
             {
                 match new_shape {
                     Left(shape) => return SharedShape::new(shape),
@@ -103,19 +100,19 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
         }
         ShapeType::Cuboid => {
             if let Some(new_shape) = shape.as_cuboid() {
-                return SharedShape::new(new_shape.scaled(&scale.abs()));
+                return SharedShape::new(new_shape.scaled(scale.abs()));
             }
         }
         ShapeType::HalfSpace => {
             if let Some(new_shape) = shape.as_halfspace()
-                && let Some(new_shape) = new_shape.scaled(&scale.abs())
+                && let Some(new_shape) = new_shape.scaled(scale.abs())
             {
                 return SharedShape::new(new_shape);
             }
         }
         ShapeType::Polyline => {
             if let Some(new_shape) = shape.as_polyline() {
-                return SharedShape::new(new_shape.clone().scaled(&scale));
+                return SharedShape::new(new_shape.clone().scaled(scale));
             }
         }
         #[cfg(feature = "dim3")]
@@ -138,7 +135,7 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
         #[cfg(feature = "dim2")]
         ShapeType::ConvexPolygon => {
             if let Some(new_shape) = shape.as_convex_polygon()
-                && let Some(new_shape) = new_shape.clone().scaled(&scale)
+                && let Some(new_shape) = new_shape.clone().scaled(scale)
             {
                 return SharedShape::new(new_shape);
             }
@@ -160,7 +157,7 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
         }
         ShapeType::Capsule => {
             if let Some(new_shape) = shape.as_capsule()
-                && let Some(new_shape) = new_shape.scaled(&scale, SUBDIVISIONS)
+                && let Some(new_shape) = new_shape.scaled(scale, SUBDIVISIONS)
             {
                 match new_shape {
                     Left(shape) => return SharedShape::new(shape),

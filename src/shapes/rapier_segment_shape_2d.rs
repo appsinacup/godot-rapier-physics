@@ -61,10 +61,7 @@ impl IRapierShape for RapierSegmentShape2D {
             );
             return Rect2::default().to_variant();
         }
-        let r = Rect2::new(
-            vector_to_godot(points[0].coords),
-            vector_to_godot(points[1].coords),
-        );
+        let r = Rect2::new(vector_to_godot(points[0]), vector_to_godot(points[1]));
         r.to_variant()
     }
 }

@@ -2,8 +2,43 @@ use rapier::prelude::*;
 use salva::object::*;
 use salva::solver::*;
 
-use super::shape::point_array_to_vec;
 use crate::rapier_wrapper::prelude::*;
+#[cfg(feature = "dim2")]
+fn point_array_to_salva_vec(pixel_data: &[Vector]) -> Vec<salva::math::Vector<Real>> {
+    pixel_data
+        .iter()
+        .map(|point| salva::math::Vector::new(point.x, point.y))
+        .collect()
+}
+#[cfg(feature = "dim3")]
+fn point_array_to_salva_vec(pixel_data: &[Vector]) -> Vec<salva::math::Vector<Real>> {
+    pixel_data
+        .iter()
+        .map(|point| salva::math::Vector::new(point.x, point.y, point.z))
+        .collect()
+}
+#[cfg(feature = "dim2")]
+fn velocity_array_to_salva_vec(pixel_data: &[Vector]) -> Vec<salva::math::Vector<Real>> {
+    pixel_data
+        .iter()
+        .map(|point| salva::math::Vector::new(point.x, point.y))
+        .collect()
+}
+#[cfg(feature = "dim3")]
+fn velocity_array_to_salva_vec(pixel_data: &[Vector]) -> Vec<salva::math::Vector<Real>> {
+    pixel_data
+        .iter()
+        .map(|point| salva::math::Vector::new(point.x, point.y, point.z))
+        .collect()
+}
+#[cfg(feature = "dim2")]
+fn salva_vector_to_godot(vec: salva::math::Vector<Real>) -> crate::types::Vector {
+    crate::types::Vector::new(vec.x, vec.y)
+}
+#[cfg(feature = "dim3")]
+fn salva_vector_to_godot(vec: salva::math::Vector<Real>) -> crate::types::Vector {
+    crate::types::Vector::new(vec.x, vec.y, vec.z)
+}
 impl PhysicsEngine {
     pub fn fluid_create(
         &mut self,
@@ -59,8 +94,8 @@ impl PhysicsEngine {
         &mut self,
         world_handle: WorldHandle,
         fluid_handle: HandleDouble,
-        points: &Vec<Vector<Real>>,
-        velocity_points: &[Vector<Real>],
+        points: &[Vector],
+        velocity_points: &[Vector],
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(fluid) = physics_world
@@ -69,14 +104,15 @@ impl PhysicsEngine {
                 .fluids_mut()
                 .get_mut(handle_to_fluid_handle(fluid_handle))
         {
-            let points = point_array_to_vec(points);
+            let points = point_array_to_salva_vec(points);
+            let velocity_points = velocity_array_to_salva_vec(velocity_points);
             // 1. Mark all existing particles for deletion using the Salva API.
             for i in 0..fluid.num_particles() {
                 fluid.delete_particle_at_next_timestep(i);
             }
             // 2. Add the new particles using the Salva API.
             // This correctly notifies the internal grid and prevents desync.
-            fluid.add_particles(&points, Some(velocity_points));
+            fluid.add_particles(&points, Some(&velocity_points));
         }
     }
 
@@ -84,7 +120,7 @@ impl PhysicsEngine {
         &mut self,
         world_handle: WorldHandle,
         fluid_handle: HandleDouble,
-        points: &Vec<Vector<Real>>,
+        points: &[Vector],
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(fluid) = physics_world
@@ -93,7 +129,7 @@ impl PhysicsEngine {
                 .fluids_mut()
                 .get_mut(handle_to_fluid_handle(fluid_handle))
         {
-            let points = point_array_to_vec(points);
+            let points = point_array_to_salva_vec(points);
             // 1. Mark all existing particles for deletion.
             for i in 0..fluid.num_particles() {
                 fluid.delete_particle_at_next_timestep(i);
@@ -128,8 +164,8 @@ impl PhysicsEngine {
         &mut self,
         world_handle: WorldHandle,
         fluid_handle: HandleDouble,
-        points: &Vec<Vector<Real>>,
-        velocity_points: &[Vector<Real>],
+        points: &[Vector],
+        velocity_points: &[Vector],
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(fluid) = physics_world
@@ -138,8 +174,9 @@ impl PhysicsEngine {
                 .fluids_mut()
                 .get_mut(handle_to_fluid_handle(fluid_handle))
         {
-            let points = point_array_to_vec(points);
-            fluid.add_particles(&points, Some(velocity_points));
+            let points = point_array_to_salva_vec(points);
+            let velocity_points = velocity_array_to_salva_vec(velocity_points);
+            fluid.add_particles(&points, Some(&velocity_points));
         }
     }
 
@@ -157,7 +194,7 @@ impl PhysicsEngine {
                 .get(handle_to_fluid_handle(fluid_handle))
         {
             for i in 0..fluid.positions.len() {
-                array.push(vector_to_godot(fluid.positions[i].coords));
+                array.push(salva_vector_to_godot(fluid.positions[i]));
             }
         }
         array
@@ -248,7 +285,7 @@ impl PhysicsEngine {
             let liquid_world = &physics_world.fluids_pipeline.liquid_world;
             let r_fluid_handle = handle_to_fluid_handle(fluid_handle);
             let radius_sq = radius * radius;
-            let r_center = vector_to_rapier(center);
+            let r_center = salva::math::Vector::new(center.x, center.y);
             for particle in liquid_world.particles_intersecting_aabb(salva_aabb) {
                 if let salva::object::ParticleId::FluidParticle(found_fluid_handle, particle_index) =
                     particle
@@ -256,7 +293,7 @@ impl PhysicsEngine {
                     && let Some(fluid) = liquid_world.fluids().get(found_fluid_handle)
                     && particle_index < fluid.num_particles()
                 {
-                    let particle_pos = fluid.positions[particle_index].coords;
+                    let particle_pos = fluid.positions[particle_index];
                     if (particle_pos - r_center).norm_squared() <= radius_sq {
                         indices.push(particle_index as i32);
                     }

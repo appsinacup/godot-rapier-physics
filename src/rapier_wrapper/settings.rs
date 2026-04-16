@@ -19,8 +19,8 @@ pub struct SimulationSettings {
     pub num_solver_iterations: usize,
     /// Number of internal Project Gauss Seidel (PGS) iterations run at each solver iteration (default: `1`).
     pub num_internal_pgs_iterations: usize,
-    pub pixel_gravity: Vector<Real>,
-    pub pixel_liquid_gravity: Vector<Real>,
+    pub pixel_gravity: Vector,
+    pub pixel_liquid_gravity: Vector,
     pub max_ccd_substeps: usize,
     pub contact_damping_ratio: Real,
     pub contact_natural_frequency: Real,

@@ -88,7 +88,7 @@ impl RapierShapeBase {
         let rapier_aabb = physics_engine.shape_get_aabb(self.get_id());
         let vertices = rapier_aabb.vertices();
         self.state.aabb = Rect::new(
-            vector_to_godot(vertices[0].coords),
+            vector_to_godot(vertices[0]),
             vector_to_godot(rapier_aabb.extents()),
         );
     }

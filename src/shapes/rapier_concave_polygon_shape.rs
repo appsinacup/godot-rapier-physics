@@ -120,14 +120,14 @@ impl IRapierShape for RapierConcavePolygonShape {
         let mut arr = PackedVectorArray::new();
         for ind in indices {
             if let Some(point) = points.get(ind[0] as usize) {
-                arr.push(Vector2::new(point.coords.x, point.coords.y));
+                arr.push(Vector2::new(point.x, point.y));
             } else {
                 godot_error!("ConcavePolygon index out of bounds");
                 arr.clear();
                 break;
             }
             if let Some(point) = points.get(ind[1] as usize) {
-                arr.push(Vector2::new(point.coords.x, point.coords.y));
+                arr.push(Vector2::new(point.x, point.y));
             } else {
                 godot_error!("ConcavePolygon index out of bounds");
                 arr.clear();

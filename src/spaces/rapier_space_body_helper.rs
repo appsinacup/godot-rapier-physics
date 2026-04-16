@@ -577,7 +577,7 @@ impl RapierSpace {
                                 col_shape_transform,
                             );
                             // Test if going all the way collides
-                            body_shape_info.transform.translation.vector =
+                            body_shape_info.transform.translation =
                                 vector_to_rapier(body_shape_transform.origin + p_motion);
                             let end_contact =
                                 physics_engine.shapes_contact(body_shape_info, col_shape_info, 0.0);
@@ -586,7 +586,7 @@ impl RapierSpace {
                                 continue;
                             }
                             // Test initial overlap - if colliding at start position, body might be stuck
-                            body_shape_info.transform.translation.vector =
+                            body_shape_info.transform.translation =
                                 vector_to_rapier(body_shape_transform.origin);
                             let initial_contact = physics_engine.shapes_contact(
                                 body_shape_info,
@@ -623,7 +623,7 @@ impl RapierSpace {
                             let mut fraction_coeff = 0.5;
                             for k in 0..8 {
                                 let fraction = low + (hi - low) * fraction_coeff;
-                                body_shape_info.transform.translation.vector = vector_to_rapier(
+                                body_shape_info.transform.translation = vector_to_rapier(
                                     body_shape_transform.origin + p_motion * fraction,
                                 );
                                 let step_contact = physics_engine.shapes_contact(
@@ -657,7 +657,7 @@ impl RapierSpace {
                                     }
                                 }
                             }
-                            body_shape_info.transform.translation.vector = vector_to_rapier(
+                            body_shape_info.transform.translation = vector_to_rapier(
                                 body_shape_transform.origin
                                     + p_motion * (hi + self.get_contact_max_allowed_penetration()),
                             );

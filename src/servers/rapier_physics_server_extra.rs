@@ -145,7 +145,7 @@ macro_rules! make_rapier_server_godot_impl {
                     let target_isometry = {
                         let position = vector_to_rapier(target_transform.origin);
                         let rotation = transform_rotation_rapier(&target_transform);
-                        rapier::prelude::Isometry::from_parts(position.into(), rotation)
+                        rapier::prelude::Pose::from_parts(position, rotation)
                     };
                     physics_data.physics_engine.multibody_solve_ik(
                         space_handle,

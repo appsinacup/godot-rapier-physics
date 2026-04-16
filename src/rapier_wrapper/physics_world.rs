@@ -4,7 +4,7 @@ use std::sync::mpsc;
 use godot::global::godot_error;
 use hashbrown::HashMap;
 use rapier::data::Index;
-use rapier::parry::utils::IsometryOpt;
+use rapier::parry::utils::PoseOpt;
 use rapier::prelude::*;
 use salva::integrations::rapier::FluidsPipeline;
 
@@ -28,15 +28,15 @@ pub struct ActiveBodyInfo {
 }
 pub struct BeforeActiveBodyInfo {
     pub body_user_data: UserData,
-    pub previous_velocity: Vector<Real>,
+    pub previous_velocity: Vector,
 }
 #[derive(Default)]
 pub struct ContactPointInfo {
-    pub pixel_local_pos_1: Vector<Real>,
-    pub pixel_local_pos_2: Vector<Real>,
-    pub pixel_velocity_pos_1: Vector<Real>,
-    pub pixel_velocity_pos_2: Vector<Real>,
-    pub normal: Vector<Real>,
+    pub pixel_local_pos_1: Vector,
+    pub pixel_local_pos_2: Vector,
+    pub pixel_velocity_pos_1: Vector,
+    pub pixel_velocity_pos_2: Vector,
+    pub normal: Vector,
     pub pixel_distance: Real,
     pub pixel_impulse: Real,
     pub pixel_tangent_impulse: TangentImpulse<Real>,
@@ -172,10 +172,10 @@ impl PhysicsWorld {
         physics_ids: &PhysicsIds,
     ) {
         for handle in self.physics_objects.island_manager.active_bodies() {
-            if let Some(body) = self.physics_objects.rigid_body_set.get(*handle) {
+            if let Some(body) = self.physics_objects.rigid_body_set.get(handle) {
                 let before_active_body_info = BeforeActiveBodyInfo {
-                    body_user_data: self.get_rigid_body_user_data(*handle),
-                    previous_velocity: *body.linvel(),
+                    body_user_data: self.get_rigid_body_user_data(handle),
+                    previous_velocity: body.linvel(),
                 };
                 space.before_active_body_callback(
                     &before_active_body_info,
@@ -221,7 +221,7 @@ impl PhysicsWorld {
             let physics_pipeline = &mut self.physics_pipeline;
             self.thread_pool.install(|| {
                 physics_pipeline.step(
-                    &gravity,
+                    gravity,
                     &integration_parameters,
                     &mut self.physics_objects.island_manager,
                     &mut self.physics_objects.broad_phase,
@@ -238,7 +238,7 @@ impl PhysicsWorld {
         }
         #[cfg(not(feature = "parallel"))]
         self.physics_pipeline.step(
-            &gravity,
+            gravity,
             &integration_parameters,
             &mut self.physics_objects.island_manager,
             &mut self.physics_objects.broad_phase,
@@ -261,7 +261,7 @@ impl PhysicsWorld {
         }
         for handle in self.physics_objects.island_manager.active_bodies() {
             let active_body_info = ActiveBodyInfo {
-                body_user_data: self.get_rigid_body_user_data(*handle),
+                body_user_data: self.get_rigid_body_user_data(handle),
             };
             space.active_body_callback(&active_body_info, physics_collision_objects, physics_ids);
         }
@@ -331,36 +331,30 @@ impl PhysicsWorld {
                                     let world_pt2 = world_pos2 * contact_point.local_p2;
                                     let vel1 = self
                                         .get_collider_rigid_body(collider1)
-                                        .map(|rb| rb.velocity_at_point(&world_pt1))
+                                        .map(|rb| rb.velocity_at_point(world_pt1))
                                         .unwrap_or_default();
                                     let vel2 = self
                                         .get_collider_rigid_body(collider2)
-                                        .map(|rb| rb.velocity_at_point(&world_pt2))
+                                        .map(|rb| rb.velocity_at_point(world_pt2))
                                         .unwrap_or_default();
                                     effective_contact_dist
-                                        + (vel2 - vel1).dot(&manifold.data.normal) * settings.dt
+                                        + (vel2 - vel1).dot(manifold.data.normal) * settings.dt
                                         < settings.predictive_contact_allowance_threshold
                                             * settings.length_unit
                                 };
                             if keep_solver_contact {
                                 let collider_pos_1 = *collider1.position();
                                 let collider_pos_2 = *collider2.position();
-                                let point_velocity_1 = body1.velocity_at_point(&Point::from(
-                                    collider_pos_1.translation.vector,
-                                ));
-                                let point_velocity_2 = body2.velocity_at_point(&Point::from(
-                                    collider_pos_2.translation.vector,
-                                ));
-                                let pixel_pos_1 = collider_pos_1.translation.vector;
-                                let pixel_pos_2 = collider_pos_2.translation.vector;
+                                let point_velocity_1 =
+                                    body1.velocity_at_point(collider_pos_1.translation);
+                                let point_velocity_2 =
+                                    body2.velocity_at_point(collider_pos_2.translation);
+                                let pixel_pos_1 = collider_pos_1.translation;
+                                let pixel_pos_2 = collider_pos_2.translation;
                                 contact_info.pixel_local_pos_1 = pixel_pos_1
-                                    + (body1
-                                        .rotation()
-                                        .transform_vector(&contact_point.local_p1.coords));
+                                    + (body1.rotation().transform_vector(contact_point.local_p1));
                                 contact_info.pixel_local_pos_2 = pixel_pos_2
-                                    + (body2
-                                        .rotation()
-                                        .transform_vector(&contact_point.local_p2.coords));
+                                    + (body2.rotation().transform_vector(contact_point.local_p2));
                                 contact_info.pixel_velocity_pos_1 = point_velocity_1;
                                 contact_info.pixel_velocity_pos_2 = point_velocity_2;
                                 contact_info.pixel_distance = contact_point.dist;
@@ -696,7 +690,7 @@ impl PhysicsEngine {
                 .physics_objects
                 .island_manager
                 .active_bodies()
-                .len();
+                .count();
         }
         0
     }

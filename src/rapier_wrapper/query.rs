@@ -2,7 +2,6 @@ use std::ops::Mul;
 
 use godot::global::godot_error;
 use godot::global::godot_warn;
-use nalgebra::zero;
 use rapier::parry;
 use rapier::parry::query::ShapeCastOptions;
 use rapier::parry::query::ShapeCastStatus;
@@ -13,8 +12,8 @@ use crate::servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use crate::servers::rapier_physics_singleton::PhysicsIds;
 use crate::spaces::rapier_space::RapierSpace;
 pub struct RayHitInfo {
-    pub pixel_position: Vector<Real>,
-    pub normal: Vector<Real>,
+    pub pixel_position: Vector,
+    pub normal: Vector,
     pub collider: ColliderHandle,
     pub user_data: UserData,
     pub feature: FeatureId,
@@ -22,8 +21,8 @@ pub struct RayHitInfo {
 impl RayHitInfo {
     pub fn default() -> RayHitInfo {
         RayHitInfo {
-            pixel_position: zero(),
-            normal: zero(),
+            pixel_position: Vector::ZERO,
+            normal: Vector::ZERO,
             collider: ColliderHandle::invalid(),
             user_data: UserData::invalid_user_data(),
             feature: FeatureId::default(),
@@ -40,10 +39,10 @@ pub struct ShapeCastResult {
     pub collided: bool,
     pub toi: Real,
     pub toi_unsafe: Real,
-    pub pixel_witness1: Vector<Real>,
-    pub pixel_witness2: Vector<Real>,
-    pub normal1: Vector<Real>,
-    pub normal2: Vector<Real>,
+    pub pixel_witness1: Vector,
+    pub pixel_witness2: Vector,
+    pub normal1: Vector,
+    pub normal2: Vector,
     pub collider: ColliderHandle,
     pub user_data: UserData,
 }
@@ -54,24 +53,24 @@ impl ShapeCastResult {
             toi: 1.0,
             toi_unsafe: 1.0,
             collider: ColliderHandle::invalid(),
-            pixel_witness1: zero(),
-            pixel_witness2: zero(),
-            normal1: zero(),
-            normal2: zero(),
+            pixel_witness1: Vector::ZERO,
+            pixel_witness2: Vector::ZERO,
+            normal1: Vector::ZERO,
+            normal2: Vector::ZERO,
             user_data: UserData::invalid_user_data(),
         }
     }
 }
 #[derive(Copy, Clone, Default, Debug)]
 pub struct WitnessPair {
-    pub pixel_witness1: Vector<Real>,
-    pub pixel_witness2: Vector<Real>,
+    pub pixel_witness1: Vector,
+    pub pixel_witness2: Vector,
 }
 impl WitnessPair {
     fn new() -> WitnessPair {
         WitnessPair {
-            pixel_witness1: zero(),
-            pixel_witness2: zero(),
+            pixel_witness1: Vector::ZERO,
+            pixel_witness2: Vector::ZERO,
         }
     }
 }
@@ -80,10 +79,10 @@ pub struct ContactResult {
     pub collided: bool,
     pub within_margin: bool,
     pub pixel_distance: Real,
-    pub pixel_point1: Vector<Real>,
-    pub pixel_point2: Vector<Real>,
-    pub normal1: Vector<Real>,
-    pub normal2: Vector<Real>,
+    pub pixel_point1: Vector,
+    pub pixel_point2: Vector,
+    pub normal1: Vector,
+    pub normal2: Vector,
 }
 #[derive(Default)]
 pub struct QueryExcludedInfo {
@@ -99,8 +98,8 @@ impl PhysicsEngine {
     pub fn intersect_ray(
         &self,
         world_handle: WorldHandle,
-        from: Vector<Real>,
-        dir: Vector<Real>,
+        from: Vector,
+        dir: Vector,
         length: Real,
         collide_with_body: bool,
         collide_with_area: bool,
@@ -115,7 +114,7 @@ impl PhysicsEngine {
         let Some(physics_world) = self.get_world(world_handle) else {
             return false;
         };
-        let ray = Ray::new(Point { coords: from }, dir);
+        let ray = Ray::new(from, dir);
         let mut filter = QueryFilter::new();
         if !collide_with_body {
             filter = filter.exclude_solids();
@@ -157,9 +156,9 @@ impl PhysicsEngine {
                 result = true;
                 let hit_point = ray.point_at(intersection.time_of_impact);
                 let hit_normal = intersection.normal;
-                hit_info.pixel_position = hit_point.coords;
+                hit_info.pixel_position = hit_point;
                 if hit_from_inside && intersection.time_of_impact == 0.0 {
-                    hit_info.normal = zero();
+                    hit_info.normal = Vector::ZERO;
                 } else {
                     hit_info.normal = hit_normal;
                 }
@@ -179,7 +178,7 @@ impl PhysicsEngine {
     pub fn intersect_point(
         &self,
         world_handle: WorldHandle,
-        position: Vector<Real>,
+        position: Vector,
         collide_with_body: bool,
         collide_with_area: bool,
         hit_info_array: *mut PointHitInfo,
@@ -194,7 +193,7 @@ impl PhysicsEngine {
             return cpt_hit;
         }
         if let Some(physics_world) = self.get_world(world_handle) {
-            let point = Point { coords: position };
+            let point = position;
             let mut filter = QueryFilter::new();
             if !collide_with_body {
                 filter = filter.exclude_solids();
@@ -252,9 +251,9 @@ impl PhysicsEngine {
     #[cfg(feature = "dim2")]
     pub fn shape_collide(
         &self,
-        shape_vel1: Vector<Real>,
+        shape_vel1: Vector,
         shape_info1: ShapeInfo,
-        shape_vel2: Vector<Real>,
+        shape_vel2: Vector,
         shape_info2: ShapeInfo,
     ) -> ShapeCastResult {
         let mut result = ShapeCastResult::new();
@@ -271,8 +270,8 @@ impl PhysicsEngine {
                     ..Default::default()
                 };
                 // Stationary shapes
-                if shape_vel1.magnitude_squared() < DEFAULT_EPSILON
-                    && shape_vel2.magnitude_squared() < DEFAULT_EPSILON
+                if shape_vel1.length_squared() < DEFAULT_EPSILON
+                    && shape_vel2.length_squared() < DEFAULT_EPSILON
                 {
                     let contact_result = parry::query::contact(
                         &shape_transform1,
@@ -288,12 +287,12 @@ impl PhysicsEngine {
                             if contact.dist <= 0.0 {
                                 result.toi = 0.0;
                                 result.collided = true;
-                                result.normal1 = contact.normal1.into_inner();
-                                result.normal2 = contact.normal2.into_inner();
-                                result.pixel_witness1 = contact.point1.coords
-                                    + shape_info1.transform.translation.vector;
-                                result.pixel_witness2 = contact.point2.coords
-                                    + shape_info2.transform.translation.vector;
+                                result.normal1 = contact.normal1;
+                                result.normal2 = contact.normal2;
+                                result.pixel_witness1 =
+                                    contact.point1 + shape_info1.transform.translation;
+                                result.pixel_witness2 =
+                                    contact.point2 + shape_info2.transform.translation;
                             }
                         }
                         Err(err) => {
@@ -304,10 +303,10 @@ impl PhysicsEngine {
                 }
                 let toi_result = parry::query::cast_shapes(
                     &shape_transform1,
-                    &shape_vel1,
+                    shape_vel1,
                     shared_shape1.as_ref(),
                     &shape_transform2,
-                    &shape_vel2,
+                    shape_vel2,
                     shared_shape2.as_ref(),
                     shape_cast_options,
                 );
@@ -321,12 +320,10 @@ impl PhysicsEngine {
                         }
                         result.collided = true;
                         result.toi = hit.time_of_impact;
-                        result.normal1 = hit.normal1.into_inner();
-                        result.normal2 = hit.normal2.into_inner();
-                        result.pixel_witness1 =
-                            hit.witness1.coords + shape_info1.transform.translation.vector;
-                        result.pixel_witness2 =
-                            hit.witness2.coords + shape_info2.transform.translation.vector;
+                        result.normal1 = hit.normal1;
+                        result.normal2 = hit.normal2;
+                        result.pixel_witness1 = hit.witness1 + shape_info1.transform.translation;
+                        result.pixel_witness2 = hit.witness2 + shape_info2.transform.translation;
                     }
                     Err(err) => {
                         godot_error!("toi error: {:?}", err);
@@ -341,7 +338,7 @@ impl PhysicsEngine {
     pub fn shape_find_intersections(
         &self,
         world_handle: WorldHandle,
-        shape_vel: Vector<Real>,
+        shape_vel: Vector,
         shape_info: ShapeInfo,
         margin: Real,
         collide_with_body: bool,
@@ -382,7 +379,7 @@ impl PhysicsEngine {
             )
         };
         filter.predicate = Some(&predicate);
-        let velocity_size = shape_vel.magnitude();
+        let velocity_size = shape_vel.length();
         let mut shape_transform_with_motion = shape_transform;
         // If we have velocity, then we cast our shape forward; shape_transform_with_motion will be updated
         // to match the position it will occupy at the end of the tick, or its hit location if it hits something this tick.
@@ -407,7 +404,7 @@ impl PhysicsEngine {
                 )
                 .cast_shape(
                     &shape_transform,
-                    &shape_vel,
+                    shape_vel,
                     shared_shape.as_ref(),
                     shape_cast_options,
                 )
@@ -417,7 +414,7 @@ impl PhysicsEngine {
                 {
                     godot_warn!("shape casting status warn: {:?}", hit.status);
                 }
-                shape_transform_with_motion.translation.vector += shape_vel * hit.time_of_impact;
+                shape_transform_with_motion.translation += shape_vel * hit.time_of_impact;
             }
         }
         for (collider_handle, _collider) in physics_world
@@ -458,8 +455,8 @@ impl PhysicsEngine {
                         break;
                     }
                     for contact in &m.points {
-                        let contact_p1 = (shape_transform_with_motion * contact.local_p1).coords;
-                        let contact_p2 = (collider.position() * contact.local_p2).coords;
+                        let contact_p1 = shape_transform_with_motion * contact.local_p1;
+                        let contact_p2 = collider.position() * contact.local_p2;
                         let mut this_contact: WitnessPair = WitnessPair::new();
                         this_contact.pixel_witness1 = contact_p1;
                         this_contact.pixel_witness2 = contact_p2;
@@ -479,7 +476,7 @@ impl PhysicsEngine {
     pub fn shape_casting(
         &self,
         world_handle: WorldHandle,
-        shape_vel: Vector<Real>,
+        shape_vel: Vector,
         shape_info: ShapeInfo,
         margin: Real,
         collide_with_body: bool,
@@ -512,7 +509,7 @@ impl PhysicsEngine {
                     )
                 };
                 filter.predicate = Some(&predicate);
-                let velocity_size = shape_vel.magnitude();
+                let velocity_size = shape_vel.length();
                 if velocity_size < DEFAULT_EPSILON {
                     for (collider_handle, _collider) in physics_world
                         .physics_objects
@@ -546,12 +543,12 @@ impl PhysicsEngine {
                                 .contact(&pos12, shared_shape.as_ref(), collider.shape(), margin)
                                 && let Some(contact) = contact
                             {
-                                result.normal1 = contact.normal1.into_inner();
-                                result.normal2 = contact.normal2.into_inner();
+                                result.normal1 = contact.normal1;
+                                result.normal2 = contact.normal2;
                                 result.pixel_witness1 =
-                                    contact.point1.coords + shape_transform.translation.vector;
+                                    contact.point1 + shape_transform.translation;
                                 result.pixel_witness2 =
-                                    contact.point2.coords + collider.position().translation.vector;
+                                    contact.point2 + collider.position().translation;
                             } else {
                                 godot_error!("contact error");
                             }
@@ -581,7 +578,7 @@ impl PhysicsEngine {
                         )
                         .cast_shape(
                             &shape_transform,
-                            &shape_vel,
+                            shape_vel,
                             shared_shape.as_ref(),
                             shape_cast_options,
                         )
@@ -595,8 +592,8 @@ impl PhysicsEngine {
                         result.collided = true;
                         result.toi = hit.time_of_impact;
                         result.toi_unsafe = hit.time_of_impact;
-                        result.normal1 = hit.normal1.into_inner();
-                        result.normal2 = hit.normal2.into_inner();
+                        result.normal1 = hit.normal1;
+                        result.normal2 = hit.normal2;
                         result.collider = collider_handle;
                         result.user_data = physics_world.get_collider_user_data(collider_handle);
                         // Witnesses are both in worldspace
@@ -607,12 +604,12 @@ impl PhysicsEngine {
                             .collider_set
                             .get(collider_handle)
                         {
-                            result.pixel_witness1 = witness1.coords;
-                            result.pixel_witness2 = witness2.coords;
+                            result.pixel_witness1 = witness1;
+                            result.pixel_witness2 = witness2;
                             // the time of impact isn't exact. Compute unsafe time of impact.
                             if needs_exact {
                                 let mut hit_transform = shape_transform;
-                                hit_transform.translation.vector += shape_vel * hit.time_of_impact;
+                                hit_transform.translation += shape_vel * hit.time_of_impact;
                                 let pos12 = hit_transform.inv_mul(collider.position());
                                 // They are separated.
                                 if let Ok(distance) = physics_world
@@ -641,8 +638,8 @@ impl PhysicsEngine {
     pub fn intersect_aabb(
         &self,
         world_handle: WorldHandle,
-        aabb_min: Vector<Real>,
-        aabb_max: Vector<Real>,
+        aabb_min: Vector,
+        aabb_max: Vector,
         collide_with_body: bool,
         collide_with_area: bool,
         hit_info_slice: &mut [PointHitInfo],
@@ -654,11 +651,9 @@ impl PhysicsEngine {
     ) -> usize {
         let mut cpt_hit = 0;
         if let Some(physics_world) = self.get_world(world_handle) {
-            let aabb_min_point = Point { coords: aabb_min };
-            let aabb_max_point = Point { coords: aabb_max };
             let aabb = Aabb {
-                mins: aabb_min_point,
-                maxs: aabb_max_point,
+                mins: aabb_min,
+                maxs: aabb_max,
             };
             for (handle, _) in physics_world
                 .physics_objects
@@ -735,11 +730,10 @@ impl PhysicsEngine {
                         result.pixel_distance = contact.dist;
                         result.within_margin = contact.dist > 0.0;
                         result.collided = true;
-                        result.normal1 = contact.normal1.into_inner();
-                        result.normal2 = contact.normal2.into_inner();
-                        result.pixel_point1 =
-                            (contact.point1 + contact.normal1.mul(prediction)).coords;
-                        result.pixel_point2 = contact.point2.coords;
+                        result.normal1 = contact.normal1;
+                        result.normal2 = contact.normal2;
+                        result.pixel_point1 = contact.point1 + contact.normal1.mul(prediction);
+                        result.pixel_point2 = contact.point2;
                         return result;
                     }
                     Err(err) => {

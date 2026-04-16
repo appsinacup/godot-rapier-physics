@@ -415,7 +415,7 @@ impl RapierDirectSpaceStateImpl {
             return false;
         }
         let mut found_collision: bool = false;
-        let shape_position = shape_info.transform.translation.vector;
+        let shape_position = shape_info.transform.translation;
         let mut deepest_collision_index: Option<usize> = None;
         let mut deepest_collision_distance: Option<f32> = None;
         for (i, result) in results.iter().enumerate() {
@@ -423,7 +423,7 @@ impl RapierDirectSpaceStateImpl {
                 continue;
             }
             found_collision = true;
-            let collision_distance: f32 = (result.pixel_witness2 - shape_position).norm();
+            let collision_distance: f32 = (result.pixel_witness2 - shape_position).length();
             if let Some(current) = deepest_collision_distance {
                 if collision_distance < current {
                     deepest_collision_distance = Some(collision_distance);

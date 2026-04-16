@@ -56,7 +56,7 @@ impl PhysicsEngine {
         &mut self,
         world_handle: WorldHandle,
         joint_handle: JointHandle,
-        target_transform: Isometry<Real>,
+        target_transform: Pose,
         options: InverseKinematicsOption,
     ) {
         let Some(physics_world) = self.get_mut_world(world_handle) else {
@@ -127,8 +127,8 @@ impl PhysicsEngine {
         world_handle: WorldHandle,
         body_handle_1: RigidBodyHandle,
         body_handle_2: RigidBodyHandle,
-        anchor_1: Vector<Real>,
-        anchor_2: Vector<Real>,
+        anchor_1: Vector,
+        anchor_2: Vector,
         angular_limit_lower: Real,
         angular_limit_upper: Real,
         angular_limit_enabled: bool,
@@ -141,8 +141,8 @@ impl PhysicsEngine {
         self.body_wake_up(world_handle, body_handle_2, false);
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             let mut joint = RevoluteJointBuilder::new()
-                .local_anchor1(Point { coords: anchor_1 })
-                .local_anchor2(Point { coords: anchor_2 })
+                .local_anchor1(anchor_1)
+                .local_anchor2(anchor_2)
                 .contacts_enabled(!disable_collision);
             if angular_limit_enabled {
                 joint = joint.limits([angular_limit_lower, angular_limit_upper]);
@@ -163,10 +163,10 @@ impl PhysicsEngine {
         world_handle: WorldHandle,
         body_handle_1: RigidBodyHandle,
         body_handle_2: RigidBodyHandle,
-        anchor_1: Vector<Real>,
-        anchor_2: Vector<Real>,
-        axis_1: Rotation<Real>,
-        axis_2: Rotation<Real>,
+        anchor_1: Vector,
+        anchor_2: Vector,
+        axis_1: Rotation,
+        axis_2: Rotation,
         angular_limit_lower: Real,
         angular_limit_upper: Real,
         angular_limit_enabled: bool,
@@ -183,8 +183,8 @@ impl PhysicsEngine {
             let axis2_vec = axis_2 * Vector::x_axis();
             // Use GenericJointBuilder to set both local axes
             let mut joint = GenericJointBuilder::new(JointAxesMask::LOCKED_REVOLUTE_AXES)
-                .local_anchor1(Point { coords: anchor_1 })
-                .local_anchor2(Point { coords: anchor_2 })
+                .local_anchor1(anchor_1)
+                .local_anchor2(anchor_2)
                 .local_axis1(axis1_vec)
                 .local_axis2(axis2_vec)
                 .contacts_enabled(!disable_collision);
@@ -211,8 +211,8 @@ impl PhysicsEngine {
         world_handle: WorldHandle,
         body_handle_1: RigidBodyHandle,
         body_handle_2: RigidBodyHandle,
-        anchor_1: Vector<Real>,
-        anchor_2: Vector<Real>,
+        anchor_1: Vector,
+        anchor_2: Vector,
         joint_type: RapierJointType,
         disable_collision: bool,
     ) -> JointHandle {
@@ -220,8 +220,8 @@ impl PhysicsEngine {
         self.body_wake_up(world_handle, body_handle_2, false);
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             let joint = SphericalJointBuilder::new()
-                .local_anchor1(Point { coords: anchor_1 })
-                .local_anchor2(Point { coords: anchor_2 })
+                .local_anchor1(anchor_1)
+                .local_anchor2(anchor_2)
                 .contacts_enabled(!disable_collision);
             return physics_world.insert_joint(body_handle_1, body_handle_2, joint_type, joint);
         }
@@ -235,10 +235,10 @@ impl PhysicsEngine {
         world_handle: WorldHandle,
         body_handle_1: RigidBodyHandle,
         body_handle_2: RigidBodyHandle,
-        anchor_1: Vector<Real>,
-        anchor_2: Vector<Real>,
-        axis_1: Rotation<Real>,
-        axis_2: Rotation<Real>,
+        anchor_1: Vector,
+        anchor_2: Vector,
+        axis_1: Rotation,
+        axis_2: Rotation,
         linear_limit_upper: f32,
         linear_limit_lower: f32,
         joint_type: RapierJointType,
@@ -252,8 +252,8 @@ impl PhysicsEngine {
             let axis2_vec = axis_2 * Vector::x_axis();
             // Use GenericJointBuilder to set both local axes for prismatic joint
             let joint = GenericJointBuilder::new(JointAxesMask::LOCKED_PRISMATIC_AXES)
-                .local_anchor1(Point { coords: anchor_1 })
-                .local_anchor2(Point { coords: anchor_2 })
+                .local_anchor1(anchor_1)
+                .local_anchor2(anchor_2)
                 .local_axis1(axis1_vec)
                 .local_axis2(axis2_vec)
                 .limits(JointAxis::LinX, [linear_limit_lower, linear_limit_upper])
@@ -290,8 +290,8 @@ impl PhysicsEngine {
         &mut self,
         world_handle: WorldHandle,
         joint_handle: JointHandle,
-        anchor_1: Vector<Real>,
-        anchor_2: Vector<Real>,
+        anchor_1: Vector,
+        anchor_2: Vector,
     ) {
         self.joint_wake_up_connected_rigidbodies(world_handle, joint_handle);
         if let Some(physics_world) = self.get_mut_world(world_handle)
@@ -299,8 +299,8 @@ impl PhysicsEngine {
             && let Some(joint) = joint.as_spherical_mut()
         {
             joint
-                .set_local_anchor1(Point { coords: anchor_1 })
-                .set_local_anchor2(Point { coords: anchor_2 });
+                .set_local_anchor1(anchor_1)
+                .set_local_anchor2(anchor_2);
         }
     }
 
@@ -350,19 +350,19 @@ impl PhysicsEngine {
         world_handle: WorldHandle,
         body_handle_1: RigidBodyHandle,
         body_handle_2: RigidBodyHandle,
-        axis: Vector<Real>,
-        anchor_1: Vector<Real>,
-        anchor_2: Vector<Real>,
-        limits: Vector<Real>,
+        axis: Vector,
+        anchor_1: Vector,
+        anchor_2: Vector,
+        limits: Vector,
         joint_type: RapierJointType,
         disable_collision: bool,
     ) -> JointHandle {
         self.body_wake_up(world_handle, body_handle_1, false);
         self.body_wake_up(world_handle, body_handle_2, false);
         if let Some(physics_world) = self.get_mut_world(world_handle) {
-            let joint = PinSlotJointBuilder::new(UnitVector::new_unchecked(axis))
-                .local_anchor1(Point { coords: anchor_1 })
-                .local_anchor2(Point { coords: anchor_2 })
+            let joint = PinSlotJointBuilder::new(axis)
+                .local_anchor1(anchor_1)
+                .local_anchor2(anchor_2)
                 .limits([limits.x, limits.y])
                 .contacts_enabled(!disable_collision);
             return physics_world.insert_joint(body_handle_1, body_handle_2, joint_type, joint);
@@ -377,8 +377,8 @@ impl PhysicsEngine {
         world_handle: WorldHandle,
         body_handle_1: RigidBodyHandle,
         body_handle_2: RigidBodyHandle,
-        anchor_1: Vector<Real>,
-        anchor_2: Vector<Real>,
+        anchor_1: Vector,
+        anchor_2: Vector,
         stiffness: Real,
         damping: Real,
         rest_length: Real,
@@ -392,8 +392,8 @@ impl PhysicsEngine {
                 Self::godot_spring_to_rapier_accel(stiffness, damping);
             let joint = SpringJointBuilder::new(rest_length, rapier_stiffness, rapier_damping)
                 .spring_model(MotorModel::AccelerationBased)
-                .local_anchor1(Point { coords: anchor_1 })
-                .local_anchor2(Point { coords: anchor_2 })
+                .local_anchor1(anchor_1)
+                .local_anchor2(anchor_2)
                 .contacts_enabled(!disable_collision);
             return physics_world.insert_joint(body_handle_1, body_handle_2, joint_type, joint);
         }
@@ -495,10 +495,10 @@ impl PhysicsEngine {
         world_handle: WorldHandle,
         body_handle_1: RigidBodyHandle,
         body_handle_2: RigidBodyHandle,
-        anchor_1: Vector<Real>,
-        anchor_2: Vector<Real>,
-        axis_1: Rotation<Real>,
-        axis_2: Rotation<Real>,
+        anchor_1: Vector,
+        anchor_2: Vector,
+        axis_1: Rotation,
+        axis_2: Rotation,
         joint_type: RapierJointType,
         disable_collision: bool,
     ) -> JointHandle {
@@ -510,8 +510,8 @@ impl PhysicsEngine {
             let axis1_vec = axis_1 * Vector::x_axis();
             let axis2_vec = axis_2 * Vector::x_axis();
             let joint = GenericJointBuilder::new(JointAxesMask::FREE_FIXED_AXES)
-                .local_anchor1(Point { coords: anchor_1 })
-                .local_anchor2(Point { coords: anchor_2 })
+                .local_anchor1(anchor_1)
+                .local_anchor2(anchor_2)
                 .local_axis1(axis1_vec)
                 .local_axis2(axis2_vec)
                 .contacts_enabled(!disable_collision);
@@ -527,10 +527,10 @@ impl PhysicsEngine {
         world_handle: WorldHandle,
         body_handle_1: RigidBodyHandle,
         body_handle_2: RigidBodyHandle,
-        anchor_1: Vector<Real>,
-        anchor_2: Vector<Real>,
-        axis_1: Rotation<Real>,
-        axis_2: Rotation<Real>,
+        anchor_1: Vector,
+        anchor_2: Vector,
+        axis_1: Rotation,
+        axis_2: Rotation,
         swing_span: Real,
         twist_span: Real,
         joint_type: RapierJointType,
@@ -548,8 +548,8 @@ impl PhysicsEngine {
             let axis2_vec = axis_2 * Vector::x_axis();
             // Create a generic joint with locked translations and limited rotations
             let joint = GenericJointBuilder::new(JointAxesMask::LOCKED_SPHERICAL_AXES)
-                .local_anchor1(Point { coords: anchor_1 })
-                .local_anchor2(Point { coords: anchor_2 })
+                .local_anchor1(anchor_1)
+                .local_anchor2(anchor_2)
                 .local_axis1(axis1_vec)
                 .local_axis2(axis2_vec)
                 .limits(JointAxis::AngX, [-swing_limit, swing_limit])

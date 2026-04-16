@@ -9,8 +9,8 @@ pub struct OneWayDirection {
     pub body2: bool,
     pub pixel_body1_margin: Real,
     pub pixel_body2_margin: Real,
-    pub previous_linear_velocity1: Vector<Real>,
-    pub previous_linear_velocity2: Vector<Real>,
+    pub previous_linear_velocity1: Vector,
+    pub previous_linear_velocity2: Vector,
 }
 pub type CollisionFilterCallback = fn(
     filter_info: &CollisionFilterInfo,
@@ -36,15 +36,15 @@ pub struct PhysicsHooksCollisionFilter<'a> {
 }
 pub fn update_as_oneway_platform(
     context: &mut ContactModificationContext,
-    local_normal: &Vector<Real>,
-    allowed_local_normal: &Vector<Real>,
+    local_normal: &Vector,
+    allowed_local_normal: &Vector,
 ) {
     const CONTACT_CONFIGURATION_UNKNOWN: u32 = 0;
     const CONTACT_CURRENTLY_ALLOWED: u32 = 1;
     const CONTACT_CURRENTLY_FORBIDDEN: u32 = 2;
     // Test the allowed normal with the local-space contact normal that
     // points towards the exterior of context.collider1.
-    let contact_is_ok = local_normal.dot(allowed_local_normal) < 0.00001;
+    let contact_is_ok = local_normal.dot(*allowed_local_normal) < 0.00001;
     match *context.user_data {
         CONTACT_CONFIGURATION_UNKNOWN => {
             if contact_is_ok {
@@ -60,7 +60,7 @@ pub fn update_as_oneway_platform(
                 // So in this case we can't really conclude.
                 // If the norm is non-zero, then we can tell we need to forbid
                 // further contacts. Otherwise we have to wait for the next frame.
-                if local_normal.norm_squared() > 0.1 {
+                if local_normal.length_squared() > 0.1 {
                     *context.user_data = CONTACT_CURRENTLY_FORBIDDEN;
                 }
             }
@@ -138,36 +138,37 @@ impl PhysicsHooks for PhysicsHooksCollisionFilter<'_> {
             user_data1: UserData::new(collider1.user_data),
             user_data2: UserData::new(collider2.user_data),
         };
-        let allowed_local_n1 = collider1.position().rotation * Vector::y();
-        let allowed_local_n2 = collider2.position().rotation * Vector::y();
+        let allowed_local_n1 = collider1.position().rotation * Vector::Y;
+        let allowed_local_n2 = collider2.position().rotation * Vector::Y;
         let one_way_direction = (self.collision_modify_contacts_callback)(
             &filter_info,
             self.physics_collision_objects,
             self.physics_ids,
         );
+        let contact_normal = *context.normal;
         if one_way_direction.body1 {
-            update_as_oneway_platform(context, &(context.normal.clone()), &allowed_local_n1);
+            update_as_oneway_platform(context, &contact_normal, &allowed_local_n1);
         }
         if one_way_direction.body2 {
-            update_as_oneway_platform(context, &-*context.normal, &allowed_local_n2);
+            update_as_oneway_platform(context, &-contact_normal, &allowed_local_n2);
         }
         let contact_is_pass_through = false;
         let mut rigid_body_1_linvel = one_way_direction.previous_linear_velocity1;
         let mut rigid_body_2_linvel = one_way_direction.previous_linear_velocity2;
-        if rigid_body_1_linvel.norm() == 0.0 {
-            rigid_body_1_linvel = *body1.linvel();
+        if rigid_body_1_linvel.length() == 0.0 {
+            rigid_body_1_linvel = body1.linvel();
         }
-        if rigid_body_2_linvel.norm() == 0.0 {
-            rigid_body_2_linvel = *body2.linvel();
+        if rigid_body_2_linvel.length() == 0.0 {
+            rigid_body_2_linvel = body2.linvel();
         }
         // ghost collisions
         if body1.is_dynamic() && !body2.is_dynamic() {
             let normal = *context.normal;
-            if rigid_body_1_linvel.norm() == 0.0 {
+            if rigid_body_1_linvel.length() == 0.0 {
                 return;
             }
-            let normal_dot_velocity = normal.dot(&rigid_body_1_linvel.normalize());
-            let velocity_magnitude = rigid_body_1_linvel.magnitude() * self.last_step;
+            let normal_dot_velocity = normal.dot(rigid_body_1_linvel.normalize());
+            let velocity_magnitude = rigid_body_1_linvel.length() * self.last_step;
             let length_along_normal = velocity_magnitude * Real::max(normal_dot_velocity, 0.0);
             if normal_dot_velocity >= -DEFAULT_EPSILON {
                 context.solver_contacts.retain(|contact| {
@@ -181,11 +182,11 @@ impl PhysicsHooks for PhysicsHooksCollisionFilter<'_> {
             }
         } else if body2.is_dynamic() && !body1.is_dynamic() {
             let normal = -*context.normal;
-            if rigid_body_2_linvel.norm() == 0.0 {
+            if rigid_body_2_linvel.length() == 0.0 {
                 return;
             }
-            let normal_dot_velocity = normal.dot(&rigid_body_2_linvel.normalize());
-            let velocity_magnitude = rigid_body_2_linvel.magnitude() * self.last_step;
+            let normal_dot_velocity = normal.dot(rigid_body_2_linvel.normalize());
+            let velocity_magnitude = rigid_body_2_linvel.length() * self.last_step;
             let length_along_normal = velocity_magnitude * Real::max(normal_dot_velocity, 0.0);
             if normal_dot_velocity >= -DEFAULT_EPSILON {
                 context.solver_contacts.retain(|contact| {

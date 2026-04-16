@@ -1846,7 +1846,7 @@ impl RapierBody {
             .body_get_mass_properties(self.base.get_space_id(), self.base.get_body_handle());
         if self.calculate_center_of_mass {
             self.state.center_of_mass =
-                vector_to_godot(rigid_body_mass_properties.0.local_mprops.local_com.coords);
+                vector_to_godot(rigid_body_mass_properties.0.local_mprops.local_com);
         }
         if self.calculate_inertia {
             let angular_inertia = rigid_body_mass_properties

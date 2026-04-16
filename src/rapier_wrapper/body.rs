@@ -1,4 +1,3 @@
-use nalgebra::Point;
 use rapier::prelude::*;
 
 use super::ANG_ZERO;
@@ -10,15 +9,15 @@ pub enum BodyType {
 }
 fn set_rigid_body_properties_internal(
     rigid_body: &mut RigidBody,
-    pos: Translation<Real>,
-    rot: Rotation<Real>,
+    pos: Vector,
+    rot: Rotation,
     teleport: bool,
     wake_up: bool,
 ) {
     if rigid_body.is_dynamic() || rigid_body.is_fixed() || teleport {
-        rigid_body.set_position(Isometry::from_parts(pos, rot), wake_up);
+        rigid_body.set_position(Pose::from_parts(pos, rot), wake_up);
     } else {
-        rigid_body.set_next_kinematic_position(Isometry::from_parts(pos, rot));
+        rigid_body.set_next_kinematic_position(Pose::from_parts(pos, rot));
     }
 }
 impl PhysicsEngine {
@@ -47,8 +46,8 @@ impl PhysicsEngine {
     pub fn body_create(
         &mut self,
         world_handle: WorldHandle,
-        pos: Vector<Real>,
-        rot: Rotation<Real>,
+        pos: Vector,
+        rot: Rotation,
         body_type: BodyType,
         activation_angular_threshold: Real,
         activation_linear_threshold: Real,
@@ -73,13 +72,7 @@ impl PhysicsEngine {
         activation.angular_threshold = activation_angular_threshold;
         activation.normalized_linear_threshold = activation_linear_threshold;
         activation.time_until_sleep = activation_time_until_sleep;
-        set_rigid_body_properties_internal(
-            &mut rigid_body,
-            Translation::from(pos),
-            rot,
-            true,
-            true,
-        );
+        set_rigid_body_properties_internal(&mut rigid_body, pos, rot, true, true);
         physics_world
             .physics_objects
             .rigid_body_set
@@ -141,7 +134,7 @@ impl PhysicsEngine {
         &self,
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
-    ) -> Vector<Real> {
+    ) -> Vector {
         if let Some(physics_world) = self.get_world(world_handle)
             && let Some(body) = physics_world
                 .physics_objects
@@ -149,7 +142,7 @@ impl PhysicsEngine {
                 .get(body_handle)
         {
             let body_vector = body.translation();
-            return *body_vector;
+            return body_vector;
         }
         Vector::default()
     }
@@ -158,7 +151,7 @@ impl PhysicsEngine {
         &self,
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
-    ) -> Rotation<Real> {
+    ) -> Rotation {
         if let Some(physics_world) = self.get_world(world_handle)
             && let Some(body) = physics_world
                 .physics_objects
@@ -174,8 +167,8 @@ impl PhysicsEngine {
         &mut self,
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
-        pixel_pos: Vector<Real>,
-        rot: Rotation<Real>,
+        pixel_pos: Vector,
+        rot: Rotation,
         teleport: bool,
         wake_up: bool,
     ) {
@@ -185,13 +178,7 @@ impl PhysicsEngine {
                 .rigid_body_set
                 .get_mut(body_handle)
         {
-            set_rigid_body_properties_internal(
-                body,
-                Translation::from(pixel_pos),
-                rot,
-                teleport,
-                wake_up,
-            );
+            set_rigid_body_properties_internal(body, pixel_pos, rot, teleport, wake_up);
         }
         self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
     }
@@ -200,7 +187,7 @@ impl PhysicsEngine {
         &self,
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
-    ) -> Vector<Real> {
+    ) -> Vector {
         if let Some(physics_world) = self.get_world(world_handle)
             && let Some(body) = physics_world
                 .physics_objects
@@ -208,7 +195,7 @@ impl PhysicsEngine {
                 .get(body_handle)
         {
             let body_vel = body.linvel();
-            return *body_vel;
+            return body_vel;
         }
         Vector::default()
     }
@@ -217,7 +204,7 @@ impl PhysicsEngine {
         &mut self,
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
-        vel: Vector<Real>,
+        vel: Vector,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(body) = physics_world
@@ -309,7 +296,7 @@ impl PhysicsEngine {
         &self,
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
-    ) -> AngVector<Real> {
+    ) -> AngVector {
         if let Some(physics_world) = self.get_world(world_handle)
             && let Some(body) = physics_world
                 .physics_objects
@@ -326,7 +313,7 @@ impl PhysicsEngine {
         &self,
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
-    ) -> AngVector<Real> {
+    ) -> AngVector {
         if let Some(physics_world) = self.get_world(world_handle)
             && let Some(body) = physics_world
                 .physics_objects
@@ -342,7 +329,7 @@ impl PhysicsEngine {
         &mut self,
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
-        vel: AngVector<Real>,
+        vel: AngVector,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(body) = physics_world
@@ -462,8 +449,8 @@ impl PhysicsEngine {
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
         mass: Real,
-        inertia: AngVector<Real>,
-        local_com: Vector<Real>,
+        inertia: AngVector,
+        local_com: Vector,
         wake_up: bool,
         force_update: bool,
     ) {
@@ -489,7 +476,7 @@ impl PhysicsEngine {
                 }
             }
             body.set_additional_mass_properties(
-                MassProperties::new(Point { coords: local_com }, mass, inertia),
+                MassProperties::new(local_com, mass, inertia),
                 wake_up,
             );
             if force_update {
@@ -505,7 +492,7 @@ impl PhysicsEngine {
         &mut self,
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
-        force: Vector<Real>,
+        force: Vector,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(body) = physics_world
@@ -522,8 +509,8 @@ impl PhysicsEngine {
         &mut self,
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
-        force: Vector<Real>,
-        point: Vector<Real>,
+        force: Vector,
+        point: Vector,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(body) = physics_world
@@ -531,7 +518,7 @@ impl PhysicsEngine {
                 .rigid_body_set
                 .get_mut(body_handle)
         {
-            let local_point = Point { coords: point } + body.center_of_mass().coords;
+            let local_point = point + body.center_of_mass();
             body.add_force_at_point(force, local_point, true);
         }
         self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
@@ -541,7 +528,7 @@ impl PhysicsEngine {
         &mut self,
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
-        torque: AngVector<Real>,
+        torque: AngVector,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(body) = physics_world
@@ -558,7 +545,7 @@ impl PhysicsEngine {
         &mut self,
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
-        impulse: Vector<Real>,
+        impulse: Vector,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(body) = physics_world
@@ -575,8 +562,8 @@ impl PhysicsEngine {
         &mut self,
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
-        impulse: Vector<Real>,
-        point: Vector<Real>,
+        impulse: Vector,
+        point: Vector,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(body) = physics_world
@@ -584,8 +571,8 @@ impl PhysicsEngine {
                 .rigid_body_set
                 .get_mut(body_handle)
         {
-            let mut local_point = Point { coords: point };
-            local_point += body.position().translation.vector;
+            let mut local_point = point;
+            local_point += body.position().translation;
             body.apply_impulse_at_point(impulse, local_point, true);
         }
         self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
@@ -595,7 +582,7 @@ impl PhysicsEngine {
         &self,
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
-    ) -> Vector<Real> {
+    ) -> Vector {
         if let Some(physics_world) = self.get_world(world_handle)
             && let Some(body) = physics_world
                 .physics_objects
@@ -611,7 +598,7 @@ impl PhysicsEngine {
         &self,
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
-    ) -> AngVector<Real> {
+    ) -> AngVector {
         if let Some(physics_world) = self.get_world(world_handle)
             && let Some(body) = physics_world
                 .physics_objects
@@ -627,7 +614,7 @@ impl PhysicsEngine {
         &mut self,
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
-        torque_impulse: AngVector<Real>,
+        torque_impulse: AngVector,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(body) = physics_world

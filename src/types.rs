@@ -2,7 +2,6 @@ use godot::classes::*;
 use godot::prelude::*;
 #[cfg(feature = "dim2")]
 use rapier::math::Matrix;
-use rapier::math::Real;
 use rapier::math::Rotation;
 #[cfg(feature = "single")]
 pub type PackedFloatArray = PackedFloat32Array;
@@ -132,15 +131,10 @@ pub fn world_to_local_no_scale(transform: &Transform, world_pos: Vector) -> Vect
     transform_no_scale.affine_inverse() * world_pos
 }
 #[cfg(feature = "dim2")]
-pub fn transform_update(
-    transform: &Transform,
-    rotation: Rotation<Real>,
-    origin: Vector,
-) -> Transform {
+pub fn transform_update(transform: &Transform, rotation: Rotation, origin: Vector) -> Transform {
     let shear_matrix = get_shear_matrix(transform);
-    let shear_rotation_matrix = Matrix::<Real>::from(rotation) * shear_matrix;
-    let a = shear_rotation_matrix.column(0).normalize() * transform.scale().x;
-    let b = shear_rotation_matrix.column(1).normalize() * transform.scale().y;
+    let a = (rotation * shear_matrix.x_axis).normalize_or_zero() * transform.scale().x;
+    let b = (rotation * shear_matrix.y_axis).normalize_or_zero() * transform.scale().y;
     Transform2D {
         a: Vector2::new(a.x, a.y),
         b: Vector2::new(b.x, b.y),
@@ -148,11 +142,7 @@ pub fn transform_update(
     }
 }
 #[cfg(feature = "dim3")]
-pub fn transform_update(
-    transform: &Transform,
-    rotation: Rotation<Real>,
-    origin: Vector,
-) -> Transform {
+pub fn transform_update(transform: &Transform, rotation: Rotation, origin: Vector) -> Transform {
     use godot::builtin::Basis;
     let quaternion = rotation.quaternion();
     let new_transform = Transform::new(
@@ -168,7 +158,7 @@ pub fn transform_update(
     new_transform.scaled_local(scale)
 }
 #[cfg(feature = "dim3")]
-pub fn transform_rotation_rapier(transform: &godot::builtin::Transform3D) -> Rotation<Real> {
+pub fn transform_rotation_rapier(transform: &godot::builtin::Transform3D) -> Rotation {
     use rapier::na::Vector4;
     let quaternion = transform.basis.get_quaternion();
     Rotation::from_quaternion(rapier::na::Quaternion {
@@ -176,12 +166,12 @@ pub fn transform_rotation_rapier(transform: &godot::builtin::Transform3D) -> Rot
     })
 }
 #[cfg(feature = "dim2")]
-pub fn transform_rotation_rapier(transform: &godot::builtin::Transform2D) -> Rotation<Real> {
+pub fn transform_rotation_rapier(transform: &godot::builtin::Transform2D) -> Rotation {
     let angle = transform.rotation();
     Rotation::from_angle(angle)
 }
 #[cfg(feature = "dim3")]
-pub fn basis_to_rapier(basis: godot::builtin::Basis) -> Rotation<Real> {
+pub fn basis_to_rapier(basis: godot::builtin::Basis) -> Rotation {
     use rapier::na::Vector4;
     let quaternion = basis.get_quaternion();
     Rotation::from_quaternion(rapier::na::Quaternion {
@@ -208,14 +198,17 @@ pub fn variant_to_int(variant: &Variant) -> i32 {
     }
 }
 #[cfg(feature = "dim2")]
-fn get_shear_matrix(transform: &Transform) -> Matrix<Real> {
+fn get_shear_matrix(transform: &Transform) -> Matrix {
     let det_sign = transform.determinant().signum();
     let minus_sin_skew = transform
         .a
         .normalized_or_zero()
         .dot(det_sign * transform.b.normalized_or_zero());
     let cos_skew = (1. - minus_sin_skew * minus_sin_skew).sqrt();
-    Matrix::new(1., minus_sin_skew, 0., cos_skew)
+    Matrix::from_cols(
+        rapier::math::Vector::new(1.0, 0.0),
+        rapier::math::Vector::new(minus_sin_skew, cos_skew),
+    )
 }
 #[cfg(feature = "dim2")]
 #[cfg(test)]
