@@ -133,17 +133,14 @@ pub fn transform_update(transform: &Transform, rotation: Rotation, origin: Vecto
     let delta_rotation = rotation.angle() - transform.rotation();
     let scale_x = transform.a.length();
     let scale_y = transform.b.length();
-
     let mut a = transform.a.rotated(delta_rotation);
     let mut b = transform.b.rotated(delta_rotation);
-
     if !scale_x.is_zero_approx() {
         a *= scale_x / a.length();
     }
     if !scale_y.is_zero_approx() {
         b *= scale_y / b.length();
     }
-
     Transform2D { a, b, origin }
 }
 #[cfg(feature = "dim3")]
