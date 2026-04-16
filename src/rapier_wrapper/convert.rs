@@ -1,3 +1,4 @@
+#[cfg(feature = "dim3")]
 use rapier::prelude::AngVector;
 #[cfg(feature = "dim2")]
 use rapier::prelude::Real;
