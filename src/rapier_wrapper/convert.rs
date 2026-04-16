@@ -1,7 +1,7 @@
 use rapier::prelude::AngVector;
-use rapier::prelude::Vector;
 #[cfg(feature = "dim2")]
 use rapier::prelude::Real;
+use rapier::prelude::Vector;
 
 use crate::types::Angle;
 #[cfg(feature = "dim3")]

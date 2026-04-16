@@ -351,10 +351,10 @@ impl PhysicsWorld {
                                     body2.velocity_at_point(collider_pos_2.translation);
                                 let pixel_pos_1 = collider_pos_1.translation;
                                 let pixel_pos_2 = collider_pos_2.translation;
-                                contact_info.pixel_local_pos_1 = pixel_pos_1
-                                    + (*body1.rotation() * contact_point.local_p1);
-                                contact_info.pixel_local_pos_2 = pixel_pos_2
-                                    + (*body2.rotation() * contact_point.local_p2);
+                                contact_info.pixel_local_pos_1 =
+                                    pixel_pos_1 + (*body1.rotation() * contact_point.local_p1);
+                                contact_info.pixel_local_pos_2 =
+                                    pixel_pos_2 + (*body2.rotation() * contact_point.local_p2);
                                 contact_info.pixel_velocity_pos_1 = point_velocity_1;
                                 contact_info.pixel_velocity_pos_2 = point_velocity_2;
                                 contact_info.pixel_distance = contact_point.dist;

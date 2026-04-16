@@ -146,10 +146,7 @@ pub fn transform_update(transform: &Transform, rotation: Rotation, origin: Vecto
     use godot::builtin::Basis;
     let new_transform = Transform::new(
         Basis::from_quaternion(Quaternion::new(
-            rotation.x,
-            rotation.y,
-            rotation.z,
-            rotation.w,
+            rotation.x, rotation.y, rotation.z, rotation.w,
         )),
         origin,
     );
