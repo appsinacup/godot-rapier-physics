@@ -280,7 +280,6 @@ impl RapierArea {
         if let Some(other_collider) = other_collider
             && let Some(other_area) = other_collider.get_mut_area()
             && (self.area_monitor_callback.is_none()
-                || !self.is_monitorable()
                 || !other_area.is_monitorable())
         {
             return;
