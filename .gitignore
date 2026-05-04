@@ -39,3 +39,4 @@ bin2d/start.gd.uid
 bin2d/test.gd.uid
 bin3d/start.gd.uid
 bin3d/test.gd.uid
+scripts/rustfmt.toml

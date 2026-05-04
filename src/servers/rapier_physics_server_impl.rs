@@ -732,11 +732,31 @@ impl RapierPhysicsServerImpl {
         }
     }
 
+    #[cfg(feature = "dim2")]
+    pub(super) fn area_get_pickable(&self, area: Rid) -> bool {
+        let physics_data = physics_data();
+        if let Some(area) = physics_data.collision_objects.get(&area) {
+            area.get_base().get_pickable()
+        } else {
+            false
+        }
+    }
+
     #[cfg(feature = "dim3")]
     pub(super) fn area_set_ray_pickable(&mut self, area: Rid, pickable: bool) {
         let physics_data = physics_data();
         if let Some(area) = physics_data.collision_objects.get_mut(&area) {
             area.get_mut_base().set_pickable(pickable);
+        }
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn area_get_ray_pickable(&self, area: Rid) -> bool {
+        let physics_data = physics_data();
+        if let Some(area) = physics_data.collision_objects.get(&area) {
+            area.get_base().get_pickable()
+        } else {
+            false
         }
     }
 
@@ -1576,11 +1596,31 @@ impl RapierPhysicsServerImpl {
         }
     }
 
+    #[cfg(feature = "dim2")]
+    pub(super) fn body_get_pickable(&self, body: Rid) -> bool {
+        let physics_data = physics_data();
+        if let Some(body) = physics_data.collision_objects.get(&body) {
+            body.get_base().get_pickable()
+        } else {
+            false
+        }
+    }
+
     #[cfg(feature = "dim3")]
     pub(super) fn body_set_ray_pickable(&mut self, body: Rid, pickable: bool) {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
             body.get_mut_base().set_pickable(pickable);
+        }
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn body_get_ray_pickable(&self, body: Rid) -> bool {
+        let physics_data = physics_data();
+        if let Some(body) = physics_data.collision_objects.get(&body) {
+            body.get_base().get_pickable()
+        } else {
+            false
         }
     }
 

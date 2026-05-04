@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use bodies::rapier_collision_object_base::RapierCollisionObjectBase;
 use godot::classes::native::ObjectId;
 use godot::classes::physics_server_2d::BodyMode;
@@ -13,7 +11,6 @@ use servers::rapier_physics_singleton::PhysicsShapes;
 use shapes::rapier_shape::IRapierShape;
 use shapes::rapier_shape::RapierShape;
 
-use super::RapierDirectSpaceState;
 use super::rapier_space::RapierSpace;
 use crate::bodies::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;
@@ -90,17 +87,11 @@ impl RapierSpace {
             == 0;
         let rid_excluded = handle_excluded_info.query_exclude_body
             == collision_object_base.get_rid().to_u64() as i64;
-        if canvas_excluded || layer_excluded || rid_excluded {
+        let pickable_excluded = !collision_object_base.get_pickable();
+        if canvas_excluded || layer_excluded || rid_excluded || pickable_excluded {
             return true;
         }
-        let Some(direct_space) = self.get_direct_state() else {
-            return false;
-        };
-        let Ok(direct_state) = direct_space.clone().try_cast::<RapierDirectSpaceState>() else {
-            return false;
-        };
-        let direct_space = direct_state.deref();
-        direct_space.is_body_excluded_from_query(collision_object_base.get_rid())
+        false
     }
 
     #[allow(clippy::too_many_arguments)]

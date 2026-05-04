@@ -547,6 +547,10 @@ impl RapierCollisionObjectBase {
         self.pickable = p_pickable;
     }
 
+    pub fn get_pickable(&self) -> bool {
+        self.pickable
+    }
+
     pub fn destroy_body(&mut self, physics_engine: &mut PhysicsEngine) {
         if self.state.body_handle != RigidBodyHandle::invalid() {
             physics_engine.body_destroy(self.state.space_id, self.state.body_handle);
