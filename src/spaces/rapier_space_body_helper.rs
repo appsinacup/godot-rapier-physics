@@ -10,7 +10,6 @@ use servers::rapier_physics_singleton::PhysicsIds;
 use servers::rapier_physics_singleton::PhysicsShapes;
 use shapes::rapier_shape::IRapierShape;
 use shapes::rapier_shape::RapierShape;
-
 use super::rapier_space::RapierSpace;
 use crate::bodies::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;

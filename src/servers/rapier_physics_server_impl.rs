@@ -732,7 +732,6 @@ impl RapierPhysicsServerImpl {
         }
     }
 
-
     #[cfg(feature = "dim3")]
     pub(super) fn area_set_ray_pickable(&mut self, area: Rid, pickable: bool) {
         let physics_data = physics_data();
@@ -740,8 +739,6 @@ impl RapierPhysicsServerImpl {
             area.get_mut_base().set_pickable(pickable);
         }
     }
-
-
 
     pub(super) fn area_set_monitor_callback(&mut self, area: Rid, callback: Callable) {
         let physics_data = physics_data();
@@ -1579,8 +1576,6 @@ impl RapierPhysicsServerImpl {
         }
     }
 
-
-
     #[cfg(feature = "dim3")]
     pub(super) fn body_set_ray_pickable(&mut self, body: Rid, pickable: bool) {
         let physics_data = physics_data();
@@ -1588,9 +1583,6 @@ impl RapierPhysicsServerImpl {
             body.get_mut_base().set_pickable(pickable);
         }
     }
-
-    #[cfg(feature = "dim3")]
-
 
     pub(super) fn body_get_direct_state(
         &mut self,
