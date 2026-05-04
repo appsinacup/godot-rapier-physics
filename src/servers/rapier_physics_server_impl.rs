@@ -732,15 +732,6 @@ impl RapierPhysicsServerImpl {
         }
     }
 
-    #[cfg(feature = "dim2")]
-    pub(super) fn area_get_pickable(&self, area: Rid) -> bool {
-        let physics_data = physics_data();
-        if let Some(area) = physics_data.collision_objects.get(&area) {
-            area.get_base().get_pickable()
-        } else {
-            false
-        }
-    }
 
     #[cfg(feature = "dim3")]
     pub(super) fn area_set_ray_pickable(&mut self, area: Rid, pickable: bool) {
@@ -750,15 +741,7 @@ impl RapierPhysicsServerImpl {
         }
     }
 
-    #[cfg(feature = "dim3")]
-    pub(super) fn area_get_ray_pickable(&self, area: Rid) -> bool {
-        let physics_data = physics_data();
-        if let Some(area) = physics_data.collision_objects.get(&area) {
-            area.get_base().get_pickable()
-        } else {
-            false
-        }
-    }
+
 
     pub(super) fn area_set_monitor_callback(&mut self, area: Rid, callback: Callable) {
         let physics_data = physics_data();
@@ -1596,15 +1579,7 @@ impl RapierPhysicsServerImpl {
         }
     }
 
-    #[cfg(feature = "dim2")]
-    pub(super) fn body_get_pickable(&self, body: Rid) -> bool {
-        let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get(&body) {
-            body.get_base().get_pickable()
-        } else {
-            false
-        }
-    }
+
 
     #[cfg(feature = "dim3")]
     pub(super) fn body_set_ray_pickable(&mut self, body: Rid, pickable: bool) {
@@ -1615,14 +1590,7 @@ impl RapierPhysicsServerImpl {
     }
 
     #[cfg(feature = "dim3")]
-    pub(super) fn body_get_ray_pickable(&self, body: Rid) -> bool {
-        let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get(&body) {
-            body.get_base().get_pickable()
-        } else {
-            false
-        }
-    }
+
 
     pub(super) fn body_get_direct_state(
         &mut self,
