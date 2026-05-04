@@ -279,8 +279,7 @@ impl RapierArea {
         // If the other object is an area:
         if let Some(other_collider) = other_collider
             && let Some(other_area) = other_collider.get_mut_area()
-            && (self.area_monitor_callback.is_none()
-                || !other_area.is_monitorable())
+            && (self.area_monitor_callback.is_none() || !other_area.is_monitorable())
         {
             return;
         }
