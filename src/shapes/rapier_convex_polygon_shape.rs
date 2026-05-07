@@ -29,16 +29,17 @@ impl RapierConvexPolygonShape {
         &mut self,
         physics_engine: &mut PhysicsEngine,
         points: &PackedVectorArray,
-    ) {
+    ) -> bool {
         if points.len() >= 3 {
             let mut rapier_points = Vec::with_capacity(points.len());
             for point in points.as_slice() {
                 rapier_points.push(vector_to_rapier(*point));
             }
-            physics_engine.shape_create_convex_polyline(&rapier_points, self.base.get_id())
+            return physics_engine.shape_create_convex_polyline(&rapier_points, self.base.get_id());
         } else {
             godot_error!("ConvexPolygon must have at least three point");
         }
+        false
     }
 }
 impl IRapierShape for RapierConvexPolygonShape {
@@ -105,14 +106,9 @@ impl IRapierShape for RapierConvexPolygonShape {
             godot_error!("ConvexPolygon must have at least three point");
             return;
         }
-        self.create_rapier_shape(physics_engine, &points);
-        let new_points = physics_engine.shape_get_convex_polyline_points(self.base.get_id());
-        if new_points.len() != points.len() {
-            godot_warn!(
-                "ConvexPolygon shape points changed from size {} to {}",
-                points.len(),
-                new_points.len(),
-            );
+        if !self.create_rapier_shape(physics_engine, &points) {
+            godot_error!("ConvexPolygon could not be created from points");
+            return;
         }
         self.base.reset_aabb(physics_engine);
     }
@@ -178,6 +174,21 @@ mod tests {
             assert_eq!(data[1], Vector::new(4.0, 1.0));
             assert_eq!(data[2], Vector::new(5.0, 3.0));
             assert_eq!(data[3], Vector::new(3.0, 5.0));
+            let point_cloud = PackedVectorArray::from(vec![
+                Vector::new(1.0, 1.0),
+                Vector::new(5.0, 3.0),
+                Vector::new(4.0, 1.0),
+                Vector::new(3.0, 5.0),
+            ]);
+            convex_shape.set_data(point_cloud.to_variant(), &mut physics_data().physics_engine);
+            let data: PackedVectorArray = convex_shape
+                .get_data(&physics_data().physics_engine)
+                .try_to()
+                .unwrap();
+            assert_eq!(data.len(), 4);
+            for point in point_cloud.as_slice() {
+                assert!(data.as_slice().contains(point));
+            }
             convex_shape
                 .get_mut_base()
                 .destroy_shape(&mut physics_data().physics_engine);

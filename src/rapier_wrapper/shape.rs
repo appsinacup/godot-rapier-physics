@@ -17,6 +17,93 @@ pub fn vec_to_point_array(pixel_data: &[Vector]) -> Vec<Vector> {
     }
     vec
 }
+#[cfg(feature = "dim2")]
+fn signed_area(points: &[Vector]) -> Real {
+    let mut area = 0.0;
+    for i in 0..points.len() {
+        let next = (i + 1) % points.len();
+        area += points[i].x * points[next].y - points[next].x * points[i].y;
+    }
+    area * 0.5
+}
+#[cfg(feature = "dim2")]
+enum ConvexPolylineOrientation {
+    CounterClockwise,
+    Clockwise,
+}
+#[cfg(feature = "dim2")]
+fn convex_polyline_orientation(points: &[Vector]) -> Option<ConvexPolylineOrientation> {
+    if points.len() < 3 {
+        return None;
+    }
+    let epsilon = 0.000001;
+    let area = signed_area(points);
+    let orientation = if area > epsilon {
+        ConvexPolylineOrientation::CounterClockwise
+    } else if area < -epsilon {
+        ConvexPolylineOrientation::Clockwise
+    } else {
+        return None;
+    };
+    for i in 0..points.len() {
+        let current = points[i];
+        let next = points[(i + 1) % points.len()];
+        if (next - current).length_squared() <= epsilon * epsilon {
+            return None;
+        }
+        let after_next = points[(i + 2) % points.len()];
+        let edge_a = next - current;
+        let edge_b = after_next - next;
+        let cross = edge_a.x * edge_b.y - edge_a.y * edge_b.x;
+        match orientation {
+            ConvexPolylineOrientation::CounterClockwise => {
+                if cross < -epsilon {
+                    return None;
+                }
+            }
+            ConvexPolylineOrientation::Clockwise => {
+                if cross > epsilon {
+                    return None;
+                }
+            }
+        }
+    }
+    Some(orientation)
+}
+#[cfg(feature = "dim2")]
+fn sort_points_counter_clockwise(points: &[Vector]) -> Vec<Vector> {
+    let mut center = Vector::ZERO;
+    for point in points {
+        center += *point;
+    }
+    center /= points.len() as Real;
+    let mut sorted = points.to_vec();
+    sorted.sort_by(|a, b| {
+        let angle_a = (a.y - center.y).atan2(a.x - center.x);
+        let angle_b = (b.y - center.y).atan2(b.x - center.x);
+        angle_a
+            .partial_cmp(&angle_b)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| {
+                let distance_a = (*a - center).length_squared();
+                let distance_b = (*b - center).length_squared();
+                distance_a
+                    .partial_cmp(&distance_b)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            })
+    });
+    sorted
+}
+#[cfg(feature = "dim2")]
+fn create_convex_polyline_unmodified(points: Vec<Vector>) -> Option<SharedShape> {
+    if matches!(
+        convex_polyline_orientation(&points),
+        Some(ConvexPolylineOrientation::CounterClockwise)
+    ) {
+        return SharedShape::convex_polyline_unmodified(points);
+    }
+    None
+}
 #[derive(Copy, Clone, Debug)]
 pub struct ShapeInfo {
     pub handle: ShapeHandle,
@@ -49,11 +136,27 @@ pub fn shape_info_from_body_shape(shape_handle: ShapeHandle, transform: Transfor
 }
 impl PhysicsEngine {
     #[cfg(feature = "dim2")]
-    pub fn shape_create_convex_polyline(&mut self, points: &Vec<Vector>, handle: ShapeHandle) {
+    pub fn shape_create_convex_polyline(
+        &mut self,
+        points: &Vec<Vector>,
+        handle: ShapeHandle,
+    ) -> bool {
         let points_vec = point_array_to_vec(points);
-        if let Some(shape_data) = SharedShape::convex_polyline_unmodified(points_vec) {
-            self.insert_shape(shape_data, handle)
+        let mut polyline_points = points_vec.clone();
+        match convex_polyline_orientation(&polyline_points) {
+            Some(ConvexPolylineOrientation::CounterClockwise) => {}
+            Some(ConvexPolylineOrientation::Clockwise) => polyline_points.reverse(),
+            None => polyline_points = sort_points_counter_clockwise(&points_vec),
         }
+        if let Some(shape_data) = create_convex_polyline_unmodified(polyline_points) {
+            self.insert_shape(shape_data, handle);
+            return true;
+        }
+        if let Some(shape_data) = SharedShape::convex_hull(&points_vec) {
+            self.insert_shape(shape_data, handle);
+            return true;
+        }
+        false
     }
 
     #[cfg(feature = "dim2")]
@@ -81,11 +184,17 @@ impl PhysicsEngine {
     }
 
     #[cfg(feature = "dim3")]
-    pub fn shape_create_convex_polyline(&mut self, points: &Vec<Vector>, handle: ShapeHandle) {
+    pub fn shape_create_convex_polyline(
+        &mut self,
+        points: &Vec<Vector>,
+        handle: ShapeHandle,
+    ) -> bool {
         let points_vec = point_array_to_vec(points);
         if let Some(shape_data) = SharedShape::convex_hull(&points_vec) {
-            self.insert_shape(shape_data, handle)
+            self.insert_shape(shape_data, handle);
+            return true;
         }
+        false
     }
 
     #[cfg(feature = "dim2")]
@@ -299,5 +408,61 @@ impl PhysicsEngine {
 
     pub fn shape_destroy(&mut self, shape_handle: ShapeHandle) {
         self.remove_shape(shape_handle)
+    }
+}
+#[cfg(all(test, feature = "dim2"))]
+mod tests {
+    use super::*;
+    #[test]
+    fn convex_shape_preserves_ccw_convex_polyline_points() {
+        let mut physics_engine = PhysicsEngine::default();
+        let handle = 1;
+        let points = vec![
+            Vector::new(0.0, 0.0),
+            Vector::new(1.0, 0.0),
+            Vector::new(2.0, 0.0),
+            Vector::new(2.0, 1.0),
+            Vector::new(0.0, 1.0),
+        ];
+        assert!(physics_engine.shape_create_convex_polyline(&points, handle));
+        let shape_points = physics_engine.shape_get_convex_polyline_points(handle);
+        assert_eq!(shape_points, points);
+    }
+    #[test]
+    fn convex_shape_preserves_clockwise_convex_polyline_points() {
+        let mut physics_engine = PhysicsEngine::default();
+        let handle = 1;
+        let points = vec![
+            Vector::new(0.0, 1.0),
+            Vector::new(2.0, 1.0),
+            Vector::new(2.0, 0.0),
+            Vector::new(1.0, 0.0),
+            Vector::new(0.0, 0.0),
+        ];
+        assert!(physics_engine.shape_create_convex_polyline(&points, handle));
+        let shape_points = physics_engine.shape_get_convex_polyline_points(handle);
+        assert_eq!(shape_points.len(), points.len());
+        assert!(signed_area(&shape_points) > 0.0);
+        for point in points {
+            assert!(shape_points.contains(&point));
+        }
+    }
+    #[test]
+    fn convex_shape_accepts_unordered_point_cloud() {
+        let mut physics_engine = PhysicsEngine::default();
+        let handle = 1;
+        let points = vec![
+            Vector::new(0.0, 0.0),
+            Vector::new(1.0, 1.0),
+            Vector::new(1.0, 0.0),
+            Vector::new(0.0, 1.0),
+        ];
+        assert!(physics_engine.shape_create_convex_polyline(&points, handle));
+        let hull_points = physics_engine.shape_get_convex_polyline_points(handle);
+        assert_eq!(hull_points.len(), 4);
+        assert!(signed_area(&hull_points) > 0.0);
+        for point in points {
+            assert!(hull_points.contains(&point));
+        }
     }
 }
