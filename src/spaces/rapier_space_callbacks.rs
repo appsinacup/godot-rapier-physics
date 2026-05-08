@@ -213,6 +213,7 @@ impl RapierSpace {
             {
                 p_area1.receive_event(
                     event_as_int,
+                    event_info.is_removed,
                     type2,
                     collider_handle2,
                     &mut p_collision_object2,
@@ -230,6 +231,7 @@ impl RapierSpace {
             {
                 p_area2.receive_event(
                     event_as_int,
+                    event_info.is_removed,
                     type1,
                     collider_handle1,
                     &mut p_collision_object1,
