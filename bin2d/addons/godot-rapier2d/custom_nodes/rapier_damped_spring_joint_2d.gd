@@ -60,8 +60,14 @@ func _solve_ik_for_target() -> void:
 	
 	if joint_type != 1 and joint_type != 2:
 		return
-	
+
+	if not _has_valid_joint_nodes():
+		return
+
 	solve_ik(ik_target.global_transform)
+
+func _has_valid_joint_nodes() -> bool:
+	return get_node_or_null(node_a) != null and get_node_or_null(node_b) != null
 
 func _update_ik_options() -> void:
 	if not is_inside_tree():
@@ -102,6 +108,8 @@ func solve_ik(target_transform: Transform2D) -> void:
 	
 	var joint_rid := get_rid()
 	if not joint_rid.is_valid():
+		return
+	if not _has_valid_joint_nodes():
 		return
 	
 	RapierPhysicsServer2D.joint_solve_inverse_kinematics(joint_rid, target_transform)

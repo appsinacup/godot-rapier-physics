@@ -12,5 +12,5 @@ else
     exit 1
 fi
 
-# Run the test command
-$GODOT --headless --path ./bin2d test.tscn --quit-after 1000
+# Run the 2D regression test runner. The scene exits with a non-zero status on regressions.
+"$GODOT" --headless --path ./bin2d start.tscn

@@ -14,14 +14,14 @@ jobs:
         features: ["simd-parallel", "enhanced-determinism"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Update plugin.info.cfg
         shell: sh
         run: |
           sed -i "s/<flavour>/godot-rapier-2d-${{ matrix.precision }}-${{ matrix.features }}/g" bin2d/addons/godot-rapier2d/plugin.info.cfg
           sed -i "s/<flavour>/godot-rapier-3d-${{ matrix.precision }}-${{ matrix.features }}/g" bin3d/addons/godot-rapier3d/plugin.info.cfg
       - name: Upload
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: godot-rapier-${{ matrix.dimensions }}-${{ matrix.precision }}-${{ matrix.features }}-gdext
           path: |

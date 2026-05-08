@@ -8,31 +8,31 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       # dynamic
       - name: Download artifacts 2d enchanced
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: godot-rapier-2d-single-enhanced-determinism-*
           merge-multiple: true
           path: godot-rapier-2d-single-enhanced-determinism
           name: godot-rapier-2d-single-enhanced-determinism
       - name: Download artifacts 2d parallel
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: godot-rapier-2d-single-simd-parallel-*
           merge-multiple: true
           path: godot-rapier-2d-single-simd-parallel
           name: godot-rapier-2d-single-simd-parallel
       - name: Download artifacts 3d enchanced
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: godot-rapier-3d-single-enhanced-determinism-*
           merge-multiple: true
           path: godot-rapier-3d-single-enhanced-determinism
           name: godot-rapier-3d-single-enhanced-determinism
       - name: Download artifacts 3d parallel
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: godot-rapier-3d-single-simd-parallel-*
           merge-multiple: true
@@ -40,28 +40,28 @@ jobs:
           name: godot-rapier-3d-single-simd-parallel
       # static
       - name: Download artifacts 2d enchanced static
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: static-rapier-2d-single-enhanced-determinism-*
           merge-multiple: true
           path: static-rapier-2d-single-enhanced-determinism
           name: static-rapier-2d-single-enhanced-determinism
       - name: Download artifacts 2d parallel 
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: static-rapier-2d-single-simd-parallel-*
           merge-multiple: true
           path: static-rapier-2d-single-simd-parallel
           name: static-rapier-2d-single-simd-parallel
       - name: Download artifacts 3d enchanced static
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: static-rapier-3d-single-enhanced-determinism-*
           merge-multiple: true
           path: static-rapier-3d-single-enhanced-determinism
           name: static-rapier-3d-single-enhanced-determinism
       - name: Download artifacts 3d parallel static
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: static-rapier-3d-single-simd-parallel-*
           merge-multiple: true

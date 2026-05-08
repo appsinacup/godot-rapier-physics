@@ -29,6 +29,10 @@ const BODY_MOTION_RECOVER_RATIO: Real = 0.4;
 const BODY_MOTION_RECOVER_RATIO: Real = 0.5;
 const MAX_EXCLUDED_SHAPE_PAIRS: usize = 32;
 #[cfg(feature = "dim2")]
+const BODY_MOTION_CAST_ITERATIONS: i32 = 8;
+#[cfg(feature = "dim3")]
+const BODY_MOTION_CAST_ITERATIONS: i32 = 8;
+#[cfg(feature = "dim2")]
 const MIN_MOTION_THRESHOLD: Real = 1e-3;
 #[cfg(feature = "dim3")]
 const MIN_MOTION_THRESHOLD: Real = 1e-4;
@@ -36,6 +40,10 @@ const MIN_MOTION_THRESHOLD: Real = 1e-4;
 const MOTION_EPSILON: Real = 1e-3;
 #[cfg(feature = "dim3")]
 const MOTION_EPSILON: Real = 1e-4;
+#[cfg(feature = "dim2")]
+const BLOCKED_MOTION_EPSILON: Real = 5e-3;
+#[cfg(feature = "dim3")]
+const BLOCKED_MOTION_EPSILON: Real = 1e-4;
 #[cfg(feature = "dim2")]
 const MIN_RECOVERY_THRESHOLD: Real = 1e-3;
 #[cfg(feature = "dim3")]
@@ -60,6 +68,126 @@ impl Default for ExcludedShapePair {
             collision_shape_index: 0,
         }
     }
+}
+fn blocked_motion_tolerance(margin: Real) -> Real {
+    MOTION_EPSILON
+        .max(BLOCKED_MOTION_EPSILON)
+        .max(margin * TEST_MOTION_MIN_CONTACT_DEPTH_FACTOR)
+}
+fn clamp_near_zero_safe_motion(motion: Vector, margin: Real, safe_fraction: &mut Real) {
+    let tolerance = blocked_motion_tolerance(margin);
+    if *safe_fraction < 1.0 && motion.length() * *safe_fraction < tolerance {
+        *safe_fraction = 0.0;
+    }
+}
+fn clamp_near_zero_blocked_travel(motion: Vector, margin: Real, travel: &mut Vector) {
+    if motion.dot(*travel) > 0.0 && travel.length() < blocked_motion_tolerance(margin) {
+        *travel = Vector::default();
+    }
+}
+#[cfg(feature = "dim2")]
+fn reset_body_motion_result(result: &mut PhysicsServerExtensionMotionResult) {
+    result.travel = Vector::default();
+    result.remainder = Vector::default();
+    result.collision_point = Vector::default();
+    result.collision_normal = Vector::default();
+    result.collider_velocity = Vector::default();
+    result.collision_depth = 0.0;
+    result.collision_safe_fraction = 0.0;
+    result.collision_unsafe_fraction = 0.0;
+    result.collision_local_shape = 0;
+    result.collider_id = ObjectId { id: 0 };
+    result.collider = Rid::Invalid;
+    result.collider_shape = 0;
+}
+#[cfg(feature = "dim3")]
+fn reset_body_motion_result(result: &mut PhysicsServerExtensionMotionResult) {
+    use godot::classes::native::PhysicsServer3DExtensionMotionCollision;
+    result.travel = Vector::default();
+    result.remainder = Vector::default();
+    result.collision_depth = 0.0;
+    result.collision_safe_fraction = 0.0;
+    result.collision_unsafe_fraction = 0.0;
+    result.collisions = core::array::from_fn(|_| PhysicsServer3DExtensionMotionCollision {
+        position: Vector::default(),
+        normal: Vector::default(),
+        collider_velocity: Vector::default(),
+        collider_angular_velocity: Vector::default(),
+        depth: 0.0,
+        local_shape: 0,
+        collider_id: ObjectId { id: 0 },
+        collider: Rid::Invalid,
+        collider_shape: 0,
+    });
+    result.collision_count = 0;
+}
+fn finish_small_body_motion(
+    motion: Vector,
+    result: &mut PhysicsServerExtensionMotionResult,
+) -> bool {
+    if motion.length() >= MIN_MOTION_THRESHOLD {
+        return false;
+    }
+    result.travel = Vector::default();
+    result.remainder = Vector::default();
+    result.collision_safe_fraction = 1.0;
+    result.collision_unsafe_fraction = 1.0;
+    true
+}
+fn should_collect_body_motion_collision(
+    recovery_as_collision: bool,
+    recovered: bool,
+    safe_fraction: Real,
+) -> bool {
+    (recovery_as_collision && recovered) || safe_fraction < 1.0
+}
+fn finish_body_motion_result(
+    result: &mut PhysicsServerExtensionMotionResult,
+    recover_motion: Vector,
+    motion: Vector,
+    margin: Real,
+    safe_fraction: Real,
+    unsafe_fraction: Real,
+    collided: bool,
+) {
+    if collided {
+        let mut travel = recover_motion + motion * safe_fraction;
+        clamp_near_zero_blocked_travel(motion, margin, &mut travel);
+        result.travel += travel;
+        result.remainder = motion - motion * safe_fraction;
+        result.collision_safe_fraction = safe_fraction;
+        result.collision_unsafe_fraction = unsafe_fraction;
+    } else {
+        result.travel += recover_motion + motion;
+        result.remainder = Vector::default();
+        result.collision_depth = 0.0;
+        result.collision_safe_fraction = 1.0;
+        result.collision_unsafe_fraction = 1.0;
+    }
+}
+fn contact_depth(distance: Real, margin: Real) -> Real {
+    margin - distance
+}
+fn is_contact_depth_allowed(distance: Real, margin: Real, min_allowed_depth: Real) -> bool {
+    contact_depth(distance, margin) >= min_allowed_depth
+}
+fn is_motion_blocked_by_contact(contact: &ContactResult, motion: Vector) -> bool {
+    let Some(motion_normal) = motion.try_normalized() else {
+        return true;
+    };
+    let contact_normal = vector_to_godot(contact.normal2);
+    contact_normal.dot(motion_normal) < -NORMAL_EPSILON
+}
+#[cfg(feature = "dim2")]
+fn is_end_contact_relevant(contact: &ContactResult, motion: Vector) -> bool {
+    contact.collided && is_motion_blocked_by_contact(contact, motion)
+}
+#[cfg(feature = "dim3")]
+fn is_end_contact_relevant(contact: &ContactResult, _motion: Vector) -> bool {
+    contact.collided
+}
+fn contact_collision_point(contact: &ContactResult) -> rapier::prelude::Vector {
+    contact.pixel_point2
 }
 impl RapierSpace {
     pub fn is_handle_excluded_callback(
@@ -90,7 +218,8 @@ impl RapierSpace {
             == 0;
         let rid_excluded = handle_excluded_info.query_exclude_body
             == collision_object_base.get_rid().to_u64() as i64;
-        let pickable_excluded = !collision_object_base.get_pickable();
+        let pickable_excluded =
+            handle_excluded_info.query_pickable && !collision_object_base.get_pickable();
         if canvas_excluded || layer_excluded || rid_excluded || pickable_excluded {
             return true;
         }
@@ -119,12 +248,9 @@ impl RapierSpace {
         physics_ids: &PhysicsIds,
         physics_collision_objects: &PhysicsCollisionObjects,
     ) -> bool {
-        result.travel = Vector::default();
+        reset_body_motion_result(result);
         // Skip processing if motion is too small (prevents infinite micro-adjustments)
-        if motion.length() < MIN_MOTION_THRESHOLD {
-            result.remainder = Vector::default();
-            result.collision_safe_fraction = 1.0;
-            result.collision_unsafe_fraction = 1.0;
+        if finish_small_body_motion(motion, result) {
             return false;
         }
         let mut body_transform = from; // Because body_transform needs to be modified during recovery
@@ -133,6 +259,9 @@ impl RapierSpace {
         // if yes, "recover" / "push" out of this collider
         let mut recover_motion = Vector::default();
         let margin = Real::max(margin, TEST_MOTION_MARGIN);
+        let min_allowed_depth = motion
+            .length()
+            .min(margin * TEST_MOTION_MIN_CONTACT_DEPTH_FACTOR);
         let mut excluded_shape_pairs = [ExcludedShapePair::default(); MAX_EXCLUDED_SHAPE_PAIRS];
         let mut excluded_shape_pair_count = 0;
         let recovered = self.body_motion_recover(
@@ -170,22 +299,13 @@ impl RapierSpace {
             physics_ids,
             physics_collision_objects,
         );
-        // If cast motion resulted in near-zero movement but recovery found no collision,
-        // treat this as a numerical precision issue and allow the motion
-        // Only apply this when the actual distance traveled is tiny, not just the fraction
-        let actual_safe_distance = motion.length() * best_safe;
-        let actual_unsafe_distance = motion.length() * best_unsafe;
-        if !recovered
-            && actual_safe_distance < MOTION_EPSILON
-            && actual_unsafe_distance < MOTION_EPSILON
-        {
-            best_safe = 1.0;
-            best_unsafe = 1.0;
-        }
+        // Far from the origin, parry can report a tiny safe fraction for perpendicular wall pushes.
+        // Godot treats this as no travel, so keep the collision and clamp only the safe motion.
+        clamp_near_zero_safe_motion(motion, margin, &mut best_safe);
         // Step 3: Rest Info
         // Apply the motion and fill the collision information
         let mut collided = false;
-        if (recovery_as_collision && recovered) || (best_safe < 1.0) {
+        if should_collect_body_motion_collision(recovery_as_collision, recovered, best_safe) {
             if best_safe >= 1.0 {
                 best_body_shape = -1; //no best shape with cast, reset to -1
             }
@@ -198,6 +318,7 @@ impl RapierSpace {
                 motion,
                 best_body_shape,
                 margin,
+                min_allowed_depth,
                 result,
                 &excluded_shape_pairs,
                 excluded_shape_pair_count,
@@ -207,18 +328,15 @@ impl RapierSpace {
                 physics_collision_objects,
             );
         }
-        if collided {
-            result.travel += recover_motion + motion * best_safe;
-            result.remainder = motion - motion * best_safe;
-            result.collision_safe_fraction = best_safe;
-            result.collision_unsafe_fraction = best_unsafe;
-        } else {
-            result.travel += recover_motion + motion;
-            result.remainder = Vector::default();
-            result.collision_depth = 0.0;
-            result.collision_safe_fraction = 1.0;
-            result.collision_unsafe_fraction = 1.0;
-        }
+        finish_body_motion_result(
+            result,
+            recover_motion,
+            motion,
+            margin,
+            best_safe,
+            best_unsafe,
+            collided,
+        );
         collided
     }
 
@@ -517,18 +635,6 @@ impl RapierSpace {
                     body_shape.get_base().get_id(),
                     body_shape_transform,
                 );
-                // Colliding separation rays allows to properly snap to the ground,
-                // otherwise it's not needed in regular motion.
-                //if !p_collide_separation_ray
-                //    && body_shape.get_type() == PhysicsServer2D::SHAPE_SEPARATION_RAY
-                //{
-                // When slide on slope is on, separation ray shape acts like a
-                // regular shape.
-                //if !body_shape.downcast_ref::<RapierSeparationRayShape>().unwrap().get_slide_on_slope()
-                //{
-                //    continue;
-                //}
-                //}
                 let mut best_safe = 1.0;
                 let mut best_unsafe = 1.0;
                 let mut stuck = false;
@@ -582,7 +688,7 @@ impl RapierSpace {
                                 vector_to_rapier(body_shape_transform.origin + p_motion);
                             let end_contact =
                                 physics_engine.shapes_contact(body_shape_info, col_shape_info, 0.0);
-                            if !end_contact.collided {
+                            if !is_end_contact_relevant(&end_contact, p_motion) {
                                 // Doesn't collide at end, skip
                                 continue;
                             }
@@ -596,6 +702,7 @@ impl RapierSpace {
                             );
                             let penetration_depth = -initial_contact.pixel_distance;
                             if initial_contact.collided
+                                && is_motion_blocked_by_contact(&initial_contact, p_motion)
                                 && !initial_contact.within_margin
                                 && penetration_depth > STUCK_PENETRATION_THRESHOLD
                             {
@@ -622,7 +729,7 @@ impl RapierSpace {
                             let mut low = 0.0;
                             let mut hi = 1.0;
                             let mut fraction_coeff = 0.5;
-                            for k in 0..8 {
+                            for k in 0..BODY_MOTION_CAST_ITERATIONS {
                                 let fraction = low + (hi - low) * fraction_coeff;
                                 body_shape_info.transform.translation = vector_to_rapier(
                                     body_shape_transform.origin + p_motion * fraction,
@@ -632,7 +739,10 @@ impl RapierSpace {
                                     col_shape_info,
                                     0.0,
                                 );
-                                if step_contact.collided && !step_contact.within_margin {
+                                if step_contact.collided
+                                    && !step_contact.within_margin
+                                    && is_motion_blocked_by_contact(&step_contact, p_motion)
+                                {
                                     hi = fraction;
                                     if (k == 0) || (low > 0.0) {
                                         // Did it not collide before?
@@ -668,6 +778,9 @@ impl RapierSpace {
                                 p_margin,
                             );
                             if !contact.collided {
+                                continue;
+                            }
+                            if !is_motion_blocked_by_contact(&contact, p_motion) {
                                 continue;
                             }
                             if physics_engine.should_skip_collision_one_dir(
@@ -716,6 +829,7 @@ impl RapierSpace {
         p_motion: Vector,
         p_best_body_shape: i32,
         p_margin: f32,
+        min_allowed_depth: Real,
         p_result: &mut PhysicsServerExtensionMotionResult,
         excluded_shape_pairs: &[ExcludedShapePair; MAX_EXCLUDED_SHAPE_PAIRS],
         excluded_shape_pair_count: usize,
@@ -752,7 +866,7 @@ impl RapierSpace {
         if result_count == 0 {
             return false;
         }
-        let mut min_distance = f32::INFINITY;
+        let mut best_depth = 0.0;
         let mut best_collision_body = None;
         let mut best_collision_shape_index: i32 = -1;
         let mut best_body_shape_index = -1;
@@ -846,8 +960,16 @@ impl RapierSpace {
                             ) {
                                 continue;
                             }
-                            if contact.pixel_distance < min_distance {
-                                min_distance = contact.pixel_distance;
+                            if !is_contact_depth_allowed(
+                                contact.pixel_distance,
+                                p_margin,
+                                min_allowed_depth,
+                            ) {
+                                continue;
+                            }
+                            let depth = contact_depth(contact.pixel_distance, p_margin);
+                            if depth > best_depth {
+                                best_depth = depth;
                                 best_collision_body = Some(collision_body);
                                 best_collision_shape_index = shape_index as i32;
                                 best_body_shape_index = body_shape_idx;
@@ -865,7 +987,7 @@ impl RapierSpace {
                     best_collision_body.get_static_linear_velocity() * RapierSpace::get_last_step();
             }
             p_result.collision_depth = p_margin - best_contact.pixel_distance;
-            let collision_point = vector_to_godot(best_contact.pixel_point1);
+            let collision_point = vector_to_godot(contact_collision_point(&best_contact));
             let local_position =
                 collision_point - best_collision_body.get_base().get_transform().origin;
             set_collision_info(
@@ -1010,5 +1132,230 @@ impl PhysicsEngine {
             }
         }
         false
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[cfg(feature = "dim2")]
+    fn x_motion(length: Real) -> Vector {
+        Vector::new(length, 0.0)
+    }
+    #[cfg(feature = "dim2")]
+    fn y_motion(length: Real) -> Vector {
+        Vector::new(0.0, length)
+    }
+    #[cfg(feature = "dim3")]
+    fn x_motion(length: Real) -> Vector {
+        Vector::new(length, 0.0, 0.0)
+    }
+    #[cfg(feature = "dim3")]
+    fn y_motion(length: Real) -> Vector {
+        Vector::new(0.0, length, 0.0)
+    }
+    #[cfg(feature = "dim2")]
+    fn motion_result() -> PhysicsServerExtensionMotionResult {
+        PhysicsServerExtensionMotionResult {
+            travel: Vector::default(),
+            remainder: Vector::default(),
+            collision_point: Vector::default(),
+            collision_normal: Vector::default(),
+            collider_velocity: Vector::default(),
+            collision_depth: 0.0,
+            collision_safe_fraction: 0.0,
+            collision_unsafe_fraction: 0.0,
+            collision_local_shape: 0,
+            collider_id: ObjectId { id: 0 },
+            collider: Rid::Invalid,
+            collider_shape: 0,
+        }
+    }
+    #[cfg(feature = "dim3")]
+    fn motion_result() -> PhysicsServerExtensionMotionResult {
+        use godot::classes::native::PhysicsServer3DExtensionMotionCollision;
+        PhysicsServerExtensionMotionResult {
+            travel: Vector::default(),
+            remainder: Vector::default(),
+            collision_depth: 0.0,
+            collision_safe_fraction: 0.0,
+            collision_unsafe_fraction: 0.0,
+            collisions: core::array::from_fn(|_| PhysicsServer3DExtensionMotionCollision {
+                position: Vector::default(),
+                normal: Vector::default(),
+                collider_velocity: Vector::default(),
+                collider_angular_velocity: Vector::default(),
+                depth: 0.0,
+                local_shape: 0,
+                collider_id: ObjectId { id: 0 },
+                collider: Rid::Invalid,
+                collider_shape: 0,
+            }),
+            collision_count: 0,
+        }
+    }
+    #[cfg(feature = "dim2")]
+    #[test]
+    fn reset_body_motion_result_clears_2d_collision_state() {
+        let mut result = motion_result();
+        result.travel = x_motion(1.0);
+        result.remainder = x_motion(2.0);
+        result.collision_depth = 3.0;
+        result.collision_safe_fraction = 0.4;
+        result.collision_unsafe_fraction = 0.5;
+        result.collider = Rid::new(99);
+        result.collider_shape = 4;
+        reset_body_motion_result(&mut result);
+        assert_eq!(result.travel, Vector::default());
+        assert_eq!(result.remainder, Vector::default());
+        assert_eq!(result.collision_depth, 0.0);
+        assert_eq!(result.collision_safe_fraction, 0.0);
+        assert_eq!(result.collision_unsafe_fraction, 0.0);
+        assert_eq!(result.collider, Rid::Invalid);
+        assert_eq!(result.collider_shape, 0);
+    }
+    #[cfg(feature = "dim3")]
+    #[test]
+    fn reset_body_motion_result_clears_3d_collision_state() {
+        let mut result = motion_result();
+        result.travel = x_motion(1.0);
+        result.remainder = x_motion(2.0);
+        result.collision_depth = 3.0;
+        result.collision_safe_fraction = 0.4;
+        result.collision_unsafe_fraction = 0.5;
+        result.collision_count = 4;
+        reset_body_motion_result(&mut result);
+        assert_eq!(result.travel, Vector::default());
+        assert_eq!(result.remainder, Vector::default());
+        assert_eq!(result.collision_depth, 0.0);
+        assert_eq!(result.collision_safe_fraction, 0.0);
+        assert_eq!(result.collision_unsafe_fraction, 0.0);
+        assert_eq!(result.collision_count, 0);
+    }
+    #[test]
+    fn contact_depth_filter_rejects_shallow_or_predictive_contacts() {
+        assert!(is_contact_depth_allowed(0.02, 0.1, 0.05));
+        assert!(!is_contact_depth_allowed(0.099, 0.1, 0.005));
+        assert!(!is_contact_depth_allowed(0.2, 0.1, 0.0));
+    }
+    #[test]
+    fn motion_blocking_filter_accepts_opposing_contact_normal() {
+        let contact = ContactResult {
+            normal2: vector_to_rapier(x_motion(-1.0)),
+            ..Default::default()
+        };
+        assert!(is_motion_blocked_by_contact(&contact, x_motion(10.0)));
+    }
+    #[test]
+    fn motion_blocking_filter_rejects_tangent_contact_normal() {
+        let contact = ContactResult {
+            normal2: vector_to_rapier(y_motion(-1.0)),
+            ..Default::default()
+        };
+        assert!(!is_motion_blocked_by_contact(&contact, x_motion(10.0)));
+    }
+    #[test]
+    fn clamp_near_zero_safe_motion_sets_sub_epsilon_travel_to_zero() {
+        let motion = x_motion(10.0);
+        let mut safe_fraction = (MOTION_EPSILON * 0.5) / motion.length();
+        clamp_near_zero_safe_motion(motion, 0.0, &mut safe_fraction);
+        assert_eq!(safe_fraction, 0.0);
+    }
+    #[test]
+    fn clamp_near_zero_safe_motion_keeps_meaningful_travel() {
+        let motion = x_motion(10.0);
+        let mut safe_fraction = (blocked_motion_tolerance(0.0) * 2.0) / motion.length();
+        let expected = safe_fraction;
+        clamp_near_zero_safe_motion(motion, 0.0, &mut safe_fraction);
+        assert_eq!(safe_fraction, expected);
+    }
+    #[test]
+    fn clamp_near_zero_safe_motion_uses_margin_relative_tolerance() {
+        let motion = x_motion(10.0);
+        let mut safe_fraction = 0.003 / motion.length();
+        clamp_near_zero_safe_motion(motion, 0.08, &mut safe_fraction);
+        assert_eq!(safe_fraction, 0.0);
+    }
+    #[test]
+    fn clamp_near_zero_blocked_travel_removes_tiny_forward_travel() {
+        let motion = x_motion(10.0);
+        let mut travel = x_motion(0.003);
+        clamp_near_zero_blocked_travel(motion, 0.08, &mut travel);
+        assert_eq!(travel, Vector::default());
+    }
+    #[test]
+    fn clamp_near_zero_blocked_travel_keeps_recovery_against_motion() {
+        let motion = x_motion(10.0);
+        let mut travel = x_motion(-0.003);
+        clamp_near_zero_blocked_travel(motion, 0.08, &mut travel);
+        assert_eq!(travel, x_motion(-0.003));
+    }
+    #[test]
+    fn clamp_near_zero_safe_motion_keeps_full_motion() {
+        let motion = x_motion(10.0);
+        let mut safe_fraction = 1.0;
+        clamp_near_zero_safe_motion(motion, 0.0, &mut safe_fraction);
+        assert_eq!(safe_fraction, 1.0);
+    }
+    #[test]
+    fn small_motion_step_finishes_without_collision() {
+        let mut result = motion_result();
+        result.travel = x_motion(42.0);
+        result.remainder = x_motion(13.0);
+        result.collision_safe_fraction = 0.0;
+        result.collision_unsafe_fraction = 0.0;
+        let finished = finish_small_body_motion(x_motion(MIN_MOTION_THRESHOLD * 0.5), &mut result);
+        assert!(finished);
+        assert_eq!(result.travel, Vector::default());
+        assert_eq!(result.remainder, Vector::default());
+        assert_eq!(result.collision_safe_fraction, 1.0);
+        assert_eq!(result.collision_unsafe_fraction, 1.0);
+    }
+    #[test]
+    fn small_motion_step_keeps_regular_motion_for_later_steps() {
+        let mut result = motion_result();
+        let finished = finish_small_body_motion(x_motion(MIN_MOTION_THRESHOLD * 2.0), &mut result);
+        assert!(!finished);
+    }
+    #[test]
+    fn rest_info_step_runs_for_cast_collision() {
+        assert!(should_collect_body_motion_collision(false, false, 0.5));
+    }
+    #[test]
+    fn rest_info_step_runs_for_recovery_collision_when_requested() {
+        assert!(should_collect_body_motion_collision(true, true, 1.0));
+    }
+    #[test]
+    fn rest_info_step_skips_recovery_when_not_requested() {
+        assert!(!should_collect_body_motion_collision(false, true, 1.0));
+    }
+    #[test]
+    fn final_step_applies_collision_travel_remainder_and_fractions() {
+        let mut result = motion_result();
+        let recover_motion = x_motion(0.25);
+        let motion = x_motion(8.0);
+        finish_body_motion_result(&mut result, recover_motion, motion, 0.0, 0.5, 0.75, true);
+        assert_eq!(result.travel, x_motion(4.25));
+        assert_eq!(result.remainder, x_motion(4.0));
+        assert_eq!(result.collision_safe_fraction, 0.5);
+        assert_eq!(result.collision_unsafe_fraction, 0.75);
+    }
+    #[test]
+    fn final_step_applies_full_motion_without_collision() {
+        let mut result = motion_result();
+        result.collision_depth = 1.0;
+        finish_body_motion_result(
+            &mut result,
+            x_motion(0.25),
+            x_motion(8.0),
+            0.0,
+            0.5,
+            0.75,
+            false,
+        );
+        assert_eq!(result.travel, x_motion(8.25));
+        assert_eq!(result.remainder, Vector::default());
+        assert_eq!(result.collision_depth, 0.0);
+        assert_eq!(result.collision_safe_fraction, 1.0);
+        assert_eq!(result.collision_unsafe_fraction, 1.0);
     }
 }

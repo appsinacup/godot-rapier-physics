@@ -11,6 +11,7 @@ use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use crate::servers::rapier_physics_singleton::PhysicsIds;
 use crate::spaces::rapier_space::RapierSpace;
+const MAX_SHAPE_CAST_RESULTS: usize = 64;
 pub struct RayHitInfo {
     pub pixel_position: Vector,
     pub normal: Vector,
@@ -88,6 +89,7 @@ pub struct ContactResult {
 pub struct QueryExcludedInfo {
     pub query_collision_layer_mask: u32,
     pub query_canvas_instance_id: Option<u64>,
+    pub query_pickable: bool,
     // Pointer to array of objects
     pub query_exclude: Vec<ColliderHandle>,
     pub query_exclude_size: usize,
@@ -564,25 +566,47 @@ impl PhysicsEngine {
                         compute_impact_geometry_on_penetration: true,
                         target_distance: margin,
                     };
-                    if let Some((collider_handle, hit)) = physics_world
-                        .physics_objects
-                        .broad_phase
-                        .as_query_pipeline(
-                            physics_world
-                                .physics_objects
-                                .narrow_phase
-                                .query_dispatcher(),
-                            &physics_world.physics_objects.rigid_body_set,
-                            &physics_world.physics_objects.collider_set,
-                            filter,
-                        )
-                        .cast_shape(
-                            &shape_transform,
-                            shape_vel,
-                            shared_shape.as_ref(),
-                            shape_cast_options,
-                        )
-                    {
+                    let mut cast_excludes: Vec<ColliderHandle> = Vec::new();
+                    loop {
+                        let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
+                            !cast_excludes.contains(&handle)
+                                && !space.is_handle_excluded_callback(
+                                    handle,
+                                    &physics_world.get_collider_user_data(handle),
+                                    handle_excluded_info,
+                                    physics_collision_objects,
+                                    physics_ids,
+                                )
+                        };
+                        let mut cast_filter = QueryFilter::new();
+                        if !collide_with_body {
+                            cast_filter = cast_filter.exclude_solids();
+                        }
+                        if !collide_with_area {
+                            cast_filter = cast_filter.exclude_sensors();
+                        }
+                        cast_filter.predicate = Some(&predicate);
+                        let Some((collider_handle, hit)) = physics_world
+                            .physics_objects
+                            .broad_phase
+                            .as_query_pipeline(
+                                physics_world
+                                    .physics_objects
+                                    .narrow_phase
+                                    .query_dispatcher(),
+                                &physics_world.physics_objects.rigid_body_set,
+                                &physics_world.physics_objects.collider_set,
+                                cast_filter,
+                            )
+                            .cast_shape(
+                                &shape_transform,
+                                shape_vel,
+                                shared_shape.as_ref(),
+                                shape_cast_options,
+                            )
+                        else {
+                            break;
+                        };
                         if hit.status == ShapeCastStatus::Failed
                             || hit.status == ShapeCastStatus::OutOfIterations
                         {
@@ -627,6 +651,10 @@ impl PhysicsEngine {
                             godot_error!("collider not found");
                         }
                         results.push(result);
+                        cast_excludes.push(collider_handle);
+                        if needs_exact || results.len() >= MAX_SHAPE_CAST_RESULTS {
+                            break;
+                        }
                     }
                 }
             }

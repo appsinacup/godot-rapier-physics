@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.8.30 - May 8
+
+- Update to latest rapier and parry.
+
 ## v0.8.29 - Apr 15
 
 - Update to latest rapier and parry.

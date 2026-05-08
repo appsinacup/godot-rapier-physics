@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tests/nodes/CharacterBody/tests/character_body_2d/far_origin_wall_delta.gd" id="1_i489x"]
+
+[node name="far_origin_wall_delta" type="Node2D"]
+script = ExtResource("1_i489x")

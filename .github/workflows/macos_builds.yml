@@ -18,7 +18,7 @@ jobs:
         features: [{"feature":"simd-nightly,serde-serialize,parallel,experimental-threads", "name": "simd-parallel"}, {"feature":"enhanced-determinism,serde-serialize,experimental-threads", "name": "enhanced-determinism"}]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup Godot
         uses: appsinacup/setup-godot-action@main
         with:
@@ -50,7 +50,7 @@ jobs:
           mv target/release/libgodot_rapier.arm64.a bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.arm64.a
           mv target/release/libgodot_rapier.x86_64.a bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.x86_64.a
       - name: Upload
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch}}
           path: |
@@ -59,7 +59,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload Static
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: static-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch}}
           path: |

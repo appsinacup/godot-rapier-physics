@@ -18,6 +18,10 @@ func test_start() -> void:
 	var body := add_body(CENTER_RIGHT)
 	body.set_collision_layer_value(2, true)
 	body.set_collision_mask_value(2, true)
+
+	var unpickable_body_position := CENTER_RIGHT + Vector2(0, 160)
+	var unpickable_body := add_body(unpickable_body_position)
+	unpickable_body.input_pickable = false
 	
 	# Add two body in the center
 	add_area(CENTER)
@@ -70,6 +74,15 @@ func test_start() -> void:
 			var result := d_space.intersect_point(body_query)
 			var result_count = result.size() if result else 0
 			p_monitor.add_test_result(result_count == 1)
+
+		if true:
+			p_monitor.add_test("Don't collide with unpickable body")
+			var body_query := PhysicsPointQueryParameters2D.new()
+			body_query.position = unpickable_body_position
+			body_query.collide_with_bodies = true
+			var result := d_space.intersect_point(body_query)
+			var result_count = result.size() if result else 0
+			p_monitor.add_test_result(result_count == 0)
 
 		if true:
 			p_monitor.add_test("Can not collide with Body")
@@ -205,6 +218,7 @@ func test_start() -> void:
 
 func add_body(p_position: Vector2, p_add_child := true) -> StaticBody2D:
 	var body := StaticBody2D.new()
+	body.input_pickable = true
 	var body_shape := PhysicsTest2D.get_default_collision_shape(PhysicsTest2D.TestCollisionShape.RECTANGLE, 4)
 	body.add_child(body_shape)
 	body.position = p_position
@@ -214,9 +228,9 @@ func add_body(p_position: Vector2, p_add_child := true) -> StaticBody2D:
 	
 func add_area(p_position: Vector2, p_add_child := true) -> Area2D:
 	var area := Area2D.new()
+	area.input_pickable = true
 	area.add_child(PhysicsTest2D.get_default_collision_shape(PhysicsTest2D.TestCollisionShape.RECTANGLE, 4))
 	area.position = p_position
 	if p_add_child:
 		add_child(area)
 	return area
-

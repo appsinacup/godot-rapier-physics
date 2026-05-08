@@ -2,16 +2,19 @@ name: 🧪 Run Tests
 on:
   workflow_call:
 
+env:
+  GODOT_VERSION: '4.6.2-stable'
+
 jobs:
   run-unit-tests-2d:
     name: Run Unit Tests 2D
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup Godot
         uses: appsinacup/setup-godot-action@main
         with:
-          version: '4.5-stable'
+          version: ${{ env.GODOT_VERSION }}
 
       - name: Run Unit Tests for 2D Build
         shell: sh
@@ -21,71 +24,136 @@ jobs:
     name: Run Unit Tests 3D
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup Godot
         uses: appsinacup/setup-godot-action@main
         with:
-          version: '4.5-stable'
+          version: ${{ env.GODOT_VERSION }}
 
       - name: Run Unit Tests for 3D Build
         shell: sh
         run: |
           cargo test --all-targets --features="build3d,test" --no-default-features
   run-integration-tests-2d:
-    name: Run Integration Tests 2D
+    name: Run Godot Tests 2D (non-blocking)
     runs-on: macos-latest
+    timeout-minutes: 30
+    # Current Godot regression suites have known failures; keep them visible until baseline is clean.
+    continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup Godot
         uses: appsinacup/setup-godot-action@main
         with:
-          version: '4.5-stable'
-      - name: Run Integration Tests for 2D Build
-        if: false
+          version: ${{ env.GODOT_VERSION }}
+
+      - name: Build 2D Extension
         shell: sh
         run: |
-          ./scripts/build-dev-2d.sh
-          ls bin2d/addons/godot-rapier2d/bin
-          godot --headless --path ./bin2d test.tscn --quit-after 1000 > output.log 2>&1
-          echo "---------------------"
-          grep "ERROR:" output.log
-          echo "---------------------"
-          if grep -q "ERROR:" output.log; then
-            echo "Error found in output"
-            exit 1
-          elif grep -q "Success" output.log; then
-            echo "Test completed successfully"
-          else
-            echo "No success message found"
+          cargo build --features="build2d,test" --no-default-features
+          cp target/debug/libgodot_rapier.dylib bin2d/addons/godot-rapier2d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
+          codesign --force --sign - bin2d/addons/godot-rapier2d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
+
+      - name: Run Godot Test Suite 2D
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          godot --headless --path ./bin2d --import 2>&1 | tee godot-import-2d.log
+          import_status=${PIPESTATUS[0]}
+          if [ "$import_status" -ne 0 ]; then
+            echo "Godot 2D import failed with status ${import_status}"
+            exit "$import_status"
+          fi
+
+          godot --headless --path ./bin2d start.tscn 2>&1 | tee godot-tests-2d.log
+          godot_status=${PIPESTATUS[0]}
+          set -e
+
+          if grep -q "STATUS: FAILED" godot-tests-2d.log; then
+            echo "Godot 2D tests failed"
             exit 1
           fi
+
+          if ! grep -q "STATUS: SUCCESS" godot-tests-2d.log; then
+            echo "Godot 2D tests did not finish successfully"
+            exit 1
+          fi
+
+          if [ "$godot_status" -ne 0 ]; then
+            echo "Godot exited with status ${godot_status}"
+            exit "$godot_status"
+          fi
+
+      - name: Upload 2D Godot Test Log
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: godot-tests-2d-log
+          path: |
+            godot-import-2d.log
+            godot-tests-2d.log
+          if-no-files-found: error
 
   run-integration-tests-3d:
-    name: Run Integration Tests 3D
+    name: Run Godot Tests 3D (non-blocking)
     runs-on: macos-latest
+    timeout-minutes: 30
+    # Current Godot regression suites have known failures; keep them visible until baseline is clean.
+    continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+
       - name: Setup Godot
         uses: appsinacup/setup-godot-action@main
         with:
-          version: '4.5-stable'
-      - name: Run Integration Tests for 3D Build
-        if: false
+          version: ${{ env.GODOT_VERSION }}
+
+      - name: Build 3D Extension
         shell: sh
         run: |
-          ./scripts/build-dev-3d.sh
-          ls bin3d/addons/godot-rapier3d/bin
-          godot --headless --path ./bin3d test.tscn --quit-after 1000 > output.log 2>&1
-          echo "---------------------"
-          grep "ERROR:" output.log
-          echo "---------------------"
-          if grep -q "ERROR:" output.log; then
-            echo "Error found in output"
-            exit 1
-          elif grep -q "Success" output.log; then
-            echo "Test completed successfully"
-          else
-            echo "No success message found"
+          cargo build --features="build3d,test" --no-default-features
+          cp target/debug/libgodot_rapier.dylib bin3d/addons/godot-rapier3d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
+          codesign --force --sign - bin3d/addons/godot-rapier3d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
+
+      - name: Run Godot Test Suite 3D
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          godot --headless --path ./bin3d --import 2>&1 | tee godot-import-3d.log
+          import_status=${PIPESTATUS[0]}
+          if [ "$import_status" -ne 0 ]; then
+            echo "Godot 3D import failed with status ${import_status}"
+            exit "$import_status"
+          fi
+
+          godot --headless --path ./bin3d start.tscn 2>&1 | tee godot-tests-3d.log
+          godot_status=${PIPESTATUS[0]}
+          set -e
+
+          if grep -q "STATUS: FAILED" godot-tests-3d.log; then
+            echo "Godot 3D tests failed"
             exit 1
           fi
+
+          if ! grep -q "STATUS: SUCCESS" godot-tests-3d.log; then
+            echo "Godot 3D tests did not finish successfully"
+            exit 1
+          fi
+
+          if [ "$godot_status" -ne 0 ]; then
+            echo "Godot exited with status ${godot_status}"
+            exit "$godot_status"
+          fi
+
+      - name: Upload 3D Godot Test Log
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: godot-tests-3d-log
+          path: |
+            godot-import-3d.log
+            godot-tests-3d.log
+          if-no-files-found: error

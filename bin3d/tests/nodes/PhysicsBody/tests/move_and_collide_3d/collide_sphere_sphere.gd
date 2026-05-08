@@ -22,9 +22,12 @@ func test_start() -> void:
 	static_body = $Static
 	
 	var test_lambda: Callable = func(_p_target, p_monitor: GenericManualMonitor):
+		if p_monitor.frame < 2:
+			return
+		var frame := p_monitor.frame - 2
 		# Get the test block and index
-		var test_block := int(p_monitor.frame / 100.0)
-		var test_index := int(p_monitor.frame % 100)
+		var test_block := int(frame / 100.0)
+		var test_index := int(frame % 100)
 
 		# Get the test raster positions X/Y/Theta
 		var r1 : float = floor(test_index / 10.0) - 5.0
@@ -79,14 +82,14 @@ func test_start() -> void:
 		tested_body.global_position = start
 		var collision : KinematicCollision3D = tested_body.move_and_collide(move)
 		if !collision:
-			p_monitor.failed()
+			p_monitor.failed("No collision for block %d index %d start %s move %s" % [test_block, test_index, start, move])
 			return
 
 		# Check the collision is on ths sphere
 		var position_actual := collision.get_position()
 		var distance := position_actual.length()
 		if abs(distance - 100) > POSITION_TOLERANCE:
-			p_monitor.failed()
+			p_monitor.failed("Position error for block %d index %d: distance %.5f position %s" % [test_block, test_index, distance, position_actual])
 			return
 
 		# Verify collision normal matches expected
@@ -94,7 +97,7 @@ func test_start() -> void:
 		var normal_actual := collision.get_normal()
 		var normal_error := normal_expected.distance_to(normal_actual)
 		if normal_error > NORMAL_TOLERANCE:
-			p_monitor.failed()
+			p_monitor.failed("Normal error for block %d index %d: error %.5f expected %s actual %s" % [test_block, test_index, normal_error, normal_expected, normal_actual])
 			return
 
 	var collision_monitor := create_generic_manual_monitor(self, test_lambda, simulation_duration)

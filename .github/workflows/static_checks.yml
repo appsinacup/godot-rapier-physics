@@ -7,7 +7,7 @@ jobs:
     name: Format Code
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Format
         shell: sh
         run: |
@@ -18,7 +18,7 @@ jobs:
     name: Clippy 2D
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup Godot
         uses: appsinacup/setup-godot-action@main
         with:
@@ -33,7 +33,7 @@ jobs:
     name: Clippy 3D
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup Godot
         uses: appsinacup/setup-godot-action@main
         with:
@@ -48,9 +48,9 @@ jobs:
     name: GDLint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.10'
       - name: Install Dependencies

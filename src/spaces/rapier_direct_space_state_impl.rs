@@ -130,6 +130,10 @@ impl RapierDirectSpaceStateImpl {
         let query_excluded_info = QueryExcludedInfo {
             query_canvas_instance_id: Some(canvas_instance_id),
             query_collision_layer_mask: collision_mask,
+            // Godot uses point queries for 2D object picking. GDExtension does not
+            // expose the pick_point flag, so point queries are the narrowest place
+            // we can honor CollisionObject2D.input_pickable.
+            query_pickable: true,
             ..Default::default()
         };
         // Perform intersection
