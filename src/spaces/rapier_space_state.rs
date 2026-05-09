@@ -129,6 +129,10 @@ impl RapierSpaceState {
         self.monitor_query_list.insert(area);
     }
 
+    pub fn area_remove_from_monitor_query_list(&mut self, area: RapierId) {
+        self.monitor_query_list.remove(&area);
+    }
+
     pub fn area_add_to_area_update_list(&mut self, area: RapierId) {
         self.area_update_list.insert(area);
     }
@@ -339,6 +343,9 @@ mod tests {
         let rb_id = 0;
         state.area_add_to_monitor_query_list(rb_id);
         assert!(state.get_monitor_query_list().contains(&rb_id));
+        state.area_remove_from_monitor_query_list(rb_id);
+        assert!(!state.get_monitor_query_list().contains(&rb_id));
+        state.area_add_to_monitor_query_list(rb_id);
         state.reset_monitor_query_list();
         assert!(state.get_monitor_query_list().is_empty());
     }

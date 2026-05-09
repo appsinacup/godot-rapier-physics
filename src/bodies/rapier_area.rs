@@ -165,6 +165,7 @@ impl ImportToExport for AreaImport {
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct RapierAreaState {
     // New events go into this queue; once handled (eg once reported to Godot), they are removed. No need to serialize this, I think.
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]
     pub unhandled_events: HashMap<ColliderHandle, EventReport>,
     // This is a persistent list of all current contacts. Entries only disappear when contact ceases, or when contacts are manually cleared.
     #[cfg_attr(
@@ -450,7 +451,7 @@ impl RapierArea {
                 if self.state.unhandled_events.is_empty() {
                     space
                         .get_mut_state()
-                        .area_remove_from_area_update_list(self.base.get_id());
+                        .area_remove_from_monitor_query_list(self.base.get_id());
                     return false;
                 }
             } else if current_event_in_queue.state == new_event_state {
@@ -1170,5 +1171,17 @@ mod tests {
                 .monitored_objects
                 .contains_key(&(other_collider, this_collider))
         );
+    }
+    #[cfg(feature = "serde-serialize")]
+    #[test]
+    fn area_state_does_not_serialize_unhandled_events() {
+        let mut state = RapierAreaState::default();
+        state
+            .unhandled_events
+            .insert(collider_handle(2), event_report(1));
+        let json = serde_json::to_string(&state).unwrap();
+        assert!(!json.contains("unhandled_events"));
+        let imported_state: RapierAreaState = serde_json::from_str(&json).unwrap();
+        assert!(imported_state.unhandled_events.is_empty());
     }
 }
