@@ -123,6 +123,22 @@ fn rect_contains_point(rect: Rect, point: Vector, tolerance: Real) -> bool {
     let max_y = rect.position.y.max(end.y) + tolerance;
     point.x >= min_x && point.x <= max_x && point.y >= min_y && point.y <= max_y
 }
+#[cfg(feature = "dim3")]
+fn rect_contains_point(rect: Rect, point: Vector, tolerance: Real) -> bool {
+    let end = rect.position + rect.size;
+    let min_x = rect.position.x.min(end.x) - tolerance;
+    let max_x = rect.position.x.max(end.x) + tolerance;
+    let min_y = rect.position.y.min(end.y) - tolerance;
+    let max_y = rect.position.y.max(end.y) + tolerance;
+    let min_z = rect.position.z.min(end.z) - tolerance;
+    let max_z = rect.position.z.max(end.z) + tolerance;
+    point.x >= min_x
+        && point.x <= max_x
+        && point.y >= min_y
+        && point.y <= max_y
+        && point.z >= min_z
+        && point.z <= max_z
+}
 #[cfg(feature = "dim2")]
 fn shape_contact_aabb(shape: &RapierShape, transform: Transform) -> Rect {
     let mut aabb = shape.get_base().get_aabb(transform.origin);
@@ -130,6 +146,23 @@ fn shape_contact_aabb(shape: &RapierShape, transform: Transform) -> Rect {
     local_transform.origin = Vector::default();
     aabb.size = transform_scale(&local_transform) * aabb.size;
     aabb
+}
+#[cfg(feature = "dim3")]
+fn shape_contact_aabb(shape: &RapierShape, transform: Transform) -> Rect {
+    let local_aabb = shape.get_base().get_aabb(Vector::default());
+    let local_end = local_aabb.end();
+    let mut min = Vector::new(Real::INFINITY, Real::INFINITY, Real::INFINITY);
+    let mut max = Vector::new(Real::NEG_INFINITY, Real::NEG_INFINITY, Real::NEG_INFINITY);
+    for x in [local_aabb.position.x, local_end.x] {
+        for y in [local_aabb.position.y, local_end.y] {
+            for z in [local_aabb.position.z, local_end.z] {
+                let point = transform * Vector::new(x, y, z);
+                min = min.coord_min(point);
+                max = max.coord_max(point);
+            }
+        }
+    }
+    Rect::from_corners(min, max)
 }
 #[cfg(feature = "dim2")]
 fn is_valid_recovery_contact(
@@ -145,13 +178,15 @@ fn is_valid_recovery_contact(
 }
 #[cfg(feature = "dim3")]
 fn is_valid_recovery_contact(
-    _moving_shape: &RapierShape,
-    _moving_shape_transform: Transform,
+    moving_shape: &RapierShape,
+    moving_shape_transform: Transform,
     _collision_shape: &RapierShape,
-    _contact: &ContactResult,
-    _margin: Real,
+    contact: &ContactResult,
+    margin: Real,
 ) -> bool {
-    true
+    let contact_point = vector_to_godot(contact.pixel_point2);
+    let contact_aabb = shape_contact_aabb(moving_shape, moving_shape_transform).grow(margin + 0.01);
+    rect_contains_point(contact_aabb, contact_point, DEFAULT_EPSILON)
 }
 #[cfg(feature = "dim2")]
 fn reset_body_motion_result(result: &mut PhysicsServerExtensionMotionResult) {

@@ -25,6 +25,7 @@ const SOLVER_PREDICTIVE_CONTACT_ALLOWANCE_THRESHOLD: &str =
     "physics/rapier/solver/predictive_contact_allowance_threshold";
 const CONTACT_DAMPING_RATIO: &str = "physics/rapier/solver/contact_damping_ratio";
 const CONTACT_NATURAL_FREQUENCY: &str = "physics/rapier/solver/contact_natural_frequency";
+const DEFAULT_MAX_CCD_SUBSTEPS: i32 = 2;
 // Stability preset constants
 const STABILITY_PGS_ITERATIONS: i64 = 4;
 const STABILITY_STABILIZATION_ITERATIONS: i64 = 4;
@@ -157,7 +158,7 @@ impl RapierProjectSettings {
         );
         register_setting_ranged(
             SOLVER_MAX_CCD_SUBSTEPS,
-            Variant::from(integration_parameters.max_ccd_substeps as i32),
+            Variant::from(DEFAULT_MAX_CCD_SUBSTEPS),
             "0,16,or_greater",
             false,
         );
