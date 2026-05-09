@@ -34,7 +34,7 @@ pub struct PhysicsHooksCollisionFilter<'a> {
     pub last_step: Real,
     pub ghost_collision_distance: Real,
 }
-const GODOT_ONE_WAY_DOT_EPSILON: Real = 1.0e-5 as Real;
+const GODOT_ONE_WAY_DOT_EPSILON: Real = 1.0e-5_f32;
 fn update_as_godot_one_way_platform(
     context: &mut ContactModificationContext,
     shape_rel_dir: Vector,
