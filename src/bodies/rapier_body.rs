@@ -288,10 +288,15 @@ impl RapierBody {
                     variant_to_float(&space.get_default_area_param(AreaParameter::LINEAR_DAMP));
                 self.state.total_linear_damping += linear_damp;
             }
+            let simulation_linear_damping = if self.omit_force_integration {
+                0.0
+            } else {
+                self.state.total_linear_damping
+            };
             physics_engine.body_set_linear_damping(
                 self.base.get_space_id(),
                 self.base.get_body_handle(),
-                self.state.total_linear_damping,
+                simulation_linear_damping,
             );
         }
     }
@@ -311,10 +316,15 @@ impl RapierBody {
                     variant_to_float(&space.get_default_area_param(AreaParameter::ANGULAR_DAMP));
                 self.state.total_angular_damping += angular_damp;
             }
+            let simulation_angular_damping = if self.omit_force_integration {
+                0.0
+            } else {
+                self.state.total_angular_damping
+            };
             physics_engine.body_set_angular_damping(
                 self.base.get_space_id(),
                 self.base.get_body_handle(),
-                self.state.total_angular_damping,
+                simulation_angular_damping,
             );
         }
     }
@@ -803,14 +813,8 @@ impl RapierBody {
                 }
             }
         }
-        // Override or combine damping with body's values.
-        if !self.omit_force_integration {
-            total_linear_damping += self.linear_damping;
-            total_angular_damping += self.angular_damping;
-        } else {
-            linear_damping_done = true;
-            angular_damping_done = true;
-        }
+        total_linear_damping += self.linear_damping;
+        total_angular_damping += self.angular_damping;
         AreaOverrideSettings {
             using_area_gravity,
             using_area_linear_damping,
@@ -2086,15 +2090,15 @@ impl RapierBody {
                 if self.omit_force_integration {
                     self.apply_gravity_scale(0.0, physics_engine);
                     self.apply_linear_damping(
-                        0.0,
-                        false,
+                        self.linear_damping,
+                        self.linear_damping_mode == BodyDampMode::COMBINE,
                         physics_engine,
                         physics_spaces,
                         physics_ids,
                     );
                     self.apply_angular_damping(
-                        0.0,
-                        false,
+                        self.angular_damping,
+                        self.angular_damping_mode == BodyDampMode::COMBINE,
                         physics_engine,
                         physics_spaces,
                         physics_ids,
