@@ -553,6 +553,27 @@ impl RapierBody {
         ANGLE_ZERO
     }
 
+    fn clear_velocities(&mut self, physics_engine: &mut PhysicsEngine) {
+        self.state.linear_velocity = Vector::ZERO;
+        self.state.previous_linear_velocity = Vector::ZERO;
+        self.state.angular_velocity = ANGLE_ZERO;
+        self.state.to_add_linear_velocity = Vector::ZERO;
+        self.state.to_add_angular_velocity = ANGLE_ZERO;
+        if !self.base.is_valid() {
+            return;
+        }
+        physics_engine.body_set_linear_velocity(
+            self.base.get_space_id(),
+            self.base.get_body_handle(),
+            vector_to_rapier(Vector::ZERO),
+        );
+        physics_engine.body_set_angular_velocity(
+            self.base.get_space_id(),
+            self.base.get_body_handle(),
+            angle_to_rapier(ANGLE_ZERO),
+        );
+    }
+
     pub fn set_state_sync_callback(
         &mut self,
         p_callable: Callable,
@@ -1644,6 +1665,7 @@ impl RapierBody {
                         BodyType::Kinematic,
                         true,
                     );
+                    self.clear_velocities(physics_engine);
                 }
                 BodyMode::STATIC => {
                     physics_engine.body_change_mode(
@@ -1652,6 +1674,7 @@ impl RapierBody {
                         BodyType::Static,
                         true,
                     );
+                    self.clear_velocities(physics_engine);
                 }
                 BodyMode::RIGID | BodyMode::RIGID_LINEAR => {
                     physics_engine.body_change_mode(
@@ -1660,14 +1683,22 @@ impl RapierBody {
                         BodyType::Dynamic,
                         true,
                     );
+                    if p_mode == BodyMode::RIGID_LINEAR {
+                        self.state.angular_velocity = ANGLE_ZERO;
+                        self.state.to_add_angular_velocity = ANGLE_ZERO;
+                        physics_engine.body_set_angular_velocity(
+                            self.base.get_space_id(),
+                            self.base.get_body_handle(),
+                            angle_to_rapier(ANGLE_ZERO),
+                        );
+                    }
                 }
                 _ => {}
             }
             if p_mode == BodyMode::STATIC {
                 self.force_sleep(physics_engine);
-                if self.state.marked_active {
-                    return;
-                }
+                self.state.marked_active = false;
+                self.state.active = false;
                 space.get_mut_state().body_remove_from_active_list(id);
                 space
                     .get_mut_state()
@@ -1676,6 +1707,12 @@ impl RapierBody {
                     .get_mut_state()
                     .body_remove_from_gravity_update_list(id);
                 space.get_mut_state().body_remove_from_area_update_list(id);
+                space.get_mut_state().body_remove_from_state_query_list(id);
+                space
+                    .get_mut_state()
+                    .body_remove_from_force_integrate_list(id);
+                self.update_colliders_filters(physics_engine);
+                self.update_colliders_contact_events(physics_engine);
                 return;
             }
             if self.state.active && prev_mode == BodyMode::STATIC {
