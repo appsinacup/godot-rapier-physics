@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dhu7xj0x3pmru"]
+
+[ext_resource type="Script" path="res://tests/nodes/CollisionShape/tests/2d/one_way_collision_margin.gd" id="1_owcmg"]
+
+[node name="one_way_collision_margin" type="Node2D"]
+script = ExtResource("1_owcmg")

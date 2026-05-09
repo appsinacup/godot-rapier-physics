@@ -2,6 +2,7 @@ use godot::classes::ProjectSettings;
 use godot::prelude::*;
 
 use crate::servers::rapier_project_settings::RapierProjectSettings;
+const PLUGIN_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub mod rapier_math;
 #[cfg(feature = "dim2")]
 pub mod rapier_physics_server_2d;
@@ -45,8 +46,9 @@ fn print_version() {
         );
     } else {
         godot_print_rich!(
-            "[color=green]PHYSICS ENGINE 2D: {} v0.8.30[/color]",
-            physics_engine
+            "[color=green]PHYSICS ENGINE 2D: {} v{}[/color]",
+            physics_engine,
+            PLUGIN_VERSION
         );
     }
 }
@@ -64,8 +66,9 @@ fn print_version() {
         );
     } else {
         godot_print_rich!(
-            "[color=green]PHYSICS ENGINE 3D: {} v0.8.30[/color]",
-            physics_engine
+            "[color=green]PHYSICS ENGINE 3D: {} v{}[/color]",
+            physics_engine,
+            PLUGIN_VERSION
         );
     }
 }

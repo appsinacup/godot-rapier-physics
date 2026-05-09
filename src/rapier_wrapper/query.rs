@@ -95,6 +95,33 @@ pub struct QueryExcludedInfo {
     pub query_exclude_size: usize,
     pub query_exclude_body: i64,
 }
+fn update_ray_hit_info(
+    physics_world: &PhysicsWorld,
+    ray: &Ray,
+    hit_from_inside: bool,
+    handle: ColliderHandle,
+    intersection: RayIntersection,
+    length_current: &mut Real,
+    hit_info: &mut RayHitInfo,
+) -> bool {
+    if intersection.time_of_impact > *length_current {
+        return false;
+    }
+    if !hit_from_inside && intersection.time_of_impact == 0.0 {
+        return false;
+    }
+    *length_current = intersection.time_of_impact;
+    hit_info.pixel_position = ray.point_at(intersection.time_of_impact);
+    if hit_from_inside && intersection.time_of_impact == 0.0 {
+        hit_info.normal = Vector::ZERO;
+    } else {
+        hit_info.normal = intersection.normal;
+    }
+    hit_info.collider = handle;
+    hit_info.user_data = physics_world.get_collider_user_data(handle);
+    hit_info.feature = intersection.feature;
+    true
+}
 impl PhysicsEngine {
     #[allow(clippy::too_many_arguments)]
     pub fn intersect_ray(
@@ -135,41 +162,63 @@ impl PhysicsEngine {
         };
         filter.predicate = Some(&predicate);
         let mut length_current = Real::MAX;
-        for (handle, _collider, intersection) in physics_world
-            .physics_objects
-            .broad_phase
-            .as_query_pipeline(
-                physics_world
-                    .physics_objects
-                    .narrow_phase
-                    .query_dispatcher(),
-                &physics_world.physics_objects.rigid_body_set,
-                &physics_world.physics_objects.collider_set,
-                filter,
-            )
-            .intersect_ray(ray, length, true)
-        {
+        let query_pipeline = physics_world.physics_objects.broad_phase.as_query_pipeline(
+            physics_world
+                .physics_objects
+                .narrow_phase
+                .query_dispatcher(),
+            &physics_world.physics_objects.rigid_body_set,
+            &physics_world.physics_objects.collider_set,
+            filter,
+        );
+        let broad_phase_empty = query_pipeline.bvh.is_empty();
+        for (handle, _collider, intersection) in query_pipeline.intersect_ray(ray, length, true) {
             // Find closest intersection
-            if intersection.time_of_impact > length_current {
-                continue;
-            }
-            if hit_from_inside || intersection.time_of_impact != 0.0 {
-                length_current = intersection.time_of_impact;
+            if update_ray_hit_info(
+                physics_world,
+                &ray,
+                hit_from_inside,
+                handle,
+                intersection,
+                &mut length_current,
+                hit_info,
+            ) {
                 result = true;
-                let hit_point = ray.point_at(intersection.time_of_impact);
-                let hit_normal = intersection.normal;
-                hit_info.pixel_position = hit_point;
-                if hit_from_inside && intersection.time_of_impact == 0.0 {
-                    hit_info.normal = Vector::ZERO;
-                } else {
-                    hit_info.normal = hit_normal;
+            }
+            // Early exit if we found a hit at exactly 0.0 (can't get closer)
+            if result && intersection.time_of_impact == 0.0 {
+                break;
+            }
+        }
+        // Before the first physics step, Rapier's broad phase can still be empty.
+        // Scan colliders read-only so early direct-space raycasts can hit loaded shapes.
+        if !result && broad_phase_empty && !physics_world.physics_objects.collider_set.is_empty() {
+            for (handle, collider) in physics_world.physics_objects.collider_set.iter() {
+                if !filter.test(
+                    &physics_world.physics_objects.rigid_body_set,
+                    handle,
+                    collider,
+                ) {
+                    continue;
                 }
-                hit_info.collider = handle;
-                hit_info.user_data = physics_world.get_collider_user_data(handle);
-                hit_info.feature = intersection.feature;
-                // Early exit if we found a hit at exactly 0.0 (can't get closer)
-                if intersection.time_of_impact == 0.0 {
-                    break;
+                if let Some(intersection) = collider.shape().cast_ray_and_get_normal(
+                    collider.position(),
+                    &ray,
+                    length,
+                    true,
+                ) && update_ray_hit_info(
+                    physics_world,
+                    &ray,
+                    hit_from_inside,
+                    handle,
+                    intersection,
+                    &mut length_current,
+                    hit_info,
+                ) {
+                    result = true;
+                    if intersection.time_of_impact == 0.0 {
+                        break;
+                    }
                 }
             }
         }

@@ -70,6 +70,17 @@ impl EventReport {
             this_area_shape_index: from_info.last_entry_report.this_area_shape_index,
         }
     }
+
+    fn is_same_shape_pair(&self, other: &Self) -> bool {
+        self.id == other.id
+            && self.collision_object_type == other.collision_object_type
+            && self.object_shape_index == other.object_shape_index
+            && self.this_area_shape_index == other.this_area_shape_index
+    }
+}
+struct ProcessedMonitorEvent {
+    num_contacts: i32,
+    should_report: bool,
 }
 #[derive(Debug, PartialEq, Eq)]
 enum MonitorEventResult {
@@ -119,6 +130,25 @@ impl RapierAreaState {
             }
             _ => MonitorEventResult::InvalidState,
         }
+    }
+
+    fn find_opposite_unhandled_event_for_shape(
+        &self,
+        other_collider_handle: ColliderHandle,
+        new_event: &EventReport,
+    ) -> Option<ColliderHandle> {
+        self.unhandled_events
+            .iter()
+            .find_map(|(queued_collider_handle, queued_event)| {
+                if *queued_collider_handle != other_collider_handle
+                    && queued_event.state == -new_event.state
+                    && queued_event.is_same_shape_pair(new_event)
+                {
+                    Some(*queued_collider_handle)
+                } else {
+                    None
+                }
+            })
     }
 }
 pub enum AreaUpdateMode {
@@ -344,7 +374,7 @@ impl RapierArea {
             this_area_shape_index: this_shape as u32,
         };
         // Process the event, creating or destroying a monitor as necessary.
-        if let Some(num_contacts_in_monitor) = self.process_new_event(
+        if let Some(processed_event) = self.process_new_event(
             space,
             this_collider_handle,
             other_collider_handle,
@@ -355,22 +385,23 @@ impl RapierArea {
             if let Some(other_collider) = other_collider
                 && let Some(other_body) = other_collider.get_mut_body()
             {
-                if num_contacts_in_monitor == 1 && event_state == 1 {
+                if processed_event.num_contacts == 1 && event_state == 1 {
                     // If we're adding this contact anew, register the area in the body:
                     other_body.add_area(self, space);
-                } else if num_contacts_in_monitor == 0 {
+                } else if processed_event.num_contacts == 0 {
                     // Else, if our monitor has no more contacts:
                     other_body.remove_area(self.base.get_id(), space);
                 }
             }
-            // If the processing method returned a value, then we want to pipe an event through to Godot.
-            self.enqueue_unhandled_event(space, other_collider_handle, event_report);
+            if processed_event.should_report {
+                self.enqueue_unhandled_event(space, other_collider_handle, event_report);
+            }
         }
     }
 
     // Returns the number of contacts remaining in our monitor for the other collider.
     // If it returns zero, then the monitor has been removed and the collider is exiting.
-    // If it returns None, then we don't have an event worth reporting to Godot.
+    // If it returns None, then the event was invalid or stale enough to ignore completely.
     fn process_new_event(
         &mut self,
         space: &mut RapierSpace,
@@ -378,7 +409,7 @@ impl RapierArea {
         other_collider_handle: ColliderHandle,
         entry_report: &EventReport,
         event_removed: bool,
-    ) -> Option<i32> {
+    ) -> Option<ProcessedMonitorEvent> {
         let num_contacts = match self.state.process_monitor_event(
             this_collider_handle,
             other_collider_handle,
@@ -387,15 +418,12 @@ impl RapierArea {
         ) {
             MonitorEventResult::Contacts(num_contacts) => num_contacts,
             MonitorEventResult::StaleRemovedExit => {
-                self.filter_on_unhandled_events(space, other_collider_handle, entry_report.state);
+                self.filter_on_unhandled_events(space, other_collider_handle, entry_report);
                 return None;
             }
             MonitorEventResult::MissingExit => {
-                let should_report_exit = self.filter_on_unhandled_events(
-                    space,
-                    other_collider_handle,
-                    entry_report.state,
-                );
+                let should_report_exit =
+                    self.filter_on_unhandled_events(space, other_collider_handle, entry_report);
                 if should_report_exit {
                     godot_warn!(
                         "Area has received an Exit Event for a collider with no recorded Entry Event."
@@ -410,12 +438,12 @@ impl RapierArea {
         };
         // Edge case to handle the scenario where an object has entered and is now exiting this area in the same frame.
         // As we flush queries every frame, the only way our unhandled event queue will have an entry is if this event occured this frame.
-        if self.filter_on_unhandled_events(space, other_collider_handle, entry_report.state) {
-            Some(num_contacts)
-        } else {
-            // We don't want to pass any events through to Godot.
-            None
-        }
+        let should_report =
+            self.filter_on_unhandled_events(space, other_collider_handle, entry_report);
+        Some(ProcessedMonitorEvent {
+            num_contacts,
+            should_report,
+        })
     }
 
     // Add an entry event to our queue.
@@ -439,25 +467,39 @@ impl RapierArea {
         &mut self,
         space: &mut RapierSpace,
         other_collider_handle: ColliderHandle,
-        new_event_state: i32,
+        new_event: &EventReport,
     ) -> bool {
         if let Some(current_event_in_queue) =
             self.state.unhandled_events.get(&other_collider_handle)
         {
             // See if we currently have a pending unhandled event (eg an event from this frame) that is the opposite of this one.
             // If so, this event will cancel that one out.
-            if current_event_in_queue.state == -new_event_state {
+            if current_event_in_queue.state == -new_event.state {
                 self.state.unhandled_events.remove(&other_collider_handle);
                 if self.state.unhandled_events.is_empty() {
                     space
                         .get_mut_state()
                         .area_remove_from_monitor_query_list(self.base.get_id());
-                    return false;
                 }
-            } else if current_event_in_queue.state == new_event_state {
+                return false;
+            } else if current_event_in_queue.state == new_event.state {
                 // In this scenario, we can just stop here-- the state is already going to report an entry event at the end of this tick.
                 return false;
             }
+        }
+        if let Some(cancelled_collider_handle) = self
+            .state
+            .find_opposite_unhandled_event_for_shape(other_collider_handle, new_event)
+        {
+            self.state
+                .unhandled_events
+                .remove(&cancelled_collider_handle);
+            if self.state.unhandled_events.is_empty() {
+                space
+                    .get_mut_state()
+                    .area_remove_from_monitor_query_list(self.base.get_id());
+            }
+            return false;
         }
         true
     }
@@ -1170,6 +1212,34 @@ mod tests {
             !state
                 .monitored_objects
                 .contains_key(&(other_collider, this_collider))
+        );
+    }
+    #[test]
+    fn unhandled_opposite_event_matches_recreated_collider_for_same_shape_pair() {
+        let mut state = RapierAreaState::default();
+        let removed_collider = collider_handle(2);
+        let added_collider = collider_handle(3);
+        state
+            .unhandled_events
+            .insert(removed_collider, event_report(-1));
+        assert_eq!(
+            state.find_opposite_unhandled_event_for_shape(added_collider, &event_report(1)),
+            Some(removed_collider)
+        );
+    }
+    #[test]
+    fn unhandled_opposite_event_ignores_different_shape_pair() {
+        let mut state = RapierAreaState::default();
+        let removed_collider = collider_handle(2);
+        let added_collider = collider_handle(3);
+        state
+            .unhandled_events
+            .insert(removed_collider, event_report(-1));
+        let mut different_shape_event = event_report(1);
+        different_shape_event.object_shape_index = 1;
+        assert_eq!(
+            state.find_opposite_unhandled_event_for_shape(added_collider, &different_shape_event),
+            None
         );
     }
     #[cfg(feature = "serde-serialize")]

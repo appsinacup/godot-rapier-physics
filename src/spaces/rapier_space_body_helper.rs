@@ -1062,6 +1062,22 @@ fn get_transform_forward(transform: &Transform2D) -> Vector {
 fn get_transform_forward(transform: &Transform3D) -> Vector {
     -transform.basis.col_b()
 }
+fn one_way_valid_depth(
+    owc_margin: f32,
+    motion_margin: f32,
+    platform_linear_velocity: Vector,
+    last_step: f32,
+    valid_dir: Vector,
+) -> f32 {
+    let mut valid_depth = owc_margin.max(motion_margin);
+    let platform_motion = platform_linear_velocity * last_step;
+    let platform_motion_len = platform_motion.length();
+    if !platform_motion_len.is_zero_approx() {
+        valid_depth +=
+            platform_motion_len * vector_normalized(platform_motion).dot(valid_dir).max(0.0);
+    }
+    valid_depth
+}
 impl PhysicsEngine {
     #[allow(clippy::too_many_arguments)]
     fn should_skip_collision_one_dir(
@@ -1085,24 +1101,20 @@ impl PhysicsEngine {
             let owc_margin = collision_body
                 .get_base()
                 .get_shape_one_way_collision_margin(shape_index);
-            let mut valid_depth = owc_margin.max(p_margin);
+            let mut platform_linear_velocity = Vector::default();
             if let Some(b) = collision_body.get_body()
                 && b.get_base().mode.ord() >= BodyMode::KINEMATIC.ord()
             {
-                // Increase margin by platform movement in the one-way direction
-                let lv = b.get_linear_velocity(self);
-                let mut motion = lv * last_step;
-                let motion_len = motion.length();
-                if !motion_len.is_zero_approx() {
-                    motion = vector_normalized(motion);
-                }
-                valid_depth += motion_len * motion.dot(valid_dir).max(0.0);
+                platform_linear_velocity = b.get_linear_velocity(self);
             }
-            let _motion = p_motion;
+            let valid_depth = one_way_valid_depth(
+                owc_margin,
+                p_margin,
+                platform_linear_velocity,
+                last_step,
+                valid_dir,
+            );
             let motion_len = p_motion.length();
-            if !motion_len.is_zero_approx() {
-                valid_depth += motion_len * vector_normalized(p_motion).dot(valid_dir).max(0.0);
-            }
             let motion_dot_valid_dir = if motion_len.is_zero_approx() {
                 0.0
             } else {
@@ -1288,6 +1300,19 @@ mod tests {
         let mut travel = x_motion(-0.003);
         clamp_near_zero_blocked_travel(motion, 0.08, &mut travel);
         assert_eq!(travel, x_motion(-0.003));
+    }
+    #[test]
+    fn one_way_valid_depth_ignores_test_body_motion() {
+        let valid_dir = y_motion(1.0);
+        let depth_without_platform_motion =
+            one_way_valid_depth(1.0, 0.08, Vector::default(), 1.0 / 60.0, valid_dir);
+        assert_eq!(depth_without_platform_motion, 1.0);
+    }
+    #[test]
+    fn one_way_valid_depth_includes_platform_motion_along_one_way_direction() {
+        let valid_dir = y_motion(1.0);
+        let depth = one_way_valid_depth(1.0, 0.08, y_motion(60.0), 1.0 / 60.0, valid_dir);
+        assert_eq!(depth, 2.0);
     }
     #[test]
     fn clamp_near_zero_safe_motion_keeps_full_motion() {
