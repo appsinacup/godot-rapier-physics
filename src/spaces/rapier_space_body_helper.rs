@@ -53,7 +53,6 @@ const STUCK_PENETRATION_THRESHOLD: Real = 0.1;
 #[cfg(feature = "dim3")]
 const STUCK_PENETRATION_THRESHOLD: Real = 0.01;
 const NORMAL_EPSILON: Real = 0.01;
-const ONE_WAY_PERPENDICULAR_THRESHOLD: Real = 0.1;
 #[derive(Clone, Copy)]
 struct ExcludedShapePair {
     local_shape_index: usize,
@@ -491,6 +490,7 @@ impl RapierSpace {
                                     shape_col_object,
                                     shape_index,
                                     &col_shape_transform,
+                                    body_shape_transform.origin,
                                     p_margin,
                                     RapierSpace::get_last_step(),
                                     p_motion,
@@ -789,6 +789,8 @@ impl RapierSpace {
                                 shape_col_object,
                                 shape_index,
                                 &col_shape_transform,
+                                body_shape_transform.origin
+                                    + p_motion * (hi + self.get_contact_max_allowed_penetration()),
                                 p_margin,
                                 RapierSpace::get_last_step(),
                                 p_motion,
@@ -954,6 +956,7 @@ impl RapierSpace {
                                 shape_col_object,
                                 shape_index,
                                 &col_shape_transform,
+                                body_shape_transform.origin,
                                 p_margin,
                                 RapierSpace::get_last_step(),
                                 p_motion,
@@ -1074,9 +1077,25 @@ fn one_way_valid_depth(
     let platform_motion_len = platform_motion.length();
     if !platform_motion_len.is_zero_approx() {
         valid_depth +=
-            platform_motion_len * vector_normalized(platform_motion).dot(valid_dir).max(0.0);
+            platform_motion_len * vector_normalized(platform_motion).dot(-valid_dir).max(0.0);
     }
     valid_depth
+}
+fn is_one_way_contact_invalid(
+    contact: &ContactResult,
+    moving_shape_origin: Vector,
+    platform_shape_origin: Vector,
+    valid_dir: Vector,
+    valid_depth: Real,
+) -> bool {
+    let rel_dir = vector_to_godot(contact.pixel_point1) - vector_to_godot(contact.pixel_point2);
+    let rel_length_sq = rel_dir.length_squared();
+    if rel_length_sq > valid_depth * valid_depth {
+        return true;
+    }
+    let shape_rel_dir = moving_shape_origin - platform_shape_origin;
+    shape_rel_dir.length_squared() > NORMAL_EPSILON
+        && valid_dir.dot(vector_normalized(shape_rel_dir)) < DEFAULT_EPSILON
 }
 impl PhysicsEngine {
     #[allow(clippy::too_many_arguments)]
@@ -1087,17 +1106,17 @@ impl PhysicsEngine {
         collision_body: &RapierCollisionObject,
         shape_index: usize,
         col_shape_transform: &Transform,
+        moving_shape_origin: Vector,
         p_margin: f32,
         last_step: f32,
-        p_motion: Vector,
+        _p_motion: Vector,
     ) -> bool {
-        let dist = contact.pixel_distance;
         if body_shape.allows_one_way_collision()
             && collision_body
                 .get_base()
                 .is_shape_set_as_one_way_collision(shape_index)
         {
-            let valid_dir = -vector_normalized(get_transform_forward(col_shape_transform));
+            let valid_dir = vector_normalized(get_transform_forward(col_shape_transform));
             let owc_margin = collision_body
                 .get_base()
                 .get_shape_one_way_collision_margin(shape_index);
@@ -1114,32 +1133,13 @@ impl PhysicsEngine {
                 last_step,
                 valid_dir,
             );
-            let motion_len = p_motion.length();
-            let motion_dot_valid_dir = if motion_len.is_zero_approx() {
-                0.0
-            } else {
-                vector_normalized(p_motion).dot(valid_dir)
-            };
-            let contact_normal = vector_to_godot(contact.normal1);
-            let normal_dot_direction = contact_normal.dot(valid_dir);
-            // If motion opposes one-way direction, skip collision (allows passage through platforms)
-            if motion_dot_valid_dir < 0.0 {
-                return true;
-            }
-            // Check if contact normal is valid (non-zero)
-            let normal_length_sq = contact_normal.length_squared();
-            if normal_length_sq > NORMAL_EPSILON {
-                // Skip side edges (perpendicular contacts)
-                if normal_dot_direction.abs() < ONE_WAY_PERPENDICULAR_THRESHOLD {
-                    return true;
-                }
-                // Skip if contact normal opposes one-way direction
-                if normal_dot_direction < 0.0 {
-                    return true;
-                }
-            }
-            // Skip deeply penetrating contacts
-            if dist < -valid_depth {
+            if is_one_way_contact_invalid(
+                contact,
+                moving_shape_origin,
+                col_shape_transform.origin,
+                valid_dir,
+                valid_depth,
+            ) {
                 return true;
             }
         }
@@ -1309,10 +1309,55 @@ mod tests {
         assert_eq!(depth_without_platform_motion, 1.0);
     }
     #[test]
-    fn one_way_valid_depth_includes_platform_motion_along_one_way_direction() {
+    fn one_way_valid_depth_includes_platform_motion_against_one_way_direction() {
         let valid_dir = y_motion(1.0);
-        let depth = one_way_valid_depth(1.0, 0.08, y_motion(60.0), 1.0 / 60.0, valid_dir);
+        let depth = one_way_valid_depth(1.0, 0.08, y_motion(-60.0), 1.0 / 60.0, valid_dir);
         assert_eq!(depth, 2.0);
+    }
+    #[test]
+    fn one_way_contact_accepts_contact_along_valid_direction() {
+        let contact = ContactResult {
+            pixel_point1: vector_to_rapier(x_motion(-1.0)),
+            pixel_point2: vector_to_rapier(Vector::default()),
+            ..Default::default()
+        };
+        assert!(!is_one_way_contact_invalid(
+            &contact,
+            x_motion(1.0),
+            Vector::default(),
+            x_motion(1.0),
+            1.0
+        ));
+    }
+    #[test]
+    fn one_way_contact_rejects_contact_against_valid_direction() {
+        let contact = ContactResult {
+            pixel_point1: vector_to_rapier(x_motion(-1.0)),
+            pixel_point2: vector_to_rapier(Vector::default()),
+            ..Default::default()
+        };
+        assert!(is_one_way_contact_invalid(
+            &contact,
+            x_motion(1.0),
+            Vector::default(),
+            x_motion(-1.0),
+            1.0
+        ));
+    }
+    #[test]
+    fn one_way_contact_rejects_contact_beyond_margin() {
+        let contact = ContactResult {
+            pixel_point1: vector_to_rapier(x_motion(-2.0)),
+            pixel_point2: vector_to_rapier(Vector::default()),
+            ..Default::default()
+        };
+        assert!(is_one_way_contact_invalid(
+            &contact,
+            x_motion(1.0),
+            Vector::default(),
+            x_motion(1.0),
+            1.0
+        ));
     }
     #[test]
     fn clamp_near_zero_safe_motion_keeps_full_motion() {

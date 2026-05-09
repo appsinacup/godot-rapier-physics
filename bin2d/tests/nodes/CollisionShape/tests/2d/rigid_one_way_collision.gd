@@ -84,4 +84,3 @@ func test_start() -> void:
 		
 	var monitor := create_generic_expiration_monitor(self, lambda, null, simulation_duration)
 	monitor.test_name = "Only collide if the platform rotation > 180°"
-	monitor.expected_to_fail = true
