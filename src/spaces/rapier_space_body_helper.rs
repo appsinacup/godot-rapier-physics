@@ -84,6 +84,75 @@ fn clamp_near_zero_blocked_travel(motion: Vector, margin: Real, travel: &mut Vec
         *travel = Vector::default();
     }
 }
+fn recover_motion_from_contacts(
+    contacts: &[Vector; 64],
+    priorities: &[Real; 32],
+    contact_count: usize,
+    min_contact_depth: Real,
+) -> Vector {
+    let total_priority: Real = priorities.iter().take(contact_count).sum();
+    let inv_total_weight = if total_priority.abs() <= DEFAULT_EPSILON {
+        1.0
+    } else {
+        contact_count as Real / total_priority
+    };
+    let mut recover_motion = Vector::default();
+    for i in 0..contact_count {
+        let a = contacts[i * 2];
+        let b = contacts[i * 2 + 1];
+        if let Some(n) = (a - b).try_normalized() {
+            let d = n.dot(b);
+            let depth = n.dot(a + recover_motion) - d;
+            if depth > min_contact_depth + DEFAULT_EPSILON {
+                recover_motion -= n
+                    * (depth - min_contact_depth)
+                    * BODY_MOTION_RECOVER_RATIO
+                    * priorities[i]
+                    * inv_total_weight;
+            }
+        }
+    }
+    recover_motion
+}
+#[cfg(feature = "dim2")]
+fn rect_contains_point(rect: Rect, point: Vector, tolerance: Real) -> bool {
+    let end = rect.position + rect.size;
+    let min_x = rect.position.x.min(end.x) - tolerance;
+    let max_x = rect.position.x.max(end.x) + tolerance;
+    let min_y = rect.position.y.min(end.y) - tolerance;
+    let max_y = rect.position.y.max(end.y) + tolerance;
+    point.x >= min_x && point.x <= max_x && point.y >= min_y && point.y <= max_y
+}
+#[cfg(feature = "dim2")]
+fn shape_contact_aabb(shape: &RapierShape, transform: Transform) -> Rect {
+    let mut aabb = shape.get_base().get_aabb(transform.origin);
+    let mut local_transform = transform;
+    local_transform.origin = Vector::default();
+    aabb.size = transform_scale(&local_transform) * aabb.size;
+    aabb
+}
+#[cfg(feature = "dim2")]
+fn is_valid_recovery_contact(
+    moving_shape: &RapierShape,
+    moving_shape_transform: Transform,
+    _collision_shape: &RapierShape,
+    contact: &ContactResult,
+    margin: Real,
+) -> bool {
+    let contact_point = vector_to_godot(contact.pixel_point2);
+    let contact_aabb = shape_contact_aabb(moving_shape, moving_shape_transform).grow(margin + 1.0);
+    rect_contains_point(contact_aabb, contact_point, DEFAULT_EPSILON)
+}
+#[cfg(feature = "dim3")]
+fn is_valid_recovery_contact(
+    _moving_shape: &RapierShape,
+    _moving_shape_transform: Transform,
+    _collision_shape: &RapierShape,
+    _contact: &ContactResult,
+    _margin: Real,
+) -> bool {
+    true
+}
 #[cfg(feature = "dim2")]
 fn reset_body_motion_result(result: &mut PhysicsServerExtensionMotionResult) {
     result.travel = Vector::default();
@@ -406,6 +475,7 @@ impl RapierSpace {
         loop {
             let mut results = [PointHitInfo::default(); 32];
             let mut sr = [Vector::default(); 64]; // Store contact points (2 per contact, max 32 contacts)
+            let mut priorities = [0.0; 32];
             let mut contact_count = 0;
             *excluded_shape_pair_count = 0; // Reset for this iteration
             // Undo the currently transform the physics server is aware of and apply the provided one
@@ -483,6 +553,15 @@ impl RapierSpace {
                                 if !contact.collided {
                                     continue;
                                 }
+                                if !is_valid_recovery_contact(
+                                    body_shape,
+                                    body_shape_transform,
+                                    col_shape,
+                                    &contact,
+                                    p_margin,
+                                ) {
+                                    continue;
+                                }
                                 let mut did_collide = true;
                                 let skip_collision = physics_engine.should_skip_collision_one_dir(
                                     &contact,
@@ -515,6 +594,7 @@ impl RapierSpace {
                                     let b = vector_to_godot(contact.pixel_point2);
                                     sr[contact_count * 2] = a;
                                     sr[contact_count * 2 + 1] = b;
+                                    priorities[contact_count] = 1.0;
                                     contact_count += 1;
                                     collided = true;
                                 }
@@ -527,44 +607,8 @@ impl RapierSpace {
                 break;
             }
             recovered = true;
-            // First pass: calculate all depths and total priority (like Godot does)
-            let mut depths = [0.0; 32];
-            let mut total_priority = 0.0;
-            for i in 0..contact_count {
-                let a = sr[i * 2];
-                let b = sr[i * 2 + 1];
-                if let Some(n) = (a - b).try_normalized() {
-                    let d = n.dot(b);
-                    let depth = n.dot(a) - d;
-                    // Count any penetration, even if shallow
-                    if depth > DEFAULT_EPSILON {
-                        depths[i] = depth;
-                        total_priority += depth;
-                    }
-                }
-            }
-            // Second pass: apply recovery weighted by priority
-            let mut recover_motion = Vector::default();
-            if total_priority > 0.0 {
-                for i in 0..contact_count {
-                    if depths[i] <= 0.0 {
-                        continue;
-                    }
-                    let a = sr[i * 2];
-                    let b = sr[i * 2 + 1];
-                    if let Some(n) = (a - b).try_normalized() {
-                        let d = n.dot(b);
-                        let depth = n.dot(a + recover_motion) - d;
-                        if depth > DEFAULT_EPSILON {
-                            // Priority weight: deeper contacts get more correction
-                            let priority = depths[i] / total_priority;
-                            let recovery_amount = (depth - min_contact_depth).max(depth * 0.4);
-                            recover_motion -=
-                                n * recovery_amount * BODY_MOTION_RECOVER_RATIO * priority;
-                        }
-                    }
-                }
-            }
+            let recover_motion =
+                recover_motion_from_contacts(&sr, &priorities, contact_count, min_contact_depth);
             // Break if recovery motion is too small to be meaningful
             if recover_motion.length() < MIN_RECOVERY_THRESHOLD {
                 recovered = false;
@@ -1204,6 +1248,36 @@ mod tests {
             }),
             collision_count: 0,
         }
+    }
+    fn assert_real_approx_eq(actual: Real, expected: Real) {
+        assert!(
+            (actual - expected).abs() <= 1.0e-5,
+            "expected {expected}, got {actual}"
+        );
+    }
+    #[test]
+    fn recover_motion_uses_equal_priority_contacts() {
+        let mut contacts = [Vector::default(); 64];
+        let mut priorities = [0.0; 32];
+        contacts[0] = x_motion(1.0);
+        contacts[1] = Vector::default();
+        contacts[2] = y_motion(1.0);
+        contacts[3] = Vector::default();
+        priorities[0] = 1.0;
+        priorities[1] = 1.0;
+        let recover_motion = recover_motion_from_contacts(&contacts, &priorities, 2, 0.0);
+        assert_real_approx_eq(recover_motion.x, -BODY_MOTION_RECOVER_RATIO);
+        assert_real_approx_eq(recover_motion.y, -BODY_MOTION_RECOVER_RATIO);
+    }
+    #[test]
+    fn recover_motion_respects_min_contact_depth() {
+        let mut contacts = [Vector::default(); 64];
+        let mut priorities = [0.0; 32];
+        contacts[0] = x_motion(0.01);
+        contacts[1] = Vector::default();
+        priorities[0] = 1.0;
+        let recover_motion = recover_motion_from_contacts(&contacts, &priorities, 1, 0.02);
+        assert_eq!(recover_motion, Vector::default());
     }
     #[cfg(feature = "dim2")]
     #[test]
