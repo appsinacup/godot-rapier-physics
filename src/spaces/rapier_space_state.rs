@@ -210,10 +210,6 @@ impl RapierSpaceState {
         &self.gravity_update_list
     }
 
-    pub fn get_active_bodies(&self) -> Vec<RapierId> {
-        self.active_list.clone().into_iter().collect()
-    }
-
     pub fn get_state_query_list(&self) -> &BTreeSet<RapierId> {
         &self.state_query_list
     }
@@ -290,7 +286,6 @@ mod tests {
         assert!(state.get_active_list().contains(&rb_id));
         state.body_remove_from_active_list(rb_id);
         assert!(!state.get_active_list().contains(&rb_id));
-        assert!(state.get_active_bodies().is_empty());
     }
     #[test]
     fn test_body_add_and_remove_reset_from_mass_properties_update_list() {

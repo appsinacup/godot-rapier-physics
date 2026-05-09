@@ -393,7 +393,8 @@ impl RapierSpace {
         self.state.set_active_objects(
             physics_engine.world_get_active_objects_count(self.state.get_id()) as i32,
         );
-        for body in self.state.get_active_list().clone() {
+        let active_bodies: Vec<_> = self.state.get_active_list().iter().copied().collect();
+        for body in active_bodies {
             if let Some(body) = physics_collision_objects.get_mut(&get_id_rid(body, physics_ids))
                 && let Some(body) = body.get_mut_body()
             {

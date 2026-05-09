@@ -382,10 +382,9 @@ impl RapierPhysicsServerImpl {
     pub(super) fn space_get_active_bodies(&self, space: Rid) -> Array<Rid> {
         let physics_data = physics_data();
         if let Some(space) = physics_data.spaces.get_mut(&space) {
-            let bodies = space.get_state().get_active_bodies();
             let mut array: Array<Rid> = Array::new();
-            for body_id in bodies {
-                let rid = get_id_rid(body_id, &physics_data.ids);
+            for body_id in space.get_state().get_active_list() {
+                let rid = get_id_rid(*body_id, &physics_data.ids);
                 array.push(rid);
             }
             return array;
