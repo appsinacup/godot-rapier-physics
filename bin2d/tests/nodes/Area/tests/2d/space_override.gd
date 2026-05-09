@@ -42,6 +42,21 @@ func test_start() -> void:
 	rigid_body_outside.linear_damp_mode = RigidBody2D.DAMP_MODE_REPLACE
 	rigid_body_outside.linear_damp = 0.0
 	rigid_body_outside.gravity_scale = 0.0
+
+	# Add Area with gravity that changes while body remains inside
+	var area_dynamic_gravity_position := CENTER_LEFT + Vector2(80, 0)
+	var area_dynamic_gravity := add_area(area_dynamic_gravity_position)
+	area_dynamic_gravity.monitoring = true
+	area_dynamic_gravity.monitorable = false
+	area_dynamic_gravity.gravity_space_override = Area2D.SPACE_OVERRIDE_DISABLED
+	area_dynamic_gravity.gravity_direction = Vector2.LEFT
+	area_dynamic_gravity.gravity = 500.0
+
+	# Add rigid body inside dynamic gravity area
+	var rigid_body_dynamic := add_rigid_body(area_dynamic_gravity_position)
+	rigid_body_dynamic.linear_damp_mode = RigidBody2D.DAMP_MODE_REPLACE
+	rigid_body_dynamic.linear_damp = 0.0
+	rigid_body_dynamic.gravity_scale = 0.0
 	
 	var dt := 1.0/60.0
 	var default_gravity : Vector2 = ProjectSettings.get_setting("physics/2d/default_gravity_vector")
@@ -49,19 +64,27 @@ func test_start() -> void:
 	
 	var custom_gravity := area_custom_gravity.gravity_direction
 	custom_gravity *= area_custom_gravity.gravity
+
+	var dynamic_gravity := area_dynamic_gravity.gravity_direction
+	dynamic_gravity *= area_dynamic_gravity.gravity
 	
 	var checks_point = func(_p_target: PhysicsUnitTest2D, p_monitor: GenericManualMonitor):
 		rigid_body.sleeping = false
+		rigid_body2.sleeping = false
 		rigid_body_outside.sleeping = false
+		rigid_body_dynamic.sleeping = false
 		
 		if p_monitor.frame == 2:
 			rigid_body.gravity_scale = 1.0
 			rigid_body2.gravity_scale = 1.0
 			rigid_body_outside.gravity_scale = 1.0
+			rigid_body_dynamic.gravity_scale = 1.0
+			area_dynamic_gravity.gravity_space_override = Area2D.SPACE_OVERRIDE_REPLACE
 			
 			p_monitor.data["rigid_body_pos"] = rigid_body.position
 			p_monitor.data["rigid_body2_pos"] = rigid_body2.position
 			p_monitor.data["rigid_body_outside_pos"] = rigid_body_outside.position
+			p_monitor.data["rigid_body_dynamic_pos"] = rigid_body_dynamic.position
 		
 		if p_monitor.frame == 22:
 			if true: # limit the scope
@@ -95,7 +118,34 @@ func test_start() -> void:
 				if not success:
 					p_monitor.add_test_error("Default gravity was not applied correctly outside of area, expected motion %v, got %v" % [expected, motion])
 				p_monitor.add_test_result(success)
-		
+			
+			if true: # limit the scope
+				p_monitor.add_test("Rigid body reacts to area gravity enabled while inside")
+				var pos_start = p_monitor.data["rigid_body_dynamic_pos"]
+				var motion = rigid_body_dynamic.position - pos_start
+				var time := 20.0 * dt
+				var expected = 0.5 * dynamic_gravity * time * time
+				var success := Utils.vec2_equals(motion, expected, 4)
+				if not success:
+					p_monitor.add_test_error("Area gravity enabled while inside was not applied correctly, expected motion %v, got %v" % [expected, motion])
+				p_monitor.add_test_result(success)
+
+			rigid_body_dynamic.linear_velocity = Vector2.ZERO
+			p_monitor.data["rigid_body_dynamic_pos_after_disable"] = rigid_body_dynamic.position
+			area_dynamic_gravity.gravity_space_override = Area2D.SPACE_OVERRIDE_DISABLED
+
+		if p_monitor.frame == 42:
+			if true: # limit the scope
+				p_monitor.add_test("Rigid body reacts to area gravity disabled while inside")
+				var pos_start = p_monitor.data["rigid_body_dynamic_pos_after_disable"]
+				var motion = rigid_body_dynamic.position - pos_start
+				var time := 20.0 * dt
+				var expected = 0.5 * default_gravity * time * time
+				var success := Utils.vec2_equals(motion, expected, 4)
+				if not success:
+					p_monitor.add_test_error("Area gravity disabled while inside was not applied correctly, expected motion %v, got %v" % [expected, motion])
+				p_monitor.add_test_result(success)
+
 			p_monitor.monitor_completed()
 
 	create_generic_manual_monitor(self, checks_point, simulation_duration)
@@ -125,4 +175,3 @@ func add_area(p_position: Vector2, p_add_child := true) -> Area2D:
 	if p_add_child:
 		add_child(area)
 	return area
-

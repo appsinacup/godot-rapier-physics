@@ -499,6 +499,16 @@ impl RapierArea {
             || self.angular_damping_override_mode != AreaSpaceOverrideMode::DISABLED
     }
 
+    fn queue_area_override_update(
+        physics_spaces: &mut PhysicsSpaces,
+        space_rid: &Rid,
+        area_id: RapierId,
+    ) {
+        if let Some(space) = physics_spaces.get_mut(space_rid) {
+            space.get_mut_state().area_add_to_area_update_list(area_id);
+        }
+    }
+
     pub fn set_monitor_callback(
         &mut self,
         callback: Callable,
@@ -541,14 +551,20 @@ impl RapierArea {
         match p_param {
             AreaParameter::GRAVITY_OVERRIDE_MODE => {
                 let had_override = self.has_any_space_override();
-                self.gravity_override_mode =
+                let new_gravity_override_mode =
                     AreaSpaceOverrideMode::from_ord(p_value.try_to().unwrap_or_default());
-                let has_override = self.has_any_space_override();
-                if has_override != had_override {
+                if self.gravity_override_mode != new_gravity_override_mode {
+                    self.gravity_override_mode = new_gravity_override_mode;
+                    let has_override = self.has_any_space_override();
+                    if has_override != had_override {
+                        if has_override {
+                            return AreaUpdateMode::EnableSpaceOverride;
+                        } else {
+                            return AreaUpdateMode::DisableSpaceOverride;
+                        }
+                    }
                     if has_override {
-                        return AreaUpdateMode::EnableSpaceOverride;
-                    } else {
-                        return AreaUpdateMode::DisableSpaceOverride;
+                        Self::queue_area_override_update(physics_spaces, &space_rid, id);
                     }
                 }
             }
@@ -559,9 +575,7 @@ impl RapierArea {
                     self.gravity = new_gravity;
                     if self.gravity_override_mode != AreaSpaceOverrideMode::DISABLED {
                         // Update currently detected bodies
-                        if let Some(space) = physics_spaces.get_mut(&space_rid) {
-                            space.get_mut_state().area_add_to_area_update_list(id);
-                        }
+                        Self::queue_area_override_update(physics_spaces, &space_rid, id);
                     }
                 }
             }
@@ -571,11 +585,7 @@ impl RapierArea {
                     self.gravity_vector = new_gravity_vector;
                     if self.gravity_override_mode != AreaSpaceOverrideMode::DISABLED {
                         // Update currently detected bodies
-                        if let Some(space) =
-                            physics_spaces.get_mut(&self.base.get_space(physics_ids))
-                        {
-                            space.get_mut_state().area_add_to_area_update_list(id);
-                        }
+                        Self::queue_area_override_update(physics_spaces, &space_rid, id);
                     }
                 }
             }
@@ -585,9 +595,7 @@ impl RapierArea {
                     self.gravity_is_point = new_gravity_is_point;
                     if self.gravity_override_mode != AreaSpaceOverrideMode::DISABLED {
                         // Update currently detected bodies
-                        if let Some(space) = physics_spaces.get_mut(&space_rid) {
-                            space.get_mut_state().area_add_to_area_update_list(id);
-                        }
+                        Self::queue_area_override_update(physics_spaces, &space_rid, id);
                     }
                 }
             }
@@ -597,22 +605,26 @@ impl RapierArea {
                     self.gravity_point_unit_distance = new_gravity_point_unit_distance;
                     if self.gravity_override_mode != AreaSpaceOverrideMode::DISABLED {
                         // Update currently detected bodies
-                        if let Some(space) = physics_spaces.get_mut(&space_rid) {
-                            space.get_mut_state().area_add_to_area_update_list(id);
-                        }
+                        Self::queue_area_override_update(physics_spaces, &space_rid, id);
                     }
                 }
             }
             AreaParameter::LINEAR_DAMP_OVERRIDE_MODE => {
                 let had_override = self.has_any_space_override();
-                self.linear_damping_override_mode =
+                let new_linear_damping_override_mode =
                     AreaSpaceOverrideMode::from_ord(p_value.try_to().unwrap_or_default());
-                let has_override = self.has_any_space_override();
-                if has_override != had_override {
+                if self.linear_damping_override_mode != new_linear_damping_override_mode {
+                    self.linear_damping_override_mode = new_linear_damping_override_mode;
+                    let has_override = self.has_any_space_override();
+                    if has_override != had_override {
+                        if has_override {
+                            return AreaUpdateMode::EnableSpaceOverride;
+                        } else {
+                            return AreaUpdateMode::DisableSpaceOverride;
+                        }
+                    }
                     if has_override {
-                        return AreaUpdateMode::EnableSpaceOverride;
-                    } else {
-                        return AreaUpdateMode::DisableSpaceOverride;
+                        Self::queue_area_override_update(physics_spaces, &space_rid, id);
                     }
                 }
             }
@@ -622,22 +634,26 @@ impl RapierArea {
                     self.linear_damp = new_linear_damp;
                     if self.linear_damping_override_mode != AreaSpaceOverrideMode::DISABLED {
                         // Update currently detected bodies
-                        if let Some(space) = physics_spaces.get_mut(&space_rid) {
-                            space.get_mut_state().area_add_to_area_update_list(id);
-                        }
+                        Self::queue_area_override_update(physics_spaces, &space_rid, id);
                     }
                 }
             }
             AreaParameter::ANGULAR_DAMP_OVERRIDE_MODE => {
                 let had_override = self.has_any_space_override();
-                self.angular_damping_override_mode =
+                let new_angular_damping_override_mode =
                     AreaSpaceOverrideMode::from_ord(p_value.try_to().unwrap_or_default());
-                let has_override = self.has_any_space_override();
-                if has_override != had_override {
+                if self.angular_damping_override_mode != new_angular_damping_override_mode {
+                    self.angular_damping_override_mode = new_angular_damping_override_mode;
+                    let has_override = self.has_any_space_override();
+                    if has_override != had_override {
+                        if has_override {
+                            return AreaUpdateMode::EnableSpaceOverride;
+                        } else {
+                            return AreaUpdateMode::DisableSpaceOverride;
+                        }
+                    }
                     if has_override {
-                        return AreaUpdateMode::EnableSpaceOverride;
-                    } else {
-                        return AreaUpdateMode::DisableSpaceOverride;
+                        Self::queue_area_override_update(physics_spaces, &space_rid, id);
                     }
                 }
             }
@@ -647,9 +663,7 @@ impl RapierArea {
                     self.angular_damp = new_angular_damp;
                     if self.angular_damping_override_mode != AreaSpaceOverrideMode::DISABLED {
                         // Update currently detected bodies
-                        if let Some(space) = physics_spaces.get_mut(&space_rid) {
-                            space.get_mut_state().area_add_to_area_update_list(id);
-                        }
+                        Self::queue_area_override_update(physics_spaces, &space_rid, id);
                     }
                 }
             }

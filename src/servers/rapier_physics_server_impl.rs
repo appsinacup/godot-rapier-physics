@@ -608,12 +608,13 @@ impl RapierPhysicsServerImpl {
             space.set_default_area_param(param, value);
             return;
         }
-        let area_update_mode = AreaUpdateMode::None;
+        let mut area_update_mode = AreaUpdateMode::None;
         let mut area_id = RapierId::default();
         if let Some(area) = physics_data.collision_objects.get_mut(&area)
             && let Some(area) = area.get_mut_area()
         {
-            area.set_param(param, value, &mut physics_data.spaces, &physics_data.ids);
+            area_update_mode =
+                area.set_param(param, value, &mut physics_data.spaces, &physics_data.ids);
             area_id = area.get_base().get_id();
         }
         if area_id == RapierId::default() {
