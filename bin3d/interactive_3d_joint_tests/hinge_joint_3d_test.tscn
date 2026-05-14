@@ -1,0 +1,77 @@
+[gd_scene format=3 uid="uid://osg7dclw46a7"]
+
+[ext_resource type="Script" uid="uid://kejg1iln41uw" path="res://interactive_3d_joint_tests/joint_3d_test.gd" id="1_w5x60"]
+[ext_resource type="Script" uid="uid://m6wo3jh4qcir" path="res://addons/godot-rapier3d/custom_nodes/rapier_hinge_joint_3d.gd" id="2_v4ete"]
+
+[sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_n1ehq"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ny4cl"]
+size = Vector2(20, 20)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_u0bgm"]
+albedo_color = Color(0.27719998, 0.44, 0.29347998, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ldjty"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_xn13u"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_n1ehq"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_x5tgi"]
+
+[node name="HingeJoint3DTest" type="Node3D" unique_id=1697557956]
+script = ExtResource("1_w5x60")
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=636902479]
+transform = Transform3D(0.9673253, 7.1260637e-09, 0.2535385, -0.041348297, 0.9866121, 0.15775615, -0.2501441, -0.1630849, 0.9543748, 1.8879976, 1.7878278, 3.2155585)
+
+[node name="StaticBody3DGround" type="StaticBody3D" parent="." unique_id=1589629082]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3DGround" unique_id=1906510716]
+shape = SubResource("WorldBoundaryShape3D_n1ehq")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=454066918]
+mesh = SubResource("PlaneMesh_ny4cl")
+surface_material_override/0 = SubResource("StandardMaterial3D_u0bgm")
+
+[node name="Node3D" type="Node3D" parent="." unique_id=1441342990]
+
+[node name="RigidBody3DBodyB" type="RigidBody3D" parent="Node3D" unique_id=737201279]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.2634125, 0)
+metadata/_edit_group_ = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D/RigidBody3DBodyB" unique_id=1205331748]
+shape = SubResource("BoxShape3D_ldjty")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D/RigidBody3DBodyB" unique_id=1791650056]
+mesh = SubResource("BoxMesh_xn13u")
+
+[node name="StaticBody3DBodyA" type="StaticBody3D" parent="Node3D" unique_id=1427315890]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2634125, 0)
+metadata/_edit_group_ = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Node3D/StaticBody3DBodyA" unique_id=1865381364]
+visible = false
+shape = SubResource("BoxShape3D_n1ehq")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D/StaticBody3DBodyA" unique_id=852476644]
+visible = false
+mesh = SubResource("BoxMesh_xn13u")
+
+[node name="RapierHingeJoint3D" type="HingeJoint3D" parent="Node3D" unique_id=1333530537]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2634125, 0)
+node_a = NodePath("../StaticBody3DBodyA")
+node_b = NodePath("../RigidBody3DBodyB")
+motor/target_velocity = -0.17453292
+script = ExtResource("2_v4ete")
+motor_target_angle = 0.4799655442984406
+motor_stiffness = 10000.0
+motor_damping = 100.0
+metadata/_custom_type_script = "uid://m6wo3jh4qcir"
+metadata/_edit_group_ = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D/RapierHingeJoint3D" unique_id=1872606642]
+mesh = SubResource("SphereMesh_x5tgi")
