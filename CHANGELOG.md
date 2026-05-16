@@ -1,6 +1,21 @@
 # Changelog
 
-## v0.8.31 - 
+## v0.8.32
+
+## What's Changed
+* fix freeze mode by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/527
+* Fix Issues with 3D Joints by @Schnorg in https://github.com/appsinacup/godot-rapier-physics/pull/528
+
+
+**Full Changelog**: https://github.com/appsinacup/godot-rapier-physics/compare/v0.8.31...v0.8.32
+
+## v0.8.31
+
+## What's Changed
+* Implement state integrate forces and fix space override by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/526
+
+
+**Full Changelog**: https://github.com/appsinacup/godot-rapier-physics/compare/v0.8.30...v0.8.31
 
 ## v0.8.30 - May 8
 
