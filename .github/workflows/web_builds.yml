@@ -13,7 +13,7 @@ jobs:
         precision: [single] #, double]
         build_param: [
           { "feature": "experimental-wasm", "folder": "" },
-          { "feature": "experimental-wasm,experimental-wasm-nothreads", "folder": "wasm-nothreads" } ]
+          { "feature": "experimental-wasm-nothreads", "folder": "wasm-nothreads" } ]
         dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
         features: [{"feature":"serde-serialize", "name": "simd-parallel"}, {"feature":"enhanced-determinism,serde-serialize", "name": "enhanced-determinism"}]
 
@@ -59,6 +59,7 @@ jobs:
         with:
           arch: ${{ matrix.arch }}
           extra_flags: "-Zbuild-std"
+          profile: release-wasm
           features: ${{ matrix.features.feature }},${{ matrix.precision }}-${{ matrix.dimensions.feature }},${{ matrix.build_param.feature }}
       - name: Copy to bin
         shell: sh

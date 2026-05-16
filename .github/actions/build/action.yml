@@ -13,6 +13,10 @@ inputs:
   features:
     required: true
     description: simd-stable,simd-nightly,parallel,enhanced-determinism
+  profile:
+    required: false
+    default: release
+    description: Cargo profile to use.
 
 runs:
   using: composite
@@ -32,13 +36,13 @@ runs:
       shell: sh
       run: |
         TOOLCHAIN=$(grep -E '^channel' rust-toolchain.toml | sed -E 's/channel = "(.*)"/\1/')
-        cargo +"$TOOLCHAIN" build --target=${{ inputs.arch }} --release --features="${{ inputs.features }},api-custom" ${{ inputs.extra_flags }} --no-default-features
+        cargo +"$TOOLCHAIN" build --target=${{ inputs.arch }} --profile=${{ inputs.profile }} --features="${{ inputs.features }},api-custom" ${{ inputs.extra_flags }} --no-default-features
     - name: Copy to release
       shell: sh
       run: |
         mkdir -p target/release
         rm -rf target/release
-        cp -rf target/${{ inputs.arch }}/release target/release
+        cp -rf target/${{ inputs.arch }}/${{ inputs.profile }} target/release
     - name: Build Rapier Macos Universal
       shell: sh
       # we already built for x86_64-apple-darwin for mac, now build arm64
@@ -47,11 +51,11 @@ runs:
         mkdir -p target/release
         TOOLCHAIN=$(grep -E '^channel' rust-toolchain.toml | sed -E 's/channel = "(.*)"/\1/')
         rustup target add aarch64-apple-darwin --toolchain "$TOOLCHAIN"
-        cargo +"$TOOLCHAIN" build --target=aarch64-apple-darwin --release --features="${{ inputs.features }},api-custom" ${{ inputs.extra_flags }} --no-default-features
-        lipo -create -output target/release/libgodot_rapier.dylib target/aarch64-apple-darwin/release/libgodot_rapier.dylib target/x86_64-apple-darwin/release/libgodot_rapier.dylib
+        cargo +"$TOOLCHAIN" build --target=aarch64-apple-darwin --profile=${{ inputs.profile }} --features="${{ inputs.features }},api-custom" ${{ inputs.extra_flags }} --no-default-features
+        lipo -create -output target/release/libgodot_rapier.dylib target/aarch64-apple-darwin/${{ inputs.profile }}/libgodot_rapier.dylib target/x86_64-apple-darwin/${{ inputs.profile }}/libgodot_rapier.dylib
     - name: Move Static Libs macOS
       shell: sh
       if: ${{ inputs.arch == 'x86_64-apple-darwin'}}
       run: |
-        mv target/x86_64-apple-darwin/release/libgodot_rapier.a target/release/libgodot_rapier.x86_64.a
-        mv target/aarch64-apple-darwin/release/libgodot_rapier.a target/release/libgodot_rapier.arm64.a
+        mv target/x86_64-apple-darwin/${{ inputs.profile }}/libgodot_rapier.a target/release/libgodot_rapier.x86_64.a
+        mv target/aarch64-apple-darwin/${{ inputs.profile }}/libgodot_rapier.a target/release/libgodot_rapier.arm64.a
