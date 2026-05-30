@@ -15,21 +15,21 @@ use crate::types::*;
 #[class(base=Node3D,tool)]
 /// The fluid node. Use this node to simulate fluids in 3D.
 pub struct Fluid3D {
-    #[var(get)]
+    #[var(no_set)]
     pub(crate) rid: Rid,
-    #[var(get)]
+    #[var(no_set)]
     pub(crate) radius: real,
     #[export]
-    #[var(get, set = set_debug_draw)]
+    #[var(set = set_debug_draw)]
     pub(crate) debug_draw: bool,
     #[export]
-    #[var(get, set = set_density)]
+    #[var(set = set_density)]
     pub(crate) density: real,
     #[export]
-    #[var(get, set = set_lifetime)]
+    #[var(set = set_lifetime)]
     pub(crate) lifetime: real,
     #[export]
-    #[var(get, set = set_effects)]
+    #[var(set = set_effects)]
     pub(crate) effects: Array<Option<Gd<Resource>>>,
 
     #[export]

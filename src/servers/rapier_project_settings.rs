@@ -2,8 +2,8 @@ use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
 
 use godot::classes::*;
-use godot::global::*;
 use godot::prelude::*;
+use godot::register::info::PropertyHint;
 use rapier::dynamics::IntegrationParameters;
 use rapier::math::Real;
 #[cfg(feature = "parallel")]

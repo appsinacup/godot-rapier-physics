@@ -111,8 +111,8 @@ impl PhysicsEngine {
         if let Some(physics_world) = self.get_world(world_handle)
             && let Some(joint) = physics_world.get_impulse_joint(joint_handle)
         {
-            body1 = Some(joint.body1);
-            body2 = Some(joint.body2);
+            body1 = Some(joint.body1());
+            body2 = Some(joint.body2());
         }
         if let Some(body1) = body1
             && let Some(body2) = body2
