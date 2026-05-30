@@ -9,7 +9,6 @@ use godot::classes::physics_server_3d;
 use godot::classes::physics_server_3d::*;
 use godot::global::rid_allocate_id;
 use godot::global::rid_from_int64;
-#[cfg(feature = "dim2")]
 use godot::meta::conv::RawPtr;
 use godot::prelude::*;
 

@@ -133,7 +133,7 @@ mod tests {
             let mut cylinder_shape = RapierCylinderShape3D {
                 base: RapierShapeBase::new(RapierId::default(), Rid::Invalid),
             };
-            let mut arr = Array::default();
+            let mut arr: Array<f32> = Array::default();
             arr.push(1.0);
             arr.push(0.5);
             cylinder_shape.set_data(arr.to_variant(), &mut physics_data().physics_engine);
