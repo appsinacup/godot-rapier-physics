@@ -24,7 +24,7 @@ jobs:
       - name: Setup Godot
         uses: appsinacup/setup-godot-action@main
         with:
-          version: '4.5-stable'
+          version: '4.6-stable'
       - uses: nttld/setup-ndk@v1
         id: setup-ndk
         with:
