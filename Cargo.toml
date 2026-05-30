@@ -45,7 +45,7 @@ hashbrown = { version = "0.16", features=["nightly", "inline-more", "default-has
 num_cpus = { version = "1", optional = true }
 
 # Disabled for now "safeguards-release-disengaged"] }
-godot = { version = "0.5.3", features = ["api-4-5"] }
+godot = { version = "0.5.3" }
 
 rapier2d = { git = "https://github.com/dimforge/rapier", branch = "master", optional = true }
 rapier2d-f64 = { git = "https://github.com/dimforge/rapier", branch = "master", optional = true}
