@@ -22,12 +22,12 @@ jobs:
       - name: Setup Godot
         uses: appsinacup/setup-godot-action@main
         with:
-          version: '4.5-stable'
+          version: '4.6-stable'
       - name: Clippy 2D
         shell: sh
         run: |
           rustup component add --toolchain nightly-2025-12-12-x86_64-unknown-linux-gnu clippy
-          cargo clippy --all-targets --features="build2d" --no-default-features -- -D warnings
+          cargo clippy --all-targets --features="build2d,api-custom" --no-default-features -- -D warnings
 
   clippy-3d:
     name: Clippy 3D
@@ -37,12 +37,12 @@ jobs:
       - name: Setup Godot
         uses: appsinacup/setup-godot-action@main
         with:
-          version: '4.5-stable'
+          version: '4.6-stable'
       - name: Clippy 3D
         shell: sh
         run: |
           rustup component add --toolchain nightly-2025-12-12-x86_64-unknown-linux-gnu clippy
-          cargo clippy --all-targets --features="build3d" --no-default-features -- -D warnings
+          cargo clippy --all-targets --features="build3d,api-custom" --no-default-features -- -D warnings
 
   gdlint:
     name: GDLint

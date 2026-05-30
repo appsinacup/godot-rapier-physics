@@ -5,6 +5,7 @@ use godot::classes::native::PhysicsServer3DExtensionMotionResult;
 use godot::classes::physics_server_3d;
 use godot::classes::physics_server_3d::*;
 use godot::classes::{self};
+use godot::meta::conv::RawPtr;
 use godot::prelude::*;
 
 use super::rapier_physics_server_impl::RapierPhysicsServerImpl;
@@ -530,7 +531,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         max_collisions: i32,
         collide_separation_ray: bool,
         recovery_as_collision: bool,
-        result: *mut PhysicsServer3DExtensionMotionResult,
+        result: RawPtr<*mut PhysicsServer3DExtensionMotionResult>,
     ) -> bool {
         unsafe {
             self.implementation.body_test_motion(

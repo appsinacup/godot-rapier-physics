@@ -238,7 +238,7 @@ mod tests {
                 Vector::splat(4.0),
                 Vector::splat(5.0),
             ]);
-            let _ = dict.insert("faces", arr);
+            let _ = dict.insert("faces", &arr.to_variant());
             concave_shape.set_data(dict.to_variant(), &mut physics_data().physics_engine);
             let data: PackedVectorArray = concave_shape
                 .get_data(&physics_data().physics_engine)

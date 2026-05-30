@@ -7,6 +7,7 @@ use rapier::parry::query::ShapeCastOptions;
 use rapier::parry::query::ShapeCastStatus;
 use rapier::prelude::*;
 
+use crate::rapier_wrapper::physics_world::PhysicsWorld as RapierWrapperPhysicsWorld;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use crate::servers::rapier_physics_singleton::PhysicsIds;
@@ -96,7 +97,7 @@ pub struct QueryExcludedInfo {
     pub query_exclude_body: i64,
 }
 fn update_ray_hit_info(
-    physics_world: &PhysicsWorld,
+    physics_world: &RapierWrapperPhysicsWorld,
     ray: &Ray,
     hit_from_inside: bool,
     handle: ColliderHandle,

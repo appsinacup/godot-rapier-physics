@@ -162,7 +162,7 @@ fn shape_contact_aabb(shape: &RapierShape, transform: Transform) -> Rect {
             }
         }
     }
-    Rect::from_corners(min, max)
+    Rect::from_position_end(min, max)
 }
 #[cfg(feature = "dim2")]
 fn is_valid_recovery_contact(

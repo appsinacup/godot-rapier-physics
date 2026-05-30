@@ -587,7 +587,7 @@ impl PhysicsWorld {
                 .physics_objects
                 .impulse_joint_set
                 .get(ImpulseJointHandle(handle.index))
-                .map(|impulse_joint| (impulse_joint.body1, impulse_joint.body2)),
+                .map(|impulse_joint| (impulse_joint.body1(), impulse_joint.body2())),
             RapierJointType::MultiBody | RapierJointType::MultiBodyKinematic => {
                 if let Some((multibody, link_id)) = self
                     .physics_objects
