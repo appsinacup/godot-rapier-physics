@@ -27,7 +27,7 @@ jobs:
         shell: sh
         run: |
           rustup component add --toolchain nightly-2025-12-12-x86_64-unknown-linux-gnu clippy
-          cargo clippy --all-targets --features="build2d" --no-default-features -- -D warnings
+          cargo clippy --all-targets --features="build2d,api-custom" --no-default-features -- -D warnings
 
   clippy-3d:
     name: Clippy 3D
@@ -42,7 +42,7 @@ jobs:
         shell: sh
         run: |
           rustup component add --toolchain nightly-2025-12-12-x86_64-unknown-linux-gnu clippy
-          cargo clippy --all-targets --features="build3d" --no-default-features -- -D warnings
+          cargo clippy --all-targets --features="build3d,api-custom" --no-default-features -- -D warnings
 
   gdlint:
     name: GDLint
