@@ -3,7 +3,11 @@ use godot::classes::native::*;
 use godot::meta::conv::RawPtr;
 use godot::prelude::*;
 #[cfg(feature = "dim3")]
+use rapier::prelude::ColliderHandle;
+#[cfg(feature = "dim3")]
 use rapier::prelude::FeatureId;
+#[cfg(feature = "dim3")]
+use rapier::prelude::Real;
 
 use crate::bodies::rapier_collision_object::*;
 use crate::bodies::rapier_collision_object_base::RapierCollisionObjectBase;
@@ -26,6 +30,64 @@ impl RapierDirectSpaceStateImpl {
     pub fn default() -> Self {
         Self {
             space: Rid::Invalid,
+        }
+    }
+
+    #[cfg(feature = "dim3")]
+    pub fn get_closest_point_to_object_volume(
+        &self,
+        object: Rid,
+        point: Vector,
+        physics_data: &PhysicsData,
+    ) -> Vector {
+        let Some(space) = physics_data.spaces.get(&self.space) else {
+            return Vector::ZERO;
+        };
+        let Some(collision_object) = physics_data.collision_objects.get(&object) else {
+            return Vector::ZERO;
+        };
+        let base = collision_object.get_base();
+        if base.get_space_id() != space.get_state().get_id() {
+            return Vector::ZERO;
+        }
+        let Some(physics_world) = physics_data
+            .physics_engine
+            .get_world(space.get_state().get_id())
+        else {
+            return base.get_transform().origin;
+        };
+        let point = vector_to_rapier(point);
+        let mut closest_point = point;
+        let mut closest_distance = Real::MAX;
+        let mut shapes_found = false;
+        for shape in base.state.shapes.iter() {
+            if shape.disabled || shape.collider_handle == ColliderHandle::invalid() {
+                continue;
+            }
+            let Some(collider) = physics_world
+                .physics_objects
+                .collider_set
+                .get(shape.collider_handle)
+            else {
+                continue;
+            };
+            shapes_found = true;
+            let projection = collider
+                .shape()
+                .project_point(collider.position(), point, true);
+            let distance = (projection.point - point).length_squared();
+            if distance < closest_distance {
+                closest_distance = distance;
+                closest_point = projection.point;
+                if closest_distance == 0.0 {
+                    break;
+                }
+            }
+        }
+        if shapes_found {
+            vector_to_godot(closest_point)
+        } else {
+            base.get_transform().origin
         }
     }
 
