@@ -44,6 +44,8 @@ const LENGTH_UNIT: &str = "physics/rapier/solver/length_unit_2d";
 const GHOST_COLLISION_DISTANCE: &str = "physics/rapier/logic/ghost_collision_distance_2d";
 #[cfg(feature = "dim3")]
 const GHOST_COLLISION_DISTANCE: &str = "physics/rapier/logic/ghost_collision_distance_3d";
+const USE_RAPIER_CHARACTER_CONTROLLER: &str =
+    "physics/rapier/logic/use_rapier_character_controller";
 #[cfg(feature = "dim2")]
 const GHOST_COLLISION_DISTANCE_DEFAULT: real = 0.1;
 #[cfg(feature = "dim3")]
@@ -205,6 +207,13 @@ impl RapierProjectSettings {
             "0,10,0.00001,or_greater",
             false,
         );
+        register_setting(
+            USE_RAPIER_CHARACTER_CONTROLLER,
+            Variant::from(false),
+            false,
+            PropertyHint::NONE,
+            "",
+        );
         register_setting_ranged(
             FLUID_PARTICLE_RADIUS,
             Variant::from(FLUID_PARTICLE_VALUE),
@@ -285,6 +294,12 @@ impl RapierProjectSettings {
         let project_settings = ProjectSettings::singleton();
         let setting_value = project_settings.get_setting_with_override(p_setting);
         setting_value.to::<f64>()
+    }
+
+    fn get_setting_bool(p_setting: &str) -> bool {
+        let project_settings = ProjectSettings::singleton();
+        let setting_value = project_settings.get_setting_with_override(p_setting);
+        setting_value.to::<bool>()
     }
 
     pub fn get_solver_preset() -> RapierSolverPreset {
@@ -435,6 +450,10 @@ impl RapierProjectSettings {
 
     pub fn get_ghost_collision_distance() -> Real {
         RapierProjectSettings::get_setting_double(GHOST_COLLISION_DISTANCE) as Real
+    }
+
+    pub fn get_use_rapier_character_controller() -> bool {
+        RapierProjectSettings::get_setting_bool(USE_RAPIER_CHARACTER_CONTROLLER)
     }
 
     #[cfg(feature = "parallel")]
