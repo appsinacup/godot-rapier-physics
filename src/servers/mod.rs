@@ -20,17 +20,21 @@ pub type RapierPhysicsServer = rapier_physics_server_3d::RapierPhysicsServer3D;
 pub fn register_server() {
     use godot::classes::PhysicsServer2DManager;
     let mut manager = PhysicsServer2DManager::singleton();
-    let factory =
-        crate::servers::rapier_physics_server_2d::RapierPhysicsServerFactory2D::new_alloc();
-    manager.register_server("Rapier2D", &factory.callable("create_server"));
+    let factory_class_name =
+        crate::servers::rapier_physics_server_2d::RapierPhysicsServerFactory2D::class_id()
+            .to_string_name();
+    let create_server = Callable::from_class_static(&factory_class_name, "create_server");
+    manager.register_server("Rapier2D", &create_server);
 }
 #[cfg(feature = "dim3")]
 pub fn register_server() {
     use godot::classes::PhysicsServer3DManager;
     let mut manager = PhysicsServer3DManager::singleton();
-    let factory =
-        crate::servers::rapier_physics_server_3d::RapierPhysicsServerFactory3D::new_alloc();
-    manager.register_server("Rapier3D", &factory.callable("create_server"));
+    let factory_class_name =
+        crate::servers::rapier_physics_server_3d::RapierPhysicsServerFactory3D::class_id()
+            .to_string_name();
+    let create_server = Callable::from_class_static(&factory_class_name, "create_server");
+    manager.register_server("Rapier3D", &create_server);
 }
 #[cfg(feature = "dim2")]
 fn print_version() {
