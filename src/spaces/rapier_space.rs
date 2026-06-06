@@ -493,3 +493,10 @@ impl RapierSpace {
         self.ghost_collision_distance
     }
 }
+impl Drop for RapierSpace {
+    fn drop(&mut self) {
+        if let Some(direct_access) = self.direct_access.take() {
+            direct_access.free();
+        }
+    }
+}
