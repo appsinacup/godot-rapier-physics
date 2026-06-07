@@ -577,11 +577,6 @@ impl PhysicsEngine {
                         )
                         .intersect_shape(shape_transform, shared_shape.as_ref())
                     {
-                        let mut result = ShapeCastResult::new();
-                        result.collided = true;
-                        result.toi = 0.0;
-                        result.collider = collider_handle;
-                        result.user_data = physics_world.get_collider_user_data(collider_handle);
                         if let Some(collider) = physics_world
                             .physics_objects
                             .collider_set
@@ -595,19 +590,25 @@ impl PhysicsEngine {
                                 .contact(&pos12, shared_shape.as_ref(), collider.shape(), margin)
                                 && let Some(contact) = contact
                             {
+                                let mut result = ShapeCastResult::new();
+                                result.collided = true;
+                                result.collider = collider_handle;
+                                result.user_data =
+                                    physics_world.get_collider_user_data(collider_handle);
+                                result.toi = 0.0;
                                 result.normal1 = contact.normal1;
                                 result.normal2 = contact.normal2;
                                 result.pixel_witness1 =
                                     contact.point1 + shape_transform.translation;
                                 result.pixel_witness2 =
                                     contact.point2 + collider.position().translation;
+                                results.push(result);
                             } else {
                                 godot_error!("contact error");
                             }
                         } else {
                             godot_error!("collider not found");
                         }
-                        results.push(result);
                     }
                 } else {
                     let shape_cast_options = ShapeCastOptions {
@@ -662,14 +663,6 @@ impl PhysicsEngine {
                         {
                             godot_warn!("shape casting status warn: {:?}", hit.status);
                         }
-                        let mut result = ShapeCastResult::new();
-                        result.collided = true;
-                        result.toi = hit.time_of_impact;
-                        result.toi_unsafe = hit.time_of_impact;
-                        result.normal1 = hit.normal1;
-                        result.normal2 = hit.normal2;
-                        result.collider = collider_handle;
-                        result.user_data = physics_world.get_collider_user_data(collider_handle);
                         // Witnesses are both in worldspace
                         let witness1 = hit.witness1;
                         let witness2 = hit.witness2;
@@ -678,6 +671,15 @@ impl PhysicsEngine {
                             .collider_set
                             .get(collider_handle)
                         {
+                            let mut result = ShapeCastResult::new();
+                            result.collided = true;
+                            result.collider = collider_handle;
+                            result.user_data =
+                                physics_world.get_collider_user_data(collider_handle);
+                            result.toi = hit.time_of_impact;
+                            result.toi_unsafe = hit.time_of_impact;
+                            result.normal1 = hit.normal1;
+                            result.normal2 = hit.normal2;
                             result.pixel_witness1 = witness1;
                             result.pixel_witness2 = witness2;
                             // the time of impact isn't exact. Compute unsafe time of impact.
@@ -697,10 +699,10 @@ impl PhysicsEngine {
                                     result.toi_unsafe += (distance + 0.001) / velocity_size;
                                 }
                             }
+                            results.push(result);
                         } else {
                             godot_error!("collider not found");
                         }
-                        results.push(result);
                         cast_excludes.push(collider_handle);
                         if needs_exact || results.len() >= MAX_SHAPE_CAST_RESULTS {
                             break;
@@ -812,7 +814,6 @@ impl PhysicsEngine {
                         result.normal2 = contact.normal2;
                         result.pixel_point1 = contact.point1 + contact.normal1.mul(prediction);
                         result.pixel_point2 = contact.point2;
-                        return result;
                     }
                     Err(err) => {
                         godot_error!("Shape Contact Error: {:?}", err);
