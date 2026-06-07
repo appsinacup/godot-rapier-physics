@@ -323,12 +323,12 @@ impl PhysicsWorld {
                                 manifold.subshape_pos1.prepend_to(collider1.position());
                             let world_pos2 =
                                 manifold.subshape_pos2.prepend_to(collider2.position());
+                            let world_pt1 = world_pos1 * contact_point.local_p1;
+                            let world_pt2 = world_pos2 * contact_point.local_p2;
                             let keep_solver_contact = effective_contact_dist
                                 < settings.predictive_contact_allowance_threshold
                                     * settings.length_unit
                                 || {
-                                    let world_pt1 = world_pos1 * contact_point.local_p1;
-                                    let world_pt2 = world_pos2 * contact_point.local_p2;
                                     let vel1 = self
                                         .get_collider_rigid_body(collider1)
                                         .map(|rb| rb.velocity_at_point(world_pt1))
@@ -343,20 +343,12 @@ impl PhysicsWorld {
                                             * settings.length_unit
                                 };
                             if keep_solver_contact {
-                                let collider_pos_1 = *collider1.position();
-                                let collider_pos_2 = *collider2.position();
-                                let point_velocity_1 =
-                                    body1.velocity_at_point(collider_pos_1.translation);
-                                let point_velocity_2 =
-                                    body2.velocity_at_point(collider_pos_2.translation);
-                                let pixel_pos_1 = collider_pos_1.translation;
-                                let pixel_pos_2 = collider_pos_2.translation;
-                                contact_info.pixel_local_pos_1 =
-                                    pixel_pos_1 + (*body1.rotation() * contact_point.local_p1);
-                                contact_info.pixel_local_pos_2 =
-                                    pixel_pos_2 + (*body2.rotation() * contact_point.local_p2);
-                                contact_info.pixel_velocity_pos_1 = point_velocity_1;
-                                contact_info.pixel_velocity_pos_2 = point_velocity_2;
+                                contact_info.pixel_local_pos_1 = world_pt1;
+                                contact_info.pixel_local_pos_2 = world_pt2;
+                                contact_info.pixel_velocity_pos_1 =
+                                    body1.velocity_at_point(world_pt1);
+                                contact_info.pixel_velocity_pos_2 =
+                                    body2.velocity_at_point(world_pt2);
                                 contact_info.pixel_distance = contact_point.dist;
                                 contact_info.pixel_impulse = contact_point.data.impulse;
                                 contact_info.pixel_tangent_impulse =
