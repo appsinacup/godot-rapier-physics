@@ -147,37 +147,139 @@ impl RapierSpace {
         &mut self.state
     }
 
+    #[inline]
+    fn call_body_state_query(
+        body_id: RapierId,
+        physics_collision_objects: &mut PhysicsCollisionObjects,
+        physics_ids: &PhysicsIds,
+    ) {
+        let mut direct_state_array = None;
+        let mut state_sync_callback = None;
+        if let Some(body) = physics_collision_objects.get_mut(&get_id_rid(body_id, physics_ids))
+            && let Some(body) = body.get_mut_body()
+        {
+            body.create_direct_state();
+            state_sync_callback = body.get_state_sync_callback();
+            direct_state_array = Some(body.get_direct_state_array());
+        }
+        if let Some(state_sync_callback) = state_sync_callback
+            && let Some(direct_state_array) = direct_state_array
+        {
+            state_sync_callback.callv(direct_state_array);
+        }
+    }
+
+    #[inline]
+    fn call_body_force_query(
+        body_id: RapierId,
+        physics_collision_objects: &mut PhysicsCollisionObjects,
+        physics_ids: &PhysicsIds,
+    ) {
+        let mut fi_callback = None;
+        let mut fi_array = None;
+        if let Some(body) = physics_collision_objects.get_mut(&get_id_rid(body_id, physics_ids))
+            && let Some(body) = body.get_mut_body()
+        {
+            body.create_direct_state();
+            fi_callback = body.get_force_integration_callable();
+            fi_array = Some(body.get_force_integration_array());
+        }
+        if let Some(fi_callback) = fi_callback
+            && let Some(fi_array) = fi_array
+        {
+            fi_callback.callv(fi_array);
+        }
+    }
+
+    #[inline]
+    fn call_body_state_and_force_queries(
+        body_id: RapierId,
+        physics_collision_objects: &mut PhysicsCollisionObjects,
+        physics_ids: &PhysicsIds,
+    ) {
+        let mut direct_state_array = None;
+        let mut state_sync_callback = None;
+        let mut fi_callback = None;
+        let mut fi_array = None;
+        if let Some(body) = physics_collision_objects.get_mut(&get_id_rid(body_id, physics_ids))
+            && let Some(body) = body.get_mut_body()
+        {
+            body.create_direct_state();
+            state_sync_callback = body.get_state_sync_callback();
+            fi_callback = body.get_force_integration_callable();
+            direct_state_array = Some(body.get_direct_state_array());
+            fi_array = Some(body.get_force_integration_array());
+        }
+        if let Some(state_sync_callback) = state_sync_callback
+            && let Some(direct_state_array) = direct_state_array
+        {
+            state_sync_callback.callv(direct_state_array);
+        }
+        if let Some(fi_callback) = fi_callback
+            && let Some(fi_array) = fi_array
+        {
+            fi_callback.callv(fi_array);
+        }
+    }
+
+    #[inline]
+    fn for_each_intersection_body<F>(
+        first: &BTreeSet<RapierId>,
+        second: &BTreeSet<RapierId>,
+        mut callback: F,
+    ) where
+        F: FnMut(RapierId),
+    {
+        let (iterate_list, filter_list) = if first.len() <= second.len() {
+            (first, second)
+        } else {
+            (second, first)
+        };
+        for body_id in iterate_list {
+            if filter_list.contains(body_id) {
+                callback(*body_id);
+            }
+        }
+    }
+
     pub fn call_queries(
+        active_list: &BTreeSet<RapierId>,
         state_query_list: &BTreeSet<RapierId>,
         force_integrate_query_list: &BTreeSet<RapierId>,
         monitor_query_list: &BTreeSet<RapierId>,
         physics_collision_objects: &mut PhysicsCollisionObjects,
         physics_ids: &PhysicsIds,
     ) {
-        for body_id in state_query_list.union(force_integrate_query_list) {
-            let mut direct_state_array = None;
-            let mut state_sync_callback = None;
-            let mut fi_callback = None;
-            let mut fi_array = None;
-            if let Some(body) =
-                physics_collision_objects.get_mut(&get_id_rid(*body_id, physics_ids))
-                && let Some(body) = body.get_mut_body()
-            {
-                body.create_direct_state();
-                state_sync_callback = body.get_state_sync_callback();
-                fi_callback = body.get_force_integration_callable();
-                direct_state_array = Some(body.get_direct_state_array());
-                fi_array = Some(body.get_force_integration_array());
-            }
-            if let Some(state_sync_callback) = state_sync_callback
-                && let Some(direct_state_array) = direct_state_array
-            {
-                state_sync_callback.callv(direct_state_array);
-            }
-            if let Some(fi_callback) = fi_callback
-                && let Some(fi_array) = fi_array
-            {
-                fi_callback.callv(fi_array);
+        if !active_list.is_empty() && force_integrate_query_list.is_empty() {
+            Self::for_each_intersection_body(active_list, state_query_list, |body_id| {
+                Self::call_body_state_query(body_id, physics_collision_objects, physics_ids);
+            });
+        } else if !active_list.is_empty() && state_query_list.is_empty() {
+            Self::for_each_intersection_body(active_list, force_integrate_query_list, |body_id| {
+                Self::call_body_force_query(body_id, physics_collision_objects, physics_ids);
+            });
+        } else if !active_list.is_empty() {
+            for body_id in active_list {
+                let state_query = state_query_list.contains(body_id);
+                let force_query = force_integrate_query_list.contains(body_id);
+                match (state_query, force_query) {
+                    (true, true) => Self::call_body_state_and_force_queries(
+                        *body_id,
+                        physics_collision_objects,
+                        physics_ids,
+                    ),
+                    (true, false) => Self::call_body_state_query(
+                        *body_id,
+                        physics_collision_objects,
+                        physics_ids,
+                    ),
+                    (false, true) => Self::call_body_force_query(
+                        *body_id,
+                        physics_collision_objects,
+                        physics_ids,
+                    ),
+                    (false, false) => {}
+                }
             }
         }
         for area_handle in monitor_query_list {
@@ -471,14 +573,17 @@ impl RapierSpace {
 
     pub fn flush(&mut self) {
         let physics_data = physics_data();
+        let active_list = Some(self.get_state().get_active_list());
         let state_query_list = Some(self.get_state().get_state_query_list());
         let force_integrate_query_list = Some(self.get_state().get_force_integrate_query_list());
         let monitor_query_list = Some(self.get_state().get_monitor_query_list());
-        if let Some(state_query_list) = state_query_list
+        if let Some(active_list) = active_list
+            && let Some(state_query_list) = state_query_list
             && let Some(force_integrate_query_list) = force_integrate_query_list
             && let Some(monitor_query_list) = monitor_query_list
         {
             RapierSpace::call_queries(
+                active_list,
                 state_query_list,
                 force_integrate_query_list,
                 monitor_query_list,
