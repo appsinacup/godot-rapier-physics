@@ -35,11 +35,9 @@ jobs:
         run: |
           cargo test --all-targets --features="build3d,test" --no-default-features
   run-integration-tests-2d:
-    name: Run Godot Tests 2D (non-blocking)
+    name: Run Godot Tests 2D
     runs-on: macos-latest
     timeout-minutes: 30
-    # Current Godot regression suites have known failures; keep them visible until baseline is clean.
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v6
 
@@ -97,11 +95,9 @@ jobs:
           if-no-files-found: error
 
   run-integration-tests-3d:
-    name: Run Godot Tests 3D (non-blocking)
+    name: Run Godot Tests 3D
     runs-on: macos-latest
     timeout-minutes: 30
-    # Current Godot regression suites have known failures; keep them visible until baseline is clean.
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v6
 
