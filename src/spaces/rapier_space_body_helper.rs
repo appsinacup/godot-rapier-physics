@@ -565,6 +565,10 @@ impl RapierSpace {
                     false
                 });
         }
+        // Skip processing if motion is too small (prevents infinite micro-adjustments)
+        if finish_small_body_motion(motion, result) {
+            return false;
+        }
         let mut body_transform = from; // Because body_transform needs to be modified during recovery
         // Step 1: recover motion.
         // Expand the body colliders by the margin (grow) and check if now it collides with a collider,

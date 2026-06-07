@@ -728,7 +728,6 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.33.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#7e72d13716814717e65e613c20fb6568e61ad282"
 dependencies = [
  "approx",
  "bitflags",
@@ -749,7 +748,6 @@ dependencies = [
 [[package]]
 name = "rapier2d-f64"
 version = "0.33.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#7e72d13716814717e65e613c20fb6568e61ad282"
 dependencies = [
  "approx",
  "bitflags",
@@ -769,7 +767,6 @@ dependencies = [
 [[package]]
 name = "rapier3d"
 version = "0.33.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#7e72d13716814717e65e613c20fb6568e61ad282"
 dependencies = [
  "approx",
  "bitflags",
@@ -790,7 +787,6 @@ dependencies = [
 [[package]]
 name = "rapier3d-f64"
 version = "0.33.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#7e72d13716814717e65e613c20fb6568e61ad282"
 dependencies = [
  "approx",
  "bitflags",

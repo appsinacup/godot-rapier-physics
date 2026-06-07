@@ -48,10 +48,10 @@ num_cpus = { version = "1", optional = true }
 godot = { version = "0.5.3" }
 glamx = { version = "0.3", default-features = false }
 
-rapier2d = { git = "https://github.com/dimforge/rapier", branch = "master", optional = true }
-rapier2d-f64 = { git = "https://github.com/dimforge/rapier", branch = "master", optional = true}
-rapier3d = { git = "https://github.com/dimforge/rapier", branch = "master", optional = true}
-rapier3d-f64 = { git = "https://github.com/dimforge/rapier", branch = "master", optional = true}
+rapier2d = { path = "../rapier/crates/rapier2d", optional = true }
+rapier2d-f64 = { path = "../rapier/crates/rapier2d-f64", optional = true}
+rapier3d = { path = "../rapier/crates/rapier3d", optional = true}
+rapier3d-f64 = { path = "../rapier/crates/rapier3d-f64", optional = true}
 salva2d = { git = "https://github.com/ughuuu/salva", branch = "try-to-update-to-latest-nalgebra", features = ["rapier"], optional = true }
 salva2d-f64 = { git = "https://github.com/ughuuu/salva", branch = "try-to-update-to-latest-nalgebra", features = ["rapier"], optional = true }
 salva3d = { git = "https://github.com/ughuuu/salva", branch = "try-to-update-to-latest-nalgebra", features = ["rapier"], optional = true }
@@ -60,10 +60,10 @@ serde = { version = "1.0", features = ["derive"], optional = true }
 serde_json = { version = "1.0", optional = true }
 
 [patch.crates-io]
-rapier2d = { git = "https://github.com/dimforge/rapier", branch = "master" }
-rapier2d-f64 = { git = "https://github.com/dimforge/rapier", branch = "master" }
-rapier3d = { git = "https://github.com/dimforge/rapier", branch = "master" }
-rapier3d-f64 = { git = "https://github.com/dimforge/rapier", branch = "master" }
+rapier2d = { path = "../rapier/crates/rapier2d" }
+rapier2d-f64 = { path = "../rapier/crates/rapier2d-f64" }
+rapier3d = { path = "../rapier/crates/rapier3d" }
+rapier3d-f64 = { path = "../rapier/crates/rapier3d-f64" }
 
 [profile.release]
 opt-level = 3
