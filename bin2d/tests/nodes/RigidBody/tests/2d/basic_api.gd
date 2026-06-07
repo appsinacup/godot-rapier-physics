@@ -446,6 +446,33 @@ func test_start() -> void:
 
 		var monitor := create_generic_expiration_monitor(self, damping_test, null, 1)
 		monitor.test_name = "Damping works"
+
+	if true:
+		var test_position = next_test_position()
+		var current_layer = next_test_layer()
+		var space := get_world_2d().space
+		var previous_linear_damp: float = PhysicsServer2D.area_get_param(space, PhysicsServer2D.AreaParameter.AREA_PARAM_LINEAR_DAMP)
+		var damping := 2.6
+		PhysicsServer2D.area_set_param(space, PhysicsServer2D.AreaParameter.AREA_PARAM_LINEAR_DAMP, damping)
+		var body_with_default_damping := create_rigid_body(current_layer, test_position + Vector2(0, -80), false)
+		var body_with_replace_damping := create_rigid_body(current_layer, test_position, false)
+		body_with_replace_damping.linear_damp_mode = RigidBody2D.DAMP_MODE_REPLACE
+		body_with_replace_damping.linear_damp = damping
+		body_with_default_damping.linear_velocity = Vector2(400, 0)
+		body_with_replace_damping.linear_velocity = Vector2(400, 0)
+
+		var replace_damping_test = func(_p_target: RigidBody2D, p_monitor: GenericManualMonitor):
+			if p_monitor.frame == 60:
+				PhysicsServer2D.area_set_param(space, PhysicsServer2D.AreaParameter.AREA_PARAM_LINEAR_DAMP, previous_linear_damp)
+				p_monitor.add_test("Linear damping replace mode matches world default")
+				var delta := abs(body_with_default_damping.position.x - body_with_replace_damping.position.x)
+				var success := delta < 1.0
+				if not success:
+					p_monitor.add_test_error("Linear damping replace mode mismatch, default x %s, replace x %s, delta %s" % [body_with_default_damping.position.x, body_with_replace_damping.position.x, delta])
+				p_monitor.add_test_result(success)
+				p_monitor.monitor_completed()
+
+		create_generic_manual_monitor(body_with_default_damping, replace_damping_test, simulation_duration)
 		
 func reset_body(p_body: RigidBody2D) -> void:
 	p_body.freeze = false

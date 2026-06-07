@@ -1527,7 +1527,7 @@ impl RapierBody {
                     if !self.using_area_linear_damping {
                         self.apply_linear_damping(
                             self.linear_damping,
-                            true,
+                            self.linear_damping_mode == BodyDampMode::COMBINE,
                             physics_engine,
                             physics_spaces,
                             physics_ids,
@@ -1547,7 +1547,7 @@ impl RapierBody {
                     if !self.using_area_angular_damping {
                         self.apply_angular_damping(
                             self.angular_damping,
-                            true,
+                            self.angular_damping_mode == BodyDampMode::COMBINE,
                             physics_engine,
                             physics_spaces,
                             physics_ids,
