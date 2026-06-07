@@ -352,11 +352,8 @@ impl RapierSpace {
         physics_collision_objects: &PhysicsCollisionObjects,
     ) -> bool {
         reset_body_motion_result(result);
-        // Skip processing if motion is too small (prevents infinite micro-adjustments)
-        if finish_small_body_motion(motion, result) {
-            return false;
-        }
         let mut body_transform = from; // Because body_transform needs to be modified during recovery
+        let is_small_motion = motion.length() < MIN_MOTION_THRESHOLD;
         // Step 1: recover motion.
         // Expand the body colliders by the margin (grow) and check if now it collides with a collider,
         // if yes, "recover" / "push" out of this collider
@@ -380,31 +377,44 @@ impl RapierSpace {
             physics_ids,
             physics_collision_objects,
         );
+        // Skip processing if motion is too small, but only after recovery had a chance to push
+        // the body out of a moving platform.
+        if is_small_motion && !recovered {
+            finish_small_body_motion(motion, result);
+            return false;
+        }
+        let motion = if is_small_motion {
+            Vector::default()
+        } else {
+            motion
+        };
         // Step 2: Cast motion.
         // Try to to find what is the possible motion (how far it can move, it's a shapecast, when you try to find the safe point (max you can move without collision ))
         let mut best_safe = 1.0;
         let mut best_unsafe = 1.0;
         let mut best_body_shape = -1;
-        self.cast_motion(
-            body,
-            &body_transform,
-            motion,
-            collide_separation_ray,
-            self.get_contact_max_allowed_penetration(),
-            margin,
-            &mut best_safe,
-            &mut best_unsafe,
-            &mut best_body_shape,
-            &excluded_shape_pairs,
-            excluded_shape_pair_count,
-            physics_engine,
-            physics_shapes,
-            physics_ids,
-            physics_collision_objects,
-        );
-        // Far from the origin, parry can report a tiny safe fraction for perpendicular wall pushes.
-        // Godot treats this as no travel, so keep the collision and clamp only the safe motion.
-        clamp_near_zero_safe_motion(motion, margin, &mut best_safe);
+        if !is_small_motion {
+            self.cast_motion(
+                body,
+                &body_transform,
+                motion,
+                collide_separation_ray,
+                self.get_contact_max_allowed_penetration(),
+                margin,
+                &mut best_safe,
+                &mut best_unsafe,
+                &mut best_body_shape,
+                &excluded_shape_pairs,
+                excluded_shape_pair_count,
+                physics_engine,
+                physics_shapes,
+                physics_ids,
+                physics_collision_objects,
+            );
+            // Far from the origin, parry can report a tiny safe fraction for perpendicular wall pushes.
+            // Godot treats this as no travel, so keep the collision and clamp only the safe motion.
+            clamp_near_zero_safe_motion(motion, margin, &mut best_safe);
+        }
         // Step 3: Rest Info
         // Apply the motion and fill the collision information
         let mut collided = false;

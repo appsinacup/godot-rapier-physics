@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tests/nodes/CharacterBody/tests/character_body_2d/animatable_pushes_stationary_character.gd" id="1_qvy3h"]
+
+[node name="animatable_pushes_stationary_character" type="Node2D"]
+script = ExtResource("1_qvy3h")
