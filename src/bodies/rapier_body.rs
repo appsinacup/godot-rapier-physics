@@ -586,6 +586,9 @@ impl RapierBody {
                 space
                     .get_mut_state()
                     .body_remove_from_state_query_list(self.base.get_id());
+                space
+                    .get_mut_state()
+                    .body_remove_from_deactivated_state_sync_list(self.base.get_id());
             }
         } else {
             self.body_state_callback = Some(p_callable);
@@ -1261,11 +1264,19 @@ impl RapierBody {
                 space
                     .get_mut_state()
                     .body_add_to_active_list(self.base.get_id());
+                space
+                    .get_mut_state()
+                    .body_remove_from_deactivated_state_sync_list(self.base.get_id());
             }
         } else {
             space
                 .get_mut_state()
                 .body_remove_from_active_list(self.base.get_id());
+            if self.get_state_sync_callback().is_some() {
+                space
+                    .get_mut_state()
+                    .body_add_to_deactivated_state_sync_list(self.base.get_id());
+            }
         }
     }
 
@@ -1297,6 +1308,9 @@ impl RapierBody {
             space
                 .get_mut_state()
                 .body_add_to_active_list(self.base.get_id());
+            space
+                .get_mut_state()
+                .body_remove_from_deactivated_state_sync_list(self.base.get_id());
         }
     }
 
@@ -1527,7 +1541,7 @@ impl RapierBody {
                     if !self.using_area_linear_damping {
                         self.apply_linear_damping(
                             self.linear_damping,
-                            true,
+                            self.linear_damping_mode == BodyDampMode::COMBINE,
                             physics_engine,
                             physics_spaces,
                             physics_ids,
@@ -1547,7 +1561,7 @@ impl RapierBody {
                     if !self.using_area_angular_damping {
                         self.apply_angular_damping(
                             self.angular_damping,
-                            true,
+                            self.angular_damping_mode == BodyDampMode::COMBINE,
                             physics_engine,
                             physics_spaces,
                             physics_ids,
@@ -1708,6 +1722,9 @@ impl RapierBody {
                     .body_remove_from_gravity_update_list(id);
                 space.get_mut_state().body_remove_from_area_update_list(id);
                 space.get_mut_state().body_remove_from_state_query_list(id);
+                space
+                    .get_mut_state()
+                    .body_remove_from_deactivated_state_sync_list(id);
                 space
                     .get_mut_state()
                     .body_remove_from_force_integrate_list(id);
@@ -2086,6 +2103,9 @@ impl RapierBody {
                 .get_mut_state()
                 .body_remove_from_gravity_update_list(id);
             space.get_mut_state().body_remove_from_active_list(id);
+            space
+                .get_mut_state()
+                .body_remove_from_deactivated_state_sync_list(id);
             space.get_mut_state().body_remove_from_state_query_list(id);
             space.get_mut_state().body_remove_from_area_update_list(id);
             space
