@@ -244,6 +244,7 @@ impl RapierSpace {
 
     pub fn call_queries(
         active_list: &BTreeSet<RapierId>,
+        deactivated_state_sync_list: &BTreeSet<RapierId>,
         state_query_list: &BTreeSet<RapierId>,
         force_integrate_query_list: &BTreeSet<RapierId>,
         monitor_query_list: &BTreeSet<RapierId>,
@@ -282,6 +283,15 @@ impl RapierSpace {
                 }
             }
         }
+        Self::for_each_intersection_body(
+            deactivated_state_sync_list,
+            state_query_list,
+            |body_id| {
+                if !active_list.contains(&body_id) {
+                    Self::call_body_state_query(body_id, physics_collision_objects, physics_ids);
+                }
+            },
+        );
         for area_handle in monitor_query_list {
             let mut unhandled_event_queue = None;
             let mut monitor_callback = None;
@@ -573,24 +583,32 @@ impl RapierSpace {
 
     pub fn flush(&mut self) {
         let physics_data = physics_data();
-        let active_list = Some(self.get_state().get_active_list());
-        let state_query_list = Some(self.get_state().get_state_query_list());
-        let force_integrate_query_list = Some(self.get_state().get_force_integrate_query_list());
-        let monitor_query_list = Some(self.get_state().get_monitor_query_list());
-        if let Some(active_list) = active_list
-            && let Some(state_query_list) = state_query_list
-            && let Some(force_integrate_query_list) = force_integrate_query_list
-            && let Some(monitor_query_list) = monitor_query_list
         {
-            RapierSpace::call_queries(
-                active_list,
-                state_query_list,
-                force_integrate_query_list,
-                monitor_query_list,
-                &mut physics_data.collision_objects,
-                &physics_data.ids,
-            );
+            let active_list = Some(self.get_state().get_active_list());
+            let deactivated_state_sync_list =
+                Some(self.get_state().get_deactivated_state_sync_list());
+            let state_query_list = Some(self.get_state().get_state_query_list());
+            let force_integrate_query_list =
+                Some(self.get_state().get_force_integrate_query_list());
+            let monitor_query_list = Some(self.get_state().get_monitor_query_list());
+            if let Some(active_list) = active_list
+                && let Some(deactivated_state_sync_list) = deactivated_state_sync_list
+                && let Some(state_query_list) = state_query_list
+                && let Some(force_integrate_query_list) = force_integrate_query_list
+                && let Some(monitor_query_list) = monitor_query_list
+            {
+                RapierSpace::call_queries(
+                    active_list,
+                    deactivated_state_sync_list,
+                    state_query_list,
+                    force_integrate_query_list,
+                    monitor_query_list,
+                    &mut physics_data.collision_objects,
+                    &physics_data.ids,
+                );
+            }
         }
+        self.get_mut_state().reset_deactivated_state_sync_list();
         self.update_after_queries(&mut physics_data.collision_objects, &physics_data.ids);
     }
 

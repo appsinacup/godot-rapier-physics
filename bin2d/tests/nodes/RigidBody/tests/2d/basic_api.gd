@@ -465,8 +465,8 @@ func test_start() -> void:
 			if p_monitor.frame == 60:
 				PhysicsServer2D.area_set_param(space, PhysicsServer2D.AreaParameter.AREA_PARAM_LINEAR_DAMP, previous_linear_damp)
 				p_monitor.add_test("Linear damping replace mode matches world default")
-				var delta := abs(body_with_default_damping.position.x - body_with_replace_damping.position.x)
-				var success := delta < 1.0
+				var delta: float = absf(body_with_default_damping.position.x - body_with_replace_damping.position.x)
+				var success: bool = delta < 1.0
 				if not success:
 					p_monitor.add_test_error("Linear damping replace mode mismatch, default x %s, replace x %s, delta %s" % [body_with_default_damping.position.x, body_with_replace_damping.position.x, delta])
 				p_monitor.add_test_result(success)

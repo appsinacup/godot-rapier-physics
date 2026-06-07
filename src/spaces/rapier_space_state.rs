@@ -61,6 +61,7 @@ impl PartialOrd for OrderedColliderHandle {
 pub struct RapierSpaceState {
     removed_colliders: BTreeMap<OrderedColliderHandle, RemovedColliderInfo>,
     active_list: BTreeSet<RapierId>,
+    deactivated_state_sync_list: BTreeSet<RapierId>,
     mass_properties_update_list: BTreeSet<RapierId>,
     gravity_update_list: BTreeSet<RapierId>,
     state_query_list: BTreeSet<RapierId>,
@@ -107,6 +108,14 @@ impl RapierSpaceState {
 
     pub fn body_remove_from_active_list(&mut self, body: RapierId) {
         self.active_list.remove(&body);
+    }
+
+    pub fn body_add_to_deactivated_state_sync_list(&mut self, body: RapierId) {
+        self.deactivated_state_sync_list.insert(body);
+    }
+
+    pub fn body_remove_from_deactivated_state_sync_list(&mut self, body: RapierId) {
+        self.deactivated_state_sync_list.remove(&body);
     }
 
     pub fn body_add_to_state_query_list(&mut self, body: RapierId) {
@@ -194,6 +203,10 @@ impl RapierSpaceState {
         &self.active_list
     }
 
+    pub fn get_deactivated_state_sync_list(&self) -> &BTreeSet<RapierId> {
+        &self.deactivated_state_sync_list
+    }
+
     pub fn get_mass_properties_update_list(&self) -> &BTreeSet<RapierId> {
         &self.mass_properties_update_list
     }
@@ -228,6 +241,10 @@ impl RapierSpaceState {
 
     pub fn reset_monitor_query_list(&mut self) {
         self.monitor_query_list.clear();
+    }
+
+    pub fn reset_deactivated_state_sync_list(&mut self) {
+        self.deactivated_state_sync_list.clear();
     }
 
     pub fn reset_removed_colliders(&mut self) {
@@ -267,6 +284,7 @@ mod tests {
         let state = RapierSpaceState::new(0, &mut physics_engine, &create_world_settings());
         assert_eq!(state.get_active_objects(), 0);
         assert!(state.get_active_list().is_empty());
+        assert!(state.get_deactivated_state_sync_list().is_empty());
         assert!(state.get_mass_properties_update_list().is_empty());
         assert!(state.get_gravity_update_list().is_empty());
         assert!(state.get_state_query_list().is_empty());
@@ -286,6 +304,20 @@ mod tests {
         assert!(state.get_active_list().contains(&rb_id));
         state.body_remove_from_active_list(rb_id);
         assert!(!state.get_active_list().contains(&rb_id));
+    }
+    #[test]
+    fn test_body_add_and_remove_reset_from_deactivated_state_sync_list() {
+        let mut physics_engine = PhysicsEngine::default();
+        let mut state = RapierSpaceState::new(0, &mut physics_engine, &create_world_settings());
+        let rb_id = 1;
+        state.body_add_to_deactivated_state_sync_list(rb_id);
+        assert!(state.get_deactivated_state_sync_list().contains(&rb_id));
+        state.body_remove_from_deactivated_state_sync_list(rb_id);
+        assert!(!state.get_deactivated_state_sync_list().contains(&rb_id));
+        state.body_add_to_deactivated_state_sync_list(rb_id);
+        assert!(state.get_deactivated_state_sync_list().contains(&rb_id));
+        state.reset_deactivated_state_sync_list();
+        assert!(state.get_deactivated_state_sync_list().is_empty());
     }
     #[test]
     fn test_body_add_and_remove_reset_from_mass_properties_update_list() {
