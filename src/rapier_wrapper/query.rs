@@ -339,12 +339,11 @@ impl PhysicsEngine {
                             if contact.dist <= 0.0 {
                                 result.toi = 0.0;
                                 result.collided = true;
+                                // parry::query::contact() returns results in world space
                                 result.normal1 = contact.normal1;
                                 result.normal2 = contact.normal2;
-                                result.pixel_witness1 =
-                                    contact.point1 + shape_info1.transform.translation;
-                                result.pixel_witness2 =
-                                    contact.point2 + shape_info2.transform.translation;
+                                result.pixel_witness1 = contact.point1;
+                                result.pixel_witness2 = contact.point2;
                             }
                         }
                         Err(err) => {
@@ -372,10 +371,13 @@ impl PhysicsEngine {
                         }
                         result.collided = true;
                         result.toi = hit.time_of_impact;
-                        result.normal1 = hit.normal1;
-                        result.normal2 = hit.normal2;
-                        result.pixel_witness1 = hit.witness1 + shape_info1.transform.translation;
-                        result.pixel_witness2 = hit.witness2 + shape_info2.transform.translation;
+                        // parry::query::cast_shapes() returns results in each shape's local space
+                        result.normal1 = shape_transform1.rotation * hit.normal1;
+                        result.normal2 = shape_transform2.rotation * hit.normal2;
+                        result.pixel_witness1 =
+                            shape_transform1 * hit.witness1 + shape_vel1 * hit.time_of_impact;
+                        result.pixel_witness2 =
+                            shape_transform2 * hit.witness2 + shape_vel2 * hit.time_of_impact;
                     }
                     Err(err) => {
                         godot_error!("toi error: {:?}", err);
@@ -469,7 +471,7 @@ impl PhysicsEngine {
                 shape_transform_with_motion.translation += shape_vel * hit.time_of_impact;
             }
         }
-        for (collider_handle, _collider) in physics_world
+        for (_collider_handle, collider) in physics_world
             .physics_objects
             .broad_phase
             .as_query_pipeline(
@@ -483,40 +485,34 @@ impl PhysicsEngine {
             )
             .intersect_shape(shape_transform_with_motion, shared_shape.as_ref())
         {
-            if let Some(collider) = physics_world
+            let mut manifolds: Vec<ContactManifold> = vec![];
+            let pos12 = shape_transform_with_motion.inv_mul(collider.position());
+            let _ = physics_world
                 .physics_objects
-                .collider_set
-                .get(collider_handle)
-            {
-                let mut manifolds: Vec<ContactManifold> = vec![];
-                let pos12 = shape_transform_with_motion.inv_mul(collider.position());
-                let _ = physics_world
-                    .physics_objects
-                    .narrow_phase
-                    .query_dispatcher()
-                    .contact_manifolds(
-                        &pos12,
-                        shared_shape.as_ref(),
-                        collider.shape(),
-                        margin,
-                        &mut manifolds,
-                        &mut None,
-                    );
-                for m in &manifolds {
+                .narrow_phase
+                .query_dispatcher()
+                .contact_manifolds(
+                    &pos12,
+                    shared_shape.as_ref(),
+                    collider.shape(),
+                    margin,
+                    &mut manifolds,
+                    &mut None,
+                );
+            for m in &manifolds {
+                if result_count >= max_results {
+                    break;
+                }
+                for contact in &m.points {
+                    let contact_p1 = shape_transform_with_motion * contact.local_p1;
+                    let contact_p2 = collider.position() * contact.local_p2;
+                    let mut this_contact: WitnessPair = WitnessPair::new();
+                    this_contact.pixel_witness1 = contact_p1;
+                    this_contact.pixel_witness2 = contact_p2;
+                    results.push(this_contact);
+                    result_count += 1;
                     if result_count >= max_results {
                         break;
-                    }
-                    for contact in &m.points {
-                        let contact_p1 = shape_transform_with_motion * contact.local_p1;
-                        let contact_p2 = collider.position() * contact.local_p2;
-                        let mut this_contact: WitnessPair = WitnessPair::new();
-                        this_contact.pixel_witness1 = contact_p1;
-                        this_contact.pixel_witness2 = contact_p2;
-                        results.push(this_contact);
-                        result_count += 1;
-                        if result_count >= max_results {
-                            break;
-                        }
                     }
                 }
             }
@@ -563,7 +559,7 @@ impl PhysicsEngine {
                 filter.predicate = Some(&predicate);
                 let velocity_size = shape_vel.length();
                 if velocity_size < DEFAULT_EPSILON {
-                    for (collider_handle, _collider) in physics_world
+                    for (collider_handle, collider) in physics_world
                         .physics_objects
                         .broad_phase
                         .as_query_pipeline(
@@ -577,37 +573,29 @@ impl PhysicsEngine {
                         )
                         .intersect_shape(shape_transform, shared_shape.as_ref())
                     {
-                        let mut result = ShapeCastResult::new();
-                        result.collided = true;
-                        result.toi = 0.0;
-                        result.collider = collider_handle;
-                        result.user_data = physics_world.get_collider_user_data(collider_handle);
-                        if let Some(collider) = physics_world
+                        let pos12 = shape_transform.inv_mul(collider.position());
+                        if let Ok(contact) = physics_world
                             .physics_objects
-                            .collider_set
-                            .get(collider_handle)
+                            .narrow_phase
+                            .query_dispatcher()
+                            .contact(&pos12, shared_shape.as_ref(), collider.shape(), margin)
+                            && let Some(contact) = contact
                         {
-                            let pos12 = shape_transform.inv_mul(collider.position());
-                            if let Ok(contact) = physics_world
-                                .physics_objects
-                                .narrow_phase
-                                .query_dispatcher()
-                                .contact(&pos12, shared_shape.as_ref(), collider.shape(), margin)
-                                && let Some(contact) = contact
-                            {
-                                result.normal1 = contact.normal1;
-                                result.normal2 = contact.normal2;
-                                result.pixel_witness1 =
-                                    contact.point1 + shape_transform.translation;
-                                result.pixel_witness2 =
-                                    contact.point2 + collider.position().translation;
-                            } else {
-                                godot_error!("contact error");
-                            }
+                            let mut result = ShapeCastResult::new();
+                            result.collided = true;
+                            result.collider = collider_handle;
+                            result.user_data =
+                                physics_world.get_collider_user_data(collider_handle);
+                            result.toi = 0.0;
+                            // QueryPipeline::intersect_shape() returns results in each shape's local space
+                            result.normal1 = shape_transform.rotation * contact.normal1;
+                            result.normal2 = collider.rotation() * contact.normal2;
+                            result.pixel_witness1 = shape_transform * contact.point1;
+                            result.pixel_witness2 = collider.position() * contact.point2;
+                            results.push(result);
                         } else {
-                            godot_error!("collider not found");
+                            godot_error!("contact error");
                         }
-                        results.push(result);
                     }
                 } else {
                     let shape_cast_options = ShapeCastOptions {
@@ -662,24 +650,28 @@ impl PhysicsEngine {
                         {
                             godot_warn!("shape casting status warn: {:?}", hit.status);
                         }
-                        let mut result = ShapeCastResult::new();
-                        result.collided = true;
-                        result.toi = hit.time_of_impact;
-                        result.toi_unsafe = hit.time_of_impact;
-                        result.normal1 = hit.normal1;
-                        result.normal2 = hit.normal2;
-                        result.collider = collider_handle;
-                        result.user_data = physics_world.get_collider_user_data(collider_handle);
-                        // Witnesses are both in worldspace
-                        let witness1 = hit.witness1;
-                        let witness2 = hit.witness2;
                         if let Some(collider) = physics_world
                             .physics_objects
                             .collider_set
                             .get(collider_handle)
                         {
-                            result.pixel_witness1 = witness1;
-                            result.pixel_witness2 = witness2;
+                            let mut result = ShapeCastResult::new();
+                            result.collided = true;
+                            result.collider = collider_handle;
+                            result.user_data =
+                                physics_world.get_collider_user_data(collider_handle);
+                            result.toi = hit.time_of_impact;
+                            result.toi_unsafe = hit.time_of_impact;
+                            // In QueryPipeline::cast_shapes(),
+                            // world shapes is the hidden first parameter, and the scanner shape is the second,
+                            // so the order of normals and witnesses needs to be swapped
+                            // result.pixel_witness1 <- hit.witness2 transformed from scanner shape's local space
+                            // result.pixel_witness2 <- hit.witness1 (world shape's local space, no need to transform)
+                            result.normal1 = shape_transform.rotation * hit.normal2;
+                            result.normal2 = hit.normal1;
+                            result.pixel_witness1 =
+                                shape_transform * hit.witness2 + shape_vel * hit.time_of_impact;
+                            result.pixel_witness2 = hit.witness1;
                             // the time of impact isn't exact. Compute unsafe time of impact.
                             if needs_exact {
                                 let mut hit_transform = shape_transform;
@@ -697,10 +689,10 @@ impl PhysicsEngine {
                                     result.toi_unsafe += (distance + 0.001) / velocity_size;
                                 }
                             }
+                            results.push(result);
                         } else {
                             godot_error!("collider not found");
                         }
-                        results.push(result);
                         cast_excludes.push(collider_handle);
                         if needs_exact || results.len() >= MAX_SHAPE_CAST_RESULTS {
                             break;
@@ -812,7 +804,6 @@ impl PhysicsEngine {
                         result.normal2 = contact.normal2;
                         result.pixel_point1 = contact.point1 + contact.normal1.mul(prediction);
                         result.pixel_point2 = contact.point2;
-                        return result;
                     }
                     Err(err) => {
                         godot_error!("Shape Contact Error: {:?}", err);
