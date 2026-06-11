@@ -345,6 +345,7 @@ impl RapierPhysicsServerImpl {
         false
     }
 
+    #[cfg(feature = "dim2")]
     pub(super) fn space_set_param(&mut self, space: Rid, _param: SpaceParameter, _value: f32) {
         let physics_data = physics_data();
         if let Some(space) = physics_data.spaces.get_mut(&space) {
@@ -352,11 +353,20 @@ impl RapierPhysicsServerImpl {
         }
     }
 
+    #[cfg(feature = "dim2")]
     pub(super) fn space_get_param(&self, space: Rid, _param: SpaceParameter) -> f32 {
         let physics_data = physics_data();
         if let Some(space) = physics_data.spaces.get(&space) {
             return space.get_param(_param);
         }
+        0.0
+    }
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn space_set_param(&mut self, _space: Rid, _param: SpaceParameter, _value: f32) {}
+
+    #[cfg(feature = "dim3")]
+    pub(super) fn space_get_param(&self, _space: Rid, _param: SpaceParameter) -> f32 {
         0.0
     }
 

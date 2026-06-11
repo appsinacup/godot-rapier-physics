@@ -12,6 +12,7 @@ use crate::bodies::rapier_collision_object::RapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::RapierId;
+#[cfg(feature = "dim2")]
 use crate::servers::rapier_physics_singleton::physics_data;
 use crate::types::Vector;
 #[cfg(feature = "dim3")]
@@ -356,6 +357,7 @@ impl RapierRevoluteJoint {
         self.bias
     }
 
+    #[cfg(feature = "dim2")]
     pub fn set_bias_param(&mut self, value: f32, physics_engine: &mut PhysicsEngine) {
         self.bias = value;
         if !self.base.is_valid() {
@@ -384,6 +386,7 @@ impl RapierRevoluteJoint {
         );
     }
 
+    #[cfg(feature = "dim2")]
     pub fn get_bias_param(&self) -> f32 {
         self.bias
     }
