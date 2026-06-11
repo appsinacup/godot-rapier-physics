@@ -106,6 +106,7 @@ pub struct RapierSpace {
     contact_debug: PackedVectorArray,
     contact_debug_count: usize,
     ghost_collision_distance: real,
+    constraint_default_bias: real,
     state: RapierSpaceState,
 }
 impl RapierSpace {
@@ -134,6 +135,7 @@ impl RapierSpace {
             contact_debug: PackedVectorArray::new(),
             contact_debug_count: 0,
             ghost_collision_distance: RapierProjectSettings::get_ghost_collision_distance(),
+            constraint_default_bias: 0.2,
             state: RapierSpaceState::new(id, physics_engine, &Self::get_world_settings()),
         };
         physics_spaces.insert(rid, space);
@@ -479,6 +481,19 @@ impl RapierSpace {
         if self.contact_debug_count < self.contact_debug.len() {
             self.contact_debug[self.contact_debug_count] = contact;
             self.contact_debug_count += 1;
+        }
+    }
+
+    pub fn set_param(&mut self, _param: SpaceParameter, _value: f32) {
+        if _param == SpaceParameter::CONSTRAINT_DEFAULT_BIAS {
+            self.constraint_default_bias = _value;
+        }
+    }
+
+    pub fn get_param(&self, _param: SpaceParameter) -> f32 {
+        match _param {
+            SpaceParameter::CONSTRAINT_DEFAULT_BIAS => self.constraint_default_bias,
+            _ => 0.0,
         }
     }
 

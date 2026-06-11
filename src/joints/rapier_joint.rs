@@ -19,6 +19,7 @@ use super::rapier_revolute_joint::RapierRevoluteJoint;
 use super::rapier_slider_joint_3d::RapierSliderJoint3D;
 #[cfg(feature = "dim3")]
 use super::rapier_spherical_joint_3d::RapierSphericalJoint3D;
+use crate::rapier_wrapper::prelude::PhysicsEngine;
 use crate::*;
 #[allow(clippy::large_enum_variant)]
 pub enum RapierJoint {
@@ -36,6 +37,20 @@ pub enum RapierJoint {
     RapierSphericalJoint3D(RapierSphericalJoint3D),
     #[cfg(feature = "dim3")]
     RapierGeneric6DOFJoint3D(RapierGeneric6DOFJoint3D),
+}
+impl RapierJoint {
+    pub fn set_bias_param(&mut self, value: f32, physics_engine: &mut PhysicsEngine) {
+        if let Self::RapierRevoluteJoint(joint) = self {
+            joint.set_bias_param(value, physics_engine);
+        }
+    }
+
+    pub fn get_bias_param(&self) -> f32 {
+        match self {
+            Self::RapierRevoluteJoint(joint) => joint.get_bias_param(),
+            _ => 0.0,
+        }
+    }
 }
 macro_rules! impl_rapier_joint_trait {
     ($enum_name:ident, $($variant:ident),*) => {
@@ -57,6 +72,7 @@ macro_rules! impl_rapier_joint_trait {
                     $(Self::$variant(joint) => joint.get_type(),)*
                 }
             }
+
         }
     };
 }
