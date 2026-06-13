@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.8.34
+
+## What's Changed
+* Fix PinJoint2D softness to match Godot by @Schnorg in https://github.com/appsinacup/godot-rapier-physics/pull/555
+
+
+**Full Changelog**: https://github.com/appsinacup/godot-rapier-physics/compare/v0.8.33...v0.8.34
+
 ## v0.8.33
 
 ## What's Changed
