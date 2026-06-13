@@ -1698,7 +1698,9 @@ impl RapierPhysicsServerImpl {
                     joint.get_mut_base().set_max_force(value);
                 }
                 JointParam::BIAS => {
-                    joint.set_bias_param(value, &mut physics_data.physics_engine);
+                    if let RapierJoint::RapierRevoluteJoint(rev_joint) = joint {
+                        rev_joint.set_bias_param(value, &mut physics_data.physics_engine);
+                    }
                 }
                 _ => {}
             }
@@ -1711,7 +1713,13 @@ impl RapierPhysicsServerImpl {
         if let Some(joint) = physics_data.joints.get(&joint) {
             match param {
                 JointParam::MAX_FORCE => joint.get_base().get_max_force(),
-                JointParam::BIAS => joint.get_bias_param(),
+                JointParam::BIAS => {
+                    if let RapierJoint::RapierRevoluteJoint(rev_joint) = joint {
+                        rev_joint.get_bias_param()
+                    } else {
+                        0.0
+                    }
+                }
                 _ => 0.0,
             };
         }

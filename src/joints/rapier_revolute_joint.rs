@@ -391,20 +391,28 @@ impl RapierRevoluteJoint {
         self.bias
     }
 
-    // This function is used to convert MOTOR_MAX_IMPULSE into a force which
-    // can be passed onto rapier.
+    // This function returns the time step, used to calculate softness and max_impulse.
+    // Parameters like softness and max_impulse are a design flaw in Godot.
+    // When the user changes time scale, or the physics step, softness and max_impulse
+    // can change, and that shouldn't happen.
+    //
+    // We can try hard to match Godot's bad behaviour, or we can match Godot at
+    // the default step rate and then not change the parameters the rest of the time.
+    // This is a judgement call.
+    // The writer feels that Rapier is being chosen because the user wants something
+    // better than Godot, so we should make these parameters invariant to time step.
     fn estimate_physics_step() -> f32 {
         /*
-        // Use this method if we want to match Jolt's approach
-        // as of Godot 4.6.2 (However this approach perpetuates step variant behaviour)
+        // Use this method if we want to try to match Godot. We cannot match
+        // Godot exactly unless we reset all the revolute joint settings each time
+        // the step changes. This is a half measure which may be enough.
         let engine = <godot::classes::Engine as godot::obj::Singleton>::singleton();
         let step = 1.0 / engine.get_physics_ticks_per_second() as f64;
         let step_scaled = step * engine.get_time_scale();
         step_scaled as f32
         */
-        // Use this method if we want consistent behaviour
-        // during time scaling or changing of physics rate
-        // when physics step is 60.0 (default) behaviour will match Jolt
+        // Use this method if we want time step invariant parameters.
+        // It will match Godot exactly when the physics step is the default 1.0/60.0
         1.0 / 60.0
     }
 
