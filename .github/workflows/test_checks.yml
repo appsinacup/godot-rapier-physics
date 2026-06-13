@@ -79,14 +79,14 @@ jobs:
         run: |
           set +e
           set -o pipefail
-          godot --headless --path ./bin${{ matrix.dimensions.short }} --import 2>&1 | tee godot-import-${{ matrix.dimensions.short }}.log
+          "$GODOT4" --headless --path ./bin${{ matrix.dimensions.short }} --import 2>&1 | tee godot-import-${{ matrix.dimensions.short }}.log
           import_status=${PIPESTATUS[0]}
           if [ "$import_status" -ne 0 ]; then
             echo "Godot ${{ matrix.dimensions.name }} import failed with status ${import_status}"
             exit "$import_status"
           fi
 
-          godot --headless --path ./bin${{ matrix.dimensions.short }} start.tscn 2>&1 | tee godot-tests-${{ matrix.dimensions.short }}.log
+          "$GODOT4" --headless --path ./bin${{ matrix.dimensions.short }} start.tscn 2>&1 | tee godot-tests-${{ matrix.dimensions.short }}.log
           godot_status=${PIPESTATUS[0]}
           set -e
 
