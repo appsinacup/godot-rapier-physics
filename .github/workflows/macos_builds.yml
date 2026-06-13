@@ -7,7 +7,7 @@ env:
 
 jobs:
   macos:
-    runs-on: "macos-latest"
+    runs-on: "macos-26"
     name: ${{ matrix.dimensions.short }} ${{ matrix.precision }} ${{ matrix.features.name }} ${{ matrix.arch }}
     strategy:
       fail-fast: false
@@ -22,7 +22,7 @@ jobs:
       - name: Setup Godot
         uses: appsinacup/setup-godot-action@main
         with:
-          version: '4.6-stable'
+          version: '4.6.3-stable'
       - name: Build
         uses: ./.github/actions/build
         with:
@@ -32,6 +32,13 @@ jobs:
         shell: sh
         run: |
           mv target/release/libgodot_rapier.dylib bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
+      - name: Smoke test GDExtension load
+        shell: bash
+        run: |
+          set -euo pipefail
+          dylib="bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib"
+          codesign --force --sign - "$dylib"
+          godot --headless --path ./bin${{ matrix.dimensions.short }} --quit
       - name: Mac Sign
         uses: ughuuu/godot-cpp-template/.github/actions/sign@add-more-stuff/options-to-build
         with:

@@ -4,6 +4,7 @@ rustflags = [
   "-C", "target-feature=+bulk-memory,+mutable-globals",
   "-C", "link-arg=-fwasm-exceptions",
   "-C", "llvm-args=-enable-emscripten-cxx-exceptions=0",
+  "-Z", "emscripten-wasm-eh=false",
   "-Z", "link-native-libraries=no",
   "-Zunstable-options",
   "-C", "panic=immediate-abort"
