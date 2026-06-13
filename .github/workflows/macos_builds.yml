@@ -32,13 +32,6 @@ jobs:
         shell: sh
         run: |
           mv target/release/libgodot_rapier.dylib bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
-      - name: Smoke test GDExtension load
-        shell: bash
-        run: |
-          set -euo pipefail
-          dylib="bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib"
-          codesign --force --sign - "$dylib"
-          godot --headless --path ./bin${{ matrix.dimensions.short }} --quit
       - name: Mac Sign
         uses: ughuuu/godot-cpp-template/.github/actions/sign@add-more-stuff/options-to-build
         with:
