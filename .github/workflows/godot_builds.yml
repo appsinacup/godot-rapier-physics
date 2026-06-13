@@ -26,6 +26,7 @@ jobs:
           name: godot-rapier-${{ matrix.dimensions }}-${{ matrix.precision }}-${{ matrix.features }}-gdext
           path: |
             bin${{ matrix.dimensions }}
+            !bin${{ matrix.dimensions }}/samples/*
             !bin${{ matrix.dimensions }}/test/*
             !bin${{ matrix.dimensions }}/tests/*
             !bin${{ matrix.dimensions }}/base/*
