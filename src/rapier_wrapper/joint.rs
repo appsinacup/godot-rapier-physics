@@ -346,37 +346,56 @@ impl PhysicsEngine {
         motor_stiffness: Real,
         motor_damping: Real,
         motor_position_enabled: bool,
+        bias: Real,
+        physics_step: Real,
         #[cfg(feature = "dim3")] motor_max_force: Real,
     ) {
         self.joint_wake_up_connected_rigidbodies(world_handle, joint_handle);
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(joint) = physics_world.get_mut_joint(joint_handle)
-            && let Some(joint) = joint.as_revolute_mut()
         {
-            joint.set_motor_model(MotorModel::AccelerationBased);
-            joint.set_motor_max_force(Real::MAX);
+            joint.set_motor_model(JointAxis::AngX, MotorModel::AccelerationBased);
+            joint.set_motor_max_force(JointAxis::AngX, Real::MAX);
             if angular_limit_enabled {
-                joint.set_limits([angular_limit_lower, angular_limit_upper]);
+                joint.set_limits(JointAxis::AngX, [angular_limit_lower, angular_limit_upper]);
             } else {
-                joint.data.limit_axes.remove(JointAxesMask::ANG_X);
+                joint.limit_axes.remove(JointAxesMask::ANG_X);
             }
             if motor_enabled {
-                joint.set_motor(0.0, motor_target_velocity, 0.0, 0.0);
+                joint.set_motor(JointAxis::AngX, 0.0, motor_target_velocity, 0.0, 0.0);
                 #[cfg(feature = "dim3")]
-                joint.set_motor_max_force(motor_max_force);
+                joint.set_motor_max_force(JointAxis::AngX, motor_max_force);
             } else if motor_position_enabled {
-                joint.set_motor(motor_target_position, 0.0, motor_stiffness, motor_damping);
+                joint.set_motor(
+                    JointAxis::AngX,
+                    motor_target_position,
+                    0.0,
+                    motor_stiffness,
+                    motor_damping,
+                );
             } else {
-                joint.data.motor_axes.remove(JointAxesMask::ANG_X);
+                joint.motor_axes.remove(JointAxesMask::ANG_X);
             }
-            if softness <= 0.0 {
-                joint.data.softness.natural_frequency = 1.0e6;
-                joint.data.softness.damping_ratio = 1.0;
+            if softness > 0.0 {
+                // Emulate softness by using ForceBased motor on LinX (coupled with LinY)
+                joint.locked_axes = JointAxesMask::FREE_FIXED_AXES;
+                joint.coupled_axes = JointAxesMask::LIN_AXES;
+                joint.set_motor_model(JointAxis::LinX, MotorModel::ForceBased);
+                joint.set_motor_max_force(JointAxis::LinX, Real::MAX);
+                // See Catto, Soft Constraints 2011 slides for CFM and ERP definitions
+                // softness = CFM / h, where h = time delta
+                // bias = ERP
+                // Catto 2011 shows CFM and ERP as they relate to k and c
+                // plug them in, rearrange, and you get the equations below to
+                // figure out k and c. Only works with a ForceBased spring.
+                let h: Real = physics_step;
+                let k: Real = bias / (h * h * softness);
+                let c: Real = (1.0 - bias) / (h * softness);
+                joint.set_motor(JointAxis::LinX, 0.0, 0.0, k, c);
             } else {
-                // Convert softness to damping parameters
-                let softness_clamped = softness.clamp(Real::EPSILON, 16.0);
-                joint.data.softness.natural_frequency = 10_f32.powf(3.0 - softness_clamped * 0.2);
-                joint.data.softness.damping_ratio = 10_f32.powf(-softness_clamped * 0.4375);
+                joint.locked_axes = JointAxesMask::LIN_AXES;
+                joint.coupled_axes = JointAxesMask::FREE_FIXED_AXES;
+                joint.motor_axes.remove(JointAxesMask::LIN_X);
             }
         }
     }

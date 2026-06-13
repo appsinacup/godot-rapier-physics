@@ -57,6 +57,7 @@ macro_rules! impl_rapier_joint_trait {
                     $(Self::$variant(joint) => joint.get_type(),)*
                 }
             }
+
         }
     };
 }

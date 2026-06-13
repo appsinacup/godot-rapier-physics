@@ -345,8 +345,27 @@ impl RapierPhysicsServerImpl {
         false
     }
 
+    #[cfg(feature = "dim2")]
+    pub(super) fn space_set_param(&mut self, space: Rid, _param: SpaceParameter, _value: f32) {
+        let physics_data = physics_data();
+        if let Some(space) = physics_data.spaces.get_mut(&space) {
+            space.set_param(_param, _value);
+        }
+    }
+
+    #[cfg(feature = "dim2")]
+    pub(super) fn space_get_param(&self, space: Rid, _param: SpaceParameter) -> f32 {
+        let physics_data = physics_data();
+        if let Some(space) = physics_data.spaces.get(&space) {
+            return space.get_param(_param);
+        }
+        0.0
+    }
+
+    #[cfg(feature = "dim3")]
     pub(super) fn space_set_param(&mut self, _space: Rid, _param: SpaceParameter, _value: f32) {}
 
+    #[cfg(feature = "dim3")]
     pub(super) fn space_get_param(&self, _space: Rid, _param: SpaceParameter) -> f32 {
         0.0
     }
@@ -1673,20 +1692,36 @@ impl RapierPhysicsServerImpl {
     #[cfg(feature = "dim2")]
     pub(super) fn joint_set_param(&mut self, joint: Rid, param: JointParam, value: f32) {
         let physics_data = physics_data();
-        if let Some(joint) = physics_data.joints.get_mut(&joint)
-            && param == JointParam::MAX_FORCE
-        {
-            joint.get_mut_base().set_max_force(value);
+        if let Some(joint) = physics_data.joints.get_mut(&joint) {
+            match param {
+                JointParam::MAX_FORCE => {
+                    joint.get_mut_base().set_max_force(value);
+                }
+                JointParam::BIAS => {
+                    if let RapierJoint::RapierRevoluteJoint(rev_joint) = joint {
+                        rev_joint.set_bias_param(value, &mut physics_data.physics_engine);
+                    }
+                }
+                _ => {}
+            }
         }
     }
 
     #[cfg(feature = "dim2")]
     pub(super) fn joint_get_param(&self, joint: Rid, param: JointParam) -> f32 {
         let physics_data = physics_data();
-        if let Some(joint) = physics_data.joints.get(&joint)
-            && param == JointParam::MAX_FORCE
-        {
-            return joint.get_base().get_max_force();
+        if let Some(joint) = physics_data.joints.get(&joint) {
+            match param {
+                JointParam::MAX_FORCE => joint.get_base().get_max_force(),
+                JointParam::BIAS => {
+                    if let RapierJoint::RapierRevoluteJoint(rev_joint) = joint {
+                        rev_joint.get_bias_param()
+                    } else {
+                        0.0
+                    }
+                }
+                _ => 0.0,
+            };
         }
         0.0
     }
