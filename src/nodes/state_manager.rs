@@ -8,7 +8,6 @@ use godot::classes::Marshalls;
 use godot::prelude::*;
 use hashbrown::HashMap;
 use hashbrown::HashSet;
-use rapier::geometry::ColliderHandle;
 use rapier::geometry::ColliderPair;
 
 use crate::bodies::exportable_object::ExportToImport;
@@ -16,13 +15,9 @@ use crate::bodies::exportable_object::ExportableObject;
 use crate::bodies::exportable_object::ImportToExport;
 use crate::bodies::exportable_object::ObjectExportState;
 use crate::bodies::exportable_object::ObjectImportState;
-use crate::bodies::rapier_area::AreaExport;
-use crate::bodies::rapier_body::BodyExport;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::bodies::rapier_collision_object::RapierCollisionObject;
-use crate::bodies::rapier_collision_object_base::RapierCollisionObjectBaseState;
 use crate::servers::RapierPhysicsServer;
-use crate::servers::rapier_physics_singleton::RapierId;
 use crate::servers::rapier_physics_singleton::physics_data;
 use crate::spaces::rapier_space::SpaceExport;
 use crate::spaces::rapier_space::SpaceImport;
@@ -75,75 +70,6 @@ impl CollatedObjectImportState {
             state: self.state.as_export(),
             shape_owners: export_state_map,
         }
-    }
-}
-/// A stripped-down version of the physics state that only contains deterministic data.
-/// Used for cross-instance state comparison (rollback mismatch detection).
-/// Excludes: physics_server_id, instance_ids, collider_instance_ids.
-#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
-struct DeterministicExportState<'a> {
-    rapier_space: &'a SpaceExport<'a>,
-    physics_objects_state: BTreeMap<&'a String, DeterministicObjectState<'a>>,
-}
-#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
-struct DeterministicObjectState<'a> {
-    state: DeterministicNodeState<'a>,
-    shape_owners: &'a BTreeMap<String, Vec<ObjectExportState<'a>>>,
-}
-#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
-enum DeterministicNodeState<'a> {
-    Body(&'a BodyExport<'a>),
-    Area(DeterministicAreaState<'a>),
-    Other(&'a ObjectExportState<'a>),
-}
-#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
-struct DeterministicAreaState<'a> {
-    base_state: &'a RapierCollisionObjectBaseState,
-    // Serialize monitored_objects keys and physics-relevant fields only
-    monitored_collider_pairs: Vec<(&'a (ColliderHandle, ColliderHandle), &'a RapierId, i32)>,
-}
-impl<'a> DeterministicExportState<'a> {
-    fn from_raw(raw: &'a RawExportState<'a>) -> Self {
-        let mut objects = BTreeMap::new();
-        for (path, collated) in &raw.physics_objects_state {
-            let det_state = match &collated.state {
-                ObjectExportState::Body(body) => DeterministicNodeState::Body(body),
-                ObjectExportState::Area(area) => DeterministicAreaState::from_area(area),
-                other => DeterministicNodeState::Other(other),
-            };
-            objects.insert(
-                path,
-                DeterministicObjectState {
-                    state: det_state,
-                    shape_owners: &collated.shape_owners,
-                },
-            );
-        }
-        DeterministicExportState {
-            rapier_space: &raw.rapier_space,
-            physics_objects_state: objects,
-        }
-    }
-}
-impl<'a> DeterministicAreaState<'a> {
-    fn from_area(area: &'a AreaExport<'a>) -> DeterministicNodeState<'a> {
-        let mut pairs: Vec<_> = area
-            .area_state
-            .monitored_objects
-            .iter()
-            .map(|(key, info)| (key, &info.other_collider_id, info.num_contacts))
-            .collect();
-        // Sort for deterministic output (HashMap iteration order is non-deterministic)
-        pairs.sort_by(|a, b| {
-            a.0.0
-                .into_raw_parts()
-                .cmp(&b.0.0.into_raw_parts())
-                .then(a.0.1.into_raw_parts().cmp(&b.0.1.into_raw_parts()))
-        });
-        DeterministicNodeState::Area(DeterministicAreaState {
-            base_state: area.base_state,
-            monitored_collider_pairs: pairs,
-        })
     }
 }
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
@@ -351,27 +277,6 @@ impl StateManager {
             self.serialize_state(raw_state, &format)
         } else {
             Variant::nil()
-        }
-    }
-
-    #[func]
-    /// Exports a deterministic representation of the physics state suitable for cross-instance
-    /// comparison (e.g. rollback netcode mismatch detection). This excludes process-specific
-    /// fields like instance IDs and the physics server counter that differ between Godot instances
-    /// even when the physics simulation is identical.
-    /// The output should NOT be used with import_state — use export_state for save/load.
-    fn export_deterministic_state(&mut self, in_space: Rid) -> PackedByteArray {
-        if let Some(raw_state) = self.fetch_state(in_space) {
-            let deterministic_state = DeterministicExportState::from_raw(&raw_state);
-            match bincode::serialize(&deterministic_state) {
-                Ok(b) => bin_to_packed_byte_array(b),
-                Err(err) => {
-                    godot_error!("Failed to serialize deterministic physics state: {}", err);
-                    PackedByteArray::new()
-                }
-            }
-        } else {
-            PackedByteArray::new()
         }
     }
 

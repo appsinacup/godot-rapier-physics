@@ -169,8 +169,8 @@ pub enum AreaUpdateMode {
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
 #[derive(Debug)]
 pub struct AreaExport<'a> {
-    pub(crate) area_state: &'a RapierAreaState,
-    pub(crate) base_state: &'a RapierCollisionObjectBaseState,
+    area_state: &'a RapierAreaState,
+    base_state: &'a RapierCollisionObjectBaseState,
 }
 impl ExportToImport for AreaExport<'_> {
     type Import = AreaImport;
