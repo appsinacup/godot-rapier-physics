@@ -481,13 +481,11 @@ impl RapierDirectBodyStateImpl {
             && let Some(body) = body.get_body()
             && let Some(contact) = body.contacts().get(contact_idx as usize)
         {
-            // collider_instance_id now stores the RapierId for determinism.
-            // Look up the real Godot instance_id from the physics ID map.
             let rapier_id = contact.collider_instance_id;
-            if let Some(rid) = physics_data.ids.get(&rapier_id) {
-                if let Some(collider_obj) = physics_data.collision_objects.get(rid) {
-                    return collider_obj.get_base().get_instance_id();
-                }
+            if let Some(rid) = physics_data.ids.get(&rapier_id)
+                && let Some(collider_obj) = physics_data.collision_objects.get(rid)
+            {
+                return collider_obj.get_base().get_instance_id();
             }
         }
         0
@@ -499,16 +497,14 @@ impl RapierDirectBodyStateImpl {
             && let Some(body) = body.get_body()
             && let Some(contact) = body.contacts().get(contact_idx as usize)
         {
-            // collider_instance_id now stores the RapierId for determinism.
-            // Look up the real Godot instance_id from the physics ID map.
             let rapier_id = contact.collider_instance_id;
-            if let Some(rid) = physics_data.ids.get(&rapier_id) {
-                if let Some(collider_obj) = physics_data.collision_objects.get(rid) {
-                    let instance_id = collider_obj.get_base().get_instance_id();
-                    match Gd::try_from_instance_id(InstanceId::from_i64(instance_id as i64)) {
-                        Ok(object) => return Some(object),
-                        Err(_) => return None,
-                    }
+            if let Some(rid) = physics_data.ids.get(&rapier_id)
+                && let Some(collider_obj) = physics_data.collision_objects.get(rid)
+            {
+                let instance_id = collider_obj.get_base().get_instance_id();
+                match Gd::try_from_instance_id(InstanceId::from_i64(instance_id as i64)) {
+                    Ok(object) => return Some(object),
+                    Err(_) => return None,
                 }
             }
         }
