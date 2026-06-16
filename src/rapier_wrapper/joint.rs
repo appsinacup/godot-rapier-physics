@@ -1,4 +1,5 @@
 use godot::global::godot_error;
+#[cfg(feature = "dim2")]
 use rapier::na::ComplexField;
 use rapier::prelude::*;
 

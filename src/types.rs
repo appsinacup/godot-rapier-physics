@@ -1,6 +1,7 @@
 use godot::classes::*;
 use godot::prelude::*;
 use rapier::math::Rotation;
+#[cfg(feature = "dim2")]
 use rapier::na::ComplexField;
 #[cfg(feature = "single")]
 pub type PackedFloatArray = PackedFloat32Array;
@@ -145,7 +146,6 @@ pub fn transform_update(transform: &Transform, rotation: Rotation, origin: Vecto
     // We need to compute the delta rotation and apply it to the existing basis vectors.
     let cos_new = rotation.re;
     let sin_new = rotation.im;
-
     // Extract current rotation deterministically from the 'a' basis vector.
     let ax = transform.a.x;
     let ay = transform.a.y;
@@ -155,13 +155,11 @@ pub fn transform_update(transform: &Transform, rotation: Rotation, origin: Vecto
     } else {
         (1.0, 0.0)
     };
-
     // Compute delta rotation: new * inverse(old)
     // inverse of (cos, sin) = (cos, -sin) for unit complex
     // (cos_new + i*sin_new) * (cos_old - i*sin_old)
     let cos_delta = cos_new * cos_old + sin_new * sin_old;
     let sin_delta = sin_new * cos_old - cos_new * sin_old;
-
     // Apply delta rotation to both basis vectors to preserve skew and scale.
     // Rotation of vector (x, y) by angle: (x*cos - y*sin, x*sin + y*cos)
     let mut a = Vector2::new(
@@ -172,7 +170,6 @@ pub fn transform_update(transform: &Transform, rotation: Rotation, origin: Vecto
         transform.b.x * cos_delta - transform.b.y * sin_delta,
         transform.b.x * sin_delta + transform.b.y * cos_delta,
     );
-
     // Re-normalize to prevent scale drift from repeated rotations.
     // Use deterministic sqrt via ComplexField (backed by libm with enhanced-determinism).
     let new_len_a: real = ComplexField::sqrt(a.x * a.x + a.y * a.y);
@@ -188,7 +185,6 @@ pub fn transform_update(transform: &Transform, rotation: Rotation, origin: Vecto
         let correction_b = len_b / new_len_b;
         b *= correction_b;
     }
-
     Transform2D { a, b, origin }
 }
 #[cfg(feature = "dim3")]
