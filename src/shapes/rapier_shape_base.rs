@@ -1,5 +1,6 @@
+use std::collections::BTreeMap;
+
 use godot::prelude::*;
-use hashbrown::HashMap;
 use rapier::prelude::SharedShape;
 
 use crate::bodies::exportable_object::ExportToImport;
@@ -50,14 +51,7 @@ impl ImportToExport for ShapeImport {
 #[derive(PartialEq, Clone, Debug, Default)]
 pub struct RapierShapeState {
     aabb: Rect,
-    #[cfg_attr(
-        feature = "serde-serialize",
-        serde(
-            serialize_with = "rapier::utils::serde::serialize_to_vec_tuple",
-            deserialize_with = "rapier::utils::serde::deserialize_from_vec_tuple"
-        )
-    )]
-    owners: HashMap<RapierId, i32>,
+    owners: BTreeMap<RapierId, i32>,
     id: RapierId,
 }
 #[derive(Debug)]
@@ -94,7 +88,7 @@ impl RapierShapeBase {
     }
 
     pub fn call_shape_changed(
-        owners: HashMap<RapierId, i32>,
+        owners: BTreeMap<RapierId, i32>,
         shape_id: RapierId,
         physics_data: &mut PhysicsData,
     ) {
@@ -132,7 +126,7 @@ impl RapierShapeBase {
         }
     }
 
-    pub fn get_owners(&self) -> &HashMap<RapierId, i32> {
+    pub fn get_owners(&self) -> &BTreeMap<RapierId, i32> {
         &self.state.owners
     }
 
