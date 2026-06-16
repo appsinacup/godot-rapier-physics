@@ -1,4 +1,5 @@
 use godot::global::godot_error;
+use rapier::na::ComplexField;
 use rapier::prelude::*;
 
 use crate::joints::rapier_joint_base::RapierJointType;
@@ -10,11 +11,11 @@ impl PhysicsEngine {
     fn godot_spring_to_rapier_accel(stiffness: Real, damping: Real) -> (Real, Real) {
         // Godot stiffness is in N/m, convert to frequency: omega = sqrt(k/m)
         // For AccelerationBased, assume unit mass (m=1)
-        let omega = stiffness.sqrt();
+        let omega: Real = ComplexField::sqrt(stiffness);
         // Calculate damping ratio from Godot damping: zeta = c / (2 * sqrt(k*m))
         // For unit mass: zeta = c / (2 * sqrt(k))
         let damping_ratio = if stiffness > 0.0 {
-            damping / (2.0 * stiffness.sqrt())
+            damping / (2.0 * omega)
         } else {
             0.0
         };

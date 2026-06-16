@@ -72,6 +72,7 @@ fn convex_polyline_orientation(points: &[Vector]) -> Option<ConvexPolylineOrient
 }
 #[cfg(feature = "dim2")]
 fn sort_points_counter_clockwise(points: &[Vector]) -> Vec<Vector> {
+    use rapier::na::RealField;
     let mut center = Vector::ZERO;
     for point in points {
         center += *point;
@@ -79,8 +80,8 @@ fn sort_points_counter_clockwise(points: &[Vector]) -> Vec<Vector> {
     center /= points.len() as Real;
     let mut sorted = points.to_vec();
     sorted.sort_by(|a, b| {
-        let angle_a = (a.y - center.y).atan2(a.x - center.x);
-        let angle_b = (b.y - center.y).atan2(b.x - center.x);
+        let angle_a = RealField::atan2(a.y - center.y, a.x - center.x);
+        let angle_b = RealField::atan2(b.y - center.y, b.x - center.x);
         angle_a
             .partial_cmp(&angle_b)
             .unwrap_or(std::cmp::Ordering::Equal)
