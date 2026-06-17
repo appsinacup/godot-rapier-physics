@@ -1,9 +1,16 @@
 # Changelog
 
+## v0.8.35
+
+## What's Changed
+
+- Fix 2D cross platform determinism by @RaphaelLEMAS in https://github.com/appsinacup/godot-rapier-physics/pull/559
+
 ## v0.8.34
 
 ## What's Changed
-* Fix PinJoint2D softness to match Godot by @Schnorg in https://github.com/appsinacup/godot-rapier-physics/pull/555
+- Fix PinJoint2D softness to match Godot by @Schnorg in https://github.com/appsinacup/godot-rapier-physics/pull/555
+- fix state manager cache state crash on Mac ARM by @RaphaelLEMAS in https://github.com/appsinacup/godot-rapier-physics/pull/557
 
 
 **Full Changelog**: https://github.com/appsinacup/godot-rapier-physics/compare/v0.8.33...v0.8.34
