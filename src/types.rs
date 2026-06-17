@@ -1,6 +1,8 @@
 use godot::classes::*;
 use godot::prelude::*;
 use rapier::math::Rotation;
+#[cfg(feature = "dim2")]
+use rapier::na::ComplexField;
 #[cfg(feature = "single")]
 pub type PackedFloatArray = PackedFloat32Array;
 #[cfg(feature = "double")]
@@ -117,29 +119,71 @@ pub fn world_to_local_no_scale(transform: &Transform, world_pos: Vector) -> Vect
         // Degenerate scale, return as-is
         return transform.affine_inverse() * world_pos;
     }
-    // Remove scale from the transform
-    let rotation = transform.rotation();
+    // Extract rotation deterministically from basis vectors
+    let ax = transform.a.x;
+    let ay = transform.a.y;
+    let len: real = ComplexField::sqrt(ax * ax + ay * ay);
+    let (cos_r, sin_r) = if len > 0.0 {
+        (ax / len, ay / len)
+    } else {
+        (1.0, 0.0)
+    };
+    // Build a unit-scale transform from the deterministic rotation
     let origin = transform.origin;
-    let transform_no_scale = Transform::from_angle_scale_skew_origin(
-        rotation,
-        Vector::new(1.0, 1.0),
-        transform.skew(),
+    let transform_no_scale = Transform2D {
+        a: Vector2::new(cos_r, sin_r),
+        b: Vector2::new(-sin_r, cos_r),
         origin,
-    );
+    };
     transform_no_scale.affine_inverse() * world_pos
 }
 #[cfg(feature = "dim2")]
 pub fn transform_update(transform: &Transform, rotation: Rotation, origin: Vector) -> Transform {
-    let delta_rotation = rotation.angle() - transform.rotation();
-    let scale_x = transform.a.length();
-    let scale_y = transform.b.length();
-    let mut a = transform.a.rotated(delta_rotation);
-    let mut b = transform.b.rotated(delta_rotation);
-    if !scale_x.is_zero_approx() {
-        a *= scale_x / a.length();
+    // Use deterministic math to avoid platform-dependent transcendental functions.
+    // This is critical for cross-platform determinism with the enhanced-determinism feature.
+    //
+    // The rotation is a UnitComplex (cos θ, sin θ) from rapier — already deterministic.
+    // We need to compute the delta rotation and apply it to the existing basis vectors.
+    let cos_new = rotation.re;
+    let sin_new = rotation.im;
+    // Extract current rotation deterministically from the 'a' basis vector.
+    let ax = transform.a.x;
+    let ay = transform.a.y;
+    let len_a: real = ComplexField::sqrt(ax * ax + ay * ay);
+    let (cos_old, sin_old) = if len_a > 0.0 {
+        (ax / len_a, ay / len_a)
+    } else {
+        (1.0, 0.0)
+    };
+    // Compute delta rotation: new * inverse(old)
+    // inverse of (cos, sin) = (cos, -sin) for unit complex
+    // (cos_new + i*sin_new) * (cos_old - i*sin_old)
+    let cos_delta = cos_new * cos_old + sin_new * sin_old;
+    let sin_delta = sin_new * cos_old - cos_new * sin_old;
+    // Apply delta rotation to both basis vectors to preserve skew and scale.
+    // Rotation of vector (x, y) by angle: (x*cos - y*sin, x*sin + y*cos)
+    let mut a = Vector2::new(
+        transform.a.x * cos_delta - transform.a.y * sin_delta,
+        transform.a.x * sin_delta + transform.a.y * cos_delta,
+    );
+    let mut b = Vector2::new(
+        transform.b.x * cos_delta - transform.b.y * sin_delta,
+        transform.b.x * sin_delta + transform.b.y * cos_delta,
+    );
+    // Re-normalize to prevent scale drift from repeated rotations.
+    // Use deterministic sqrt via ComplexField (backed by libm with enhanced-determinism).
+    let new_len_a: real = ComplexField::sqrt(a.x * a.x + a.y * a.y);
+    if !len_a.is_zero_approx() && !new_len_a.is_zero_approx() {
+        let correction_a = len_a / new_len_a;
+        a *= correction_a;
     }
-    if !scale_y.is_zero_approx() {
-        b *= scale_y / b.length();
+    let bx = transform.b.x;
+    let by = transform.b.y;
+    let len_b: real = ComplexField::sqrt(bx * bx + by * by);
+    let new_len_b: real = ComplexField::sqrt(b.x * b.x + b.y * b.y);
+    if !len_b.is_zero_approx() && !new_len_b.is_zero_approx() {
+        let correction_b = len_b / new_len_b;
+        b *= correction_b;
     }
     Transform2D { a, b, origin }
 }
@@ -162,8 +206,19 @@ pub fn transform_rotation_rapier(transform: &godot::builtin::Transform3D) -> Rot
 }
 #[cfg(feature = "dim2")]
 pub fn transform_rotation_rapier(transform: &godot::builtin::Transform2D) -> Rotation {
-    let angle = transform.rotation();
-    Rotation::from_angle(angle)
+    // Instead of calling transform.rotation() which uses Godot's platform-dependent atan2,
+    // extract the rotation directly from the basis vectors using deterministic math.
+    // The 'a' column of Transform2D is (cos*scale_x, sin*scale_x).
+    // We need the unit vector direction, which gives us (cos, sin) for the Rotation.
+    let ax = transform.a.x;
+    let ay = transform.a.y;
+    let len: real = ComplexField::sqrt(ax * ax + ay * ay);
+    if len > 0.0 {
+        // Rotation (UnitComplex) stores (cos, sin) = (re, im)
+        Rotation::from_cos_sin_unchecked(ax / len, ay / len)
+    } else {
+        Rotation::identity()
+    }
 }
 #[cfg(feature = "dim3")]
 pub fn basis_to_rapier(basis: godot::builtin::Basis) -> Rotation {

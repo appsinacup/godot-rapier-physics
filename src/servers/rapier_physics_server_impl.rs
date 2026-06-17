@@ -2544,7 +2544,7 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         let mut space_to_reset = Rid::Invalid;
         if let Some(mut shape) = physics_data.shapes.remove(&rid) {
-            for (owner, _) in shape.get_base().get_owners() {
+            for owner in shape.get_base().get_owners().keys() {
                 if let Some(body) = physics_data
                     .collision_objects
                     .get_mut(&get_id_rid(*owner, &physics_data.ids))
