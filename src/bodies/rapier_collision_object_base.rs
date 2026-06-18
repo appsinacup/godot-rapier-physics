@@ -48,6 +48,8 @@ pub struct CollisionObjectShape {
     pub disabled: bool,
     pub one_way_collision: bool,
     pub one_way_collision_margin: real,
+    #[cfg(feature = "dim2")]
+    pub one_way_collision_direction: Vector,
     pub collider_handle: ColliderHandle,
 }
 #[derive(Debug, Clone)]
@@ -467,10 +469,14 @@ impl RapierCollisionObjectBase {
         p_idx: usize,
         p_one_way_collision: bool,
         p_margin: real,
+        p_direction: Vector,
     ) {
         if let Some(shape) = self.state.shapes.get_mut(p_idx) {
             shape.one_way_collision = p_one_way_collision;
             shape.one_way_collision_margin = p_margin;
+            shape.one_way_collision_direction = p_direction
+                .try_normalized()
+                .unwrap_or(Vector::new(0.0, 1.0));
         }
     }
 
@@ -486,6 +492,19 @@ impl RapierCollisionObjectBase {
             return shape.one_way_collision_margin;
         }
         0.0
+    }
+
+    #[cfg(feature = "dim2")]
+    pub fn get_shape_one_way_collision_direction(&self, p_idx: usize) -> Vector {
+        if let Some(shape) = self.state.shapes.get(p_idx) {
+            return shape.one_way_collision_direction;
+        }
+        Vector::new(0.0, 1.0)
+    }
+
+    #[cfg(feature = "dim3")]
+    pub fn get_shape_one_way_collision_direction(&self, _p_idx: usize) -> Vector {
+        Vector::new(0.0, 1.0, 0.0)
     }
 
     pub fn set_collision_mask(&mut self, p_mask: u32, physics_engine: &mut PhysicsEngine) {

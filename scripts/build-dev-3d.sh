@@ -1,5 +1,6 @@
 cargo fmt -- --config-path rustfmt.toml
 cargo clippy --fix --allow-dirty
+export GDRUST_GODOT_BIN="${GDRUST_GODOT_BIN:-/Applications/Godot.app/Contents/MacOS/Godot}"
 if [ "${OSTYPE#darwin}" != "$OSTYPE" ]; then
     cargo build --features="build3d,test" --no-default-features
     echo "Running on macOS"

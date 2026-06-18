@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.8.36
+
+- Update to Godot 4.7 by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/560
+
 ## v0.8.35
 
 ## What's Changed

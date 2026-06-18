@@ -11,6 +11,8 @@ use crate::servers::rapier_physics_singleton::RapierId;
 use crate::servers::rapier_physics_singleton::get_id_rid;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::types::Transform;
+#[cfg(feature = "dim2")]
+use crate::types::Vector;
 impl RapierCollisionObjectBase {
     pub(super) fn recreate_shapes(
         collision_object: &mut dyn IRapierCollisionObject,
@@ -64,6 +66,8 @@ impl RapierCollisionObjectBase {
             disabled: p_disabled,
             one_way_collision: false,
             one_way_collision_margin: 0.0,
+            #[cfg(feature = "dim2")]
+            one_way_collision_direction: Vector::new(0.0, 1.0),
             collider_handle: ColliderHandle::invalid(),
         };
         if !shape.disabled {

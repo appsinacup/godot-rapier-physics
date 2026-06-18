@@ -1,5 +1,6 @@
 cargo fmt -- --config-path rustfmt.toml
 cargo clippy --fix --allow-dirty
+export GDRUST_GODOT_BIN="${GDRUST_GODOT_BIN:-/Applications/Godot.app/Contents/MacOS/Godot}"
 export LLVM_PATH=/opt/homebrew/opt/llvm/bin
 if [ "${OSTYPE#darwin}" != "$OSTYPE" ]; then
     cargo build --features="build2d-f64,test,parallel" --no-default-features

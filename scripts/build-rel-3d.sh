@@ -1,6 +1,7 @@
 cargo fmt -- --config-path rustfmt.toml
 cargo clippy --fix --allow-dirty
-cargo build --release --features="single-dim3,simd-stable,serde-serialize,experimental-threads,register-docs" --no-default-features
+export GDRUST_GODOT_BIN="${GDRUST_GODOT_BIN:-/Applications/Godot.app/Contents/MacOS/Godot}"
+cargo build --release --features="single-dim3,simd-stable,serde-serialize,experimental-threads,register-docs,api-custom" --no-default-features
 rm bin3d/addons/godot-rapier3d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
 rm /Users/dragosdaian/Documents/Godot-Physics-Tests/addons/godot-rapier3d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
 cp target/release/libgodot_rapier.dylib bin3d/addons/godot-rapier3d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib

@@ -334,9 +334,10 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         shape_idx: i32,
         enable: bool,
         margin: f32,
+        direction: Vector2,
     ) {
         self.implementation
-            .body_set_shape_as_one_way_collision(body, shape_idx, enable, margin);
+            .body_set_shape_as_one_way_collision(body, shape_idx, enable, margin, direction);
     }
 
     fn body_remove_shape(&mut self, body: Rid, shape_idx: i32) {
