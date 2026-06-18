@@ -9,6 +9,8 @@ pub struct OneWayDirection {
     pub body2: bool,
     pub pixel_body1_margin: Real,
     pub pixel_body2_margin: Real,
+    pub body1_direction: Vector,
+    pub body2_direction: Vector,
     pub previous_linear_velocity1: Vector,
     pub previous_linear_velocity2: Vector,
 }
@@ -129,11 +131,11 @@ impl PhysicsHooks for PhysicsHooksCollisionFilter<'_> {
             self.physics_ids,
         );
         if one_way_direction.body1 {
-            let valid_dir = collider1.position().rotation * -Vector::Y;
+            let valid_dir = collider1.position().rotation * -one_way_direction.body1_direction;
             let shape_rel_dir = collider2.position().translation - collider1.position().translation;
             update_as_godot_one_way_platform(context, shape_rel_dir, valid_dir);
         } else if one_way_direction.body2 {
-            let valid_dir = collider2.position().rotation * -Vector::Y;
+            let valid_dir = collider2.position().rotation * -one_way_direction.body2_direction;
             let shape_rel_dir = collider1.position().translation - collider2.position().translation;
             update_as_godot_one_way_platform(context, shape_rel_dir, valid_dir);
         }

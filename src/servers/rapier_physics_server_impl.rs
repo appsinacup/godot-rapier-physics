@@ -975,11 +975,16 @@ impl RapierPhysicsServerImpl {
         shape_idx: i32,
         enable: bool,
         margin: f32,
+        direction: Vector2,
     ) {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body) {
-            body.get_mut_base()
-                .set_shape_as_one_way_collision(shape_idx as usize, enable, margin);
+            body.get_mut_base().set_shape_as_one_way_collision(
+                shape_idx as usize,
+                enable,
+                margin,
+                direction,
+            );
         }
     }
 

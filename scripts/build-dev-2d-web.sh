@@ -1,4 +1,4 @@
-export GODOT4_BIN=/Applications/Godot.app/Contents/MacOS/Godot
+export GDRUST_GODOT_BIN="${GDRUST_GODOT_BIN:-/Applications/Godot.app/Contents/MacOS/Godot}"
 export LLVM_PATH=clang
 cargo fmt -- --config-path rustfmt.toml
 cargo clippy --fix --allow-dirty

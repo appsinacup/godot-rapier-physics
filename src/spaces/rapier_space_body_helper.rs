@@ -801,7 +801,12 @@ impl RapierSpace {
                                         .get_base()
                                         .is_shape_set_as_one_way_collision(shape_index)
                                 {
-                                    let direction = -get_transform_forward(&col_shape_transform);
+                                    let direction = -get_one_way_valid_direction(
+                                        &col_shape_transform,
+                                        shape_col_object
+                                            .get_base()
+                                            .get_shape_one_way_collision_direction(shape_index),
+                                    );
                                     if let Some(motion_normal) = p_motion.try_normalized()
                                         && motion_normal.dot(direction) < 0.0
                                     {
@@ -1154,6 +1159,17 @@ fn get_transform_forward(transform: &Transform2D) -> Vector {
 fn get_transform_forward(transform: &Transform3D) -> Vector {
     -transform.basis.col_b()
 }
+#[cfg(feature = "dim2")]
+fn get_one_way_valid_direction(transform: &Transform2D, direction: Vector) -> Vector {
+    if direction.length_squared() <= DEFAULT_EPSILON {
+        return vector_normalized(get_transform_forward(transform));
+    }
+    vector_normalized(-transform.basis_xform(direction))
+}
+#[cfg(feature = "dim3")]
+fn get_one_way_valid_direction(transform: &Transform3D, _direction: Vector) -> Vector {
+    vector_normalized(get_transform_forward(transform))
+}
 fn one_way_valid_depth(
     owc_margin: f32,
     motion_margin: f32,
@@ -1205,7 +1221,12 @@ impl PhysicsEngine {
                 .get_base()
                 .is_shape_set_as_one_way_collision(shape_index)
         {
-            let valid_dir = vector_normalized(get_transform_forward(col_shape_transform));
+            let valid_dir = get_one_way_valid_direction(
+                col_shape_transform,
+                collision_body
+                    .get_base()
+                    .get_shape_one_way_collision_direction(shape_index),
+            );
             let owc_margin = collision_body
                 .get_base()
                 .get_shape_one_way_collision_margin(shape_index);
