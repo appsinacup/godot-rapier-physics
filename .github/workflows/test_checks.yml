@@ -3,7 +3,7 @@ on:
   workflow_call:
 
 env:
-  GODOT_VERSION: '4.6.3-stable'
+  GODOT_VERSION: '4.7-stable'
 
 jobs:
   run-unit-tests:
