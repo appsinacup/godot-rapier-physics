@@ -127,12 +127,11 @@ pub fn shape_info_from_body_shape(shape_handle: ShapeHandle, transform: Transfor
 }
 #[cfg(feature = "dim3")]
 pub fn shape_info_from_body_shape(shape_handle: ShapeHandle, transform: Transform) -> ShapeInfo {
-    let quaternion = transform.basis.get_quaternion();
-    let rotation = Rotation::from_xyzw(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
+    let rotation = types::basis_to_rapier(transform.basis);
     ShapeInfo {
         handle: shape_handle,
         transform: Pose::from_parts(vector_to_rapier(transform.origin), rotation),
-        scale: vector_to_rapier(transform.basis.get_scale()),
+        scale: vector_to_rapier(types::transform_scale(&transform)),
     }
 }
 impl PhysicsEngine {

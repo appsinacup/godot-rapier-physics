@@ -1,7 +1,6 @@
 use godot::classes::*;
 use godot::prelude::*;
 use rapier::math::Rotation;
-#[cfg(feature = "dim2")]
 use rapier::na::ComplexField;
 #[cfg(feature = "single")]
 pub type PackedFloatArray = PackedFloat32Array;
@@ -67,7 +66,25 @@ pub type PhysicsServerExtensionRayResult = native::PhysicsServer3DExtensionRayRe
 pub type PhysicsServerExtensionShapeRestInfo = native::PhysicsServer3DExtensionShapeRestInfo;
 #[cfg(feature = "dim3")]
 pub fn transform_scale(transform: &Transform) -> Vector {
-    transform.basis.get_scale()
+    // Deterministic scale extraction: compute column lengths using ComplexField::sqrt
+    // instead of Godot's platform-dependent get_scale().
+    let basis = &transform.basis;
+    let col0 = basis.col_a();
+    let col1 = basis.col_b();
+    let col2 = basis.col_c();
+    let sx: real =
+        ComplexField::sqrt(col0.x * col0.x + col0.y * col0.y + col0.z * col0.z);
+    let sy: real =
+        ComplexField::sqrt(col1.x * col1.x + col1.y * col1.y + col1.z * col1.z);
+    let sz: real =
+        ComplexField::sqrt(col2.x * col2.x + col2.y * col2.y + col2.z * col2.z);
+    // Detect negative scale via determinant sign
+    let det = basis.determinant();
+    if det < 0.0 {
+        Vector3::new(-sx, sy, sz)
+    } else {
+        Vector3::new(sx, sy, sz)
+    }
 }
 #[derive(Clone, GodotConvert, Var, Export, Debug)]
 #[godot(via = GString)]
@@ -189,20 +206,40 @@ pub fn transform_update(transform: &Transform, rotation: Rotation, origin: Vecto
 }
 #[cfg(feature = "dim3")]
 pub fn transform_update(transform: &Transform, rotation: Rotation, origin: Vector) -> Transform {
-    use godot::builtin::Basis;
-    let new_transform = Transform::new(
-        Basis::from_quaternion(Quaternion::new(
-            rotation.x, rotation.y, rotation.z, rotation.w,
-        )),
-        origin,
+    // Deterministic basis construction from quaternion.
+    // Avoids Godot's Basis::from_quaternion which may use platform-dependent math internally.
+    let x = rotation.x;
+    let y = rotation.y;
+    let z = rotation.z;
+    let w = rotation.w;
+    // Rotation matrix from quaternion (column-major):
+    // col0 = (1-2(y²+z²), 2(xy+wz), 2(xz-wy))
+    // col1 = (2(xy-wz), 1-2(x²+z²), 2(yz+wx))
+    // col2 = (2(xz+wy), 2(yz-wx), 1-2(x²+y²))
+    let xx = x * x;
+    let yy = y * y;
+    let zz = z * z;
+    let xy = x * y;
+    let xz = x * z;
+    let yz = y * z;
+    let wx = w * x;
+    let wy = w * y;
+    let wz = w * z;
+    let col0 = Vector3::new(1.0 - 2.0 * (yy + zz), 2.0 * (xy + wz), 2.0 * (xz - wy));
+    let col1 = Vector3::new(2.0 * (xy - wz), 1.0 - 2.0 * (xx + zz), 2.0 * (yz + wx));
+    let col2 = Vector3::new(2.0 * (xz + wy), 2.0 * (yz - wx), 1.0 - 2.0 * (xx + yy));
+    // Apply scale from the original transform deterministically
+    let scale = transform_scale(transform);
+    let basis = godot::builtin::Basis::from_cols(
+        col0 * scale.x,
+        col1 * scale.y,
+        col2 * scale.z,
     );
-    let scale = transform.basis.get_scale();
-    new_transform.scaled_local(scale)
+    Transform::new(basis, origin)
 }
 #[cfg(feature = "dim3")]
 pub fn transform_rotation_rapier(transform: &godot::builtin::Transform3D) -> Rotation {
-    let quaternion = transform.basis.get_quaternion();
-    Rotation::from_xyzw(quaternion.x, quaternion.y, quaternion.z, quaternion.w)
+    basis_to_rapier(transform.basis)
 }
 #[cfg(feature = "dim2")]
 pub fn transform_rotation_rapier(transform: &godot::builtin::Transform2D) -> Rotation {
@@ -222,12 +259,105 @@ pub fn transform_rotation_rapier(transform: &godot::builtin::Transform2D) -> Rot
 }
 #[cfg(feature = "dim3")]
 pub fn basis_to_rapier(basis: godot::builtin::Basis) -> Rotation {
-    let quaternion = basis.get_quaternion();
-    Rotation::from_xyzw(quaternion.x, quaternion.y, quaternion.z, quaternion.w)
+    // Deterministic quaternion extraction from a rotation matrix using Shepperd's method.
+    // Uses ComplexField::sqrt (backed by libm with enhanced-determinism) instead of
+    // platform-dependent sqrt.
+    //
+    // First, remove scale from the basis to get a pure rotation matrix.
+    let col0 = basis.col_a();
+    let col1 = basis.col_b();
+    let col2 = basis.col_c();
+    let sx: real = ComplexField::sqrt(col0.x * col0.x + col0.y * col0.y + col0.z * col0.z);
+    let sy: real = ComplexField::sqrt(col1.x * col1.x + col1.y * col1.y + col1.z * col1.z);
+    let sz: real = ComplexField::sqrt(col2.x * col2.x + col2.y * col2.y + col2.z * col2.z);
+    if sx == 0.0 || sy == 0.0 || sz == 0.0 {
+        return Rotation::from_xyzw(0.0, 0.0, 0.0, 1.0);
+    }
+    // Normalize columns to get rotation matrix, accounting for negative determinant
+    let det = basis.determinant();
+    let sign = if det < 0.0 { -1.0 } else { 1.0 };
+    let inv_sx = sign / sx;
+    let inv_sy = 1.0 / sy;
+    let inv_sz = 1.0 / sz;
+    // Rotation matrix elements (row-major access: m[row][col])
+    // Godot's Basis stores columns, so col_a() = first column, etc.
+    // m00 = col0.x/sx, m10 = col0.y/sx, m20 = col0.z/sx
+    // m01 = col1.x/sy, m11 = col1.y/sy, m21 = col1.z/sy
+    // m02 = col2.x/sz, m12 = col2.y/sz, m22 = col2.z/sz
+    let m00 = col0.x * inv_sx;
+    let m10 = col0.y * inv_sx;
+    let m20 = col0.z * inv_sx;
+    let m01 = col1.x * inv_sy;
+    let m11 = col1.y * inv_sy;
+    let m21 = col1.z * inv_sy;
+    let m02 = col2.x * inv_sz;
+    let m12 = col2.y * inv_sz;
+    let m22 = col2.z * inv_sz;
+    // Shepperd's method: find the largest quaternion component to avoid division by near-zero.
+    let trace = m00 + m11 + m22;
+    let (x, y, z, w);
+    if trace > 0.0 {
+        let s: real = ComplexField::sqrt(trace + 1.0) * 2.0; // s = 4*w
+        w = 0.25 * s;
+        x = (m21 - m12) / s;
+        y = (m02 - m20) / s;
+        z = (m10 - m01) / s;
+    } else if m00 > m11 && m00 > m22 {
+        let s: real = ComplexField::sqrt(1.0 + m00 - m11 - m22) * 2.0; // s = 4*x
+        w = (m21 - m12) / s;
+        x = 0.25 * s;
+        y = (m01 + m10) / s;
+        z = (m02 + m20) / s;
+    } else if m11 > m22 {
+        let s: real = ComplexField::sqrt(1.0 + m11 - m00 - m22) * 2.0; // s = 4*y
+        w = (m02 - m20) / s;
+        x = (m01 + m10) / s;
+        y = 0.25 * s;
+        z = (m12 + m21) / s;
+    } else {
+        let s: real = ComplexField::sqrt(1.0 + m22 - m00 - m11) * 2.0; // s = 4*z
+        w = (m10 - m01) / s;
+        x = (m02 + m20) / s;
+        y = (m12 + m21) / s;
+        z = 0.25 * s;
+    }
+    // Normalize the quaternion deterministically
+    let len: real = ComplexField::sqrt(x * x + y * y + z * z + w * w);
+    if len > 0.0 {
+        Rotation::from_xyzw(x / len, y / len, z / len, w / len)
+    } else {
+        Rotation::from_xyzw(0.0, 0.0, 0.0, 1.0)
+    }
+}
+pub fn vector_length(vector: Vector) -> real {
+    #[cfg(feature = "dim2")]
+    {
+        ComplexField::sqrt(vector.x * vector.x + vector.y * vector.y)
+    }
+    #[cfg(feature = "dim3")]
+    {
+        ComplexField::sqrt(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z)
+    }
 }
 pub fn vector_normalized(vector: Vector) -> Vector {
     if vector != Vector::ZERO {
-        return vector.normalized();
+        #[cfg(feature = "dim2")]
+        {
+            let len: real =
+                ComplexField::sqrt(vector.x * vector.x + vector.y * vector.y);
+            if len > 0.0 {
+                return Vector2::new(vector.x / len, vector.y / len);
+            }
+        }
+        #[cfg(feature = "dim3")]
+        {
+            let len: real = ComplexField::sqrt(
+                vector.x * vector.x + vector.y * vector.y + vector.z * vector.z,
+            );
+            if len > 0.0 {
+                return Vector3::new(vector.x / len, vector.y / len, vector.z / len);
+            }
+        }
     }
     Vector::ZERO
 }
