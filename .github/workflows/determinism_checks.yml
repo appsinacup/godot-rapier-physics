@@ -1,0 +1,233 @@
+name: 🎯 Cross-Platform Determinism
+on:
+  workflow_call:
+
+env:
+  GODOT_VERSION: '4.7-stable'
+
+jobs:
+  run-determinism-test:
+    name: Determinism 2D (${{ matrix.os.name }})
+    runs-on: ${{ matrix.os.runner }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - name: Linux-x86_64
+            runner: ubuntu-latest
+            artifact: godot-rapier-2d-single-enhanced-determinism-x86_64-unknown-linux-gnu
+            godot_prefix: ""
+          - name: Linux-arm64
+            runner: ubuntu-24.04-arm
+            artifact: godot-rapier-2d-single-enhanced-determinism-aarch64-unknown-linux-gnu
+            godot_prefix: ""
+          - name: macOS-arm64
+            runner: macos-26
+            artifact: godot-rapier-2d-single-enhanced-determinism-x86_64-apple-darwin
+            godot_prefix: ""
+          - name: macOS-x86_64
+            runner: macos-26
+            artifact: godot-rapier-2d-single-enhanced-determinism-x86_64-apple-darwin
+            godot_prefix: "arch -x86_64"
+          - name: Windows-x86_64
+            runner: windows-latest
+            artifact: godot-rapier-2d-single-enhanced-determinism-x86_64-pc-windows-msvc
+            godot_prefix: ""
+          - name: Windows-arm64
+            runner: windows-arm
+            artifact: godot-rapier-2d-single-enhanced-determinism-aarch64-pc-windows-msvc
+            godot_prefix: ""
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Godot
+        uses: appsinacup/setup-godot-action@main
+        with:
+          version: ${{ env.GODOT_VERSION }}
+
+      - name: Download pre-built library
+        uses: actions/download-artifact@v6
+        with:
+          name: ${{ matrix.os.artifact }}
+          path: .
+
+      - name: Verify library downloaded
+        shell: bash
+        run: |
+          echo "=== Downloaded library files ==="
+          find bin2d/addons -type f \( -name "*.so" -o -name "*.dylib" -o -name "*.dll" \) | sort
+          if [ -z "$(find bin2d/addons -type f \( -name '*.so' -o -name '*.dylib' -o -name '*.dll' \))" ]; then
+            echo "ERROR: No library files found"
+            exit 1
+          fi
+
+      - name: Ad-hoc sign (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          dylib="bin2d/addons/godot-rapier2d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib"
+          if [ -f "$dylib" ]; then
+            codesign --force --sign - "$dylib"
+          fi
+
+      - name: Import Godot project
+        shell: bash
+        run: |
+          ${{ matrix.os.godot_prefix }} "$GODOT4" --headless --path ./bin2d --import 2>&1 | tee godot-import-determinism.log || true
+
+      - name: Run determinism test
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          ${{ matrix.os.godot_prefix }} "$GODOT4" --headless --path ./bin2d tests/features/determinism/determinism_test.tscn 2>&1 | tee godot-determinism.log
+          godot_status=${PIPESTATUS[0]}
+          set -e
+
+          if grep -q "DETERMINISM_TEST: STATUS=FAILED" godot-determinism.log; then
+            echo "Determinism test failed"
+            exit 1
+          fi
+
+          if ! grep -q "DETERMINISM_TEST: STATUS=SUCCESS" godot-determinism.log; then
+            echo "Determinism test did not complete successfully"
+            cat godot-determinism.log
+            exit 1
+          fi
+
+      - name: Locate and upload output
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Godot user:// path varies by OS
+          case "$RUNNER_OS" in
+            Linux)
+              user_dir="$HOME/.local/share/godot/app_userdata/Godot Rapier 2D"
+              ;;
+            macOS)
+              user_dir="$HOME/Library/Application Support/Godot/app_userdata/Godot Rapier 2D"
+              ;;
+            Windows)
+              user_dir="$APPDATA/Godot/app_userdata/Godot Rapier 2D"
+              ;;
+          esac
+
+          if [ ! -f "$user_dir/determinism_output.json" ]; then
+            echo "ERROR: determinism_output.json not found at: $user_dir"
+            ls -la "$user_dir" 2>/dev/null || echo "Directory does not exist"
+            exit 1
+          fi
+
+          # Copy to workspace for upload
+          cp "$user_dir/determinism_output.json" determinism_output.json
+          echo "=== Output metadata ==="
+          head -c 500 determinism_output.json
+          echo ""
+          echo "=== MD5 ==="
+          md5sum determinism_output.json 2>/dev/null || md5 determinism_output.json
+
+      - name: Upload determinism snapshot
+        uses: actions/upload-artifact@v6
+        with:
+          name: determinism-2d-${{ matrix.os.name }}
+          path: determinism_output.json
+          if-no-files-found: error
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: determinism-logs-${{ matrix.os.name }}
+          path: |
+            godot-import-determinism.log
+            godot-determinism.log
+          if-no-files-found: warn
+
+  compare-determinism:
+    name: Compare Determinism Snapshots
+    runs-on: ubuntu-latest
+    needs: run-determinism-test
+    steps:
+      - name: Download all snapshots
+        uses: actions/download-artifact@v6
+        with:
+          pattern: determinism-2d-*
+
+      - name: Compare snapshots across platforms
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "=== Downloaded artifacts ==="
+          find . -name "determinism_output.json" | sort
+          echo ""
+
+          # Collect all snapshot files
+          snapshots=()
+          while IFS= read -r file; do
+            snapshots+=("$file")
+          done < <(find . -name "determinism_output.json" | sort)
+
+          if [ "${#snapshots[@]}" -lt 2 ]; then
+            echo "ERROR: Expected at least 2 snapshots for comparison, found ${#snapshots[@]}"
+            exit 1
+          fi
+
+          echo "=== Found ${#snapshots[@]} snapshots ==="
+          for f in "${snapshots[@]}"; do
+            echo "  $f"
+          done
+          echo ""
+
+          # Print MD5 of each for quick visual check
+          echo "=== MD5 checksums ==="
+          for f in "${snapshots[@]}"; do
+            md5sum "$f"
+          done
+          echo ""
+
+          # Use the first snapshot as reference
+          reference="${snapshots[0]}"
+          echo "Using reference: $reference"
+          echo ""
+
+          # Strip metadata (os/arch fields) before comparison since those are expected to differ
+          # We compare only the "frames" array which contains the actual simulation data
+          strip_metadata() {
+            python3 -c "
+          import json, sys
+          with open(sys.argv[1]) as f:
+              data = json.load(f)
+          # Keep only frames data for comparison
+          print(json.dumps(data['frames'], separators=(',', ':')))
+          " "$1"
+          }
+
+          ref_frames=$(strip_metadata "$reference")
+
+          failed=0
+          for f in "${snapshots[@]:1}"; do
+            current_frames=$(strip_metadata "$f")
+            if [ "$ref_frames" = "$current_frames" ]; then
+              echo "PASS: $reference == $f"
+            else
+              echo "FAIL: $reference != $f"
+              failed=1
+              # Show first difference for debugging
+              echo "--- First divergence (reference vs current) ---"
+              diff <(echo "$ref_frames" | python3 -m json.tool) <(echo "$current_frames" | python3 -m json.tool) | head -40
+              echo "..."
+            fi
+          done
+
+          echo ""
+          if [ "$failed" -eq 0 ]; then
+            echo "=== ALL PLATFORMS PRODUCED IDENTICAL RESULTS ==="
+            echo "Cross-platform determinism validated across ${#snapshots[@]} OS/architecture combinations."
+          else
+            echo "=== DETERMINISM FAILURE ==="
+            echo "Simulation results differ between platforms. The enhanced-determinism build is NOT producing identical results."
+            exit 1
+          fi
