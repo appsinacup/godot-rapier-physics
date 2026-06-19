@@ -18,49 +18,62 @@ jobs:
             runner: ubuntu-latest
             artifact: godot-rapier-2d-single-enhanced-determinism-x86_64-unknown-linux-gnu
             godot_prefix: ""
+            godot_platform: ""
           - name: Linux-arm64
             runner: ubuntu-24.04-arm
             artifact: godot-rapier-2d-single-enhanced-determinism-aarch64-unknown-linux-gnu
             godot_prefix: ""
+            godot_platform: "linux.arm64"
           - name: macOS-arm64
             runner: macos-26
             artifact: godot-rapier-2d-single-enhanced-determinism-x86_64-apple-darwin
             godot_prefix: ""
+            godot_platform: ""
           - name: macOS-x86_64
             runner: macos-26
             artifact: godot-rapier-2d-single-enhanced-determinism-x86_64-apple-darwin
             godot_prefix: "arch -x86_64"
+            godot_platform: ""
           - name: Windows-x86_64
             runner: windows-latest
             artifact: godot-rapier-2d-single-enhanced-determinism-x86_64-pc-windows-msvc
             godot_prefix: ""
+            godot_platform: ""
 
     steps:
       - uses: actions/checkout@v6
 
       - name: Setup Godot
+        if: matrix.os.godot_platform == ''
         uses: appsinacup/setup-godot-action@main
         with:
           version: ${{ env.GODOT_VERSION }}
+
+      - name: Setup Godot (manual)
+        if: matrix.os.godot_platform != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p godot-bin
+          GODOT_ZIP="Godot_v${{ env.GODOT_VERSION }}_${{ matrix.os.godot_platform }}.zip"
+          curl -L "https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}/$GODOT_ZIP" -o godot_editor.zip
+          unzip -o godot_editor.zip -d godot-bin
+          chmod +x godot-bin/*
+          GODOT_BIN=$(find godot-bin -maxdepth 1 -type f -name "Godot_*" | head -1)
+          echo "GODOT4=$GODOT_BIN" >> "$GITHUB_ENV"
+          echo "$(pwd)/godot-bin" >> "$GITHUB_PATH"
 
       - name: Download pre-built library
         uses: actions/download-artifact@v7
         with:
           name: ${{ matrix.os.artifact }}
-          path: .
+          path: bin2d
 
-      - name: Verify library downloaded
+      - name: Verify library
         shell: bash
         run: |
-          echo "=== Workspace structure after download ==="
-          find bin2d/addons/godot-rapier2d/bin -type f 2>/dev/null || echo "bin directory not found or empty"
-          echo ""
-          echo "=== Looking for library files ==="
-          find . -type f \( -name "*.so" -o -name "*.dylib" -o -name "*.dll" \) | sort
-          if [ -z "$(find . -type f \( -name '*.so' -o -name '*.dylib' -o -name '*.dll' \))" ]; then
-            echo "ERROR: No library files found anywhere in workspace"
-            exit 1
-          fi
+          echo "=== Files in addon bin directory ==="
+          find bin2d/addons/godot-rapier2d/bin -type f 2>/dev/null || echo "(empty)"
 
       - name: Ad-hoc sign (macOS)
         if: runner.os == 'macOS'

@@ -18,6 +18,15 @@ var current_frame := 0
 var simulation_started := false
 
 func _ready() -> void:
+	# Verify the rapier extension is loaded — abort if not
+	var engine_name = ProjectSettings.get("physics/2d/physics_engine")
+	if engine_name != "Rapier2D":
+		print("DETERMINISM_TEST: ERROR - Rapier2D not loaded (engine=%s)" % engine_name)
+		print("DETERMINISM_TEST: STATUS=FAILED")
+		await get_tree().create_timer(0.5).timeout
+		get_tree().quit(1)
+		return
+
 	# Use fixed physics settings to ensure reproducibility
 	Engine.physics_ticks_per_second = 60
 	Engine.max_physics_steps_per_frame = 1
@@ -39,6 +48,7 @@ func _physics_process(_delta: float) -> void:
 	frame_records.append(frame_state)
 
 	if current_frame >= SIMULATION_FRAMES:
+		simulation_started = false
 		_finish()
 
 func _setup_simulation() -> void:
