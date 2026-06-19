@@ -94,7 +94,7 @@ jobs:
         run: |
           set +e
           set -o pipefail
-          ${{ matrix.os.godot_prefix }} "$GODOT4" --headless --path ./bin2d tests/features/determinism/determinism_test.tscn 2>&1 | tee godot-determinism.log
+          ${{ matrix.os.godot_prefix }} "$GODOT4" --headless --path ./bin2d tests/determinism/determinism_test.tscn 2>&1 | tee godot-determinism.log
           godot_status=${PIPESTATUS[0]}
           set -e
 
@@ -333,7 +333,7 @@ jobs:
         run: |
           set +e
           set -o pipefail
-          ${{ matrix.os.godot_prefix }} "$GODOT4" --headless --path ./bin3d tests/features/determinism/determinism_test.tscn 2>&1 | tee godot-determinism-3d.log
+          ${{ matrix.os.godot_prefix }} "$GODOT4" --headless --path ./bin3d tests/determinism/determinism_test.tscn 2>&1 | tee godot-determinism-3d.log
           godot_status=${PIPESTATUS[0]}
           set -e
 
