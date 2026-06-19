@@ -359,8 +359,8 @@ impl RapierSpace {
         // if yes, "recover" / "push" out of this collider
         let mut recover_motion = Vector::default();
         let margin = Real::max(margin, TEST_MOTION_MARGIN);
-        let min_allowed_depth = vector_length(motion)
-            .min(margin * TEST_MOTION_MIN_CONTACT_DEPTH_FACTOR);
+        let min_allowed_depth =
+            vector_length(motion).min(margin * TEST_MOTION_MIN_CONTACT_DEPTH_FACTOR);
         let mut excluded_shape_pairs = [ExcludedShapePair::default(); MAX_EXCLUDED_SHAPE_PAIRS];
         let mut excluded_shape_pair_count = 0;
         let recovered = self.body_motion_recover(

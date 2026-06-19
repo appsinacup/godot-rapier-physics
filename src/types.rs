@@ -72,12 +72,9 @@ pub fn transform_scale(transform: &Transform) -> Vector {
     let col0 = basis.col_a();
     let col1 = basis.col_b();
     let col2 = basis.col_c();
-    let sx: real =
-        ComplexField::sqrt(col0.x * col0.x + col0.y * col0.y + col0.z * col0.z);
-    let sy: real =
-        ComplexField::sqrt(col1.x * col1.x + col1.y * col1.y + col1.z * col1.z);
-    let sz: real =
-        ComplexField::sqrt(col2.x * col2.x + col2.y * col2.y + col2.z * col2.z);
+    let sx: real = ComplexField::sqrt(col0.x * col0.x + col0.y * col0.y + col0.z * col0.z);
+    let sy: real = ComplexField::sqrt(col1.x * col1.x + col1.y * col1.y + col1.z * col1.z);
+    let sz: real = ComplexField::sqrt(col2.x * col2.x + col2.y * col2.y + col2.z * col2.z);
     // Detect negative scale via determinant sign
     let det = basis.determinant();
     if det < 0.0 {
@@ -230,11 +227,7 @@ pub fn transform_update(transform: &Transform, rotation: Rotation, origin: Vecto
     let col2 = Vector3::new(2.0 * (xz + wy), 2.0 * (yz - wx), 1.0 - 2.0 * (xx + yy));
     // Apply scale from the original transform deterministically
     let scale = transform_scale(transform);
-    let basis = godot::builtin::Basis::from_cols(
-        col0 * scale.x,
-        col1 * scale.y,
-        col2 * scale.z,
-    );
+    let basis = godot::builtin::Basis::from_cols(col0 * scale.x, col1 * scale.y, col2 * scale.z);
     Transform::new(basis, origin)
 }
 #[cfg(feature = "dim3")]
@@ -343,17 +336,15 @@ pub fn vector_normalized(vector: Vector) -> Vector {
     if vector != Vector::ZERO {
         #[cfg(feature = "dim2")]
         {
-            let len: real =
-                ComplexField::sqrt(vector.x * vector.x + vector.y * vector.y);
+            let len: real = ComplexField::sqrt(vector.x * vector.x + vector.y * vector.y);
             if len > 0.0 {
                 return Vector2::new(vector.x / len, vector.y / len);
             }
         }
         #[cfg(feature = "dim3")]
         {
-            let len: real = ComplexField::sqrt(
-                vector.x * vector.x + vector.y * vector.y + vector.z * vector.z,
-            );
+            let len: real =
+                ComplexField::sqrt(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z);
             if len > 0.0 {
                 return Vector3::new(vector.x / len, vector.y / len, vector.z / len);
             }
