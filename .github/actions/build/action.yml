@@ -32,6 +32,22 @@ runs:
         rustup toolchain install "$TOOLCHAIN"
         rustup component add rust-src --toolchain "$TOOLCHAIN"
         rustup target add ${{ inputs.arch }} --toolchain "$TOOLCHAIN"
+    - name: Set deterministic rustflags for arm64
+      shell: sh
+      run: |
+        # Disable FMA contraction on arm64 targets when building with enhanced-determinism.
+        # FMA (fused multiply-add) produces different rounding than separate mul+add,
+        # causing cross-platform divergence between arm64 and x86_64.
+        case "${{ inputs.arch }}" in
+          aarch64-*)
+            case "${{ inputs.features }}" in
+              *enhanced-determinism*)
+                echo "CARGO_ENCODED_RUSTFLAGS=-Cllvm-args=--fp-contract=off" >> "$GITHUB_ENV"
+                echo "Enabled --fp-contract=off for deterministic arm64 build"
+                ;;
+            esac
+            ;;
+        esac
     - name: Build
       shell: sh
       run: |
@@ -51,7 +67,14 @@ runs:
         mkdir -p target/release
         TOOLCHAIN=$(grep -E '^channel' rust-toolchain.toml | sed -E 's/channel = "(.*)"/\1/')
         rustup target add aarch64-apple-darwin --toolchain "$TOOLCHAIN"
-        cargo +"$TOOLCHAIN" build --target=aarch64-apple-darwin --profile=${{ inputs.profile }} --features="${{ inputs.features }},api-custom" ${{ inputs.extra_flags }} --no-default-features
+        # Disable FMA for arm64 enhanced-determinism builds
+        EXTRA_RUSTFLAGS=""
+        case "${{ inputs.features }}" in
+          *enhanced-determinism*)
+            EXTRA_RUSTFLAGS="-Cllvm-args=--fp-contract=off"
+            ;;
+        esac
+        CARGO_ENCODED_RUSTFLAGS="$EXTRA_RUSTFLAGS" cargo +"$TOOLCHAIN" build --target=aarch64-apple-darwin --profile=${{ inputs.profile }} --features="${{ inputs.features }},api-custom" ${{ inputs.extra_flags }} --no-default-features
         lipo -create -output target/release/libgodot_rapier.dylib target/aarch64-apple-darwin/${{ inputs.profile }}/libgodot_rapier.dylib target/x86_64-apple-darwin/${{ inputs.profile }}/libgodot_rapier.dylib
     - name: Move Static Libs macOS
       shell: sh
