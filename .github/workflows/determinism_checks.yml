@@ -1,0 +1,263 @@
+name: 🎯 Cross-Platform Determinism
+on:
+  workflow_call:
+
+env:
+  GODOT_VERSION: '4.7-stable'
+
+jobs:
+  run-determinism-test:
+    name: Determinism ${{ matrix.dim.name }} (${{ matrix.os.name }})
+    runs-on: ${{ matrix.os.runner }}
+    continue-on-error: ${{ matrix.dim.allow_failure }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        dim:
+          - name: 2D
+            short: 2d
+            artifact_prefix: godot-rapier-2d-single-enhanced-determinism
+            project: bin2d
+            addon: godot-rapier2d
+            app_name: "Godot Rapier 2D"
+            allow_failure: false
+          - name: 3D
+            short: 3d
+            artifact_prefix: godot-rapier-3d-single-enhanced-determinism
+            project: bin3d
+            addon: godot-rapier3d
+            app_name: "Godot Rapier 3D"
+            allow_failure: true
+        os:
+          - name: Linux-x86_64
+            runner: ubuntu-latest
+            artifact_suffix: x86_64-unknown-linux-gnu
+            godot_prefix: ""
+            godot_platform: ""
+          - name: Linux-arm64
+            runner: ubuntu-24.04-arm
+            artifact_suffix: aarch64-unknown-linux-gnu
+            godot_prefix: ""
+            godot_platform: "linux.arm64"
+          - name: macOS-arm64
+            runner: macos-26
+            artifact_suffix: x86_64-apple-darwin
+            godot_prefix: ""
+            godot_platform: ""
+          - name: macOS-x86_64
+            runner: macos-26
+            artifact_suffix: x86_64-apple-darwin
+            godot_prefix: "arch -x86_64"
+            godot_platform: ""
+          - name: Windows-x86_64
+            runner: windows-latest
+            artifact_suffix: x86_64-pc-windows-msvc
+            godot_prefix: ""
+            godot_platform: ""
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Godot
+        if: matrix.os.godot_platform == ''
+        uses: appsinacup/setup-godot-action@main
+        with:
+          version: ${{ env.GODOT_VERSION }}
+
+      - name: Setup Godot (manual)
+        if: matrix.os.godot_platform != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p godot-bin
+          GODOT_ZIP="Godot_v${{ env.GODOT_VERSION }}_${{ matrix.os.godot_platform }}.zip"
+          curl -L "https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}/$GODOT_ZIP" -o godot_editor.zip
+          unzip -o godot_editor.zip -d godot-bin
+          chmod +x godot-bin/*
+          GODOT_BIN=$(find godot-bin -maxdepth 1 -type f -name "Godot_*" | head -1)
+          echo "GODOT4=$GODOT_BIN" >> "$GITHUB_ENV"
+          echo "$(pwd)/godot-bin" >> "$GITHUB_PATH"
+
+      - name: Download pre-built library
+        uses: actions/download-artifact@v7
+        with:
+          name: ${{ matrix.dim.artifact_prefix }}-${{ matrix.os.artifact_suffix }}
+          path: ${{ matrix.dim.project }}
+
+      - name: Verify library
+        shell: bash
+        run: |
+          echo "=== Files in addon bin directory ==="
+          find ${{ matrix.dim.project }}/addons/${{ matrix.dim.addon }}/bin -type f 2>/dev/null || echo "(empty)"
+
+      - name: Ad-hoc sign (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          dylib="${{ matrix.dim.project }}/addons/${{ matrix.dim.addon }}/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib"
+          if [ -f "$dylib" ]; then
+            codesign --force --sign - "$dylib"
+          fi
+
+      - name: Import Godot project
+        shell: bash
+        run: |
+          ${{ matrix.os.godot_prefix }} "$GODOT4" --headless --path ./${{ matrix.dim.project }} --import 2>&1 | tee godot-import.log || true
+
+      - name: Run determinism test
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          ${{ matrix.os.godot_prefix }} "$GODOT4" --headless --path ./${{ matrix.dim.project }} tests/determinism/determinism_test.tscn 2>&1 | tee godot-determinism.log
+          godot_status=${PIPESTATUS[0]}
+          set -e
+
+          if grep -q "DETERMINISM_TEST: STATUS=FAILED" godot-determinism.log; then
+            echo "Determinism test failed"
+            exit 1
+          fi
+
+          if ! grep -q "DETERMINISM_TEST: STATUS=SUCCESS" godot-determinism.log; then
+            echo "Determinism test did not complete successfully"
+            cat godot-determinism.log
+            exit 1
+          fi
+
+      - name: Locate and upload output
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$RUNNER_OS" in
+            Linux)
+              user_dir="$HOME/.local/share/godot/app_userdata/${{ matrix.dim.app_name }}"
+              ;;
+            macOS)
+              user_dir="$HOME/Library/Application Support/Godot/app_userdata/${{ matrix.dim.app_name }}"
+              ;;
+            Windows)
+              user_dir="$APPDATA/Godot/app_userdata/${{ matrix.dim.app_name }}"
+              ;;
+          esac
+
+          if [ ! -f "$user_dir/determinism_output.json" ]; then
+            echo "ERROR: determinism_output.json not found at: $user_dir"
+            ls -la "$user_dir" 2>/dev/null || echo "Directory does not exist"
+            exit 1
+          fi
+
+          cp "$user_dir/determinism_output.json" determinism_output.json
+          echo "=== Output metadata ==="
+          head -c 500 determinism_output.json
+          echo ""
+          echo "=== MD5 ==="
+          md5sum determinism_output.json 2>/dev/null || md5 determinism_output.json
+
+      - name: Upload determinism snapshot
+        uses: actions/upload-artifact@v6
+        with:
+          name: determinism-${{ matrix.dim.short }}-${{ matrix.os.name }}
+          path: determinism_output.json
+          if-no-files-found: error
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: determinism-logs-${{ matrix.dim.short }}-${{ matrix.os.name }}
+          path: |
+            godot-import.log
+            godot-determinism.log
+          if-no-files-found: warn
+
+  compare-determinism:
+    name: Compare ${{ matrix.dim.name }} Determinism
+    runs-on: ubuntu-latest
+    needs: run-determinism-test
+    continue-on-error: ${{ matrix.dim.allow_failure }}
+    strategy:
+      fail-fast: false
+      matrix:
+        dim:
+          - name: 2D
+            short: 2d
+            allow_failure: false
+          - name: 3D
+            short: 3d
+            allow_failure: true
+    steps:
+      - name: Download all snapshots
+        uses: actions/download-artifact@v7
+        with:
+          pattern: determinism-${{ matrix.dim.short }}-*
+
+      - name: Compare snapshots across platforms
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "=== Downloaded artifacts ==="
+          find . -name "determinism_output.json" | sort
+          echo ""
+
+          # Collect all snapshot files
+          snapshots=()
+          while IFS= read -r file; do
+            snapshots+=("$file")
+          done < <(find . -name "determinism_output.json" | sort)
+
+          if [ "${#snapshots[@]}" -lt 2 ]; then
+            echo "ERROR: Expected at least 2 snapshots for comparison, found ${#snapshots[@]}"
+            exit 1
+          fi
+
+          echo "=== Found ${#snapshots[@]} snapshots ==="
+          for f in "${snapshots[@]}"; do
+            echo "  $f"
+          done
+          echo ""
+
+          echo "=== MD5 checksums ==="
+          for f in "${snapshots[@]}"; do
+            md5sum "$f"
+          done
+          echo ""
+
+          reference="${snapshots[0]}"
+          echo "Using reference: $reference"
+          echo ""
+
+          strip_metadata() {
+            python3 -c "
+          import json, sys
+          with open(sys.argv[1]) as f:
+              data = json.load(f)
+          print(json.dumps(data['frames'], separators=(',', ':')))
+          " "$1"
+          }
+
+          ref_frames=$(strip_metadata "$reference")
+
+          failed=0
+          for f in "${snapshots[@]:1}"; do
+            current_frames=$(strip_metadata "$f")
+            if [ "$ref_frames" = "$current_frames" ]; then
+              echo "PASS: $reference == $f"
+            else
+              echo "FAIL: $reference != $f"
+              failed=1
+              echo "--- First divergence (reference vs current) ---"
+              diff <(echo "$ref_frames" | python3 -m json.tool) <(echo "$current_frames" | python3 -m json.tool) | head -40
+              echo "..."
+            fi
+          done
+
+          echo ""
+          if [ "$failed" -eq 0 ]; then
+            echo "=== ALL PLATFORMS PRODUCED IDENTICAL ${{ matrix.dim.name }} RESULTS ==="
+          else
+            echo "=== ${{ matrix.dim.name }} DETERMINISM FAILURE ==="
+            echo "${{ matrix.dim.name }} simulation results differ between platforms."
+            exit 1
+          fi

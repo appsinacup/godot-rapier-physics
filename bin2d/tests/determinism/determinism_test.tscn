@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tests/determinism/determinism_test.gd" id="1_det"]
+
+[node name="DeterminismTest" type="Node2D"]
+script = ExtResource("1_det")
