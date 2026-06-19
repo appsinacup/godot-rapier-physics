@@ -34,10 +34,6 @@ jobs:
             runner: windows-latest
             artifact: godot-rapier-2d-single-enhanced-determinism-x86_64-pc-windows-msvc
             godot_prefix: ""
-          - name: Windows-arm64
-            runner: windows-arm
-            artifact: godot-rapier-2d-single-enhanced-determinism-aarch64-pc-windows-msvc
-            godot_prefix: ""
 
     steps:
       - uses: actions/checkout@v6
@@ -48,7 +44,7 @@ jobs:
           version: ${{ env.GODOT_VERSION }}
 
       - name: Download pre-built library
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: ${{ matrix.os.artifact }}
           path: .
@@ -56,10 +52,13 @@ jobs:
       - name: Verify library downloaded
         shell: bash
         run: |
-          echo "=== Downloaded library files ==="
-          find bin2d/addons -type f \( -name "*.so" -o -name "*.dylib" -o -name "*.dll" \) | sort
-          if [ -z "$(find bin2d/addons -type f \( -name '*.so' -o -name '*.dylib' -o -name '*.dll' \))" ]; then
-            echo "ERROR: No library files found"
+          echo "=== Workspace structure after download ==="
+          find bin2d/addons/godot-rapier2d/bin -type f 2>/dev/null || echo "bin directory not found or empty"
+          echo ""
+          echo "=== Looking for library files ==="
+          find . -type f \( -name "*.so" -o -name "*.dylib" -o -name "*.dll" \) | sort
+          if [ -z "$(find . -type f \( -name '*.so' -o -name '*.dylib' -o -name '*.dll' \))" ]; then
+            echo "ERROR: No library files found anywhere in workspace"
             exit 1
           fi
 
@@ -151,7 +150,7 @@ jobs:
     needs: run-determinism-test
     steps:
       - name: Download all snapshots
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           pattern: determinism-2d-*
 
