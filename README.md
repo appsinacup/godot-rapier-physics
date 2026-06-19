@@ -48,8 +48,11 @@ No Ghost Collisions|Improved Stacking
 ![](docs/ghost_collisions.gif)|![](docs/stacking.png)
 
 **Serialization**|**Deserialization**
+-|-
 Save Physics State|Load Physics State
+
 **Locally Deterministic**|***Optionally Cross Platform Deterministic**
+-|-
 Exact simulation every time (on same platform)|Exact simulation on multiple platforms
 
 # Installation
