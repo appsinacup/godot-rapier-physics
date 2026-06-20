@@ -10,19 +10,15 @@ publish = false
 crate-type = ["cdylib", "staticlib", "rlib"]
 
 [features]
-default = ["build2d", "test", "parallel"]
+default = []
 test = []
-build2d = ["single-dim2", "serde-serialize", "simd-stable", "experimental-threads", "register-docs", "api-custom"]
-build3d = ["single-dim3", "serde-serialize", "simd-stable", "experimental-threads", "register-docs", "api-custom"]
-build2d-f64 = ["double-dim2", "serde-serialize", "simd-stable", "experimental-threads", "register-docs", "api-custom"]
-build3d-f64 = ["double-dim3", "serde-serialize", "simd-stable", "experimental-threads", "register-docs", "api-custom"]
 dim2 = []
 dim3 = []
 single = []
 double = ["godot/double-precision"]
 api-custom = ["godot/api-custom"]
 register-docs = ["godot/register-docs"]
-enhanced-determinism = ["rapier2d?/enhanced-determinism", "rapier2d-f64?/enhanced-determinism", "rapier3d?/enhanced-determinism", "rapier3d-f64?/enhanced-determinism", "glamx/scalar-math"]
+enhanced-determinism = ["rapier2d?/enhanced-determinism", "rapier2d-f64?/enhanced-determinism", "rapier3d?/enhanced-determinism", "rapier3d-f64?/enhanced-determinism", "glamx?/scalar-math"]
 serde-serialize = ["serde", "hashbrown/serde", "bincode", "serde_json", "godot/serde", "rapier2d?/serde-serialize", "rapier2d-f64?/serde-serialize", "rapier3d?/serde-serialize", "rapier3d-f64?/serde-serialize" ]
 # Note: SIMD disabled for f64 builds due to upstream rapier bugs with f64 SIMD implementation
 # simd-nightly = ["rapier2d/simd-nightly", "rapier2d-f64/simd-nightly", "rapier3d/simd-nightly", "rapier3d-f64/simd-nightly"]
@@ -35,8 +31,8 @@ experimental-wasm = ["godot/experimental-wasm", "godot/lazy-function-tables"]
 experimental-threads = ["godot/experimental-threads"]
 single-dim2 = ["single", "dim2", "rapier2d", "salva2d"]
 double-dim2 = ["double", "dim2", "rapier2d-f64", "salva2d-f64"]
-single-dim3 = ["single", "dim3", "rapier3d", "salva3d"]
-double-dim3 = ["double", "dim3", "rapier3d-f64", "salva3d-f64"]
+single-dim3 = ["single", "dim3", "rapier3d", "salva3d", "glamx"]
+double-dim3 = ["double", "dim3", "rapier3d-f64", "salva3d-f64", "glamx"]
 
 [dependencies]
 bincode = { version = "1", optional = true }
@@ -46,7 +42,7 @@ num_cpus = { version = "1", optional = true }
 
 # Disabled for now "safeguards-release-disengaged"] }
 godot = { version = "0.5.3" }
-glamx = { version = "0.3", default-features = false }
+glamx = { version = "0.3", default-features = false, optional = true }
 
 rapier2d = { git = "https://github.com/dimforge/rapier", branch = "master", optional = true }
 rapier2d-f64 = { git = "https://github.com/dimforge/rapier", branch = "master", optional = true}

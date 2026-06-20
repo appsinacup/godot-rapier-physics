@@ -1,0 +1,13 @@
+{
+    "rust-analyzer.checkOnSave": true,
+    "rust-analyzer.cargo.noDefaultFeatures": true,
+    "rust-analyzer.cargo.features": [
+        "single-dim2",
+        "serde-serialize",
+        "test"
+    ],
+    "rust-analyzer.check.overrideCommand": [
+        "./scripts/check.sh",
+        "--message-format=json"
+    ]
+}

@@ -687,6 +687,7 @@ impl PhysicsEngine {
         0
     }
 
+    #[cfg(feature = "serde-serialize")]
     pub fn world_export(&mut self, world_handle: WorldHandle) -> Option<&PhysicsObjects> {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
             return Some(&physics_world.physics_objects);
@@ -694,6 +695,7 @@ impl PhysicsEngine {
         None
     }
 
+    #[cfg(feature = "serde-serialize")]
     pub fn world_import(
         &mut self,
         world_handle: WorldHandle,

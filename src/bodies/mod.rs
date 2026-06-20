@@ -1,3 +1,4 @@
+#[cfg(feature = "serde-serialize")]
 pub mod exportable_object;
 pub mod rapier_area;
 pub mod rapier_body;

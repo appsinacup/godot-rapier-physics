@@ -1,6 +1,7 @@
 use bodies::rapier_collision_object_base::CollisionObjectShape;
 use bodies::rapier_collision_object_base::CollisionObjectType;
 use bodies::rapier_collision_object_base::RapierCollisionObjectBase;
+#[cfg(feature = "serde-serialize")]
 use bodies::rapier_collision_object_base::RapierCollisionObjectBaseState;
 #[cfg(feature = "dim2")]
 use godot::classes::physics_server_2d::*;
@@ -19,9 +20,13 @@ use servers::rapier_physics_singleton::RapierId;
 use servers::rapier_physics_singleton::get_id_rid;
 use shapes::rapier_shape::IRapierShape;
 
+#[cfg(feature = "serde-serialize")]
 use super::exportable_object::ExportToImport;
+#[cfg(feature = "serde-serialize")]
 use super::exportable_object::ExportableObject;
+#[cfg(feature = "serde-serialize")]
 use super::exportable_object::ImportToExport;
+#[cfg(feature = "serde-serialize")]
 use super::exportable_object::ObjectImportState;
 use super::rapier_area::RapierArea;
 use crate::bodies::rapier_collision_object::*;
@@ -92,10 +97,12 @@ impl IdWithPriority {
 }
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
 #[derive(Debug)]
+#[cfg(feature = "serde-serialize")]
 pub struct BodyExport<'a> {
     body_state: &'a RapierBodyState,
     base_state: &'a RapierCollisionObjectBaseState,
 }
+#[cfg(feature = "serde-serialize")]
 impl<'a> ExportToImport for BodyExport<'a> {
     type Import = BodyImport;
 
@@ -107,10 +114,12 @@ impl<'a> ExportToImport for BodyExport<'a> {
     }
 }
 #[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize, Clone))]
+#[cfg(feature = "serde-serialize")]
 pub struct BodyImport {
     body_state: RapierBodyState,
     base_state: RapierCollisionObjectBaseState,
 }
+#[cfg(feature = "serde-serialize")]
 impl ImportToExport for BodyImport {
     type Export<'a> = BodyExport<'a>;
 

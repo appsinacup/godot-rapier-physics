@@ -1,6 +1,7 @@
 use bodies::rapier_collision_object_base::CollisionObjectShape;
 use bodies::rapier_collision_object_base::CollisionObjectType;
 use bodies::rapier_collision_object_base::RapierCollisionObjectBase;
+#[cfg(feature = "serde-serialize")]
 use bodies::rapier_collision_object_base::RapierCollisionObjectBaseState;
 #[cfg(feature = "dim2")]
 use godot::classes::physics_server_2d::*;
@@ -12,6 +13,7 @@ use godot::obj::EngineEnum;
 use godot::prelude::*;
 use hashbrown::HashMap;
 use rapier::geometry::ColliderHandle;
+#[cfg(feature = "serde-serialize")]
 use rapier::geometry::ColliderPair;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsIds;
@@ -21,9 +23,13 @@ use servers::rapier_physics_singleton::RapierId;
 use servers::rapier_physics_singleton::get_id_rid;
 use servers::rapier_physics_singleton::physics_data;
 
+#[cfg(feature = "serde-serialize")]
 use super::exportable_object::ExportToImport;
+#[cfg(feature = "serde-serialize")]
 use super::exportable_object::ExportableObject;
+#[cfg(feature = "serde-serialize")]
 use super::exportable_object::ImportToExport;
+#[cfg(feature = "serde-serialize")]
 use super::exportable_object::ObjectImportState;
 use super::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;
@@ -62,6 +68,7 @@ pub struct EventReport {
 }
 type MonitorKey = (ColliderHandle, ColliderHandle);
 impl EventReport {
+    #[cfg(feature = "serde-serialize")]
     pub fn from_monitor_info(from_info: MonitorInfo, state_in: i32) -> Self {
         Self {
             state: state_in,
@@ -168,10 +175,12 @@ pub enum AreaUpdateMode {
 }
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
 #[derive(Debug)]
+#[cfg(feature = "serde-serialize")]
 pub struct AreaExport<'a> {
     area_state: &'a RapierAreaState,
     base_state: &'a RapierCollisionObjectBaseState,
 }
+#[cfg(feature = "serde-serialize")]
 impl ExportToImport for AreaExport<'_> {
     type Import = AreaImport;
 
@@ -183,10 +192,12 @@ impl ExportToImport for AreaExport<'_> {
     }
 }
 #[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize, Clone))]
+#[cfg(feature = "serde-serialize")]
 pub struct AreaImport {
     area_state: RapierAreaState,
     base_state: RapierCollisionObjectBaseState,
 }
+#[cfg(feature = "serde-serialize")]
 impl ImportToExport for AreaImport {
     type Export<'a> = AreaExport<'a>;
 
@@ -834,6 +845,7 @@ impl RapierArea {
     // For state loading, we sometimes need to load a state where a contact present in the pre-load state is no longer extant.
     // In this scenario, the area needs to be manually told to cease monitoring the contact, and Godot must be notified.
     // On the state's next query flush after calling this method, this signal will be emitted.
+    #[cfg(feature = "serde-serialize")]
     pub fn close_stale_contacts(
         &mut self,
         space: &mut RapierSpace,
@@ -865,6 +877,7 @@ impl RapierArea {
         }
     }
 
+    #[cfg(feature = "serde-serialize")]
     pub fn open_new_contacts(
         &mut self,
         space: &mut RapierSpace,

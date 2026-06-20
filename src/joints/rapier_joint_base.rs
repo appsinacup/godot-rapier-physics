@@ -3,9 +3,13 @@ use servers::rapier_physics_singleton::PhysicsIds;
 use servers::rapier_physics_singleton::RapierId;
 use servers::rapier_physics_singleton::get_id_rid;
 
+#[cfg(feature = "serde-serialize")]
 use crate::bodies::exportable_object::ExportToImport;
+#[cfg(feature = "serde-serialize")]
 use crate::bodies::exportable_object::ExportableObject;
+#[cfg(feature = "serde-serialize")]
 use crate::bodies::exportable_object::ImportToExport;
+#[cfg(feature = "serde-serialize")]
 use crate::bodies::exportable_object::ObjectImportState;
 use crate::rapier_wrapper::prelude::*;
 use crate::*;
@@ -22,9 +26,11 @@ pub enum RapierJointType {
 }
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
 #[derive(Debug)]
+#[cfg(feature = "serde-serialize")]
 pub struct JointExport<'a> {
     state: &'a RapierJointBaseState,
 }
+#[cfg(feature = "serde-serialize")]
 impl<'a> ExportToImport for JointExport<'a> {
     type Import = JointImport;
 
@@ -32,10 +38,12 @@ impl<'a> ExportToImport for JointExport<'a> {
         JointImport { state: *self.state }
     }
 }
-#[derive(serde::Deserialize, Clone)]
+#[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize, Clone))]
+#[cfg(feature = "serde-serialize")]
 pub struct JointImport {
     state: RapierJointBaseState,
 }
+#[cfg(feature = "serde-serialize")]
 impl ImportToExport for JointImport {
     type Export<'a> = JointExport<'a>;
 

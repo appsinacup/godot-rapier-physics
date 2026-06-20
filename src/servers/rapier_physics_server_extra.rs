@@ -23,8 +23,11 @@ macro_rules! make_rapier_server_godot_impl {
     ($class: ident) => {
         use godot::global::rid_allocate_id;
         use godot::global::rid_from_int64;
+        #[cfg(feature = "serde-serialize")]
         use $crate::bodies::exportable_object::ExportableObject;
+        #[cfg(feature = "serde-serialize")]
         use $crate::bodies::exportable_object::ObjectExportState;
+        #[cfg(feature = "serde-serialize")]
         use $crate::bodies::exportable_object::ObjectImportState;
         use $crate::bodies::rapier_collision_object::IRapierCollisionObject;
         use $crate::fluids::rapier_fluid::RapierFluid;

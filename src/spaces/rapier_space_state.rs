@@ -56,7 +56,7 @@ impl PartialOrd for OrderedColliderHandle {
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
 )]
-#[serde(default)]
+#[cfg_attr(feature = "serde-serialize", serde(default))]
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct RapierSpaceState {
     removed_colliders: BTreeMap<OrderedColliderHandle, RemovedColliderInfo>,

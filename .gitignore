@@ -29,7 +29,7 @@ target
 # System/tool-specific ignores
 .directory
 .DS_Store
-.vscode
+.vscode/launch.json
 *~
 
 *.code-workspace
