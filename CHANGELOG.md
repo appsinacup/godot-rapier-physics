@@ -3,6 +3,7 @@
 ## v0.8.36
 
 - Update to Godot 4.7 by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/560
+- Add rlib so it can be used as dependency directly.
 
 ## v0.8.35
 

@@ -75,7 +75,7 @@ See [godot-rust/ExtensionLibrary](https://godot-rust.github.io/docs/gdext/master
 
 ```toml
 [dependencies]
-godot-rapier = { git = "https://github.com/appsinacup/godot-rapier-physics.git", tag = "v0.8.35", features = ["single-dim2"] }
+godot-rapier = { git = "https://github.com/appsinacup/godot-rapier-physics.git", tag = "v0.8.36", features = ["single-dim2"] }
 ```
 
 Feature sets matching the shipped addon variants:
