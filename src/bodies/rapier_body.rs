@@ -679,7 +679,7 @@ impl RapierBody {
             self.state
                 .areas
                 .push(IdWithPriority::new(area_id, priority));
-            self.state.areas.sort_by(|a, b| a.priority.cmp(&b.priority));
+            self.state.areas.sort_by_key(|a| a.priority);
             self.on_area_updated(space);
         }
     }
