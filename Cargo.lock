@@ -143,9 +143,9 @@ checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
 
 [[package]]
 name = "gdextension-api"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "58ad9a3d877c77834a2d1d92842ebd56928f61bd52e0fac4f04fc8b3731b0437"
+checksum = "3489a9e7463353467db3cfe3eb12de31c9b6200e4f928bde4959bf5db5b31d2f"
 
 [[package]]
 name = "generational-arena"
@@ -280,7 +280,7 @@ dependencies = [
 
 [[package]]
 name = "godot-rapier"
-version = "0.8.35"
+version = "0.8.36"
 dependencies = [
  "bincode",
  "glamx",
@@ -728,7 +728,8 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.33.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#7e72d13716814717e65e613c20fb6568e61ad282"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6350781ded7f80bc5c76ef9c45c57813c34c2b3df43769677114633a6b36059e"
 dependencies = [
  "approx",
  "bitflags",
@@ -749,7 +750,8 @@ dependencies = [
 [[package]]
 name = "rapier2d-f64"
 version = "0.33.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#7e72d13716814717e65e613c20fb6568e61ad282"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1cd12578c298751516764503daa83826ffecfd55702355fc1e4e7109bfa86c60"
 dependencies = [
  "approx",
  "bitflags",
@@ -769,7 +771,8 @@ dependencies = [
 [[package]]
 name = "rapier3d"
 version = "0.33.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#7e72d13716814717e65e613c20fb6568e61ad282"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9038df6d760a6448b39adf6286744acdb54e2a0edf04b8ab6a9f5e9998968317"
 dependencies = [
  "approx",
  "bitflags",
@@ -790,7 +793,8 @@ dependencies = [
 [[package]]
 name = "rapier3d-f64"
 version = "0.33.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#7e72d13716814717e65e613c20fb6568e61ad282"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "537f542d5ab6eb18e7751ed214e3bfce1e0a157c80beff0c25761736280bab78"
 dependencies = [
  "approx",
  "bitflags",
@@ -891,7 +895,7 @@ dependencies = [
 [[package]]
 name = "salva2d"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=try-to-update-to-latest-nalgebra#877f5d8f4d2354cc3c233181ef3ea4b992643d59"
+source = "git+https://github.com/ughuuu/salva?branch=try-to-update-to-latest-nalgebra#422e44fb8c9f3d3fa1afbb3899a002ac487bdb04"
 dependencies = [
  "approx",
  "bitflags",
@@ -909,7 +913,7 @@ dependencies = [
 [[package]]
 name = "salva2d-f64"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=try-to-update-to-latest-nalgebra#877f5d8f4d2354cc3c233181ef3ea4b992643d59"
+source = "git+https://github.com/ughuuu/salva?branch=try-to-update-to-latest-nalgebra#422e44fb8c9f3d3fa1afbb3899a002ac487bdb04"
 dependencies = [
  "approx",
  "bitflags",
@@ -926,7 +930,7 @@ dependencies = [
 [[package]]
 name = "salva3d"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=try-to-update-to-latest-nalgebra#877f5d8f4d2354cc3c233181ef3ea4b992643d59"
+source = "git+https://github.com/ughuuu/salva?branch=try-to-update-to-latest-nalgebra#422e44fb8c9f3d3fa1afbb3899a002ac487bdb04"
 dependencies = [
  "approx",
  "bitflags",
@@ -944,7 +948,7 @@ dependencies = [
 [[package]]
 name = "salva3d-f64"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=try-to-update-to-latest-nalgebra#877f5d8f4d2354cc3c233181ef3ea4b992643d59"
+source = "git+https://github.com/ughuuu/salva?branch=try-to-update-to-latest-nalgebra#422e44fb8c9f3d3fa1afbb3899a002ac487bdb04"
 dependencies = [
  "approx",
  "bitflags",

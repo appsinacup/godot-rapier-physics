@@ -1,11 +1,16 @@
 use std::collections::BTreeMap;
 
 use godot::prelude::*;
+#[cfg(feature = "serde-serialize")]
 use rapier::prelude::SharedShape;
 
+#[cfg(feature = "serde-serialize")]
 use crate::bodies::exportable_object::ExportToImport;
+#[cfg(feature = "serde-serialize")]
 use crate::bodies::exportable_object::ExportableObject;
+#[cfg(feature = "serde-serialize")]
 use crate::bodies::exportable_object::ImportToExport;
+#[cfg(feature = "serde-serialize")]
 use crate::bodies::exportable_object::ObjectImportState;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::rapier_wrapper::prelude::*;
@@ -15,10 +20,12 @@ use crate::servers::rapier_physics_singleton::get_id_rid;
 use crate::types::*;
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
 #[derive(Debug)]
+#[cfg(feature = "serde-serialize")]
 pub struct ShapeExport<'a> {
     state: &'a RapierShapeState,
     shape: &'a SharedShape,
 }
+#[cfg(feature = "serde-serialize")]
 impl<'a> ExportToImport for ShapeExport<'a> {
     type Import = ShapeImport;
 
@@ -30,10 +37,12 @@ impl<'a> ExportToImport for ShapeExport<'a> {
     }
 }
 #[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize, Clone))]
+#[cfg(feature = "serde-serialize")]
 pub struct ShapeImport {
     state: RapierShapeState,
     shape: SharedShape,
 }
+#[cfg(feature = "serde-serialize")]
 impl ImportToExport for ShapeImport {
     type Export<'a> = ShapeExport<'a>;
 

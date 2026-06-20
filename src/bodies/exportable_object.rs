@@ -12,7 +12,6 @@ use crate::spaces::rapier_space::SpaceImport;
 // The difference between Export and Import states is just that Exports contain non-owning references into state data
 // (essentially they're just windows into the present state of a physics object).
 // Imports contain owned data pulled from serialized data, which can then be moved out into the objects.
-#[cfg(feature = "serde-serialize")]
 #[derive(serde::Serialize)]
 pub enum ObjectExportState<'a> {
     Area(AreaExport<'a>),
@@ -21,7 +20,6 @@ pub enum ObjectExportState<'a> {
     JointBase(JointExport<'a>),
     Space(SpaceExport<'a>),
 }
-#[cfg(feature = "serde-serialize")]
 #[derive(serde::Deserialize, Clone)]
 #[allow(clippy::large_enum_variant)]
 // Here we put the SpaceImport in a box; this is because Space state contains much more data than the other states,
@@ -46,7 +44,6 @@ pub trait ImportToExport {
         Self: 'a;
     fn as_export<'a>(&'a self) -> Self::Export<'a>;
 }
-#[cfg(feature = "serde-serialize")]
 pub trait ExportableObject {
     type ExportState<'a>: serde::Serialize
     where

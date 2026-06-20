@@ -98,9 +98,9 @@ cargo update
 3. Build the project
 ```bash
 # for 2d
-cargo build --release --features="build2d" --no-default-features
+cargo build --release --features="single-dim2"
 # for 3d
-cargo build --release --features="build3d" --no-default-features
+cargo build --release --features="single-dim3"
 ```
 
 4. Copy the output to bin folder of the addon:
@@ -119,8 +119,6 @@ For the correct path to use inside the bin folder, look inside the `bin2d/addons
 ## Build script
 
 Optionally, run the build script from `scripts/build-dev-2d.sh` or `scripts/build-dev-3d.sh`. (this also does linting)
-
-Also, if you want to have support for vscode linting and code autocomplete, change the file `Cargo.toml` line 13 from `default = ["build2d", "test"]` to `default = ["build3d", "test"]` in case you develop for 3d.
 
 ### Available features
 
@@ -178,11 +176,9 @@ In order to make a PR that will get merged, you need to lint and format your cod
 # Format
 cargo fmt -- --config-path rustfmt.toml
 # Run clippy for 2d only
-cargo clippy --fix --allow-dirty --all-targets --features="build2d" --no-default-features
+cargo clippy --fix --allow-dirty --all-targets --features="single-dim2"
 # Run clippy for 3d only
-cargo clippy --fix --allow-dirty --all-targets --features="build3d" --no-default-features
-# Run clippy for all project
-cargo clippy --fix --allow-dirty
+cargo clippy --fix --allow-dirty --all-targets --features="single-dim3"
 ```
 
-The above runs formatting with `cargo fmt` and linting with `cargo clippy`. For clippy yo ucan specify (and should run) with both 2d and 3d.
+The above runs formatting with `cargo fmt` and linting with `cargo clippy`. For clippy you can specify (and should run) both 2d and 3d feature sets.

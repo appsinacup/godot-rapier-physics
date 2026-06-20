@@ -83,6 +83,7 @@ pub fn transform_scale(transform: &Transform) -> Vector {
         Vector3::new(sx, sy, sz)
     }
 }
+#[cfg(feature = "serde-serialize")]
 #[derive(Clone, GodotConvert, Var, Export, Debug)]
 #[godot(via = GString)]
 // An enum to allow easy export into various formats; Json outputs a json string (plaintext, good for debugging),
@@ -93,6 +94,7 @@ pub enum SerializationFormat {
     GodotBase64,
     RustBincode,
 }
+#[cfg(feature = "serde-serialize")]
 pub fn bin_to_packed_byte_array(bin: Vec<u8>) -> PackedByteArray {
     let mut pba = PackedByteArray::new();
     pba.resize(bin.len());

@@ -564,6 +564,7 @@ impl RapierDirectBodyStateImpl {
         }
     }
 
+    #[cfg(not(feature = "api-4-4"))]
     pub(super) fn set_collision_layer(&mut self, layer: u32) {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body)
@@ -573,6 +574,7 @@ impl RapierDirectBodyStateImpl {
         }
     }
 
+    #[cfg(not(feature = "api-4-4"))]
     pub(super) fn get_collision_layer(&self) -> u32 {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get(&self.body)
@@ -583,6 +585,7 @@ impl RapierDirectBodyStateImpl {
         0
     }
 
+    #[cfg(not(feature = "api-4-4"))]
     pub(super) fn set_collision_mask(&mut self, mask: u32) {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body)
@@ -592,6 +595,7 @@ impl RapierDirectBodyStateImpl {
         }
     }
 
+    #[cfg(not(feature = "api-4-4"))]
     pub(super) fn get_collision_mask(&self) -> u32 {
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get(&self.body)

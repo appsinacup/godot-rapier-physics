@@ -262,19 +262,17 @@ impl INode2D for Fluid2D {
                 RapierPhysicsServer::fluid_set_space(rid, Rid::Invalid);
                 drop(guard);
             }
-            CanvasItemNotification::DRAW => {
-                if self.debug_draw {
-                    for point in self.get_points().as_slice() {
-                        let mut color = Color::WHITE;
-                        color.a = 0.4;
-                        self.to_gd().draw_rect(
-                            Rect2::new(
-                                *point - Vector2::new(self.radius / 2.0, self.radius / 2.0),
-                                Vector2::new(self.radius, self.radius),
-                            ),
-                            color,
-                        );
-                    }
+            CanvasItemNotification::DRAW if self.debug_draw => {
+                for point in self.get_points().as_slice() {
+                    let mut color = Color::WHITE;
+                    color.a = 0.4;
+                    self.to_gd().draw_rect(
+                        Rect2::new(
+                            *point - Vector2::new(self.radius / 2.0, self.radius / 2.0),
+                            Vector2::new(self.radius, self.radius),
+                        ),
+                        color,
+                    );
                 }
             }
             _ => {}

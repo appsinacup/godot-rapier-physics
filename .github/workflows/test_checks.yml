@@ -13,8 +13,8 @@ jobs:
       fail-fast: false
       matrix:
         dimensions:
-          - { name: 2D, feature: build2d }
-          - { name: 3D, feature: build3d }
+          - { name: 2D, feature: single-dim2 }
+          - { name: 3D, feature: single-dim3 }
     steps:
       - uses: actions/checkout@v6
       - name: Setup Godot
@@ -25,7 +25,7 @@ jobs:
       - name: Run Unit Tests
         shell: bash
         run: |
-          cargo test --all-targets --features="${{ matrix.dimensions.feature }},test" --no-default-features
+          GDRUST_GODOT_BIN="$GODOT4" cargo test --all-targets --features="${{ matrix.dimensions.feature }},test,simd-stable,experimental-threads,register-docs,api-4-7,api-custom"
 
   run-integration-tests:
     name: Run Godot Tests ${{ matrix.dimensions.name }} (${{ matrix.os.name }})
@@ -39,8 +39,8 @@ jobs:
           - { name: macOS, runner: macos-26 }
           - { name: Windows, runner: windows-latest }
         dimensions:
-          - { name: 2D, short: 2d, feature: build2d }
-          - { name: 3D, short: 3d, feature: build3d }
+          - { name: 2D, short: 2d, feature: single-dim2 }
+          - { name: 3D, short: 3d, feature: single-dim3 }
     steps:
       - uses: actions/checkout@v6
 
@@ -53,7 +53,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cargo build --features="${{ matrix.dimensions.feature }},test" --no-default-features
+          GDRUST_GODOT_BIN="$GODOT4" cargo build --features="${{ matrix.dimensions.feature }},test,simd-stable,experimental-threads,register-docs,api-4-7,api-custom"
 
           addon_dir="bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin"
           case "$RUNNER_OS" in

@@ -1,3 +1,4 @@
+#[cfg(feature = "serde-serialize")]
 use bodies::exportable_object::ExportableObject;
 use bodies::rapier_collision_object_base::CollisionObjectShape;
 use bodies::rapier_collision_object_base::RapierCollisionObjectBase;
@@ -10,7 +11,9 @@ use servers::rapier_physics_singleton::RapierId;
 
 use super::rapier_area::RapierArea;
 use super::rapier_body::RapierBody;
+#[cfg(feature = "serde-serialize")]
 use crate::bodies::exportable_object::ObjectExportState;
+#[cfg(feature = "serde-serialize")]
 use crate::bodies::exportable_object::ObjectImportState;
 use crate::rapier_wrapper::prelude::*;
 use crate::types::*;
@@ -301,6 +304,7 @@ macro_rules! impl_rapier_collision_object_trait {
     };
 }
 impl_rapier_collision_object_trait!(RapierCollisionObject, Area, Body);
+#[cfg(feature = "serde-serialize")]
 macro_rules! impl_rapier_collision_object_exportable_trait {
     ($enum_name:ident, $($variant:ident),*) => {
         impl ExportableObject for $enum_name {
@@ -333,4 +337,5 @@ macro_rules! impl_rapier_collision_object_exportable_trait {
         }
     };
 }
+#[cfg(feature = "serde-serialize")]
 impl_rapier_collision_object_exportable_trait!(RapierCollisionObject, Area, Body);

@@ -328,6 +328,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
             .body_set_shape_disabled(body, shape_idx, disabled)
     }
 
+    #[cfg(all(feature = "api-4-7", feature = "api-custom"))]
     fn body_set_shape_as_one_way_collision(
         &mut self,
         body: Rid,
@@ -338,6 +339,23 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
     ) {
         self.implementation
             .body_set_shape_as_one_way_collision(body, shape_idx, enable, margin, direction);
+    }
+
+    #[cfg(not(all(feature = "api-4-7", feature = "api-custom")))]
+    fn body_set_shape_as_one_way_collision(
+        &mut self,
+        body: Rid,
+        shape_idx: i32,
+        enable: bool,
+        margin: f32,
+    ) {
+        self.implementation.body_set_shape_as_one_way_collision(
+            body,
+            shape_idx,
+            enable,
+            margin,
+            Vector2::new(0.0, 1.0),
+        );
     }
 
     fn body_remove_shape(&mut self, body: Rid, shape_idx: i32) {

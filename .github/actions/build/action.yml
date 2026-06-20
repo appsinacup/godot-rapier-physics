@@ -17,6 +17,10 @@ inputs:
     required: false
     default: release
     description: Cargo profile to use.
+  toolchain:
+    required: false
+    default: ''
+    description: Rust toolchain override. Defaults to rust-toolchain.toml.
 
 runs:
   using: composite
@@ -28,15 +32,21 @@ runs:
     - name: Rust Add target
       shell: sh
       run: |
-        TOOLCHAIN=$(grep -E '^channel' rust-toolchain.toml | sed -E 's/channel = "(.*)"/\1/')
+        TOOLCHAIN="${{ inputs.toolchain }}"
+        if [ -z "$TOOLCHAIN" ]; then
+          TOOLCHAIN=$(grep -E '^channel' rust-toolchain.toml | sed -E 's/channel = "(.*)"/\1/')
+        fi
         rustup toolchain install "$TOOLCHAIN"
         rustup component add rust-src --toolchain "$TOOLCHAIN"
         rustup target add ${{ inputs.arch }} --toolchain "$TOOLCHAIN"
     - name: Build
       shell: sh
       run: |
-        TOOLCHAIN=$(grep -E '^channel' rust-toolchain.toml | sed -E 's/channel = "(.*)"/\1/')
-        cargo +"$TOOLCHAIN" build --target=${{ inputs.arch }} --profile=${{ inputs.profile }} --features="${{ inputs.features }},api-custom" ${{ inputs.extra_flags }} --no-default-features
+        TOOLCHAIN="${{ inputs.toolchain }}"
+        if [ -z "$TOOLCHAIN" ]; then
+          TOOLCHAIN=$(grep -E '^channel' rust-toolchain.toml | sed -E 's/channel = "(.*)"/\1/')
+        fi
+        GDRUST_GODOT_BIN="$GODOT4" cargo +"$TOOLCHAIN" build --target=${{ inputs.arch }} --profile=${{ inputs.profile }} --features="${{ inputs.features }},api-4-7,api-custom" ${{ inputs.extra_flags }}
     - name: Copy to release
       shell: sh
       run: |
@@ -49,9 +59,12 @@ runs:
       if: ${{ inputs.arch == 'x86_64-apple-darwin'}}
       run: |
         mkdir -p target/release
-        TOOLCHAIN=$(grep -E '^channel' rust-toolchain.toml | sed -E 's/channel = "(.*)"/\1/')
+        TOOLCHAIN="${{ inputs.toolchain }}"
+        if [ -z "$TOOLCHAIN" ]; then
+          TOOLCHAIN=$(grep -E '^channel' rust-toolchain.toml | sed -E 's/channel = "(.*)"/\1/')
+        fi
         rustup target add aarch64-apple-darwin --toolchain "$TOOLCHAIN"
-        cargo +"$TOOLCHAIN" build --target=aarch64-apple-darwin --profile=${{ inputs.profile }} --features="${{ inputs.features }},api-custom" ${{ inputs.extra_flags }} --no-default-features
+        GDRUST_GODOT_BIN="$GODOT4" cargo +"$TOOLCHAIN" build --target=aarch64-apple-darwin --profile=${{ inputs.profile }} --features="${{ inputs.features }},api-4-7,api-custom" ${{ inputs.extra_flags }}
         lipo -create -output target/release/libgodot_rapier.dylib target/aarch64-apple-darwin/${{ inputs.profile }}/libgodot_rapier.dylib target/x86_64-apple-darwin/${{ inputs.profile }}/libgodot_rapier.dylib
     - name: Move Static Libs macOS
       shell: sh

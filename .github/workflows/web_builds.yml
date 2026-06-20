@@ -42,9 +42,6 @@ jobs:
           echo "LLVM_PATH=/usr/lib/llvm-14" >> $GITHUB_ENV
           echo "LIBCLANG_PATH=/usr/lib/llvm-14/lib" >> $GITHUB_ENV
 
-      - name: Rust Install Nightly
-        run: |
-          rustup component add rust-src
       - name: Replace .cargo/config.toml with .cargo/config.nothreads.toml
         shell: sh
         run: |
@@ -60,6 +57,7 @@ jobs:
           arch: ${{ matrix.arch }}
           extra_flags: "-Zbuild-std"
           profile: release-wasm
+          toolchain: nightly-2025-12-12
           features: ${{ matrix.features.feature }},${{ matrix.precision }}-${{ matrix.dimensions.feature }},${{ matrix.build_param.feature }}
       - name: Copy to bin
         shell: sh

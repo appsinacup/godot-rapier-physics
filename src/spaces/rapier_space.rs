@@ -8,8 +8,11 @@ use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
 use godot::classes::physics_server_3d::*;
 use godot::prelude::*;
+#[cfg(feature = "serde-serialize")]
 use hashbrown::HashSet;
+#[cfg(feature = "serde-serialize")]
 use rapier::geometry::ColliderPair;
+#[cfg(feature = "serde-serialize")]
 use rapier::geometry::NarrowPhase;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsData;
@@ -21,9 +24,13 @@ use spaces::rapier_space_state::RapierSpaceState;
 
 use super::PhysicsDirectSpaceState;
 use super::RapierDirectSpaceState;
+#[cfg(feature = "serde-serialize")]
 use crate::bodies::exportable_object::ExportToImport;
+#[cfg(feature = "serde-serialize")]
 use crate::bodies::exportable_object::ExportableObject;
+#[cfg(feature = "serde-serialize")]
 use crate::bodies::exportable_object::ImportToExport;
+#[cfg(feature = "serde-serialize")]
 use crate::bodies::exportable_object::ObjectImportState;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
@@ -40,10 +47,12 @@ const DEFAULT_GRAVITY: &str = "physics/2d/default_gravity";
 #[cfg(feature = "dim3")]
 const DEFAULT_GRAVITY: &str = "physics/3d/default_gravity";
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize, Clone))]
+#[cfg(feature = "serde-serialize")]
 pub struct SpaceExport<'a> {
     space: &'a RapierSpaceState,
     world: &'a PhysicsObjects,
 }
+#[cfg(feature = "serde-serialize")]
 impl<'a> ExportToImport for SpaceExport<'a> {
     type Import = Box<SpaceImport>;
 
@@ -55,10 +64,12 @@ impl<'a> ExportToImport for SpaceExport<'a> {
     }
 }
 #[cfg_attr(feature = "serde-serialize", derive(serde::Deserialize, Clone))]
+#[cfg(feature = "serde-serialize")]
 pub struct SpaceImport {
     space: RapierSpaceState,
     pub(crate) world: PhysicsObjects,
 }
+#[cfg(feature = "serde-serialize")]
 impl ImportToExport for SpaceImport {
     type Export<'a> = SpaceExport<'a>;
 
@@ -557,6 +568,7 @@ impl RapierSpace {
         }
     }
 
+    #[cfg(feature = "serde-serialize")]
     pub fn get_intersection_deltas(
         &self,
         physics_engine: &mut PhysicsEngine,
@@ -585,6 +597,7 @@ impl RapierSpace {
         None
     }
 
+    #[cfg(feature = "serde-serialize")]
     fn import(&mut self, physics_engine: &mut PhysicsEngine, import: SpaceImport) {
         // NOTE: Areas in this space MUST be made to clean up their stale intersections before import is called here.
         self.state = import.space;
