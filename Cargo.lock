@@ -280,7 +280,7 @@ dependencies = [
 
 [[package]]
 name = "godot-rapier"
-version = "0.8.35"
+version = "0.8.36"
 dependencies = [
  "bincode",
  "glamx",

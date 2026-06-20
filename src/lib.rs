@@ -1,4 +1,3 @@
-#![feature(try_blocks)]
 #[cfg(all(feature = "single", feature = "dim2"))]
 extern crate rapier2d as rapier;
 #[cfg(all(feature = "double", feature = "dim2"))]

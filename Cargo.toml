@@ -3,7 +3,7 @@ name = "godot-rapier"
 version = "0.8.36"
 edition = "2024"
 license = "MIT"
-rust-version = "1.91"
+rust-version = "1.94"
 publish = false
 
 [lib]
@@ -41,7 +41,7 @@ double-dim3 = ["double", "dim3", "rapier3d-f64", "salva3d-f64", "glamx"]
 
 [dependencies]
 bincode = { version = "1", optional = true }
-hashbrown = { version = "0.16", features=["nightly", "inline-more", "default-hasher", "allocator-api2"] }
+hashbrown = { version = "0.16", features=["inline-more", "default-hasher", "allocator-api2"] }
 
 num_cpus = { version = "1", optional = true }
 
