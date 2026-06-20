@@ -49,7 +49,7 @@ impl RapierDampedSpringJoint2D {
             world_to_local_no_scale(&body_a.get_base().get_transform(), p_anchor_a);
         let rapier_anchor_b =
             world_to_local_no_scale(&body_b.get_base().get_transform(), p_anchor_b);
-        let rest_length = (p_anchor_a - p_anchor_b).length();
+        let rest_length = vector_length(p_anchor_a - p_anchor_b);
         let space_handle = body_a.get_base().get_space_id();
         let space_id = body_a.get_base().get_space_id();
         let handle = physics_engine.joint_create_spring(

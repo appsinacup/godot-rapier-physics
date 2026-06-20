@@ -44,7 +44,7 @@ impl RapierGrooveJoint2D {
         let point_a_1 = world_to_local_no_scale(&base_a.get_transform(), p_a_groove1);
         let point_a_2 = world_to_local_no_scale(&base_a.get_transform(), p_a_groove2);
         let axis = vector_normalized(point_a_2 - point_a_1);
-        let length = (point_a_2 - point_a_1).length();
+        let length = vector_length(point_a_2 - point_a_1);
         let rapier_axis = vector_to_rapier(axis);
         let rapier_limits = vector_to_rapier(Vector2::new(0.0, length));
         let rapier_anchor_a = vector_to_rapier(point_a_1);

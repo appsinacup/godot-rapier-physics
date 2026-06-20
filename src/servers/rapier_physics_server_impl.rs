@@ -1941,26 +1941,26 @@ impl RapierPhysicsServerImpl {
             // The hinge axis should be the X-axis in the local frame
             // Construct a basis where X-axis is aligned with the given axis
             let basis_a = if axis_a.length_squared() > 0.0 {
-                let x_axis = axis_a.normalized();
+                let x_axis = vector_normalized(axis_a);
                 // Choose an arbitrary perpendicular vector for Y
                 let y_axis = if x_axis.abs().dot(Vector3::UP) < 0.99 {
-                    x_axis.cross(Vector3::UP).normalized()
+                    vector_normalized(x_axis.cross(Vector3::UP))
                 } else {
-                    x_axis.cross(Vector3::RIGHT).normalized()
+                    vector_normalized(x_axis.cross(Vector3::RIGHT))
                 };
-                let z_axis = x_axis.cross(y_axis).normalized();
+                let z_axis = vector_normalized(x_axis.cross(y_axis));
                 godot::prelude::Basis::from_cols(x_axis, y_axis, z_axis)
             } else {
                 godot::prelude::Basis::IDENTITY
             };
             let basis_b = if axis_b.length_squared() > 0.0 {
-                let x_axis = axis_b.normalized();
+                let x_axis = vector_normalized(axis_b);
                 let y_axis = if x_axis.abs().dot(Vector3::UP) < 0.99 {
-                    x_axis.cross(Vector3::UP).normalized()
+                    vector_normalized(x_axis.cross(Vector3::UP))
                 } else {
-                    x_axis.cross(Vector3::RIGHT).normalized()
+                    vector_normalized(x_axis.cross(Vector3::RIGHT))
                 };
-                let z_axis = x_axis.cross(y_axis).normalized();
+                let z_axis = vector_normalized(x_axis.cross(y_axis));
                 godot::prelude::Basis::from_cols(x_axis, y_axis, z_axis)
             } else {
                 godot::prelude::Basis::IDENTITY

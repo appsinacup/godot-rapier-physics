@@ -283,6 +283,7 @@ name = "godot-rapier"
 version = "0.8.35"
 dependencies = [
  "bincode",
+ "glamx",
  "godot",
  "hashbrown 0.16.1",
  "num_cpus",

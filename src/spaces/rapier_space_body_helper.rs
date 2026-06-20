@@ -75,12 +75,12 @@ fn blocked_motion_tolerance(margin: Real) -> Real {
 }
 fn clamp_near_zero_safe_motion(motion: Vector, margin: Real, safe_fraction: &mut Real) {
     let tolerance = blocked_motion_tolerance(margin);
-    if *safe_fraction < 1.0 && motion.length() * *safe_fraction < tolerance {
+    if *safe_fraction < 1.0 && vector_length(motion) * *safe_fraction < tolerance {
         *safe_fraction = 0.0;
     }
 }
 fn clamp_near_zero_blocked_travel(motion: Vector, margin: Real, travel: &mut Vector) {
-    if motion.dot(*travel) > 0.0 && travel.length() < blocked_motion_tolerance(margin) {
+    if motion.dot(*travel) > 0.0 && vector_length(*travel) < blocked_motion_tolerance(margin) {
         *travel = Vector::default();
     }
 }
@@ -228,7 +228,7 @@ fn finish_small_body_motion(
     motion: Vector,
     result: &mut PhysicsServerExtensionMotionResult,
 ) -> bool {
-    if motion.length() >= MIN_MOTION_THRESHOLD {
+    if vector_length(motion) >= MIN_MOTION_THRESHOLD {
         return false;
     }
     result.travel = Vector::default();
@@ -353,15 +353,14 @@ impl RapierSpace {
     ) -> bool {
         reset_body_motion_result(result);
         let mut body_transform = from; // Because body_transform needs to be modified during recovery
-        let is_small_motion = motion.length() < MIN_MOTION_THRESHOLD;
+        let is_small_motion = vector_length(motion) < MIN_MOTION_THRESHOLD;
         // Step 1: recover motion.
         // Expand the body colliders by the margin (grow) and check if now it collides with a collider,
         // if yes, "recover" / "push" out of this collider
         let mut recover_motion = Vector::default();
         let margin = Real::max(margin, TEST_MOTION_MARGIN);
-        let min_allowed_depth = motion
-            .length()
-            .min(margin * TEST_MOTION_MIN_CONTACT_DEPTH_FACTOR);
+        let min_allowed_depth =
+            vector_length(motion).min(margin * TEST_MOTION_MIN_CONTACT_DEPTH_FACTOR);
         let mut excluded_shape_pairs = [ExcludedShapePair::default(); MAX_EXCLUDED_SHAPE_PAIRS];
         let mut excluded_shape_pair_count = 0;
         let recovered = self.body_motion_recover(
@@ -655,7 +654,7 @@ impl RapierSpace {
             let recover_motion =
                 recover_motion_from_contacts(&sr, &priorities, contact_count, min_contact_depth);
             // Break if recovery motion is too small to be meaningful
-            if recover_motion.length() < MIN_RECOVERY_THRESHOLD {
+            if vector_length(recover_motion) < MIN_RECOVERY_THRESHOLD {
                 recovered = false;
                 break;
             }
@@ -1179,7 +1178,7 @@ fn one_way_valid_depth(
 ) -> f32 {
     let mut valid_depth = owc_margin.max(motion_margin);
     let platform_motion = platform_linear_velocity * last_step;
-    let platform_motion_len = platform_motion.length();
+    let platform_motion_len = vector_length(platform_motion);
     if !platform_motion_len.is_zero_approx() {
         valid_depth +=
             platform_motion_len * vector_normalized(platform_motion).dot(-valid_dir).max(0.0);
@@ -1408,14 +1407,14 @@ mod tests {
     #[test]
     fn clamp_near_zero_safe_motion_sets_sub_epsilon_travel_to_zero() {
         let motion = x_motion(10.0);
-        let mut safe_fraction = (MOTION_EPSILON * 0.5) / motion.length();
+        let mut safe_fraction = (MOTION_EPSILON * 0.5) / vector_length(motion);
         clamp_near_zero_safe_motion(motion, 0.0, &mut safe_fraction);
         assert_eq!(safe_fraction, 0.0);
     }
     #[test]
     fn clamp_near_zero_safe_motion_keeps_meaningful_travel() {
         let motion = x_motion(10.0);
-        let mut safe_fraction = (blocked_motion_tolerance(0.0) * 2.0) / motion.length();
+        let mut safe_fraction = (blocked_motion_tolerance(0.0) * 2.0) / vector_length(motion);
         let expected = safe_fraction;
         clamp_near_zero_safe_motion(motion, 0.0, &mut safe_fraction);
         assert_eq!(safe_fraction, expected);
@@ -1423,7 +1422,7 @@ mod tests {
     #[test]
     fn clamp_near_zero_safe_motion_uses_margin_relative_tolerance() {
         let motion = x_motion(10.0);
-        let mut safe_fraction = 0.003 / motion.length();
+        let mut safe_fraction = 0.003 / vector_length(motion);
         clamp_near_zero_safe_motion(motion, 0.08, &mut safe_fraction);
         assert_eq!(safe_fraction, 0.0);
     }

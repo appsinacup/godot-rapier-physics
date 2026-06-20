@@ -124,7 +124,7 @@ impl RapierDirectSpaceStateImpl {
             space.get_state().get_id(),
             vector_to_rapier(from),
             vector_to_rapier(dir),
-            end.length(),
+            vector_length(end),
             collide_with_bodies,
             collide_with_areas,
             hit_from_inside,
