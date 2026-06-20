@@ -203,31 +203,19 @@ pub fn transform_update(transform: &Transform, rotation: Rotation, origin: Vecto
 }
 #[cfg(feature = "dim3")]
 pub fn transform_update(transform: &Transform, rotation: Rotation, origin: Vector) -> Transform {
-    // Deterministic basis construction from quaternion.
-    // Avoids Godot's Basis::from_quaternion which may use platform-dependent math internally.
-    let x = rotation.x;
-    let y = rotation.y;
-    let z = rotation.z;
-    let w = rotation.w;
-    // Rotation matrix from quaternion (column-major):
-    // col0 = (1-2(y²+z²), 2(xy+wz), 2(xz-wy))
-    // col1 = (2(xy-wz), 1-2(x²+z²), 2(yz+wx))
-    // col2 = (2(xz+wy), 2(yz-wx), 1-2(x²+y²))
-    let xx = x * x;
-    let yy = y * y;
-    let zz = z * z;
-    let xy = x * y;
-    let xz = x * z;
-    let yz = y * z;
-    let wx = w * x;
-    let wy = w * y;
-    let wz = w * z;
-    let col0 = Vector3::new(1.0 - 2.0 * (yy + zz), 2.0 * (xy + wz), 2.0 * (xz - wy));
-    let col1 = Vector3::new(2.0 * (xy - wz), 1.0 - 2.0 * (xx + zz), 2.0 * (yz + wx));
-    let col2 = Vector3::new(2.0 * (xz + wy), 2.0 * (yz - wx), 1.0 - 2.0 * (xx + yy));
+    // Use glam's Mat3::from_quat which is deterministic with scalar-math + libm.
+    // This is pure multiply-and-add arithmetic (no transcendentals, no SIMD with scalar-math).
+    let rot_matrix = rapier::prelude::Mat3::from_quat(rotation);
     // Apply scale from the original transform deterministically
     let scale = transform_scale(transform);
-    let basis = godot::builtin::Basis::from_cols(col0 * scale.x, col1 * scale.y, col2 * scale.z);
+    let col0 = rot_matrix.x_axis;
+    let col1 = rot_matrix.y_axis;
+    let col2 = rot_matrix.z_axis;
+    let basis = godot::builtin::Basis::from_cols(
+        Vector3::new(col0.x * scale.x, col0.y * scale.x, col0.z * scale.x),
+        Vector3::new(col1.x * scale.y, col1.y * scale.y, col1.z * scale.y),
+        Vector3::new(col2.x * scale.z, col2.y * scale.z, col2.z * scale.z),
+    );
     Transform::new(basis, origin)
 }
 #[cfg(feature = "dim3")]
@@ -252,11 +240,8 @@ pub fn transform_rotation_rapier(transform: &godot::builtin::Transform2D) -> Rot
 }
 #[cfg(feature = "dim3")]
 pub fn basis_to_rapier(basis: godot::builtin::Basis) -> Rotation {
-    // Deterministic quaternion extraction from a rotation matrix using Shepperd's method.
-    // Uses ComplexField::sqrt (backed by libm with enhanced-determinism) instead of
-    // platform-dependent sqrt.
-    //
-    // First, remove scale from the basis to get a pure rotation matrix.
+    // Extract scale and normalize columns to get a pure rotation matrix.
+    // Uses ComplexField::sqrt (backed by libm with enhanced-determinism) for scale extraction.
     let col0 = basis.col_a();
     let col1 = basis.col_b();
     let col2 = basis.col_c();
@@ -266,61 +251,20 @@ pub fn basis_to_rapier(basis: godot::builtin::Basis) -> Rotation {
     if sx == 0.0 || sy == 0.0 || sz == 0.0 {
         return Rotation::from_xyzw(0.0, 0.0, 0.0, 1.0);
     }
-    // Normalize columns to get rotation matrix, accounting for negative determinant
+    // Account for negative determinant (reflection)
     let det = basis.determinant();
     let sign = if det < 0.0 { -1.0 } else { 1.0 };
     let inv_sx = sign / sx;
     let inv_sy = 1.0 / sy;
     let inv_sz = 1.0 / sz;
-    // Rotation matrix elements (row-major access: m[row][col])
-    // Godot's Basis stores columns, so col_a() = first column, etc.
-    // m00 = col0.x/sx, m10 = col0.y/sx, m20 = col0.z/sx
-    // m01 = col1.x/sy, m11 = col1.y/sy, m21 = col1.z/sy
-    // m02 = col2.x/sz, m12 = col2.y/sz, m22 = col2.z/sz
-    let m00 = col0.x * inv_sx;
-    let m10 = col0.y * inv_sx;
-    let m20 = col0.z * inv_sx;
-    let m01 = col1.x * inv_sy;
-    let m11 = col1.y * inv_sy;
-    let m21 = col1.z * inv_sy;
-    let m02 = col2.x * inv_sz;
-    let m12 = col2.y * inv_sz;
-    let m22 = col2.z * inv_sz;
-    // Shepperd's method: find the largest quaternion component to avoid division by near-zero.
-    let trace = m00 + m11 + m22;
-    let (x, y, z, w);
-    if trace > 0.0 {
-        let s: real = ComplexField::sqrt(trace + 1.0) * 2.0; // s = 4*w
-        w = 0.25 * s;
-        x = (m21 - m12) / s;
-        y = (m02 - m20) / s;
-        z = (m10 - m01) / s;
-    } else if m00 > m11 && m00 > m22 {
-        let s: real = ComplexField::sqrt(1.0 + m00 - m11 - m22) * 2.0; // s = 4*x
-        w = (m21 - m12) / s;
-        x = 0.25 * s;
-        y = (m01 + m10) / s;
-        z = (m02 + m20) / s;
-    } else if m11 > m22 {
-        let s: real = ComplexField::sqrt(1.0 + m11 - m00 - m22) * 2.0; // s = 4*y
-        w = (m02 - m20) / s;
-        x = (m01 + m10) / s;
-        y = 0.25 * s;
-        z = (m12 + m21) / s;
-    } else {
-        let s: real = ComplexField::sqrt(1.0 + m22 - m00 - m11) * 2.0; // s = 4*z
-        w = (m10 - m01) / s;
-        x = (m02 + m20) / s;
-        y = (m12 + m21) / s;
-        z = 0.25 * s;
-    }
-    // Normalize the quaternion deterministically
-    let len: real = ComplexField::sqrt(x * x + y * y + z * z + w * w);
-    if len > 0.0 {
-        Rotation::from_xyzw(x / len, y / len, z / len, w / len)
-    } else {
-        Rotation::from_xyzw(0.0, 0.0, 0.0, 1.0)
-    }
+    // Build a glam Mat3 from the normalized rotation columns, then use
+    // Quat::from_mat3 which is deterministic with scalar-math + libm.
+    let rot_matrix = rapier::prelude::Mat3::from_cols(
+        rapier::prelude::Vec3::new(col0.x * inv_sx, col0.y * inv_sx, col0.z * inv_sx),
+        rapier::prelude::Vec3::new(col1.x * inv_sy, col1.y * inv_sy, col1.z * inv_sy),
+        rapier::prelude::Vec3::new(col2.x * inv_sz, col2.y * inv_sz, col2.z * inv_sz),
+    );
+    Rotation::from_mat3(&rot_matrix)
 }
 pub fn vector_length(vector: Vector) -> real {
     #[cfg(feature = "dim2")]
