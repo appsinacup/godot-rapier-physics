@@ -2218,14 +2218,17 @@ impl RapierBody {
         }
     }
 
+    #[cfg(not(feature = "api-4-4"))]
     pub fn get_collision_layer(&self) -> u32 {
         self.base.get_collision_layer()
     }
 
+    #[cfg(not(feature = "api-4-4"))]
     pub fn get_collision_mask(&self) -> u32 {
         self.base.get_collision_mask()
     }
 
+    #[cfg(not(feature = "api-4-4"))]
     pub fn set_collision_layer(&mut self, layer: u32, physics_engine: &mut PhysicsEngine) {
         if self.base.get_collision_layer() != layer {
             self.base.set_collision_layer(layer, physics_engine);
@@ -2233,6 +2236,7 @@ impl RapierBody {
         }
     }
 
+    #[cfg(not(feature = "api-4-4"))]
     pub fn set_collision_mask(&mut self, mask: u32, physics_engine: &mut PhysicsEngine) {
         if self.base.get_collision_mask() != mask {
             self.base.set_collision_mask(mask, physics_engine);

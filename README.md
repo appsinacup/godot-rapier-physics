@@ -82,10 +82,12 @@ Feature sets matching the shipped addon variants:
 
 | Variant | Features |
 | - | - |
-| 2D fast parallel | `single-dim2`, `serde-serialize`, `simd-stable`, `parallel`, `experimental-threads`, `register-docs`, `api-custom` |
-| 3D fast parallel | `single-dim3`, `serde-serialize`, `simd-stable`, `parallel`, `experimental-threads`, `register-docs`, `api-custom` |
-| 2D enhanced deterministic | `single-dim2`, `serde-serialize`, `enhanced-determinism`, `experimental-threads`, `register-docs`, `api-custom` |
-| 3D enhanced deterministic | `single-dim3`, `serde-serialize`, `enhanced-determinism`, `experimental-threads`, `register-docs`, `api-custom` |
+| 2D fast parallel | `single-dim2`, `serde-serialize`, `simd-stable`, `parallel`, `experimental-threads`, `register-docs`, `api-4-7`, `api-custom` |
+| 3D fast parallel | `single-dim3`, `serde-serialize`, `simd-stable`, `parallel`, `experimental-threads`, `register-docs`, `api-4-7`, `api-custom` |
+| 2D enhanced deterministic | `single-dim2`, `serde-serialize`, `enhanced-determinism`, `experimental-threads`, `register-docs`, `api-4-7`, `api-custom` |
+| 3D enhanced deterministic | `single-dim3`, `serde-serialize`, `enhanced-determinism`, `experimental-threads`, `register-docs`, `api-4-7`, `api-custom` |
+
+Use exactly one Godot API feature: `api-4-4`, `api-4-5`, `api-4-6`, or `api-4-7`. For `api-4-7`, also enable `api-custom` and set `GDRUST_GODOT_BIN` to a Godot 4.7 editor binary until godot-rust exposes built-in 4.7 bindings.
 
 When depending on another GDExtension crate, set `GDRUST_MAIN_EXTENSION` to your extension's `ExtensionLibrary` type and explicitly reference Godot Rapier so its classes are registered:
 

@@ -1,0 +1,49 @@
+name: 🧩 Compatibility Checks
+on:
+  workflow_call:
+
+jobs:
+  cargo-check:
+    name: Godot API ${{ matrix.api.version }} ${{ matrix.dimensions.name }} ${{ matrix.features.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        api:
+          - { version: "4.4", feature: "api-4-4" }
+          - { version: "4.5", feature: "api-4-5" }
+          - { version: "4.6", feature: "api-4-6" }
+          - { version: "4.7", feature: "api-4-7,api-custom" }
+        dimensions:
+          - { name: 2D, feature: "single-dim2" }
+          - { name: 3D, feature: "single-dim3" }
+        features:
+          - { name: simd-parallel, feature: "simd-stable,serde-serialize,parallel,experimental-threads,register-docs" }
+          - { name: enhanced-determinism, feature: "enhanced-determinism,serde-serialize,experimental-threads,register-docs" }
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Godot
+        if: matrix.api.version == '4.7'
+        uses: appsinacup/setup-godot-action@main
+        with:
+          version: '4.7-stable'
+
+      - name: Install api-custom dependencies
+        if: matrix.api.version == '4.7'
+        shell: sh
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y llvm-dev libclang-dev clang
+
+      - name: Cargo Check
+        shell: bash
+        run: |
+          set -euo pipefail
+          features="${{ matrix.dimensions.feature }},${{ matrix.features.feature }},${{ matrix.api.feature }}"
+          if [ "${{ matrix.api.version }}" = "4.7" ]; then
+            GDRUST_GODOT_BIN="$GODOT4" cargo check --features="$features"
+          else
+            cargo check --features="$features"
+          fi

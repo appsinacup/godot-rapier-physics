@@ -20,6 +20,11 @@ jobs:
     needs: [static-checks]
     uses: ./.github/workflows/test_checks.yml
 
+  compatibility-checks:
+    name: 🧩 Compatibility Checks
+    needs: [static-checks]
+    uses: ./.github/workflows/compatibility_checks.yml
+
   determinism-checks:
     name: 🎯 Determinism
     needs: [linux-build, macos-build, windows-build]
@@ -64,7 +69,7 @@ jobs:
   merge:
     runs-on: ubuntu-latest
     name: Merge
-    needs: [test-checks, determinism-checks, android-build, ios-build, linux-build, macos-build, windows-build, godot-build, web-build]
+    needs: [test-checks, compatibility-checks, determinism-checks, android-build, ios-build, linux-build, macos-build, windows-build, godot-build, web-build]
     steps:
       # dynamic
       - uses: actions/upload-artifact/merge@v6

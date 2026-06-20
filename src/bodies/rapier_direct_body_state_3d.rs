@@ -19,6 +19,26 @@ impl RapierDirectBodyState3D {
     pub fn set_body(&mut self, body: Rid) {
         self.implementation.set_body(body);
     }
+
+    fn get_space_state_impl(&mut self) -> Gd<PhysicsDirectSpaceState3D> {
+        let physics_data = physics_data();
+        if let Some(body) = physics_data
+            .collision_objects
+            .get(self.implementation.get_body())
+            && let Some(space) = physics_data
+                .spaces
+                .get(&body.get_base().get_space(&physics_data.ids))
+            && let Some(state) = space.get_direct_state().clone()
+        {
+            return state;
+        }
+        // Error case, should never happen
+        godot_error!(
+            "RapierDirectBodyState3D: could not get space state for body {:?}",
+            self.implementation.get_body()
+        );
+        RapierDirectSpaceState::new_alloc().upcast()
+    }
 }
 #[godot_api]
 impl IPhysicsDirectBodyState3DExtension for RapierDirectBodyState3D {
@@ -213,38 +233,32 @@ impl IPhysicsDirectBodyState3DExtension for RapierDirectBodyState3D {
         self.implementation.integrate_forces();
     }
 
-    fn get_space_state(&mut self) -> Gd<PhysicsDirectSpaceState3D> {
-        let physics_data = physics_data();
-        if let Some(body) = physics_data
-            .collision_objects
-            .get(self.implementation.get_body())
-            && let Some(space) = physics_data
-                .spaces
-                .get(&body.get_base().get_space(&physics_data.ids))
-            && let Some(state) = space.get_direct_state().clone()
-        {
-            return state;
-        }
-        // Error case, should never happen
-        godot_error!(
-            "RapierDirectBodyState3D: could not get space state for body {:?}",
-            self.implementation.get_body()
-        );
-        RapierDirectSpaceState::new_alloc().upcast()
+    #[cfg(any(feature = "api-4-4", feature = "api-4-5"))]
+    fn get_space_state(&mut self) -> Option<Gd<PhysicsDirectSpaceState3D>> {
+        Some(self.get_space_state_impl())
     }
 
+    #[cfg(not(any(feature = "api-4-4", feature = "api-4-5")))]
+    fn get_space_state(&mut self) -> Gd<PhysicsDirectSpaceState3D> {
+        self.get_space_state_impl()
+    }
+
+    #[cfg(not(feature = "api-4-4"))]
     fn set_collision_layer(&mut self, layer: u32) {
         self.implementation.set_collision_layer(layer);
     }
 
+    #[cfg(not(feature = "api-4-4"))]
     fn get_collision_layer(&self) -> u32 {
         self.implementation.get_collision_layer()
     }
 
+    #[cfg(not(feature = "api-4-4"))]
     fn set_collision_mask(&mut self, mask: u32) {
         self.implementation.set_collision_mask(mask);
     }
 
+    #[cfg(not(feature = "api-4-4"))]
     fn get_collision_mask(&self) -> u32 {
         self.implementation.get_collision_mask()
     }

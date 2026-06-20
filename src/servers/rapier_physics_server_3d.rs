@@ -656,12 +656,15 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
         false
     }
 
+    #[cfg(not(feature = "api-4-4"))]
     fn soft_body_set_shrinking_factor(&mut self, _: godot::prelude::Rid, _: f32) {}
 
+    #[cfg(not(feature = "api-4-4"))]
     fn soft_body_get_shrinking_factor(&self, _: godot::prelude::Rid) -> f32 {
         0.0
     }
 
+    #[cfg(not(feature = "api-4-4"))]
     fn soft_body_apply_point_impulse(
         &mut self,
         _: godot::prelude::Rid,
@@ -670,6 +673,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
     ) {
     }
 
+    #[cfg(not(feature = "api-4-4"))]
     fn soft_body_apply_point_force(
         &mut self,
         _: godot::prelude::Rid,
@@ -678,6 +682,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
     ) {
     }
 
+    #[cfg(not(feature = "api-4-4"))]
     fn soft_body_apply_central_impulse(
         &mut self,
         _: godot::prelude::Rid,
@@ -685,6 +690,7 @@ impl IPhysicsServer3DExtension for RapierPhysicsServer3D {
     ) {
     }
 
+    #[cfg(not(feature = "api-4-4"))]
     fn soft_body_apply_central_force(
         &mut self,
         _: godot::prelude::Rid,
