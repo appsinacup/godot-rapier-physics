@@ -89,6 +89,8 @@ Feature sets matching the shipped addon variants:
 
 Use exactly one Godot API feature: `api-4-4`, `api-4-5`, `api-4-6`, or `api-4-7`. For `api-4-7`, also enable `api-custom` and set `GDRUST_GODOT_BIN` to a Godot 4.7 editor binary until godot-rust exposes built-in 4.7 bindings.
 
+For web/Emscripten builds, replace native `experimental-threads` with one web feature: `experimental-wasm` for threaded web builds, or `experimental-wasm-nothreads` for no-thread web builds. `experimental-wasm-nothreads` includes `experimental-wasm`. CI builds web with `wasm32-unknown-emscripten`, `release-wasm`, and `-Zbuild-std`.
+
 When depending on another GDExtension crate, set `GDRUST_MAIN_EXTENSION` to your extension's `ExtensionLibrary` type and explicitly reference Godot Rapier so its classes are registered:
 
 ```rust
