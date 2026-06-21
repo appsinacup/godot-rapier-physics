@@ -30,6 +30,7 @@ jobs:
         uses: ./.github/actions/build
         with:
           arch: ${{ matrix.arch.rust }}
+          toolchain: nightly-2025-12-12
           features: ${{ matrix.features.feature }},${{ matrix.precision }}-${{ matrix.dimensions.feature }}
       - name: Copy to bin
         shell: sh
