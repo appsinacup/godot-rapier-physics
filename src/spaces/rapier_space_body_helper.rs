@@ -310,7 +310,11 @@ fn is_body_test_motion_excluded(
     body_test_motion_excludes(base.get_rid(), base.get_instance_id())
 }
 fn should_skip_body_shape_cast(body_shape: &RapierShape, collide_separation_ray: bool) -> bool {
-    !collide_separation_ray && matches!(body_shape, RapierShape::RapierSeparationRayShape(_))
+    matches!(
+        body_shape,
+        RapierShape::RapierSeparationRayShape(shape)
+            if !collide_separation_ray && !shape.get_slide_on_slope()
+    )
 }
 fn unsafe_fraction_with_allowed_penetration(
     toi_unsafe: Real,

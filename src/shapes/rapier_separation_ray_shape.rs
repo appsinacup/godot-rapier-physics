@@ -24,6 +24,10 @@ impl RapierSeparationRayShape {
         };
         physics_shapes.insert(rid, RapierShape::RapierSeparationRayShape(shape));
     }
+
+    pub fn get_slide_on_slope(&self) -> bool {
+        self.slide_on_slope
+    }
 }
 #[cfg(feature = "dim2")]
 fn separation_ray_end(length: f32) -> Vector2 {
@@ -31,7 +35,7 @@ fn separation_ray_end(length: f32) -> Vector2 {
 }
 #[cfg(feature = "dim3")]
 fn separation_ray_end(length: f32) -> Vector3 {
-    Vector3::new(0.0, -length, 0.0)
+    Vector3::new(0.0, 0.0, length)
 }
 impl IRapierShape for RapierSeparationRayShape {
     fn get_base(&self) -> &RapierShapeBase {
