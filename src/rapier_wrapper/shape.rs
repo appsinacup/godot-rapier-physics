@@ -256,6 +256,11 @@ impl PhysicsEngine {
         self.insert_shape(shape, handle);
     }
 
+    pub fn shape_create_segment(&mut self, from: Vector, to: Vector, handle: ShapeHandle) {
+        let shape = SharedShape::segment(from, to);
+        self.insert_shape(shape, handle);
+    }
+
     pub fn shape_get_capsule(&self, shape_handle: ShapeHandle) -> (Real, Real) {
         if let Some(shape) = self.get_shape(shape_handle)
             && let Some(shape) = shape.as_capsule()

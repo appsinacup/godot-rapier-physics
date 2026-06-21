@@ -302,6 +302,30 @@ fn is_shape_pair_excluded(
                 && excluded.collision_shape_index == collision_shape_index
         })
 }
+fn is_body_test_motion_excluded(
+    collision_body: &RapierBody,
+    body_test_motion_excludes: &dyn Fn(Rid, u64) -> bool,
+) -> bool {
+    let base = collision_body.get_base();
+    body_test_motion_excludes(base.get_rid(), base.get_instance_id())
+}
+fn should_skip_body_shape_cast(body_shape: &RapierShape, collide_separation_ray: bool) -> bool {
+    !collide_separation_ray && matches!(body_shape, RapierShape::RapierSeparationRayShape(_))
+}
+fn unsafe_fraction_with_allowed_penetration(
+    toi_unsafe: Real,
+    safe_fraction: Real,
+    motion: Vector,
+    contact_max_allowed_penetration: Real,
+) -> Real {
+    let motion_length = vector_length(motion);
+    if motion_length <= DEFAULT_EPSILON {
+        return toi_unsafe.max(safe_fraction).min(1.0);
+    }
+    (toi_unsafe + contact_max_allowed_penetration / motion_length)
+        .max(safe_fraction)
+        .min(1.0)
+}
 impl RapierSpace {
     pub fn is_handle_excluded_callback(
         &self,
@@ -355,6 +379,7 @@ impl RapierSpace {
         margin: Real,
         collide_separation_ray: bool,
         recovery_as_collision: bool,
+        body_test_motion_excludes: &dyn Fn(Rid, u64) -> bool,
         result: &mut PhysicsServerExtensionMotionResult,
         physics_engine: &PhysicsEngine,
         physics_shapes: &PhysicsShapes,
@@ -381,6 +406,7 @@ impl RapierSpace {
             &mut recover_motion,
             &mut excluded_shape_pairs,
             &mut excluded_shape_pair_count,
+            body_test_motion_excludes,
             physics_engine,
             physics_shapes,
             physics_ids,
@@ -415,6 +441,7 @@ impl RapierSpace {
                 &mut best_body_shape,
                 &excluded_shape_pairs,
                 excluded_shape_pair_count,
+                body_test_motion_excludes,
                 physics_engine,
                 physics_shapes,
                 physics_ids,
@@ -444,6 +471,7 @@ impl RapierSpace {
                 result,
                 &excluded_shape_pairs,
                 excluded_shape_pair_count,
+                body_test_motion_excludes,
                 physics_engine,
                 physics_shapes,
                 physics_ids,
@@ -513,6 +541,7 @@ impl RapierSpace {
         p_recover_motion: &mut Vector,
         excluded_shape_pairs: &mut [ExcludedShapePair; MAX_EXCLUDED_SHAPE_PAIRS],
         excluded_shape_pair_count: &mut usize,
+        body_test_motion_excludes: &dyn Fn(Rid, u64) -> bool,
         physics_engine: &PhysicsEngine,
         physics_shapes: &PhysicsShapes,
         physics_ids: &PhysicsIds,
@@ -585,6 +614,10 @@ impl RapierSpace {
                             let col_rid = collision_body.get_base().get_rid();
                             if collision_body.has_exception(moving_rid)
                                 || p_body.has_exception(col_rid)
+                                || is_body_test_motion_excluded(
+                                    collision_body,
+                                    body_test_motion_excludes,
+                                )
                             {
                                 continue;
                             }
@@ -684,14 +717,15 @@ impl RapierSpace {
         p_body: &RapierBody,
         p_transform: &Transform,
         p_motion: Vector,
-        _p_collide_separation_ray: bool,
-        _contact_max_allowed_penetration: f32,
+        p_collide_separation_ray: bool,
+        contact_max_allowed_penetration: f32,
         p_margin: f32,
         p_closest_safe: &mut f32,
         p_closest_unsafe: &mut f32,
         p_best_body_shape: &mut i32,
         excluded_shape_pairs: &[ExcludedShapePair; MAX_EXCLUDED_SHAPE_PAIRS],
         excluded_shape_pair_count: usize,
+        body_test_motion_excludes: &dyn Fn(Rid, u64) -> bool,
         physics_engine: &PhysicsEngine,
         physics_shapes: &PhysicsShapes,
         physics_ids: &PhysicsIds,
@@ -710,6 +744,9 @@ impl RapierSpace {
             if let Some(body_shape) =
                 physics_shapes.get(&p_body.get_base().get_shape(physics_ids, body_shape_idx))
             {
+                if should_skip_body_shape_cast(body_shape, p_collide_separation_ray) {
+                    continue;
+                }
                 let body_shape_transform =
                     *p_transform * p_body.get_base().get_shape_transform(body_shape_idx);
                 let body_shape_info = shape_info_from_body_shape(
@@ -758,7 +795,12 @@ impl RapierSpace {
                     {
                         let moving_rid = p_body.get_base().get_rid();
                         let col_rid = collision_body.get_base().get_rid();
-                        if collision_body.has_exception(moving_rid) || p_body.has_exception(col_rid)
+                        if collision_body.has_exception(moving_rid)
+                            || p_body.has_exception(col_rid)
+                            || is_body_test_motion_excluded(
+                                collision_body,
+                                body_test_motion_excludes,
+                            )
                         {
                             continue;
                         }
@@ -777,7 +819,12 @@ impl RapierSpace {
                             }
                             let contact = contact_from_shape_cast_result(result);
                             let safe_fraction = result.toi.clamp(0.0, 1.0);
-                            let unsafe_fraction = result.toi_unsafe.max(safe_fraction).min(1.0);
+                            let unsafe_fraction = unsafe_fraction_with_allowed_penetration(
+                                result.toi_unsafe,
+                                safe_fraction,
+                                p_motion,
+                                contact_max_allowed_penetration,
+                            );
                             if physics_engine.should_skip_collision_one_dir(
                                 &contact,
                                 body_shape,
@@ -828,6 +875,7 @@ impl RapierSpace {
         p_result: &mut PhysicsServerExtensionMotionResult,
         excluded_shape_pairs: &[ExcludedShapePair; MAX_EXCLUDED_SHAPE_PAIRS],
         excluded_shape_pair_count: usize,
+        body_test_motion_excludes: &dyn Fn(Rid, u64) -> bool,
         physics_engine: &PhysicsEngine,
         physics_shapes: &PhysicsShapes,
         physics_ids: &PhysicsIds,
@@ -921,7 +969,12 @@ impl RapierSpace {
                     {
                         let moving_rid = p_body.get_base().get_rid();
                         let col_rid = collision_body.get_base().get_rid();
-                        if collision_body.has_exception(moving_rid) || p_body.has_exception(col_rid)
+                        if collision_body.has_exception(moving_rid)
+                            || p_body.has_exception(col_rid)
+                            || is_body_test_motion_excluded(
+                                collision_body,
+                                body_test_motion_excludes,
+                            )
                         {
                             continue;
                         }

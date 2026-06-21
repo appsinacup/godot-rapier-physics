@@ -581,6 +581,11 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
         result: RawPtr<*mut PhysicsServer2DExtensionMotionResult>,
     ) -> bool {
         unsafe {
+            let base = self.base();
+            let body_test_motion_excludes = |body_rid: Rid, object_id: u64| {
+                base.body_test_motion_is_excluding_body(body_rid)
+                    || base.body_test_motion_is_excluding_object(object_id)
+            };
             self.implementation.body_test_motion(
                 body,
                 from,
@@ -589,6 +594,7 @@ impl IPhysicsServer2DExtension for RapierPhysicsServer2D {
                 1,
                 collide_separation_ray,
                 recovery_as_collision,
+                &body_test_motion_excludes,
                 result,
             )
         }

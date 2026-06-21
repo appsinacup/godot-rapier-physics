@@ -25,6 +25,14 @@ impl RapierSeparationRayShape {
         physics_shapes.insert(rid, RapierShape::RapierSeparationRayShape(shape));
     }
 }
+#[cfg(feature = "dim2")]
+fn separation_ray_end(length: f32) -> Vector2 {
+    Vector2::new(0.0, length)
+}
+#[cfg(feature = "dim3")]
+fn separation_ray_end(length: f32) -> Vector3 {
+    Vector3::new(0.0, -length, 0.0)
+}
 impl IRapierShape for RapierSeparationRayShape {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base
@@ -42,7 +50,7 @@ impl IRapierShape for RapierSeparationRayShape {
         false
     }
 
-    fn set_data(&mut self, data: Variant, _physics_engine: &mut PhysicsEngine) {
+    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         if data.get_type() != VariantType::DICTIONARY {
             godot_error!(
                 "RapierSeparationRayShape data must be a dictionary. Got {}",
@@ -63,6 +71,12 @@ impl IRapierShape for RapierSeparationRayShape {
             .get_or_nil("slide_on_slope")
             .try_to()
             .unwrap_or_default();
+        physics_engine.shape_create_segment(
+            vector_to_rapier(separation_ray_end(0.0)),
+            vector_to_rapier(separation_ray_end(self.length)),
+            self.base.get_id(),
+        );
+        self.base.reset_aabb(physics_engine);
     }
 
     fn get_data(&self, _physics_engine: &PhysicsEngine) -> Variant {

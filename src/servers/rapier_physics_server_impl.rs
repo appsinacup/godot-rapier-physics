@@ -1638,6 +1638,7 @@ impl RapierPhysicsServerImpl {
         _max_collisions: i32,
         collide_separation_ray: bool,
         recovery_as_collision: bool,
+        body_test_motion_excludes: &dyn Fn(Rid, u64) -> bool,
         result: RawPtr<*mut PhysicsServerExtensionMotionResult>,
     ) -> bool {
         let physics_data = physics_data();
@@ -1655,6 +1656,7 @@ impl RapierPhysicsServerImpl {
                 margin,
                 collide_separation_ray,
                 recovery_as_collision,
+                body_test_motion_excludes,
                 result,
                 &physics_data.physics_engine,
                 &physics_data.shapes,
