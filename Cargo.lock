@@ -28,9 +28,9 @@ dependencies = [
 
 [[package]]
 name = "arrayvec"
-version = "0.7.6"
+version = "0.7.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7c02d123df017efcdfbd739ef81735b36c5ba83ec3c59c80a9d7ecc718f92e50"
+checksum = "f02882884d3e1bc524fb12c79f107f6ad0e1cfd498c536ffb494301740995dfe"
 dependencies = [
  "serde",
 ]
@@ -143,9 +143,9 @@ checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
 
 [[package]]
 name = "gdextension-api"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "58ad9a3d877c77834a2d1d92842ebd56928f61bd52e0fac4f04fc8b3731b0437"
+checksum = "3489a9e7463353467db3cfe3eb12de31c9b6200e4f928bde4959bf5db5b31d2f"
 
 [[package]]
 name = "generational-arena"
@@ -887,7 +887,7 @@ dependencies = [
 [[package]]
 name = "salva2d"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=try-to-update-to-latest-nalgebra#877f5d8f4d2354cc3c233181ef3ea4b992643d59"
+source = "git+https://github.com/ughuuu/salva?branch=try-to-update-to-latest-nalgebra#a8aeae547f7c360ad4433942ba6fa9b78ea87fbc"
 dependencies = [
  "approx",
  "bitflags",
@@ -905,7 +905,7 @@ dependencies = [
 [[package]]
 name = "salva2d-f64"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=try-to-update-to-latest-nalgebra#877f5d8f4d2354cc3c233181ef3ea4b992643d59"
+source = "git+https://github.com/ughuuu/salva?branch=try-to-update-to-latest-nalgebra#a8aeae547f7c360ad4433942ba6fa9b78ea87fbc"
 dependencies = [
  "approx",
  "bitflags",
@@ -922,7 +922,7 @@ dependencies = [
 [[package]]
 name = "salva3d"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=try-to-update-to-latest-nalgebra#877f5d8f4d2354cc3c233181ef3ea4b992643d59"
+source = "git+https://github.com/ughuuu/salva?branch=try-to-update-to-latest-nalgebra#a8aeae547f7c360ad4433942ba6fa9b78ea87fbc"
 dependencies = [
  "approx",
  "bitflags",
@@ -940,7 +940,7 @@ dependencies = [
 [[package]]
 name = "salva3d-f64"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=try-to-update-to-latest-nalgebra#877f5d8f4d2354cc3c233181ef3ea4b992643d59"
+source = "git+https://github.com/ughuuu/salva?branch=try-to-update-to-latest-nalgebra#a8aeae547f7c360ad4433942ba6fa9b78ea87fbc"
 dependencies = [
  "approx",
  "bitflags",

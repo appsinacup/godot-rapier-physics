@@ -4,15 +4,9 @@ use bodies::rapier_collision_object_base::RapierCollisionObjectBase;
 use godot::classes::native::ObjectId;
 use godot::classes::physics_server_2d::BodyMode;
 use godot::prelude::*;
-use rapier::control::CharacterCollision;
-use rapier::control::CharacterLength;
-use rapier::control::KinematicCharacterController;
-use rapier::geometry::Collider;
 use rapier::geometry::ColliderHandle;
 use rapier::math::DEFAULT_EPSILON;
 use rapier::math::Real;
-use rapier::pipeline::QueryFilter;
-use rapier::prelude::SharedShape;
 use servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use servers::rapier_physics_singleton::PhysicsIds;
 use servers::rapier_physics_singleton::PhysicsShapes;
@@ -24,7 +18,6 @@ use super::rapier_space::RapierSpace;
 use crate::bodies::rapier_body::RapierBody;
 use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
-use crate::servers::rapier_project_settings::RapierProjectSettings;
 use crate::types::*;
 use crate::*;
 const TEST_MOTION_MARGIN: Real = 1e-4;
@@ -35,10 +28,6 @@ const BODY_MOTION_RECOVER_RATIO: Real = 0.4;
 #[cfg(feature = "dim3")]
 const BODY_MOTION_RECOVER_RATIO: Real = 0.5;
 const MAX_EXCLUDED_SHAPE_PAIRS: usize = 32;
-#[cfg(feature = "dim2")]
-const BODY_MOTION_CAST_ITERATIONS: i32 = 8;
-#[cfg(feature = "dim3")]
-const BODY_MOTION_CAST_ITERATIONS: i32 = 8;
 #[cfg(feature = "dim2")]
 const MIN_MOTION_THRESHOLD: Real = 1e-3;
 #[cfg(feature = "dim3")]
@@ -55,10 +44,6 @@ const BLOCKED_MOTION_EPSILON: Real = 1e-4;
 const MIN_RECOVERY_THRESHOLD: Real = 1e-3;
 #[cfg(feature = "dim3")]
 const MIN_RECOVERY_THRESHOLD: Real = 1e-4;
-#[cfg(feature = "dim2")]
-const STUCK_PENETRATION_THRESHOLD: Real = 0.1;
-#[cfg(feature = "dim3")]
-const STUCK_PENETRATION_THRESHOLD: Real = 0.01;
 const NORMAL_EPSILON: Real = 0.01;
 #[derive(Clone, Copy)]
 struct ExcludedShapePair {
@@ -281,38 +266,41 @@ fn contact_depth(distance: Real, margin: Real) -> Real {
 fn is_contact_depth_allowed(distance: Real, margin: Real, min_allowed_depth: Real) -> bool {
     contact_depth(distance, margin) >= min_allowed_depth
 }
-fn is_motion_blocked_by_contact(contact: &ContactResult, motion: Vector) -> bool {
+fn is_motion_blocked_by_normal(contact_normal: Vector, motion: Vector) -> bool {
     let Some(motion_normal) = motion.try_normalized() else {
         return true;
     };
-    let contact_normal = vector_to_godot(contact.normal2);
     contact_normal.dot(motion_normal) < -NORMAL_EPSILON
-}
-#[cfg(feature = "dim2")]
-fn is_end_contact_relevant(contact: &ContactResult, motion: Vector) -> bool {
-    contact.collided && is_motion_blocked_by_contact(contact, motion)
-}
-#[cfg(feature = "dim3")]
-fn is_end_contact_relevant(contact: &ContactResult, _motion: Vector) -> bool {
-    contact.collided
 }
 fn contact_collision_point(contact: &ContactResult) -> rapier::prelude::Vector {
     contact.pixel_point2
 }
-#[cfg(feature = "dim2")]
-fn rapier_character_controller_up() -> rapier::prelude::Vector {
-    rapier::prelude::Vector::new(0.0, -1.0)
-}
-#[cfg(feature = "dim3")]
-fn rapier_character_controller_up() -> rapier::prelude::Vector {
-    rapier::prelude::Vector::new(0.0, 1.0, 0.0)
-}
-fn motion_safe_fraction(travel: Vector, motion: Vector) -> Real {
-    let motion_length_squared = motion.length_squared();
-    if motion_length_squared <= DEFAULT_EPSILON {
-        return 1.0;
+fn contact_from_shape_cast_result(result: &ShapeCastResult) -> ContactResult {
+    ContactResult {
+        collided: result.collided,
+        within_margin: false,
+        pixel_distance: 0.0,
+        pixel_point1: result.pixel_witness1,
+        pixel_point2: result.pixel_witness2,
+        normal1: result.normal1,
+        normal2: result.normal2,
     }
-    (travel.dot(motion) / motion_length_squared).clamp(0.0, 1.0)
+}
+fn is_shape_pair_excluded(
+    local_shape_index: usize,
+    collision_object_rid: Rid,
+    collision_shape_index: usize,
+    excluded_shape_pairs: &[ExcludedShapePair; MAX_EXCLUDED_SHAPE_PAIRS],
+    excluded_shape_pair_count: usize,
+) -> bool {
+    excluded_shape_pairs
+        .iter()
+        .take(excluded_shape_pair_count)
+        .any(|excluded| {
+            excluded.local_shape_index == local_shape_index
+                && excluded.collision_object_rid == collision_object_rid
+                && excluded.collision_shape_index == collision_shape_index
+        })
 }
 impl RapierSpace {
     pub fn is_handle_excluded_callback(
@@ -359,169 +347,6 @@ impl RapierSpace {
     }
 
     #[allow(clippy::too_many_arguments)]
-    fn test_body_motion_rapier_character_controller(
-        &self,
-        p_body: &RapierBody,
-        p_transform: &Transform,
-        p_motion: Vector,
-        _p_margin: Real,
-        p_result: &mut PhysicsServerExtensionMotionResult,
-        physics_engine: &PhysicsEngine,
-        physics_shapes: &PhysicsShapes,
-        physics_ids: &PhysicsIds,
-        physics_collision_objects: &PhysicsCollisionObjects,
-    ) -> Option<bool> {
-        let mut enabled_shapes = Vec::new();
-        for shape_index in 0..p_body.get_base().get_shape_count() as usize {
-            if p_body.get_base().is_shape_disabled(shape_index) {
-                continue;
-            }
-            let body_shape =
-                physics_shapes.get(&p_body.get_base().get_shape(physics_ids, shape_index))?;
-            let body_shape_transform =
-                *p_transform * p_body.get_base().get_shape_transform(shape_index);
-            let body_shape_info =
-                shape_info_from_body_shape(body_shape.get_base().get_id(), body_shape_transform);
-            let raw_body_shape = physics_engine.get_shape(body_shape_info.handle)?;
-            let character_shape = scale_shape(raw_body_shape, body_shape_info);
-            enabled_shapes.push((shape_index, body_shape_info, character_shape));
-        }
-        if enabled_shapes.is_empty() {
-            p_result.travel = p_motion;
-            p_result.remainder = Vector::default();
-            p_result.collision_safe_fraction = 1.0;
-            p_result.collision_unsafe_fraction = 1.0;
-            return Some(false);
-        }
-        let (body_shape_index, character_pos, character_shape) = if enabled_shapes.len() == 1 {
-            let (shape_index, shape_info, shape) = enabled_shapes.remove(0);
-            (shape_index as i32, shape_info.transform, shape)
-        } else {
-            let body_pose =
-                shape_info_from_body_shape(enabled_shapes[0].1.handle, *p_transform).transform;
-            let mut compound_shapes = Vec::with_capacity(enabled_shapes.len());
-            for (_, shape_info, shape) in enabled_shapes {
-                compound_shapes.push((body_pose.inv_mul(&shape_info.transform), shape));
-            }
-            (-1, body_pose, SharedShape::compound(compound_shapes))
-        };
-        let physics_world = physics_engine.get_world(p_body.get_base().get_space_id())?;
-        let query_excluded_info = QueryExcludedInfo {
-            query_collision_layer_mask: p_body.get_base().get_collision_mask(),
-            query_exclude_body: p_body.get_base().get_rid().to_u64() as i64,
-            ..Default::default()
-        };
-        let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
-            let user_data = physics_world.get_collider_user_data(handle);
-            if self.is_handle_excluded_callback(
-                handle,
-                &user_data,
-                &query_excluded_info,
-                physics_collision_objects,
-                physics_ids,
-            ) {
-                return false;
-            }
-            if !user_data.is_valid() {
-                return false;
-            }
-            let (collision_object_rid, _) =
-                RapierCollisionObjectBase::get_collider_user_data(&user_data, physics_ids);
-            let Some(collision_object) = physics_collision_objects.get(&collision_object_rid)
-            else {
-                return false;
-            };
-            let Some(collision_body) = collision_object.get_body() else {
-                return false;
-            };
-            let moving_rid = p_body.get_base().get_rid();
-            let collision_rid = collision_body.get_base().get_rid();
-            !(collision_body.has_exception(moving_rid) || p_body.has_exception(collision_rid))
-        };
-        let filter = QueryFilter::new()
-            .exclude_sensors()
-            .exclude_rigid_body(p_body.get_base().get_body_handle())
-            .predicate(&predicate);
-        let query_pipeline = physics_world.physics_objects.broad_phase.as_query_pipeline(
-            physics_world
-                .physics_objects
-                .narrow_phase
-                .query_dispatcher(),
-            &physics_world.physics_objects.rigid_body_set,
-            &physics_world.physics_objects.collider_set,
-            filter,
-        );
-        if query_pipeline.bvh.is_empty() && !physics_world.physics_objects.collider_set.is_empty() {
-            return None;
-        }
-        let character_controller = KinematicCharacterController {
-            up: rapier_character_controller_up(),
-            offset: CharacterLength::Absolute(TEST_MOTION_MARGIN),
-            slide: true,
-            autostep: None,
-            snap_to_ground: None,
-            ..Default::default()
-        };
-        let mut first_collision: Option<CharacterCollision> = None;
-        let character_movement = character_controller.move_shape(
-            RapierSpace::get_last_step(),
-            &query_pipeline,
-            character_shape.as_ref(),
-            &character_pos,
-            vector_to_rapier(p_motion),
-            |collision| {
-                if first_collision.is_none() {
-                    first_collision = Some(collision);
-                }
-            },
-        );
-        let Some(collision) = first_collision else {
-            let character_travel = vector_to_godot(character_movement.translation);
-            p_result.travel += character_travel;
-            p_result.remainder = Vector::default();
-            p_result.collision_depth = 0.0;
-            p_result.collision_safe_fraction = 1.0;
-            p_result.collision_unsafe_fraction = 1.0;
-            return Some(false);
-        };
-        let user_data = physics_world.get_collider_user_data(collision.handle);
-        if !user_data.is_valid() {
-            return None;
-        }
-        let (collision_object_rid, collision_shape_index) =
-            RapierCollisionObjectBase::get_collider_user_data(&user_data, physics_ids);
-        let collision_object = physics_collision_objects.get(&collision_object_rid)?;
-        let collision_body = collision_object.get_body()?;
-        let first_hit_travel = vector_to_godot(collision.translation_applied);
-        let safe_fraction = motion_safe_fraction(first_hit_travel, p_motion);
-        let mut corrected_travel = vector_to_godot(character_movement.translation);
-        if collision_body.get_static_linear_velocity() != Vector::default() {
-            corrected_travel +=
-                collision_body.get_static_linear_velocity() * RapierSpace::get_last_step();
-        }
-        p_result.collision_depth = 0.0;
-        let collision_point = vector_to_godot(collision.hit.witness1);
-        let local_position = collision_point - collision_body.get_base().get_transform().origin;
-        set_collision_info(
-            p_result,
-            collision_body.get_base().get_rid(),
-            ObjectId {
-                id: collision_body.get_base().get_instance_id(),
-            },
-            collision_shape_index as i32,
-            body_shape_index,
-            collision_point,
-            vector_to_godot(collision.hit.normal1),
-            collision_body.get_velocity_at_local_point(local_position, physics_engine),
-        );
-        p_result.travel += corrected_travel;
-        p_result.remainder = Vector::default();
-        p_result.collision_safe_fraction = safe_fraction;
-        p_result.collision_unsafe_fraction = safe_fraction;
-        Some(true)
-    }
-
-    #[allow(clippy::too_many_arguments)]
     pub fn test_body_motion(
         &self,
         body: &RapierBody,
@@ -539,36 +364,6 @@ impl RapierSpace {
         reset_body_motion_result(result);
         let margin = Real::max(margin, TEST_MOTION_MARGIN);
         let is_small_motion = vector_length(motion) < MIN_MOTION_THRESHOLD;
-        if RapierProjectSettings::get_use_rapier_character_controller() && !is_small_motion {
-            return self
-                .test_body_motion_rapier_character_controller(
-                    body,
-                    &from,
-                    motion,
-                    margin,
-                    result,
-                    physics_engine,
-                    physics_shapes,
-                    physics_ids,
-                    physics_collision_objects,
-                )
-                .unwrap_or_else(|| {
-                    finish_body_motion_result(
-                        result,
-                        Vector::default(),
-                        motion,
-                        margin,
-                        1.0,
-                        1.0,
-                        false,
-                    );
-                    false
-                });
-        }
-        // Skip processing if motion is too small (prevents infinite micro-adjustments)
-        if finish_small_body_motion(motion, result) {
-            return false;
-        }
         let mut body_transform = from; // Because body_transform needs to be modified during recovery
         // Step 1: recover motion.
         // Expand the body colliders by the margin (grow) and check if now it collides with a collider,
@@ -902,28 +697,11 @@ impl RapierSpace {
         physics_ids: &PhysicsIds,
         physics_collision_objects: &PhysicsCollisionObjects,
     ) {
-        let body_aabb = p_body.get_aabb(physics_shapes, physics_ids);
-        let margin_aabb = *p_transform * body_aabb;
-        let margin_aabb = margin_aabb.grow(p_margin);
-        let mut motion_aabb = margin_aabb;
-        motion_aabb.position += p_motion;
-        motion_aabb = motion_aabb.merge(margin_aabb);
-        let mut results = [PointHitInfo::default(); 32];
-        let result_count = self.rapier_intersect_aabb(
-            motion_aabb,
-            p_body.get_base().get_collision_mask(),
-            true,
-            false,
-            &mut results,
-            32,
-            p_body.get_base().get_rid(),
-            physics_engine,
-            physics_collision_objects,
-            physics_ids,
-        );
-        if result_count == 0 {
-            return;
-        }
+        let handle_excluded_info = QueryExcludedInfo {
+            query_collision_layer_mask: p_body.get_base().get_collision_mask(),
+            query_exclude_body: p_body.get_base().get_rid().to_u64() as i64,
+            ..Default::default()
+        };
         for body_shape_idx in 0..p_body.get_base().get_shape_count() {
             let body_shape_idx = body_shape_idx as usize;
             if p_body.get_base().is_shape_disabled(body_shape_idx) {
@@ -934,39 +712,48 @@ impl RapierSpace {
             {
                 let body_shape_transform =
                     *p_transform * p_body.get_base().get_shape_transform(body_shape_idx);
-                let mut body_shape_info = shape_info_from_body_shape(
+                let body_shape_info = shape_info_from_body_shape(
                     body_shape.get_base().get_id(),
                     body_shape_transform,
                 );
                 let mut best_safe = 1.0;
                 let mut best_unsafe = 1.0;
-                let mut stuck = false;
-                for result_idx in 0..result_count {
-                    let result_idx = result_idx as usize;
-                    let result = &mut results[result_idx];
+                let shape_cast_results = physics_engine.shape_casting(
+                    self.get_state().get_id(),
+                    vector_to_rapier(p_motion),
+                    body_shape_info,
+                    0.0,
+                    true,
+                    false,
+                    &handle_excluded_info,
+                    physics_collision_objects,
+                    physics_ids,
+                    self,
+                    false,
+                );
+                for result in shape_cast_results.iter() {
+                    if !result.collided {
+                        continue;
+                    }
                     if !result.user_data.is_valid() {
                         continue;
                     }
-                    let (shape_col_object, shape_index) =
+                    let (shape_col_object_rid, shape_index) =
                         RapierCollisionObjectBase::get_collider_user_data(
                             &result.user_data,
                             physics_ids,
                         );
-                    // Check if this shape pair is excluded
-                    let mut is_excluded = false;
-                    for excluded in excluded_shape_pairs.iter().take(excluded_shape_pair_count) {
-                        if excluded.local_shape_index == body_shape_idx
-                            && excluded.collision_object_rid == shape_col_object
-                            && excluded.collision_shape_index == shape_index
-                        {
-                            is_excluded = true;
-                            break;
-                        }
-                    }
-                    if is_excluded {
+                    if is_shape_pair_excluded(
+                        body_shape_idx,
+                        shape_col_object_rid,
+                        shape_index,
+                        excluded_shape_pairs,
+                        excluded_shape_pair_count,
+                    ) {
                         continue;
                     }
-                    if let Some(shape_col_object) = physics_collision_objects.get(&shape_col_object)
+                    if let Some(shape_col_object) =
+                        physics_collision_objects.get(&shape_col_object_rid)
                         && let Some(collision_body) = shape_col_object.get_body()
                     {
                         let moving_rid = p_body.get_base().get_rid();
@@ -975,149 +762,44 @@ impl RapierSpace {
                         {
                             continue;
                         }
-                        if let Some(col_shape) = physics_shapes.get(
+                        if let Some(_col_shape) = physics_shapes.get(
                             &collision_body
                                 .get_base()
                                 .get_shape(physics_ids, shape_index),
                         ) {
                             let col_shape_transform = collision_body.get_base().get_transform()
                                 * collision_body.get_base().get_shape_transform(shape_index);
-                            let col_shape_info = shape_info_from_body_shape(
-                                col_shape.get_base().get_id(),
-                                col_shape_transform,
-                            );
-                            // Test if going all the way collides
-                            body_shape_info.transform.translation =
-                                vector_to_rapier(body_shape_transform.origin + p_motion);
-                            let end_contact =
-                                physics_engine.shapes_contact(body_shape_info, col_shape_info, 0.0);
-                            if !is_end_contact_relevant(&end_contact, p_motion) {
-                                // Doesn't collide at end, skip
+                            if !is_motion_blocked_by_normal(
+                                vector_to_godot(result.normal2),
+                                p_motion,
+                            ) {
                                 continue;
                             }
-                            // Test initial overlap - if colliding at start position, body might be stuck
-                            body_shape_info.transform.translation =
-                                vector_to_rapier(body_shape_transform.origin);
-                            let initial_contact = physics_engine.shapes_contact(
-                                body_shape_info,
-                                col_shape_info,
-                                p_margin,
-                            );
-                            let penetration_depth = -initial_contact.pixel_distance;
-                            if initial_contact.collided
-                                && is_motion_blocked_by_contact(&initial_contact, p_motion)
-                                && !initial_contact.within_margin
-                                && penetration_depth > STUCK_PENETRATION_THRESHOLD
-                            {
-                                // Check one-way collision - allow passage if motion opposes one-way direction
-                                if body_shape.allows_one_way_collision()
-                                    && shape_col_object
-                                        .get_base()
-                                        .is_shape_set_as_one_way_collision(shape_index)
-                                {
-                                    let direction = -get_one_way_valid_direction(
-                                        &col_shape_transform,
-                                        shape_col_object
-                                            .get_base()
-                                            .get_shape_one_way_collision_direction(shape_index),
-                                    );
-                                    if let Some(motion_normal) = p_motion.try_normalized()
-                                        && motion_normal.dot(direction) < 0.0
-                                    {
-                                        continue; // Motion opposes one-way direction, allow passage
-                                    }
-                                }
-                                // Body is stuck - set both safe and unsafe to 0 and mark this shape
-                                stuck = true;
-                                best_safe = 0.0;
-                                best_unsafe = 0.0;
-                                break; // Break out of result loop - this shape is stuck
-                            }
-                            //just do kinematic solving
-                            let mut low = 0.0;
-                            let mut hi = 1.0;
-                            let mut fraction_coeff = 0.5;
-                            for k in 0..BODY_MOTION_CAST_ITERATIONS {
-                                let fraction = low + (hi - low) * fraction_coeff;
-                                body_shape_info.transform.translation = vector_to_rapier(
-                                    body_shape_transform.origin + p_motion * fraction,
-                                );
-                                let step_contact = physics_engine.shapes_contact(
-                                    body_shape_info,
-                                    col_shape_info,
-                                    0.0,
-                                );
-                                if step_contact.collided
-                                    && !step_contact.within_margin
-                                    && is_motion_blocked_by_contact(&step_contact, p_motion)
-                                {
-                                    hi = fraction;
-                                    if (k == 0) || (low > 0.0) {
-                                        // Did it not collide before?
-                                        // When alternating or first iteration, use dichotomy.
-                                        fraction_coeff = 0.5;
-                                    } else {
-                                        // When colliding again, converge faster towards low
-                                        // fraction for more accurate results with long motions
-                                        // that collide near the start.
-                                        fraction_coeff = 0.25;
-                                    }
-                                } else {
-                                    low = fraction;
-                                    if (k == 0) || (hi < 1.0) {
-                                        // Did it collide before?
-                                        // When alternating or first iteration, use dichotomy.
-                                        fraction_coeff = 0.5;
-                                    } else {
-                                        // When not colliding again, converge faster towards
-                                        // high fraction for more accurate results with long
-                                        // motions that collide near the end.
-                                        fraction_coeff = 0.75;
-                                    }
-                                }
-                            }
-                            body_shape_info.transform.translation = vector_to_rapier(
-                                body_shape_transform.origin
-                                    + p_motion * (hi + self.get_contact_max_allowed_penetration()),
-                            );
-                            let contact = physics_engine.shapes_contact(
-                                body_shape_info,
-                                col_shape_info,
-                                p_margin,
-                            );
-                            if !contact.collided {
-                                continue;
-                            }
-                            if !is_motion_blocked_by_contact(&contact, p_motion) {
-                                continue;
-                            }
+                            let contact = contact_from_shape_cast_result(result);
+                            let safe_fraction = result.toi.clamp(0.0, 1.0);
+                            let unsafe_fraction = result.toi_unsafe.max(safe_fraction).min(1.0);
                             if physics_engine.should_skip_collision_one_dir(
                                 &contact,
                                 body_shape,
                                 shape_col_object,
                                 shape_index,
                                 &col_shape_transform,
-                                body_shape_transform.origin
-                                    + p_motion * (hi + self.get_contact_max_allowed_penetration()),
+                                body_shape_transform.origin + p_motion * unsafe_fraction,
                                 p_margin,
                                 RapierSpace::get_last_step(),
                                 p_motion,
                             ) {
                                 continue;
                             }
-                            if low < best_safe {
-                                best_safe = low;
-                                best_unsafe = hi;
+                            if safe_fraction < best_safe {
+                                best_safe = safe_fraction;
+                                best_unsafe = unsafe_fraction;
+                                if best_safe <= DEFAULT_EPSILON {
+                                    break;
+                                }
                             }
                         }
                     }
-                }
-                // If stuck, immediately update closest values and stop checking other shapes
-                if stuck {
-                    *p_closest_safe = 0.0;
-                    *p_closest_unsafe = 0.0;
-                    *p_best_body_shape = body_shape_idx as i32;
-                    break; // Break out of body shape loop
                 }
                 if best_safe == 1.0 {
                     continue;
@@ -1126,6 +808,9 @@ impl RapierSpace {
                     *p_closest_safe = best_safe;
                     *p_closest_unsafe = best_unsafe;
                     *p_best_body_shape = body_shape_idx as i32;
+                    if best_safe <= DEFAULT_EPSILON {
+                        break;
+                    }
                 }
             }
         }
@@ -1605,19 +1290,11 @@ mod tests {
     }
     #[test]
     fn motion_blocking_filter_accepts_opposing_contact_normal() {
-        let contact = ContactResult {
-            normal2: vector_to_rapier(x_motion(-1.0)),
-            ..Default::default()
-        };
-        assert!(is_motion_blocked_by_contact(&contact, x_motion(10.0)));
+        assert!(is_motion_blocked_by_normal(x_motion(-1.0), x_motion(10.0)));
     }
     #[test]
     fn motion_blocking_filter_rejects_tangent_contact_normal() {
-        let contact = ContactResult {
-            normal2: vector_to_rapier(y_motion(-1.0)),
-            ..Default::default()
-        };
-        assert!(!is_motion_blocked_by_contact(&contact, x_motion(10.0)));
+        assert!(!is_motion_blocked_by_normal(y_motion(-1.0), x_motion(10.0)));
     }
     #[test]
     fn clamp_near_zero_safe_motion_sets_sub_epsilon_travel_to_zero() {
