@@ -10,6 +10,7 @@ use godot::prelude::*;
 use super::fluid_impl::FluidImpl;
 use crate::servers::RapierPhysicsServer;
 use crate::servers::rapier_project_settings::RapierProjectSettings;
+use crate::servers::try_physics_server_singleton;
 use crate::types::*;
 #[derive(GodotClass)]
 #[class(base=Node3D,tool)]
@@ -356,7 +357,9 @@ impl INode3D for Fluid3D {
 impl Drop for Fluid3D {
     fn drop(&mut self) {
         if self.rid != Rid::Invalid {
-            PhysicsServer::singleton().free_rid(self.rid);
+            if let Some(mut physics_server) = try_physics_server_singleton() {
+                physics_server.free_rid(self.rid);
+            }
         }
     }
 }

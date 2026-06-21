@@ -14,14 +14,14 @@ extern crate salva2d_f64 as salva;
 extern crate salva3d as salva;
 #[cfg(all(feature = "double", feature = "dim3"))]
 extern crate salva3d_f64 as salva;
-mod bodies;
-mod fluids;
+pub mod bodies;
+pub mod fluids;
 mod joints;
-mod nodes;
+pub mod nodes;
 mod rapier_wrapper;
-mod servers;
+pub mod servers;
 mod shapes;
-mod spaces;
+pub mod spaces;
 mod types;
 use godot::prelude::*;
 #[cfg(feature = "dim2")]

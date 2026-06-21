@@ -91,11 +91,31 @@ Use exactly one Godot API feature: `api-4-4`, `api-4-5`, `api-4-6`, or `api-4-7`
 
 For web/Emscripten builds, replace native `experimental-threads` with one web feature: `experimental-wasm` for threaded web builds, or `experimental-wasm-nothreads` for no-thread web builds. `experimental-wasm-nothreads` includes `experimental-wasm`. CI builds web with `wasm32-unknown-emscripten`, `release-wasm`, and `-Zbuild-std`.
 
-When depending on another GDExtension crate, set `GDRUST_MAIN_EXTENSION` to your extension's `ExtensionLibrary` type and explicitly reference Godot Rapier so its classes are registered:
+When depending on another GDExtension crate, set `GDRUST_MAIN_EXTENSION` to your extension's `ExtensionLibrary` type and explicitly forward Godot Rapier's init stages from your extension. Godot only runs one main `ExtensionLibrary`, so the user's extension must register the Rapier server and classes too:
 
 ```rust
-extern crate godot_rapier;
+use godot::prelude::*;
+use godot_rapier::RapierPhysics3DExtensionLibrary;
+
+struct MyExtension;
+
+#[gdextension]
+unsafe impl ExtensionLibrary for MyExtension {
+    fn min_level() -> InitLevel {
+        InitLevel::Servers
+    }
+
+    fn on_stage_init(level: InitStage) {
+        RapierPhysics3DExtensionLibrary::on_stage_init(level);
+    }
+
+    fn on_stage_deinit(level: InitStage) {
+        RapierPhysics3DExtensionLibrary::on_stage_deinit(level);
+    }
+}
 ```
+
+For 2D projects, use `RapierPhysics2DExtensionLibrary`.
 
 Do not load the standalone Godot Rapier addon in the same Godot project when bundling it through another Rust GDExtension, because Godot classes can be registered twice.
 

@@ -19,9 +19,9 @@ use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::bodies::rapier_collision_object::RapierCollisionObject;
 use crate::servers::RapierPhysicsServer;
 use crate::servers::rapier_physics_singleton::physics_data;
+use crate::servers::try_rapier_physics_server;
 use crate::spaces::rapier_space::SpaceExport;
 use crate::spaces::rapier_space::SpaceImport;
-use crate::types::PhysicsServer;
 use crate::types::SerializationFormat;
 use crate::types::bin_to_packed_byte_array;
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
@@ -655,12 +655,9 @@ impl StateManager {
             // Now we've got references to all the owned states for our physics objects (for whatever export format we've selected).
             // For the Godot encodings, that means the state is stored in Variants; for bincode, it's just references to the raw state objects.
             // From this point, we need to build either a Godot dictionary (for JSON or GodotBase4 encoding) or a nested Rust Hashmap, for Bincode.
-            let physics_server_index: i64 = {
-                match PhysicsServer::singleton().try_cast::<RapierPhysicsServer>() {
-                    Ok(physics_singleton) => physics_singleton.bind().implementation.id as i64,
-                    Err(_) => 0,
-                }
-            };
+            let physics_server_index: i64 = try_rapier_physics_server()
+                .map(|physics_singleton| physics_singleton.bind().implementation.id as i64)
+                .unwrap_or(0);
             let Some(space_state) = self.get_physics_node_state(in_space) else {
                 godot_error!("Failed to export space state for RID {}!", in_space);
                 return None;
