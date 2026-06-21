@@ -282,10 +282,10 @@ impl INode2D for Fluid2D {
 }
 impl Drop for Fluid2D {
     fn drop(&mut self) {
-        if self.rid != Rid::Invalid {
-            if let Some(mut physics_server) = try_physics_server_singleton() {
-                physics_server.free_rid(self.rid);
-            }
+        if self.rid != Rid::Invalid
+            && let Some(mut physics_server) = try_physics_server_singleton()
+        {
+            physics_server.free_rid(self.rid);
         }
     }
 }

@@ -356,10 +356,10 @@ impl INode3D for Fluid3D {
 }
 impl Drop for Fluid3D {
     fn drop(&mut self) {
-        if self.rid != Rid::Invalid {
-            if let Some(mut physics_server) = try_physics_server_singleton() {
-                physics_server.free_rid(self.rid);
-            }
+        if self.rid != Rid::Invalid
+            && let Some(mut physics_server) = try_physics_server_singleton()
+        {
+            physics_server.free_rid(self.rid);
         }
     }
 }

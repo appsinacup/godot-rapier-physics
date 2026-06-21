@@ -18,6 +18,13 @@ use crate::types::*;
 pub struct RapierDirectSpaceStateImpl {
     pub space: Rid,
 }
+impl Default for RapierDirectSpaceStateImpl {
+    fn default() -> Self {
+        Self {
+            space: Rid::Invalid,
+        }
+    }
+}
 #[cfg(feature = "dim3")]
 fn cross_product(a: Angle, b: Vector) -> Vector {
     a.cross(b)
@@ -27,12 +34,6 @@ fn cross_product(a: Angle, b: Vector) -> Vector {
     Vector::new(-a * b.y, a * b.x)
 }
 impl RapierDirectSpaceStateImpl {
-    pub fn default() -> Self {
-        Self {
-            space: Rid::Invalid,
-        }
-    }
-
     #[cfg(feature = "dim3")]
     pub fn get_closest_point_to_object_volume(
         &self,
@@ -92,6 +93,9 @@ impl RapierDirectSpaceStateImpl {
     }
 
     #[allow(clippy::too_many_arguments)]
+    /// # Safety
+    ///
+    /// `result` must point to a valid writable Godot ray result for the duration of this call.
     pub unsafe fn intersect_ray(
         &mut self,
         from: Vector,
@@ -167,6 +171,9 @@ impl RapierDirectSpaceStateImpl {
     }
 
     #[allow(clippy::too_many_arguments)]
+    /// # Safety
+    ///
+    /// `results` must point to writable storage for at least `max_results` Godot shape results.
     pub unsafe fn intersect_point(
         &mut self,
         position: Vector,
@@ -247,6 +254,9 @@ impl RapierDirectSpaceStateImpl {
     }
 
     #[allow(clippy::too_many_arguments)]
+    /// # Safety
+    ///
+    /// `results` must point to writable storage for at least `max_results` Godot shape results.
     pub unsafe fn intersect_shape(
         &mut self,
         shape_rid: Rid,
@@ -327,6 +337,9 @@ impl RapierDirectSpaceStateImpl {
     }
 
     #[allow(clippy::too_many_arguments)]
+    /// # Safety
+    ///
+    /// `closest_safe` and `closest_unsafe` must point to valid writable scalar values.
     pub unsafe fn cast_motion(
         &mut self,
         shape_rid: Rid,
@@ -388,6 +401,10 @@ impl RapierDirectSpaceStateImpl {
     }
 
     #[allow(clippy::too_many_arguments)]
+    /// # Safety
+    ///
+    /// `results` must point to writable `Vector` pair storage for at least `max_results`
+    /// contacts, and `result_count` must be null or point to a writable `i32`.
     pub unsafe fn collide_shape(
         &mut self,
         shape_rid: Rid,
@@ -456,6 +473,9 @@ impl RapierDirectSpaceStateImpl {
     }
 
     #[allow(clippy::too_many_arguments)]
+    /// # Safety
+    ///
+    /// `rest_info` must point to a valid writable Godot shape rest info result.
     pub unsafe fn rest_info(
         &mut self,
         shape_rid: Rid,

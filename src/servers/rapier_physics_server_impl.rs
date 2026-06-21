@@ -1629,6 +1629,9 @@ impl RapierPhysicsServerImpl {
     }
 
     #[allow(clippy::too_many_arguments)]
+    /// # Safety
+    ///
+    /// `result` must point to a valid writable Godot motion result for the duration of this call.
     pub unsafe fn body_test_motion(
         &self,
         body: Rid,
