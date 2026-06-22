@@ -80,6 +80,9 @@ impl Fluid3D {
         let mut mm_inst = MultiMeshInstance3D::new_alloc();
         mm_inst.set_multimesh(Some(&mm));
         mm_inst.set_visible(true);
+        if !mm_inst.is_instance_valid() {
+            return;
+        }
         self.debug_multimesh = Some(mm);
         self.debug_multimesh_instance = Some(mm_inst.clone());
         let node_variant = mm_inst.clone().upcast::<Node>().to_variant();
