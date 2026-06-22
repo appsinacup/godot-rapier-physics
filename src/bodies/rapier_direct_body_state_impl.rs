@@ -501,11 +501,9 @@ impl RapierDirectBodyStateImpl {
             if let Some(rid) = physics_data.ids.get(&rapier_id)
                 && let Some(collider_obj) = physics_data.collision_objects.get(rid)
             {
-                let instance_id = collider_obj.get_base().get_instance_id();
-                match Gd::try_from_instance_id(InstanceId::from_i64(instance_id as i64)) {
-                    Ok(object) => return Some(object),
-                    Err(_) => return None,
-                }
+                let instance_id =
+                    InstanceId::try_from_i64(collider_obj.get_base().get_instance_id() as i64)?;
+                return Gd::try_from_instance_id(instance_id).ok();
             }
         }
         None

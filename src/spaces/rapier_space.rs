@@ -2,6 +2,7 @@ use std::collections::BTreeSet;
 
 use bodies::rapier_area::RapierArea;
 use bodies::rapier_body::RapierBody;
+use bodies::rapier_collision_object_base::CollisionObjectType;
 use godot::classes::ProjectSettings;
 #[cfg(feature = "dim2")]
 use godot::classes::physics_server_2d::*;
@@ -38,6 +39,31 @@ use crate::servers::rapier_physics_singleton::physics_data;
 use crate::servers::rapier_project_settings::*;
 use crate::types::*;
 use crate::*;
+
+enum PendingQueryCallback {
+    Callv {
+        callable: Callable,
+        args: VarArray,
+    },
+    Call {
+        callable: Callable,
+        args: Vec<Variant>,
+    },
+}
+
+impl PendingQueryCallback {
+    fn call(self) {
+        match self {
+            Self::Callv { callable, args } => {
+                callable.callv(&args);
+            }
+            Self::Call { callable, args } => {
+                callable.call(args.as_slice());
+            }
+        }
+    }
+}
+
 #[cfg(feature = "dim2")]
 const DEFAULT_GRAVITY_VECTOR: &str = "physics/2d/default_gravity_vector";
 #[cfg(feature = "dim3")]
@@ -163,55 +189,64 @@ impl RapierSpace {
     }
 
     #[inline]
-    fn call_body_state_query(
+    fn collect_body_state_query(
         body_id: RapierId,
         physics_collision_objects: &mut PhysicsCollisionObjects,
         physics_ids: &PhysicsIds,
-    ) {
+    ) -> Option<PendingQueryCallback> {
         let mut direct_state_array = None;
         let mut state_sync_callback = None;
         if let Some(body) = physics_collision_objects.get_mut(&get_id_rid(body_id, physics_ids))
             && let Some(body) = body.get_mut_body()
         {
             body.create_direct_state();
-            state_sync_callback = body.get_state_sync_callback();
-            direct_state_array = Some(body.get_direct_state_array());
+            state_sync_callback = body.get_state_sync_callback().cloned();
+            direct_state_array = Some(body.get_direct_state_array().clone());
         }
         if let Some(state_sync_callback) = state_sync_callback
             && let Some(direct_state_array) = direct_state_array
         {
-            state_sync_callback.callv(direct_state_array);
+            return Some(PendingQueryCallback::Callv {
+                callable: state_sync_callback,
+                args: direct_state_array,
+            });
         }
+        None
     }
 
     #[inline]
-    fn call_body_force_query(
+    fn collect_body_force_query(
         body_id: RapierId,
         physics_collision_objects: &mut PhysicsCollisionObjects,
         physics_ids: &PhysicsIds,
-    ) {
+    ) -> Option<PendingQueryCallback> {
         let mut fi_callback = None;
         let mut fi_array = None;
         if let Some(body) = physics_collision_objects.get_mut(&get_id_rid(body_id, physics_ids))
             && let Some(body) = body.get_mut_body()
         {
             body.create_direct_state();
-            fi_callback = body.get_force_integration_callable();
-            fi_array = Some(body.get_force_integration_array());
+            fi_callback = body.get_force_integration_callable().cloned();
+            fi_array = Some(body.get_force_integration_array().clone());
         }
         if let Some(fi_callback) = fi_callback
             && let Some(fi_array) = fi_array
         {
-            fi_callback.callv(fi_array);
+            return Some(PendingQueryCallback::Callv {
+                callable: fi_callback,
+                args: fi_array,
+            });
         }
+        None
     }
 
     #[inline]
-    fn call_body_state_and_force_queries(
+    fn collect_body_state_and_force_queries(
         body_id: RapierId,
         physics_collision_objects: &mut PhysicsCollisionObjects,
         physics_ids: &PhysicsIds,
-    ) {
+    ) -> Vec<PendingQueryCallback> {
+        let mut callbacks = Vec::new();
         let mut direct_state_array = None;
         let mut state_sync_callback = None;
         let mut fi_callback = None;
@@ -220,21 +255,28 @@ impl RapierSpace {
             && let Some(body) = body.get_mut_body()
         {
             body.create_direct_state();
-            state_sync_callback = body.get_state_sync_callback();
-            fi_callback = body.get_force_integration_callable();
-            direct_state_array = Some(body.get_direct_state_array());
-            fi_array = Some(body.get_force_integration_array());
+            state_sync_callback = body.get_state_sync_callback().cloned();
+            fi_callback = body.get_force_integration_callable().cloned();
+            direct_state_array = Some(body.get_direct_state_array().clone());
+            fi_array = Some(body.get_force_integration_array().clone());
         }
         if let Some(state_sync_callback) = state_sync_callback
             && let Some(direct_state_array) = direct_state_array
         {
-            state_sync_callback.callv(direct_state_array);
+            callbacks.push(PendingQueryCallback::Callv {
+                callable: state_sync_callback,
+                args: direct_state_array,
+            });
         }
         if let Some(fi_callback) = fi_callback
             && let Some(fi_array) = fi_array
         {
-            fi_callback.callv(fi_array);
+            callbacks.push(PendingQueryCallback::Callv {
+                callable: fi_callback,
+                args: fi_array,
+            });
         }
+        callbacks
     }
 
     #[inline]
@@ -257,7 +299,7 @@ impl RapierSpace {
         }
     }
 
-    pub fn call_queries(
+    fn collect_query_callbacks(
         active_list: &BTreeSet<RapierId>,
         deactivated_state_sync_list: &BTreeSet<RapierId>,
         state_query_list: &BTreeSet<RapierId>,
@@ -265,35 +307,52 @@ impl RapierSpace {
         monitor_query_list: &BTreeSet<RapierId>,
         physics_collision_objects: &mut PhysicsCollisionObjects,
         physics_ids: &PhysicsIds,
-    ) {
+    ) -> Vec<PendingQueryCallback> {
+        let mut callbacks = Vec::new();
         if !active_list.is_empty() && force_integrate_query_list.is_empty() {
             Self::for_each_intersection_body(active_list, state_query_list, |body_id| {
-                Self::call_body_state_query(body_id, physics_collision_objects, physics_ids);
+                if let Some(callback) =
+                    Self::collect_body_state_query(body_id, physics_collision_objects, physics_ids)
+                {
+                    callbacks.push(callback);
+                }
             });
         } else if !active_list.is_empty() && state_query_list.is_empty() {
             Self::for_each_intersection_body(active_list, force_integrate_query_list, |body_id| {
-                Self::call_body_force_query(body_id, physics_collision_objects, physics_ids);
+                if let Some(callback) =
+                    Self::collect_body_force_query(body_id, physics_collision_objects, physics_ids)
+                {
+                    callbacks.push(callback);
+                }
             });
         } else if !active_list.is_empty() {
             for body_id in active_list {
                 let state_query = state_query_list.contains(body_id);
                 let force_query = force_integrate_query_list.contains(body_id);
                 match (state_query, force_query) {
-                    (true, true) => Self::call_body_state_and_force_queries(
+                    (true, true) => callbacks.extend(Self::collect_body_state_and_force_queries(
                         *body_id,
                         physics_collision_objects,
                         physics_ids,
-                    ),
-                    (true, false) => Self::call_body_state_query(
-                        *body_id,
-                        physics_collision_objects,
-                        physics_ids,
-                    ),
-                    (false, true) => Self::call_body_force_query(
-                        *body_id,
-                        physics_collision_objects,
-                        physics_ids,
-                    ),
+                    )),
+                    (true, false) => {
+                        if let Some(callback) = Self::collect_body_state_query(
+                            *body_id,
+                            physics_collision_objects,
+                            physics_ids,
+                        ) {
+                            callbacks.push(callback);
+                        }
+                    }
+                    (false, true) => {
+                        if let Some(callback) = Self::collect_body_force_query(
+                            *body_id,
+                            physics_collision_objects,
+                            physics_ids,
+                        ) {
+                            callbacks.push(callback);
+                        }
+                    }
                     (false, false) => {}
                 }
             }
@@ -302,8 +361,14 @@ impl RapierSpace {
             deactivated_state_sync_list,
             state_query_list,
             |body_id| {
-                if !active_list.contains(&body_id) {
-                    Self::call_body_state_query(body_id, physics_collision_objects, physics_ids);
+                if !active_list.contains(&body_id)
+                    && let Some(callback) = Self::collect_body_state_query(
+                        body_id,
+                        physics_collision_objects,
+                        physics_ids,
+                    )
+                {
+                    callbacks.push(callback);
                 }
             },
         );
@@ -320,14 +385,54 @@ impl RapierSpace {
                 area_monitor_callback = area.area_monitor_callback.clone();
             }
             if let Some(unhandled_event_queue) = unhandled_event_queue {
-                RapierArea::call_queries(
-                    &unhandled_event_queue,
-                    monitor_callback,
-                    area_monitor_callback,
-                    physics_ids,
-                );
+                for monitor_report in unhandled_event_queue.values() {
+                    if monitor_report.state == 0 {
+                        godot_error!("Invalid monitor state");
+                        continue;
+                    }
+                    let rid = get_id_rid(monitor_report.id, physics_ids);
+                    let godot_instance_id: i64 = if let Some(obj_rid) =
+                        physics_ids.get(&monitor_report.instance_id)
+                        && let Some(obj) = physics_collision_objects.get(obj_rid)
+                    {
+                        obj.get_base().get_instance_id() as i64
+                    } else {
+                        0
+                    };
+                    let arg_array = if monitor_report.state > 0 {
+                        vec![
+                            AreaBodyStatus::ADDED.to_variant(),
+                            rid.to_variant(),
+                            godot_instance_id.to_variant(),
+                            monitor_report.object_shape_index.to_variant(),
+                            monitor_report.this_area_shape_index.to_variant(),
+                        ]
+                    } else {
+                        vec![
+                            AreaBodyStatus::REMOVED.to_variant(),
+                            rid.to_variant(),
+                            godot_instance_id.to_variant(),
+                            monitor_report.object_shape_index.to_variant(),
+                            monitor_report.this_area_shape_index.to_variant(),
+                        ]
+                    };
+                    if monitor_report.collision_object_type == CollisionObjectType::Body {
+                        if let Some(monitor_callback) = &monitor_callback {
+                            callbacks.push(PendingQueryCallback::Call {
+                                callable: monitor_callback.clone(),
+                                args: arg_array,
+                            });
+                        }
+                    } else if let Some(area_monitor_callback) = &area_monitor_callback {
+                        callbacks.push(PendingQueryCallback::Call {
+                            callable: area_monitor_callback.clone(),
+                            args: arg_array,
+                        });
+                    }
+                }
             }
         }
+        callbacks
     }
 
     pub fn update_after_queries(
@@ -614,32 +719,30 @@ impl RapierSpace {
     }
 
     pub fn flush(&mut self) {
-        let physics_data = physics_data();
-        {
-            let active_list = Some(self.get_state().get_active_list());
+        let callbacks = {
+            let physics_data = physics_data();
+            let physics_ids = physics_data.ids.clone();
+            let active_list = self.get_state().get_active_list().clone();
             let deactivated_state_sync_list =
-                Some(self.get_state().get_deactivated_state_sync_list());
-            let state_query_list = Some(self.get_state().get_state_query_list());
+                self.get_state().get_deactivated_state_sync_list().clone();
+            let state_query_list = self.get_state().get_state_query_list().clone();
             let force_integrate_query_list =
-                Some(self.get_state().get_force_integrate_query_list());
-            let monitor_query_list = Some(self.get_state().get_monitor_query_list());
-            if let Some(active_list) = active_list
-                && let Some(deactivated_state_sync_list) = deactivated_state_sync_list
-                && let Some(state_query_list) = state_query_list
-                && let Some(force_integrate_query_list) = force_integrate_query_list
-                && let Some(monitor_query_list) = monitor_query_list
-            {
-                RapierSpace::call_queries(
-                    active_list,
-                    deactivated_state_sync_list,
-                    state_query_list,
-                    force_integrate_query_list,
-                    monitor_query_list,
-                    &mut physics_data.collision_objects,
-                    &physics_data.ids,
-                );
-            }
+                self.get_state().get_force_integrate_query_list().clone();
+            let monitor_query_list = self.get_state().get_monitor_query_list().clone();
+            RapierSpace::collect_query_callbacks(
+                &active_list,
+                &deactivated_state_sync_list,
+                &state_query_list,
+                &force_integrate_query_list,
+                &monitor_query_list,
+                &mut physics_data.collision_objects,
+                &physics_ids,
+            )
+        };
+        for callback in callbacks {
+            callback.call();
         }
+        let physics_data = physics_data();
         self.get_mut_state().reset_deactivated_state_sync_list();
         self.update_after_queries(&mut physics_data.collision_objects, &physics_data.ids);
     }

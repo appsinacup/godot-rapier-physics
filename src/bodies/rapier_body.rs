@@ -624,8 +624,8 @@ impl RapierBody {
         self.force_integration_callback = None;
         if callable.is_valid() {
             self.force_integration_callback = Some(callable);
-            if let Some(ds) = &self.direct_state {
-                self.force_integration_array.push(&ds.to_variant());
+            if let Some(direct_state) = self.direct_state_variant() {
+                self.force_integration_array.push(&direct_state);
                 if !udata.is_nil() {
                     self.force_integration_array.push(&udata);
                 }
@@ -650,16 +650,42 @@ impl RapierBody {
         self.force_integration_callback.as_ref()
     }
 
-    pub fn create_direct_state(&mut self) {
-        if self.direct_state.is_none() {
+    fn direct_state_variant(&mut self) -> Option<Variant> {
+        if self
+            .direct_state
+            .as_ref()
+            .is_some_and(|direct_state| direct_state.is_instance_valid())
+        {
+            return self
+                .direct_state
+                .as_ref()
+                .map(|direct_state| direct_state.to_variant());
+        }
+        if self.direct_state.is_some() {
+            self.direct_state = None;
             self.direct_state_array.clear();
-            let mut direct_space_state = RapierDirectBodyState::new_alloc();
-            {
-                let mut direct_state = direct_space_state.bind_mut();
-                direct_state.set_body(self.base.get_rid());
-            }
-            self.direct_state_array
-                .push(&direct_space_state.clone().to_variant());
+        }
+        None
+    }
+
+    pub fn create_direct_state(&mut self) {
+        if self
+            .direct_state
+            .as_ref()
+            .is_some_and(|direct_state| direct_state.is_instance_valid())
+        {
+            return;
+        }
+        self.direct_state = None;
+        self.direct_state_array.clear();
+        let mut direct_space_state = RapierDirectBodyState::new_alloc();
+        {
+            let mut direct_state = direct_space_state.bind_mut();
+            direct_state.set_body(self.base.get_rid());
+        }
+        if direct_space_state.is_instance_valid() {
+            let direct_state = direct_space_state.to_variant();
+            self.direct_state_array.push(&direct_state);
             self.direct_state = Some(direct_space_state.upcast());
         }
     }

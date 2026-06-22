@@ -57,11 +57,11 @@ Exact simulation every time (on same platform)|Exact simulation on multiple plat
 
 # Installation
 
-- Automatic (Recommended): Download the plugin from the official [Godot Asset Store](https://godotengine.org/asset-library/asset/2267) using the `AssetLib` tab in Godot:
-    - [Rapier Physics 2D - Fast Version with Parallel SIMD Solver](https://godotengine.org/asset-library/asset/2267)
-    - [Rapier Physics 2D - Slower Version with Cross Platform Deterministic](https://godotengine.org/asset-library/asset/2815)
-    - [Rapier Physics 3D - Fast Version with Parallel SIMD Solver](https://godotengine.org/asset-library/asset/3084)
-    - [Rapier Physics 3D - Slower Version with Cross Platform Deterministic](https://godotengine.org/asset-library/asset/3085)
+- Automatic (Recommended): Download the plugin from the official [Godot Asset Store](https://store.godotengine.org) using the `Asset Store` tab in Godot:
+    - [Rapier Physics 2D - Fast Version with Parallel SIMD Solver](https://store.godotengine.org/asset/appsinacup/rapier-physics-2d-fast-version-with-parallel-simd-solver/)
+    - [Rapier Physics 2D - Slower Version with Cross Platform Deterministic](https://store.godotengine.org/asset/appsinacup/rapier-physics-2d-slower-version-with-cross-platform-deterministic/)
+    - [Rapier Physics 3D - Fast Version with Parallel SIMD Solver](https://store.godotengine.org/asset/appsinacup/rapier-physics-3d-fast-version-with-parallel-simd-solver/)
+    - [Rapier Physics 3D - Slower Version with Cross Platform Deterministic](https://store.godotengine.org/asset/appsinacup/rapier-physics-3d-slower-version-with-cross-platform-deterministic/)
 
     Note: For general use cases, use the **Faster Version**.
 
@@ -75,7 +75,7 @@ See [godot-rust/ExtensionLibrary](https://godot-rust.github.io/docs/gdext/master
 
 ```toml
 [dependencies]
-godot-rapier = { git = "https://github.com/appsinacup/godot-rapier-physics.git", tag = "v0.8.36", features = ["single-dim2"] }
+godot-rapier = { git = "https://github.com/appsinacup/godot-rapier-physics.git", tag = "v0.8.37", features = ["single-dim2"] }
 ```
 
 Feature sets matching the shipped addon variants:

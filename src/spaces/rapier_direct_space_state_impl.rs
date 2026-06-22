@@ -33,6 +33,12 @@ fn cross_product(a: Angle, b: Vector) -> Vector {
 fn cross_product(a: Angle, b: Vector) -> Vector {
     Vector::new(-a * b.y, a * b.x)
 }
+
+fn try_node_from_instance_id(instance_id: u64) -> Option<Gd<Node>> {
+    let instance_id = InstanceId::try_from_i64(instance_id as i64)?;
+    Gd::<Node>::try_from_instance_id(instance_id).ok()
+}
+
 impl RapierDirectSpaceStateImpl {
     #[cfg(feature = "dim3")]
     pub fn get_closest_point_to_object_volume(
@@ -151,10 +157,7 @@ impl RapierDirectSpaceStateImpl {
             if let Some(collision_object_2d) = physics_data.collision_objects.get(&result.rid) {
                 let instance_id = collision_object_2d.get_base().get_instance_id();
                 result.collider_id = ObjectId { id: instance_id };
-                if instance_id != 0
-                    && let Ok(object) =
-                        Gd::<Node>::try_from_instance_id(InstanceId::from_i64(instance_id as i64))
-                {
+                if let Some(object) = try_node_from_instance_id(instance_id) {
                     unsafe { result.set_collider(object) }
                 }
             }
@@ -242,10 +245,7 @@ impl RapierDirectSpaceStateImpl {
             result_slice.shape = shape_index as i32;
             let instance_id = collision_object_2d.get_base().get_instance_id();
             result_slice.collider_id = ObjectId { id: instance_id };
-            if instance_id != 0
-                && let Ok(object) =
-                    Gd::<Node>::try_from_instance_id(InstanceId::from_i64(instance_id as i64))
-            {
+            if let Some(object) = try_node_from_instance_id(instance_id) {
                 unsafe { result_slice.set_collider(object) }
             }
             output_count += 1;
@@ -321,10 +321,7 @@ impl RapierDirectSpaceStateImpl {
                 results_slice[cpt].rid = rid;
                 let instance_id = collision_object_2d.get_base().get_instance_id();
                 results_slice[cpt].collider_id = ObjectId { id: instance_id };
-                if instance_id != 0
-                    && let Ok(object) =
-                        Gd::<Node>::try_from_instance_id(InstanceId::from_i64(instance_id as i64))
-                {
+                if let Some(object) = try_node_from_instance_id(instance_id) {
                     unsafe { results_slice[cpt].set_collider(object) }
                 }
                 cpt += 1;
