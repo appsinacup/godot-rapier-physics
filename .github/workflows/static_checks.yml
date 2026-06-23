@@ -19,30 +19,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Setup Godot
-        uses: appsinacup/setup-godot-action@main
-        with:
-          version: '4.7-stable'
       - name: Clippy 2D
         shell: sh
         run: |
           rustup component add clippy
-          GDRUST_GODOT_BIN="$GODOT4" cargo clippy --all-targets --features="single-dim2,serde-serialize,simd-stable,experimental-threads,register-docs,api-4-7,api-custom" -- -D warnings
+          cargo clippy --all-targets --features="single-dim2,serde-serialize,simd-stable,experimental-threads,register-docs,api-4-7" -- -D warnings
 
   clippy-3d:
     name: Clippy 3D
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Setup Godot
-        uses: appsinacup/setup-godot-action@main
-        with:
-          version: '4.7-stable'
       - name: Clippy 3D
         shell: sh
         run: |
           rustup component add clippy
-          GDRUST_GODOT_BIN="$GODOT4" cargo clippy --all-targets --features="single-dim3,serde-serialize,simd-stable,experimental-threads,register-docs,api-4-7,api-custom" -- -D warnings
+          cargo clippy --all-targets --features="single-dim3,serde-serialize,simd-stable,experimental-threads,register-docs,api-4-7" -- -D warnings
 
   gdlint:
     name: GDLint

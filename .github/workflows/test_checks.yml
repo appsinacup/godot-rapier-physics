@@ -17,15 +17,10 @@ jobs:
           - { name: 3D, feature: single-dim3 }
     steps:
       - uses: actions/checkout@v6
-      - name: Setup Godot
-        uses: appsinacup/setup-godot-action@main
-        with:
-          version: ${{ env.GODOT_VERSION }}
-
       - name: Run Unit Tests
         shell: bash
         run: |
-          GDRUST_GODOT_BIN="$GODOT4" cargo test --all-targets --features="${{ matrix.dimensions.feature }},test,simd-stable,experimental-threads,register-docs,api-4-7,api-custom"
+          cargo test --all-targets --features="${{ matrix.dimensions.feature }},test,simd-stable,experimental-threads,register-docs,api-4-7"
 
   run-integration-tests:
     name: Run Godot Tests ${{ matrix.dimensions.name }} (${{ matrix.os.name }})
@@ -53,7 +48,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          GDRUST_GODOT_BIN="$GODOT4" cargo build --features="${{ matrix.dimensions.feature }},test,simd-stable,experimental-threads,register-docs,api-4-7,api-custom"
+          cargo build --features="${{ matrix.dimensions.feature }},test,simd-stable,experimental-threads,register-docs,api-4-7"
 
           addon_dir="bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin"
           case "$RUNNER_OS" in
