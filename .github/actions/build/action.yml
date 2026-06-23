@@ -13,6 +13,10 @@ inputs:
   features:
     required: true
     description: simd-stable,simd-nightly,parallel,enhanced-determinism
+  api_feature:
+    required: false
+    default: api-custom
+    description: Godot API feature to use. Must be exactly one api-* feature.
   profile:
     required: false
     default: release
@@ -46,7 +50,7 @@ runs:
         if [ -z "$TOOLCHAIN" ]; then
           TOOLCHAIN=$(grep -E '^channel' rust-toolchain.toml | sed -E 's/channel = "(.*)"/\1/')
         fi
-        GDRUST_GODOT_BIN="$GODOT4" cargo +"$TOOLCHAIN" build --target=${{ inputs.arch }} --profile=${{ inputs.profile }} --features="${{ inputs.features }},api-4-7,api-custom" ${{ inputs.extra_flags }}
+        GDRUST_GODOT_BIN="${GODOT4:-}" cargo +"$TOOLCHAIN" build --target=${{ inputs.arch }} --profile=${{ inputs.profile }} --features="${{ inputs.features }},${{ inputs.api_feature }}" ${{ inputs.extra_flags }}
     - name: Copy to release
       shell: sh
       run: |
@@ -64,7 +68,7 @@ runs:
           TOOLCHAIN=$(grep -E '^channel' rust-toolchain.toml | sed -E 's/channel = "(.*)"/\1/')
         fi
         rustup target add aarch64-apple-darwin --toolchain "$TOOLCHAIN"
-        GDRUST_GODOT_BIN="$GODOT4" cargo +"$TOOLCHAIN" build --target=aarch64-apple-darwin --profile=${{ inputs.profile }} --features="${{ inputs.features }},api-4-7,api-custom" ${{ inputs.extra_flags }}
+        GDRUST_GODOT_BIN="${GODOT4:-}" cargo +"$TOOLCHAIN" build --target=aarch64-apple-darwin --profile=${{ inputs.profile }} --features="${{ inputs.features }},${{ inputs.api_feature }}" ${{ inputs.extra_flags }}
         lipo -create -output target/release/libgodot_rapier.dylib target/aarch64-apple-darwin/${{ inputs.profile }}/libgodot_rapier.dylib target/x86_64-apple-darwin/${{ inputs.profile }}/libgodot_rapier.dylib
     - name: Move Static Libs macOS
       shell: sh
