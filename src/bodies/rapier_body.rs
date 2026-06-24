@@ -1795,7 +1795,10 @@ impl RapierBody {
                     return;
                 }
                 let old_scale = transform_scale(&self.base.get_transform());
-                let transform = p_variant.try_to().unwrap_or_default();
+                let mut transform: Transform = p_variant.try_to().unwrap_or_default();
+                if self.base.mode.ord() >= BodyMode::RIGID.ord() {
+                    transform = transform_orthonormalized(&transform);
+                }
                 let new_scale = transform_scale(&transform);
                 self.base.set_transform(transform, true, physics_engine);
                 if old_scale != new_scale {

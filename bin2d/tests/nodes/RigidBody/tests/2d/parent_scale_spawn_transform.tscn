@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://c5gmn3l6hwwa8"]
+
+[ext_resource type="Script" path="res://tests/nodes/RigidBody/tests/2d/parent_scale_spawn_transform.gd" id="1_r1jox"]
+
+[node name="parent_scale_spawn_transform" type="Node2D"]
+script = ExtResource("1_r1jox")

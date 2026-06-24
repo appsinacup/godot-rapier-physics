@@ -178,8 +178,13 @@ impl RapierDirectBodyStateImpl {
         if let Some(body) = physics_data.collision_objects.get_mut(&self.body)
             && let Some(body) = body.get_mut_body()
         {
-            body.get_mut_base()
-                .set_transform(transform, true, &mut physics_data.physics_engine);
+            body.set_state(
+                BodyState::TRANSFORM,
+                transform.to_variant(),
+                &mut physics_data.physics_engine,
+                &mut physics_data.spaces,
+                &physics_data.ids,
+            );
         }
     }
 

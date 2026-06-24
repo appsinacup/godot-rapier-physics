@@ -203,6 +203,29 @@ pub fn transform_update(transform: &Transform, rotation: Rotation, origin: Vecto
     }
     Transform2D { a, b, origin }
 }
+#[cfg(feature = "dim2")]
+pub fn transform_orthonormalized(transform: &Transform) -> Transform {
+    let mut x = transform.a;
+    let mut y = transform.b;
+    let x_len: real = ComplexField::sqrt(x.x * x.x + x.y * x.y);
+    if x_len > 0.0 {
+        x /= x_len;
+    } else {
+        x = Vector2::ZERO;
+    }
+    y = y - x * x.dot(y);
+    let y_len: real = ComplexField::sqrt(y.x * y.x + y.y * y.y);
+    if y_len > 0.0 {
+        y /= y_len;
+    } else {
+        y = Vector2::ZERO;
+    }
+    Transform2D {
+        a: x,
+        b: y,
+        origin: transform.origin,
+    }
+}
 #[cfg(feature = "dim3")]
 pub fn transform_update(transform: &Transform, rotation: Rotation, origin: Vector) -> Transform {
     // Use glam's Mat3::from_quat which is deterministic with scalar-math + libm.
@@ -219,6 +242,34 @@ pub fn transform_update(transform: &Transform, rotation: Rotation, origin: Vecto
         Vector3::new(col2.x * scale.z, col2.y * scale.z, col2.z * scale.z),
     );
     Transform::new(basis, origin)
+}
+#[cfg(feature = "dim3")]
+pub fn transform_orthonormalized(transform: &Transform) -> Transform {
+    let mut x = transform.basis.col_a();
+    let mut y = transform.basis.col_b();
+    let mut z = transform.basis.col_c();
+    let x_len: real = ComplexField::sqrt(x.x * x.x + x.y * x.y + x.z * x.z);
+    if x_len > 0.0 {
+        x /= x_len;
+    } else {
+        x = Vector3::ZERO;
+    }
+    y = y - x * x.dot(y);
+    let y_len: real = ComplexField::sqrt(y.x * y.x + y.y * y.y + y.z * y.z);
+    if y_len > 0.0 {
+        y /= y_len;
+    } else {
+        y = Vector3::ZERO;
+    }
+    z = z - x * x.dot(z) - y * y.dot(z);
+    let z_len: real = ComplexField::sqrt(z.x * z.x + z.y * z.y + z.z * z.z);
+    if z_len > 0.0 {
+        z /= z_len;
+    } else {
+        z = Vector3::ZERO;
+    }
+    let basis = godot::builtin::Basis::from_cols(x, y, z);
+    Transform::new(basis, transform.origin)
 }
 #[cfg(feature = "dim3")]
 pub fn transform_rotation_rapier(transform: &godot::builtin::Transform3D) -> Rotation {
