@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://ciekdjc0dd47r"]
+
+[ext_resource type="Script" uid="uid://dfbvfen1c7o4j" path="res://tests/nodes/RigidBody/tests/2d/input_reparent_transform.gd" id="1_arf42"]
+
+[node name="input_reparent_transform" type="Node2D" unique_id=2074134499]
+script = ExtResource("1_arf42")

@@ -645,6 +645,10 @@ impl RapierSpace {
             if let Some(body) = physics_collision_objects.get_mut(&get_id_rid(body, physics_ids))
                 && let Some(body) = body.get_mut_body()
             {
+                if body.get_state_sync_callback().is_some() {
+                    self.get_mut_state()
+                        .body_add_to_state_query_list(body.get_base().get_id());
+                }
                 if body.is_sleeping(physics_engine) {
                     body.set_active(false, self);
                     continue;
@@ -703,8 +707,10 @@ impl RapierSpace {
     }
 
     #[cfg(feature = "serde-serialize")]
-    fn import(&mut self, physics_engine: &mut PhysicsEngine, import: SpaceImport) {
+    fn import(&mut self, physics_engine: &mut PhysicsEngine, mut import: SpaceImport) {
         // NOTE: Areas in this space MUST be made to clean up their stale intersections before import is called here.
+        import.space.reset_state_query_list();
+        import.space.reset_deactivated_state_sync_list();
         self.state = import.space;
         let world_settings = WorldSettings {
             particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
@@ -743,6 +749,7 @@ impl RapierSpace {
             callback.call();
         }
         let physics_data = physics_data();
+        self.get_mut_state().reset_state_query_list();
         self.get_mut_state().reset_deactivated_state_sync_list();
         self.update_after_queries(&mut physics_data.collision_objects, &physics_data.ids);
     }

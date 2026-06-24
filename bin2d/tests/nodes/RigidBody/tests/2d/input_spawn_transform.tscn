@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://dhmmn2j0ufic2"]
+
+[ext_resource type="Script" uid="uid://c1j8w4q0cpr5k" path="res://tests/nodes/RigidBody/tests/2d/input_spawn_transform.gd" id="1_f0kcb"]
+
+[node name="input_spawn_transform" type="Node2D" unique_id=1929436397]
+script = ExtResource("1_f0kcb")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1373025303]

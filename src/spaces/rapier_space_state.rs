@@ -227,6 +227,10 @@ impl RapierSpaceState {
         &self.state_query_list
     }
 
+    pub fn reset_state_query_list(&mut self) {
+        self.state_query_list.clear();
+    }
+
     pub fn get_force_integrate_query_list(&self) -> &BTreeSet<RapierId> {
         &self.force_integrate_query_list
     }

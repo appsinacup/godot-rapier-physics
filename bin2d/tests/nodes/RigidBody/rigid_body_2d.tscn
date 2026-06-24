@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://jd2c3mg4v3bh"]
+[gd_scene load_steps=10 format=3 uid="uid://jd2c3mg4v3bh"]
 
 [ext_resource type="Script" path="res://base/class/test_scene_child.gd" id="1_6eclx"]
 [ext_resource type="PackedScene" uid="uid://bxrk6vpptw3in" path="res://tests/nodes/RigidBody/tests/2d/rectangle_stack.tscn" id="1_cclgc"]
@@ -7,6 +7,8 @@
 [ext_resource type="PackedScene" uid="uid://nqktmpb0a6er" path="res://tests/nodes/RigidBody/tests/2d/contact_monitor.tscn" id="4_n6ed2"]
 [ext_resource type="PackedScene" uid="uid://bn1ox1w8nnydx" path="res://tests/nodes/RigidBody/tests/2d/rectangle_pyramid.tscn" id="6_wt8n6"]
 [ext_resource type="PackedScene" uid="uid://c8rd0ut3utr8l" path="res://tests/nodes/RigidBody/tests/2d/basic_api.tscn" id="7_8ojwc"]
+[ext_resource type="PackedScene" path="res://tests/nodes/RigidBody/tests/2d/input_spawn_transform.tscn" id="8_n82ko"]
+[ext_resource type="PackedScene" path="res://tests/nodes/RigidBody/tests/2d/input_reparent_transform.tscn" id="9_wcvoj"]
 
 [node name="rigid_dynamic_body_2d" type="Node2D"]
 script = ExtResource("1_6eclx")
@@ -25,3 +27,7 @@ wall_type = 1
 [node name="rectangle_pyramid" parent="." instance=ExtResource("6_wt8n6")]
 
 [node name="basic_api" parent="." instance=ExtResource("7_8ojwc")]
+
+[node name="input_spawn_transform" parent="." instance=ExtResource("8_n82ko")]
+
+[node name="input_reparent_transform" parent="." instance=ExtResource("9_wcvoj")]
