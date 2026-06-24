@@ -107,4 +107,3 @@ func test_completed(delay := 0) -> void:
 
 	completed.emit()
 	queue_free()
-

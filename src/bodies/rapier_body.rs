@@ -601,11 +601,6 @@ impl RapierBody {
             }
         } else {
             self.body_state_callback = Some(p_callable);
-            if let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_ids)) {
-                space
-                    .get_mut_state()
-                    .body_add_to_state_query_list(self.base.get_id());
-            }
         }
     }
 
@@ -2161,11 +2156,6 @@ impl RapierBody {
                 && let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_ids))
             {
                 space.get_mut_state().body_add_to_force_integrate_list(id);
-            }
-            if self.get_state_sync_callback().is_some()
-                && let Some(space) = physics_spaces.get_mut(&self.base.get_space(physics_ids))
-            {
-                space.get_mut_state().body_add_to_state_query_list(id);
             }
             if !self.can_sleep {
                 self.set_can_sleep(false, physics_engine);
