@@ -32,8 +32,6 @@ pub struct RapierRevoluteJoint {
     motor_damping: f32,
     motor_position_enabled: bool,
     bias: f32,
-    #[cfg(feature = "dim3")]
-    motor_max_force: f32,
     base: RapierJointBase,
 }
 impl RapierRevoluteJoint {
@@ -98,6 +96,7 @@ impl RapierRevoluteJoint {
             0.0,
             0.0,
             false,
+            f32::MAX,
             true,
         );
         Self {
@@ -140,7 +139,6 @@ impl RapierRevoluteJoint {
             motor_stiffness: 0.0,
             motor_damping: 0.0,
             motor_position_enabled: false,
-            motor_max_force: 0.0,
             bias: 0.0,
             base: RapierJointBase::default(),
         };
@@ -192,7 +190,6 @@ impl RapierRevoluteJoint {
             motor_stiffness: 0.0,
             motor_damping: 0.0,
             motor_position_enabled: false,
-            motor_max_force: 0.0,
             bias: 0.0,
             base: RapierJointBase::new(id, rid, space_id, space_handle, handle, joint_type),
         }
@@ -236,6 +233,7 @@ impl RapierRevoluteJoint {
             self.motor_stiffness,
             self.motor_damping,
             self.motor_position_enabled,
+            self.base.get_max_force(),
             self.get_final_bias(),
             Self::estimate_physics_step(),
         );
@@ -273,10 +271,9 @@ impl RapierRevoluteJoint {
             motor_stiffness,
             motor_damping,
             motor_position_enabled,
+            self.base.get_max_force(),
             self.get_final_bias(),
             Self::estimate_physics_step(),
-            #[cfg(feature = "dim3")]
-            self.motor_max_force,
         );
     }
 
@@ -298,7 +295,8 @@ impl RapierRevoluteJoint {
                 self.motor_target_velocity = p_value;
             }
             physics_server_3d::HingeJointParam::MOTOR_MAX_IMPULSE => {
-                self.motor_max_force = p_value / Self::estimate_physics_step();
+                self.base
+                    .set_max_force(p_value / Self::estimate_physics_step());
             }
             _ => {}
         }
@@ -318,7 +316,7 @@ impl RapierRevoluteJoint {
             self.motor_stiffness,
             self.motor_damping,
             self.motor_position_enabled,
-            self.motor_max_force,
+            self.base.get_max_force(),
             self.get_final_bias(),
             Self::estimate_physics_step(),
         );
@@ -358,6 +356,32 @@ impl RapierRevoluteJoint {
     }
 
     #[cfg(feature = "dim2")]
+    pub fn set_max_force(&mut self, force: f32, physics_engine: &mut PhysicsEngine) {
+        self.get_mut_base().set_max_force(force);
+
+        physics_engine.joint_change_revolute_params(
+            self.base.get_space_id(),
+            self.base.get_handle(),
+            self.angular_limit_lower,
+            self.angular_limit_upper,
+            self.angular_limit_enabled,
+            self.motor_target_velocity,
+            self.motor_enabled,
+            #[cfg(feature = "dim2")]
+            self.softness,
+            #[cfg(feature = "dim3")]
+            0.0,
+            self.motor_target_position,
+            self.motor_stiffness,
+            self.motor_damping,
+            self.motor_position_enabled,
+            self.base.get_max_force(),
+            self.get_final_bias(),
+            Self::estimate_physics_step(),
+        );
+    }
+
+    #[cfg(feature = "dim2")]
     pub fn set_bias_param(&mut self, value: f32, physics_engine: &mut PhysicsEngine) {
         self.bias = value;
         if !self.base.is_valid() {
@@ -379,8 +403,7 @@ impl RapierRevoluteJoint {
             self.motor_stiffness,
             self.motor_damping,
             self.motor_position_enabled,
-            #[cfg(feature = "dim3")]
-            self.motor_max_force,
+            self.base.get_max_force(),
             self.get_final_bias(),
             Self::estimate_physics_step(),
         );
@@ -423,7 +446,7 @@ impl RapierRevoluteJoint {
             physics_server_3d::HingeJointParam::LIMIT_LOWER => self.angular_limit_lower,
             physics_server_3d::HingeJointParam::MOTOR_TARGET_VELOCITY => self.motor_target_velocity,
             physics_server_3d::HingeJointParam::MOTOR_MAX_IMPULSE => {
-                self.motor_max_force * Self::estimate_physics_step()
+                self.base.get_max_force() * Self::estimate_physics_step()
             }
             _ => 0.0,
         }
@@ -461,6 +484,7 @@ impl RapierRevoluteJoint {
             self.motor_stiffness,
             self.motor_damping,
             self.motor_position_enabled,
+            self.base.get_max_force(),
             self.get_final_bias(),
             Self::estimate_physics_step(),
         );
@@ -498,7 +522,7 @@ impl RapierRevoluteJoint {
             self.motor_stiffness,
             self.motor_damping,
             self.motor_position_enabled,
-            self.motor_max_force,
+            self.base.get_max_force(),
             self.get_final_bias(),
             Self::estimate_physics_step(),
         );

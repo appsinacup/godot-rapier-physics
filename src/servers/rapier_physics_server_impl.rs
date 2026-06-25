@@ -1702,8 +1702,16 @@ impl RapierPhysicsServerImpl {
         let physics_data = physics_data();
         if let Some(joint) = physics_data.joints.get_mut(&joint) {
             match param {
+                // TODO: This should just call a new set_param on an IRapierJoint function.
+                // The joint implementations need to know when params are changing so that they
+                // can reset the Rapier joint.
+                // For now, only the revolute joint is using these parameters, so explicit update functions
+                // have been added just to revolute joint to avoid refactoring RapierJointBase and RapierJoint.
                 JointParam::MAX_FORCE => {
                     joint.get_mut_base().set_max_force(value);
+                    if let RapierJoint::RapierRevoluteJoint(rev_joint) = joint {
+                        rev_joint.set_max_force(value, &mut physics_data.physics_engine);
+                    }
                 }
                 JointParam::BIAS => {
                     if let RapierJoint::RapierRevoluteJoint(rev_joint) = joint {
