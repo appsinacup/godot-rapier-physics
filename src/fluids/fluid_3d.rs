@@ -41,10 +41,10 @@ pub struct Fluid3D {
     pub(crate) debug_multimesh_instance: Option<Gd<MultiMeshInstance3D>>,
 
     #[export_group(name = "Collision", prefix = "collision_")]
-    #[export(flags_2d_physics)]
+    #[export(flags_3d_physics)]
     #[var(get = get_collision_layer, set = set_collision_layer)]
     pub(crate) collision_layer: u32,
-    #[export(flags_2d_physics)]
+    #[export(flags_3d_physics)]
     #[var(get = get_collision_mask, set = set_collision_mask)]
     pub(crate) collision_mask: u32,
     base: Base<Node3D>,
