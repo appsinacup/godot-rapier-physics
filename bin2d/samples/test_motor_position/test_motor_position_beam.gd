@@ -3,8 +3,8 @@
 extends StaticBody2D
 
 @export var number_of_segments : int = 10	
-@export var starting_stiffness: float = 100000.0
-@export var damping : float = 500.0
+@export var starting_stiffness: float = 100000000.0
+@export var damping : float = 2000000.0
 @export var segment_length : float = 100.0
 @export var starting_segment_height : float = 50.0
 @export var starting_segment_mass : float = 1.0

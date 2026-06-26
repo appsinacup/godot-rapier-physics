@@ -1,6 +1,4 @@
 use godot::global::godot_error;
-#[cfg(feature = "dim2")]
-use rapier::na::ComplexField;
 use rapier::prelude::*;
 
 use crate::joints::rapier_joint_base::RapierJointType;
@@ -8,24 +6,6 @@ use crate::joints::rapier_joint_base::RapierJointType;
 use crate::rapier_wrapper::joint::glamx::Quat;
 use crate::rapier_wrapper::prelude::*;
 impl PhysicsEngine {
-    #[cfg(feature = "dim2")]
-    fn godot_spring_to_rapier_accel(stiffness: Real, damping: Real) -> (Real, Real) {
-        // Godot stiffness is in N/m, convert to frequency: omega = sqrt(k/m)
-        // For AccelerationBased, assume unit mass (m=1)
-        let omega: Real = ComplexField::sqrt(stiffness);
-        // Calculate damping ratio from Godot damping: zeta = c / (2 * sqrt(k*m))
-        // For unit mass: zeta = c / (2 * sqrt(k))
-        let damping_ratio = if stiffness > 0.0 {
-            damping / (2.0 * omega)
-        } else {
-            0.0
-        };
-        // Convert back to AccelerationBased stiffness/damping
-        let rapier_stiffness = omega * omega;
-        let rapier_damping = 2.0 * damping_ratio * omega;
-        (rapier_stiffness, rapier_damping)
-    }
-
     pub fn get_multibody_rigidbodies(
         &mut self,
         world_handle: WorldHandle,
@@ -143,6 +123,7 @@ impl PhysicsEngine {
         motor_stiffness: Real,
         motor_damping: Real,
         motor_position_enabled: bool,
+        motor_max_force: Real,
         disable_collision: bool,
     ) -> JointHandle {
         self.body_wake_up(world_handle, body_handle_1, false);
@@ -152,7 +133,7 @@ impl PhysicsEngine {
                 .local_anchor1(anchor_1)
                 .local_anchor2(anchor_2)
                 .contacts_enabled(!disable_collision)
-                .motor_max_force(Real::MAX)
+                .motor_max_force(motor_max_force)
                 .motor_model(MotorModel::ForceBased);
             if angular_limit_enabled {
                 joint = joint.limits([angular_limit_lower, angular_limit_upper]);
@@ -213,7 +194,7 @@ impl PhysicsEngine {
             if motor_enabled {
                 joint = joint
                     .motor_velocity(JointAxis::AngX, motor_target_velocity, 0.0)
-                    .motor_model(JointAxis::AngX, MotorModel::AccelerationBased)
+                    .motor_model(JointAxis::AngX, MotorModel::ForceBased)
                     .motor_max_force(JointAxis::AngX, motor_max_force);
             } else if motor_position_enabled {
                 joint = joint
@@ -224,7 +205,7 @@ impl PhysicsEngine {
                         motor_damping,
                     )
                     .motor_max_force(JointAxis::AngX, Real::MAX)
-                    .motor_model(JointAxis::AngX, MotorModel::AccelerationBased);
+                    .motor_model(JointAxis::AngX, MotorModel::ForceBased);
             }
             return physics_world.insert_joint(
                 body_handle_1,
@@ -348,16 +329,16 @@ impl PhysicsEngine {
         motor_stiffness: Real,
         motor_damping: Real,
         motor_position_enabled: bool,
+        motor_max_force: Real,
         bias: Real,
         physics_step: Real,
-        #[cfg(feature = "dim3")] motor_max_force: Real,
     ) {
         self.joint_wake_up_connected_rigidbodies(world_handle, joint_handle);
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(joint) = physics_world.get_mut_joint(joint_handle)
         {
-            joint.set_motor_model(JointAxis::AngX, MotorModel::AccelerationBased);
-            joint.set_motor_max_force(JointAxis::AngX, Real::MAX);
+            joint.set_motor_model(JointAxis::AngX, MotorModel::ForceBased);
+            joint.set_motor_max_force(JointAxis::AngX, motor_max_force);
             if angular_limit_enabled {
                 joint.set_limits(JointAxis::AngX, [angular_limit_lower, angular_limit_upper]);
             } else {
@@ -365,8 +346,6 @@ impl PhysicsEngine {
             }
             if motor_enabled {
                 joint.set_motor(JointAxis::AngX, 0.0, motor_target_velocity, 0.0, 0.0);
-                #[cfg(feature = "dim3")]
-                joint.set_motor_max_force(JointAxis::AngX, motor_max_force);
             } else if motor_position_enabled {
                 joint.set_motor(
                     JointAxis::AngX,
@@ -447,10 +426,8 @@ impl PhysicsEngine {
         self.body_wake_up(world_handle, body_handle_1, false);
         self.body_wake_up(world_handle, body_handle_2, false);
         if let Some(physics_world) = self.get_mut_world(world_handle) {
-            let (rapier_stiffness, rapier_damping) =
-                Self::godot_spring_to_rapier_accel(stiffness, damping);
-            let joint = SpringJointBuilder::new(rest_length, rapier_stiffness, rapier_damping)
-                .spring_model(MotorModel::AccelerationBased)
+            let joint = SpringJointBuilder::new(rest_length, stiffness, damping)
+                .spring_model(MotorModel::ForceBased)
                 .local_anchor1(anchor_1)
                 .local_anchor2(anchor_2)
                 .contacts_enabled(!disable_collision);
@@ -472,15 +449,8 @@ impl PhysicsEngine {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(joint) = physics_world.get_mut_joint(joint_handle)
         {
-            let (rapier_stiffness, rapier_damping) =
-                Self::godot_spring_to_rapier_accel(stiffness, damping);
-            joint.set_motor_position(
-                JointAxis::LinX,
-                rest_length,
-                rapier_stiffness,
-                rapier_damping,
-            );
-            joint.set_motor_model(JointAxis::LinX, MotorModel::AccelerationBased);
+            joint.set_motor_position(JointAxis::LinX, rest_length, stiffness, damping);
+            joint.set_motor_model(JointAxis::LinX, MotorModel::ForceBased);
         }
     }
 
@@ -685,7 +655,7 @@ impl PhysicsEngine {
                 joint.set_motor_max_force(axis, motor_force_limit);
                 joint.set_motor(axis, 0.0, motor_target_velocity, 0.0, 0.0);
             } else if enable_spring {
-                joint.set_motor_model(axis, MotorModel::AccelerationBased);
+                joint.set_motor_model(axis, MotorModel::ForceBased);
                 joint.set_motor(
                     axis,
                     spring_equilibrium_point,
