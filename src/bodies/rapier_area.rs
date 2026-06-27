@@ -583,7 +583,7 @@ impl RapierArea {
                 .get_mut_state()
                 .area_remove_from_area_update_list(*area_id);
         }
-        for (_, monitor_info) in &monitored_bodies {
+        for monitor_info in monitored_bodies.values() {
             RapierBody::apply_area_override_to_body(
                 &monitor_info.other_collider_id,
                 physics_engine,
