@@ -99,7 +99,7 @@ struct RawImportState {
     root_node: String,
     rapier_space: SpaceImport,
     physics_server_id: i64,
-    physics_objects_state: HashMap<String, CollatedObjectImportState>,
+    physics_objects_state: BTreeMap<String, CollatedObjectImportState>,
 }
 impl RawImportState {
     // Destroys (takes ownership of) the export object.
@@ -109,7 +109,7 @@ impl RawImportState {
             rapier_space: *export_state.rapier_space.into_import(), // Unbox the space state (boxed to keep down enum size)
             physics_server_id: export_state.physics_server_id,
             physics_objects_state: {
-                let mut phys_objs = HashMap::new();
+                let mut phys_objs = BTreeMap::new();
                 for (key, val) in export_state.physics_objects_state {
                     phys_objs.insert(key.clone(), val.into_collated_import());
                 }

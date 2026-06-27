@@ -1,3 +1,6 @@
+use std::cmp::Ordering;
+use std::collections::BTreeMap;
+
 use bodies::rapier_collision_object_base::CollisionObjectShape;
 use bodies::rapier_collision_object_base::CollisionObjectType;
 use bodies::rapier_collision_object_base::RapierCollisionObjectBase;
@@ -11,7 +14,6 @@ use godot::global::godot_error;
 use godot::meta::ToGodot;
 use godot::obj::EngineEnum;
 use godot::prelude::*;
-use hashbrown::HashMap;
 use rapier::geometry::ColliderHandle;
 #[cfg(feature = "serde-serialize")]
 use rapier::geometry::ColliderPair;
@@ -67,6 +69,40 @@ pub struct EventReport {
     pub this_area_shape_index: u32,
 }
 type MonitorKey = (ColliderHandle, ColliderHandle);
+
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct OrderedMonitorKey(MonitorKey);
+impl OrderedMonitorKey {
+    fn new(monitor_key: MonitorKey) -> Self {
+        Self(monitor_key)
+    }
+
+    fn handles(&self) -> MonitorKey {
+        self.0
+    }
+
+    fn sort_key(&self) -> ((u32, u32), (u32, u32)) {
+        let (other_collider_handle, this_collider_handle) = self.0;
+        (
+            other_collider_handle.into_raw_parts(),
+            this_collider_handle.into_raw_parts(),
+        )
+    }
+}
+impl Ord for OrderedMonitorKey {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.sort_key().cmp(&other.sort_key())
+    }
+}
+impl PartialOrd for OrderedMonitorKey {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
 impl EventReport {
     #[cfg(feature = "serde-serialize")]
     pub fn from_monitor_info(from_info: MonitorInfo, state_in: i32) -> Self {
@@ -114,14 +150,15 @@ impl RapierAreaState {
         event_removed: bool,
     ) -> MonitorEventResult {
         let monitor_key = Self::monitor_key(this_collider_handle, other_collider_handle);
-        let current_monitor = self.monitored_objects.get_mut(&monitor_key);
+        let ordered_monitor_key = OrderedMonitorKey::new(monitor_key);
+        let current_monitor = self.monitored_objects.get_mut(&ordered_monitor_key);
         match event_report.state {
             -1 => {
                 if let Some(current_monitor) = current_monitor {
                     current_monitor.num_contacts -= 1;
                     let num_contacts = current_monitor.num_contacts;
                     if num_contacts == 0 {
-                        self.monitored_objects.remove(&monitor_key);
+                        self.monitored_objects.remove(&ordered_monitor_key);
                     }
                     MonitorEventResult::Contacts(num_contacts)
                 } else if event_removed {
@@ -140,7 +177,8 @@ impl RapierAreaState {
                         last_entry_report: *event_report,
                         num_contacts: 1,
                     };
-                    self.monitored_objects.insert(monitor_key, new_monitor_info);
+                    self.monitored_objects
+                        .insert(ordered_monitor_key, new_monitor_info);
                     MonitorEventResult::Contacts(1)
                 }
             }
@@ -152,11 +190,11 @@ impl RapierAreaState {
         &self,
         new_monitor_key: MonitorKey,
         new_event: &EventReport,
-    ) -> Option<MonitorKey> {
+    ) -> Option<OrderedMonitorKey> {
         self.unhandled_events
             .iter()
             .find_map(|(queued_monitor_key, queued_event)| {
-                if *queued_monitor_key != new_monitor_key
+                if queued_monitor_key.handles() != new_monitor_key
                     && queued_event.state == -new_event.state
                     && queued_event.is_same_shape_pair(new_event)
                 {
@@ -216,7 +254,7 @@ impl ImportToExport for AreaImport {
 pub struct RapierAreaState {
     // New events go into this queue; once handled (eg once reported to Godot), they are removed. No need to serialize this, I think.
     #[cfg_attr(feature = "serde-serialize", serde(skip))]
-    pub unhandled_events: HashMap<MonitorKey, EventReport>,
+    pub unhandled_events: BTreeMap<OrderedMonitorKey, EventReport>,
     // This is a persistent list of all current contacts. Entries only disappear when contact ceases, or when contacts are manually cleared.
     #[cfg_attr(
         feature = "serde-serialize",
@@ -225,7 +263,7 @@ pub struct RapierAreaState {
             deserialize_with = "rapier::utils::serde::deserialize_from_vec_tuple"
         )
     )]
-    pub monitored_objects: HashMap<(ColliderHandle, ColliderHandle), MonitorInfo>,
+    pub monitored_objects: BTreeMap<OrderedMonitorKey, MonitorInfo>,
 }
 #[derive(Debug)]
 pub struct RapierArea {
@@ -273,7 +311,7 @@ impl RapierArea {
         physics_ids: &PhysicsIds,
     ) {
         let area_rid = get_id_rid(*area_id, physics_ids);
-        let mut detected_bodies = HashMap::default();
+        let mut detected_bodies = BTreeMap::default();
         let mut space_rid = Rid::Invalid;
         if let Some(area_rid) = physics_collision_objects.get(&area_rid)
             && let Some(area) = area_rid.get_area()
@@ -306,7 +344,7 @@ impl RapierArea {
         physics_ids: &PhysicsIds,
     ) {
         let area_rid = get_id_rid(*area_id, physics_ids);
-        let mut detected_bodies = HashMap::default();
+        let mut detected_bodies = BTreeMap::default();
         let mut space_rid = Rid::Invalid;
         if let Some(area_rid) = physics_collision_objects.get(&area_rid)
             && let Some(area) = area_rid.get_area()
@@ -337,7 +375,7 @@ impl RapierArea {
         physics_ids: &PhysicsIds,
     ) {
         let area_rid = get_id_rid(*area_id, physics_ids);
-        let mut detected_bodies = HashMap::default();
+        let mut detected_bodies = BTreeMap::default();
         let mut space_rid: Rid = Rid::Invalid;
         if let Some(area_rid) = physics_collision_objects.get(&area_rid)
             && let Some(area) = area_rid.get_area()
@@ -475,7 +513,9 @@ impl RapierArea {
         monitor_key: MonitorKey,
         new_event: EventReport,
     ) {
-        self.state.unhandled_events.insert(monitor_key, new_event);
+        self.state
+            .unhandled_events
+            .insert(OrderedMonitorKey::new(monitor_key), new_event);
         // Finally, we tell the space that we have events in our queue.
         space
             .get_mut_state()
@@ -489,11 +529,13 @@ impl RapierArea {
         monitor_key: MonitorKey,
         new_event: &EventReport,
     ) -> bool {
-        if let Some(current_event_in_queue) = self.state.unhandled_events.get(&monitor_key) {
+        let ordered_monitor_key = OrderedMonitorKey::new(monitor_key);
+        if let Some(current_event_in_queue) = self.state.unhandled_events.get(&ordered_monitor_key)
+        {
             // See if we currently have a pending unhandled event (eg an event from this frame) that is the opposite of this one.
             // If so, this event will cancel that one out.
             if current_event_in_queue.state == -new_event.state {
-                self.state.unhandled_events.remove(&monitor_key);
+                self.state.unhandled_events.remove(&ordered_monitor_key);
                 if self.state.unhandled_events.is_empty() {
                     space
                         .get_mut_state()
@@ -527,7 +569,7 @@ impl RapierArea {
         area_id: &RapierId,
         physics_ids: &PhysicsIds,
     ) {
-        let mut monitored_bodies = HashMap::default();
+        let mut monitored_bodies = BTreeMap::default();
         let mut space_rid = Rid::Invalid;
         let area_rid = get_id_rid(*area_id, physics_ids);
         if let Some(area_rid) = physics_collision_objects.get(&area_rid)
@@ -794,7 +836,7 @@ impl RapierArea {
     }
 
     pub fn call_queries(
-        unhandled_events: &HashMap<MonitorKey, EventReport>,
+        unhandled_events: &BTreeMap<OrderedMonitorKey, EventReport>,
         monitor_callback: Option<Callable>,
         area_monitor_callback: Option<Callable>,
         physics_ids: &PhysicsIds,
@@ -852,18 +894,19 @@ impl RapierArea {
         stale_collider_pairs: &[ColliderPair],
     ) {
         let mut add_to_monitored_list = false;
-        let mut monitors_to_remove: Vec<(ColliderHandle, ColliderHandle)> = Vec::new();
+        let mut monitors_to_remove: Vec<OrderedMonitorKey> = Vec::new();
         for (monitor_key, monitor_info) in &mut self.state.monitored_objects {
             // If our stale colliders contain a pair in either order:
-            let (handle_1, handle_2) = *monitor_key;
+            let (handle_1, handle_2) = monitor_key.handles();
             let ab = ColliderPair::new(handle_1, handle_2);
             let ba = ColliderPair::new(handle_2, handle_1);
             if stale_collider_pairs.contains(&ab) || stale_collider_pairs.contains(&ba) {
                 add_to_monitored_list = true;
                 let new_exit_event = EventReport::from_monitor_info(*monitor_info, -1);
-                self.state
-                    .unhandled_events
-                    .insert(*monitor_key, new_exit_event);
+                self.state.unhandled_events.insert(
+                    OrderedMonitorKey::new(monitor_key.handles()),
+                    new_exit_event,
+                );
                 monitors_to_remove.push(*monitor_key);
             }
         }
@@ -886,15 +929,16 @@ impl RapierArea {
         let mut add_to_monitored_list = false;
         for (monitor_key, monitor_info) in &mut self.state.monitored_objects {
             // If our stale colliders contain a pair in either order:
-            let (handle_1, handle_2) = *monitor_key;
+            let (handle_1, handle_2) = monitor_key.handles();
             let ab = ColliderPair::new(handle_1, handle_2);
             let ba = ColliderPair::new(handle_2, handle_1);
             if new_collider_pairs.contains(&ab) || new_collider_pairs.contains(&ba) {
                 add_to_monitored_list = true;
                 let new_exit_event = EventReport::from_monitor_info(*monitor_info, 1);
-                self.state
-                    .unhandled_events
-                    .insert(*monitor_key, new_exit_event);
+                self.state.unhandled_events.insert(
+                    OrderedMonitorKey::new(monitor_key.handles()),
+                    new_exit_event,
+                );
             }
         }
         if add_to_monitored_list {
@@ -1197,6 +1241,16 @@ mod tests {
             this_area_shape_index: 0,
         }
     }
+    fn monitor_info(other_collider_id: RapierId) -> MonitorInfo {
+        let mut last_entry_report = event_report(1);
+        last_entry_report.id = other_collider_id;
+        last_entry_report.instance_id = other_collider_id;
+        MonitorInfo {
+            other_collider_id,
+            last_entry_report,
+            num_contacts: 1,
+        }
+    }
     #[test]
     fn stale_removed_exit_without_monitor_is_ignored() {
         let mut state = RapierAreaState::default();
@@ -1244,7 +1298,10 @@ mod tests {
         assert!(
             !state
                 .monitored_objects
-                .contains_key(&(other_collider, this_collider))
+                .contains_key(&OrderedMonitorKey::new(monitor_key(
+                    this_collider,
+                    other_collider
+                )))
         );
     }
     #[test]
@@ -1254,7 +1311,7 @@ mod tests {
         let added_collider = collider_handle(3);
         let this_collider = collider_handle(1);
         state.unhandled_events.insert(
-            monitor_key(this_collider, removed_collider),
+            OrderedMonitorKey::new(monitor_key(this_collider, removed_collider)),
             event_report(-1),
         );
         assert_eq!(
@@ -1262,7 +1319,10 @@ mod tests {
                 monitor_key(this_collider, added_collider),
                 &event_report(1)
             ),
-            Some(monitor_key(this_collider, removed_collider))
+            Some(OrderedMonitorKey::new(monitor_key(
+                this_collider,
+                removed_collider
+            )))
         );
     }
     #[test]
@@ -1272,7 +1332,7 @@ mod tests {
         let added_collider = collider_handle(3);
         let this_collider = collider_handle(1);
         state.unhandled_events.insert(
-            monitor_key(this_collider, removed_collider),
+            OrderedMonitorKey::new(monitor_key(this_collider, removed_collider)),
             event_report(-1),
         );
         let mut different_shape_event = event_report(1);
@@ -1294,12 +1354,13 @@ mod tests {
         let mut second_event = event_report(1);
         second_event.this_area_shape_index = 1;
         state.unhandled_events.insert(
-            monitor_key(this_collider_1, other_collider),
+            OrderedMonitorKey::new(monitor_key(this_collider_1, other_collider)),
             event_report(1),
         );
-        state
-            .unhandled_events
-            .insert(monitor_key(this_collider_2, other_collider), second_event);
+        state.unhandled_events.insert(
+            OrderedMonitorKey::new(monitor_key(this_collider_2, other_collider)),
+            second_event,
+        );
         assert_eq!(state.unhandled_events.len(), 2);
     }
     #[cfg(feature = "serde-serialize")]
@@ -1307,12 +1368,44 @@ mod tests {
     fn area_state_does_not_serialize_unhandled_events() {
         let mut state = RapierAreaState::default();
         state.unhandled_events.insert(
-            monitor_key(collider_handle(1), collider_handle(2)),
+            OrderedMonitorKey::new(monitor_key(collider_handle(1), collider_handle(2))),
             event_report(1),
         );
         let json = serde_json::to_string(&state).unwrap();
         assert!(!json.contains("unhandled_events"));
         let imported_state: RapierAreaState = serde_json::from_str(&json).unwrap();
         assert!(imported_state.unhandled_events.is_empty());
+    }
+    #[cfg(feature = "serde-serialize")]
+    #[test]
+    fn monitored_objects_serialize_in_stable_collider_order() {
+        let this_collider = collider_handle(10);
+        let low_key = monitor_key(this_collider, collider_handle(0));
+        let high_key = monitor_key(this_collider, collider_handle(3));
+
+        let mut state = RapierAreaState::default();
+        state
+            .monitored_objects
+            .insert(OrderedMonitorKey::new(high_key), monitor_info(3));
+        state
+            .monitored_objects
+            .insert(OrderedMonitorKey::new(low_key), monitor_info(0));
+
+        let mut reversed_state = RapierAreaState::default();
+        reversed_state
+            .monitored_objects
+            .insert(OrderedMonitorKey::new(low_key), monitor_info(0));
+        reversed_state
+            .monitored_objects
+            .insert(OrderedMonitorKey::new(high_key), monitor_info(3));
+
+        let json = serde_json::to_string(&state).unwrap();
+        let reversed_json = serde_json::to_string(&reversed_state).unwrap();
+        assert_eq!(json, reversed_json);
+
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        let monitored_objects = parsed["monitored_objects"].as_array().unwrap();
+        assert_eq!(monitored_objects[0][0][0]["index"], 0);
+        assert_eq!(monitored_objects[1][0][0]["index"], 3);
     }
 }

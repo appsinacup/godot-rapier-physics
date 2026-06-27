@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+use std::collections::BTreeMap;
 use std::num::NonZeroUsize;
 use std::sync::mpsc;
 
@@ -64,6 +66,59 @@ pub struct ContactForceEventInfo {
     pub user_data1: UserData,
     pub user_data2: UserData,
 }
+
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct OrderedRigidBodyHandle(RigidBodyHandle);
+impl OrderedRigidBodyHandle {
+    fn new(handle: RigidBodyHandle) -> Self {
+        Self(handle)
+    }
+
+    fn sort_key(&self) -> (u32, u32) {
+        self.0.into_raw_parts()
+    }
+}
+impl Ord for OrderedRigidBodyHandle {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.sort_key().cmp(&other.sort_key())
+    }
+}
+impl PartialOrd for OrderedRigidBodyHandle {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+#[cfg_attr(
+    feature = "serde-serialize",
+    derive(serde::Serialize, serde::Deserialize)
+)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct OrderedColliderHandle(ColliderHandle);
+impl OrderedColliderHandle {
+    fn new(handle: ColliderHandle) -> Self {
+        Self(handle)
+    }
+
+    fn sort_key(&self) -> (u32, u32) {
+        self.0.into_raw_parts()
+    }
+}
+impl Ord for OrderedColliderHandle {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.sort_key().cmp(&other.sort_key())
+    }
+}
+impl PartialOrd for OrderedColliderHandle {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 #[cfg_attr(
     feature = "serde-serialize",
     derive(serde::Serialize, serde::Deserialize)
@@ -86,7 +141,7 @@ pub struct PhysicsObjects {
             deserialize_with = "rapier::utils::serde::deserialize_from_vec_tuple"
         )
     )]
-    pub removed_rigid_bodies_user_data: HashMap<RigidBodyHandle, UserData>,
+    pub removed_rigid_bodies_user_data: BTreeMap<OrderedRigidBodyHandle, UserData>,
     #[cfg_attr(
         feature = "serde-serialize",
         serde(
@@ -94,7 +149,7 @@ pub struct PhysicsObjects {
             deserialize_with = "rapier::utils::serde::deserialize_from_vec_tuple"
         )
     )]
-    pub removed_colliders_user_data: HashMap<ColliderHandle, UserData>,
+    pub removed_colliders_user_data: BTreeMap<OrderedColliderHandle, UserData>,
 
     pub handle: WorldHandle,
 }
@@ -143,8 +198,8 @@ impl PhysicsWorld {
                 rigid_body_set: RigidBodySet::new(),
                 collider_set: ColliderSet::new(),
 
-                removed_rigid_bodies_user_data: HashMap::new(),
-                removed_colliders_user_data: HashMap::new(),
+                removed_rigid_bodies_user_data: BTreeMap::new(),
+                removed_colliders_user_data: BTreeMap::new(),
 
                 handle: WorldHandle::default(),
             },
@@ -394,9 +449,10 @@ impl PhysicsWorld {
             &mut self.physics_objects.rigid_body_set,
             false,
         ) {
-            self.physics_objects
-                .removed_colliders_user_data
-                .insert(collider_handle, UserData::new(collider.user_data));
+            self.physics_objects.removed_colliders_user_data.insert(
+                OrderedColliderHandle::new(collider_handle),
+                UserData::new(collider.user_data),
+            );
         }
     }
 
@@ -409,7 +465,7 @@ impl PhysicsWorld {
         if let Some(user_data) = self
             .physics_objects
             .removed_colliders_user_data
-            .get(&collider_handle)
+            .get(&OrderedColliderHandle::new(collider_handle))
         {
             return *user_data;
         }
@@ -434,9 +490,10 @@ impl PhysicsWorld {
             &mut self.physics_objects.multibody_joint_set,
             true,
         ) {
-            self.physics_objects
-                .removed_rigid_bodies_user_data
-                .insert(rigid_body_handle, UserData::new(rigid_body.user_data));
+            self.physics_objects.removed_rigid_bodies_user_data.insert(
+                OrderedRigidBodyHandle::new(rigid_body_handle),
+                UserData::new(rigid_body.user_data),
+            );
         }
     }
 
@@ -449,7 +506,7 @@ impl PhysicsWorld {
         if let Some(user_data) = self
             .physics_objects
             .removed_rigid_bodies_user_data
-            .get(&rigid_body_handle)
+            .get(&OrderedRigidBodyHandle::new(rigid_body_handle))
         {
             return *user_data;
         }
@@ -728,5 +785,67 @@ impl PhysicsEngine {
                 physics_ids,
             );
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn collider_handle(index: u32) -> ColliderHandle {
+        ColliderHandle::from_raw_parts(index, 0)
+    }
+
+    fn rigid_body_handle(index: u32) -> RigidBodyHandle {
+        RigidBodyHandle::from_raw_parts(index, 0)
+    }
+
+    #[cfg(feature = "serde-serialize")]
+    #[derive(serde::Serialize)]
+    struct RemovedUserDataExport {
+        #[serde(serialize_with = "rapier::utils::serde::serialize_to_vec_tuple")]
+        rigid_bodies: BTreeMap<OrderedRigidBodyHandle, UserData>,
+        #[serde(serialize_with = "rapier::utils::serde::serialize_to_vec_tuple")]
+        colliders: BTreeMap<OrderedColliderHandle, UserData>,
+    }
+
+    #[cfg(feature = "serde-serialize")]
+    fn removed_user_data_export(reverse_insert: bool) -> RemovedUserDataExport {
+        let mut rigid_bodies = BTreeMap::new();
+        let mut colliders = BTreeMap::new();
+        let entries = [(3, UserData::new(30)), (0, UserData::new(10))];
+        let ordered_entries = if reverse_insert {
+            [entries[1], entries[0]]
+        } else {
+            entries
+        };
+        for (index, user_data) in ordered_entries {
+            rigid_bodies.insert(
+                OrderedRigidBodyHandle::new(rigid_body_handle(index)),
+                user_data,
+            );
+            colliders.insert(
+                OrderedColliderHandle::new(collider_handle(index)),
+                user_data,
+            );
+        }
+        RemovedUserDataExport {
+            rigid_bodies,
+            colliders,
+        }
+    }
+
+    #[cfg(feature = "serde-serialize")]
+    #[test]
+    fn removed_user_data_serializes_in_stable_handle_order() {
+        let json = serde_json::to_string(&removed_user_data_export(false)).unwrap();
+        let reversed_json = serde_json::to_string(&removed_user_data_export(true)).unwrap();
+        assert_eq!(json, reversed_json);
+
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed["rigid_bodies"][0][0]["index"], 0);
+        assert_eq!(parsed["rigid_bodies"][1][0]["index"], 3);
+        assert_eq!(parsed["colliders"][0][0]["index"], 0);
+        assert_eq!(parsed["colliders"][1][0]["index"], 3);
     }
 }
