@@ -895,7 +895,7 @@ dependencies = [
 [[package]]
 name = "salva2d"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=try-to-update-to-latest-nalgebra#26d75517cfd4ec9b0647dafcc5cc6bc58494780a"
+source = "git+https://github.com/dimforge/salva?branch=master#2dc5cdb52d97f3f8b94421532f0516d15ad826f4"
 dependencies = [
  "approx",
  "bitflags",
@@ -913,7 +913,7 @@ dependencies = [
 [[package]]
 name = "salva2d-f64"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=try-to-update-to-latest-nalgebra#26d75517cfd4ec9b0647dafcc5cc6bc58494780a"
+source = "git+https://github.com/dimforge/salva?branch=master#2dc5cdb52d97f3f8b94421532f0516d15ad826f4"
 dependencies = [
  "approx",
  "bitflags",
@@ -930,7 +930,7 @@ dependencies = [
 [[package]]
 name = "salva3d"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=try-to-update-to-latest-nalgebra#26d75517cfd4ec9b0647dafcc5cc6bc58494780a"
+source = "git+https://github.com/dimforge/salva?branch=master#2dc5cdb52d97f3f8b94421532f0516d15ad826f4"
 dependencies = [
  "approx",
  "bitflags",
@@ -948,7 +948,7 @@ dependencies = [
 [[package]]
 name = "salva3d-f64"
 version = "0.9.0"
-source = "git+https://github.com/ughuuu/salva?branch=try-to-update-to-latest-nalgebra#26d75517cfd4ec9b0647dafcc5cc6bc58494780a"
+source = "git+https://github.com/dimforge/salva?branch=master#2dc5cdb52d97f3f8b94421532f0516d15ad826f4"
 dependencies = [
  "approx",
  "bitflags",
