@@ -75,7 +75,7 @@ See [godot-rust/ExtensionLibrary](https://godot-rust.github.io/docs/gdext/master
 
 ```toml
 [dependencies]
-godot-rapier = { git = "https://github.com/appsinacup/godot-rapier-physics.git", tag = "v0.8.37", features = ["single-dim2"] }
+godot-rapier = { git = "https://github.com/appsinacup/godot-rapier-physics.git", tag = "v0.8.38", features = ["single-dim2"] }
 ```
 
 Feature sets matching the shipped addon variants:
@@ -135,7 +135,7 @@ The 2D part is pretty stable, though there are some issues, the 3D part is still
 
 # Limitations
 
-- Double builds are disabled for now (until salva supports double builds)
+- Double builds need to be manually built.
 - No support for asymmetric collisions (eg. object 1 hitting object 2 but object 2 not hitting object 1). This is the exact check rapier does: `(A.layer & B.mask) != 0 || (B.layer & A.mask) != 0`
 
 # Module build

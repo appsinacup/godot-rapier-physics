@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.8.38
+
+## What's Changed
+* remove need for api-custom for non nightly build by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/571
+* fix for active callback not being called at right time by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/573
+* compute transform orthonormalized from parent, similar to how Godot does by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/574
+* Change AccelerationBased springs to ForceBased by @Schnorg in https://github.com/appsinacup/godot-rapier-physics/pull/577
+* fix to use correct flags 3d for fluid3d by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/578
+* use btreemap for stuff we serialize so order is maintinaed. Even though these are hashmaps, without order its harder to diff. by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/581
+* use salva from dimforge by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/582
+
+
+**Full Changelog**: https://github.com/appsinacup/godot-rapier-physics/compare/v0.8.37...v0.8.38
+
 ## v0.8.37
 
 ## What's Changed
