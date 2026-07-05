@@ -20,6 +20,24 @@ use super::rapier_slider_joint_3d::RapierSliderJoint3D;
 #[cfg(feature = "dim3")]
 use super::rapier_spherical_joint_3d::RapierSphericalJoint3D;
 use crate::*;
+macro_rules! impl_rapier_joint_base {
+    ($ty:ident, $type_expr:expr) => {
+        impl IRapierJoint for $ty {
+            fn get_type(&self) -> JointType {
+                $type_expr
+            }
+
+            fn get_base(&self) -> &RapierJointBase {
+                &self.base
+            }
+
+            fn get_mut_base(&mut self) -> &mut RapierJointBase {
+                &mut self.base
+            }
+        }
+    };
+}
+pub(crate) use impl_rapier_joint_base;
 #[allow(clippy::large_enum_variant)]
 pub enum RapierJoint {
     #[cfg(feature = "dim2")]

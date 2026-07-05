@@ -1,3 +1,27 @@
+macro_rules! fluid_effect {
+    ($name:ident { $($field:ident : $ty:ty = $default:expr),* $(,)? }) => {
+        #[derive(GodotClass)]
+        #[class(base = Resource)]
+        pub struct $name {
+            $(
+                #[export]
+                #[var(pub)]
+                $field: $ty,
+            )*
+            base: Base<Resource>,
+        }
+        #[godot_api]
+        impl IResource for $name {
+            fn init(base: Base<Resource>) -> Self {
+                Self {
+                    $($field: $default,)*
+                    base,
+                }
+            }
+        }
+    };
+}
+
 #[cfg(feature = "dim2")]
 pub mod fluid_2d;
 #[cfg(feature = "dim3")]

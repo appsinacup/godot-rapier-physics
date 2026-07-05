@@ -8,19 +8,13 @@ use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::servers::rapier_physics_singleton::RapierId;
+use crate::shapes::rapier_shape::impl_rapier_shape_create;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 pub struct RapierWorldBoundaryShape {
     base: RapierShapeBase,
 }
-impl RapierWorldBoundaryShape {
-    pub fn create(id: RapierId, rid: Rid, physics_shapes: &mut PhysicsShapes) {
-        let shape = Self {
-            base: RapierShapeBase::new(id, rid),
-        };
-        physics_shapes.insert(rid, RapierShape::RapierWorldBoundaryShape(shape));
-    }
-}
+impl_rapier_shape_create!(RapierWorldBoundaryShape, RapierWorldBoundaryShape);
 impl IRapierShape for RapierWorldBoundaryShape {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base
@@ -62,7 +56,16 @@ impl IRapierShape for RapierWorldBoundaryShape {
         }
         let normal = arr.at(0).try_to().unwrap_or_default();
         let d = variant_to_float(&arr.at(1));
-        physics_engine.shape_create_halfspace(vector_to_rapier(normal), d, self.base.get_id());
+        let rapier_normal = vector_to_rapier(normal);
+        if !rapier_normal.is_finite() || !d.is_finite() {
+            godot_error!(
+                "RapierWorldBoundaryShape normal and distance must be finite. Got normal {}, distance {}",
+                normal,
+                d
+            );
+            return;
+        }
+        physics_engine.shape_create_halfspace(rapier_normal, d, self.base.get_id());
         self.base.reset_aabb(physics_engine);
     }
 
@@ -75,7 +78,16 @@ impl IRapierShape for RapierWorldBoundaryShape {
         let plane: Plane = data.try_to().unwrap_or(Plane::invalid());
         let normal = plane.normal;
         let d = plane.d;
-        physics_engine.shape_create_halfspace(vector_to_rapier(normal), d, self.base.get_id());
+        let rapier_normal = vector_to_rapier(normal);
+        if !rapier_normal.is_finite() || !d.is_finite() {
+            godot_error!(
+                "RapierWorldBoundaryShape normal and distance must be finite. Got normal {}, distance {}",
+                normal,
+                d
+            );
+            return;
+        }
+        physics_engine.shape_create_halfspace(rapier_normal, d, self.base.get_id());
         self.base.reset_aabb(physics_engine);
     }
 

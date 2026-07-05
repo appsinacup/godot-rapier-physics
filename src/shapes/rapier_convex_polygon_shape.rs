@@ -8,6 +8,7 @@ use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::servers::rapier_physics_singleton::RapierId;
+use crate::shapes::rapier_shape::impl_rapier_shape_create;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 #[cfg(feature = "dim2")]
@@ -16,14 +17,7 @@ use crate::types::PackedVectorArray;
 pub struct RapierConvexPolygonShape {
     base: RapierShapeBase,
 }
-impl RapierConvexPolygonShape {
-    pub fn create(id: RapierId, rid: Rid, physics_shapes: &mut PhysicsShapes) {
-        let shape = Self {
-            base: RapierShapeBase::new(id, rid),
-        };
-        physics_shapes.insert(rid, RapierShape::RapierConvexPolygonShape(shape));
-    }
-}
+impl_rapier_shape_create!(RapierConvexPolygonShape, RapierConvexPolygonShape);
 impl RapierConvexPolygonShape {
     fn create_rapier_shape(
         &mut self,
@@ -78,6 +72,13 @@ impl IRapierShape for RapierConvexPolygonShape {
             #[cfg(feature = "dim2")]
             VariantType::PACKED_FLOAT64_ARRAY | VariantType::PACKED_FLOAT32_ARRAY => {
                 if let Ok(arr) = data.try_to::<PackedFloatArray>() {
+                    if arr.len() % 4 != 0 {
+                        godot_error!(
+                            "ConvexPolygon float data must have a multiple of 4 elements. Got {}",
+                            arr.len()
+                        );
+                        return;
+                    }
                     let size = arr.len() / 4;
                     if size < 3 {
                         godot_error!("ConvexPolygon must have at least three point");

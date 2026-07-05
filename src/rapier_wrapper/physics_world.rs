@@ -384,14 +384,8 @@ impl PhysicsWorld {
                                 < settings.predictive_contact_allowance_threshold
                                     * settings.length_unit
                                 || {
-                                    let vel1 = self
-                                        .get_collider_rigid_body(collider1)
-                                        .map(|rb| rb.velocity_at_point(world_pt1))
-                                        .unwrap_or_default();
-                                    let vel2 = self
-                                        .get_collider_rigid_body(collider2)
-                                        .map(|rb| rb.velocity_at_point(world_pt2))
-                                        .unwrap_or_default();
+                                    let vel1 = body1.velocity_at_point(world_pt1);
+                                    let vel2 = body2.velocity_at_point(world_pt2);
                                     effective_contact_dist
                                         + (vel2 - vel1).dot(manifold.data.normal) * settings.dt
                                         < settings.predictive_contact_allowance_threshold

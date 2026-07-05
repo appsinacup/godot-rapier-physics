@@ -5,19 +5,13 @@ use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::servers::rapier_physics_singleton::RapierId;
+use crate::shapes::rapier_shape::impl_rapier_shape_create;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 pub struct RapierSegmentShape2D {
     base: RapierShapeBase,
 }
-impl RapierSegmentShape2D {
-    pub fn create(id: RapierId, rid: Rid, physics_shapes: &mut PhysicsShapes) {
-        let shape = Self {
-            base: RapierShapeBase::new(id, rid),
-        };
-        physics_shapes.insert(rid, RapierShape::RapierSegmentShape2D(shape));
-    }
-}
+impl_rapier_shape_create!(RapierSegmentShape2D, RapierSegmentShape2D);
 impl IRapierShape for RapierSegmentShape2D {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base
@@ -44,6 +38,14 @@ impl IRapierShape for RapierSegmentShape2D {
         let p1 = r.position;
         let p2 = r.size;
         let rapier_points = [vector_to_rapier(p1), vector_to_rapier(p2)];
+        if !rapier_points[0].is_finite() || !rapier_points[1].is_finite() {
+            godot_error!(
+                "RapierSegmentShape endpoints must be finite. Got {} -> {}",
+                p1,
+                p2
+            );
+            return;
+        }
         physics_engine.shape_create_concave_polyline(
             &rapier_points.to_vec(),
             None,

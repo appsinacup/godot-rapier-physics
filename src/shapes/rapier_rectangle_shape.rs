@@ -8,19 +8,13 @@ use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::servers::rapier_physics_singleton::RapierId;
+use crate::shapes::rapier_shape::impl_rapier_shape_create;
 use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 pub struct RapierRectangleShape {
     base: RapierShapeBase,
 }
-impl RapierRectangleShape {
-    pub fn create(id: RapierId, rid: Rid, physics_shapes: &mut PhysicsShapes) {
-        let shape = Self {
-            base: RapierShapeBase::new(id, rid),
-        };
-        physics_shapes.insert(rid, RapierShape::RapierRectangleShape(shape));
-    }
-}
+impl_rapier_shape_create!(RapierRectangleShape, RapierRectangleShape);
 impl IRapierShape for RapierRectangleShape {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base
@@ -48,6 +42,13 @@ impl IRapierShape for RapierRectangleShape {
         if let Ok(v) = data.try_to() {
             let half_extents = v;
             let v = vector_to_rapier(half_extents) * 2.0;
+            if !v.is_finite() || v.min_element() <= 0.0 {
+                godot_error!(
+                    "RapierRectangleShape size must be finite and positive. Got {}",
+                    half_extents
+                );
+                return;
+            }
             physics_engine.shape_create_box(v, self.base.get_id());
             self.base.reset_aabb(physics_engine);
         } else {

@@ -10,14 +10,7 @@ use crate::shapes::rapier_shape_base::RapierShapeBase;
 pub struct RapierCylinderShape3D {
     base: RapierShapeBase,
 }
-impl RapierCylinderShape3D {
-    pub fn create(id: RapierId, rid: Rid, physics_shapes: &mut PhysicsShapes) {
-        let shape = Self {
-            base: RapierShapeBase::new(id, rid),
-        };
-        physics_shapes.insert(rid, RapierShape::RapierCylinderShape3D(shape));
-    }
-}
+impl_rapier_shape_create!(RapierCylinderShape3D, RapierCylinderShape3D);
 impl IRapierShape for RapierCylinderShape3D {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base

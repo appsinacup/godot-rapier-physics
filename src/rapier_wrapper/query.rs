@@ -471,6 +471,7 @@ impl PhysicsEngine {
                 shape_transform_with_motion.translation += shape_vel * hit.time_of_impact;
             }
         }
+        let mut manifolds: Vec<ContactManifold> = Vec::new();
         for (_collider_handle, collider) in physics_world
             .physics_objects
             .broad_phase
@@ -485,7 +486,7 @@ impl PhysicsEngine {
             )
             .intersect_shape(shape_transform_with_motion, shared_shape.as_ref())
         {
-            let mut manifolds: Vec<ContactManifold> = vec![];
+            manifolds.clear();
             let pos12 = shape_transform_with_motion.inv_mul(collider.position());
             let _ = physics_world
                 .physics_objects
@@ -604,7 +605,8 @@ impl PhysicsEngine {
                         compute_impact_geometry_on_penetration: true,
                         target_distance: margin,
                     };
-                    let mut cast_excludes: Vec<ColliderHandle> = Vec::new();
+                    let mut cast_excludes: std::collections::HashSet<ColliderHandle> =
+                        std::collections::HashSet::new();
                     loop {
                         let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
                             !cast_excludes.contains(&handle)
@@ -693,7 +695,7 @@ impl PhysicsEngine {
                         } else {
                             godot_error!("collider not found");
                         }
-                        cast_excludes.push(collider_handle);
+                        cast_excludes.insert(collider_handle);
                         if needs_exact || results.len() >= MAX_SHAPE_CAST_RESULTS {
                             break;
                         }

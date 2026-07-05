@@ -14,14 +14,7 @@ use crate::types::PackedVectorArray;
 pub struct RapierConcavePolygonShape {
     base: RapierShapeBase,
 }
-impl RapierConcavePolygonShape {
-    pub fn create(id: RapierId, rid: Rid, physics_shapes: &mut PhysicsShapes) {
-        let shape = Self {
-            base: RapierShapeBase::new(id, rid),
-        };
-        physics_shapes.insert(rid, RapierShape::RapierConcavePolygonShape(shape));
-    }
-}
+impl_rapier_shape_create!(RapierConcavePolygonShape, RapierConcavePolygonShape);
 impl RapierConcavePolygonShape {
     fn create_rapier_shape(
         &mut self,

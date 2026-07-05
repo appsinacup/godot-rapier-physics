@@ -27,16 +27,26 @@ impl PhysicsEngine {
         body_handle: RigidBodyHandle,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle) {
+            let mut connected: Vec<RigidBodyHandle> = Vec::new();
             for (rb1, rb2, ..) in physics_world
                 .physics_objects
                 .impulse_joint_set
                 .attached_joints(body_handle)
             {
-                if let Some(rb1) = physics_world.physics_objects.rigid_body_set.get_mut(rb1) {
-                    rb1.wake_up(true);
-                }
-                if let Some(rb2) = physics_world.physics_objects.rigid_body_set.get_mut(rb2) {
-                    rb2.wake_up(true);
+                connected.push(rb1);
+                connected.push(rb2);
+            }
+            for (rb1, rb2, ..) in physics_world
+                .physics_objects
+                .multibody_joint_set
+                .attached_joints(body_handle)
+            {
+                connected.push(rb1);
+                connected.push(rb2);
+            }
+            for handle in connected {
+                if let Some(rb) = physics_world.physics_objects.rigid_body_set.get_mut(handle) {
+                    rb.wake_up(true);
                 }
             }
         }
