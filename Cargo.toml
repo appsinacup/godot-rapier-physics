@@ -48,10 +48,10 @@ num_cpus = { version = "1", optional = true }
 godot = { version = "0.5.4" }
 glamx = { version = "0.3", default-features = false, optional = true }
 
-rapier2d = { version = "0.33", optional = true }
-rapier2d-f64 = { version = "0.33", optional = true }
-rapier3d = { version = "0.33", optional = true }
-rapier3d-f64 = { version = "0.33", optional = true }
+rapier2d = { version = "0.34", optional = true }
+rapier2d-f64 = { version = "0.34", optional = true }
+rapier3d = { version = "0.34", optional = true }
+rapier3d-f64 = { version = "0.34", optional = true }
 salva2d = { git = "https://github.com/dimforge/salva", branch = "master", features = ["rapier"], optional = true }
 salva2d-f64 = { git = "https://github.com/dimforge/salva", branch = "master", features = ["rapier"], optional = true }
 salva3d = { git = "https://github.com/dimforge/salva", branch = "master", features = ["rapier"], optional = true }
