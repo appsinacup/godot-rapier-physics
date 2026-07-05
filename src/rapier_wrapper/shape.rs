@@ -336,7 +336,15 @@ impl PhysicsEngine {
             return;
         }
         let points_vec = point_array_to_vec(points);
-        let shape = SharedShape::polyline(points_vec, indices);
+        let shape = if crate::servers::rapier_project_settings::RapierProjectSettings::get_oriented_concave_polyline() {
+            SharedShape::new(Polyline::with_flags(
+                points_vec,
+                indices,
+                PolylineFlags::ORIENTED,
+            ))
+        } else {
+            SharedShape::polyline(points_vec, indices)
+        };
         self.insert_shape(shape, handle);
     }
 
