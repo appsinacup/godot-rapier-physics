@@ -19,6 +19,22 @@ use super::rapier_separation_ray_shape::RapierSeparationRayShape;
 use super::rapier_world_boundary_shape::RapierWorldBoundaryShape;
 use crate::rapier_wrapper::prelude::*;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
+macro_rules! impl_rapier_shape_create {
+    ($ty:ident, $variant:ident) => {
+        impl $ty {
+            pub fn create(id: RapierId, rid: Rid, physics_shapes: &mut PhysicsShapes) {
+                let shape = Self {
+                    base: RapierShapeBase::new(id, rid),
+                };
+                physics_shapes.insert(rid, RapierShape::$variant(shape));
+            }
+        }
+    };
+}
+pub(crate) use impl_rapier_shape_create;
+pub fn is_valid_shape_dimension(value: real) -> bool {
+    value.is_finite() && value > 0.0
+}
 pub trait IRapierShape {
     fn get_base(&self) -> &RapierShapeBase;
     fn get_mut_base(&mut self) -> &mut RapierShapeBase;

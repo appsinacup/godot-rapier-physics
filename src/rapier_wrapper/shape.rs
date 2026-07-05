@@ -290,8 +290,17 @@ impl PhysicsEngine {
         handle: ShapeHandle,
     ) {
         use rapier::parry::utils::Array2;
-        let width = width as usize;
-        let depth = depth as usize;
+        let width = width.max(0) as usize;
+        let depth = depth.max(0) as usize;
+        if width == 0 || depth == 0 || heights.len() < width * depth {
+            godot_error!(
+                "Heightmap requires width*depth ({}) heights, got {}",
+                width * depth,
+                heights.len()
+            );
+            self.remove_shape(handle);
+            return;
+        }
         let mut rotated_data = Vec::with_capacity(width * depth);
         for j in 0..width {
             for i in 0..depth {
@@ -336,7 +345,15 @@ impl PhysicsEngine {
             return;
         }
         let points_vec = point_array_to_vec(points);
-        let shape = SharedShape::polyline(points_vec, indices);
+        let shape = if crate::servers::rapier_project_settings::RapierProjectSettings::get_oriented_concave_polyline() {
+            SharedShape::new(Polyline::with_flags(
+                points_vec,
+                indices,
+                PolylineFlags::ORIENTED,
+            ))
+        } else {
+            SharedShape::polyline(points_vec, indices)
+        };
         self.insert_shape(shape, handle);
     }
 

@@ -14,14 +14,7 @@ use crate::types::*;
 pub struct RapierCircleShape {
     base: RapierShapeBase,
 }
-impl RapierCircleShape {
-    pub fn create(id: RapierId, rid: Rid, physics_shapes: &mut PhysicsShapes) {
-        let shape = Self {
-            base: RapierShapeBase::new(id, rid),
-        };
-        physics_shapes.insert(rid, RapierShape::RapierCircleShape(shape));
-    }
-}
+impl_rapier_shape_create!(RapierCircleShape, RapierCircleShape);
 impl IRapierShape for RapierCircleShape {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base
@@ -47,8 +40,11 @@ impl IRapierShape for RapierCircleShape {
 
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         let radius = variant_to_float(&data);
-        if radius < 0.0 {
-            godot_error!("RapierCircleShape radius must be positive. Got {}", radius);
+        if !is_valid_shape_dimension(radius) {
+            godot_error!(
+                "RapierCircleShape radius must be finite and positive. Got {}",
+                radius
+            );
             return;
         }
         physics_engine.shape_create_circle(radius, self.base.get_id());

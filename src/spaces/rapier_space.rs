@@ -727,22 +727,15 @@ impl RapierSpace {
     pub fn flush(&mut self) {
         let callbacks = {
             let physics_data = physics_data();
-            let physics_ids = physics_data.ids.clone();
-            let active_list = self.get_state().get_active_list().clone();
-            let deactivated_state_sync_list =
-                self.get_state().get_deactivated_state_sync_list().clone();
-            let state_query_list = self.get_state().get_state_query_list().clone();
-            let force_integrate_query_list =
-                self.get_state().get_force_integrate_query_list().clone();
-            let monitor_query_list = self.get_state().get_monitor_query_list().clone();
+            let state = self.get_state();
             RapierSpace::collect_query_callbacks(
-                &active_list,
-                &deactivated_state_sync_list,
-                &state_query_list,
-                &force_integrate_query_list,
-                &monitor_query_list,
+                state.get_active_list(),
+                state.get_deactivated_state_sync_list(),
+                state.get_state_query_list(),
+                state.get_force_integrate_query_list(),
+                state.get_monitor_query_list(),
                 &mut physics_data.collision_objects,
-                &physics_ids,
+                &physics_data.ids,
             )
         };
         for callback in callbacks {

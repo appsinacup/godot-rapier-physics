@@ -13,14 +13,7 @@ use crate::shapes::rapier_shape_base::RapierShapeBase;
 pub struct RapierCapsuleShape {
     base: RapierShapeBase,
 }
-impl RapierCapsuleShape {
-    pub fn create(id: RapierId, rid: Rid, physics_shapes: &mut PhysicsShapes) {
-        let shape = Self {
-            base: RapierShapeBase::new(id, rid),
-        };
-        physics_shapes.insert(rid, RapierShape::RapierCapsuleShape(shape));
-    }
-}
+impl_rapier_shape_create!(RapierCapsuleShape, RapierCapsuleShape);
 impl IRapierShape for RapierCapsuleShape {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base
@@ -99,15 +92,22 @@ impl IRapierShape for RapierCapsuleShape {
                 return;
             }
         }
-        if height <= 0.0 {
-            godot_error!("RapierCapsuleShape height must be positive. Got {}", height);
+        if !is_valid_shape_dimension(height) {
+            godot_error!(
+                "RapierCapsuleShape height must be finite and positive. Got {}",
+                height
+            );
             return;
         }
-        if radius <= 0.0 {
-            godot_error!("RapierCapsuleShape radius must be positive. Got {}", radius);
+        if !is_valid_shape_dimension(radius) {
+            godot_error!(
+                "RapierCapsuleShape radius must be finite and positive. Got {}",
+                radius
+            );
             return;
         }
-        physics_engine.shape_create_capsule((height / 2.0) - radius, radius, self.base.get_id());
+        let half_height = ((height / 2.0) - radius).max(0.0);
+        physics_engine.shape_create_capsule(half_height, radius, self.base.get_id());
         self.base.reset_aabb(physics_engine);
     }
 

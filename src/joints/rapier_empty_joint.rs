@@ -1,5 +1,6 @@
 use godot::classes::*;
 use joints::rapier_joint::IRapierJoint;
+use joints::rapier_joint::impl_rapier_joint_base;
 #[cfg(feature = "dim2")]
 use physics_server_2d::JointType;
 #[cfg(feature = "dim3")]
@@ -27,19 +28,7 @@ impl RapierEmptyJoint {
         }
     }
 }
-impl IRapierJoint for RapierEmptyJoint {
-    fn get_type(&self) -> JointType {
-        JointType::MAX
-    }
-
-    fn get_base(&self) -> &RapierJointBase {
-        &self.base
-    }
-
-    fn get_mut_base(&mut self) -> &mut RapierJointBase {
-        &mut self.base
-    }
-}
+impl_rapier_joint_base!(RapierEmptyJoint, JointType::MAX);
 impl Drop for RapierJointBase {
     fn drop(&mut self) {
         if self.get_handle() != JointHandle::default() {

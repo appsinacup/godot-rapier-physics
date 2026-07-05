@@ -9,19 +9,13 @@ use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::servers::rapier_physics_singleton::RapierId;
 use crate::shapes::rapier_shape::IRapierShape;
+use crate::shapes::rapier_shape::impl_rapier_shape_create;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 use crate::types::*;
 pub struct RapierHeightMapShape3D {
     base: RapierShapeBase,
 }
-impl RapierHeightMapShape3D {
-    pub fn create(id: RapierId, rid: Rid, physics_shapes: &mut PhysicsShapes) {
-        let shape = Self {
-            base: RapierShapeBase::new(id, rid),
-        };
-        physics_shapes.insert(rid, RapierShape::RapierHeightMapShape3D(shape));
-    }
-}
+impl_rapier_shape_create!(RapierHeightMapShape3D, RapierHeightMapShape3D);
 impl IRapierShape for RapierHeightMapShape3D {
     fn get_base(&self) -> &RapierShapeBase {
         &self.base

@@ -1,3 +1,4 @@
+use godot::classes::physics_server_3d::JointType;
 use godot::classes::*;
 use godot::prelude::*;
 
@@ -6,6 +7,7 @@ use super::rapier_joint_base::RapierJointType;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::bodies::rapier_collision_object::RapierCollisionObject;
 use crate::joints::rapier_joint::IRapierJoint;
+use crate::joints::rapier_joint::impl_rapier_joint_base;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::RapierId;
 use crate::types::*;
@@ -127,16 +129,7 @@ impl RapierConeTwistJoint3D {
         }
     }
 }
-impl IRapierJoint for RapierConeTwistJoint3D {
-    fn get_base(&self) -> &RapierJointBase {
-        &self.base
-    }
-
-    fn get_mut_base(&mut self) -> &mut RapierJointBase {
-        &mut self.base
-    }
-
-    fn get_type(&self) -> physics_server_3d::JointType {
-        physics_server_3d::JointType::CONE_TWIST
-    }
-}
+impl_rapier_joint_base!(
+    RapierConeTwistJoint3D,
+    physics_server_3d::JointType::CONE_TWIST
+);
