@@ -1,6 +1,6 @@
 use godot::classes::*;
-use joints::rapier_joint::impl_rapier_joint_base;
 use joints::rapier_joint::IRapierJoint;
+use joints::rapier_joint::impl_rapier_joint_base;
 #[cfg(feature = "dim2")]
 use physics_server_2d::JointType;
 #[cfg(feature = "dim3")]

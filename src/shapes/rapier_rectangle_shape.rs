@@ -8,8 +8,8 @@ use super::rapier_shape::RapierShape;
 use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsShapes;
 use crate::servers::rapier_physics_singleton::RapierId;
-use crate::shapes::rapier_shape::impl_rapier_shape_create;
 use crate::shapes::rapier_shape::IRapierShape;
+use crate::shapes::rapier_shape::impl_rapier_shape_create;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 pub struct RapierRectangleShape {
     base: RapierShapeBase,
