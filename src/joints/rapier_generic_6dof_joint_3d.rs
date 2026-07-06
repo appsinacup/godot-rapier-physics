@@ -412,7 +412,10 @@ impl RapierGeneric6DOFJoint3D {
             physics_server_3d::G6dofJointAxisFlag::ENABLE_ANGULAR_LIMIT => {
                 axis_params.enable_angular_limit
             }
-            physics_server_3d::G6dofJointAxisFlag::ENABLE_MOTOR => axis_params.enable_linear_motor,
+            physics_server_3d::G6dofJointAxisFlag::ENABLE_LINEAR_MOTOR => {
+                axis_params.enable_linear_motor
+            }
+            physics_server_3d::G6dofJointAxisFlag::ENABLE_MOTOR => axis_params.enable_angular_motor,
             physics_server_3d::G6dofJointAxisFlag::ENABLE_LINEAR_SPRING => {
                 axis_params.enable_linear_spring
             }

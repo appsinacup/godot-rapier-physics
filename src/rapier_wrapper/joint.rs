@@ -357,6 +357,7 @@ impl PhysicsEngine {
             } else {
                 joint.motor_axes.remove(JointAxesMask::ANG_X);
             }
+            #[cfg(feature = "dim2")]
             if softness > 0.0 {
                 // Emulate softness by using ForceBased motor on LinX (coupled with LinY)
                 joint.locked_axes = JointAxesMask::FREE_FIXED_AXES;
@@ -378,6 +379,8 @@ impl PhysicsEngine {
                 joint.coupled_axes = JointAxesMask::FREE_FIXED_AXES;
                 joint.motor_axes.remove(JointAxesMask::LIN_X);
             }
+            #[cfg(feature = "dim3")]
+            let _ = (softness, bias, physics_step);
         }
     }
 
