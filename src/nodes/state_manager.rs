@@ -556,15 +556,26 @@ impl StateManager {
                 nodes_to_remove.insert(nodepath_str);
             }
         }
-        // 5) Open the new intersections for our areas.
+        // 5) Open the new intersections for our areas, and re-register bodies for state sync.
+        // Importing the space cleared the state query list, and the physics step that would
+        // otherwise repopulate it (via after_step) is skipped during load. Without re-adding the
+        // bodies here, the final flush dispatches no state-sync callbacks and the Godot nodes are
+        // never moved to their imported transforms.
         for (_, collision_object) in physics_data.collision_objects.iter_mut() {
-            if collision_object.get_base().get_space_id() == space.get_state().get_id()
-                && let Some(area) = collision_object.get_mut_area()
-            {
+            if collision_object.get_base().get_space_id() != space.get_state().get_id() {
+                continue;
+            }
+            if let Some(area) = collision_object.get_mut_area() {
                 area.open_new_contacts(space, &new_intersections);
+            } else if let Some(body) = collision_object.get_mut_body()
+                && body.get_state_sync_callback().is_some()
+            {
+                space
+                    .get_mut_state()
+                    .body_add_to_state_query_list(body.get_base().get_id());
             }
         }
-        // Flush space queries one last time, to emit the newly opened events.
+        // Flush space queries one last time, to emit the newly opened events and sync body states.
         space.flush();
         RapierPhysicsServer::set_global_id(loaded_state.physics_server_id);
     }
