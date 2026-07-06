@@ -1,5 +1,7 @@
 # Changelog
 
+## v0.8.39
+
 ## v0.8.38
 
 ## What's Changed
