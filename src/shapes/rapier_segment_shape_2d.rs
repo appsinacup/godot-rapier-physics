@@ -49,6 +49,7 @@ impl IRapierShape for RapierSegmentShape2D {
         physics_engine.shape_create_concave_polyline(
             &rapier_points.to_vec(),
             None,
+            false,
             self.base.get_id(),
         );
         self.base.reset_aabb(physics_engine);

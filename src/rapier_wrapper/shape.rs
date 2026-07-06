@@ -338,6 +338,7 @@ impl PhysicsEngine {
         &mut self,
         points: &Vec<Vector>,
         indices: Option<Vec<[u32; 2]>>,
+        _backface_collision: bool,
         handle: ShapeHandle,
     ) {
         if points.is_empty() {
@@ -362,6 +363,7 @@ impl PhysicsEngine {
         &mut self,
         points: &Vec<Vector>,
         indices: Option<Vec<[u32; 3]>>,
+        backface_collision: bool,
         handle: ShapeHandle,
     ) {
         if points.is_empty() {
@@ -379,8 +381,15 @@ impl PhysicsEngine {
             self.remove_shape(handle);
             return;
         }
-        let shape =
-            SharedShape::trimesh_with_flags(points_vec, indices, TriMeshFlags::FIX_INTERNAL_EDGES);
+        // When backface collision is enabled the mesh must collide on both sides of its
+        // faces, so the ORIENTED flag (which constrains contacts to the outward face cone)
+        // must be dropped. Otherwise keep FIX_INTERNAL_EDGES for robust one-sided contacts.
+        let flags = if backface_collision {
+            TriMeshFlags::MERGE_DUPLICATE_VERTICES | TriMeshFlags::DELETE_DEGENERATE_TRIANGLES
+        } else {
+            TriMeshFlags::FIX_INTERNAL_EDGES
+        };
+        let shape = SharedShape::trimesh_with_flags(points_vec, indices, flags);
         match shape {
             Ok(s) => self.insert_shape(s, handle),
             Err(e) => {
