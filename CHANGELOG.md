@@ -2,6 +2,13 @@
 
 ## v0.8.39
 
+## What's Changed
+* Udpate to latest rapier and parry by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/585
+* fix 3d joints inconsistencies by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/587
+
+
+**Full Changelog**: https://github.com/appsinacup/godot-rapier-physics/compare/v0.8.38...v0.8.39
+
 ## v0.8.38
 
 ## What's Changed
