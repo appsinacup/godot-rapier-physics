@@ -257,7 +257,7 @@ impl RapierRevoluteJoint {
         #[cfg(feature = "dim2")]
         let softness = self.softness;
         #[cfg(feature = "dim3")]
-        let softness: f32 = 1.0;
+        let softness: f32 = 0.0;
         physics_engine.joint_change_revolute_params(
             self.base.get_space_id(),
             self.base.get_handle(),
@@ -311,7 +311,7 @@ impl RapierRevoluteJoint {
             self.angular_limit_enabled,
             self.motor_target_velocity,
             self.motor_enabled,
-            1.0,
+            0.0,
             self.motor_target_position,
             self.motor_stiffness,
             self.motor_damping,
@@ -517,7 +517,7 @@ impl RapierRevoluteJoint {
             self.angular_limit_enabled,
             self.motor_target_velocity,
             self.motor_enabled,
-            1.0,
+            0.0,
             self.motor_target_position,
             self.motor_stiffness,
             self.motor_damping,
