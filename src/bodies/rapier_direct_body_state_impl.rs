@@ -77,7 +77,10 @@ impl RapierDirectBodyStateImpl {
         if let Some(body) = physics_data.collision_objects.get(&self.body) {
             let base = body.get_base();
             if let Some(body) = body.get_body() {
-                return base.get_transform() * body.get_center_of_mass();
+                // Godot's center_of_mass is the offset of the center of mass from the body
+                // origin, expressed in global orientation (i.e. rotated but not translated).
+                let transform = base.get_transform();
+                return transform * body.get_center_of_mass() - transform.origin;
             }
         }
         Vector::ZERO

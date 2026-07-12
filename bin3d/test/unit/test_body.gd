@@ -5,6 +5,65 @@ func _ready():
 	test_body_empty()
 	test_body()
 	test_body_collision_exception_invalid()
+	test_body_center_of_mass_3d()
+
+# Regression test for https://github.com/appsinacup/godot-rapier-physics/issues/550
+# PhysicsDirectBodyState3D.center_of_mass must return the center of mass offset
+# relative to the body origin expressed in global orientation (rotated - and scaled -
+# by the body basis but NOT translated by the body origin), matching Godot's built-in
+# physics server. Covered across a table of transform configurations: with/without
+# rotation, with/without translation, with scale and negative values.
+func test_body_center_of_mass_3d():
+	print("test_body_center_of_mass_3d")
+
+	# Each case: [name, local_com, transform, expected_global].
+	# The expected global center_of_mass is the local offset rotated into global orientation,
+	# WITHOUT the origin translation. Physics bodies ignore transform scale (scale lives on
+	# the shapes), so a scaled transform must produce the same result as its rotation alone.
+	var rot_z := Basis(Vector3(0, 0, 1), PI / 2.0)
+	var rot_x := Basis(Vector3(1, 0, 0), PI / 2.0)
+	var scaled_basis := Basis(Vector3(0, 0, 1), PI / 2.0).scaled(Vector3(2, 2, 2))
+	var cases = [
+		["rotation only", Vector3(3, 0, 0), Transform3D(rot_z, Vector3.ZERO), rot_z * Vector3(3, 0, 0)],
+		["translation only", Vector3(3, 0, 0), Transform3D(Basis.IDENTITY, Vector3(100, 50, 20)), Vector3(3, 0, 0)],
+		["rotation and translation", Vector3(3, 0, 0), Transform3D(rot_z, Vector3(100, 50, 20)), rot_z * Vector3(3, 0, 0)],
+		["rotation about x", Vector3(0, 4, 1), Transform3D(rot_x, Vector3(-10, 5, 30)), rot_x * Vector3(0, 4, 1)],
+		["uniform scale is ignored", Vector3(3, -2, 1), Transform3D(scaled_basis, Vector3(10, -30, 5)), rot_z * Vector3(3, -2, 1)],
+		["zero center of mass", Vector3.ZERO, Transform3D(Basis(Vector3(0, 1, 0), PI / 3.0), Vector3(20, 20, 20)), Vector3.ZERO],
+	]
+
+	for c in cases:
+		var case_name: String = c[0]
+		var local_com: Vector3 = c[1]
+		var xform: Transform3D = c[2]
+		var expected_global: Vector3 = c[3]
+
+		var body_rid = PhysicsServer3D.body_create()
+		var space_rid = get_viewport().world_3d.space
+		PhysicsServer3D.body_set_space(body_rid, space_rid)
+		PhysicsServer3D.body_set_mode(body_rid, PhysicsServer3D.BODY_MODE_RIGID)
+		PhysicsServer3D.body_set_param(body_rid, PhysicsServer3D.BODY_PARAM_CENTER_OF_MASS, local_com)
+		PhysicsServer3D.body_set_state(body_rid, PhysicsServer3D.BODY_STATE_TRANSFORM, xform)
+
+		var direct_state = PhysicsServer3D.body_get_direct_state(body_rid)
+		assert(direct_state != null, "[%s] direct state must be available" % case_name)
+
+		# center_of_mass_local: the offset in the body's local frame.
+		assert(direct_state.center_of_mass_local.is_equal_approx(local_com),
+			"[%s] center_of_mass_local expected %s, got %s" % [case_name, local_com, direct_state.center_of_mass_local])
+
+		# center_of_mass: the offset rotated into global orientation, NOT translated.
+		assert(direct_state.center_of_mass.is_equal_approx(expected_global),
+			"[%s] center_of_mass expected %s, got %s" % [case_name, expected_global, direct_state.center_of_mass])
+
+		# When the origin is non-zero and the offset non-zero, center_of_mass must NOT be
+		# the absolute global position of the COM (which the pre-fix code returned). The two
+		# differ exactly by the origin, so only assert it when the origin is non-zero.
+		if xform.origin != Vector3.ZERO and local_com != Vector3.ZERO:
+			assert(!direct_state.center_of_mass.is_equal_approx(xform * local_com),
+				"[%s] center_of_mass must not include the origin translation" % case_name)
+
+		PhysicsServer3D.free_rid(body_rid)
 
 func test_body_collision_exception_invalid():
 	print("test_body_collision_exception_invalid")

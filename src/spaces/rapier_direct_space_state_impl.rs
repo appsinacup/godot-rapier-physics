@@ -553,8 +553,10 @@ impl RapierDirectSpaceStateImpl {
             r_info.collider_id = ObjectId { id: instance_id };
             let collision_point = vector_to_godot(deepest_collision.pixel_witness2);
             if let Some(body) = collision_object_2d.get_body() {
-                let rel_vec = collision_point
-                    - (body.get_base().get_transform().origin + body.get_center_of_mass());
+                // The global center of mass is the local center of mass transformed by the
+                // full body transform (rotation included), not just offset by the origin.
+                let rel_vec =
+                    collision_point - (body.get_base().get_transform() * body.get_center_of_mass());
                 r_info.linear_velocity = body.get_linear_velocity(&physics_data.physics_engine)
                     + cross_product(
                         body.get_angular_velocity(&physics_data.physics_engine),

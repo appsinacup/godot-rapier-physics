@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://b550fap3d0001"]
+
+[ext_resource type="Script" path="res://tests/nodes/RigidBody/tests/3d/force_at_point.gd" id="1_fap3d"]
+
+[node name="force_at_point" type="Node3D"]
+script = ExtResource("1_fap3d")

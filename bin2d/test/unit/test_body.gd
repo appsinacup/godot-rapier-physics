@@ -5,6 +5,7 @@ func _ready():
 	test_body_empty()
 	test_body()
 	test_body_collision_exception_invalid()
+	test_body_center_of_mass()
 
 func test_body_collision_exception_invalid():
 	print("test_body_collision_exception_invalid")
@@ -134,9 +135,65 @@ func test_body_empty():
 	PhysicsServer2D.body_set_space(body_rid, space_rid)
 	PhysicsServer2D.body_set_state(body_rid, PhysicsServer2D.BodyState.BODY_STATE_ANGULAR_VELOCITY, 2.3)
 
+# Regression test for https://github.com/appsinacup/godot-rapier-physics/issues/550
+# PhysicsDirectBodyState2D.center_of_mass must return the center of mass offset
+# relative to the body origin expressed in global orientation (rotated - and scaled -
+# by the body basis but NOT translated by the body origin), matching Godot's built-in
+# physics server. Covered across a table of transform configurations: with/without
+# rotation, with/without translation, with scale and negative values.
+func test_body_center_of_mass():
+	print("test_body_center_of_mass")
+
+	# Each case: [name, local_com, transform, expected_global].
+	# The expected global center_of_mass is the local offset rotated into global orientation,
+	# WITHOUT the origin translation. Physics bodies ignore transform scale (scale lives on
+	# the shapes), so a scaled transform must produce the same result as its rotation alone.
+	var scaled_xform = Transform2D(PI / 2.0, Vector2(60, 60)).scaled(Vector2(2, 2))
+	var cases = [
+		["rotation only", Vector2(3, 0), Transform2D(PI / 2.0, Vector2.ZERO), Vector2(0, 3)],
+		["translation only", Vector2(3, 0), Transform2D(0.0, Vector2(100, 50)), Vector2(3, 0)],
+		["rotation and translation", Vector2(3, 0), Transform2D(PI / 2.0, Vector2(100, 50)), Vector2(0, 3)],
+		["negative angle and offset", Vector2(2, 5), Transform2D(-PI / 2.0, Vector2(-40, 10)), Transform2D(-PI / 2.0, Vector2.ZERO).basis_xform(Vector2(2, 5))],
+		["uniform scale is ignored", Vector2(3, -2), scaled_xform, Transform2D(PI / 2.0, Vector2.ZERO).basis_xform(Vector2(3, -2))],
+		["zero center of mass", Vector2.ZERO, Transform2D(PI / 3.0, Vector2(20, 20)), Vector2.ZERO],
+	]
+
+	for c in cases:
+		var case_name: String = c[0]
+		var local_com: Vector2 = c[1]
+		var xform: Transform2D = c[2]
+		var expected_global: Vector2 = c[3]
+
+		var body_rid = PhysicsServer2D.body_create()
+		var space_rid = get_viewport().world_2d.space
+		PhysicsServer2D.body_set_space(body_rid, space_rid)
+		PhysicsServer2D.body_set_mode(body_rid, PhysicsServer2D.BODY_MODE_RIGID)
+		PhysicsServer2D.body_set_param(body_rid, PhysicsServer2D.BODY_PARAM_CENTER_OF_MASS, local_com)
+		PhysicsServer2D.body_set_state(body_rid, PhysicsServer2D.BODY_STATE_TRANSFORM, xform)
+
+		var direct_state = PhysicsServer2D.body_get_direct_state(body_rid)
+		assert(direct_state != null, "[%s] direct state must be available" % case_name)
+
+		# center_of_mass_local: the offset in the body's local frame.
+		assert(direct_state.center_of_mass_local.is_equal_approx(local_com),
+			"[%s] center_of_mass_local expected %s, got %s" % [case_name, local_com, direct_state.center_of_mass_local])
+
+		# center_of_mass: the offset rotated into global orientation, NOT translated.
+		assert(direct_state.center_of_mass.is_equal_approx(expected_global),
+			"[%s] center_of_mass expected %s, got %s" % [case_name, expected_global, direct_state.center_of_mass])
+
+		# When the origin is non-zero and the offset non-zero, center_of_mass must NOT be
+		# the absolute global position of the COM (which the pre-fix code returned). The two
+		# differ exactly by the origin, so only assert it when the origin is non-zero.
+		if xform.origin != Vector2.ZERO and local_com != Vector2.ZERO:
+			assert(!direct_state.center_of_mass.is_equal_approx(xform * local_com),
+				"[%s] center_of_mass must not include the origin translation" % case_name)
+
+		PhysicsServer2D.free_rid(body_rid)
+
 func test_body():
 	print("test_body")
-	
+
 	var body_rid = PhysicsServer2D.body_create()
 	var space_rid = get_viewport().world_2d.space
 	var shape_rid = RID()
