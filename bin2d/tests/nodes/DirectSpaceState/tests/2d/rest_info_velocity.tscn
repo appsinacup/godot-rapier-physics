@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://b550riv2d0001"]
+
+[ext_resource type="Script" path="res://tests/nodes/DirectSpaceState/tests/2d/rest_info_velocity.gd" id="1_riv2d"]
+
+[node name="rest_info_velocity" type="Node2D"]
+script = ExtResource("1_riv2d")

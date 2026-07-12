@@ -1,7 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://cri8nuohiravf"]
+[gd_scene load_steps=6 format=3 uid="uid://cri8nuohiravf"]
 
 [ext_resource type="PackedScene" uid="uid://giro4ikkullp" path="res://tests/nodes/RigidBody/tests/3d/shape_stack.tscn" id="1_etrmd"]
 [ext_resource type="PackedScene" uid="uid://dsqnhw3pojva0" path="res://tests/nodes/RigidBody/tests/3d/continuous_detection.tscn" id="2_ek4cl"]
+[ext_resource type="PackedScene" path="res://tests/nodes/RigidBody/tests/3d/center_of_mass.tscn" id="3_com3d"]
+[ext_resource type="PackedScene" path="res://tests/nodes/RigidBody/tests/3d/force_at_point.tscn" id="4_fap3d"]
 
 [sub_resource type="GDScript" id="GDScript_3dmc3"]
 script/source = "extends TestScene
@@ -27,3 +29,7 @@ expected_to_fail = Array[int]([0])
 [node name="continuous_detection_concave" parent="." instance=ExtResource("2_ek4cl")]
 wall_type = 1
 expected_to_fail = Array[int]([0])
+
+[node name="center_of_mass" parent="." instance=ExtResource("3_com3d")]
+
+[node name="force_at_point" parent="." instance=ExtResource("4_fap3d")]

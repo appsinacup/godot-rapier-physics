@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://b550com3d0001"]
+
+[ext_resource type="Script" path="res://tests/nodes/RigidBody/tests/3d/center_of_mass.gd" id="1_com3d"]
+
+[node name="center_of_mass" type="Node3D"]
+script = ExtResource("1_com3d")

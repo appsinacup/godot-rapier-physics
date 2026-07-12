@@ -1,6 +1,6 @@
 [package]
 name = "godot-rapier"
-version = "0.8.39"
+version = "0.8.40"
 edition = "2024"
 license = "MIT"
 rust-version = "1.94"

@@ -528,7 +528,10 @@ impl PhysicsEngine {
                 .rigid_body_set
                 .get_mut(body_handle)
         {
-            let local_point = point + body.center_of_mass();
+            // `point` is the offset from the body origin in global coordinates, so add the
+            // body origin (not the center of mass) to get the world-space application point.
+            let mut local_point = point;
+            local_point += body.position().translation;
             body.add_force_at_point(force, local_point, true);
         }
         self.body_wake_up_connected_rigidbodies(world_handle, body_handle);

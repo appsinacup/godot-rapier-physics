@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://jd2c3mg4v3bh"]
+[gd_scene load_steps=13 format=3 uid="uid://jd2c3mg4v3bh"]
 
 [ext_resource type="Script" path="res://base/class/test_scene_child.gd" id="1_6eclx"]
 [ext_resource type="PackedScene" uid="uid://bxrk6vpptw3in" path="res://tests/nodes/RigidBody/tests/2d/rectangle_stack.tscn" id="1_cclgc"]
@@ -10,6 +10,8 @@
 [ext_resource type="PackedScene" path="res://tests/nodes/RigidBody/tests/2d/input_spawn_transform.tscn" id="8_n82ko"]
 [ext_resource type="PackedScene" path="res://tests/nodes/RigidBody/tests/2d/input_reparent_transform.tscn" id="9_wcvoj"]
 [ext_resource type="PackedScene" path="res://tests/nodes/RigidBody/tests/2d/parent_scale_spawn_transform.tscn" id="10_5rq1d"]
+[ext_resource type="PackedScene" path="res://tests/nodes/RigidBody/tests/2d/center_of_mass.tscn" id="11_com2d"]
+[ext_resource type="PackedScene" path="res://tests/nodes/RigidBody/tests/2d/force_at_point.tscn" id="12_fap2d"]
 
 [node name="rigid_dynamic_body_2d" type="Node2D"]
 script = ExtResource("1_6eclx")
@@ -34,3 +36,7 @@ wall_type = 1
 [node name="input_reparent_transform" parent="." instance=ExtResource("9_wcvoj")]
 
 [node name="parent_scale_spawn_transform" parent="." instance=ExtResource("10_5rq1d")]
+
+[node name="center_of_mass" parent="." instance=ExtResource("11_com2d")]
+
+[node name="force_at_point" parent="." instance=ExtResource("12_fap2d")]

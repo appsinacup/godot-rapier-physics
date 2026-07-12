@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3 uid="uid://brununit2d0001"]
+
+[ext_resource type="Script" path="res://test/unit/run_unit_tests.gd" id="1_run2d"]
+[ext_resource type="PackedScene" uid="uid://cc2ig1s2mncgp" path="res://test/unit/api_tests.tscn" id="2_api2d"]
+
+[node name="RunUnitTests" type="Node"]
+script = ExtResource("1_run2d")
+
+[node name="api_tests" parent="." instance=ExtResource("2_api2d")]

@@ -101,6 +101,26 @@ jobs:
             exit "$godot_status"
           fi
 
+      - name: Run GDScript Unit Tests
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          "$GODOT4" --headless --path ./bin${{ matrix.dimensions.short }} --quit-after 600 test/unit/run_unit_tests.tscn 2>&1 | tee godot-unit-${{ matrix.dimensions.short }}.log
+          set -e
+
+          # A failed assert() either terminates the process before the SUCCESS sentinel is
+          # printed, or logs an "Assertion failed" error. Fail the job on either signal.
+          if ! grep -q "UNIT TESTS STATUS: SUCCESS" godot-unit-${{ matrix.dimensions.short }}.log; then
+            echo "GDScript unit tests did not complete successfully"
+            exit 1
+          fi
+
+          if grep -qi "Assertion failed" godot-unit-${{ matrix.dimensions.short }}.log; then
+            echo "GDScript unit tests reported a failed assertion"
+            exit 1
+          fi
+
       - name: Upload Godot Test Log
         if: always()
         uses: actions/upload-artifact@v6
@@ -109,4 +129,5 @@ jobs:
           path: |
             godot-import-${{ matrix.dimensions.short }}.log
             godot-tests-${{ matrix.dimensions.short }}.log
+            godot-unit-${{ matrix.dimensions.short }}.log
           if-no-files-found: warn
