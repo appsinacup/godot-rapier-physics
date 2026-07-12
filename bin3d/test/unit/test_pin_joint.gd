@@ -1,47 +1,80 @@
 extends TestBase
 
-@onready var body_a := PhysicsServer2D.body_create()
-@onready var body_b := PhysicsServer2D.body_create()
-@onready var body_a_with_space1 := PhysicsServer2D.body_create()
-@onready var body_b_with_space1 := PhysicsServer2D.body_create()
-@onready var body_a_with_space2 := PhysicsServer2D.body_create()
-@onready var body_b_with_space2 := PhysicsServer2D.body_create()
+@onready var body_a := PhysicsServer3D.body_create()
+@onready var body_b := PhysicsServer3D.body_create()
 
 func _ready():
-	var new_space1 := PhysicsServer2D.space_create()
-	var new_space2 := PhysicsServer2D.space_create()
-	PhysicsServer2D.body_set_space(body_a_with_space1, new_space1)
-	PhysicsServer2D.body_set_space(body_a_with_space2, new_space2)
-	PhysicsServer2D.body_set_space(body_b_with_space1, new_space1)
-	PhysicsServer2D.body_set_space(body_b_with_space2, new_space2)
+	var space := PhysicsServer3D.space_create()
+	PhysicsServer3D.body_set_space(body_a, space)
+	PhysicsServer3D.body_set_space(body_b, space)
 	test_pin_joint_empty()
+	test_pin_joint()
 	print("Pin joint tests passed.")
 
 func test_pin_joint_empty():
-	PhysicsServer2D.joint_make_pin(RID(), Vector2.ZERO, RID(), RID())
-	PhysicsServer2D.joint_make_pin(RID(), Vector2.ZERO, body_a, RID())
-	PhysicsServer2D.joint_make_pin(RID(), Vector2.ZERO, body_a, body_a)
-	PhysicsServer2D.joint_make_pin(RID(), Vector2.ZERO, body_a_with_space1, body_a_with_space1)
-	PhysicsServer2D.joint_make_pin(RID(), Vector2.ZERO, body_b, body_a)
-	PhysicsServer2D.joint_make_pin(RID(), Vector2.ZERO, body_b_with_space1, body_a_with_space1)
-	PhysicsServer2D.joint_make_pin(body_a, Vector2.ZERO, body_b, body_a)
+	print("test_pin_joint_empty")
 
-	var angular_limit = PhysicsServer2D.pin_joint_get_flag(RID(), PhysicsServer2D.PinJointFlag.PIN_JOINT_FLAG_ANGULAR_LIMIT_ENABLED)
-	assert(angular_limit == false)
-	var motor_enabled = PhysicsServer2D.pin_joint_get_flag(RID(), PhysicsServer2D.PinJointFlag.PIN_JOINT_FLAG_MOTOR_ENABLED)
-	assert(motor_enabled == false)
+	# Invalid RIDs must never crash and must return safe defaults.
+	assert(PhysicsServer3D.pin_joint_get_param(RID(), PhysicsServer3D.PIN_JOINT_BIAS) == 0.0)
+	assert(PhysicsServer3D.pin_joint_get_param(RID(), PhysicsServer3D.PIN_JOINT_DAMPING) == 0.0)
+	assert(PhysicsServer3D.pin_joint_get_param(RID(), PhysicsServer3D.PIN_JOINT_IMPULSE_CLAMP) == 0.0)
+	assert(PhysicsServer3D.pin_joint_get_local_a(RID()) == Vector3.ZERO)
+	assert(PhysicsServer3D.pin_joint_get_local_b(RID()) == Vector3.ZERO)
 
-	var limit_lower = PhysicsServer2D.pin_joint_get_param(RID(), PhysicsServer2D.PinJointParam.PIN_JOINT_LIMIT_LOWER)
-	assert(limit_lower == 0.0)
-	var limit_upper = PhysicsServer2D.pin_joint_get_param(RID(), PhysicsServer2D.PinJointParam.PIN_JOINT_LIMIT_UPPER)
-	assert(limit_upper == 0.0)
-	var motor_velocity = PhysicsServer2D.pin_joint_get_param(RID(), PhysicsServer2D.PinJointParam.PIN_JOINT_MOTOR_TARGET_VELOCITY)
-	assert(motor_velocity == 0.0)
-	var softness = PhysicsServer2D.pin_joint_get_param(RID(), PhysicsServer2D.PinJointParam.PIN_JOINT_SOFTNESS)
-	assert(softness == 0.0)
-	
-	PhysicsServer2D.pin_joint_set_flag(RID(), PhysicsServer2D.PinJointFlag.PIN_JOINT_FLAG_ANGULAR_LIMIT_ENABLED, true)
-	PhysicsServer2D.pin_joint_set_param(RID(), PhysicsServer2D.PinJointParam.PIN_JOINT_LIMIT_LOWER, 1.2)
-	
-	
+	PhysicsServer3D.pin_joint_set_param(RID(), PhysicsServer3D.PIN_JOINT_BIAS, 1.0)
+	PhysicsServer3D.pin_joint_set_local_a(RID(), Vector3.ONE)
+	PhysicsServer3D.pin_joint_set_local_b(RID(), Vector3.ONE)
+
+	# Making a pin from invalid bodies must not crash and must not become a pin joint.
+	PhysicsServer3D.joint_make_pin(RID(), RID(), Vector3.ZERO, RID(), Vector3.ZERO)
+	PhysicsServer3D.joint_make_pin(RID(), body_a, Vector3.ZERO, RID(), Vector3.ZERO)
+	PhysicsServer3D.joint_make_pin(RID(), body_a, Vector3.ZERO, body_b, Vector3.ZERO)
+
 	print("Pin joint empty tests passed.")
+
+func test_pin_joint():
+	print("test_pin_joint")
+
+	var joint := PhysicsServer3D.joint_create()
+	assert(PhysicsServer3D.joint_get_type(joint) == PhysicsServer3D.JOINT_TYPE_MAX)
+
+	# A pin needs two valid bodies; with a missing body it stays an empty joint.
+	PhysicsServer3D.joint_make_pin(joint, body_a, Vector3.ZERO, RID(), Vector3.ZERO)
+	assert(PhysicsServer3D.joint_get_type(joint) == PhysicsServer3D.JOINT_TYPE_MAX)
+
+	# Valid pin joint between two real bodies.
+	var anchor_a := Vector3(1, 2, 3)
+	var anchor_b := Vector3(4, 5, 6)
+	PhysicsServer3D.joint_make_pin(joint, body_a, anchor_a, body_b, anchor_b)
+	assert(PhysicsServer3D.joint_get_type(joint) == PhysicsServer3D.JOINT_TYPE_PIN)
+	assert(PhysicsServer3D.pin_joint_get_local_a(joint) == anchor_a)
+	assert(PhysicsServer3D.pin_joint_get_local_b(joint) == anchor_b)
+
+	# Default solver params.
+	assert_eq(PhysicsServer3D.pin_joint_get_param(joint, PhysicsServer3D.PIN_JOINT_BIAS), 0.3)
+	assert_eq(PhysicsServer3D.pin_joint_get_param(joint, PhysicsServer3D.PIN_JOINT_DAMPING), 1.0)
+	assert_eq(PhysicsServer3D.pin_joint_get_param(joint, PhysicsServer3D.PIN_JOINT_IMPULSE_CLAMP), 0.0)
+
+	# Params round-trip.
+	PhysicsServer3D.pin_joint_set_param(joint, PhysicsServer3D.PIN_JOINT_BIAS, 0.5)
+	PhysicsServer3D.pin_joint_set_param(joint, PhysicsServer3D.PIN_JOINT_DAMPING, 0.7)
+	PhysicsServer3D.pin_joint_set_param(joint, PhysicsServer3D.PIN_JOINT_IMPULSE_CLAMP, 2.0)
+	assert_eq(PhysicsServer3D.pin_joint_get_param(joint, PhysicsServer3D.PIN_JOINT_BIAS), 0.5)
+	assert_eq(PhysicsServer3D.pin_joint_get_param(joint, PhysicsServer3D.PIN_JOINT_DAMPING), 0.7)
+	assert_eq(PhysicsServer3D.pin_joint_get_param(joint, PhysicsServer3D.PIN_JOINT_IMPULSE_CLAMP), 2.0)
+
+	# Anchors round-trip.
+	PhysicsServer3D.pin_joint_set_local_a(joint, Vector3(7, 8, 9))
+	PhysicsServer3D.pin_joint_set_local_b(joint, Vector3(-1, -2, -3))
+	assert(PhysicsServer3D.pin_joint_get_local_a(joint) == Vector3(7, 8, 9))
+	assert(PhysicsServer3D.pin_joint_get_local_b(joint) == Vector3(-1, -2, -3))
+
+	# joint_clear resets the joint back to the base type.
+	PhysicsServer3D.joint_clear(joint)
+	assert(PhysicsServer3D.joint_get_type(joint) == PhysicsServer3D.JOINT_TYPE_MAX)
+	assert(PhysicsServer3D.joint_is_disabled_collisions_between_bodies(joint) == true)
+
+	# Params on the freed joint fall back to defaults and do not crash.
+	PhysicsServer3D.free_rid(joint)
+	assert(PhysicsServer3D.pin_joint_get_param(joint, PhysicsServer3D.PIN_JOINT_BIAS) == 0.0)
+	assert(PhysicsServer3D.joint_get_type(joint) == PhysicsServer3D.JOINT_TYPE_MAX)

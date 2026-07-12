@@ -6,15 +6,15 @@ func _ready():
 
 
 func test_space_functions():
-	var space := PhysicsServer2D.space_create()
+	var space := PhysicsServer3D.space_create()
 	assert(space != null)
-	var direct_state = PhysicsServer2D.space_get_direct_state(space)
+	var direct_state = PhysicsServer3D.space_get_direct_state(space)
 	assert(direct_state != null)
-	var is_active = PhysicsServer2D.space_is_active(space)
+	var is_active = PhysicsServer3D.space_is_active(space)
 	assert(is_active == false)
-	PhysicsServer2D.space_set_active(space, true)
-	is_active = PhysicsServer2D.space_is_active(space)
+	PhysicsServer3D.space_set_active(space, true)
+	is_active = PhysicsServer3D.space_is_active(space)
 	assert(is_active == true)
-	PhysicsServer2D.free_rid(space)
-	direct_state = PhysicsServer2D.space_get_direct_state(space)
+	PhysicsServer3D.free_rid(space)
+	direct_state = PhysicsServer3D.space_get_direct_state(space)
 	assert(direct_state == null)

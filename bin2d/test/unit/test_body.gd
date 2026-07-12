@@ -5,12 +5,48 @@ func _ready():
 	test_body_empty()
 	test_body()
 	test_body_collision_exception_invalid()
+	test_body_invalid()
 	test_body_center_of_mass()
 
 func test_body_collision_exception_invalid():
 	print("test_body_collision_exception_invalid")
 	PhysicsServer2D.body_add_collision_exception(RID(), RID())
 	PhysicsServer2D.body_remove_collision_exception(RID(), RID())
+
+# Robustness: the physics server must never crash when given invalid RIDs or
+# out-of-bounds shape indices. Godot's built-in server fatals on these; ours must
+# gracefully ignore them and return safe defaults.
+func test_body_invalid():
+	print("test_body_invalid")
+
+	# Out-of-bounds shape indices on a valid body that has no shapes.
+	var body_rid = PhysicsServer2D.body_create()
+	PhysicsServer2D.body_set_space(body_rid, get_viewport().world_2d.space)
+	assert(PhysicsServer2D.body_get_shape_count(body_rid) == 0)
+	for idx in [0, 1, 100]:
+		assert(PhysicsServer2D.body_get_shape(body_rid, idx) == RID())
+		assert(PhysicsServer2D.body_get_shape_transform(body_rid, idx) == Transform2D())
+		PhysicsServer2D.body_set_shape(body_rid, idx, RID())
+		PhysicsServer2D.body_set_shape_transform(body_rid, idx, Transform2D())
+		PhysicsServer2D.body_set_shape_disabled(body_rid, idx, true)
+		PhysicsServer2D.body_remove_shape(body_rid, idx)
+	assert(PhysicsServer2D.body_get_shape_count(body_rid) == 0)
+
+	# Operations on a freed body RID must not crash.
+	PhysicsServer2D.free_rid(body_rid)
+	PhysicsServer2D.body_set_mode(body_rid, PhysicsServer2D.BODY_MODE_RIGID)
+	assert(PhysicsServer2D.body_get_direct_state(body_rid) == null)
+	assert(!PhysicsServer2D.body_get_space(body_rid).is_valid())
+	assert(PhysicsServer2D.body_get_shape_count(body_rid) == 0)
+
+	# A never-registered RID must not crash.
+	var bogus = RID()
+	PhysicsServer2D.body_set_mode(bogus, PhysicsServer2D.BODY_MODE_RIGID)
+	PhysicsServer2D.body_set_shape(bogus, 0, RID())
+	PhysicsServer2D.body_remove_shape(bogus, 0)
+	assert(PhysicsServer2D.body_get_shape_count(bogus) == 0)
+	assert(PhysicsServer2D.body_get_shape(bogus, 0) == RID())
+	assert(PhysicsServer2D.body_get_direct_state(bogus) == null)
 
 func test_body_create():
 	print("test_body_create")
