@@ -149,22 +149,3 @@ static func get_trimesh_box_faces(width: float, height: float, depth: float) -> 
 			Vector3(-0.5 * width, +0.5 * height, +0.5 * depth), Vector3(-0.5 * width, +0.5 * height, -0.5 * depth), Vector3(+0.5 * width, +0.5 * height, -0.5 * depth),
 			Vector3(-0.5 * width, -0.5 * height, +0.5 * depth), Vector3(+0.5 * width, -0.5 * height, +0.5 * depth), Vector3(-0.5 * width, -0.5 * height, -0.5 * depth),
 			Vector3(+0.5 * width, -0.5 * height, +0.5 * depth), Vector3(+0.5 * width, -0.5 * height, -0.5 * depth), Vector3(-0.5 * width, -0.5 * height, -0.5 * depth)]
-
-var zoom_factor := 5
-var dragging = false
-func _unhandled_input(event):
-	var camera = get_node("Camera")
-	if camera:
-		if event.is_action_pressed("zoom_in"):
-			create_tween().tween_property(camera, "position:z", camera.position.z + zoom_factor, 0.1)
-		if event.is_action_pressed("zoom_out"):
-			create_tween().tween_property(camera, "position:z", camera.position.z - zoom_factor, 0.1)
-		if event is InputEventMouseButton:
-			if event.is_pressed():
-				dragging = true
-			else:
-				dragging = false
-		elif event is InputEventMouseMotion and dragging:
-			var offset: Vector2 = -event.relative.normalized()
-			camera.position.y -= offset.y * 0.3
-			camera.position.x += offset.x * 0.3

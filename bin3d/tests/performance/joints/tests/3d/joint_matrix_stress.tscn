@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://dkypjt7y6ll2u"]
+
+[ext_resource type="Script" uid="uid://cj6gi68skbghh" path="res://tests/performance/joints/tests/3d/joint_matrix_stress.gd" id="1"]
+
+[node name="joint_matrix_stress" type="Node3D" unique_id=999725424]
+script = ExtResource("1")

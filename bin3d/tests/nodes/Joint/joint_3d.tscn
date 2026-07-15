@@ -1,0 +1,33 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://base/class/test_scene_child.gd" id="1"]
+[ext_resource type="PackedScene" path="res://tests/nodes/Joint/tests/3d/pin_joint_single.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://tests/nodes/Joint/tests/3d/pin_joint_chain.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://tests/nodes/Joint/tests/3d/high_mass_pin.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://tests/nodes/Joint/tests/3d/hinge_joint_single.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://tests/nodes/Joint/tests/3d/hinge_joint_motor.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://tests/nodes/Joint/tests/3d/slider_joint_single.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://tests/nodes/Joint/tests/3d/cone_twist_joint_single.tscn" id="8"]
+[ext_resource type="PackedScene" path="res://tests/nodes/Joint/tests/3d/generic_6dof_joint_single.tscn" id="9"]
+[ext_resource type="PackedScene" path="res://tests/nodes/Joint/tests/3d/generic_6dof_joint_chain.tscn" id="10"]
+
+[node name="joint_3d" type="Node3D"]
+script = ExtResource("1")
+
+[node name="pin_joint_single" parent="." instance=ExtResource("2")]
+
+[node name="pin_joint_chain" parent="." instance=ExtResource("3")]
+
+[node name="high_mass_pin" parent="." instance=ExtResource("4")]
+
+[node name="hinge_joint_single" parent="." instance=ExtResource("5")]
+
+[node name="hinge_joint_motor" parent="." instance=ExtResource("6")]
+
+[node name="slider_joint_single" parent="." instance=ExtResource("7")]
+
+[node name="cone_twist_joint_single" parent="." instance=ExtResource("8")]
+
+[node name="generic_6dof_joint_single" parent="." instance=ExtResource("9")]
+
+[node name="generic_6dof_joint_chain" parent="." instance=ExtResource("10")]

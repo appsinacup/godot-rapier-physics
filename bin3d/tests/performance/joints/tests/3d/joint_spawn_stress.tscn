@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bj8a54dcq11cp"]
+
+[ext_resource type="Script" uid="uid://vpa28qrf054l" path="res://tests/performance/joints/tests/3d/joint_spawn_stress.gd" id="1"]
+
+[node name="joint_spawn_stress" type="Node3D" unique_id=50098473]
+script = ExtResource("1")
