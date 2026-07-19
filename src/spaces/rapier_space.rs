@@ -708,6 +708,7 @@ impl RapierSpace {
 
     #[cfg(feature = "serde-serialize")]
     fn import(&mut self, physics_engine: &mut PhysicsEngine, mut import: SpaceImport) {
+        let old_space_id = self.get_state().get_id();
         // NOTE: Areas in this space MUST be made to clean up their stale intersections before import is called here.
         import.space.reset_state_query_list();
         import.space.reset_deactivated_state_sync_list();
@@ -721,6 +722,8 @@ impl RapierSpace {
             thread_count: RapierProjectSettings::get_num_threads(),
         };
         let physics_objects = import.world;
+        // if import causes space to get a new id, we have to destroy the world associated with the old space
+        physics_engine.world_destroy(old_space_id);
         physics_engine.world_import(self.get_state().get_id(), &world_settings, physics_objects);
     }
 
