@@ -18,7 +18,9 @@ use crate::bodies::exportable_object::ObjectImportState;
 use crate::bodies::rapier_collision_object::IRapierCollisionObject;
 use crate::bodies::rapier_collision_object::RapierCollisionObject;
 use crate::servers::RapierPhysicsServer;
+use crate::servers::rapier_physics_singleton::insert_id_rid;
 use crate::servers::rapier_physics_singleton::physics_data;
+use crate::servers::rapier_physics_singleton::remove_id_rid;
 use crate::servers::try_rapier_physics_server;
 use crate::spaces::rapier_space::SpaceExport;
 use crate::spaces::rapier_space::SpaceImport;
@@ -380,7 +382,11 @@ impl StateManager {
         if space_rid != Rid::Invalid
             && let Some(collision_object) = collision_objects.get(&collision_object_rid)
         {
-            return collision_object.get_base().get_space(physics_objects_ids) == space_rid;
+            let object_space = collision_object.get_base().get_space(physics_objects_ids);
+            if object_space.is_invalid() {
+                godot_error!("Body leaked");
+            }
+            return object_space == space_rid;
         };
         false
     }
@@ -402,6 +408,7 @@ impl StateManager {
 
     fn load_state_internal(&mut self, space_rid: Rid, mut loaded_state: RawImportState) {
         let physics_data = physics_data();
+
         let Some(space) = physics_data.spaces.get_mut(&space_rid) else {
             godot_error!("Provided RID didn't correspond to a valid space!");
             return;
@@ -415,9 +422,10 @@ impl StateManager {
         // The flow is like this:
         // 1) Via the space state, compare pre-load narrowphase to post-load narrowphase. This will tell us which areas have stale or new intersections.
         // 2) For any areas with stale intersections, dispatch events to Godot to close out those stale intersections BEFORE loading the area's state.
-        // 3) Import the space state and step once to update all the physics object's positions.
-        // 4) Load the areas' states (along with all the other physics objects).
-        // 5) After loading, go through the areas' new states and emit events for any monitored collider pairs that are in the new intersections list.
+        // 3) Load the objects from the space corresponding to this StateManager.
+        // 4) Import the space state and step once to update all the physics object's positions.
+        // 5) Load the areas' states (along with all the other physics objects).
+        // 6) After loading, go through the areas' new states and emit events for any monitored collider pairs that are in the new intersections list.
         //------------------------------------------------
         // 1) So first, we get our intersection deltas.
         let stale_intersections: Vec<ColliderPair>;
@@ -442,26 +450,36 @@ impl StateManager {
             }
         }
         space.flush();
-        // 3) Update space and step 0.
-        // Note here that because Space state has a much larger minimum size than other variants, we store the state in a box to keep
-        // the enum size down; as such we need to box up the raw state before we can pass it to methods expecting an ObjectImportState.
-        let space_state = ObjectImportState::Space(Box::new(loaded_state.rapier_space));
-        space.import_state(&mut physics_data.physics_engine, space_state);
-        // Zero-step to update our contact graphs. Then flush to broadcast any relevant event signals.
-        // NOTE: This has been commented out to avoid incrementing the physics state's internal tick counter. This has been done to try to address bugs in determinism after state load.
-        //RapierPhysicsServer::space_step(space_rid, 0.0);
-        space.flush();
-        // 4) Now we start loading all the objects' states.
-        // We can do this by first iterating through all the physics objects in the scene tree; whenever we find an object
-        // with state in our loaded state, we apply the state and remove it from our state map.
-        // That way, any remaining states come from objects we need to re-instantiate.
-        // Similarly, if we fail to find an entry in our loaded state for any given physics node, we should delete that node from the tree...
+
+        // 3) Load the physics objects of the space
+        // This has to be done before reloading the space. When importing from different scenes, the space could change it's id, but the in_space field of the physics objects is only updated in 5). This assumes, that when loading the physics information for a space, the objects in the space dont change the space they are living in.
         let Some(root_node) = self.base().try_get_node_as::<Node>(&loaded_state.root_node) else {
             godot_error!("Couldn't find the root node specified in imported state!");
             return;
         };
         // These nodepaths are relative to the root node.
         let physics_nodes = StateManager::get_all_physics_nodes_in_space(&root_node, space_rid);
+
+        // 4) Update space and step 0.
+        // Note here that because Space state has a much larger minimum size than other variants, we store the state in a box to keep
+        // the enum size down; as such we need to box up the raw state before we can pass it to methods expecting an ObjectImportState.
+        let space_state = ObjectImportState::Space(Box::new(loaded_state.rapier_space));
+
+        remove_id_rid(space.get_state().get_id(), &mut physics_data.ids);
+        space.import_state(&mut physics_data.physics_engine, space_state);
+        insert_id_rid(space.get_state().get_id(), space_rid, &mut physics_data.ids);
+
+        // Zero-step to update our contact graphs. Then flush to broadcast any relevant event signals.
+        // NOTE: This has been commented out to avoid incrementing the physics state's internal tick counter. This has been done to try to address bugs in determinism after state load.
+        //RapierPhysicsServer::space_step(space_rid, 0.0);
+        space.flush();
+
+        // 5) Now we start loading all the objects' states.
+        // We can do this by first iterating through all the physics objects in the scene tree; whenever we find an object
+        // with state in our loaded state, we apply the state and remove it from our state map.
+        // That way, any remaining states come from objects we need to re-instantiate.
+        // Similarly, if we fail to find an entry in our loaded state for any given physics node, we should delete that node from the tree...
+        //
         // Store all our node keys here. When we load state for a node, we can delete that node from this set.
         // This should be faster than removing the traversed elements from the objects_state map.
         let mut nodes_pending_load: HashSet<String> =
@@ -556,7 +574,7 @@ impl StateManager {
                 nodes_to_remove.insert(nodepath_str);
             }
         }
-        // 5) Open the new intersections for our areas, and re-register bodies for state sync.
+        // 6) Open the new intersections for our areas, and re-register bodies for state sync.
         // Importing the space cleared the state query list, and the physics step that would
         // otherwise repopulate it (via after_step) is skipped during load. Without re-adding the
         // bodies here, the final flush dispatches no state-sync callbacks and the Godot nodes are
