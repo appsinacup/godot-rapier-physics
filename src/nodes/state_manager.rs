@@ -574,6 +574,8 @@ impl StateManager {
                 nodes_to_remove.insert(nodepath_str);
             }
         }
+        // Reinsert the space id as it could have been removed again by a body that had the same id previously.
+        insert_id_rid(space.get_state().get_id(), space_rid, &mut physics_data.ids);
         // 6) Open the new intersections for our areas, and re-register bodies for state sync.
         // Importing the space cleared the state query list, and the physics step that would
         // otherwise repopulate it (via after_step) is skipped during load. Without re-adding the
