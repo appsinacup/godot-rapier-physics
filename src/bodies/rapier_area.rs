@@ -320,7 +320,7 @@ impl RapierArea {
             space_rid = area.get_base().get_space(physics_ids);
         }
         if let Some(space) = physics_spaces.get_mut(&space_rid) {
-            for (_, monitor_info) in detected_bodies.iter() {
+            for monitor_info in detected_bodies.values() {
                 if let [Some(body), Some(area)] = physics_collision_objects.get_disjoint_mut([
                     &get_id_rid(monitor_info.other_collider_id, physics_ids),
                     &area_rid,
@@ -353,7 +353,7 @@ impl RapierArea {
             space_rid = area.get_base().get_space(physics_ids);
         }
         if let Some(space) = physics_spaces.get_mut(&space_rid) {
-            for (_, monitor_info) in detected_bodies.iter() {
+            for monitor_info in detected_bodies.values() {
                 if let Some(body) = physics_collision_objects
                     .get_mut(&get_id_rid(monitor_info.other_collider_id, physics_ids))
                     && let Some(body) = body.get_mut_body()
