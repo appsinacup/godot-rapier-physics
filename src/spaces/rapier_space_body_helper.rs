@@ -366,7 +366,6 @@ impl RapierSpace {
         let recovered = self.body_motion_recover(
             body,
             &mut body_transform,
-            motion,
             margin,
             &mut recover_motion,
             &mut excluded_shape_pairs,
@@ -498,7 +497,6 @@ impl RapierSpace {
         &self,
         p_body: &RapierBody,
         p_transform: &mut Transform,
-        p_motion: Vector,
         p_margin: f32,
         p_recover_motion: &mut Vector,
         excluded_shape_pairs: &mut [ExcludedShapePair; MAX_EXCLUDED_SHAPE_PAIRS],
@@ -613,10 +611,9 @@ impl RapierSpace {
                                     shape_col_object,
                                     shape_index,
                                     &col_shape_transform,
-                                    body_shape_transform.origin,
                                     p_margin,
                                     RapierSpace::get_last_step(),
-                                    p_motion,
+                                    true,
                                 );
                                 if skip_collision {
                                     // Add to excluded shapes - this shape should be skipped in later steps
@@ -800,7 +797,7 @@ impl RapierSpace {
                                         .get_base()
                                         .is_shape_set_as_one_way_collision(shape_index)
                                 {
-                                    let direction = -get_one_way_valid_direction(
+                                    let direction = get_one_way_valid_direction(
                                         &col_shape_transform,
                                         shape_col_object
                                             .get_base()
@@ -882,11 +879,9 @@ impl RapierSpace {
                                 shape_col_object,
                                 shape_index,
                                 &col_shape_transform,
-                                body_shape_transform.origin
-                                    + p_motion * (hi + self.get_contact_max_allowed_penetration()),
                                 p_margin,
                                 RapierSpace::get_last_step(),
-                                p_motion,
+                                false,
                             ) {
                                 continue;
                             }
@@ -1049,10 +1044,9 @@ impl RapierSpace {
                                 shape_col_object,
                                 shape_index,
                                 &col_shape_transform,
-                                body_shape_transform.origin,
                                 p_margin,
                                 RapierSpace::get_last_step(),
-                                p_motion,
+                                true,
                             ) {
                                 continue;
                             }
@@ -1151,23 +1145,26 @@ fn set_collision_info(
     p_result.collision_count = 1;
 }
 #[cfg(feature = "dim2")]
-fn get_transform_forward(transform: &Transform2D) -> Vector {
-    -transform.b
+fn get_transform_down(transform: &Transform2D) -> Vector {
+    transform.b
 }
 #[cfg(feature = "dim3")]
-fn get_transform_forward(transform: &Transform3D) -> Vector {
-    -transform.basis.col_b()
+fn get_transform_down(transform: &Transform3D) -> Vector {
+    transform.basis.col_b()
 }
+// Godot uses `shape_transform.basis_xform(one_way_direction)` as the valid direction, and keeps
+// contacts whose witness points run along it. Falls back to the shape's local down axis, which is
+// what the default one-way direction of `Vector2(0, 1)` resolves to.
 #[cfg(feature = "dim2")]
 fn get_one_way_valid_direction(transform: &Transform2D, direction: Vector) -> Vector {
     if direction.length_squared() <= DEFAULT_EPSILON {
-        return vector_normalized(get_transform_forward(transform));
+        return vector_normalized(get_transform_down(transform));
     }
-    vector_normalized(-transform.basis_xform(direction))
+    vector_normalized(transform.basis_xform(direction))
 }
 #[cfg(feature = "dim3")]
 fn get_one_way_valid_direction(transform: &Transform3D, _direction: Vector) -> Vector {
-    vector_normalized(get_transform_forward(transform))
+    vector_normalized(get_transform_down(transform))
 }
 fn one_way_valid_depth(
     owc_margin: f32,
@@ -1185,21 +1182,33 @@ fn one_way_valid_depth(
     }
     valid_depth
 }
+// How deep a one-way contact may be before it stops counting. Godot's motion cast passes
+// `valid_depth = 10e20` so that only the contact direction decides, while its recovery and
+// rest-info passes cap the depth at the one-way margin.
+#[derive(Clone, Copy)]
+enum OneWayDepthLimit {
+    UpTo(Real),
+    Unlimited,
+}
+// Mirrors Godot's `_shape_col_cbk`: a one-way contact is judged by the direction between the two
+// witness points. Using the shape origins instead breaks down whenever the one-way shape's origin
+// is not near its surface, which is the case for every tile of a merged TileMap collision body.
 fn is_one_way_contact_invalid(
     contact: &ContactResult,
-    moving_shape_origin: Vector,
-    platform_shape_origin: Vector,
     valid_dir: Vector,
-    valid_depth: Real,
+    valid_depth: OneWayDepthLimit,
 ) -> bool {
     let rel_dir = vector_to_godot(contact.pixel_point1) - vector_to_godot(contact.pixel_point2);
-    let rel_length_sq = rel_dir.length_squared();
-    if rel_length_sq > valid_depth * valid_depth {
+    if let OneWayDepthLimit::UpTo(depth) = valid_depth
+        && rel_dir.length_squared() > depth * depth
+    {
         return true;
     }
-    let shape_rel_dir = moving_shape_origin - platform_shape_origin;
-    shape_rel_dir.length_squared() > NORMAL_EPSILON
-        && valid_dir.dot(vector_normalized(shape_rel_dir)) < DEFAULT_EPSILON
+    // The witness points are `contact.normal1` apart by construction, so their difference shrinks
+    // to nothing on a grazing contact and stops carrying a direction. The normal keeps pointing
+    // the same way at unit length, so the side test stays decided by geometry rather than by how
+    // close the shapes happened to be when the query ran.
+    valid_dir.dot(vector_to_godot(contact.normal1)) < GODOT_ONE_WAY_DOT_EPSILON
 }
 impl PhysicsEngine {
     #[allow(clippy::too_many_arguments)]
@@ -1210,10 +1219,9 @@ impl PhysicsEngine {
         collision_body: &RapierCollisionObject,
         shape_index: usize,
         col_shape_transform: &Transform,
-        moving_shape_origin: Vector,
         p_margin: f32,
         last_step: f32,
-        _p_motion: Vector,
+        limit_depth: bool,
     ) -> bool {
         if body_shape.allows_one_way_collision()
             && collision_body
@@ -1226,29 +1234,27 @@ impl PhysicsEngine {
                     .get_base()
                     .get_shape_one_way_collision_direction(shape_index),
             );
-            let owc_margin = collision_body
-                .get_base()
-                .get_shape_one_way_collision_margin(shape_index);
-            let mut platform_linear_velocity = Vector::default();
-            if let Some(b) = collision_body.get_body()
-                && b.get_base().mode.ord() >= BodyMode::KINEMATIC.ord()
-            {
-                platform_linear_velocity = b.get_linear_velocity(self);
-            }
-            let valid_depth = one_way_valid_depth(
-                owc_margin,
-                p_margin,
-                platform_linear_velocity,
-                last_step,
-                valid_dir,
-            );
-            if is_one_way_contact_invalid(
-                contact,
-                moving_shape_origin,
-                col_shape_transform.origin,
-                valid_dir,
-                valid_depth,
-            ) {
+            let valid_depth = if limit_depth {
+                let owc_margin = collision_body
+                    .get_base()
+                    .get_shape_one_way_collision_margin(shape_index);
+                let mut platform_linear_velocity = Vector::default();
+                if let Some(b) = collision_body.get_body()
+                    && b.get_base().mode.ord() >= BodyMode::KINEMATIC.ord()
+                {
+                    platform_linear_velocity = b.get_linear_velocity(self);
+                }
+                OneWayDepthLimit::UpTo(one_way_valid_depth(
+                    owc_margin,
+                    p_margin,
+                    platform_linear_velocity,
+                    last_step,
+                    valid_dir,
+                ))
+            } else {
+                OneWayDepthLimit::Unlimited
+            };
+            if is_one_way_contact_invalid(contact, valid_dir, valid_depth) {
                 return true;
             }
         }
@@ -1453,50 +1459,63 @@ mod tests {
         let depth = one_way_valid_depth(1.0, 0.08, y_motion(-60.0), 1.0 / 60.0, valid_dir);
         assert_eq!(depth, 2.0);
     }
+    // `shapes_contact` offsets point1 along the contact normal, so the two witness points are
+    // always separated along `normal1`. Build the fixtures the same way.
+    fn one_way_contact(point1: Vector, point2: Vector) -> ContactResult {
+        ContactResult {
+            pixel_point1: vector_to_rapier(point1),
+            pixel_point2: vector_to_rapier(point2),
+            normal1: vector_to_rapier(vector_normalized(point1 - point2)),
+            ..Default::default()
+        }
+    }
     #[test]
     fn one_way_contact_accepts_contact_along_valid_direction() {
-        let contact = ContactResult {
-            pixel_point1: vector_to_rapier(x_motion(-1.0)),
-            pixel_point2: vector_to_rapier(Vector::default()),
-            ..Default::default()
-        };
+        // A body resting on a default one-way platform: its witness point sits below the
+        // platform's, so the witness delta runs along the platform's local down axis.
+        let contact = one_way_contact(y_motion(1.0), Vector::default());
         assert!(!is_one_way_contact_invalid(
             &contact,
-            x_motion(1.0),
-            Vector::default(),
-            x_motion(1.0),
-            1.0
+            y_motion(1.0),
+            OneWayDepthLimit::UpTo(2.0)
         ));
     }
     #[test]
     fn one_way_contact_rejects_contact_against_valid_direction() {
-        let contact = ContactResult {
-            pixel_point1: vector_to_rapier(x_motion(-1.0)),
-            pixel_point2: vector_to_rapier(Vector::default()),
-            ..Default::default()
-        };
+        // A body pushing up through the platform from below is ignored.
+        let contact = one_way_contact(y_motion(-1.0), Vector::default());
         assert!(is_one_way_contact_invalid(
             &contact,
-            x_motion(1.0),
-            Vector::default(),
-            x_motion(-1.0),
-            1.0
+            y_motion(1.0),
+            OneWayDepthLimit::UpTo(2.0)
+        ));
+    }
+    #[test]
+    fn one_way_contact_rejects_sideways_contact() {
+        // A body approaching the side of a platform never collides with it in Godot either.
+        let contact = one_way_contact(x_motion(1.0), Vector::default());
+        assert!(is_one_way_contact_invalid(
+            &contact,
+            y_motion(1.0),
+            OneWayDepthLimit::UpTo(2.0)
         ));
     }
     #[test]
     fn one_way_contact_rejects_contact_beyond_margin() {
-        let contact = ContactResult {
-            pixel_point1: vector_to_rapier(x_motion(-2.0)),
-            pixel_point2: vector_to_rapier(Vector::default()),
-            ..Default::default()
-        };
+        let contact = one_way_contact(y_motion(2.0), Vector::default());
         assert!(is_one_way_contact_invalid(
             &contact,
-            x_motion(1.0),
-            Vector::default(),
-            x_motion(1.0),
-            1.0
+            y_motion(1.0),
+            OneWayDepthLimit::UpTo(1.0)
         ));
+    }
+    #[test]
+    fn one_way_valid_direction_matches_godot_basis_xform() {
+        let transform = Transform::IDENTITY;
+        assert_eq!(
+            get_one_way_valid_direction(&transform, y_motion(1.0)),
+            y_motion(1.0)
+        );
     }
     #[test]
     fn clamp_near_zero_safe_motion_keeps_full_motion() {

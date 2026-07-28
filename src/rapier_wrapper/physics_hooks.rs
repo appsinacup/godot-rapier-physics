@@ -36,27 +36,28 @@ pub struct PhysicsHooksCollisionFilter<'a> {
     pub last_step: Real,
     pub ghost_collision_distance: Real,
 }
-const GODOT_ONE_WAY_DOT_EPSILON: Real = 1.0e-5_f32;
+// Godot's CMP_EPSILON, the tolerance its own one-way checks compare dot products against. A
+// contact along a flat face is exactly perpendicular to the one-way direction, so the guard band
+// around zero decides those cases and has to be the same width as Godot's.
+pub const GODOT_ONE_WAY_DOT_EPSILON: Real = 1.0e-5_f32;
+// `contact_dir` is the unit contact normal oriented away from the one-way shape, matching the
+// normal Godot's `GodotBodyPair2D::setup` tests against the shape's one-way direction.
 fn update_as_godot_one_way_platform(
     context: &mut ContactModificationContext,
-    shape_rel_dir: Vector,
+    contact_dir: Vector,
     valid_dir: Vector,
 ) {
     const CONTACT_CONFIGURATION_UNKNOWN: u32 = 0;
     const CONTACT_CURRENTLY_ALLOWED: u32 = 1;
     const CONTACT_CURRENTLY_FORBIDDEN: u32 = 2;
-    let shape_rel_length_sq = shape_rel_dir.length_squared();
-    let contact_is_ok = shape_rel_length_sq > GODOT_ONE_WAY_DOT_EPSILON
-        && shape_rel_dir.normalize().dot(valid_dir) > GODOT_ONE_WAY_DOT_EPSILON;
+    let contact_is_ok = contact_dir.dot(valid_dir) > GODOT_ONE_WAY_DOT_EPSILON;
     match *context.user_data {
         CONTACT_CONFIGURATION_UNKNOWN => {
             if contact_is_ok {
                 *context.user_data = CONTACT_CURRENTLY_ALLOWED;
             } else {
                 context.solver_contacts.clear();
-                if shape_rel_length_sq > 0.1 {
-                    *context.user_data = CONTACT_CURRENTLY_FORBIDDEN;
-                }
+                *context.user_data = CONTACT_CURRENTLY_FORBIDDEN;
             }
         }
         CONTACT_CURRENTLY_FORBIDDEN => {
@@ -130,14 +131,14 @@ impl PhysicsHooks for PhysicsHooksCollisionFilter<'_> {
             self.physics_collision_objects,
             self.physics_ids,
         );
+        // `context.normal` points from collider1 towards collider2, so it has to be flipped when
+        // collider1 is the one-way shape for the dot product to keep Godot's meaning.
         if one_way_direction.body1 {
-            let valid_dir = collider1.position().rotation * -one_way_direction.body1_direction;
-            let shape_rel_dir = collider2.position().translation - collider1.position().translation;
-            update_as_godot_one_way_platform(context, shape_rel_dir, valid_dir);
+            let valid_dir = collider1.position().rotation * one_way_direction.body1_direction;
+            update_as_godot_one_way_platform(context, -*context.normal, valid_dir);
         } else if one_way_direction.body2 {
-            let valid_dir = collider2.position().rotation * -one_way_direction.body2_direction;
-            let shape_rel_dir = collider1.position().translation - collider2.position().translation;
-            update_as_godot_one_way_platform(context, shape_rel_dir, valid_dir);
+            let valid_dir = collider2.position().rotation * one_way_direction.body2_direction;
+            update_as_godot_one_way_platform(context, *context.normal, valid_dir);
         }
         let contact_is_pass_through = false;
         let mut rigid_body_1_linvel = one_way_direction.previous_linear_velocity1;

@@ -2,6 +2,16 @@
 
 ## v0.8.40
 
+## What's Changed
+* Source issue fix for 3D softness problem by @Schnorg in https://github.com/appsinacup/godot-rapier-physics/pull/590
+* Fix for center of mass to match godot by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/591
+* Fix for leaked bodies on state import by @68317fa2 in https://github.com/appsinacup/godot-rapier-physics/pull/596
+
+## New Contributors
+* @68317fa2 made their first contribution in https://github.com/appsinacup/godot-rapier-physics/pull/596
+
+**Full Changelog**: https://github.com/appsinacup/godot-rapier-physics/compare/v0.8.39...v0.8.40
+
 ## v0.8.39
 
 ## What's Changed
