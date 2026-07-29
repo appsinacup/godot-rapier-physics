@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tests/nodes/CollisionShape/tests/2d/one_way_collision_sides.gd" id="1_ows"]
+
+[node name="one_way_collision_sides" type="Node2D"]
+script = ExtResource("1_ows")
