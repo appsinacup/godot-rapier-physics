@@ -35,6 +35,14 @@ use crate::servers::rapier_physics_server_extra::RapierBodyParam;
 use crate::spaces::rapier_space::RapierSpace;
 use crate::types::*;
 use crate::*;
+
+fn inverse_or_zero(value: real) -> real {
+    if value.is_zero_approx() {
+        0.0
+    } else {
+        1.0 / value
+    }
+}
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[cfg_attr(
     feature = "serde-serialize",
@@ -1945,32 +1953,20 @@ impl RapierBody {
             self.state.inertia = angle_to_godot(angular_inertia) * self.state.mass
                 / (rigid_body_mass_properties.1 as real);
         }
-        if self.state.inertia.is_zero_approx() {
-            self.state.inv_inertia = ANGLE_ZERO;
-        }
         #[cfg(feature = "dim2")]
-        if !self.state.inertia.is_zero_approx() {
-            self.state.inv_inertia = 1.0 / self.state.inertia;
+        {
+            self.state.inv_inertia = inverse_or_zero(self.state.inertia);
         }
         #[cfg(feature = "dim3")]
-        if !self.state.inertia.is_zero_approx() {
-            // inv inertia
-            if !self.state.inv_inertia.x.is_zero_approx() {
-                self.state.inv_inertia.x = 1.0 / self.state.inertia.x;
-            } else {
-                self.state.inv_inertia.x = 0.0;
-            }
-            if !self.state.inv_inertia.y.is_zero_approx() {
-                self.state.inv_inertia.y = 1.0 / self.state.inertia.y;
-            } else {
-                self.state.inv_inertia.y = 0.0;
-            }
-            if !self.state.inv_inertia.z.is_zero_approx() {
-                self.state.inv_inertia.z = 1.0 / self.state.inertia.z;
-            } else {
-                self.state.inv_inertia.z = 0.0;
-            }
-            // inv inertia tensor
+        {
+            // The inverse has to be derived from the mass scaled inertia above, not from
+            // rapier's own inv_principal_inertia, which is computed for unit collider masses.
+            self.state.inv_inertia = Vector3::new(
+                inverse_or_zero(self.state.inertia.x),
+                inverse_or_zero(self.state.inertia.y),
+                inverse_or_zero(self.state.inertia.z),
+            );
+            // inv inertia tensor, in the body local frame
             let rotation_matrix = rigid_body_mass_properties
                 .0
                 .local_mprops
@@ -1984,14 +1980,9 @@ impl RapierBody {
                 Vector3::new(column_1.x, column_1.y, column_1.z),
                 Vector3::new(column_2.x, column_2.y, column_2.z),
             );
-            let inv_inertia = rigid_body_mass_properties
-                .0
-                .local_mprops
-                .inv_principal_inertia;
             let tb = self.state.principal_inertia_axes;
             let tbt = tb.transposed();
-            let diag =
-                Basis::IDENTITY.scaled(Vector3::new(inv_inertia.x, inv_inertia.y, inv_inertia.z));
+            let diag = Basis::IDENTITY.scaled(self.state.inv_inertia);
             self.state.inv_inertia_tensor = tb * diag * tbt;
         }
         self.apply_mass_properties(force_update, physics_engine);
