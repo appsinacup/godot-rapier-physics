@@ -1938,20 +1938,17 @@ impl RapierBody {
         if self.base.mode.ord() < BodyMode::RIGID.ord() {
             return;
         }
-        // compute rigidbody mass properties by changing collider mass. Will get overriden later
-        let rigid_body_mass_properties = physics_engine
-            .body_get_mass_properties(self.base.get_space_id(), self.base.get_body_handle());
+        // Mass properties of the shapes alone, already scaled to the mass Godot asked for.
+        let shape_mass_properties = physics_engine.body_get_mass_properties(
+            self.base.get_space_id(),
+            self.base.get_body_handle(),
+            self.state.mass,
+        );
         if self.calculate_center_of_mass {
-            self.state.center_of_mass =
-                vector_to_godot(rigid_body_mass_properties.0.local_mprops.local_com);
+            self.state.center_of_mass = vector_to_godot(shape_mass_properties.local_com);
         }
         if self.calculate_inertia {
-            let angular_inertia = rigid_body_mass_properties
-                .0
-                .local_mprops
-                .principal_inertia();
-            self.state.inertia = angle_to_godot(angular_inertia) * self.state.mass
-                / (rigid_body_mass_properties.1 as real);
+            self.state.inertia = angle_to_godot(shape_mass_properties.principal_inertia());
         }
         #[cfg(feature = "dim2")]
         {
@@ -1959,18 +1956,15 @@ impl RapierBody {
         }
         #[cfg(feature = "dim3")]
         {
-            // The inverse has to be derived from the mass scaled inertia above, not from
-            // rapier's own inv_principal_inertia, which is computed for unit collider masses.
+            // Derived from the inertia above rather than from the shape mass properties, so that
+            // a custom inertia set through BodyParameter::INERTIA is reflected here as well.
             self.state.inv_inertia = Vector3::new(
                 inverse_or_zero(self.state.inertia.x),
                 inverse_or_zero(self.state.inertia.y),
                 inverse_or_zero(self.state.inertia.z),
             );
             // inv inertia tensor, in the body local frame
-            let rotation_matrix = rigid_body_mass_properties
-                .0
-                .local_mprops
-                .principal_inertia_local_frame;
+            let rotation_matrix = shape_mass_properties.principal_inertia_local_frame;
             let vector = rapier::prelude::Matrix::from_quat(rotation_matrix);
             let column_0 = vector.x_axis;
             let column_1 = vector.y_axis;
