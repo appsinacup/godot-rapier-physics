@@ -693,37 +693,42 @@ impl PhysicsEngine {
         }
     }
 
+    /// Mass properties derived purely from the attached shapes, rescaled to `mass`.
+    ///
+    /// The colliders carry no mass of their own (they are built with a density of 0, the mass
+    /// Godot asks for is injected as additional mass properties), so the shapes are measured
+    /// directly at a density of 1. Each shape then contributes its volume as mass, which is how
+    /// Godot distributes the body mass over its shapes, and `set_mass` rescales the mass and the
+    /// angular inertia together to the requested value.
     pub fn body_get_mass_properties(
-        &mut self,
+        &self,
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
-    ) -> (RigidBodyMassProps, usize) {
-        if let Some(physics_world) = self.get_mut_world(world_handle)
+        mass: Real,
+    ) -> MassProperties {
+        let mut mass_properties = MassProperties::default();
+        if let Some(physics_world) = self.get_world(world_handle)
             && let Some(body) = physics_world
                 .physics_objects
                 .rigid_body_set
-                .get_mut(body_handle)
+                .get(body_handle)
         {
-            for collider in body.colliders() {
+            for collider_handle in body.colliders() {
                 if let Some(collider) = physics_world
                     .physics_objects
                     .collider_set
-                    .get_mut(*collider)
+                    .get(*collider_handle)
                 {
-                    collider.set_mass(1.0);
+                    let shape_mass_properties = collider.shape().mass_properties(1.0);
+                    mass_properties += match collider.position_wrt_parent() {
+                        Some(position) => shape_mass_properties.transform_by(position),
+                        None => shape_mass_properties,
+                    };
                 }
             }
-            body.set_additional_mass(0.0, false);
-            body.recompute_mass_properties_from_colliders(
-                &physics_world.physics_objects.collider_set,
-            );
-            let mut colliders_count = body.colliders().len();
-            if colliders_count == 0 {
-                colliders_count = 1;
-            }
-            return (body.mass_properties().clone(), colliders_count);
         }
-        (RigidBodyMassProps::default(), 1)
+        mass_properties.set_mass(mass, true);
+        mass_properties
     }
 
     pub fn body_get_colliders(

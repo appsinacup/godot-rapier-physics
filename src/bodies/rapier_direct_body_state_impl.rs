@@ -119,10 +119,13 @@ impl RapierDirectBodyStateImpl {
     #[cfg(feature = "dim3")]
     pub(super) fn get_inverse_inertia_tensor(&self) -> Basis {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get(&self.body)
-            && let Some(body) = body.get_body()
-        {
-            return body.get_inv_inertia_tensor();
+        if let Some(body) = physics_data.collision_objects.get(&self.body) {
+            let basis = body.get_base().get_transform().basis;
+            if let Some(body) = body.get_body() {
+                // Godot reports the tensor in global orientation, while it's stored in the
+                // body local frame.
+                return basis * body.get_inv_inertia_tensor() * basis.transposed();
+            }
         }
         Basis::IDENTITY
     }
@@ -130,10 +133,11 @@ impl RapierDirectBodyStateImpl {
     #[cfg(feature = "dim3")]
     pub(super) fn get_principal_inertia_axes(&self) -> Basis {
         let physics_data = physics_data();
-        if let Some(body) = physics_data.collision_objects.get(&self.body)
-            && let Some(body) = body.get_body()
-        {
-            return body.get_principal_inertia_axes();
+        if let Some(body) = physics_data.collision_objects.get(&self.body) {
+            let basis = body.get_base().get_transform().basis;
+            if let Some(body) = body.get_body() {
+                return basis * body.get_principal_inertia_axes();
+            }
         }
         Basis::IDENTITY
     }
