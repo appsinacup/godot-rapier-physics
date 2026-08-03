@@ -346,23 +346,23 @@ impl PhysicsWorld {
         }
         let _events_span = profiler::scope(profiler::Span::Events);
         {
-        let _collision_events_span = profiler::scope(profiler::Span::EventsCollision);
-        while let Ok(collision_event) = collision_recv.try_recv() {
-            let handle1 = collision_event.collider1();
-            let handle2 = collision_event.collider2();
-            // Handle the collision event.
-            let event_info = CollisionEventInfo {
-                is_sensor: collision_event.sensor(),
-                is_removed: collision_event.removed(),
-                is_started: collision_event.started(),
-                is_stopped: collision_event.stopped(),
-                collider1: handle1,
-                collider2: handle2,
-                user_data1: self.get_collider_user_data(handle1),
-                user_data2: self.get_collider_user_data(handle2),
-            };
-            space.collision_event_callback(&event_info, physics_collision_objects, physics_ids);
-        }
+            let _collision_events_span = profiler::scope(profiler::Span::EventsCollision);
+            while let Ok(collision_event) = collision_recv.try_recv() {
+                let handle1 = collision_event.collider1();
+                let handle2 = collision_event.collider2();
+                // Handle the collision event.
+                let event_info = CollisionEventInfo {
+                    is_sensor: collision_event.sensor(),
+                    is_removed: collision_event.removed(),
+                    is_started: collision_event.started(),
+                    is_stopped: collision_event.stopped(),
+                    collider1: handle1,
+                    collider2: handle2,
+                    user_data1: self.get_collider_user_data(handle1),
+                    user_data2: self.get_collider_user_data(handle2),
+                };
+                space.collision_event_callback(&event_info, physics_collision_objects, physics_ids);
+            }
         }
         let _contact_force_span = profiler::scope(profiler::Span::EventsContactForce);
         while let Ok(contact_pair) = contact_force_recv.try_recv() {
