@@ -4,7 +4,7 @@ on:
 
 jobs:
   cargo-check:
-    name: Godot API ${{ matrix.api.version }} ${{ matrix.dimensions.name }} ${{ matrix.features.name }}
+    name: Godot API ${{ matrix.api.version }} ${{ matrix.dimensions.name }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -17,9 +17,6 @@ jobs:
         dimensions:
           - { name: 2D, feature: "single-dim2" }
           - { name: 3D, feature: "single-dim3" }
-        features:
-          - { name: simd-parallel, feature: "simd-stable,serde-serialize,parallel,experimental-threads,register-docs" }
-          - { name: enhanced-determinism, feature: "enhanced-determinism,serde-serialize,experimental-threads,register-docs" }
 
     steps:
       - uses: actions/checkout@v6
@@ -28,5 +25,5 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          features="${{ matrix.dimensions.feature }},${{ matrix.features.feature }},${{ matrix.api.feature }}"
+          features="${{ matrix.dimensions.feature }},serde-serialize,parallel,experimental-threads,register-docs,${{ matrix.api.feature }}"
           cargo check --features="$features"

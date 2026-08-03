@@ -2,6 +2,26 @@
 
 ## v0.8.41
 
+### Rapier 0.35
+
+Updated to Rapier `0.35.0-beta.0` (and Parry `0.30`). Highlights from upstream: intra-island parallelism, a Box2D v3-style CCD rewrite, persistent islands, no more panics on NaN (offending bodies are disabled instead), and roughly 50% (single-thread) to 300% (multi-thread) faster stepping.
+
+### One build instead of two
+
+The `simd-parallel` and `enhanced-determinism` addon variants are merged into a single build per dimension. Cross-platform determinism now composes with SIMD and parallelism at no measurable cost, so it is always on rather than being a separate, slower download.
+
+- The `simd-stable`, `simd-nightly`, and `enhanced-determinism` cargo features are gone. Rapier always compiles SIMD (scalar fallback where unsupported), and `enhanced-determinism` is enabled directly on the Rapier dependencies.
+- `parallel` remains an opt-in feature, and is enabled in every shipped native build. Web builds still cannot use it.
+- Release artifacts are renamed: `godot-rapier-{2d,3d}-single-{simd-parallel,enhanced-determinism}.zip` become `godot-rapier-{2d,3d}-single.zip` (likewise for the `static-rapier-*` archives).
+
+### Behaviour changes inherited from Rapier
+
+New projects pick these up from Rapier's defaults; existing projects keep whatever is already saved in `project.godot`.
+
+- Bodies fall asleep sooner: sleep linear threshold `0.4` → `0.05` (now measured at the body's farthest point) and time until sleep `2.0s` → `0.5s`.
+- Contact defaults changed: prediction distance `0.002` → `0.02`, max corrective velocity `10.0` → `3.0`, allowed linear error `0.001` → `0.005`.
+- Linear speed is now clamped, and rotation is limited to roughly 45° per step. The clamp is exposed as a new project setting, `physics/rapier/solver/normalized_max_linear_velocity` (default `400`, multiplied by the length unit — so 40000 px/s in 2D at the default length unit of 100).
+
 ## v0.8.40
 
 ## What's Changed

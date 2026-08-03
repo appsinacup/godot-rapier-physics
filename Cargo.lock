@@ -903,6 +903,7 @@ dependencies = [
 [[package]]
 name = "salva2d"
 version = "0.9.0"
+source = "git+https://github.com/Ughuuu/salva?branch=update-to-rapier-0.8.35#bc6d604e641ac239d69f67094aac1d273d5717bd"
 dependencies = [
  "approx",
  "bitflags",
@@ -920,6 +921,7 @@ dependencies = [
 [[package]]
 name = "salva2d-f64"
 version = "0.9.0"
+source = "git+https://github.com/Ughuuu/salva?branch=update-to-rapier-0.8.35#bc6d604e641ac239d69f67094aac1d273d5717bd"
 dependencies = [
  "approx",
  "bitflags",
@@ -936,6 +938,7 @@ dependencies = [
 [[package]]
 name = "salva3d"
 version = "0.9.0"
+source = "git+https://github.com/Ughuuu/salva?branch=update-to-rapier-0.8.35#bc6d604e641ac239d69f67094aac1d273d5717bd"
 dependencies = [
  "approx",
  "bitflags",
@@ -953,6 +956,7 @@ dependencies = [
 [[package]]
 name = "salva3d-f64"
 version = "0.9.0"
+source = "git+https://github.com/Ughuuu/salva?branch=update-to-rapier-0.8.35#bc6d604e641ac239d69f67094aac1d273d5717bd"
 dependencies = [
  "approx",
  "bitflags",

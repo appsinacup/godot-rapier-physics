@@ -49,10 +49,10 @@ rapier2d = { version = "0.35.0-beta.0", features = ["enhanced-determinism"], opt
 rapier2d-f64 = { version = "0.35.0-beta.0", features = ["enhanced-determinism"], optional = true }
 rapier3d = { version = "0.35.0-beta.0", features = ["enhanced-determinism"], optional = true }
 rapier3d-f64 = { version = "0.35.0-beta.0", features = ["enhanced-determinism"], optional = true }
-salva2d = { path = "/Users/dragosdaian/Documents/salva/build/salva2d", features = ["rapier"], optional = true }
-salva2d-f64 = { path = "/Users/dragosdaian/Documents/salva/build/salva2d-f64", features = ["rapier"], optional = true }
-salva3d = { path = "/Users/dragosdaian/Documents/salva/build/salva3d", features = ["rapier"], optional = true }
-salva3d-f64 = { path = "/Users/dragosdaian/Documents/salva/build/salva3d-f64", features = ["rapier"], optional = true }
+salva2d = { git = "https://github.com/Ughuuu/salva", branch = "update-to-rapier-0.8.35", features = ["rapier"], optional = true }
+salva2d-f64 = { git = "https://github.com/Ughuuu/salva", branch = "update-to-rapier-0.8.35", features = ["rapier"], optional = true }
+salva3d = { git = "https://github.com/Ughuuu/salva", branch = "update-to-rapier-0.8.35", features = ["rapier"], optional = true }
+salva3d-f64 = { git = "https://github.com/Ughuuu/salva", branch = "update-to-rapier-0.8.35", features = ["rapier"], optional = true }
 serde = { version = "1.0", features = ["derive"], optional = true }
 serde_json = { version = "1.0", optional = true }
 
