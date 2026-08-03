@@ -15,6 +15,7 @@ use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use crate::servers::rapier_physics_singleton::PhysicsIds;
 use crate::servers::rapier_physics_singleton::RapierId;
+use crate::servers::rapier_profiler as profiler;
 use crate::spaces::rapier_space::RapierSpace;
 #[cfg_attr(
     feature = "serde-serialize",
@@ -226,17 +227,21 @@ impl PhysicsWorld {
         physics_collision_objects: &mut PhysicsCollisionObjects,
         physics_ids: &PhysicsIds,
     ) {
-        for handle in self.physics_objects.island_manager.active_bodies() {
-            if let Some(body) = self.physics_objects.rigid_body_set.get(handle) {
-                let before_active_body_info = BeforeActiveBodyInfo {
-                    body_user_data: self.get_rigid_body_user_data(handle),
-                    previous_velocity: body.linvel(),
-                };
-                space.before_active_body_callback(
-                    &before_active_body_info,
-                    physics_collision_objects,
-                    physics_ids,
-                );
+        let _step_span = profiler::scope(profiler::Span::Step);
+        {
+            let _span = profiler::scope(profiler::Span::BeforeActive);
+            for handle in self.physics_objects.island_manager.active_bodies() {
+                if let Some(body) = self.physics_objects.rigid_body_set.get(handle) {
+                    let before_active_body_info = BeforeActiveBodyInfo {
+                        body_user_data: self.get_rigid_body_user_data(handle),
+                        previous_velocity: body.linvel(),
+                    };
+                    space.before_active_body_callback(
+                        &before_active_body_info,
+                        physics_collision_objects,
+                        physics_ids,
+                    );
+                }
             }
         }
         let mut integration_parameters = IntegrationParameters {
@@ -272,42 +277,46 @@ impl PhysicsWorld {
         let (collision_send, collision_recv) = mpsc::channel();
         let (contact_force_send, contact_force_recv) = mpsc::channel();
         let event_handler = ContactEventHandler::new(collision_send, contact_force_send);
-        #[cfg(feature = "parallel")]
         {
-            let physics_pipeline = &mut self.physics_pipeline;
-            self.thread_pool.install(|| {
-                physics_pipeline.step(
-                    gravity,
-                    &integration_parameters,
-                    &mut self.physics_objects.island_manager,
-                    &mut self.physics_objects.broad_phase,
-                    &mut self.physics_objects.narrow_phase,
-                    &mut self.physics_objects.rigid_body_set,
-                    &mut self.physics_objects.collider_set,
-                    &mut self.physics_objects.impulse_joint_set,
-                    &mut self.physics_objects.multibody_joint_set,
-                    &mut self.physics_objects.ccd_solver,
-                    &physics_hooks,
-                    &event_handler,
-                );
-            });
+            let _solver_span = profiler::scope(profiler::Span::Solver);
+            #[cfg(feature = "parallel")]
+            {
+                let physics_pipeline = &mut self.physics_pipeline;
+                self.thread_pool.install(|| {
+                    physics_pipeline.step(
+                        gravity,
+                        &integration_parameters,
+                        &mut self.physics_objects.island_manager,
+                        &mut self.physics_objects.broad_phase,
+                        &mut self.physics_objects.narrow_phase,
+                        &mut self.physics_objects.rigid_body_set,
+                        &mut self.physics_objects.collider_set,
+                        &mut self.physics_objects.impulse_joint_set,
+                        &mut self.physics_objects.multibody_joint_set,
+                        &mut self.physics_objects.ccd_solver,
+                        &physics_hooks,
+                        &event_handler,
+                    );
+                });
+            }
+            #[cfg(not(feature = "parallel"))]
+            self.physics_pipeline.step(
+                gravity,
+                &integration_parameters,
+                &mut self.physics_objects.island_manager,
+                &mut self.physics_objects.broad_phase,
+                &mut self.physics_objects.narrow_phase,
+                &mut self.physics_objects.rigid_body_set,
+                &mut self.physics_objects.collider_set,
+                &mut self.physics_objects.impulse_joint_set,
+                &mut self.physics_objects.multibody_joint_set,
+                &mut self.physics_objects.ccd_solver,
+                &physics_hooks,
+                &event_handler,
+            );
         }
-        #[cfg(not(feature = "parallel"))]
-        self.physics_pipeline.step(
-            gravity,
-            &integration_parameters,
-            &mut self.physics_objects.island_manager,
-            &mut self.physics_objects.broad_phase,
-            &mut self.physics_objects.narrow_phase,
-            &mut self.physics_objects.rigid_body_set,
-            &mut self.physics_objects.collider_set,
-            &mut self.physics_objects.impulse_joint_set,
-            &mut self.physics_objects.multibody_joint_set,
-            &mut self.physics_objects.ccd_solver,
-            &physics_hooks,
-            &event_handler,
-        );
         if self.fluids_pipeline.liquid_world.fluids().len() > 0 {
+            let _span = profiler::scope(profiler::Span::Fluids);
             self.fluids_pipeline.step(
                 &liquid_gravity,
                 integration_parameters.dt,
@@ -315,12 +324,29 @@ impl PhysicsWorld {
                 &mut self.physics_objects.rigid_body_set,
             );
         }
-        for handle in self.physics_objects.island_manager.active_bodies() {
-            let active_body_info = ActiveBodyInfo {
-                body_user_data: self.get_rigid_body_user_data(handle),
-            };
-            space.active_body_callback(&active_body_info, physics_collision_objects, physics_ids);
+        {
+            let _span = profiler::scope(profiler::Span::ActiveSync);
+            let mut active = 0u64;
+            for handle in self.physics_objects.island_manager.active_bodies() {
+                let active_body_info = ActiveBodyInfo {
+                    body_user_data: self.get_rigid_body_user_data(handle),
+                };
+                space.active_body_callback(
+                    &active_body_info,
+                    physics_collision_objects,
+                    physics_ids,
+                );
+                active += 1;
+            }
+            profiler::set_gauge(profiler::Gauge::ActiveBodies, active);
+            profiler::set_gauge(
+                profiler::Gauge::TotalBodies,
+                self.physics_objects.rigid_body_set.len() as u64,
+            );
         }
+        let _events_span = profiler::scope(profiler::Span::Events);
+        {
+        let _collision_events_span = profiler::scope(profiler::Span::EventsCollision);
         while let Ok(collision_event) = collision_recv.try_recv() {
             let handle1 = collision_event.collider1();
             let handle2 = collision_event.collider2();
@@ -337,6 +363,8 @@ impl PhysicsWorld {
             };
             space.collision_event_callback(&event_info, physics_collision_objects, physics_ids);
         }
+        }
+        let _contact_force_span = profiler::scope(profiler::Span::EventsContactForce);
         while let Ok(contact_pair) = contact_force_recv.try_recv() {
             if let Some(collider1) = self
                 .physics_objects

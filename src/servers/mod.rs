@@ -12,6 +12,7 @@ pub mod rapier_physics_server_3d;
 pub mod rapier_physics_server_extra;
 pub mod rapier_physics_server_impl;
 pub mod rapier_physics_singleton;
+pub mod rapier_profiler;
 pub mod rapier_project_settings;
 #[cfg(feature = "dim2")]
 pub type RapierPhysicsServer = rapier_physics_server_2d::RapierPhysicsServer2D;
@@ -91,5 +92,6 @@ fn print_version() {
 }
 pub fn register_scene() {
     RapierProjectSettings::register_settings();
+    rapier_profiler::register_monitors();
     print_version();
 }

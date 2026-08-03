@@ -457,6 +457,7 @@ impl RapierSpace {
         physics_data: &mut PhysicsData,
         settings: SimulationSettings,
     ) {
+        crate::servers::rapier_profiler::report_if_due();
         let mut area_update_list = BTreeSet::default();
         if let Some(space) = physics_data.spaces.get_mut(space_rid) {
             space
@@ -728,7 +729,13 @@ impl RapierSpace {
     }
 
     pub fn flush(&mut self) {
+        let _span = crate::servers::rapier_profiler::scope(
+            crate::servers::rapier_profiler::Span::FlushQueries,
+        );
         let callbacks = {
+            let _span = crate::servers::rapier_profiler::scope(
+                crate::servers::rapier_profiler::Span::FlushCollect,
+            );
             let physics_data = physics_data();
             let state = self.get_state();
             RapierSpace::collect_query_callbacks(
@@ -741,8 +748,13 @@ impl RapierSpace {
                 &physics_data.ids,
             )
         };
-        for callback in callbacks {
-            callback.call();
+        {
+            let _span = crate::servers::rapier_profiler::scope(
+                crate::servers::rapier_profiler::Span::FlushDispatch,
+            );
+            for callback in callbacks {
+                callback.call();
+            }
         }
         let physics_data = physics_data();
         self.get_mut_state().reset_state_query_list();

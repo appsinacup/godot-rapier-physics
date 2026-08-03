@@ -18,6 +18,7 @@ use servers::rapier_physics_singleton::PhysicsShapes;
 use servers::rapier_physics_singleton::PhysicsSpaces;
 use servers::rapier_physics_singleton::RapierId;
 use servers::rapier_physics_singleton::get_id_rid;
+use servers::rapier_project_settings::RapierProjectSettings;
 use shapes::rapier_shape::IRapierShape;
 
 #[cfg(feature = "serde-serialize")]
@@ -380,27 +381,15 @@ impl RapierBody {
                 send_contacts,
             );
         }
-        self.update_collider_filters(collider_handle, space_handle, physics_engine, false);
+        self.update_collider_filters(collider_handle, space_handle, physics_engine);
     }
 
     fn update_colliders_filters(&self, physics_engine: &mut PhysicsEngine) {
         let colliders = physics_engine
             .body_get_colliders(self.base.get_space_id(), self.base.get_body_handle())
             .to_vec();
-        let mut override_modify_contacts = false;
-        for shape in self.base.state.shapes.clone() {
-            if shape.one_way_collision && !shape.disabled {
-                override_modify_contacts = true;
-                break;
-            }
-        }
         for collider in colliders {
-            self.update_collider_filters(
-                collider,
-                self.base.get_space_id(),
-                physics_engine,
-                override_modify_contacts,
-            );
+            self.update_collider_filters(collider, self.base.get_space_id(), physics_engine);
         }
     }
 
@@ -433,7 +422,6 @@ impl RapierBody {
         collider_handle: ColliderHandle,
         space_handle: WorldHandle,
         physics_engine: &mut PhysicsEngine,
-        override_modify_contacts: bool,
     ) {
         // if it has any exception, it needs to filter for them
         let filter_contacts_enabled = !self.exceptions.is_empty();
@@ -442,11 +430,23 @@ impl RapierBody {
             collider_handle,
             filter_contacts_enabled,
         );
-        // if we are a conveyer belt, we need to modify contacts
-        // also if any shape is one-way
-        let modify_contacts_enabled = self.base.mode == BodyMode::STATIC
-            || self.base.mode == BodyMode::KINEMATIC
-            || override_modify_contacts;
+        let has_one_way_shape = self
+            .base
+            .state
+            .shapes
+            .iter()
+            .any(|shape| shape.one_way_collision && !shape.disabled);
+        let is_conveyer_belt = self.get_static_linear_velocity() != Vector::default()
+            || self.get_static_angular_velocity() != ANGLE_ZERO;
+        // Ghost collision mitigation runs in the same hook and needs it on the non-dynamic
+        // side of a pair, but at distance zero its contact filter can never match, so the
+        // hook would only burn a lookup per contact pair per step. Letting it switch off
+        // gives projects that don't need it a way out of that cost.
+        let ghost_collisions_enabled = RapierProjectSettings::get_ghost_collision_distance() > 0.0;
+        let needs_ghost_collision_hook = ghost_collisions_enabled
+            && (self.base.mode == BodyMode::STATIC || self.base.mode == BodyMode::KINEMATIC);
+        let modify_contacts_enabled =
+            has_one_way_shape || is_conveyer_belt || needs_ghost_collision_hook;
         physics_engine.collider_set_modify_contacts_enabled(
             space_handle,
             collider_handle,
