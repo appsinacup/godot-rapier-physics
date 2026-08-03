@@ -250,6 +250,7 @@ impl PhysicsWorld {
             normalized_allowed_linear_error: settings.normalized_allowed_linear_error,
             normalized_max_corrective_velocity: settings.normalized_max_corrective_velocity,
             normalized_prediction_distance: settings.normalized_prediction_distance,
+            normalized_max_linear_velocity: settings.normalized_max_linear_velocity,
             num_internal_stabilization_iterations: settings.num_internal_stabilization_iterations,
             ..Default::default()
         };
@@ -375,9 +376,9 @@ impl PhysicsWorld {
                                 - collider1.contact_skin()
                                 - collider2.contact_skin();
                             let world_pos1 =
-                                manifold.subshape_pos1.prepend_to(collider1.position());
+                                manifold.subshape_pos1().prepend_to(collider1.position());
                             let world_pos2 =
-                                manifold.subshape_pos2.prepend_to(collider2.position());
+                                manifold.subshape_pos2().prepend_to(collider2.position());
                             let world_pt1 = world_pos1 * contact_point.local_p1;
                             let world_pt2 = world_pos2 * contact_point.local_p2;
                             let keep_solver_contact = effective_contact_dist

@@ -27,6 +27,7 @@ pub struct SimulationSettings {
     pub normalized_allowed_linear_error: Real,
     pub normalized_max_corrective_velocity: Real,
     pub normalized_prediction_distance: Real,
+    pub normalized_max_linear_velocity: Real,
     pub predictive_contact_allowance_threshold: Real,
     pub num_internal_stabilization_iterations: usize,
 }

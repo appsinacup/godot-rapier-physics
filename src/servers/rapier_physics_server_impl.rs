@@ -66,6 +66,7 @@ pub struct RapierPhysicsServerImpl {
     normalized_allowed_linear_error: real,
     normalized_max_corrective_velocity: real,
     normalized_prediction_distance: real,
+    normalized_max_linear_velocity: real,
     predictive_contact_allowance_threshold: real,
     num_internal_stabilization_iterations: usize,
     contact_damping_ratio: real,
@@ -97,6 +98,8 @@ impl RapierPhysicsServerImpl {
                 RapierProjectSettings::get_normalized_max_corrective_velocity(),
             normalized_prediction_distance:
                 RapierProjectSettings::get_normalized_prediction_distance(),
+            normalized_max_linear_velocity:
+                RapierProjectSettings::get_normalized_max_linear_velocity(),
             predictive_contact_allowance_threshold:
                 RapierProjectSettings::get_predictive_contact_allowance_threshold(),
             num_internal_stabilization_iterations:
@@ -2689,6 +2692,7 @@ impl RapierPhysicsServerImpl {
             normalized_allowed_linear_error: self.normalized_allowed_linear_error,
             normalized_max_corrective_velocity: self.normalized_max_corrective_velocity,
             normalized_prediction_distance: self.normalized_prediction_distance,
+            normalized_max_linear_velocity: self.normalized_max_linear_velocity,
             predictive_contact_allowance_threshold: self.predictive_contact_allowance_threshold,
             num_internal_stabilization_iterations: self.num_internal_stabilization_iterations,
             contact_damping_ratio: self.contact_damping_ratio,

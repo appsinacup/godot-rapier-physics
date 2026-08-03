@@ -21,6 +21,8 @@ const SOLVER_NORMALIZED_MAX_CORRECTIVE_VELOCITY: &str =
     "physics/rapier/solver/normalized_max_corrective_velocity";
 const SOLVER_NORMALIZED_PREDICTION_DISTANCE: &str =
     "physics/rapier/solver/normalized_prediction_distance";
+const SOLVER_NORMALIZED_MAX_LINEAR_VELOCITY: &str =
+    "physics/rapier/solver/normalized_max_linear_velocity";
 const SOLVER_PREDICTIVE_CONTACT_ALLOWANCE_THRESHOLD: &str =
     "physics/rapier/solver/predictive_contact_allowance_threshold";
 const CONTACT_DAMPING_RATIO: &str = "physics/rapier/solver/contact_damping_ratio";
@@ -181,6 +183,12 @@ impl RapierProjectSettings {
             SOLVER_NORMALIZED_PREDICTION_DISTANCE,
             Variant::from(integration_parameters.normalized_prediction_distance),
             "0,10,0.00001,or_greater",
+            false,
+        );
+        register_setting_ranged(
+            SOLVER_NORMALIZED_MAX_LINEAR_VELOCITY,
+            Variant::from(integration_parameters.normalized_max_linear_velocity),
+            "1,10000,0.00001,or_greater",
             false,
         );
         register_setting_ranged(
@@ -424,6 +432,10 @@ impl RapierProjectSettings {
 
     pub fn get_normalized_prediction_distance() -> Real {
         RapierProjectSettings::get_setting_double(SOLVER_NORMALIZED_PREDICTION_DISTANCE) as Real
+    }
+
+    pub fn get_normalized_max_linear_velocity() -> Real {
+        RapierProjectSettings::get_setting_double(SOLVER_NORMALIZED_MAX_LINEAR_VELOCITY) as Real
     }
 
     pub fn get_predictive_contact_allowance_threshold() -> Real {
