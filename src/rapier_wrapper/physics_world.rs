@@ -365,7 +365,9 @@ impl PhysicsWorld {
             }
         }
         let _contact_force_span = profiler::scope(profiler::Span::EventsContactForce);
+        let mut contact_force_events = 0u64;
         while let Ok(contact_pair) = contact_force_recv.try_recv() {
+            contact_force_events += 1;
             if let Some(collider1) = self
                 .physics_objects
                 .collider_set
@@ -443,6 +445,7 @@ impl PhysicsWorld {
                 }
             }
         }
+        profiler::set_gauge(profiler::Gauge::ContactForceEvents, contact_force_events);
         // remove all the removed colliders and rigidbodies user data
         self.physics_objects.removed_rigid_bodies_user_data.clear();
         self.physics_objects.removed_colliders_user_data.clear();
