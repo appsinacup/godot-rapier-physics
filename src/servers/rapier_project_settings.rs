@@ -6,8 +6,56 @@ use godot::prelude::*;
 use godot::register::info::PropertyHint;
 use rapier::dynamics::IntegrationParameters;
 use rapier::math::Real;
+/// Worker count for the solver: performance cores only.
+///
+/// A solver step is a chain of barrier-synchronised stages, so each stage runs at the speed
+/// of its slowest worker. Workers on efficiency cores gate all the others, costing more than
+/// the extra workers gain -- ~50% on a 4P+4E M1.
 #[cfg(feature = "parallel")]
-const NUM_THREADS: &str = "physics/rapier/parallel/num_threads";
+fn performance_core_count() -> usize {
+    #[cfg(target_vendor = "apple")]
+    if let Some(cores) = apple_performance_cores() {
+        return cores;
+    }
+    #[cfg(target_os = "linux")]
+    if let Some(cores) = linux_performance_cores() {
+        return cores;
+    }
+    num_cpus::get_physical()
+}
+
+/// `perflevel0` is the fastest core class; Intel Macs report a single level, so every core.
+#[cfg(all(feature = "parallel", target_vendor = "apple"))]
+fn apple_performance_cores() -> Option<usize> {
+    let mut cores: libc::c_uint = 0;
+    let mut size = size_of_val(&cores);
+    let rc = unsafe {
+        libc::sysctlbyname(
+            c"hw.perflevel0.logicalcpu".as_ptr(),
+            (&raw mut cores).cast(),
+            &mut size,
+            std::ptr::null_mut(),
+            0,
+        )
+    };
+    (rc == 0 && cores > 0).then_some(cores as usize)
+}
+
+/// Hybrid Intel exposes performance cores as their own PMU, whose `cpus` file holds a list
+/// like `0-15` or `0-7,20-23`. Absent on non-hybrid machines.
+#[cfg(all(feature = "parallel", target_os = "linux"))]
+fn linux_performance_cores() -> Option<usize> {
+    let list = std::fs::read_to_string("/sys/devices/cpu_core/cpus").ok()?;
+    let cores: usize = list
+        .trim()
+        .split(',')
+        .filter_map(|range| {
+            let (first, last) = range.split_once('-').unwrap_or((range, range));
+            Some(last.trim().parse::<usize>().ok()? - first.trim().parse::<usize>().ok()? + 1)
+        })
+        .sum();
+    (cores > 0).then_some(cores)
+}
 const SOLVER_PRESET: &str = "physics/rapier/solver/preset";
 const SOLVER_NUM_ITERATIONS: &str = "physics/rapier/solver/num_iterations";
 const SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS: &str =
@@ -29,10 +77,13 @@ const CONTACT_DAMPING_RATIO: &str = "physics/rapier/solver/contact_damping_ratio
 const CONTACT_NATURAL_FREQUENCY: &str = "physics/rapier/solver/contact_natural_frequency";
 const DEFAULT_MAX_CCD_SUBSTEPS: i32 = 2;
 static APPLYING_PRESET: AtomicBool = AtomicBool::new(false);
-// Stability preset constants
+// Softer contacts settle deeper under the weight of a pile and keep creeping instead of
+// resting, so a low natural frequency or a damping ratio above rapier's default of 10 both
+// leave stacks jittering. Values chosen by sweeping the 2D suite; see
+// scripts/sweep-solver-params.sh to re-measure.
 const STABILITY_PGS_ITERATIONS: i64 = 4;
 const STABILITY_STABILIZATION_ITERATIONS: i64 = 4;
-const STABILITY_DAMPING_RATIO: f64 = 20.0;
+const STABILITY_DAMPING_RATIO: f64 = 10.0;
 const STABILITY_NATURAL_FREQUENCY: f64 = 50.0;
 #[cfg(feature = "dim2")]
 const FLUID_PARTICLE_RADIUS: &str = "physics/rapier/fluid/fluid_particle_radius_2d";
@@ -125,16 +176,6 @@ pub struct RapierProjectSettings;
 impl RapierProjectSettings {
     pub fn register_settings() {
         let integration_parameters = IntegrationParameters::default();
-        #[cfg(feature = "parallel")]
-        {
-            let num_threads = num_cpus::get_physical();
-            register_setting_ranged(
-                NUM_THREADS,
-                Variant::from(num_threads as i32),
-                "1,64,or_greater",
-                false,
-            );
-        }
         // Register preset setting first
         register_setting(
             SOLVER_PRESET,
@@ -467,8 +508,11 @@ impl RapierProjectSettings {
             .to::<bool>()
     }
 
+    /// Deliberately not a project setting: a thread count saved on one machine is wrong on
+    /// the next. Computed once per run.
     #[cfg(feature = "parallel")]
     pub fn get_num_threads() -> usize {
-        RapierProjectSettings::get_setting_int(NUM_THREADS).max(1) as usize
+        static NUM_THREADS: std::sync::OnceLock<usize> = std::sync::OnceLock::new();
+        *NUM_THREADS.get_or_init(|| performance_core_count().max(1))
     }
 }
