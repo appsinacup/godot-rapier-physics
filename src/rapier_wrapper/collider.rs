@@ -240,6 +240,24 @@ impl PhysicsEngine {
         }
     }
 
+    pub fn collider_set_needs_contact_callback(
+        &mut self,
+        world_handle: WorldHandle,
+        collider_handle: ColliderHandle,
+        needs: bool,
+    ) {
+        if let Some(physics_world) = self.get_mut_world(world_handle)
+            && let Some(collider) = physics_world
+                .physics_objects
+                .collider_set
+                .get_mut(collider_handle)
+        {
+            let mut user_data = UserData::new(collider.user_data);
+            user_data.set_needs_contact_callback(needs);
+            collider.user_data = user_data.get_data();
+        }
+    }
+
     pub fn collider_set_filter_contacts_enabled(
         &mut self,
         world_handle: WorldHandle,

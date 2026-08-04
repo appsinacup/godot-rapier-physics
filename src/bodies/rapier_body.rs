@@ -452,6 +452,13 @@ impl RapierBody {
             collider_handle,
             modify_contacts_enabled,
         );
+        // Ghost-collision mitigation shares the hook but reads nothing from Godot, so only
+        // the one-way and conveyor rules make the hook's lookups worth paying for.
+        physics_engine.collider_set_needs_contact_callback(
+            space_handle,
+            collider_handle,
+            has_one_way_shape || is_conveyer_belt,
+        );
     }
 
     #[allow(clippy::wrong_self_convention)]

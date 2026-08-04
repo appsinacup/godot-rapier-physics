@@ -398,7 +398,7 @@ impl RapierCollisionObjectBase {
     ) -> (Rid, usize) {
         let id = p_user_data.part1;
         let rid = get_id_rid(id, physics_ids);
-        (rid, p_user_data.part2 as usize)
+        (rid, p_user_data.shape_index() as usize)
     }
 
     pub fn get_type(&self) -> CollisionObjectType {

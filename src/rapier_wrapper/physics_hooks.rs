@@ -126,11 +126,20 @@ impl PhysicsHooks for PhysicsHooksCollisionFilter<'_> {
             user_data1: UserData::new(collider1.user_data),
             user_data2: UserData::new(collider2.user_data),
         };
-        let one_way_direction = (self.collision_modify_contacts_callback)(
-            &filter_info,
-            self.physics_collision_objects,
-            self.physics_ids,
-        );
+        // Only one-way and conveyor colliders need anything from Godot here; for every other
+        // pair the remaining ghost-collision work reads solely from rapier's own context, so
+        // this skips four hash lookups per contact pair per step.
+        let one_way_direction = if filter_info.user_data1.needs_contact_callback()
+            || filter_info.user_data2.needs_contact_callback()
+        {
+            (self.collision_modify_contacts_callback)(
+                &filter_info,
+                self.physics_collision_objects,
+                self.physics_ids,
+            )
+        } else {
+            OneWayDirection::default()
+        };
         // `context.normal` points from collider1 towards collider2, so it has to be flipped when
         // collider1 is the one-way shape for the dot product to keep Godot's meaning.
         if one_way_direction.body1 {
