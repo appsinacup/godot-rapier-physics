@@ -24,6 +24,7 @@ pub enum Gauge {
     ActiveBodies,
     TotalBodies,
     ContactForceEvents,
+    ContactForceColliders,
 }
 
 #[cfg(feature = "profiling")]
@@ -50,10 +51,14 @@ mod enabled {
         (Span::FlushCollect, "rapier/flush_collect_ms"),
         (Span::FlushDispatch, "rapier/flush_dispatch_ms"),
     ];
-    const GAUGES: [(Gauge, &str); 3] = [
+    const GAUGES: [(Gauge, &str); 4] = [
         (Gauge::ActiveBodies, "rapier/active_bodies"),
         (Gauge::TotalBodies, "rapier/total_bodies"),
         (Gauge::ContactForceEvents, "rapier/contact_force_events"),
+        (
+            Gauge::ContactForceColliders,
+            "rapier/contact_force_colliders",
+        ),
     ];
 
     struct Accum {

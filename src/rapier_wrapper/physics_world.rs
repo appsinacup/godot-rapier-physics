@@ -446,6 +446,17 @@ impl PhysicsWorld {
             }
         }
         profiler::set_gauge(profiler::Gauge::ContactForceEvents, contact_force_events);
+        profiler::set_gauge(
+            profiler::Gauge::ContactForceColliders,
+            self.physics_objects
+                .collider_set
+                .iter()
+                .filter(|(_, c)| {
+                    c.active_events()
+                        .contains(ActiveEvents::CONTACT_FORCE_EVENTS)
+                })
+                .count() as u64,
+        );
         // remove all the removed colliders and rigidbodies user data
         self.physics_objects.removed_rigid_bodies_user_data.clear();
         self.physics_objects.removed_colliders_user_data.clear();
