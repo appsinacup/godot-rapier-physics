@@ -482,12 +482,16 @@ impl PhysicsWorld {
             &mut self.physics_objects.collider_set,
             &mut self.physics_objects.impulse_joint_set,
             &mut self.physics_objects.multibody_joint_set,
-            true,
+            false,
         ) {
             self.physics_objects.removed_rigid_bodies_user_data.insert(
                 OrderedRigidBodyHandle::new(rigid_body_handle),
                 UserData::new(rigid_body.user_data),
             );
+            // remove the attached colliders separately so that their user data is stored
+            for collider in rigid_body.colliders() {
+                self.remove_collider(*collider);
+            }
         }
     }
 
