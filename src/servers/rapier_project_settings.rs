@@ -150,7 +150,7 @@ impl Default for MotionSettings {
             cast_iterations: MOTION_CAST_ITERATIONS_DEFAULT,
             stuck_penetration: MOTION_STUCK_PENETRATION_DEFAULT as Real,
             max_shape_cast_results: MAX_SHAPE_CAST_RESULTS_DEFAULT,
-            point_query_honors_pickable: false,
+            point_query_honors_pickable: true,
             shape_scale_subdivisions: SHAPE_SCALE_SUBDIVISIONS_DEFAULT,
         }
     }
@@ -180,7 +180,7 @@ pub fn motion_settings() -> &'static MotionSettings {
             point_query_honors_pickable: ProjectSettings::singleton()
                 .get_setting_with_override(QUERY_POINT_HONORS_PICKABLE)
                 .try_to()
-                .unwrap_or(false),
+                .unwrap_or(true),
             shape_scale_subdivisions: RapierProjectSettings::get_setting_int(
                 SHAPE_SCALE_SUBDIVISIONS,
             )
@@ -305,7 +305,7 @@ impl RapierProjectSettings {
         );
         register_setting(
             QUERY_POINT_HONORS_PICKABLE,
-            Variant::from(false),
+            Variant::from(true),
             false,
             PropertyHint::NONE,
             "",
