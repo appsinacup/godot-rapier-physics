@@ -7,7 +7,6 @@ use salva::parry::either::Either::Left;
 use salva::parry::either::Either::Right;
 
 use crate::rapier_wrapper::prelude::*;
-const SUBDIVISIONS: u32 = 20;
 #[cfg(feature = "dim2")]
 fn skew_polyline(vertices: &Vec<Vector>, skew: Real) -> SharedShape {
     // Apply skew transformation to the vertices
@@ -48,7 +47,13 @@ pub fn skew_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
         }
         ShapeType::Ball => {
             if let Some(ball) = shape.as_ball() {
-                return skew_polyline(&ball.to_polyline(SUBDIVISIONS), skew);
+                return skew_polyline(
+                    &ball.to_polyline(
+                        crate::servers::rapier_project_settings::motion_settings()
+                            .shape_scale_subdivisions,
+                    ),
+                    skew,
+                );
             }
         }
         ShapeType::Cuboid => {
@@ -68,7 +73,13 @@ pub fn skew_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
         }
         ShapeType::Capsule => {
             if let Some(capsule) = shape.as_capsule() {
-                return skew_polyline(&capsule.to_polyline(SUBDIVISIONS), skew);
+                return skew_polyline(
+                    &capsule.to_polyline(
+                        crate::servers::rapier_project_settings::motion_settings()
+                            .shape_scale_subdivisions,
+                    ),
+                    skew,
+                );
             }
         }
         _ => {
@@ -90,7 +101,11 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
     match shape.shape_type() {
         ShapeType::Ball => {
             if let Some(new_shape) = shape.as_ball()
-                && let Some(new_shape) = new_shape.scaled(scale.abs(), SUBDIVISIONS)
+                && let Some(new_shape) = new_shape.scaled(
+                    scale.abs(),
+                    crate::servers::rapier_project_settings::motion_settings()
+                        .shape_scale_subdivisions,
+                )
             {
                 match new_shape {
                     Left(shape) => return SharedShape::new(shape),
@@ -124,7 +139,11 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
         #[cfg(feature = "dim3")]
         ShapeType::Cylinder => {
             if let Some(new_shape) = shape.as_cylinder()
-                && let Some(new_shape) = new_shape.scaled(scale, SUBDIVISIONS)
+                && let Some(new_shape) = new_shape.scaled(
+                    scale,
+                    crate::servers::rapier_project_settings::motion_settings()
+                        .shape_scale_subdivisions,
+                )
             {
                 match new_shape {
                     Left(shape) => return SharedShape::new(shape),
@@ -157,7 +176,11 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
         }
         ShapeType::Capsule => {
             if let Some(new_shape) = shape.as_capsule()
-                && let Some(new_shape) = new_shape.scaled(scale, SUBDIVISIONS)
+                && let Some(new_shape) = new_shape.scaled(
+                    scale,
+                    crate::servers::rapier_project_settings::motion_settings()
+                        .shape_scale_subdivisions,
+                )
             {
                 match new_shape {
                     Left(shape) => return SharedShape::new(shape),
@@ -237,6 +260,24 @@ impl PhysicsEngine {
                 active_events &= !ActiveHooks::MODIFY_SOLVER_CONTACTS;
             }
             collider.set_active_hooks(active_events);
+        }
+    }
+
+    pub fn collider_set_needs_contact_callback(
+        &mut self,
+        world_handle: WorldHandle,
+        collider_handle: ColliderHandle,
+        needs: bool,
+    ) {
+        if let Some(physics_world) = self.get_mut_world(world_handle)
+            && let Some(collider) = physics_world
+                .physics_objects
+                .collider_set
+                .get_mut(collider_handle)
+        {
+            let mut user_data = UserData::new(collider.user_data);
+            user_data.set_needs_contact_callback(needs);
+            collider.user_data = user_data.get_data();
         }
     }
 
@@ -410,11 +451,13 @@ impl PhysicsEngine {
         }
     }
 
-    pub fn collider_set_contact_force_events_enabled(
+    /// A `threshold` of `0.0` reports every contact.
+    pub fn collider_set_contact_force_events(
         &mut self,
         world_handle: WorldHandle,
         collider_handle: ColliderHandle,
         enable: bool,
+        threshold: Real,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(collider) = physics_world
@@ -429,6 +472,11 @@ impl PhysicsEngine {
                 active_events &= !ActiveEvents::CONTACT_FORCE_EVENTS;
             }
             collider.set_active_events(active_events);
+            collider.set_contact_force_event_threshold(if threshold > 0.0 {
+                threshold
+            } else {
+                -Real::MAX
+            });
         }
     }
 }

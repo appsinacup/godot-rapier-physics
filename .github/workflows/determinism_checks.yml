@@ -17,14 +17,14 @@ jobs:
         dim:
           - name: 2D
             short: 2d
-            artifact_prefix: godot-rapier-2d-single-enhanced-determinism
+            artifact_prefix: godot-rapier-2d-single
             project: bin2d
             addon: godot-rapier2d
             app_name: "Godot Rapier 2D"
             allow_failure: false
           - name: 3D
             short: 3d
-            artifact_prefix: godot-rapier-3d-single-enhanced-determinism
+            artifact_prefix: godot-rapier-3d-single
             project: bin3d
             addon: godot-rapier3d
             app_name: "Godot Rapier 3D"

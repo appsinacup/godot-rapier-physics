@@ -18,6 +18,7 @@ use servers::rapier_physics_singleton::PhysicsShapes;
 use servers::rapier_physics_singleton::PhysicsSpaces;
 use servers::rapier_physics_singleton::RapierId;
 use servers::rapier_physics_singleton::get_id_rid;
+use servers::rapier_project_settings::RapierProjectSettings;
 use shapes::rapier_shape::IRapierShape;
 
 #[cfg(feature = "serde-serialize")]
@@ -60,6 +61,7 @@ pub struct Contact {
     pub local_velocity_at_pos: Vector,
     pub collider_velocity_at_pos: Vector,
     pub impulse: Vector,
+    pub tangent_impulse: real,
 }
 pub struct AreaOverrideSettings {
     using_area_gravity: bool,
@@ -86,6 +88,7 @@ impl Default for Contact {
             local_velocity_at_pos: Vector::default(),
             collider_velocity_at_pos: Vector::default(),
             impulse: Vector::default(),
+            tangent_impulse: 0.0,
         }
     }
 }
@@ -184,6 +187,7 @@ pub struct RapierBody {
     #[cfg(feature = "dim3")]
     axis_lock: u8,
     contact_skin: real,
+    contact_force_threshold: real,
     calculate_inertia: bool,
     calculate_center_of_mass: bool,
     using_area_gravity: bool,
@@ -199,6 +203,7 @@ pub struct RapierBody {
     force_integration_callback: Option<Callable>,
     direct_state: Option<Gd<PhysicsDirectBodyState>>,
     direct_state_array: VarArray,
+    direct_state_variant: Variant,
     force_integration_array: VarArray,
     state: RapierBodyState,
     base: RapierCollisionObjectBase,
@@ -221,6 +226,7 @@ impl RapierBody {
             #[cfg(feature = "dim3")]
             axis_lock: 0,
             contact_skin: 0.0,
+            contact_force_threshold: 0.0,
             calculate_inertia: true,
             calculate_center_of_mass: true,
             using_area_gravity: false,
@@ -236,6 +242,7 @@ impl RapierBody {
             force_integration_callback: None,
             direct_state: None,
             direct_state_array: VarArray::new(),
+            direct_state_variant: Variant::nil(),
             force_integration_array: VarArray::new(),
             state,
             base: RapierCollisionObjectBase::new(id, rid, CollisionObjectType::Body),
@@ -374,33 +381,22 @@ impl RapierBody {
             if is_with_static_linear_velocity {
                 send_contacts = true;
             }
-            physics_engine.collider_set_contact_force_events_enabled(
+            physics_engine.collider_set_contact_force_events(
                 space_handle,
                 collider_handle,
                 send_contacts,
+                self.contact_force_threshold,
             );
         }
-        self.update_collider_filters(collider_handle, space_handle, physics_engine, false);
+        self.update_collider_filters(collider_handle, space_handle, physics_engine);
     }
 
     fn update_colliders_filters(&self, physics_engine: &mut PhysicsEngine) {
         let colliders = physics_engine
             .body_get_colliders(self.base.get_space_id(), self.base.get_body_handle())
             .to_vec();
-        let mut override_modify_contacts = false;
-        for shape in self.base.state.shapes.clone() {
-            if shape.one_way_collision && !shape.disabled {
-                override_modify_contacts = true;
-                break;
-            }
-        }
         for collider in colliders {
-            self.update_collider_filters(
-                collider,
-                self.base.get_space_id(),
-                physics_engine,
-                override_modify_contacts,
-            );
+            self.update_collider_filters(collider, self.base.get_space_id(), physics_engine);
         }
     }
 
@@ -420,10 +416,11 @@ impl RapierBody {
             send_contacts = true;
         }
         for collider in colliders {
-            physics_engine.collider_set_contact_force_events_enabled(
+            physics_engine.collider_set_contact_force_events(
                 self.base.get_space_id(),
                 collider,
                 send_contacts,
+                self.contact_force_threshold,
             );
         }
     }
@@ -433,7 +430,6 @@ impl RapierBody {
         collider_handle: ColliderHandle,
         space_handle: WorldHandle,
         physics_engine: &mut PhysicsEngine,
-        override_modify_contacts: bool,
     ) {
         // if it has any exception, it needs to filter for them
         let filter_contacts_enabled = !self.exceptions.is_empty();
@@ -442,15 +438,24 @@ impl RapierBody {
             collider_handle,
             filter_contacts_enabled,
         );
-        // if we are a conveyer belt, we need to modify contacts
-        // also if any shape is one-way
-        let modify_contacts_enabled = self.base.mode == BodyMode::STATIC
-            || self.base.mode == BodyMode::KINEMATIC
-            || override_modify_contacts;
+        let has_one_way_shape = self
+            .base
+            .state
+            .shapes
+            .iter()
+            .any(|shape| shape.one_way_collision && !shape.disabled);
+        let is_conveyer_belt = self.get_static_linear_velocity() != Vector::default()
+            || self.get_static_angular_velocity() != ANGLE_ZERO;
+        let modify_contacts_enabled = has_one_way_shape || is_conveyer_belt;
         physics_engine.collider_set_modify_contacts_enabled(
             space_handle,
             collider_handle,
             modify_contacts_enabled,
+        );
+        physics_engine.collider_set_needs_contact_callback(
+            space_handle,
+            collider_handle,
+            has_one_way_shape || is_conveyer_belt,
         );
     }
 
@@ -667,20 +672,18 @@ impl RapierBody {
         if self.direct_state.is_some() {
             self.direct_state = None;
             self.direct_state_array.clear();
+            self.direct_state_variant = Variant::nil();
         }
         None
     }
 
     pub fn create_direct_state(&mut self) {
-        if self
-            .direct_state
-            .as_ref()
-            .is_some_and(|direct_state| direct_state.is_instance_valid())
-        {
+        if self.direct_state.is_some() {
             return;
         }
         self.direct_state = None;
         self.direct_state_array.clear();
+        self.direct_state_variant = Variant::nil();
         let mut direct_space_state = RapierDirectBodyState::new_alloc();
         {
             let mut direct_state = direct_space_state.bind_mut();
@@ -689,6 +692,7 @@ impl RapierBody {
         if direct_space_state.is_instance_valid() {
             let direct_state = direct_space_state.to_variant();
             self.direct_state_array.push(&direct_state);
+            self.direct_state_variant = direct_state.clone();
             self.direct_state = Some(direct_space_state.upcast());
         }
     }
@@ -699,6 +703,12 @@ impl RapierBody {
 
     pub fn get_direct_state_array(&self) -> &VarArray {
         &self.direct_state_array
+    }
+
+    /// The same value the array holds, kept separately so dispatch can pass a borrowed slice
+    /// instead of handing Godot an Array: measured ~21% cheaper per call.
+    pub fn get_direct_state_variant(&self) -> &Variant {
+        &self.direct_state_variant
     }
 
     pub fn add_area(&mut self, p_area: &RapierArea, space: &mut RapierSpace) {
@@ -988,6 +998,26 @@ impl RapierBody {
         self.recreate_shapes(physics_engine, physics_spaces, physics_ids);
     }
 
+    pub fn set_contact_force_threshold(
+        &mut self,
+        threshold: real,
+        physics_engine: &mut PhysicsEngine,
+    ) {
+        self.contact_force_threshold = threshold.max(0.0);
+        self.update_colliders_contact_events(physics_engine);
+    }
+
+    pub fn get_contact_force_threshold(&self) -> real {
+        self.contact_force_threshold
+    }
+
+    pub fn get_contact_tangent_impulse(&self, contact_idx: i32) -> real {
+        if contact_idx < 0 || contact_idx >= self.state.contact_count {
+            return 0.0;
+        }
+        self.state.contacts[contact_idx as usize].tangent_impulse
+    }
+
     pub fn reset_contact_count(&mut self) {
         self.state.contact_count = 0;
     }
@@ -1014,6 +1044,7 @@ impl RapierBody {
         collider: RapierId,
         collider_velocity_at_pos: Vector,
         impulse: Vector,
+        tangent_impulse: real,
     ) {
         let c_max = self.state.contacts.len();
         if c_max == 0 {
@@ -1051,6 +1082,7 @@ impl RapierBody {
         c.collider_velocity_at_pos = collider_velocity_at_pos;
         c.local_velocity_at_pos = local_velocity_at_pos;
         c.impulse = impulse;
+        c.tangent_impulse = tangent_impulse;
     }
 
     pub fn add_exception(&mut self, exception: Rid, physics_engine: &mut PhysicsEngine) {
@@ -1330,9 +1362,12 @@ impl RapierBody {
             self.base.get_space_id(),
             self.base.get_body_handle(),
             p_can_sleep,
-            self.base.activation_angular_threshold,
-            self.base.activation_linear_threshold,
-            self.base.activation_time_until_sleep,
+            SleepThresholds {
+                angular: self.base.activation_angular_threshold,
+                linear: self.base.activation_linear_threshold,
+                time_until_sleep: self.base.activation_time_until_sleep,
+                length_unit: RapierProjectSettings::get_length_unit(),
+            },
         );
     }
 

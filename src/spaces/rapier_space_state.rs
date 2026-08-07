@@ -265,7 +265,9 @@ impl RapierSpaceState {
         physics_engine: &mut PhysicsEngine,
         world_settings: &WorldSettings,
     ) {
-        physics_engine.world_reset_if_empty(self.get_id(), world_settings);
+        if physics_engine.world_reset_if_empty(self.get_id(), world_settings) {
+            self.reset_removed_colliders();
+        }
     }
 }
 #[cfg(test)]
@@ -451,5 +453,14 @@ mod tests {
         let mut physics_engine = PhysicsEngine::default();
         let mut state = RapierSpaceState::new(0, &mut physics_engine, &create_world_settings());
         state.reset_space_if_empty(&mut physics_engine, &create_world_settings());
+    }
+    #[test]
+    fn test_reset_space_if_empty_drops_removed_colliders() {
+        let mut physics_engine = PhysicsEngine::default();
+        let mut state = RapierSpaceState::new(0, &mut physics_engine, &create_world_settings());
+        let collider_handle = ColliderHandle::from_raw_parts(0, 0);
+        state.add_removed_collider(collider_handle, 1, 123, 0, CollisionObjectType::Body);
+        state.reset_space_if_empty(&mut physics_engine, &create_world_settings());
+        assert!(state.get_removed_collider_info(&collider_handle).is_none());
     }
 }

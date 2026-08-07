@@ -5,7 +5,7 @@ on:
 jobs:
   build-windows:
     runs-on: "windows-latest"
-    name: ${{ matrix.dimensions.short }} ${{ matrix.precision }} ${{ matrix.features.name }} ${{ matrix.arch }}
+    name: ${{ matrix.dimensions.short }} ${{ matrix.precision }} ${{ matrix.arch }}
     strategy:
       fail-fast: false
       matrix:
@@ -13,7 +13,6 @@ jobs:
         arch: ["x86_64-pc-windows-msvc", "i686-pc-windows-msvc", "aarch64-pc-windows-msvc"] #, "thumbv7a-pc-windows-msvc"]
         precision: [single] #, double]
         dimensions: [{"feature": "dim2", "short": "2d"}, {"feature": "dim3", "short": "3d"}]
-        features: [{"feature":"simd-stable,serde-serialize,parallel,experimental-threads,register-docs", "name": "simd-parallel"}, {"feature":"enhanced-determinism,serde-serialize,experimental-threads,register-docs", "name": "enhanced-determinism"}]
 
     steps:
       - uses: actions/checkout@v6
@@ -25,7 +24,7 @@ jobs:
         uses: ./.github/actions/build
         with:
           arch: ${{ matrix.arch }}
-          features: ${{ matrix.features.feature }},${{ matrix.precision }}-${{ matrix.dimensions.feature }}
+          features: serde-serialize,parallel,register-docs,${{ matrix.precision }}-${{ matrix.dimensions.feature }}
       - name: Copy to bin
         shell: sh
         run: |
@@ -35,14 +34,14 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v6
         with:
-          name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch }}
+          name: godot-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.arch }}
           path: |
             bin${{ matrix.dimensions.short }}/**/*.dll
           if-no-files-found: error
       - name: Upload Static
         uses: actions/upload-artifact@v6
         with:
-          name: static-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.features.name }}-${{ matrix.arch }}
+          name: static-rapier-${{ matrix.dimensions.short }}-${{ matrix.precision }}-${{ matrix.arch }}
           path: |
             bin${{ matrix.dimensions.short }}/**/*.a
           if-no-files-found: error

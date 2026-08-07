@@ -39,6 +39,17 @@ pub fn angle_to_rapier(angle: Angle) -> Real {
 pub fn angle_to_godot(angle: Real) -> Angle {
     angle
 }
+#[cfg(feature = "dim3")]
+pub fn tangent_impulse_magnitude(
+    tangent_impulse: rapier::prelude::TangentImpulse<rapier::prelude::Real>,
+) -> rapier::prelude::Real {
+    tangent_impulse.norm()
+}
+// 2D has a single tangent, so this avoids `norm()`'s sqrt in the contact hot path.
+#[cfg(feature = "dim2")]
+pub fn tangent_impulse_magnitude(tangent_impulse: rapier::prelude::TangentImpulse<Real>) -> Real {
+    tangent_impulse.x.abs()
+}
 #[cfg(feature = "dim2")]
 pub fn aabb_to_salva_aabb(aabb: godot::prelude::Rect2) -> salva::parry::bounding_volume::Aabb {
     salva::parry::bounding_volume::Aabb::new(

@@ -12,7 +12,6 @@ use crate::rapier_wrapper::prelude::*;
 use crate::servers::rapier_physics_singleton::PhysicsCollisionObjects;
 use crate::servers::rapier_physics_singleton::PhysicsIds;
 use crate::spaces::rapier_space::RapierSpace;
-const MAX_SHAPE_CAST_RESULTS: usize = 64;
 pub struct RayHitInfo {
     pub pixel_position: Vector,
     pub normal: Vector,
@@ -123,7 +122,79 @@ fn update_ray_hit_info(
     hit_info.feature = intersection.feature;
     true
 }
+#[derive(Default)]
+pub struct ContactImpulseInfo {
+    pub total_impulse: Vector,
+    /// Sum of magnitudes, so opposing contacts do not cancel out.
+    pub total_magnitude: Real,
+    pub max_impulse: Real,
+    pub max_normal: Vector,
+    pub total_tangent_impulse: Real,
+}
+fn accumulate_contact_impulse(
+    pair: &ContactPair,
+    collider_handle: ColliderHandle,
+    info: &mut ContactImpulseInfo,
+) {
+    // Manifold normals point from collider1 towards collider2.
+    let sign = if pair.collider1 == collider_handle {
+        -1.0
+    } else {
+        1.0
+    };
+    for manifold in pair.solver_manifolds() {
+        let mut manifold_impulse = 0.0;
+        for point in &manifold.points {
+            manifold_impulse += point.data.impulse;
+            info.total_tangent_impulse += tangent_impulse_magnitude(point.data.tangent_impulse);
+        }
+        info.total_impulse += manifold.data.normal * (manifold_impulse * sign);
+        info.total_magnitude += manifold_impulse;
+        if manifold_impulse > info.max_impulse {
+            info.max_impulse = manifold_impulse;
+            info.max_normal = manifold.data.normal * sign;
+        }
+    }
+}
 impl PhysicsEngine {
+    pub fn body_get_contact_impulse(
+        &self,
+        world_handle: WorldHandle,
+        body_handle: RigidBodyHandle,
+        other: Option<RigidBodyHandle>,
+    ) -> ContactImpulseInfo {
+        let mut info = ContactImpulseInfo::default();
+        let Some(physics_world) = self.get_world(world_handle) else {
+            return info;
+        };
+        let rigid_body_set = &physics_world.physics_objects.rigid_body_set;
+        let Some(body) = rigid_body_set.get(body_handle) else {
+            return info;
+        };
+        let narrow_phase = &physics_world.physics_objects.narrow_phase;
+        if let Some(other_handle) = other {
+            let Some(other_body) = rigid_body_set.get(other_handle) else {
+                return info;
+            };
+            // Indexing the contact graph directly beats walking every pair this body is in and
+            // discarding the misses, which for ground or platform colliders can be hundreds.
+            for &collider_handle in body.colliders() {
+                for &other_collider in other_body.colliders() {
+                    if let Some(pair) = narrow_phase.contact_pair(collider_handle, other_collider) {
+                        accumulate_contact_impulse(pair, collider_handle, &mut info);
+                    }
+                }
+            }
+        } else {
+            for &collider_handle in body.colliders() {
+                for pair in narrow_phase.contact_pairs_with(collider_handle) {
+                    accumulate_contact_impulse(pair, collider_handle, &mut info);
+                }
+            }
+        }
+        info
+    }
+
     #[allow(clippy::too_many_arguments)]
     pub fn intersect_ray(
         &self,
@@ -152,14 +223,20 @@ impl PhysicsEngine {
         if !collide_with_area {
             filter = filter.exclude_sensors();
         }
-        let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
-            !space.is_handle_excluded_callback(
+        let predicate = |handle: ColliderHandle, collider: &Collider| -> bool {
+            if space.is_handle_excluded_callback(
                 handle,
                 &physics_world.get_collider_user_data(handle),
                 handle_excluded_info,
                 physics_collision_objects,
                 physics_ids,
-            )
+            ) {
+                return false;
+            }
+            hit_from_inside
+                || !collider
+                    .shape()
+                    .contains_point(collider.position(), ray.origin)
         };
         filter.predicate = Some(&predicate);
         let mut length_current = Real::MAX;
@@ -173,9 +250,9 @@ impl PhysicsEngine {
             filter,
         );
         let broad_phase_empty = query_pipeline.bvh.is_empty();
-        for (handle, _collider, intersection) in query_pipeline.intersect_ray(ray, length, true) {
-            // Find closest intersection
-            if update_ray_hit_info(
+        if let Some((handle, intersection)) =
+            query_pipeline.cast_ray_and_get_normal(&ray, length, true)
+            && update_ray_hit_info(
                 physics_world,
                 &ray,
                 hit_from_inside,
@@ -183,13 +260,9 @@ impl PhysicsEngine {
                 intersection,
                 &mut length_current,
                 hit_info,
-            ) {
-                result = true;
-            }
-            // Early exit if we found a hit at exactly 0.0 (can't get closer)
-            if result && intersection.time_of_impact == 0.0 {
-                break;
-            }
+            )
+        {
+            result = true;
         }
         // Before the first physics step, Rapier's broad phase can still be empty.
         // Scan colliders read-only so early direct-space raycasts can hit loaded shapes.
@@ -652,6 +725,10 @@ impl PhysicsEngine {
                         {
                             godot_warn!("shape casting status warn: {:?}", hit.status);
                         }
+                        if needs_exact && hit.time_of_impact == 0.0 {
+                            cast_excludes.insert(collider_handle);
+                            continue;
+                        }
                         if let Some(collider) = physics_world
                             .physics_objects
                             .collider_set
@@ -696,7 +773,11 @@ impl PhysicsEngine {
                             godot_error!("collider not found");
                         }
                         cast_excludes.insert(collider_handle);
-                        if needs_exact || results.len() >= MAX_SHAPE_CAST_RESULTS {
+                        if needs_exact
+                            || results.len()
+                                >= crate::servers::rapier_project_settings::motion_settings()
+                                    .max_shape_cast_results
+                        {
                             break;
                         }
                     }

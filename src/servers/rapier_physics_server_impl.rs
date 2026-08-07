@@ -66,6 +66,7 @@ pub struct RapierPhysicsServerImpl {
     normalized_allowed_linear_error: real,
     normalized_max_corrective_velocity: real,
     normalized_prediction_distance: real,
+    normalized_max_linear_velocity: real,
     predictive_contact_allowance_threshold: real,
     num_internal_stabilization_iterations: usize,
     contact_damping_ratio: real,
@@ -97,6 +98,8 @@ impl RapierPhysicsServerImpl {
                 RapierProjectSettings::get_normalized_max_corrective_velocity(),
             normalized_prediction_distance:
                 RapierProjectSettings::get_normalized_prediction_distance(),
+            normalized_max_linear_velocity:
+                RapierProjectSettings::get_normalized_max_linear_velocity(),
             predictive_contact_allowance_threshold:
                 RapierProjectSettings::get_predictive_contact_allowance_threshold(),
             num_internal_stabilization_iterations:
@@ -1701,25 +1704,7 @@ impl RapierPhysicsServerImpl {
     pub(super) fn joint_set_param(&mut self, joint: Rid, param: JointParam, value: f32) {
         let physics_data = physics_data();
         if let Some(joint) = physics_data.joints.get_mut(&joint) {
-            match param {
-                // TODO: This should just call a new set_param on an IRapierJoint function.
-                // The joint implementations need to know when params are changing so that they
-                // can reset the Rapier joint.
-                // For now, only the revolute joint is using these parameters, so explicit update functions
-                // have been added just to revolute joint to avoid refactoring RapierJointBase and RapierJoint.
-                JointParam::MAX_FORCE => {
-                    joint.get_mut_base().set_max_force(value);
-                    if let RapierJoint::RapierRevoluteJoint(rev_joint) = joint {
-                        rev_joint.set_max_force(value, &mut physics_data.physics_engine);
-                    }
-                }
-                JointParam::BIAS => {
-                    if let RapierJoint::RapierRevoluteJoint(rev_joint) = joint {
-                        rev_joint.set_bias_param(value, &mut physics_data.physics_engine);
-                    }
-                }
-                _ => {}
-            }
+            joint.set_joint_param(param, value, &mut physics_data.physics_engine);
         }
     }
 
@@ -1727,17 +1712,7 @@ impl RapierPhysicsServerImpl {
     pub(super) fn joint_get_param(&self, joint: Rid, param: JointParam) -> f32 {
         let physics_data = physics_data();
         if let Some(joint) = physics_data.joints.get(&joint) {
-            match param {
-                JointParam::MAX_FORCE => joint.get_base().get_max_force(),
-                JointParam::BIAS => {
-                    if let RapierJoint::RapierRevoluteJoint(rev_joint) = joint {
-                        rev_joint.get_bias_param()
-                    } else {
-                        0.0
-                    }
-                }
-                _ => 0.0,
-            };
+            return joint.get_joint_param(param);
         }
         0.0
     }
@@ -2689,6 +2664,7 @@ impl RapierPhysicsServerImpl {
             normalized_allowed_linear_error: self.normalized_allowed_linear_error,
             normalized_max_corrective_velocity: self.normalized_max_corrective_velocity,
             normalized_prediction_distance: self.normalized_prediction_distance,
+            normalized_max_linear_velocity: self.normalized_max_linear_velocity,
             predictive_contact_allowance_threshold: self.predictive_contact_allowance_threshold,
             num_internal_stabilization_iterations: self.num_internal_stabilization_iterations,
             contact_damping_ratio: self.contact_damping_ratio,

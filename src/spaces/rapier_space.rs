@@ -41,6 +41,9 @@ use crate::types::*;
 use crate::*;
 
 enum PendingQueryCallback {
+    BodyStateSync {
+        rid: Rid,
+    },
     Callv {
         callable: Callable,
         args: VarArray,
@@ -54,6 +57,25 @@ enum PendingQueryCallback {
 impl PendingQueryCallback {
     fn call(self) {
         match self {
+            Self::BodyStateSync { rid } => {
+                let Some(body) = physics_data()
+                    .collision_objects
+                    .get(&rid)
+                    .and_then(|object| object.get_body())
+                else {
+                    return;
+                };
+                let Some(callable) = body.get_state_sync_callback() else {
+                    return;
+                };
+                // SAFETY: borrowed rather than cloned, so a callback that frees this body
+                // leaves these dangling. Godot's own server defers body removal for this.
+                let callable: *const Callable = callable;
+                let arg: *const Variant = body.get_direct_state_variant();
+                unsafe {
+                    (*callable).call(std::slice::from_ref(&*arg));
+                }
+            }
             Self::Callv { callable, args } => {
                 callable.callv(&args);
             }
@@ -142,9 +164,9 @@ pub struct RapierSpace {
     default_angular_damping: real,
     contact_debug: PackedVectorArray,
     contact_debug_count: usize,
-    ghost_collision_distance: real,
     #[cfg(feature = "dim2")]
     constraint_default_bias: real,
+    query_callbacks: Vec<PendingQueryCallback>,
     state: RapierSpaceState,
 }
 impl RapierSpace {
@@ -172,9 +194,9 @@ impl RapierSpace {
             default_angular_damping: 0.0,
             contact_debug: PackedVectorArray::new(),
             contact_debug_count: 0,
-            ghost_collision_distance: RapierProjectSettings::get_ghost_collision_distance(),
             #[cfg(feature = "dim2")]
             constraint_default_bias: 0.2,
+            query_callbacks: Vec::new(),
             state: RapierSpaceState::new(id, physics_engine, &Self::get_world_settings()),
         };
         physics_spaces.insert(rid, space);
@@ -194,22 +216,14 @@ impl RapierSpace {
         physics_collision_objects: &mut PhysicsCollisionObjects,
         physics_ids: &PhysicsIds,
     ) -> Option<PendingQueryCallback> {
-        let mut direct_state_array = None;
-        let mut state_sync_callback = None;
-        if let Some(body) = physics_collision_objects.get_mut(&get_id_rid(body_id, physics_ids))
+        let rid = get_id_rid(body_id, physics_ids);
+        if let Some(body) = physics_collision_objects.get_mut(&rid)
             && let Some(body) = body.get_mut_body()
         {
             body.create_direct_state();
-            state_sync_callback = body.get_state_sync_callback().cloned();
-            direct_state_array = Some(body.get_direct_state_array().clone());
-        }
-        if let Some(state_sync_callback) = state_sync_callback
-            && let Some(direct_state_array) = direct_state_array
-        {
-            return Some(PendingQueryCallback::Callv {
-                callable: state_sync_callback,
-                args: direct_state_array,
-            });
+            if body.get_state_sync_callback().is_some() {
+                return Some(PendingQueryCallback::BodyStateSync { rid });
+            }
         }
         None
     }
@@ -299,6 +313,7 @@ impl RapierSpace {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn collect_query_callbacks(
         active_list: &BTreeSet<RapierId>,
         deactivated_state_sync_list: &BTreeSet<RapierId>,
@@ -307,8 +322,8 @@ impl RapierSpace {
         monitor_query_list: &BTreeSet<RapierId>,
         physics_collision_objects: &mut PhysicsCollisionObjects,
         physics_ids: &PhysicsIds,
-    ) -> Vec<PendingQueryCallback> {
-        let mut callbacks = Vec::new();
+        callbacks: &mut Vec<PendingQueryCallback>,
+    ) {
         if !active_list.is_empty() && force_integrate_query_list.is_empty() {
             Self::for_each_intersection_body(active_list, state_query_list, |body_id| {
                 if let Some(callback) =
@@ -432,7 +447,6 @@ impl RapierSpace {
                 }
             }
         }
-        callbacks
     }
 
     pub fn update_after_queries(
@@ -457,6 +471,7 @@ impl RapierSpace {
         physics_data: &mut PhysicsData,
         settings: SimulationSettings,
     ) {
+        crate::servers::rapier_profiler::report_if_due();
         let mut area_update_list = BTreeSet::default();
         if let Some(space) = physics_data.spaces.get_mut(space_rid) {
             space
@@ -728,7 +743,16 @@ impl RapierSpace {
     }
 
     pub fn flush(&mut self) {
-        let callbacks = {
+        let _span = crate::servers::rapier_profiler::scope(
+            crate::servers::rapier_profiler::Span::FlushQueries,
+        );
+        // Kept across frames for its allocation, taken out because a callback can re-enter.
+        let mut callbacks = std::mem::take(&mut self.query_callbacks);
+        callbacks.clear();
+        {
+            let _span = crate::servers::rapier_profiler::scope(
+                crate::servers::rapier_profiler::Span::FlushCollect,
+            );
             let physics_data = physics_data();
             let state = self.get_state();
             RapierSpace::collect_query_callbacks(
@@ -739,19 +763,22 @@ impl RapierSpace {
                 state.get_monitor_query_list(),
                 &mut physics_data.collision_objects,
                 &physics_data.ids,
-            )
-        };
-        for callback in callbacks {
-            callback.call();
+                &mut callbacks,
+            );
         }
+        {
+            let _span = crate::servers::rapier_profiler::scope(
+                crate::servers::rapier_profiler::Span::FlushDispatch,
+            );
+            for callback in callbacks.drain(..) {
+                callback.call();
+            }
+        }
+        self.query_callbacks = callbacks;
         let physics_data = physics_data();
         self.get_mut_state().reset_state_query_list();
         self.get_mut_state().reset_deactivated_state_sync_list();
         self.update_after_queries(&mut physics_data.collision_objects, &physics_data.ids);
-    }
-
-    pub fn get_ghost_collision_distance(&self) -> real {
-        self.ghost_collision_distance
     }
 }
 impl Drop for RapierSpace {

@@ -33,8 +33,6 @@ pub struct PhysicsHooksCollisionFilter<'a> {
     pub collision_modify_contacts_callback: &'a CollisionModifyContactsCallback,
     pub physics_collision_objects: &'a PhysicsCollisionObjects,
     pub physics_ids: &'a PhysicsIds,
-    pub last_step: Real,
-    pub ghost_collision_distance: Real,
 }
 // Godot's CMP_EPSILON, the tolerance its own one-way checks compare dot products against. A
 // contact along a flat face is exactly perpendicular to the one-way direction, so the guard band
@@ -110,27 +108,21 @@ impl PhysicsHooks for PhysicsHooksCollisionFilter<'_> {
         let Some(collider2) = context.colliders.get(context.collider2) else {
             return;
         };
-        let Some(rididbody1_handle) = context.rigid_body1 else {
-            return;
-        };
-        let Some(rididbody2_handle) = context.rigid_body2 else {
-            return;
-        };
-        let Some(body1) = context.bodies.get(rididbody1_handle) else {
-            return;
-        };
-        let Some(body2) = context.bodies.get(rididbody2_handle) else {
-            return;
-        };
         let filter_info = CollisionFilterInfo {
             user_data1: UserData::new(collider1.user_data),
             user_data2: UserData::new(collider2.user_data),
         };
-        let one_way_direction = (self.collision_modify_contacts_callback)(
-            &filter_info,
-            self.physics_collision_objects,
-            self.physics_ids,
-        );
+        let one_way_direction = if filter_info.user_data1.needs_contact_callback()
+            || filter_info.user_data2.needs_contact_callback()
+        {
+            (self.collision_modify_contacts_callback)(
+                &filter_info,
+                self.physics_collision_objects,
+                self.physics_ids,
+            )
+        } else {
+            OneWayDirection::default()
+        };
         // `context.normal` points from collider1 towards collider2, so it has to be flipped when
         // collider1 is the one-way shape for the dot product to keep Godot's meaning.
         if one_way_direction.body1 {
@@ -139,56 +131,6 @@ impl PhysicsHooks for PhysicsHooksCollisionFilter<'_> {
         } else if one_way_direction.body2 {
             let valid_dir = collider2.position().rotation * one_way_direction.body2_direction;
             update_as_godot_one_way_platform(context, *context.normal, valid_dir);
-        }
-        let contact_is_pass_through = false;
-        let mut rigid_body_1_linvel = one_way_direction.previous_linear_velocity1;
-        let mut rigid_body_2_linvel = one_way_direction.previous_linear_velocity2;
-        if rigid_body_1_linvel.length() == 0.0 {
-            rigid_body_1_linvel = body1.linvel();
-        }
-        if rigid_body_2_linvel.length() == 0.0 {
-            rigid_body_2_linvel = body2.linvel();
-        }
-        // ghost collisions
-        if body1.is_dynamic() && !body2.is_dynamic() {
-            let normal = *context.normal;
-            if rigid_body_1_linvel.length() == 0.0 {
-                return;
-            }
-            let normal_dot_velocity = normal.dot(rigid_body_1_linvel.normalize());
-            let velocity_magnitude = rigid_body_1_linvel.length() * self.last_step;
-            let length_along_normal = velocity_magnitude * Real::max(normal_dot_velocity, 0.0);
-            if normal_dot_velocity >= -DEFAULT_EPSILON {
-                context.solver_contacts.retain(|contact| {
-                    let dist = -contact.dist;
-                    let diff = dist - length_along_normal;
-                    if diff < 0.5 && dist.abs() < self.ghost_collision_distance {
-                        return false;
-                    }
-                    true
-                });
-            }
-        } else if body2.is_dynamic() && !body1.is_dynamic() {
-            let normal = -*context.normal;
-            if rigid_body_2_linvel.length() == 0.0 {
-                return;
-            }
-            let normal_dot_velocity = normal.dot(rigid_body_2_linvel.normalize());
-            let velocity_magnitude = rigid_body_2_linvel.length() * self.last_step;
-            let length_along_normal = velocity_magnitude * Real::max(normal_dot_velocity, 0.0);
-            if normal_dot_velocity >= -DEFAULT_EPSILON {
-                context.solver_contacts.retain(|contact| {
-                    let dist = -contact.dist;
-                    let diff = dist - length_along_normal;
-                    if diff < 0.5 && dist.abs() < self.ghost_collision_distance {
-                        return false;
-                    }
-                    true
-                });
-            }
-        }
-        if contact_is_pass_through {
-            context.solver_contacts.clear();
         }
     }
 }

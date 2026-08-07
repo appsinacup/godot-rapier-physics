@@ -1,6 +1,7 @@
 use godot::global::godot_error;
 use rapier::prelude::*;
 
+use super::ANG_ZERO;
 use crate::joints::rapier_joint_base::RapierJointType;
 #[cfg(feature = "dim3")]
 use crate::rapier_wrapper::joint::glamx::Quat;
@@ -455,6 +456,45 @@ impl PhysicsEngine {
             joint.set_motor_position(JointAxis::LinX, rest_length, stiffness, damping);
             joint.set_motor_model(JointAxis::LinX, MotorModel::ForceBased);
         }
+    }
+
+    /// World-space impulse an impulse joint applied to body 2 over the last step. Multibody
+    /// joints resolve their constraints in reduced coordinates and report zero.
+    pub fn joint_get_reaction_impulse(
+        &self,
+        world_handle: WorldHandle,
+        joint_handle: JointHandle,
+    ) -> (Vector, AngVector) {
+        if let Some(physics_world) = self.get_world(world_handle)
+            && let Some(joint) = physics_world.get_impulse_joint(joint_handle)
+            && let Some(body1) = physics_world
+                .physics_objects
+                .rigid_body_set
+                .get(joint.body1())
+        {
+            let frame_rotation = body1.position().rotation * joint.data.local_frame1.rotation;
+            let axis_impulse = |axis: usize| {
+                joint.impulses[axis]
+                    + joint.data.limits[axis].impulse
+                    + joint.data.motors[axis].impulse
+            };
+            #[cfg(feature = "dim2")]
+            {
+                return (
+                    frame_rotation * Vector::new(axis_impulse(0), axis_impulse(1)),
+                    axis_impulse(2),
+                );
+            }
+            #[cfg(feature = "dim3")]
+            {
+                return (
+                    frame_rotation * Vector::new(axis_impulse(0), axis_impulse(1), axis_impulse(2)),
+                    frame_rotation
+                        * AngVector::new(axis_impulse(3), axis_impulse(4), axis_impulse(5)),
+                );
+            }
+        }
+        (Vector::default(), ANG_ZERO)
     }
 
     pub fn destroy_joint(&mut self, world_handle: WorldHandle, joint_handle: JointHandle) {

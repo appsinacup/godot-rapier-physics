@@ -6,8 +6,56 @@ use godot::prelude::*;
 use godot::register::info::PropertyHint;
 use rapier::dynamics::IntegrationParameters;
 use rapier::math::Real;
+/// Worker count for the solver: performance cores only.
+///
+/// A solver step is a chain of barrier-synchronised stages, so each stage runs at the speed
+/// of its slowest worker. Workers on efficiency cores gate all the others, costing more than
+/// the extra workers gain -- ~50% on a 4P+4E M1.
 #[cfg(feature = "parallel")]
-const NUM_THREADS: &str = "physics/rapier/parallel/num_threads";
+fn performance_core_count() -> usize {
+    #[cfg(target_vendor = "apple")]
+    if let Some(cores) = apple_performance_cores() {
+        return cores;
+    }
+    #[cfg(target_os = "linux")]
+    if let Some(cores) = linux_performance_cores() {
+        return cores;
+    }
+    num_cpus::get_physical()
+}
+
+/// `perflevel0` is the fastest core class; Intel Macs report a single level, so every core.
+#[cfg(all(feature = "parallel", target_vendor = "apple"))]
+fn apple_performance_cores() -> Option<usize> {
+    let mut cores: libc::c_uint = 0;
+    let mut size = size_of_val(&cores);
+    let rc = unsafe {
+        libc::sysctlbyname(
+            c"hw.perflevel0.logicalcpu".as_ptr(),
+            (&raw mut cores).cast(),
+            &mut size,
+            std::ptr::null_mut(),
+            0,
+        )
+    };
+    (rc == 0 && cores > 0).then_some(cores as usize)
+}
+
+/// Hybrid Intel exposes performance cores as their own PMU, whose `cpus` file holds a list
+/// like `0-15` or `0-7,20-23`. Absent on non-hybrid machines.
+#[cfg(all(feature = "parallel", target_os = "linux"))]
+fn linux_performance_cores() -> Option<usize> {
+    let list = std::fs::read_to_string("/sys/devices/cpu_core/cpus").ok()?;
+    let cores: usize = list
+        .trim()
+        .split(',')
+        .filter_map(|range| {
+            let (first, last) = range.split_once('-').unwrap_or((range, range));
+            Some(last.trim().parse::<usize>().ok()? - first.trim().parse::<usize>().ok()? + 1)
+        })
+        .sum();
+    (cores > 0).then_some(cores)
+}
 const SOLVER_PRESET: &str = "physics/rapier/solver/preset";
 const SOLVER_NUM_ITERATIONS: &str = "physics/rapier/solver/num_iterations";
 const SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS: &str =
@@ -21,16 +69,43 @@ const SOLVER_NORMALIZED_MAX_CORRECTIVE_VELOCITY: &str =
     "physics/rapier/solver/normalized_max_corrective_velocity";
 const SOLVER_NORMALIZED_PREDICTION_DISTANCE: &str =
     "physics/rapier/solver/normalized_prediction_distance";
+const SOLVER_NORMALIZED_MAX_LINEAR_VELOCITY: &str =
+    "physics/rapier/solver/normalized_max_linear_velocity";
 const SOLVER_PREDICTIVE_CONTACT_ALLOWANCE_THRESHOLD: &str =
     "physics/rapier/solver/predictive_contact_allowance_threshold";
 const CONTACT_DAMPING_RATIO: &str = "physics/rapier/solver/contact_damping_ratio";
+const MOTION_RECOVER_ATTEMPTS: &str = "physics/rapier/motion/recover_attempts";
+const MOTION_RECOVER_RATIO: &str = "physics/rapier/motion/recover_ratio";
+const MOTION_CAST_ITERATIONS: &str = "physics/rapier/motion/cast_iterations";
+#[cfg(feature = "dim2")]
+const MOTION_STUCK_PENETRATION: &str = "physics/rapier/motion/stuck_penetration_threshold_2d";
+#[cfg(feature = "dim3")]
+const MOTION_STUCK_PENETRATION: &str = "physics/rapier/motion/stuck_penetration_threshold_3d";
+const QUERY_MAX_SHAPE_CAST_RESULTS: &str = "physics/rapier/queries/max_shape_cast_results";
+const QUERY_POINT_HONORS_PICKABLE: &str = "physics/rapier/queries/point_query_honors_pickable";
+const SHAPE_SCALE_SUBDIVISIONS: &str = "physics/rapier/shapes/scale_subdivisions";
+const MOTION_RECOVER_ATTEMPTS_DEFAULT: i32 = 4;
+const MOTION_CAST_ITERATIONS_DEFAULT: i32 = 8;
+const MAX_SHAPE_CAST_RESULTS_DEFAULT: usize = 64;
+const SHAPE_SCALE_SUBDIVISIONS_DEFAULT: u32 = 20;
+#[cfg(feature = "dim2")]
+const MOTION_RECOVER_RATIO_DEFAULT: f64 = 0.4;
+#[cfg(feature = "dim3")]
+const MOTION_RECOVER_RATIO_DEFAULT: f64 = 0.5;
+#[cfg(feature = "dim2")]
+const MOTION_STUCK_PENETRATION_DEFAULT: f64 = 0.1;
+#[cfg(feature = "dim3")]
+const MOTION_STUCK_PENETRATION_DEFAULT: f64 = 0.01;
 const CONTACT_NATURAL_FREQUENCY: &str = "physics/rapier/solver/contact_natural_frequency";
 const DEFAULT_MAX_CCD_SUBSTEPS: i32 = 2;
 static APPLYING_PRESET: AtomicBool = AtomicBool::new(false);
-// Stability preset constants
+// Softer contacts settle deeper under the weight of a pile and keep creeping instead of
+// resting, so a low natural frequency or a damping ratio above rapier's default of 10 both
+// leave stacks jittering. Values chosen by sweeping the 2D suite; see
+// scripts/sweep-solver-params.sh to re-measure.
 const STABILITY_PGS_ITERATIONS: i64 = 4;
 const STABILITY_STABILIZATION_ITERATIONS: i64 = 4;
-const STABILITY_DAMPING_RATIO: f64 = 20.0;
+const STABILITY_DAMPING_RATIO: f64 = 10.0;
 const STABILITY_NATURAL_FREQUENCY: f64 = 50.0;
 #[cfg(feature = "dim2")]
 const FLUID_PARTICLE_RADIUS: &str = "physics/rapier/fluid/fluid_particle_radius_2d";
@@ -42,14 +117,6 @@ const FLUID_BOUNDARY_COEFF: &str = "physics/rapier/fluid/fluid_boundary_coeffici
 const LENGTH_UNIT: &str = "physics/rapier/solver/length_unit_2d";
 #[cfg(feature = "dim2")]
 const ORIENTED_CONCAVE_POLYLINE: &str = "physics/rapier/logic/oriented_concave_polyline_2d";
-#[cfg(feature = "dim2")]
-const GHOST_COLLISION_DISTANCE: &str = "physics/rapier/logic/ghost_collision_distance_2d";
-#[cfg(feature = "dim3")]
-const GHOST_COLLISION_DISTANCE: &str = "physics/rapier/logic/ghost_collision_distance_3d";
-#[cfg(feature = "dim2")]
-const GHOST_COLLISION_DISTANCE_DEFAULT: real = 0.1;
-#[cfg(feature = "dim3")]
-const GHOST_COLLISION_DISTANCE_DEFAULT: real = 0.001;
 #[cfg(feature = "dim2")]
 const LENGTH_UNIT_VALUE: real = 100.0;
 #[cfg(feature = "dim2")]
@@ -64,6 +131,64 @@ const LENGTH_UNIT: &str = "physics/rapier/solver/length_unit_3d";
 const LENGTH_UNIT_VALUE: real = 1.0;
 #[cfg(feature = "dim3")]
 const LENGTH_UNIT_HINT: &str = "0.0001,1,0.0001,suffix:length_unit,or_greater";
+/// Read once at startup; changing any of these needs a restart.
+pub struct MotionSettings {
+    pub recover_attempts: i32,
+    pub recover_ratio: Real,
+    pub cast_iterations: i32,
+    pub stuck_penetration: Real,
+    pub max_shape_cast_results: usize,
+    pub point_query_honors_pickable: bool,
+    pub shape_scale_subdivisions: u32,
+}
+
+impl Default for MotionSettings {
+    fn default() -> Self {
+        Self {
+            recover_attempts: MOTION_RECOVER_ATTEMPTS_DEFAULT,
+            recover_ratio: MOTION_RECOVER_RATIO_DEFAULT as Real,
+            cast_iterations: MOTION_CAST_ITERATIONS_DEFAULT,
+            stuck_penetration: MOTION_STUCK_PENETRATION_DEFAULT as Real,
+            max_shape_cast_results: MAX_SHAPE_CAST_RESULTS_DEFAULT,
+            point_query_honors_pickable: true,
+            shape_scale_subdivisions: SHAPE_SCALE_SUBDIVISIONS_DEFAULT,
+        }
+    }
+}
+
+static MOTION_SETTINGS: std::sync::OnceLock<MotionSettings> = std::sync::OnceLock::new();
+
+pub fn motion_settings() -> &'static MotionSettings {
+    MOTION_SETTINGS.get_or_init(|| {
+        if !godot::sys::is_initialized() {
+            return MotionSettings::default();
+        }
+        MotionSettings {
+            recover_attempts: RapierProjectSettings::get_setting_int(MOTION_RECOVER_ATTEMPTS).max(1)
+                as i32,
+            recover_ratio: (RapierProjectSettings::get_setting_double(MOTION_RECOVER_RATIO)
+                as Real)
+                .clamp(0.05, 1.0),
+            cast_iterations: RapierProjectSettings::get_setting_int(MOTION_CAST_ITERATIONS).max(1)
+                as i32,
+            stuck_penetration: RapierProjectSettings::get_setting_double(MOTION_STUCK_PENETRATION)
+                as Real,
+            max_shape_cast_results: RapierProjectSettings::get_setting_int(
+                QUERY_MAX_SHAPE_CAST_RESULTS,
+            )
+            .max(1) as usize,
+            point_query_honors_pickable: ProjectSettings::singleton()
+                .get_setting_with_override(QUERY_POINT_HONORS_PICKABLE)
+                .try_to()
+                .unwrap_or(true),
+            shape_scale_subdivisions: RapierProjectSettings::get_setting_int(
+                SHAPE_SCALE_SUBDIVISIONS,
+            )
+            .max(4) as u32,
+        }
+    })
+}
+
 pub fn register_setting(
     p_name: &str,
     p_value: Variant,
@@ -123,33 +248,22 @@ pub struct RapierProjectSettings;
 impl RapierProjectSettings {
     pub fn register_settings() {
         let integration_parameters = IntegrationParameters::default();
-        #[cfg(feature = "parallel")]
-        {
-            let num_threads = num_cpus::get_physical();
-            register_setting_ranged(
-                NUM_THREADS,
-                Variant::from(num_threads as i32),
-                "1,64,or_greater",
-                false,
-            );
-        }
-        // Register preset setting first
         register_setting(
             SOLVER_PRESET,
-            Variant::from(0i32),
+            Variant::from(RapierSolverPreset::Stability as i32),
             false,
             PropertyHint::ENUM,
             "Performance,Stability,Custom",
         );
         register_setting_ranged(
             SOLVER_NUM_INTERNAL_PGS_ITERATIONS,
-            Variant::from(integration_parameters.num_internal_pgs_iterations as i32),
+            Variant::from(STABILITY_PGS_ITERATIONS as i32),
             "1,8,or_greater",
             false,
         );
         register_setting_ranged(
             SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS,
-            Variant::from(integration_parameters.num_internal_stabilization_iterations as i32),
+            Variant::from(STABILITY_STABILIZATION_ITERATIONS as i32),
             "1,8,or_greater",
             false,
         );
@@ -157,6 +271,49 @@ impl RapierProjectSettings {
             SOLVER_NUM_ITERATIONS,
             Variant::from(integration_parameters.num_solver_iterations as i32),
             "1,16,or_greater",
+            false,
+        );
+        register_setting_ranged(
+            MOTION_RECOVER_ATTEMPTS,
+            Variant::from(MOTION_RECOVER_ATTEMPTS_DEFAULT),
+            "1,16,1,or_greater",
+            false,
+        );
+        register_setting_ranged(
+            MOTION_RECOVER_RATIO,
+            Variant::from(MOTION_RECOVER_RATIO_DEFAULT as real),
+            "0.05,1,0.05",
+            false,
+        );
+        register_setting_ranged(
+            MOTION_CAST_ITERATIONS,
+            Variant::from(MOTION_CAST_ITERATIONS_DEFAULT),
+            "1,32,1,or_greater",
+            false,
+        );
+        register_setting_ranged(
+            MOTION_STUCK_PENETRATION,
+            Variant::from(MOTION_STUCK_PENETRATION_DEFAULT as real),
+            "0.001,10,0.001,or_greater",
+            false,
+        );
+        register_setting_ranged(
+            QUERY_MAX_SHAPE_CAST_RESULTS,
+            Variant::from(MAX_SHAPE_CAST_RESULTS_DEFAULT as i64),
+            "1,256,1,or_greater",
+            false,
+        );
+        register_setting(
+            QUERY_POINT_HONORS_PICKABLE,
+            Variant::from(true),
+            false,
+            PropertyHint::NONE,
+            "",
+        );
+        register_setting_ranged(
+            SHAPE_SCALE_SUBDIVISIONS,
+            Variant::from(SHAPE_SCALE_SUBDIVISIONS_DEFAULT as i64),
+            "4,64,1,or_greater",
             false,
         );
         register_setting_ranged(
@@ -184,6 +341,12 @@ impl RapierProjectSettings {
             false,
         );
         register_setting_ranged(
+            SOLVER_NORMALIZED_MAX_LINEAR_VELOCITY,
+            Variant::from(integration_parameters.normalized_max_linear_velocity),
+            "1,10000,0.00001,or_greater",
+            false,
+        );
+        register_setting_ranged(
             SOLVER_PREDICTIVE_CONTACT_ALLOWANCE_THRESHOLD,
             Variant::from(integration_parameters.normalized_prediction_distance),
             "0,1,0.00001,or_greater",
@@ -199,12 +362,6 @@ impl RapierProjectSettings {
             CONTACT_NATURAL_FREQUENCY,
             Variant::from(integration_parameters.contact_softness.natural_frequency),
             "0,100,0.00001,or_greater",
-            false,
-        );
-        register_setting_ranged(
-            GHOST_COLLISION_DISTANCE,
-            Variant::from(GHOST_COLLISION_DISTANCE_DEFAULT),
-            "0,10,0.00001,or_greater",
             false,
         );
         #[cfg(feature = "dim2")]
@@ -294,7 +451,15 @@ impl RapierProjectSettings {
     fn get_setting_double(p_setting: &str) -> f64 {
         let project_settings = ProjectSettings::singleton();
         let setting_value = project_settings.get_setting_with_override(p_setting);
-        setting_value.to::<f64>()
+        // A value written as an integer -- from override.cfg, or `set_setting(name, 0)` --
+        // arrives as an Int variant that a strict float conversion does not survive. Callers
+        // use these as thresholds, where a garbage read silently disables the behaviour the
+        // setting gates, so fall back through int and never hand back a non-finite number.
+        let value = setting_value
+            .try_to::<f64>()
+            .or_else(|_| setting_value.try_to::<i64>().map(|i| i as f64))
+            .unwrap_or(0.0);
+        if value.is_finite() { value } else { 0.0 }
     }
 
     pub fn get_solver_preset() -> RapierSolverPreset {
@@ -393,7 +558,16 @@ impl RapierProjectSettings {
     }
 
     pub fn get_solver_num_internal_pgs_iterations() -> i64 {
-        RapierProjectSettings::get_setting_int(SOLVER_NUM_INTERNAL_PGS_ITERATIONS).max(1)
+        match RapierProjectSettings::get_solver_preset() {
+            RapierSolverPreset::Stability => STABILITY_PGS_ITERATIONS,
+            RapierSolverPreset::Performance => {
+                IntegrationParameters::default().num_internal_pgs_iterations as i64
+            }
+            RapierSolverPreset::Custom => {
+                RapierProjectSettings::get_setting_int(SOLVER_NUM_INTERNAL_PGS_ITERATIONS)
+            }
+        }
+        .max(1)
     }
 
     pub fn get_fluid_particle_radius() -> Real {
@@ -426,25 +600,54 @@ impl RapierProjectSettings {
         RapierProjectSettings::get_setting_double(SOLVER_NORMALIZED_PREDICTION_DISTANCE) as Real
     }
 
+    pub fn get_normalized_max_linear_velocity() -> Real {
+        RapierProjectSettings::get_setting_double(SOLVER_NORMALIZED_MAX_LINEAR_VELOCITY) as Real
+    }
+
     pub fn get_predictive_contact_allowance_threshold() -> Real {
         RapierProjectSettings::get_setting_double(SOLVER_PREDICTIVE_CONTACT_ALLOWANCE_THRESHOLD)
             as Real
     }
 
     pub fn get_num_internal_stabilization_iterations() -> i64 {
-        RapierProjectSettings::get_setting_int(SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS).max(1)
+        match RapierProjectSettings::get_solver_preset() {
+            RapierSolverPreset::Stability => STABILITY_STABILIZATION_ITERATIONS,
+            RapierSolverPreset::Performance => {
+                IntegrationParameters::default().num_internal_stabilization_iterations as i64
+            }
+            RapierSolverPreset::Custom => {
+                RapierProjectSettings::get_setting_int(SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS)
+            }
+        }
+        .max(1)
     }
 
     pub fn get_contact_damping_ratio() -> Real {
-        RapierProjectSettings::get_setting_double(CONTACT_DAMPING_RATIO) as Real
+        match RapierProjectSettings::get_solver_preset() {
+            RapierSolverPreset::Stability => STABILITY_DAMPING_RATIO as Real,
+            RapierSolverPreset::Performance => {
+                IntegrationParameters::default()
+                    .contact_softness
+                    .damping_ratio
+            }
+            RapierSolverPreset::Custom => {
+                RapierProjectSettings::get_setting_double(CONTACT_DAMPING_RATIO) as Real
+            }
+        }
     }
 
     pub fn get_contact_natural_frequency() -> Real {
-        RapierProjectSettings::get_setting_double(CONTACT_NATURAL_FREQUENCY) as Real
-    }
-
-    pub fn get_ghost_collision_distance() -> Real {
-        RapierProjectSettings::get_setting_double(GHOST_COLLISION_DISTANCE) as Real
+        match RapierProjectSettings::get_solver_preset() {
+            RapierSolverPreset::Stability => STABILITY_NATURAL_FREQUENCY as Real,
+            RapierSolverPreset::Performance => {
+                IntegrationParameters::default()
+                    .contact_softness
+                    .natural_frequency
+            }
+            RapierSolverPreset::Custom => {
+                RapierProjectSettings::get_setting_double(CONTACT_NATURAL_FREQUENCY) as Real
+            }
+        }
     }
 
     #[cfg(feature = "dim2")]
@@ -455,8 +658,11 @@ impl RapierProjectSettings {
             .to::<bool>()
     }
 
+    /// Deliberately not a project setting: a thread count saved on one machine is wrong on
+    /// the next. Computed once per run.
     #[cfg(feature = "parallel")]
     pub fn get_num_threads() -> usize {
-        RapierProjectSettings::get_setting_int(NUM_THREADS).max(1) as usize
+        static NUM_THREADS: std::sync::OnceLock<usize> = std::sync::OnceLock::new();
+        *NUM_THREADS.get_or_init(|| performance_core_count().max(1))
     }
 }

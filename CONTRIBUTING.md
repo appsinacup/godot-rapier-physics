@@ -128,8 +128,6 @@ For features, the following are available:
 - `double-dim2`
 - `double-dim3`
 - `parallel`
-- `simd-stable`
-- `enhanced-determinism`
 - `serde-serialize`
 
 The `single` and `double` refer to the [precision](https://docs.godotengine.org/en/stable/tutorials/physics/large_world_coordinates.html) used in Godot.
@@ -138,7 +136,7 @@ The `dim2` or `dim3` refers to the rapier and salva versions used, and to what c
 
 The `parallel` version doesn't work on web.
 
-The `enhanced-determinism` usually slows down the simulation.
+There is no `simd-*` or `enhanced-determinism` feature any more. Rapier 0.35 always compiles SIMD (with a scalar fallback on targets that lack it), and `enhanced-determinism` is enabled directly on the Rapier dependencies in `Cargo.toml` for every build, since it no longer costs measurable performance and is compatible with SIMD and `parallel`.
 
 The `serde-serialize` feature enabled serialization methods for physics server.
 

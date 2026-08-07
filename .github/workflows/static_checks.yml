@@ -23,7 +23,7 @@ jobs:
         shell: sh
         run: |
           rustup component add clippy
-          cargo clippy --all-targets --features="single-dim2,serde-serialize,simd-stable,experimental-threads,register-docs,api-4-7" -- -D warnings
+          cargo clippy --all-targets --features="single-dim2,serde-serialize,register-docs,api-4-7" -- -D warnings
 
   clippy-3d:
     name: Clippy 3D
@@ -34,7 +34,7 @@ jobs:
         shell: sh
         run: |
           rustup component add clippy
-          cargo clippy --all-targets --features="single-dim3,serde-serialize,simd-stable,experimental-threads,register-docs,api-4-7" -- -D warnings
+          cargo clippy --all-targets --features="single-dim3,serde-serialize,register-docs,api-4-7" -- -D warnings
 
   gdlint:
     name: GDLint

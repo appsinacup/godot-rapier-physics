@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://nqktmpb0a6er"]
+[gd_scene format=3 uid="uid://nqktmpb0a6er"]
 
-[ext_resource type="Script" path="res://tests/nodes/RigidBody/tests/2d/contact_monitor.gd" id="1_dtxqi"]
+[ext_resource type="Script" uid="uid://ca5mq6xqr855u" path="res://tests/nodes/RigidBody/tests/2d/contact_monitor.gd" id="1_dtxqi"]
 
-[node name="contact_monitor" type="Node2D"]
+[node name="contact_monitor" type="Node2D" unique_id=295853623]
 script = ExtResource("1_dtxqi")
