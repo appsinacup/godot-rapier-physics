@@ -9,7 +9,7 @@ extends HingeJoint3D
 			joint_type = value
 			set_joint_type(value)
 
-@export var ik_target: Node2D = null:
+@export var ik_target: Node3D = null:
 	set(value):
 		ik_target = value
 
@@ -25,7 +25,7 @@ extends HingeJoint3D
 
 @export var ik_constrain_z: bool = true:
 	set(value):
-		ik_constrain_y = value
+		ik_constrain_z = value
 
 @export var ik_constrain_rotation_x: bool = false:
 	set(value):
@@ -162,7 +162,7 @@ func _update_constrained_axes() -> void:
 func set_joint_type(type: int) -> void:
 	RapierPhysicsServer3D.joint_set_extra_param(get_rid(), RapierPhysicsServer3D.JOINT_TYPE, type)
 
-func solve_ik(target_transform: Transform2D) -> void:
+func solve_ik(target_transform: Transform3D) -> void:
 	if not is_inside_tree():
 		return
 	
