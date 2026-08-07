@@ -20,7 +20,7 @@ jobs:
       - name: Run Unit Tests
         shell: bash
         run: |
-          cargo test --all-targets --features="${{ matrix.dimensions.feature }},test,experimental-threads,register-docs,api-4-7"
+          cargo test --all-targets --features="${{ matrix.dimensions.feature }},test,register-docs,api-4-7"
 
   run-integration-tests:
     name: Run Godot Tests ${{ matrix.dimensions.name }} (${{ matrix.os.name }})
@@ -48,7 +48,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cargo build --features="${{ matrix.dimensions.feature }},test,experimental-threads,register-docs,api-4-7"
+          cargo build --features="${{ matrix.dimensions.feature }},test,register-docs,api-4-7"
 
           addon_dir="bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin"
           case "$RUNNER_OS" in

@@ -25,5 +25,5 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          features="${{ matrix.dimensions.feature }},serde-serialize,parallel,experimental-threads,register-docs,${{ matrix.api.feature }}"
+          features="${{ matrix.dimensions.feature }},serde-serialize,parallel,register-docs,${{ matrix.api.feature }}"
           cargo check --features="$features"

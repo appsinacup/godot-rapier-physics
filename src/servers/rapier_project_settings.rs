@@ -69,6 +69,10 @@ const SOLVER_NORMALIZED_MAX_CORRECTIVE_VELOCITY: &str =
     "physics/rapier/solver/normalized_max_corrective_velocity";
 const SOLVER_NORMALIZED_PREDICTION_DISTANCE: &str =
     "physics/rapier/solver/normalized_prediction_distance";
+#[cfg(feature = "dim2")]
+const SOLVER_SYNC_POSITION_THRESHOLD: &str = "physics/rapier/solver/sync_position_threshold_2d";
+#[cfg(feature = "dim3")]
+const SOLVER_SYNC_POSITION_THRESHOLD: &str = "physics/rapier/solver/sync_position_threshold_3d";
 const SOLVER_NORMALIZED_MAX_LINEAR_VELOCITY: &str =
     "physics/rapier/solver/normalized_max_linear_velocity";
 const SOLVER_PREDICTIVE_CONTACT_ALLOWANCE_THRESHOLD: &str =
@@ -224,6 +228,17 @@ impl RapierProjectSettings {
             SOLVER_NORMALIZED_PREDICTION_DISTANCE,
             Variant::from(integration_parameters.normalized_prediction_distance),
             "0,10,0.00001,or_greater",
+            false,
+        );
+        register_setting_ranged(
+            SOLVER_SYNC_POSITION_THRESHOLD,
+            Variant::from(0.0 as real),
+            // Ranges reflect the unit: pixels in 2D, metres in 3D.
+            if cfg!(feature = "dim2") {
+                "0,50,0.01,or_greater"
+            } else {
+                "0,1,0.0005,or_greater"
+            },
             false,
         );
         register_setting_ranged(
@@ -473,6 +488,13 @@ impl RapierProjectSettings {
 
     pub fn get_normalized_prediction_distance() -> Real {
         RapierProjectSettings::get_setting_double(SOLVER_NORMALIZED_PREDICTION_DISTANCE) as Real
+    }
+
+    pub fn get_sync_position_threshold() -> Real {
+        static THRESHOLD: std::sync::OnceLock<f64> = std::sync::OnceLock::new();
+        *THRESHOLD.get_or_init(|| {
+            RapierProjectSettings::get_setting_double(SOLVER_SYNC_POSITION_THRESHOLD)
+        }) as Real
     }
 
     pub fn get_normalized_max_linear_velocity() -> Real {
