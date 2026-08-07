@@ -633,6 +633,12 @@ impl PhysicsEngine {
                 filter.predicate = Some(&predicate);
                 let velocity_size = shape_vel.length();
                 if velocity_size < DEFAULT_EPSILON {
+                    // Candidates come from an AABB loosened by the margin, not from a strict
+                    // overlap test: a shape resting just outside the other still counts as a hit
+                    // when it is within the margin, which is what Godot's queries report.
+                    let query_aabb = shared_shape
+                        .compute_aabb(&shape_transform)
+                        .loosened(margin.max(0.0));
                     for (collider_handle, collider) in physics_world
                         .physics_objects
                         .broad_phase
@@ -645,30 +651,37 @@ impl PhysicsEngine {
                             &physics_world.physics_objects.collider_set,
                             filter,
                         )
-                        .intersect_shape(shape_transform, shared_shape.as_ref())
+                        .intersect_aabb_conservative(query_aabb)
                     {
                         let pos12 = shape_transform.inv_mul(collider.position());
-                        if let Ok(contact) = physics_world
+                        match physics_world
                             .physics_objects
                             .narrow_phase
                             .query_dispatcher()
                             .contact(&pos12, shared_shape.as_ref(), collider.shape(), margin)
-                            && let Some(contact) = contact
                         {
-                            let mut result = ShapeCastResult::new();
-                            result.collided = true;
-                            result.collider = collider_handle;
-                            result.user_data =
-                                physics_world.get_collider_user_data(collider_handle);
-                            result.toi = 0.0;
-                            // QueryPipeline::intersect_shape() returns results in each shape's local space
-                            result.normal1 = shape_transform.rotation * contact.normal1;
-                            result.normal2 = collider.rotation() * contact.normal2;
-                            result.pixel_witness1 = shape_transform * contact.point1;
-                            result.pixel_witness2 = collider.position() * contact.point2;
-                            results.push(result);
-                        } else {
-                            godot_error!("contact error");
+                            Ok(Some(contact)) => {
+                                let mut result = ShapeCastResult::new();
+                                result.collided = true;
+                                result.collider = collider_handle;
+                                result.user_data =
+                                    physics_world.get_collider_user_data(collider_handle);
+                                result.toi = 0.0;
+                                // parry returns contacts in each shape's local space.
+                                result.normal1 = shape_transform.rotation * contact.normal1;
+                                result.normal2 = collider.rotation() * contact.normal2;
+                                result.pixel_witness1 = shape_transform * contact.point1;
+                                result.pixel_witness2 = collider.position() * contact.point2;
+                                results.push(result);
+                                if results.len()
+                                    >= crate::servers::rapier_project_settings::motion_settings()
+                                        .max_shape_cast_results
+                                {
+                                    break;
+                                }
+                            }
+                            Ok(None) => {}
+                            Err(err) => godot_error!("contact error: {:?}", err),
                         }
                     }
                 } else {
