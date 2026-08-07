@@ -729,7 +729,7 @@ dependencies = [
 [[package]]
 name = "rapier2d"
 version = "0.35.0-beta.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#b369e9d7c4236a64e404e8ee12a20795faca816a"
+source = "git+https://github.com/dimforge/rapier?branch=master#1679a2bf37e8ce043a623d7c1d5de382b0d1340f"
 dependencies = [
  "approx",
  "arrayvec",
@@ -751,7 +751,7 @@ dependencies = [
 [[package]]
 name = "rapier2d-f64"
 version = "0.35.0-beta.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#b369e9d7c4236a64e404e8ee12a20795faca816a"
+source = "git+https://github.com/dimforge/rapier?branch=master#1679a2bf37e8ce043a623d7c1d5de382b0d1340f"
 dependencies = [
  "approx",
  "arrayvec",
@@ -772,7 +772,7 @@ dependencies = [
 [[package]]
 name = "rapier3d"
 version = "0.35.0-beta.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#b369e9d7c4236a64e404e8ee12a20795faca816a"
+source = "git+https://github.com/dimforge/rapier?branch=master#1679a2bf37e8ce043a623d7c1d5de382b0d1340f"
 dependencies = [
  "approx",
  "arrayvec",
@@ -794,7 +794,7 @@ dependencies = [
 [[package]]
 name = "rapier3d-f64"
 version = "0.35.0-beta.0"
-source = "git+https://github.com/dimforge/rapier?branch=master#b369e9d7c4236a64e404e8ee12a20795faca816a"
+source = "git+https://github.com/dimforge/rapier?branch=master#1679a2bf37e8ce043a623d7c1d5de382b0d1340f"
 dependencies = [
  "approx",
  "arrayvec",
