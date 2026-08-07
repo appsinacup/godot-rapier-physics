@@ -572,9 +572,8 @@ dependencies = [
 
 [[package]]
 name = "parry2d"
-version = "0.30.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "83daccd097c470f690d6e7c4eaa2e9232fc6330b8d55503c403f7547d7d2b07c"
+version = "0.30.2"
+source = "git+https://github.com/dimforge/parry?branch=master#1be4b1a7cd0a090bd7efb1207b7bc0d453f4132e"
 dependencies = [
  "approx",
  "arrayvec",
@@ -602,9 +601,8 @@ dependencies = [
 
 [[package]]
 name = "parry2d-f64"
-version = "0.30.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f33b08acb83ecd1a73c2ea809f7dff55aac36df991b8b284e8e585951f0cf8c"
+version = "0.30.2"
+source = "git+https://github.com/dimforge/parry?branch=master#1be4b1a7cd0a090bd7efb1207b7bc0d453f4132e"
 dependencies = [
  "approx",
  "arrayvec",
@@ -632,9 +630,8 @@ dependencies = [
 
 [[package]]
 name = "parry3d"
-version = "0.30.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26cf8e45331821e001f6b2175bc772a7983080212a58bbaa1111c38ef09cb0b5"
+version = "0.30.2"
+source = "git+https://github.com/dimforge/parry?branch=master#1be4b1a7cd0a090bd7efb1207b7bc0d453f4132e"
 dependencies = [
  "approx",
  "arrayvec",
@@ -664,9 +661,8 @@ dependencies = [
 
 [[package]]
 name = "parry3d-f64"
-version = "0.30.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e5bdc1603a073ace1736a8ec58822708307960c3cd6c02c59be137f76ad5f5f"
+version = "0.30.2"
+source = "git+https://github.com/dimforge/parry?branch=master#1be4b1a7cd0a090bd7efb1207b7bc0d453f4132e"
 dependencies = [
  "approx",
  "arrayvec",

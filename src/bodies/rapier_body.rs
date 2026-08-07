@@ -61,6 +61,7 @@ pub struct Contact {
     pub local_velocity_at_pos: Vector,
     pub collider_velocity_at_pos: Vector,
     pub impulse: Vector,
+    pub tangent_impulse: real,
 }
 pub struct AreaOverrideSettings {
     using_area_gravity: bool,
@@ -87,6 +88,7 @@ impl Default for Contact {
             local_velocity_at_pos: Vector::default(),
             collider_velocity_at_pos: Vector::default(),
             impulse: Vector::default(),
+            tangent_impulse: 0.0,
         }
     }
 }
@@ -185,6 +187,7 @@ pub struct RapierBody {
     #[cfg(feature = "dim3")]
     axis_lock: u8,
     contact_skin: real,
+    contact_force_threshold: real,
     calculate_inertia: bool,
     calculate_center_of_mass: bool,
     using_area_gravity: bool,
@@ -223,6 +226,7 @@ impl RapierBody {
             #[cfg(feature = "dim3")]
             axis_lock: 0,
             contact_skin: 0.0,
+            contact_force_threshold: 0.0,
             calculate_inertia: true,
             calculate_center_of_mass: true,
             using_area_gravity: false,
@@ -377,10 +381,11 @@ impl RapierBody {
             if is_with_static_linear_velocity {
                 send_contacts = true;
             }
-            physics_engine.collider_set_contact_force_events_enabled(
+            physics_engine.collider_set_contact_force_events(
                 space_handle,
                 collider_handle,
                 send_contacts,
+                self.contact_force_threshold,
             );
         }
         self.update_collider_filters(collider_handle, space_handle, physics_engine);
@@ -411,10 +416,11 @@ impl RapierBody {
             send_contacts = true;
         }
         for collider in colliders {
-            physics_engine.collider_set_contact_force_events_enabled(
+            physics_engine.collider_set_contact_force_events(
                 self.base.get_space_id(),
                 collider,
                 send_contacts,
+                self.contact_force_threshold,
             );
         }
     }
@@ -992,6 +998,26 @@ impl RapierBody {
         self.recreate_shapes(physics_engine, physics_spaces, physics_ids);
     }
 
+    pub fn set_contact_force_threshold(
+        &mut self,
+        threshold: real,
+        physics_engine: &mut PhysicsEngine,
+    ) {
+        self.contact_force_threshold = threshold.max(0.0);
+        self.update_colliders_contact_events(physics_engine);
+    }
+
+    pub fn get_contact_force_threshold(&self) -> real {
+        self.contact_force_threshold
+    }
+
+    pub fn get_contact_tangent_impulse(&self, contact_idx: i32) -> real {
+        if contact_idx < 0 || contact_idx >= self.state.contact_count {
+            return 0.0;
+        }
+        self.state.contacts[contact_idx as usize].tangent_impulse
+    }
+
     pub fn reset_contact_count(&mut self) {
         self.state.contact_count = 0;
     }
@@ -1018,6 +1044,7 @@ impl RapierBody {
         collider: RapierId,
         collider_velocity_at_pos: Vector,
         impulse: Vector,
+        tangent_impulse: real,
     ) {
         let c_max = self.state.contacts.len();
         if c_max == 0 {
@@ -1055,6 +1082,7 @@ impl RapierBody {
         c.collider_velocity_at_pos = collider_velocity_at_pos;
         c.local_velocity_at_pos = local_velocity_at_pos;
         c.impulse = impulse;
+        c.tangent_impulse = tangent_impulse;
     }
 
     pub fn add_exception(&mut self, exception: Rid, physics_engine: &mut PhysicsEngine) {
@@ -1334,10 +1362,12 @@ impl RapierBody {
             self.base.get_space_id(),
             self.base.get_body_handle(),
             p_can_sleep,
-            self.base.activation_angular_threshold,
-            self.base.activation_linear_threshold,
-            self.base.activation_time_until_sleep,
-            RapierProjectSettings::get_length_unit(),
+            SleepThresholds {
+                angular: self.base.activation_angular_threshold,
+                linear: self.base.activation_linear_threshold,
+                time_until_sleep: self.base.activation_time_until_sleep,
+                length_unit: RapierProjectSettings::get_length_unit(),
+            },
         );
     }
 

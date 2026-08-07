@@ -91,6 +91,217 @@ macro_rules! make_rapier_server_godot_impl {
             }
 
             #[func]
+            /// Set the contact force magnitude a contact must exceed before it is reported.
+            /// Weaker contacts are dropped inside the solver, which is cheaper than filtering
+            /// them in GDScript. A [param threshold] of `0.0` reports every contact, and is the
+            /// default. Rapier uses the lower threshold of the two colliders in a pair.
+            pub fn body_set_contact_force_threshold(body: Rid, threshold: real) {
+                let physics_data = physics_data();
+                if let Some(body) = physics_data.collision_objects.get_mut(&body)
+                    && let Some(body) = body.get_mut_body()
+                {
+                    body.set_contact_force_threshold(threshold, &mut physics_data.physics_engine);
+                }
+            }
+
+            #[func]
+            /// Get the contact force threshold set by [method body_set_contact_force_threshold].
+            pub fn body_get_contact_force_threshold(body: Rid) -> real {
+                let physics_data = physics_data();
+                if let Some(body) = physics_data.collision_objects.get(&body)
+                    && let Some(body) = body.get_body()
+                {
+                    return body.get_contact_force_threshold();
+                }
+                0.0
+            }
+
+            #[func]
+            /// Get the friction impulse magnitude at a reported contact, which
+            /// [method PhysicsDirectBodyState2D.get_contact_impulse] excludes because rapier
+            /// solves friction on the contact tangent rather than the normal. A body scraping
+            /// along a surface shows a large tangent impulse and a small normal one.
+            /// Needs the same contact reporting as the built-in contact getters.
+            pub fn body_get_contact_tangent_impulse(body: Rid, contact_idx: i32) -> real {
+                let physics_data = physics_data();
+                if let Some(body) = physics_data.collision_objects.get(&body)
+                    && let Some(body) = body.get_body()
+                {
+                    return body.get_contact_tangent_impulse(contact_idx);
+                }
+                0.0
+            }
+
+            #[func]
+            /// Get the total contact impulse acting on a body this step, read straight from the
+            /// narrow phase. Needs no contact reporting, and is not truncated by
+            /// [member RigidBody2D.max_contacts_reported].
+            pub fn body_get_total_contact_impulse(body: Rid) -> Vector {
+                let physics_data = physics_data();
+                if let Some(body) = physics_data.collision_objects.get(&body)
+                    && let Some(body) = body.get_body()
+                {
+                    let info = physics_data.physics_engine.body_get_contact_impulse(
+                        body.get_base().get_space_id(),
+                        body.get_base().get_body_handle(),
+                        None,
+                    );
+                    return $crate::rapier_wrapper::convert::vector_to_godot(info.total_impulse);
+                }
+                Vector::ZERO
+            }
+
+            #[func]
+            /// Get the total contact force acting on a body this step. This is
+            /// [method body_get_total_contact_impulse] divided by the physics step.
+            pub fn body_get_total_contact_force(body: Rid) -> Vector {
+                Self::body_get_total_contact_impulse(body)
+                    / $crate::spaces::rapier_space::RapierSpace::get_last_step()
+            }
+
+            #[func]
+            /// Get the strongest single contact impulse magnitude acting on a body this step.
+            /// Useful for impact damage, where the peak matters more than the sum.
+            pub fn body_get_max_contact_impulse(body: Rid) -> real {
+                let physics_data = physics_data();
+                if let Some(body) = physics_data.collision_objects.get(&body)
+                    && let Some(body) = body.get_body()
+                {
+                    return physics_data
+                        .physics_engine
+                        .body_get_contact_impulse(
+                            body.get_base().get_space_id(),
+                            body.get_base().get_body_handle(),
+                            None,
+                        )
+                        .max_impulse;
+                }
+                0.0
+            }
+
+            #[func]
+            /// Get the total friction impulse magnitude acting on a body this step, which
+            /// [method body_get_total_contact_impulse] excludes. High friction with a low normal
+            /// impulse means the body is scraping rather than being pressed. Needs no contact
+            /// reporting, unlike [method body_get_contact_tangent_impulse].
+            pub fn body_get_total_friction_impulse(body: Rid) -> real {
+                let physics_data = physics_data();
+                if let Some(body) = physics_data.collision_objects.get(&body)
+                    && let Some(body) = body.get_body()
+                {
+                    return physics_data
+                        .physics_engine
+                        .body_get_contact_impulse(
+                            body.get_base().get_space_id(),
+                            body.get_base().get_body_handle(),
+                            None,
+                        )
+                        .total_tangent_impulse;
+                }
+                0.0
+            }
+
+            #[func]
+            /// Get the contact impulse [param body_a] receives from [param body_b] specifically.
+            /// Returns a zero vector when the two are not touching.
+            pub fn bodies_get_contact_impulse(body_a: Rid, body_b: Rid) -> Vector {
+                let physics_data = physics_data();
+                if let Some(object_a) = physics_data.collision_objects.get(&body_a)
+                    && let Some(object_b) = physics_data.collision_objects.get(&body_b)
+                    && let Some(body_a) = object_a.get_body()
+                    && let Some(body_b) = object_b.get_body()
+                {
+                    let info = physics_data.physics_engine.body_get_contact_impulse(
+                        body_a.get_base().get_space_id(),
+                        body_a.get_base().get_body_handle(),
+                        Some(body_b.get_base().get_body_handle()),
+                    );
+                    return $crate::rapier_wrapper::convert::vector_to_godot(info.total_impulse);
+                }
+                Vector::ZERO
+            }
+
+            #[func]
+            /// Get the contact force [param body_a] receives from [param body_b] specifically.
+            /// This is [method bodies_get_contact_impulse] divided by the physics step.
+            pub fn bodies_get_contact_force(body_a: Rid, body_b: Rid) -> Vector {
+                Self::bodies_get_contact_impulse(body_a, body_b)
+                    / $crate::spaces::rapier_space::RapierSpace::get_last_step()
+            }
+
+            #[func]
+            /// Get the kinetic energy of a body, combining its linear and angular motion.
+            pub fn body_get_kinetic_energy(body: Rid) -> real {
+                let physics_data = physics_data();
+                if let Some(body) = physics_data.collision_objects.get(&body)
+                    && let Some(body) = body.get_body()
+                {
+                    return physics_data.physics_engine.body_get_kinetic_energy(
+                        body.get_base().get_space_id(),
+                        body.get_base().get_body_handle(),
+                    );
+                }
+                0.0
+            }
+
+            #[func]
+            /// Whether continuous collision detection actually ran for this body on the last
+            /// step. Enabling CCD does not mean it engages every step; this reports when it did.
+            pub fn body_is_ccd_active(body: Rid) -> bool {
+                let physics_data = physics_data();
+                if let Some(body) = physics_data.collision_objects.get(&body)
+                    && let Some(body) = body.get_body()
+                {
+                    return physics_data.physics_engine.body_is_ccd_active(
+                        body.get_base().get_space_id(),
+                        body.get_base().get_body_handle(),
+                    );
+                }
+                false
+            }
+
+            #[func]
+            /// Get the world-space linear impulse a joint applied to hold its constraint on the
+            /// last step, including its limit and motor impulses. Use it for breakable joints,
+            /// rope tension or stress visualisation.
+            /// Multibody joints resolve their constraints in reduced coordinates and return zero.
+            pub fn joint_get_reaction_impulse(joint: Rid) -> Vector {
+                let physics_data = physics_data();
+                if let Some(joint) = physics_data.joints.get(&joint) {
+                    let (linear, _) = physics_data.physics_engine.joint_get_reaction_impulse(
+                        joint.get_base().get_space_id(),
+                        joint.get_base().get_handle(),
+                    );
+                    return $crate::rapier_wrapper::convert::vector_to_godot(linear);
+                }
+                Vector::ZERO
+            }
+
+            #[func]
+            /// Get the force a joint applied to hold its constraint on the last step, in world
+            /// space. This is [method joint_get_reaction_impulse] divided by the physics step.
+            pub fn joint_get_reaction_force(joint: Rid) -> Vector {
+                Self::joint_get_reaction_impulse(joint)
+                    / $crate::spaces::rapier_space::RapierSpace::get_last_step()
+            }
+
+            #[func]
+            /// Get the world-space torque a joint applied to hold its constraint on the last
+            /// step. See [method joint_get_reaction_force] for the linear counterpart.
+            pub fn joint_get_reaction_torque(joint: Rid) -> Angle {
+                let physics_data = physics_data();
+                if let Some(joint) = physics_data.joints.get(&joint) {
+                    let (_, angular) = physics_data.physics_engine.joint_get_reaction_impulse(
+                        joint.get_base().get_space_id(),
+                        joint.get_base().get_handle(),
+                    );
+                    return $crate::rapier_wrapper::convert::angle_to_godot(angular)
+                        / $crate::spaces::rapier_space::RapierSpace::get_last_step();
+                }
+                ANGLE_ZERO
+            }
+
+            #[func]
             /// Set an extra parameter for a joint.
             /// If [param param] is [member JOINT_TYPE] (0), sets if multibody or not.
             /// Use [member JOINT_TYPE_INPULSE_JOINT] (0) for impulse joints, [member JOINT_TYPE_MULTIBODY_JOINT] (1) for multibody joints or [member JOINT_TYPE_MULTIBODY_KINEMATIC_JOINT] (2) for multibody kinematic joint.

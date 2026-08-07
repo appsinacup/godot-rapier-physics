@@ -7,6 +7,12 @@ pub enum BodyType {
     Kinematic,
     Static,
 }
+pub struct SleepThresholds {
+    pub angular: Real,
+    pub linear: Real,
+    pub time_until_sleep: Real,
+    pub length_unit: Real,
+}
 fn set_rigid_body_properties_internal(
     rigid_body: &mut RigidBody,
     pos: Vector,
@@ -409,11 +415,14 @@ impl PhysicsEngine {
         world_handle: WorldHandle,
         body_handle: RigidBodyHandle,
         can_sleep: bool,
-        activation_angular_threshold: Real,
-        activation_linear_threshold: Real,
-        activation_time_until_sleep: Real,
-        length_unit: Real,
+        thresholds: SleepThresholds,
     ) {
+        let SleepThresholds {
+            angular: activation_angular_threshold,
+            linear: activation_linear_threshold,
+            time_until_sleep: activation_time_until_sleep,
+            length_unit,
+        } = thresholds;
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(body) = physics_world
                 .physics_objects
@@ -626,6 +635,38 @@ impl PhysicsEngine {
             return body.user_torque();
         }
         ANG_ZERO
+    }
+
+    pub fn body_get_kinetic_energy(
+        &self,
+        world_handle: WorldHandle,
+        body_handle: RigidBodyHandle,
+    ) -> Real {
+        if let Some(physics_world) = self.get_world(world_handle)
+            && let Some(body) = physics_world
+                .physics_objects
+                .rigid_body_set
+                .get(body_handle)
+        {
+            return body.kinetic_energy();
+        }
+        0.0
+    }
+
+    pub fn body_is_ccd_active(
+        &self,
+        world_handle: WorldHandle,
+        body_handle: RigidBodyHandle,
+    ) -> bool {
+        if let Some(physics_world) = self.get_world(world_handle)
+            && let Some(body) = physics_world
+                .physics_objects
+                .rigid_body_set
+                .get(body_handle)
+        {
+            return body.is_ccd_active();
+        }
+        false
     }
 
     pub fn body_apply_torque_impulse(

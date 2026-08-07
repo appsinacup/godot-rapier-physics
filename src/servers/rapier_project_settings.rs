@@ -74,6 +74,28 @@ const SOLVER_NORMALIZED_MAX_LINEAR_VELOCITY: &str =
 const SOLVER_PREDICTIVE_CONTACT_ALLOWANCE_THRESHOLD: &str =
     "physics/rapier/solver/predictive_contact_allowance_threshold";
 const CONTACT_DAMPING_RATIO: &str = "physics/rapier/solver/contact_damping_ratio";
+const MOTION_RECOVER_ATTEMPTS: &str = "physics/rapier/motion/recover_attempts";
+const MOTION_RECOVER_RATIO: &str = "physics/rapier/motion/recover_ratio";
+const MOTION_CAST_ITERATIONS: &str = "physics/rapier/motion/cast_iterations";
+#[cfg(feature = "dim2")]
+const MOTION_STUCK_PENETRATION: &str = "physics/rapier/motion/stuck_penetration_threshold_2d";
+#[cfg(feature = "dim3")]
+const MOTION_STUCK_PENETRATION: &str = "physics/rapier/motion/stuck_penetration_threshold_3d";
+const QUERY_MAX_SHAPE_CAST_RESULTS: &str = "physics/rapier/queries/max_shape_cast_results";
+const QUERY_POINT_HONORS_PICKABLE: &str = "physics/rapier/queries/point_query_honors_pickable";
+const SHAPE_SCALE_SUBDIVISIONS: &str = "physics/rapier/shapes/scale_subdivisions";
+const MOTION_RECOVER_ATTEMPTS_DEFAULT: i32 = 4;
+const MOTION_CAST_ITERATIONS_DEFAULT: i32 = 8;
+const MAX_SHAPE_CAST_RESULTS_DEFAULT: usize = 64;
+const SHAPE_SCALE_SUBDIVISIONS_DEFAULT: u32 = 20;
+#[cfg(feature = "dim2")]
+const MOTION_RECOVER_RATIO_DEFAULT: f64 = 0.4;
+#[cfg(feature = "dim3")]
+const MOTION_RECOVER_RATIO_DEFAULT: f64 = 0.5;
+#[cfg(feature = "dim2")]
+const MOTION_STUCK_PENETRATION_DEFAULT: f64 = 0.1;
+#[cfg(feature = "dim3")]
+const MOTION_STUCK_PENETRATION_DEFAULT: f64 = 0.01;
 const CONTACT_NATURAL_FREQUENCY: &str = "physics/rapier/solver/contact_natural_frequency";
 const DEFAULT_MAX_CCD_SUBSTEPS: i32 = 2;
 static APPLYING_PRESET: AtomicBool = AtomicBool::new(false);
@@ -109,6 +131,64 @@ const LENGTH_UNIT: &str = "physics/rapier/solver/length_unit_3d";
 const LENGTH_UNIT_VALUE: real = 1.0;
 #[cfg(feature = "dim3")]
 const LENGTH_UNIT_HINT: &str = "0.0001,1,0.0001,suffix:length_unit,or_greater";
+/// Read once at startup; changing any of these needs a restart.
+pub struct MotionSettings {
+    pub recover_attempts: i32,
+    pub recover_ratio: Real,
+    pub cast_iterations: i32,
+    pub stuck_penetration: Real,
+    pub max_shape_cast_results: usize,
+    pub point_query_honors_pickable: bool,
+    pub shape_scale_subdivisions: u32,
+}
+
+impl Default for MotionSettings {
+    fn default() -> Self {
+        Self {
+            recover_attempts: MOTION_RECOVER_ATTEMPTS_DEFAULT,
+            recover_ratio: MOTION_RECOVER_RATIO_DEFAULT as Real,
+            cast_iterations: MOTION_CAST_ITERATIONS_DEFAULT,
+            stuck_penetration: MOTION_STUCK_PENETRATION_DEFAULT as Real,
+            max_shape_cast_results: MAX_SHAPE_CAST_RESULTS_DEFAULT,
+            point_query_honors_pickable: false,
+            shape_scale_subdivisions: SHAPE_SCALE_SUBDIVISIONS_DEFAULT,
+        }
+    }
+}
+
+static MOTION_SETTINGS: std::sync::OnceLock<MotionSettings> = std::sync::OnceLock::new();
+
+pub fn motion_settings() -> &'static MotionSettings {
+    MOTION_SETTINGS.get_or_init(|| {
+        if !godot::sys::is_initialized() {
+            return MotionSettings::default();
+        }
+        MotionSettings {
+            recover_attempts: RapierProjectSettings::get_setting_int(MOTION_RECOVER_ATTEMPTS).max(1)
+                as i32,
+            recover_ratio: (RapierProjectSettings::get_setting_double(MOTION_RECOVER_RATIO)
+                as Real)
+                .clamp(0.05, 1.0),
+            cast_iterations: RapierProjectSettings::get_setting_int(MOTION_CAST_ITERATIONS).max(1)
+                as i32,
+            stuck_penetration: RapierProjectSettings::get_setting_double(MOTION_STUCK_PENETRATION)
+                as Real,
+            max_shape_cast_results: RapierProjectSettings::get_setting_int(
+                QUERY_MAX_SHAPE_CAST_RESULTS,
+            )
+            .max(1) as usize,
+            point_query_honors_pickable: ProjectSettings::singleton()
+                .get_setting_with_override(QUERY_POINT_HONORS_PICKABLE)
+                .try_to()
+                .unwrap_or(false),
+            shape_scale_subdivisions: RapierProjectSettings::get_setting_int(
+                SHAPE_SCALE_SUBDIVISIONS,
+            )
+            .max(4) as u32,
+        }
+    })
+}
+
 pub fn register_setting(
     p_name: &str,
     p_value: Variant,
@@ -191,6 +271,49 @@ impl RapierProjectSettings {
             SOLVER_NUM_ITERATIONS,
             Variant::from(integration_parameters.num_solver_iterations as i32),
             "1,16,or_greater",
+            false,
+        );
+        register_setting_ranged(
+            MOTION_RECOVER_ATTEMPTS,
+            Variant::from(MOTION_RECOVER_ATTEMPTS_DEFAULT),
+            "1,16,1,or_greater",
+            false,
+        );
+        register_setting_ranged(
+            MOTION_RECOVER_RATIO,
+            Variant::from(MOTION_RECOVER_RATIO_DEFAULT as real),
+            "0.05,1,0.05",
+            false,
+        );
+        register_setting_ranged(
+            MOTION_CAST_ITERATIONS,
+            Variant::from(MOTION_CAST_ITERATIONS_DEFAULT),
+            "1,32,1,or_greater",
+            false,
+        );
+        register_setting_ranged(
+            MOTION_STUCK_PENETRATION,
+            Variant::from(MOTION_STUCK_PENETRATION_DEFAULT as real),
+            "0.001,10,0.001,or_greater",
+            false,
+        );
+        register_setting_ranged(
+            QUERY_MAX_SHAPE_CAST_RESULTS,
+            Variant::from(MAX_SHAPE_CAST_RESULTS_DEFAULT as i64),
+            "1,256,1,or_greater",
+            false,
+        );
+        register_setting(
+            QUERY_POINT_HONORS_PICKABLE,
+            Variant::from(false),
+            false,
+            PropertyHint::NONE,
+            "",
+        );
+        register_setting_ranged(
+            SHAPE_SCALE_SUBDIVISIONS,
+            Variant::from(SHAPE_SCALE_SUBDIVISIONS_DEFAULT as i64),
+            "4,64,1,or_greater",
             false,
         );
         register_setting_ranged(
@@ -492,9 +615,9 @@ impl RapierProjectSettings {
             RapierSolverPreset::Performance => {
                 IntegrationParameters::default().num_internal_stabilization_iterations as i64
             }
-            RapierSolverPreset::Custom => RapierProjectSettings::get_setting_int(
-                SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS,
-            ),
+            RapierSolverPreset::Custom => {
+                RapierProjectSettings::get_setting_int(SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS)
+            }
         }
         .max(1)
     }
@@ -503,7 +626,9 @@ impl RapierProjectSettings {
         match RapierProjectSettings::get_solver_preset() {
             RapierSolverPreset::Stability => STABILITY_DAMPING_RATIO as Real,
             RapierSolverPreset::Performance => {
-                IntegrationParameters::default().contact_softness.damping_ratio
+                IntegrationParameters::default()
+                    .contact_softness
+                    .damping_ratio
             }
             RapierSolverPreset::Custom => {
                 RapierProjectSettings::get_setting_double(CONTACT_DAMPING_RATIO) as Real
@@ -515,14 +640,15 @@ impl RapierProjectSettings {
         match RapierProjectSettings::get_solver_preset() {
             RapierSolverPreset::Stability => STABILITY_NATURAL_FREQUENCY as Real,
             RapierSolverPreset::Performance => {
-                IntegrationParameters::default().contact_softness.natural_frequency
+                IntegrationParameters::default()
+                    .contact_softness
+                    .natural_frequency
             }
             RapierSolverPreset::Custom => {
                 RapierProjectSettings::get_setting_double(CONTACT_NATURAL_FREQUENCY) as Real
             }
         }
     }
-
 
     #[cfg(feature = "dim2")]
     pub fn get_oriented_concave_polyline() -> bool {

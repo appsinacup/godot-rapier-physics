@@ -4,6 +4,8 @@ use bodies::rapier_collision_object_base::RapierCollisionObjectBase;
 use godot::classes::native::ObjectId;
 use godot::classes::physics_server_2d::BodyMode;
 use godot::prelude::*;
+
+use crate::servers::rapier_project_settings::motion_settings;
 use rapier::geometry::ColliderHandle;
 use rapier::math::DEFAULT_EPSILON;
 use rapier::math::Real;
@@ -20,18 +22,25 @@ use crate::bodies::rapier_collision_object::*;
 use crate::rapier_wrapper::prelude::*;
 use crate::types::*;
 use crate::*;
+#[derive(Clone, Copy)]
+struct ExcludedShapePair {
+    local_shape_index: usize,
+    collision_object_rid: Rid,
+    collision_shape_index: usize,
+}
+impl Default for ExcludedShapePair {
+    fn default() -> Self {
+        Self {
+            local_shape_index: 0,
+            collision_object_rid: Rid::Invalid,
+            collision_shape_index: 0,
+        }
+    }
+}
 const TEST_MOTION_MARGIN: Real = 1e-4;
 const TEST_MOTION_MIN_CONTACT_DEPTH_FACTOR: Real = 0.05;
-const BODY_MOTION_RECOVER_ATTEMPTS: i32 = 4;
-#[cfg(feature = "dim2")]
-const BODY_MOTION_RECOVER_RATIO: Real = 0.4;
-#[cfg(feature = "dim3")]
-const BODY_MOTION_RECOVER_RATIO: Real = 0.5;
 const MAX_EXCLUDED_SHAPE_PAIRS: usize = 32;
-#[cfg(feature = "dim2")]
-const BODY_MOTION_CAST_ITERATIONS: i32 = 8;
-#[cfg(feature = "dim3")]
-const BODY_MOTION_CAST_ITERATIONS: i32 = 8;
+const NORMAL_EPSILON: Real = 0.01;
 #[cfg(feature = "dim2")]
 const MIN_MOTION_THRESHOLD: Real = 1e-3;
 #[cfg(feature = "dim3")]
@@ -48,26 +57,6 @@ const BLOCKED_MOTION_EPSILON: Real = 1e-4;
 const MIN_RECOVERY_THRESHOLD: Real = 1e-3;
 #[cfg(feature = "dim3")]
 const MIN_RECOVERY_THRESHOLD: Real = 1e-4;
-#[cfg(feature = "dim2")]
-const STUCK_PENETRATION_THRESHOLD: Real = 0.1;
-#[cfg(feature = "dim3")]
-const STUCK_PENETRATION_THRESHOLD: Real = 0.01;
-const NORMAL_EPSILON: Real = 0.01;
-#[derive(Clone, Copy)]
-struct ExcludedShapePair {
-    local_shape_index: usize,
-    collision_object_rid: Rid,
-    collision_shape_index: usize,
-}
-impl Default for ExcludedShapePair {
-    fn default() -> Self {
-        Self {
-            local_shape_index: 0,
-            collision_object_rid: Rid::Invalid,
-            collision_shape_index: 0,
-        }
-    }
-}
 fn blocked_motion_tolerance(margin: Real) -> Real {
     MOTION_EPSILON
         .max(BLOCKED_MOTION_EPSILON)
@@ -106,7 +95,7 @@ fn recover_motion_from_contacts(
             if depth > min_contact_depth + DEFAULT_EPSILON {
                 recover_motion -= n
                     * (depth - min_contact_depth)
-                    * BODY_MOTION_RECOVER_RATIO
+                    * motion_settings().recover_ratio
                     * priorities[i]
                     * inv_total_weight;
             }
@@ -512,7 +501,7 @@ impl RapierSpace {
         }
         let min_contact_depth = p_margin * TEST_MOTION_MIN_CONTACT_DEPTH_FACTOR;
         let mut recovered = false;
-        let mut recover_attempts = BODY_MOTION_RECOVER_ATTEMPTS;
+        let mut recover_attempts = motion_settings().recover_attempts;
         let body_aabb = p_body.get_aabb(physics_shapes, physics_ids);
         loop {
             let mut results = [PointHitInfo::default(); 32];
@@ -789,7 +778,7 @@ impl RapierSpace {
                             if initial_contact.collided
                                 && is_motion_blocked_by_contact(&initial_contact, p_motion)
                                 && !initial_contact.within_margin
-                                && penetration_depth > STUCK_PENETRATION_THRESHOLD
+                                && penetration_depth > motion_settings().stuck_penetration
                             {
                                 // Check one-way collision - allow passage if motion opposes one-way direction
                                 if body_shape.allows_one_way_collision()
@@ -819,7 +808,7 @@ impl RapierSpace {
                             let mut low = 0.0;
                             let mut hi = 1.0;
                             let mut fraction_coeff = 0.5;
-                            for k in 0..BODY_MOTION_CAST_ITERATIONS {
+                            for k in 0..motion_settings().cast_iterations {
                                 let fraction = low + (hi - low) * fraction_coeff;
                                 body_shape_info.transform.translation = vector_to_rapier(
                                     body_shape_transform.origin + p_motion * fraction,
@@ -1337,8 +1326,9 @@ mod tests {
         priorities[0] = 1.0;
         priorities[1] = 1.0;
         let recover_motion = recover_motion_from_contacts(&contacts, &priorities, 2, 0.0);
-        assert_real_approx_eq(recover_motion.x, -BODY_MOTION_RECOVER_RATIO);
-        assert_real_approx_eq(recover_motion.y, -BODY_MOTION_RECOVER_RATIO);
+        let ratio = motion_settings().recover_ratio;
+        assert_real_approx_eq(recover_motion.x, -ratio);
+        assert_real_approx_eq(recover_motion.y, -ratio);
     }
     #[test]
     fn recover_motion_respects_min_contact_depth() {

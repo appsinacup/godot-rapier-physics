@@ -134,4 +134,3 @@ impl PhysicsHooks for PhysicsHooksCollisionFilter<'_> {
         }
     }
 }
-

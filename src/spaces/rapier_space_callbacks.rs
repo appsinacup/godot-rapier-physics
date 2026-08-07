@@ -304,6 +304,7 @@ impl RapierSpace {
             let normal = contact_info.normal;
             // send just impulse directly along normal
             let impulse = contact_info.pixel_impulse * vector_to_godot(normal);
+            let tangent_impulse = tangent_impulse_magnitude(contact_info.pixel_tangent_impulse);
             let vel_pos1 = contact_info.pixel_velocity_pos_1;
             let vel_pos2 = contact_info.pixel_velocity_pos_2;
             if let Some(body1) = p_object1.get_mut_body()
@@ -338,6 +339,7 @@ impl RapierSpace {
                         body2.get_base().get_id(),
                         vector_to_godot(vel_pos2),
                         impulse,
+                        tangent_impulse,
                     );
                 }
                 if body2.can_report_contacts() {
@@ -353,6 +355,7 @@ impl RapierSpace {
                         body1.get_base().get_id(),
                         vector_to_godot(vel_pos1),
                         -impulse,
+                        tangent_impulse,
                     );
                 }
             }

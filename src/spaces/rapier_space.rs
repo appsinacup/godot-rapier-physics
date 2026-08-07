@@ -780,7 +780,6 @@ impl RapierSpace {
         self.get_mut_state().reset_deactivated_state_sync_list();
         self.update_after_queries(&mut physics_data.collision_objects, &physics_data.ids);
     }
-
 }
 impl Drop for RapierSpace {
     fn drop(&mut self) {

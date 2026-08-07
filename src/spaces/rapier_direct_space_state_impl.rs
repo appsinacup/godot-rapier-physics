@@ -203,10 +203,8 @@ impl RapierDirectSpaceStateImpl {
         let query_excluded_info = QueryExcludedInfo {
             query_canvas_instance_id: Some(canvas_instance_id),
             query_collision_layer_mask: collision_mask,
-            // Godot uses point queries for 2D object picking. GDExtension does not
-            // expose the pick_point flag, so point queries are the narrowest place
-            // we can honor CollisionObject2D.input_pickable.
-            query_pickable: true,
+            query_pickable: crate::servers::rapier_project_settings::motion_settings()
+                .point_query_honors_pickable,
             ..Default::default()
         };
         // Perform intersection
@@ -381,12 +379,6 @@ impl RapierDirectSpaceStateImpl {
                 closest_located_safe = result.toi;
                 closest_located_unsafe = result.toi_unsafe;
             }
-        }
-        // If the shape is already penetrating at the start position (toi = 0),
-        // Godot expects [1, 1] to indicate no blocking (shape is already inside)
-        if closest_located_safe == 0.0 && closest_located_unsafe == 0.0 {
-            closest_located_safe = 1.0;
-            closest_located_unsafe = 1.0;
         }
         let closest_safe = closest_safe.ptr() as *mut real;
         let closest_unsafe = closest_unsafe.ptr() as *mut real;

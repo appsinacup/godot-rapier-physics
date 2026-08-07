@@ -748,7 +748,14 @@ impl PhysicsEngine {
         }
     }
 
-    pub fn world_reset_if_empty(&mut self, world_handle: WorldHandle, settings: &WorldSettings) {
+    /// Returns whether the world was actually reset. A reset builds a fresh `ColliderSet`, so
+    /// handles minted afterwards restart from index 0 / generation 0 and collide with handles
+    /// of colliders removed before it.
+    pub fn world_reset_if_empty(
+        &mut self,
+        world_handle: WorldHandle,
+        settings: &WorldSettings,
+    ) -> bool {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && physics_world.physics_objects.impulse_joint_set.is_empty()
             && physics_world
@@ -765,7 +772,9 @@ impl PhysicsEngine {
             physics_world.fluids_pipeline = new_physics_world.fluids_pipeline;
             physics_world.physics_pipeline = new_physics_world.physics_pipeline;
             physics_world.physics_objects = new_physics_world.physics_objects;
+            return true;
         }
+        false
     }
 
     pub fn world_get_active_objects_count(&mut self, world_handle: WorldHandle) -> usize {
