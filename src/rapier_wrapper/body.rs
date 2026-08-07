@@ -412,6 +412,7 @@ impl PhysicsEngine {
         activation_angular_threshold: Real,
         activation_linear_threshold: Real,
         activation_time_until_sleep: Real,
+        length_unit: Real,
     ) {
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(body) = physics_world
@@ -424,9 +425,13 @@ impl PhysicsEngine {
                 activation.angular_threshold = -1.0;
                 activation.normalized_linear_threshold = -1.0;
             } else {
+                let max_extent = body.mass_properties().max_extent();
+                let angular_as_point_speed =
+                    activation_angular_threshold * max_extent / length_unit.max(1.0e-6);
                 let activation = body.activation_mut();
                 activation.angular_threshold = activation_angular_threshold;
-                activation.normalized_linear_threshold = activation_linear_threshold;
+                activation.normalized_linear_threshold =
+                    activation_linear_threshold + angular_as_point_speed;
                 activation.time_until_sleep = activation_time_until_sleep;
             }
             if !can_sleep && body.is_sleeping() {

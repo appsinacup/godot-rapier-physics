@@ -270,8 +270,6 @@ impl PhysicsWorld {
             collision_modify_contacts_callback: &collision_modify_contacts_callback,
             physics_collision_objects,
             physics_ids,
-            last_step: RapierSpace::get_last_step(),
-            ghost_collision_distance: space.get_ghost_collision_distance(),
         };
         // Initialize the event collector.
         let (collision_send, collision_recv) = mpsc::channel();

@@ -3,6 +3,33 @@ use types::Transform;
 
 use crate::rapier_wrapper::prelude::*;
 use crate::*;
+#[cfg(feature = "dim2")]
+enum Winding {
+    CounterClockwise,
+    Clockwise,
+    Open,
+}
+
+#[cfg(feature = "dim2")]
+fn polyline_winding(points: &[Vector], indices: Option<&[[u32; 2]]>) -> Winding {
+    let closed = match indices {
+        Some(idx) => {
+            !idx.is_empty()
+                && idx.windows(2).all(|w| w[0][1] == w[1][0])
+                && idx[idx.len() - 1][1] == idx[0][0]
+        }
+        None => points.len() > 2 && (points[points.len() - 1] - points[0]).length() <= 1.0e-3,
+    };
+    if !closed {
+        return Winding::Open;
+    }
+    if signed_area(points) > 0.0 {
+        Winding::CounterClockwise
+    } else {
+        Winding::Clockwise
+    }
+}
+
 pub fn point_array_to_vec(pixel_data: &Vec<Vector>) -> Vec<Vector> {
     let mut vec = Vec::<Vector>::with_capacity(pixel_data.len());
     for point in pixel_data {
@@ -345,8 +372,19 @@ impl PhysicsEngine {
             self.remove_shape(handle);
             return;
         }
-        let points_vec = point_array_to_vec(points);
+        let mut points_vec = point_array_to_vec(points);
         let shape = if crate::servers::rapier_project_settings::RapierProjectSettings::get_oriented_concave_polyline() {
+            match polyline_winding(&points_vec, indices.as_deref()) {
+                Winding::Clockwise => {
+                    points_vec.reverse();
+                }
+                Winding::CounterClockwise => {}
+                Winding::Open => {
+                    godot_warn!(
+                        "oriented_concave_polyline_2d is enabled but this ConcavePolygonShape2D is not a closed loop."
+                    );
+                }
+            }
             SharedShape::new(Polyline::with_flags(
                 points_vec,
                 indices,

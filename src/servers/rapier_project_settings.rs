@@ -96,14 +96,6 @@ const LENGTH_UNIT: &str = "physics/rapier/solver/length_unit_2d";
 #[cfg(feature = "dim2")]
 const ORIENTED_CONCAVE_POLYLINE: &str = "physics/rapier/logic/oriented_concave_polyline_2d";
 #[cfg(feature = "dim2")]
-const GHOST_COLLISION_DISTANCE: &str = "physics/rapier/logic/ghost_collision_distance_2d";
-#[cfg(feature = "dim3")]
-const GHOST_COLLISION_DISTANCE: &str = "physics/rapier/logic/ghost_collision_distance_3d";
-#[cfg(feature = "dim2")]
-const GHOST_COLLISION_DISTANCE_DEFAULT: real = 0.1;
-#[cfg(feature = "dim3")]
-const GHOST_COLLISION_DISTANCE_DEFAULT: real = 0.001;
-#[cfg(feature = "dim2")]
 const LENGTH_UNIT_VALUE: real = 100.0;
 #[cfg(feature = "dim2")]
 const LENGTH_UNIT_HINT: &str = "1,100,1,suffix:length_unit,or_greater";
@@ -176,23 +168,22 @@ pub struct RapierProjectSettings;
 impl RapierProjectSettings {
     pub fn register_settings() {
         let integration_parameters = IntegrationParameters::default();
-        // Register preset setting first
         register_setting(
             SOLVER_PRESET,
-            Variant::from(0i32),
+            Variant::from(RapierSolverPreset::Stability as i32),
             false,
             PropertyHint::ENUM,
             "Performance,Stability,Custom",
         );
         register_setting_ranged(
             SOLVER_NUM_INTERNAL_PGS_ITERATIONS,
-            Variant::from(integration_parameters.num_internal_pgs_iterations as i32),
+            Variant::from(STABILITY_PGS_ITERATIONS as i32),
             "1,8,or_greater",
             false,
         );
         register_setting_ranged(
             SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS,
-            Variant::from(integration_parameters.num_internal_stabilization_iterations as i32),
+            Variant::from(STABILITY_STABILIZATION_ITERATIONS as i32),
             "1,8,or_greater",
             false,
         );
@@ -248,12 +239,6 @@ impl RapierProjectSettings {
             CONTACT_NATURAL_FREQUENCY,
             Variant::from(integration_parameters.contact_softness.natural_frequency),
             "0,100,0.00001,or_greater",
-            false,
-        );
-        register_setting_ranged(
-            GHOST_COLLISION_DISTANCE,
-            Variant::from(GHOST_COLLISION_DISTANCE_DEFAULT),
-            "0,10,0.00001,or_greater",
             false,
         );
         #[cfg(feature = "dim2")]
@@ -450,7 +435,16 @@ impl RapierProjectSettings {
     }
 
     pub fn get_solver_num_internal_pgs_iterations() -> i64 {
-        RapierProjectSettings::get_setting_int(SOLVER_NUM_INTERNAL_PGS_ITERATIONS).max(1)
+        match RapierProjectSettings::get_solver_preset() {
+            RapierSolverPreset::Stability => STABILITY_PGS_ITERATIONS,
+            RapierSolverPreset::Performance => {
+                IntegrationParameters::default().num_internal_pgs_iterations as i64
+            }
+            RapierSolverPreset::Custom => {
+                RapierProjectSettings::get_setting_int(SOLVER_NUM_INTERNAL_PGS_ITERATIONS)
+            }
+        }
+        .max(1)
     }
 
     pub fn get_fluid_particle_radius() -> Real {
@@ -493,20 +487,42 @@ impl RapierProjectSettings {
     }
 
     pub fn get_num_internal_stabilization_iterations() -> i64 {
-        RapierProjectSettings::get_setting_int(SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS).max(1)
+        match RapierProjectSettings::get_solver_preset() {
+            RapierSolverPreset::Stability => STABILITY_STABILIZATION_ITERATIONS,
+            RapierSolverPreset::Performance => {
+                IntegrationParameters::default().num_internal_stabilization_iterations as i64
+            }
+            RapierSolverPreset::Custom => RapierProjectSettings::get_setting_int(
+                SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS,
+            ),
+        }
+        .max(1)
     }
 
     pub fn get_contact_damping_ratio() -> Real {
-        RapierProjectSettings::get_setting_double(CONTACT_DAMPING_RATIO) as Real
+        match RapierProjectSettings::get_solver_preset() {
+            RapierSolverPreset::Stability => STABILITY_DAMPING_RATIO as Real,
+            RapierSolverPreset::Performance => {
+                IntegrationParameters::default().contact_softness.damping_ratio
+            }
+            RapierSolverPreset::Custom => {
+                RapierProjectSettings::get_setting_double(CONTACT_DAMPING_RATIO) as Real
+            }
+        }
     }
 
     pub fn get_contact_natural_frequency() -> Real {
-        RapierProjectSettings::get_setting_double(CONTACT_NATURAL_FREQUENCY) as Real
+        match RapierProjectSettings::get_solver_preset() {
+            RapierSolverPreset::Stability => STABILITY_NATURAL_FREQUENCY as Real,
+            RapierSolverPreset::Performance => {
+                IntegrationParameters::default().contact_softness.natural_frequency
+            }
+            RapierSolverPreset::Custom => {
+                RapierProjectSettings::get_setting_double(CONTACT_NATURAL_FREQUENCY) as Real
+            }
+        }
     }
 
-    pub fn get_ghost_collision_distance() -> Real {
-        RapierProjectSettings::get_setting_double(GHOST_COLLISION_DISTANCE) as Real
-    }
 
     #[cfg(feature = "dim2")]
     pub fn get_oriented_concave_polyline() -> bool {

@@ -152,14 +152,17 @@ impl PhysicsEngine {
         if !collide_with_area {
             filter = filter.exclude_sensors();
         }
-        let predicate = |handle: ColliderHandle, _collider: &Collider| -> bool {
-            !space.is_handle_excluded_callback(
+        let predicate = |handle: ColliderHandle, collider: &Collider| -> bool {
+            if space.is_handle_excluded_callback(
                 handle,
                 &physics_world.get_collider_user_data(handle),
                 handle_excluded_info,
                 physics_collision_objects,
                 physics_ids,
-            )
+            ) {
+                return false;
+            }
+            !(!hit_from_inside && collider.shape().contains_point(collider.position(), ray.origin))
         };
         filter.predicate = Some(&predicate);
         let mut length_current = Real::MAX;
@@ -173,9 +176,9 @@ impl PhysicsEngine {
             filter,
         );
         let broad_phase_empty = query_pipeline.bvh.is_empty();
-        for (handle, _collider, intersection) in query_pipeline.intersect_ray(ray, length, true) {
-            // Find closest intersection
-            if update_ray_hit_info(
+        if let Some((handle, intersection)) =
+            query_pipeline.cast_ray_and_get_normal(&ray, length, true)
+            && update_ray_hit_info(
                 physics_world,
                 &ray,
                 hit_from_inside,
@@ -183,13 +186,9 @@ impl PhysicsEngine {
                 intersection,
                 &mut length_current,
                 hit_info,
-            ) {
-                result = true;
-            }
-            // Early exit if we found a hit at exactly 0.0 (can't get closer)
-            if result && intersection.time_of_impact == 0.0 {
-                break;
-            }
+            )
+        {
+            result = true;
         }
         // Before the first physics step, Rapier's broad phase can still be empty.
         // Scan colliders read-only so early direct-space raycasts can hit loaded shapes.

@@ -164,7 +164,6 @@ pub struct RapierSpace {
     default_angular_damping: real,
     contact_debug: PackedVectorArray,
     contact_debug_count: usize,
-    ghost_collision_distance: real,
     #[cfg(feature = "dim2")]
     constraint_default_bias: real,
     query_callbacks: Vec<PendingQueryCallback>,
@@ -195,7 +194,6 @@ impl RapierSpace {
             default_angular_damping: 0.0,
             contact_debug: PackedVectorArray::new(),
             contact_debug_count: 0,
-            ghost_collision_distance: RapierProjectSettings::get_ghost_collision_distance(),
             #[cfg(feature = "dim2")]
             constraint_default_bias: 0.2,
             query_callbacks: Vec::new(),
@@ -783,9 +781,6 @@ impl RapierSpace {
         self.update_after_queries(&mut physics_data.collision_objects, &physics_data.ids);
     }
 
-    pub fn get_ghost_collision_distance(&self) -> real {
-        self.ghost_collision_distance
-    }
 }
 impl Drop for RapierSpace {
     fn drop(&mut self) {

@@ -440,22 +440,12 @@ impl RapierBody {
             .any(|shape| shape.one_way_collision && !shape.disabled);
         let is_conveyer_belt = self.get_static_linear_velocity() != Vector::default()
             || self.get_static_angular_velocity() != ANGLE_ZERO;
-        // Ghost collision mitigation runs in the same hook and needs it on the non-dynamic
-        // side of a pair, but at distance zero its contact filter can never match, so the
-        // hook would only burn a lookup per contact pair per step. Letting it switch off
-        // gives projects that don't need it a way out of that cost.
-        let ghost_collisions_enabled = RapierProjectSettings::get_ghost_collision_distance() > 0.0;
-        let needs_ghost_collision_hook = ghost_collisions_enabled
-            && (self.base.mode == BodyMode::STATIC || self.base.mode == BodyMode::KINEMATIC);
-        let modify_contacts_enabled =
-            has_one_way_shape || is_conveyer_belt || needs_ghost_collision_hook;
+        let modify_contacts_enabled = has_one_way_shape || is_conveyer_belt;
         physics_engine.collider_set_modify_contacts_enabled(
             space_handle,
             collider_handle,
             modify_contacts_enabled,
         );
-        // Ghost-collision mitigation shares the hook but reads nothing from Godot, so only
-        // the one-way and conveyor rules make the hook's lookups worth paying for.
         physics_engine.collider_set_needs_contact_callback(
             space_handle,
             collider_handle,
@@ -1347,6 +1337,7 @@ impl RapierBody {
             self.base.activation_angular_threshold,
             self.base.activation_linear_threshold,
             self.base.activation_time_until_sleep,
+            RapierProjectSettings::get_length_unit(),
         );
     }
 
