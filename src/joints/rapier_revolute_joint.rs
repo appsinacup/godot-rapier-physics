@@ -1,6 +1,8 @@
 use godot::builtin::Rid;
 use godot::classes::*;
 #[cfg(feature = "dim2")]
+use physics_server_2d::JointParam;
+#[cfg(feature = "dim2")]
 use physics_server_2d::JointType;
 #[cfg(feature = "dim3")]
 use physics_server_3d::JointType;
@@ -563,5 +565,28 @@ impl IRapierJoint for RapierRevoluteJoint {
     #[cfg(feature = "dim3")]
     fn get_type(&self) -> JointType {
         JointType::HINGE
+    }
+
+    #[cfg(feature = "dim2")]
+    fn set_joint_param(
+        &mut self,
+        param: JointParam,
+        value: f32,
+        physics_engine: &mut PhysicsEngine,
+    ) {
+        match param {
+            JointParam::MAX_FORCE => self.set_max_force(value, physics_engine),
+            JointParam::BIAS => self.set_bias_param(value, physics_engine),
+            _ => {}
+        }
+    }
+
+    #[cfg(feature = "dim2")]
+    fn get_joint_param(&self, param: JointParam) -> f32 {
+        match param {
+            JointParam::MAX_FORCE => self.base.get_max_force(),
+            JointParam::BIAS => self.get_bias_param(),
+            _ => 0.0,
+        }
     }
 }

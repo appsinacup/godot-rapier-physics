@@ -121,7 +121,8 @@ macro_rules! make_rapier_server_godot_impl {
             /// [method PhysicsDirectBodyState2D.get_contact_impulse] excludes because rapier
             /// solves friction on the contact tangent rather than the normal. A body scraping
             /// along a surface shows a large tangent impulse and a small normal one.
-            /// Needs the same contact reporting as the built-in contact getters.
+            /// Needs the same contact reporting as the built-in contact getters;
+            /// [method body_get_total_friction_impulse] gives the body-wide total without it.
             pub fn body_get_contact_tangent_impulse(body: Rid, contact_idx: i32) -> real {
                 let physics_data = physics_data();
                 if let Some(body) = physics_data.collision_objects.get(&body)
@@ -136,6 +137,7 @@ macro_rules! make_rapier_server_godot_impl {
             /// Get the total contact impulse acting on a body this step, read straight from the
             /// narrow phase. Needs no contact reporting, and is not truncated by
             /// [member RigidBody2D.max_contacts_reported].
+            /// Divide by the step delta for a force.
             pub fn body_get_total_contact_impulse(body: Rid) -> Vector {
                 let physics_data = physics_data();
                 if let Some(body) = physics_data.collision_objects.get(&body)
@@ -149,14 +151,6 @@ macro_rules! make_rapier_server_godot_impl {
                     return $crate::rapier_wrapper::convert::vector_to_godot(info.total_impulse);
                 }
                 Vector::ZERO
-            }
-
-            #[func]
-            /// Get the total contact force acting on a body this step. This is
-            /// [method body_get_total_contact_impulse] divided by the physics step.
-            pub fn body_get_total_contact_force(body: Rid) -> Vector {
-                Self::body_get_total_contact_impulse(body)
-                    / $crate::spaces::rapier_space::RapierSpace::get_last_step()
             }
 
             #[func]
@@ -181,9 +175,9 @@ macro_rules! make_rapier_server_godot_impl {
 
             #[func]
             /// Get the total friction impulse magnitude acting on a body this step, which
-            /// [method body_get_total_contact_impulse] excludes. High friction with a low normal
-            /// impulse means the body is scraping rather than being pressed. Needs no contact
-            /// reporting, unlike [method body_get_contact_tangent_impulse].
+            /// [method body_get_total_contact_impulse] excludes because rapier solves friction on
+            /// the contact tangent rather than the normal. High friction with a low normal impulse
+            /// means the body is scraping rather than being pressed. Needs no contact reporting.
             pub fn body_get_total_friction_impulse(body: Rid) -> real {
                 let physics_data = physics_data();
                 if let Some(body) = physics_data.collision_objects.get(&body)
@@ -222,14 +216,6 @@ macro_rules! make_rapier_server_godot_impl {
             }
 
             #[func]
-            /// Get the contact force [param body_a] receives from [param body_b] specifically.
-            /// This is [method bodies_get_contact_impulse] divided by the physics step.
-            pub fn bodies_get_contact_force(body_a: Rid, body_b: Rid) -> Vector {
-                Self::bodies_get_contact_impulse(body_a, body_b)
-                    / $crate::spaces::rapier_space::RapierSpace::get_last_step()
-            }
-
-            #[func]
             /// Get the kinetic energy of a body, combining its linear and angular motion.
             pub fn body_get_kinetic_energy(body: Rid) -> real {
                 let physics_data = physics_data();
@@ -262,8 +248,8 @@ macro_rules! make_rapier_server_godot_impl {
 
             #[func]
             /// Get the world-space linear impulse a joint applied to hold its constraint on the
-            /// last step, including its limit and motor impulses. Use it for breakable joints,
-            /// rope tension or stress visualisation.
+            /// last step, including its limit and motor contributions. Use it for breakable
+            /// joints, rope tension or stress visualisation. Divide by the step delta for a force.
             /// Multibody joints resolve their constraints in reduced coordinates and return zero.
             pub fn joint_get_reaction_impulse(joint: Rid) -> Vector {
                 let physics_data = physics_data();
@@ -278,25 +264,16 @@ macro_rules! make_rapier_server_godot_impl {
             }
 
             #[func]
-            /// Get the force a joint applied to hold its constraint on the last step, in world
-            /// space. This is [method joint_get_reaction_impulse] divided by the physics step.
-            pub fn joint_get_reaction_force(joint: Rid) -> Vector {
-                Self::joint_get_reaction_impulse(joint)
-                    / $crate::spaces::rapier_space::RapierSpace::get_last_step()
-            }
-
-            #[func]
-            /// Get the world-space torque a joint applied to hold its constraint on the last
-            /// step. See [method joint_get_reaction_force] for the linear counterpart.
-            pub fn joint_get_reaction_torque(joint: Rid) -> Angle {
+            /// Get the world-space angular impulse a joint applied to hold its constraint on the
+            /// last step. See [method joint_get_reaction_impulse] for the linear counterpart.
+            pub fn joint_get_reaction_angular_impulse(joint: Rid) -> Angle {
                 let physics_data = physics_data();
                 if let Some(joint) = physics_data.joints.get(&joint) {
                     let (_, angular) = physics_data.physics_engine.joint_get_reaction_impulse(
                         joint.get_base().get_space_id(),
                         joint.get_base().get_handle(),
                     );
-                    return $crate::rapier_wrapper::convert::angle_to_godot(angular)
-                        / $crate::spaces::rapier_space::RapierSpace::get_last_step();
+                    return $crate::rapier_wrapper::convert::angle_to_godot(angular);
                 }
                 ANGLE_ZERO
             }

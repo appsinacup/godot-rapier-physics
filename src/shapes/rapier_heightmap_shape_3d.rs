@@ -1,3 +1,4 @@
+use godot::classes::Image;
 #[cfg(feature = "dim2")]
 use godot::classes::physics_server_2d::*;
 #[cfg(feature = "dim3")]
@@ -12,6 +13,23 @@ use crate::shapes::rapier_shape::IRapierShape;
 use crate::shapes::rapier_shape::impl_rapier_shape_create;
 use crate::shapes::rapier_shape_base::RapierShapeBase;
 use crate::types::*;
+/// Godot accepts the heights either as a packed float array or as an [`Image`], matching
+/// `GodotHeightMapShape3D::set_data`. `FORMAT_RF` is always 32-bit, so the samples are widened
+/// rather than reinterpreted, which keeps double-precision builds correct.
+fn heights_from_image(image: &Gd<Image>) -> Option<PackedFloatArray> {
+    let format = image.get_format();
+    if format != godot::classes::image::Format::RF {
+        godot_error!("Heightmap image must use Image.FORMAT_RF. Got {:?}", format);
+        return None;
+    }
+    let data = image.get_data();
+    let bytes = data.as_slice();
+    let heights: Vec<real> = bytes
+        .chunks_exact(size_of::<f32>())
+        .map(|sample| f32::from_le_bytes([sample[0], sample[1], sample[2], sample[3]]) as real)
+        .collect();
+    Some(PackedFloatArray::from(heights.as_slice()))
+}
 pub struct RapierHeightMapShape3D {
     base: RapierShapeBase,
 }
@@ -41,16 +59,26 @@ impl IRapierShape for RapierHeightMapShape3D {
             let in_width = dictionary.get_or_nil("width");
             let in_depth = dictionary.get_or_nil("depth");
             let new_heights = dictionary.get_or_nil("heights");
+            let in_heights = match new_heights.try_to::<PackedFloatArray>() {
+                Ok(in_heights) => Some(in_heights),
+                Err(_) => match new_heights.try_to::<Gd<Image>>() {
+                    Ok(image) => heights_from_image(&image),
+                    Err(_) => {
+                        godot_error!(
+                            "Invalid heightmap heights. Expected a float array or a float Image. Got {}",
+                            new_heights
+                        );
+                        return;
+                    }
+                },
+            };
             if let Ok(in_width) = in_width.try_to::<i32>()
                 && let Ok(in_depth) = in_depth.try_to::<i32>()
-                && let Ok(in_heights) = new_heights.try_to::<PackedFloatArray>()
+                && let Some(in_heights) = in_heights
             {
                 width = in_width;
                 depth = in_depth;
                 heights = in_heights;
-                // else if let Ok(image) = heights.try_to::<Object>() {
-                // TODO image support
-                //}
                 // Compute min and max heights or use precomputed values.
                 let mut min_height: real = 0.0;
                 let mut max_height: real = 0.0;
