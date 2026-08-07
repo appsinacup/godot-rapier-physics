@@ -8,7 +8,6 @@
 
 [node name="rectangle_pyramid" type="Node2D" unique_id=1873078854]
 script = ExtResource("1_33db6")
-height = 30
 
 [node name="RapierArea2D" type="Area2D" parent="." unique_id=1913523018]
 script = ExtResource("2_dqx15")

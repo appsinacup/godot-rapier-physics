@@ -224,10 +224,6 @@ impl RapierSpace {
         {
             body.create_direct_state();
             if body.get_state_sync_callback().is_some() {
-                if !body.needs_state_sync(RapierProjectSettings::get_sync_position_threshold()) {
-                    return None;
-                }
-                body.mark_state_synced();
                 return Some(PendingQueryCallback::BodyStateSync { rid });
             }
         }

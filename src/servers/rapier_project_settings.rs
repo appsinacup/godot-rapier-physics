@@ -69,10 +69,6 @@ const SOLVER_NORMALIZED_MAX_CORRECTIVE_VELOCITY: &str =
     "physics/rapier/solver/normalized_max_corrective_velocity";
 const SOLVER_NORMALIZED_PREDICTION_DISTANCE: &str =
     "physics/rapier/solver/normalized_prediction_distance";
-#[cfg(feature = "dim2")]
-const SOLVER_SYNC_POSITION_THRESHOLD: &str = "physics/rapier/solver/sync_position_threshold_2d";
-#[cfg(feature = "dim3")]
-const SOLVER_SYNC_POSITION_THRESHOLD: &str = "physics/rapier/solver/sync_position_threshold_3d";
 const SOLVER_NORMALIZED_MAX_LINEAR_VELOCITY: &str =
     "physics/rapier/solver/normalized_max_linear_velocity";
 const SOLVER_PREDICTIVE_CONTACT_ALLOWANCE_THRESHOLD: &str =
@@ -231,17 +227,6 @@ impl RapierProjectSettings {
             false,
         );
         register_setting_ranged(
-            SOLVER_SYNC_POSITION_THRESHOLD,
-            Variant::from(0.0 as real),
-            // Ranges reflect the unit: pixels in 2D, metres in 3D.
-            if cfg!(feature = "dim2") {
-                "0,50,0.01,or_greater"
-            } else {
-                "0,1,0.0005,or_greater"
-            },
-            false,
-        );
-        register_setting_ranged(
             SOLVER_NORMALIZED_MAX_LINEAR_VELOCITY,
             Variant::from(integration_parameters.normalized_max_linear_velocity),
             "1,10000,0.00001,or_greater",
@@ -358,7 +343,15 @@ impl RapierProjectSettings {
     fn get_setting_double(p_setting: &str) -> f64 {
         let project_settings = ProjectSettings::singleton();
         let setting_value = project_settings.get_setting_with_override(p_setting);
-        setting_value.to::<f64>()
+        // A value written as an integer -- from override.cfg, or `set_setting(name, 0)` --
+        // arrives as an Int variant that a strict float conversion does not survive. Callers
+        // use these as thresholds, where a garbage read silently disables the behaviour the
+        // setting gates, so fall back through int and never hand back a non-finite number.
+        let value = setting_value
+            .try_to::<f64>()
+            .or_else(|_| setting_value.try_to::<i64>().map(|i| i as f64))
+            .unwrap_or(0.0);
+        if value.is_finite() { value } else { 0.0 }
     }
 
     pub fn get_solver_preset() -> RapierSolverPreset {
@@ -488,13 +481,6 @@ impl RapierProjectSettings {
 
     pub fn get_normalized_prediction_distance() -> Real {
         RapierProjectSettings::get_setting_double(SOLVER_NORMALIZED_PREDICTION_DISTANCE) as Real
-    }
-
-    pub fn get_sync_position_threshold() -> Real {
-        static THRESHOLD: std::sync::OnceLock<f64> = std::sync::OnceLock::new();
-        *THRESHOLD.get_or_init(|| {
-            RapierProjectSettings::get_setting_double(SOLVER_SYNC_POSITION_THRESHOLD)
-        }) as Real
     }
 
     pub fn get_normalized_max_linear_velocity() -> Real {

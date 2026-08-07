@@ -201,7 +201,6 @@ pub struct RapierBody {
     direct_state: Option<Gd<PhysicsDirectBodyState>>,
     direct_state_array: VarArray,
     direct_state_variant: Variant,
-    last_synced_transform: Transform,
     force_integration_array: VarArray,
     state: RapierBodyState,
     base: RapierCollisionObjectBase,
@@ -240,7 +239,6 @@ impl RapierBody {
             direct_state: None,
             direct_state_array: VarArray::new(),
             direct_state_variant: Variant::nil(),
-            last_synced_transform: Transform::IDENTITY,
             force_integration_array: VarArray::new(),
             state,
             base: RapierCollisionObjectBase::new(id, rid, CollisionObjectType::Body),
@@ -709,24 +707,6 @@ impl RapierBody {
 
     pub fn get_direct_state_array(&self) -> &VarArray {
         &self.direct_state_array
-    }
-
-    /// True when this body has moved far enough since its node was last updated to be worth
-    /// syncing again. Measured against the last synced pose, so a slow creep still triggers a
-    /// sync once it accumulates past the threshold and the visible error stays bounded by it.
-    pub fn needs_state_sync(&self, threshold: real) -> bool {
-        if threshold <= 0.0 {
-            return true;
-        }
-        // A point offset from the origin moves under both translation and rotation, so one
-        // distance check covers the whole pose.
-        let probe = Vector::ONE;
-        let moved = self.base.get_transform() * probe - self.last_synced_transform * probe;
-        moved.length() > threshold
-    }
-
-    pub fn mark_state_synced(&mut self) {
-        self.last_synced_transform = self.base.get_transform();
     }
 
     /// The same value the array holds, kept separately so dispatch can pass a borrowed slice
