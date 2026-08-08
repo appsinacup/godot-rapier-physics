@@ -53,6 +53,9 @@ macro_rules! make_rapier_server_godot_impl {
             #[constant]
             pub const JOINT_TYPE: i32 = 0;
             #[constant]
+            pub const JOINT_TYPE_IMPULSE_JOINT: i32 = 0;
+            /// Deprecated misspelling of [constant JOINT_TYPE_IMPULSE_JOINT].
+            #[constant]
             pub const JOINT_TYPE_INPULSE_JOINT: i32 = 0;
             #[constant]
             pub const JOINT_TYPE_MULTIBODY_JOINT: i32 = 1;
@@ -286,7 +289,7 @@ macro_rules! make_rapier_server_godot_impl {
             #[func]
             /// Set an extra parameter for a joint.
             /// If [param param] is [member JOINT_TYPE] (0), sets if multibody or not.
-            /// Use [member JOINT_TYPE_INPULSE_JOINT] (0) for impulse joints, [member JOINT_TYPE_MULTIBODY_JOINT] (1) for multibody joints or [member JOINT_TYPE_MULTIBODY_KINEMATIC_JOINT] (2) for multibody kinematic joint.
+            /// Use [member JOINT_TYPE_IMPULSE_JOINT] (0) for impulse joints, [member JOINT_TYPE_MULTIBODY_JOINT] (1) for multibody joints or [member JOINT_TYPE_MULTIBODY_KINEMATIC_JOINT] (2) for multibody kinematic joint.
             pub fn joint_set_extra_param(joint: Rid, param: i32, value: Variant) {
                 if param == Self::JOINT_TYPE {
                     if let Ok(value) = value.try_to::<i32>() {
@@ -310,7 +313,7 @@ macro_rules! make_rapier_server_godot_impl {
             #[func]
             /// Get an extra parameter for a joint.
             /// If [param param] is [member JOINT_TYPE] (0), gets if the joint is multibody or not.
-            /// Returns [member JOINT_TYPE_INPULSE_JOINT] (0) for impulse joints, [member JOINT_TYPE_MULTIBODY_JOINT] (1) for multibody joints or [member JOINT_TYPE_MULTIBODY_KINEMATIC_JOINT] (2) for multibody kinematic joint.
+            /// Returns [member JOINT_TYPE_IMPULSE_JOINT] (0) for impulse joints, [member JOINT_TYPE_MULTIBODY_JOINT] (1) for multibody joints or [member JOINT_TYPE_MULTIBODY_KINEMATIC_JOINT] (2) for multibody kinematic joint.
             pub fn joint_get_extra_param(joint: Rid, param: i32) -> Variant {
                 if param == Self::JOINT_TYPE {
                     let physics_data = physics_data();

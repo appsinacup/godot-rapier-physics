@@ -61,7 +61,7 @@ Exact simulation every time (on same platform)|Exact simulation on multiple plat
     - [Rapier Physics 2D](https://store.godotengine.org/asset/appsinacup/rapier-physics-2d-fast-version-with-parallel-simd-solver/)
     - [Rapier Physics 3D](https://store.godotengine.org/asset/appsinacup/rapier-physics-3d-fast-version-with-parallel-simd-solver/)
 
-    Note: There is now a single build per dimension. It runs the parallel SIMD solver *and* is cross platform deterministic — as of Rapier 0.35 the two are no longer mutually exclusive, so the separate slower deterministic build is gone.
+    Note: There is a single build per dimension. It runs the parallel SIMD solver and is cross platform deterministic.
 
 - Manual: Download the [latest github release](https://github.com/appsinacup/godot-rapier-physics/releases/latest) and move only the `addons` folder into your project `addons` folder.
 
@@ -80,12 +80,12 @@ Feature sets matching the shipped addon builds:
 
 | Build | Features |
 | - | - |
-| 2D | `single-dim2`, `serde-serialize`, `parallel`, `register-docs`, `api-4-7` |
-| 3D | `single-dim3`, `serde-serialize`, `parallel`, `register-docs`, `api-4-7` |
+| 2D | `single-dim2`, `serde-serialize`, `parallel`, `experimental-threads`, `register-docs`, `api-4-7` |
+| 3D | `single-dim3`, `serde-serialize`, `parallel`, `experimental-threads`, `register-docs`, `api-4-7` |
 
 Use exactly one Godot API feature: `api-4-4`, `api-4-5`, `api-4-6`, or `api-4-7`.
 
-SIMD and cross-platform determinism are not features you opt into. Rapier 0.35 enables SIMD unconditionally (falling back to scalar on targets that lack it), and `enhanced-determinism` is hard-wired on for every Rapier dependency in `Cargo.toml` because it no longer costs measurable performance and now composes with SIMD and `parallel`. `parallel` stays optional since web builds cannot use it.
+SIMD and cross-platform determinism are not features you opt into: SIMD is always compiled (with a scalar fallback on targets that lack it) and `enhanced-determinism` is enabled on the Rapier dependencies for every build. `parallel` stays optional since web builds cannot use it.
 
 For web/Emscripten builds, add one web feature: `experimental-wasm` for threaded web builds, or `experimental-wasm-nothreads` for no-thread web builds. `experimental-wasm-nothreads` includes `experimental-wasm`. CI builds web with `wasm32-unknown-emscripten`, `release-wasm`, and `-Zbuild-std`.
 

@@ -98,9 +98,9 @@ cargo update
 3. Build the project
 ```bash
 # for 2d
-cargo build --release --features="single-dim2"
+cargo build --release --features="single-dim2,api-4-7"
 # for 3d
-cargo build --release --features="single-dim3"
+cargo build --release --features="single-dim3,api-4-7"
 ```
 
 4. Copy the output to bin folder of the addon:
@@ -136,7 +136,7 @@ The `dim2` or `dim3` refers to the rapier and salva versions used, and to what c
 
 The `parallel` version doesn't work on web.
 
-There is no `simd-*` or `enhanced-determinism` feature any more. Rapier 0.35 always compiles SIMD (with a scalar fallback on targets that lack it), and `enhanced-determinism` is enabled directly on the Rapier dependencies in `Cargo.toml` for every build, since it no longer costs measurable performance and is compatible with SIMD and `parallel`.
+SIMD is always compiled (with a scalar fallback on targets that lack it) and `enhanced-determinism` is enabled directly on the Rapier dependencies in `Cargo.toml` for every build.
 
 The `serde-serialize` feature enabled serialization methods for physics server.
 
@@ -174,9 +174,9 @@ In order to make a PR that will get merged, you need to lint and format your cod
 # Format
 cargo fmt -- --config-path rustfmt.toml
 # Run clippy for 2d only
-cargo clippy --fix --allow-dirty --all-targets --features="single-dim2"
+cargo clippy --fix --allow-dirty --all-targets --features="single-dim2,api-4-7"
 # Run clippy for 3d only
-cargo clippy --fix --allow-dirty --all-targets --features="single-dim3"
+cargo clippy --fix --allow-dirty --all-targets --features="single-dim3,api-4-7"
 ```
 
 The above runs formatting with `cargo fmt` and linting with `cargo clippy`. For clippy you can specify (and should run) both 2d and 3d feature sets.
