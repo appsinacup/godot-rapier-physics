@@ -27,7 +27,7 @@ jobs:
         with:
           arch: ${{ matrix.arch }}
           toolchain: nightly-2025-12-12
-          features: serde-serialize,parallel,register-docs,${{ matrix.precision }}-${{ matrix.dimensions.feature }}
+          features: serde-serialize,parallel,register-docs,experimental-threads,${{ matrix.precision }}-${{ matrix.dimensions.feature }}
       - name: Copy to bin
         shell: sh
         run: |

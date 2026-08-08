@@ -39,7 +39,6 @@ hashbrown = { version = "0.16", features=["inline-more", "default-hasher", "allo
 
 num_cpus = { version = "1", optional = true }
 
-# Disabled for now "safeguards-release-disengaged"] }
 godot = { version = "0.5.4" }
 glamx = { version = "0.3", default-features = false, features = ["scalar-math"], optional = true }
 
