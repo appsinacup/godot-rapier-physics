@@ -1,6 +1,3 @@
-use std::sync::atomic::AtomicBool;
-use std::sync::atomic::Ordering;
-
 use godot::classes::*;
 use godot::prelude::*;
 use godot::register::info::PropertyHint;
@@ -56,7 +53,6 @@ fn linux_performance_cores() -> Option<usize> {
         .sum();
     (cores > 0).then_some(cores)
 }
-const SOLVER_PRESET: &str = "physics/rapier/solver/preset";
 const SOLVER_NUM_ITERATIONS: &str = "physics/rapier/solver/num_iterations";
 const SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS: &str =
     "physics/rapier/solver/num_internal_stabilization_iterations";
@@ -98,15 +94,12 @@ const MOTION_STUCK_PENETRATION_DEFAULT: f64 = 0.1;
 const MOTION_STUCK_PENETRATION_DEFAULT: f64 = 0.01;
 const CONTACT_NATURAL_FREQUENCY: &str = "physics/rapier/solver/contact_natural_frequency";
 const DEFAULT_MAX_CCD_SUBSTEPS: i32 = 2;
-static APPLYING_PRESET: AtomicBool = AtomicBool::new(false);
+const DEFAULT_PGS_ITERATIONS: i32 = 1;
+const DEFAULT_STABILIZATION_ITERATIONS: i32 = 1;
 // Softer contacts settle deeper under the weight of a pile and keep creeping instead of
 // resting, so a low natural frequency or a damping ratio above rapier's default of 10 both
 // leave stacks jittering. Values chosen by sweeping the 2D suite; see
 // scripts/sweep-solver-params.sh to re-measure.
-const STABILITY_PGS_ITERATIONS: i64 = 4;
-const STABILITY_STABILIZATION_ITERATIONS: i64 = 4;
-const STABILITY_DAMPING_RATIO: f64 = 10.0;
-const STABILITY_NATURAL_FREQUENCY: f64 = 50.0;
 #[cfg(feature = "dim2")]
 const FLUID_PARTICLE_RADIUS: &str = "physics/rapier/fluid/fluid_particle_radius_2d";
 #[cfg(feature = "dim3")]
@@ -228,42 +221,20 @@ pub fn register_setting_ranged(
         p_hint_string,
     );
 }
-#[derive(Debug, Clone, Copy)]
-pub enum RapierSolverPreset {
-    Performance = 0,
-    Stability = 1,
-    Custom = 2,
-}
-impl RapierSolverPreset {
-    pub fn from_i64(value: i64) -> Self {
-        match value {
-            1 => RapierSolverPreset::Stability,
-            2 => RapierSolverPreset::Custom,
-            _ => RapierSolverPreset::Performance,
-        }
-    }
-}
 #[derive(Debug)]
 pub struct RapierProjectSettings;
 impl RapierProjectSettings {
     pub fn register_settings() {
         let integration_parameters = IntegrationParameters::default();
-        register_setting(
-            SOLVER_PRESET,
-            Variant::from(RapierSolverPreset::Stability as i32),
-            false,
-            PropertyHint::ENUM,
-            "Performance,Stability,Custom",
-        );
         register_setting_ranged(
             SOLVER_NUM_INTERNAL_PGS_ITERATIONS,
-            Variant::from(STABILITY_PGS_ITERATIONS as i32),
+            Variant::from(DEFAULT_PGS_ITERATIONS),
             "1,8,or_greater",
             false,
         );
         register_setting_ranged(
             SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS,
-            Variant::from(STABILITY_STABILIZATION_ITERATIONS as i32),
+            Variant::from(DEFAULT_STABILIZATION_ITERATIONS),
             "1,8,or_greater",
             false,
         );
@@ -396,50 +367,6 @@ impl RapierProjectSettings {
             LENGTH_UNIT_HINT,
             false,
         );
-        static SIGNAL_CONNECTED: AtomicBool = AtomicBool::new(false);
-        if !SIGNAL_CONNECTED.swap(true, Ordering::AcqRel) {
-            let project_settings = ProjectSettings::singleton();
-            let mut signals = project_settings.signals();
-            signals.settings_changed().connect(|| {
-                static LAST_PRESET_VALUE: std::sync::Mutex<Option<i64>> =
-                    std::sync::Mutex::new(None);
-                let current_preset = RapierProjectSettings::get_setting_int(SOLVER_PRESET);
-                let mut last_preset_value = LAST_PRESET_VALUE.lock().unwrap();
-                if let Some(last) = *last_preset_value {
-                    if last != current_preset {
-                        // Preset setting changed - apply the new preset
-                        if !APPLYING_PRESET.load(Ordering::Acquire) {
-                            RapierProjectSettings::apply_preset();
-                        }
-                        *last_preset_value = Some(current_preset);
-                        return;
-                    }
-                } else {
-                    // First time - just store the current value
-                    *last_preset_value = Some(current_preset);
-                    return;
-                }
-                // If we're currently applying a preset, don't detect changes
-                if APPLYING_PRESET.load(Ordering::Acquire) {
-                    return;
-                }
-                // Check if current preset is already Custom - if so, don't change it
-                if current_preset == RapierSolverPreset::Custom as i64 {
-                    return;
-                }
-                // Individual settings changed - detect if we should switch to Custom
-                let detected = RapierProjectSettings::detect_current_preset();
-                if matches!(detected, RapierSolverPreset::Custom) {
-                    // Settings no longer match any preset - switch to Custom
-                    let mut project_settings = ProjectSettings::singleton();
-                    project_settings.set(
-                        SOLVER_PRESET,
-                        &Variant::from(RapierSolverPreset::Custom as i32),
-                    );
-                    *last_preset_value = Some(RapierSolverPreset::Custom as i64);
-                }
-            });
-        }
     }
 
     fn get_setting_int(p_setting: &str) -> i64 {
@@ -462,93 +389,6 @@ impl RapierProjectSettings {
         if value.is_finite() { value } else { 0.0 }
     }
 
-    pub fn get_solver_preset() -> RapierSolverPreset {
-        RapierSolverPreset::from_i64(RapierProjectSettings::get_setting_int(SOLVER_PRESET))
-    }
-
-    pub fn detect_current_preset() -> RapierSolverPreset {
-        let pgs = RapierProjectSettings::get_setting_int(SOLVER_NUM_INTERNAL_PGS_ITERATIONS);
-        let stab =
-            RapierProjectSettings::get_setting_int(SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS);
-        let damping = RapierProjectSettings::get_setting_double(CONTACT_DAMPING_RATIO);
-        let freq = RapierProjectSettings::get_setting_double(CONTACT_NATURAL_FREQUENCY);
-        // Check if matches Stability preset
-        if pgs == STABILITY_PGS_ITERATIONS
-            && stab == STABILITY_STABILIZATION_ITERATIONS
-            && (damping - STABILITY_DAMPING_RATIO).abs() < 0.001
-            && (freq - STABILITY_NATURAL_FREQUENCY).abs() < 0.001
-        {
-            return RapierSolverPreset::Stability;
-        }
-        // Check if matches Performance preset (default Rapier values)
-        let integration_parameters = IntegrationParameters::default();
-        if pgs == integration_parameters.num_internal_pgs_iterations as i64
-            && stab == integration_parameters.num_internal_stabilization_iterations as i64
-            && (damping - integration_parameters.contact_softness.damping_ratio as f64).abs()
-                < 0.001
-            && (freq - integration_parameters.contact_softness.natural_frequency as f64).abs()
-                < 0.001
-        {
-            return RapierSolverPreset::Performance;
-        }
-        RapierSolverPreset::Custom
-    }
-
-    pub fn apply_preset() {
-        let preset = RapierProjectSettings::get_solver_preset();
-        if matches!(preset, RapierSolverPreset::Custom) {
-            return; // Don't apply when Custom
-        }
-        // Set flag to prevent detection during application
-        APPLYING_PRESET.store(true, Ordering::Release);
-        let mut project_settings = ProjectSettings::singleton();
-        match preset {
-            RapierSolverPreset::Stability => {
-                // Stability preset
-                project_settings.set(
-                    SOLVER_NUM_INTERNAL_PGS_ITERATIONS,
-                    &Variant::from(STABILITY_PGS_ITERATIONS as i32),
-                );
-                project_settings.set(
-                    SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS,
-                    &Variant::from(STABILITY_STABILIZATION_ITERATIONS as i32),
-                );
-                project_settings.set(
-                    CONTACT_DAMPING_RATIO,
-                    &Variant::from(STABILITY_DAMPING_RATIO),
-                );
-                project_settings.set(
-                    CONTACT_NATURAL_FREQUENCY,
-                    &Variant::from(STABILITY_NATURAL_FREQUENCY),
-                );
-            }
-            RapierSolverPreset::Performance => {
-                // Performance preset (default Rapier values)
-                let integration_parameters = IntegrationParameters::default();
-                project_settings.set(
-                    SOLVER_NUM_INTERNAL_PGS_ITERATIONS,
-                    &Variant::from(integration_parameters.num_internal_pgs_iterations as i32),
-                );
-                project_settings.set(
-                    SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS,
-                    &Variant::from(
-                        integration_parameters.num_internal_stabilization_iterations as i32,
-                    ),
-                );
-                project_settings.set(
-                    CONTACT_DAMPING_RATIO,
-                    &Variant::from(integration_parameters.contact_softness.damping_ratio),
-                );
-                project_settings.set(
-                    CONTACT_NATURAL_FREQUENCY,
-                    &Variant::from(integration_parameters.contact_softness.natural_frequency),
-                );
-            }
-            RapierSolverPreset::Custom => {} // Do nothing for Custom
-        }
-        APPLYING_PRESET.store(false, Ordering::Release);
-    }
-
     pub fn get_solver_max_ccd_substeps() -> i64 {
         RapierProjectSettings::get_setting_int(SOLVER_MAX_CCD_SUBSTEPS).max(0)
     }
@@ -558,16 +398,7 @@ impl RapierProjectSettings {
     }
 
     pub fn get_solver_num_internal_pgs_iterations() -> i64 {
-        match RapierProjectSettings::get_solver_preset() {
-            RapierSolverPreset::Stability => STABILITY_PGS_ITERATIONS,
-            RapierSolverPreset::Performance => {
-                IntegrationParameters::default().num_internal_pgs_iterations as i64
-            }
-            RapierSolverPreset::Custom => {
-                RapierProjectSettings::get_setting_int(SOLVER_NUM_INTERNAL_PGS_ITERATIONS)
-            }
-        }
-        .max(1)
+        RapierProjectSettings::get_setting_int(SOLVER_NUM_INTERNAL_PGS_ITERATIONS).max(1)
     }
 
     pub fn get_fluid_particle_radius() -> Real {
@@ -610,44 +441,15 @@ impl RapierProjectSettings {
     }
 
     pub fn get_num_internal_stabilization_iterations() -> i64 {
-        match RapierProjectSettings::get_solver_preset() {
-            RapierSolverPreset::Stability => STABILITY_STABILIZATION_ITERATIONS,
-            RapierSolverPreset::Performance => {
-                IntegrationParameters::default().num_internal_stabilization_iterations as i64
-            }
-            RapierSolverPreset::Custom => {
-                RapierProjectSettings::get_setting_int(SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS)
-            }
-        }
-        .max(1)
+        RapierProjectSettings::get_setting_int(SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS).max(1)
     }
 
     pub fn get_contact_damping_ratio() -> Real {
-        match RapierProjectSettings::get_solver_preset() {
-            RapierSolverPreset::Stability => STABILITY_DAMPING_RATIO as Real,
-            RapierSolverPreset::Performance => {
-                IntegrationParameters::default()
-                    .contact_softness
-                    .damping_ratio
-            }
-            RapierSolverPreset::Custom => {
-                RapierProjectSettings::get_setting_double(CONTACT_DAMPING_RATIO) as Real
-            }
-        }
+        RapierProjectSettings::get_setting_double(CONTACT_DAMPING_RATIO) as Real
     }
 
     pub fn get_contact_natural_frequency() -> Real {
-        match RapierProjectSettings::get_solver_preset() {
-            RapierSolverPreset::Stability => STABILITY_NATURAL_FREQUENCY as Real,
-            RapierSolverPreset::Performance => {
-                IntegrationParameters::default()
-                    .contact_softness
-                    .natural_frequency
-            }
-            RapierSolverPreset::Custom => {
-                RapierProjectSettings::get_setting_double(CONTACT_NATURAL_FREQUENCY) as Real
-            }
-        }
+        RapierProjectSettings::get_setting_double(CONTACT_NATURAL_FREQUENCY) as Real
     }
 
     #[cfg(feature = "dim2")]
