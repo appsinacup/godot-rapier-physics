@@ -450,6 +450,22 @@ impl PhysicsEngine {
         self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
     }
 
+    pub fn body_set_additional_solver_iterations(
+        &mut self,
+        world_handle: WorldHandle,
+        body_handle: RigidBodyHandle,
+        iterations: usize,
+    ) {
+        if let Some(physics_world) = self.get_mut_world(world_handle)
+            && let Some(body) = physics_world
+                .physics_objects
+                .rigid_body_set
+                .get_mut(body_handle)
+        {
+            body.set_additional_solver_iterations(iterations);
+        }
+    }
+
     pub fn body_set_ccd_enabled(
         &mut self,
         world_handle: WorldHandle,

@@ -1,6 +1,7 @@
 class_name RapierRigidBody3D
 extends RigidBody3D
 
+## Treat the body as having no mass of its own.
 @export var massless: bool = false:
 	get:
 		return massless
@@ -9,6 +10,7 @@ extends RigidBody3D
 			massless = value
 			set_massless(value)
 
+## Contact skin thickness, in physics units. Hides jitter from overlapping shapes.
 @export var body_skin: float = 0.0:
 	get:
 		return body_skin
@@ -17,6 +19,7 @@ extends RigidBody3D
 			body_skin = value
 			set_body_skin(value)
 
+## Dominance group from -127 to 127; higher dominance is immovable to lower.
 @export var dominance: int = 0:
 	get:
 		return dominance
@@ -25,6 +28,7 @@ extends RigidBody3D
 			dominance = value
 			set_dominance(value)
 
+## Soft CCD motion clamp distance; 0 disables it. Cheaper than full CCD.
 @export var soft_ccd: float = 0.0:
 	get:
 		return soft_ccd
@@ -33,11 +37,21 @@ extends RigidBody3D
 			soft_ccd = value
 			set_soft_ccd(value)
 
+## Extra solver iterations for this body and everything it interacts with.
+@export_range(0, 32) var additional_solver_iterations: int = 0:
+	get:
+		return additional_solver_iterations
+	set(value):
+		if value != additional_solver_iterations:
+			additional_solver_iterations = value
+			set_additional_solver_iterations(value)
+
 func _ready() -> void:
 	set_massless(massless)
 	set_body_skin(body_skin)
 	set_dominance(dominance)
 	set_soft_ccd(soft_ccd)
+	set_additional_solver_iterations(additional_solver_iterations)
 
 func set_body_skin(value: float) -> void:
 	RapierPhysicsServer3D.body_set_extra_param(get_rid(), RapierPhysicsServer3D.BODY_PARAM_CONTACT_SKIN, value)
@@ -50,3 +64,9 @@ func set_soft_ccd(value: float) -> void:
 
 func set_massless(value: bool) -> void:
 	RapierPhysicsServer3D.body_set_extra_param(get_rid(), RapierPhysicsServer3D.BODY_PARAM_MASSLESS, value)
+
+
+func set_additional_solver_iterations(value: int) -> void:
+	RapierPhysicsServer3D.body_set_extra_param(
+		get_rid(), RapierPhysicsServer3D.BODY_PARAM_ADDITIONAL_SOLVER_ITERATIONS, value
+	)

@@ -257,6 +257,7 @@ impl PhysicsWorld {
             normalized_prediction_distance: settings.normalized_prediction_distance,
             normalized_max_linear_velocity: settings.normalized_max_linear_velocity,
             num_internal_stabilization_iterations: settings.num_internal_stabilization_iterations,
+            warmstart_joints: true,
             ..Default::default()
         };
         if let Some(iterations) = NonZeroUsize::new(settings.num_solver_iterations) {
@@ -391,8 +392,9 @@ impl PhysicsWorld {
                 {
                     // Find the contact pair, if it exists, between two colliders
                     let mut contact_info = ContactPointInfo::default();
-                    // We may also read the contact manifolds to access the contact geometry.
-                    for manifold in &contact_pair.manifolds {
+                    // With contact clustering the solver impulses live in the cluster
+                    // manifolds, not the per-subshape ones.
+                    for manifold in contact_pair.solver_manifolds() {
                         let manifold_normal = manifold.data.normal;
                         contact_info.normal = manifold_normal;
                         for contact_point in &manifold.points {
