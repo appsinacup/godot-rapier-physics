@@ -413,6 +413,53 @@ impl PhysicsEngine {
     }
 
     #[allow(clippy::too_many_arguments)]
+    pub fn joint_create_rope(
+        &mut self,
+        world_handle: WorldHandle,
+        body_handle_1: RigidBodyHandle,
+        body_handle_2: RigidBodyHandle,
+        anchor_1: Vector,
+        anchor_2: Vector,
+        max_distance: Real,
+        joint_type: RapierJointType,
+        disable_collision: bool,
+    ) -> JointHandle {
+        self.body_wake_up(world_handle, body_handle_1, false);
+        self.body_wake_up(world_handle, body_handle_2, false);
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
+            let joint = RopeJointBuilder::new(max_distance)
+                .local_anchor1(anchor_1)
+                .local_anchor2(anchor_2)
+                .contacts_enabled(!disable_collision);
+            return physics_world.insert_joint(body_handle_1, body_handle_2, joint_type, joint);
+        }
+        JointHandle::default()
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub fn joint_create_fixed(
+        &mut self,
+        world_handle: WorldHandle,
+        body_handle_1: RigidBodyHandle,
+        body_handle_2: RigidBodyHandle,
+        anchor_1: Vector,
+        anchor_2: Vector,
+        joint_type: RapierJointType,
+        disable_collision: bool,
+    ) -> JointHandle {
+        self.body_wake_up(world_handle, body_handle_1, false);
+        self.body_wake_up(world_handle, body_handle_2, false);
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
+            let joint = FixedJointBuilder::new()
+                .local_anchor1(anchor_1)
+                .local_anchor2(anchor_2)
+                .contacts_enabled(!disable_collision);
+            return physics_world.insert_joint(body_handle_1, body_handle_2, joint_type, joint);
+        }
+        JointHandle::default()
+    }
+
+    #[allow(clippy::too_many_arguments)]
     #[cfg(feature = "dim2")]
     pub fn joint_create_spring(
         &mut self,
@@ -460,6 +507,38 @@ impl PhysicsEngine {
 
     /// World-space impulse an impulse joint applied to body 2 over the last step. Multibody
     /// joints resolve their constraints in reduced coordinates and report zero.
+    pub fn joint_set_softness(
+        &mut self,
+        world_handle: WorldHandle,
+        joint_handle: JointHandle,
+        natural_frequency: Real,
+        damping_ratio: Real,
+    ) {
+        self.joint_wake_up_connected_rigidbodies(world_handle, joint_handle);
+        if let Some(physics_world) = self.get_mut_world(world_handle)
+            && let Some(joint) = physics_world.get_mut_joint(joint_handle)
+        {
+            joint.softness = rapier::dynamics::SpringCoefficients {
+                natural_frequency,
+                damping_ratio,
+            };
+        }
+    }
+
+    pub fn joint_set_enabled(
+        &mut self,
+        world_handle: WorldHandle,
+        joint_handle: JointHandle,
+        enabled: bool,
+    ) {
+        self.joint_wake_up_connected_rigidbodies(world_handle, joint_handle);
+        if let Some(physics_world) = self.get_mut_world(world_handle)
+            && let Some(joint) = physics_world.get_mut_joint(joint_handle)
+        {
+            joint.set_enabled(enabled);
+        }
+    }
+
     pub fn joint_get_reaction_impulse(
         &self,
         world_handle: WorldHandle,

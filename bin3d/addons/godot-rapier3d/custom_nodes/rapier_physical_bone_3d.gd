@@ -1,6 +1,7 @@
 class_name RapierPhysicalBone3D
 extends PhysicalBone3D
 
+## Treat the body as having no mass of its own.
 @export var massless: bool = false:
 	get:
 		return massless
@@ -9,6 +10,7 @@ extends PhysicalBone3D
 			massless = value
 			set_massless(value)
 
+## Contact skin thickness, in physics units. Hides jitter from overlapping shapes.
 @export var body_skin: float = 0.0:
 	get:
 		return body_skin
@@ -17,6 +19,7 @@ extends PhysicalBone3D
 			body_skin = value
 			set_body_skin(value)
 
+## Dominance group from -127 to 127; higher dominance is immovable to lower.
 @export var dominance: int = 0:
 	get:
 		return dominance
@@ -25,6 +28,7 @@ extends PhysicalBone3D
 			dominance = value
 			set_dominance(value)
 
+## Soft CCD motion clamp distance; 0 disables it. Cheaper than full CCD.
 @export var soft_ccd: float = 0.0:
 	get:
 		return soft_ccd

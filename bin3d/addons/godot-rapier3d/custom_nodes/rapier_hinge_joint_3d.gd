@@ -1,6 +1,7 @@
 class_name RapierHingeJoint3D
 extends HingeJoint3D
 
+## Impulse joints solve iteratively; multibody joints solve exactly and cannot drift.
 @export_enum("Impulse", "Multibody") var joint_type: int = 0:
 	get:
 		return joint_type
@@ -9,43 +10,52 @@ extends HingeJoint3D
 			joint_type = value
 			set_joint_type(value)
 
+## IK target for the joint chain. Leave empty to disable IK.
 @export var ik_target: Node3D = null:
 	set(value):
 		ik_target = value
 
 @export_group("IK Constraints")
 
+## Constrain movement along X while solving IK.
 @export var ik_constrain_x: bool = true:
 	set(value):
 		ik_constrain_x = value
 
+## Constrain movement along Y while solving IK.
 @export var ik_constrain_y: bool = true:
 	set(value):
 		ik_constrain_y = value
 
+## Constrain movement along Z while solving IK.
 @export var ik_constrain_z: bool = true:
 	set(value):
 		ik_constrain_z = value
 
+## Constrain rotation around X while solving IK.
 @export var ik_constrain_rotation_x: bool = false:
 	set(value):
 		ik_constrain_rotation_x = value
 
+## Constrain rotation around Y while solving IK.
 @export var ik_constrain_rotation_y: bool = false:
 	set(value):
 		ik_constrain_rotation_y = value
 
+## Constrain rotation around Z while solving IK.
 @export var ik_constrain_rotation_z: bool = false:
 	set(value):
 		ik_constrain_rotation_z = value
 
 @export_group("IK Solver Settings")
 
+## Damping applied while solving IK; higher values move more cautiously.
 @export_range(0.0, 100.0, 0.01) var ik_damping: float = 1.0:
 	set(value):
 		ik_damping = value
 		_update_ik_options()
 
+## Solver iteration cap per IK solve.
 @export_range(1, 100, 1) var ik_max_iterations: int = 10:
 	set(value):
 		ik_max_iterations = value
@@ -59,16 +69,19 @@ extends HingeJoint3D
 		motor_position_enabled = value
 		_update_motor_position_options()
 
+## Angle the motor drives the joint towards, in radians.
 @export_range(-180, 180, 0.1, "radians_as_degrees") var motor_target_angle: float = 0.0:
 	set(value):
 		motor_target_angle = value
 		_update_motor_position_options()
 
+## Stiffness of the position motor's spring.
 @export var motor_stiffness: float = 0.0:
 	set(value):
 		motor_stiffness = value
 		_update_motor_position_options()
 
+## Damping of the position motor's spring.
 @export var motor_damping: float = 0.0:
 	set(value):
 		motor_damping = value

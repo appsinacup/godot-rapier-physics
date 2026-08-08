@@ -24,7 +24,7 @@ jobs:
         uses: ./.github/actions/build
         with:
           arch: ${{ matrix.arch }}
-          features: serde-serialize,parallel,register-docs,${{ matrix.precision }}-${{ matrix.dimensions.feature }}
+          features: serde-serialize,parallel,register-docs,experimental-threads,${{ matrix.precision }}-${{ matrix.dimensions.feature }}
       - name: Copy to bin
         shell: sh
         run: |

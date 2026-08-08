@@ -153,6 +153,18 @@ pub fn world_to_local_no_scale(transform: &Transform, world_pos: Vector) -> Vect
     };
     transform_no_scale.affine_inverse() * world_pos
 }
+#[cfg(feature = "dim3")]
+pub fn world_to_local_no_scale(transform: &Transform, world_pos: Vector) -> Vector {
+    let scale = transform.basis.get_scale();
+    if scale.x.is_zero_approx() || scale.y.is_zero_approx() || scale.z.is_zero_approx() {
+        return transform.affine_inverse() * world_pos;
+    }
+    let transform_no_scale = Transform3D {
+        basis: transform.basis.orthonormalized(),
+        origin: transform.origin,
+    };
+    transform_no_scale.affine_inverse() * world_pos
+}
 #[cfg(feature = "dim2")]
 pub fn transform_update(transform: &Transform, rotation: Rotation, origin: Vector) -> Transform {
     // Use deterministic math to avoid platform-dependent transcendental functions.

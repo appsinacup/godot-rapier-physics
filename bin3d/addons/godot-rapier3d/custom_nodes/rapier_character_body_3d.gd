@@ -1,6 +1,7 @@
 class_name RapierCharacterBody3D
 extends CharacterBody3D
 
+## Contact skin thickness, in physics units. Hides jitter from overlapping shapes.
 @export var body_skin: float = 0.0:
 	get:
 		return body_skin

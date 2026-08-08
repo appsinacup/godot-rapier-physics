@@ -6,6 +6,7 @@ pub enum RapierBodyParam {
     Dominance,
     SoftCcd,
     Massless,
+    AdditionalSolverIterations,
 }
 impl RapierBodyParam {
     pub fn from_i32(value: i32) -> RapierBodyParam {
@@ -14,6 +15,7 @@ impl RapierBodyParam {
             1 => RapierBodyParam::Dominance,
             2 => RapierBodyParam::SoftCcd,
             3 => RapierBodyParam::Massless,
+            4 => RapierBodyParam::AdditionalSolverIterations,
             _ => RapierBodyParam::ContactSkin,
         }
     }
@@ -47,7 +49,12 @@ macro_rules! make_rapier_server_godot_impl {
             #[constant]
             pub const BODY_PARAM_SOFT_CCD: i32 = 2;
             #[constant]
+            pub const BODY_PARAM_ADDITIONAL_SOLVER_ITERATIONS: i32 = 4;
+            #[constant]
             pub const JOINT_TYPE: i32 = 0;
+            #[constant]
+            pub const JOINT_TYPE_IMPULSE_JOINT: i32 = 0;
+            /// Deprecated misspelling of [constant JOINT_TYPE_IMPULSE_JOINT].
             #[constant]
             pub const JOINT_TYPE_INPULSE_JOINT: i32 = 0;
             #[constant]
@@ -61,6 +68,7 @@ macro_rules! make_rapier_server_godot_impl {
             /// If [param param] is [member BODY_PARAM_DOMINANCE] (1), sets the body's dominance value.
             /// If [param param] is [member BODY_PARAM_SOFT_CCD] (2), sets the body's soft_ccd value.
             /// If [param param] is [member BODY_PARAM_MASSLESS] (3), sets if the body is massless or not.
+            /// If [param param] is [member BODY_PARAM_ADDITIONAL_SOLVER_ITERATIONS] (4), sets extra solver iterations for this body.
             pub fn body_set_extra_param(body: Rid, param: i32, value: Variant) {
                 let physics_data = physics_data();
                 if let Some(body) = physics_data.collision_objects.get_mut(&body) {
@@ -281,7 +289,7 @@ macro_rules! make_rapier_server_godot_impl {
             #[func]
             /// Set an extra parameter for a joint.
             /// If [param param] is [member JOINT_TYPE] (0), sets if multibody or not.
-            /// Use [member JOINT_TYPE_INPULSE_JOINT] (0) for impulse joints, [member JOINT_TYPE_MULTIBODY_JOINT] (1) for multibody joints or [member JOINT_TYPE_MULTIBODY_KINEMATIC_JOINT] (2) for multibody kinematic joint.
+            /// Use [member JOINT_TYPE_IMPULSE_JOINT] (0) for impulse joints, [member JOINT_TYPE_MULTIBODY_JOINT] (1) for multibody joints or [member JOINT_TYPE_MULTIBODY_KINEMATIC_JOINT] (2) for multibody kinematic joint.
             pub fn joint_set_extra_param(joint: Rid, param: i32, value: Variant) {
                 if param == Self::JOINT_TYPE {
                     if let Ok(value) = value.try_to::<i32>() {
@@ -305,7 +313,7 @@ macro_rules! make_rapier_server_godot_impl {
             #[func]
             /// Get an extra parameter for a joint.
             /// If [param param] is [member JOINT_TYPE] (0), gets if the joint is multibody or not.
-            /// Returns [member JOINT_TYPE_INPULSE_JOINT] (0) for impulse joints, [member JOINT_TYPE_MULTIBODY_JOINT] (1) for multibody joints or [member JOINT_TYPE_MULTIBODY_KINEMATIC_JOINT] (2) for multibody kinematic joint.
+            /// Returns [member JOINT_TYPE_IMPULSE_JOINT] (0) for impulse joints, [member JOINT_TYPE_MULTIBODY_JOINT] (1) for multibody joints or [member JOINT_TYPE_MULTIBODY_KINEMATIC_JOINT] (2) for multibody kinematic joint.
             pub fn joint_get_extra_param(joint: Rid, param: i32) -> Variant {
                 if param == Self::JOINT_TYPE {
                     let physics_data = physics_data();
@@ -487,6 +495,122 @@ macro_rules! make_rapier_server_godot_impl {
                     return;
                 } else if let Some(space) = physics_data.spaces.get_mut(&physics_object) {
                     return space.import_state(&mut physics_data.physics_engine, data);
+                }
+            }
+
+            #[func]
+            /// Set how rigidly [param joint] holds its constraint.
+            ///
+            /// Higher [param natural_frequency] is stiffer; [param damping_ratio] 1 is
+            /// critically damped.
+            pub fn joint_set_softness(joint: Rid, natural_frequency: real, damping_ratio: real) {
+                let physics_data = physics_data();
+                if let Some(joint) = physics_data.joints.get(&joint) {
+                    physics_data.physics_engine.joint_set_softness(
+                        joint.get_base().get_space_id(),
+                        joint.get_base().get_handle(),
+                        natural_frequency,
+                        damping_ratio,
+                    );
+                }
+            }
+
+            #[func]
+            /// Enable or disable [param joint] without destroying it.
+            pub fn joint_set_enabled(joint: Rid, enabled: bool) {
+                let physics_data = physics_data();
+                if let Some(joint) = physics_data.joints.get(&joint) {
+                    physics_data.physics_engine.joint_set_enabled(
+                        joint.get_base().get_space_id(),
+                        joint.get_base().get_handle(),
+                        enabled,
+                    );
+                }
+            }
+
+            #[func]
+            /// Turn [param joint] into a rope joint keeping the two bodies within
+            /// [param max_distance] of each other.
+            ///
+            /// Anchors are in world space.
+            pub fn joint_make_rope(
+                joint: Rid,
+                anchor_a: Vector,
+                anchor_b: Vector,
+                max_distance: real,
+                body_a: Rid,
+                body_b: Rid,
+            ) {
+                let physics_data = physics_data();
+                let Some(mut physics_singleton) = try_rapier_physics_server() else {
+                    return;
+                };
+                let joint_type = if let Some(prev_joint) = physics_data.joints.get(&joint) {
+                    prev_joint.get_base().get_joint_type()
+                } else {
+                    $crate::joints::rapier_joint_base::RapierJointType::Impulse
+                };
+                if let Some(body_a) = physics_data.collision_objects.get(&body_a)
+                    && let Some(body_b) = physics_data.collision_objects.get(&body_b)
+                {
+                    let id = physics_singleton.bind_mut().implementation.next_id();
+                    let new_joint = RapierJoint::RapierRopeJoint(
+                        $crate::joints::rapier_rope_joint::RapierRopeJoint::new(
+                            id,
+                            joint,
+                            anchor_a,
+                            anchor_b,
+                            max_distance,
+                            body_a,
+                            body_b,
+                            &mut physics_data.physics_engine,
+                            joint_type,
+                        ),
+                    );
+                    if let Some(mut prev_joint) = physics_data.joints.insert(joint, new_joint) {
+                        prev_joint
+                            .get_mut_base()
+                            .destroy_joint(&mut physics_data.physics_engine);
+                    }
+                }
+            }
+
+            #[func]
+            /// Turn [param joint] into a fixed joint locking all relative motion between
+            /// [param body_a] and [param body_b].
+            ///
+            /// The anchor is in world space.
+            pub fn joint_make_fixed(joint: Rid, anchor: Vector, body_a: Rid, body_b: Rid) {
+                let physics_data = physics_data();
+                let Some(mut physics_singleton) = try_rapier_physics_server() else {
+                    return;
+                };
+                let joint_type = if let Some(prev_joint) = physics_data.joints.get(&joint) {
+                    prev_joint.get_base().get_joint_type()
+                } else {
+                    $crate::joints::rapier_joint_base::RapierJointType::Impulse
+                };
+                if let Some(body_a) = physics_data.collision_objects.get(&body_a)
+                    && let Some(body_b) = physics_data.collision_objects.get(&body_b)
+                {
+                    let id = physics_singleton.bind_mut().implementation.next_id();
+                    let new_joint = RapierJoint::RapierFixedJoint(
+                        $crate::joints::rapier_fixed_joint::RapierFixedJoint::new(
+                            id,
+                            joint,
+                            anchor,
+                            anchor,
+                            body_a,
+                            body_b,
+                            &mut physics_data.physics_engine,
+                            joint_type,
+                        ),
+                    );
+                    if let Some(mut prev_joint) = physics_data.joints.insert(joint, new_joint) {
+                        prev_joint
+                            .get_mut_base()
+                            .destroy_joint(&mut physics_data.physics_engine);
+                    }
                 }
             }
 

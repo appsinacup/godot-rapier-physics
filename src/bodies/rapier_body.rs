@@ -196,6 +196,7 @@ pub struct RapierBody {
     exceptions: HashSet<Rid>,
     ccd_enabled: bool,
     soft_ccd_prediction: real,
+    additional_solver_iterations: usize,
     omit_force_integration: bool,
     can_sleep: bool,
     sleep: bool,
@@ -235,6 +236,7 @@ impl RapierBody {
             exceptions: HashSet::default(),
             ccd_enabled: false,
             soft_ccd_prediction: 0.0,
+            additional_solver_iterations: 0,
             omit_force_integration: false,
             can_sleep: true,
             sleep: false,
@@ -1710,6 +1712,17 @@ impl RapierBody {
                     physics_engine.body_update_material(space_handle, body_handle, &mat, false);
                 }
             }
+            RapierBodyParam::AdditionalSolverIterations => {
+                let iterations = variant_to_float(&p_value).max(0.0) as usize;
+                self.additional_solver_iterations = iterations;
+                if self.base.is_valid() {
+                    physics_engine.body_set_additional_solver_iterations(
+                        self.base.get_space_id(),
+                        self.base.get_body_handle(),
+                        iterations,
+                    );
+                }
+            }
             RapierBodyParam::Massless => {
                 if p_value.get_type() != VariantType::BOOL {
                     return;
@@ -1727,6 +1740,9 @@ impl RapierBody {
             RapierBodyParam::Dominance => self.base.get_dominance().to_variant(),
             RapierBodyParam::SoftCcd => self.soft_ccd_prediction.to_variant(),
             RapierBodyParam::Massless => self.base.is_massless().to_variant(),
+            RapierBodyParam::AdditionalSolverIterations => {
+                (self.additional_solver_iterations as i64).to_variant()
+            }
         }
     }
 
@@ -2247,6 +2263,11 @@ impl RapierBody {
                 #[cfg(feature = "dim3")]
                 self.apply_axis_lock(physics_engine);
                 self.set_continuous_collision_detection_mode(self.ccd_enabled, physics_engine);
+                physics_engine.body_set_additional_solver_iterations(
+                    self.base.get_space_id(),
+                    self.base.get_body_handle(),
+                    self.additional_solver_iterations,
+                );
                 physics_engine.body_update_material(
                     self.base.get_space_id(),
                     self.base.get_body_handle(),
