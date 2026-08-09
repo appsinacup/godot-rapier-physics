@@ -1,7 +1,19 @@
 # Changelog
 
+## v0.35.1
+
 ## v0.35.0
 
+## What's Changed
+* Fix inertia bug by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/601
+* Call remove_collider for each attached collider in PhysicsWorld::remove_rigid_body by @MilesCourtie in https://github.com/appsinacup/godot-rapier-physics/pull/606
+* Upgrade to rapier 0.8.35 by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/604
+* Expose more stuff from rapier by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/608
+
+## New Contributors
+* @MilesCourtie made their first contribution in https://github.com/appsinacup/godot-rapier-physics/pull/606
+
+**Full Changelog**: https://github.com/appsinacup/godot-rapier-physics/compare/v0.8.40...v0.35.0
 
 ## v0.8.40
 
