@@ -199,6 +199,14 @@ pub fn scale_shape(shape: &SharedShape, shape_info: ShapeInfo) -> SharedShape {
                 return SharedShape::compound(shapes_vec);
             }
         }
+        ShapeType::Custom => {
+            if let Some(new_shape) = shape.scale_dyn(
+                scale,
+                crate::servers::rapier_project_settings::motion_settings().shape_scale_subdivisions,
+            ) {
+                return SharedShape(new_shape.into());
+            }
+        }
         _ => {
             godot_error!("Shape type not supported for scaling");
         }

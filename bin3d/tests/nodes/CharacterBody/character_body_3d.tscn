@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://vi40lbum7hk5"]
+[gd_scene load_steps=4 format=3 uid="uid://vi40lbum7hk5"]
 
 [ext_resource type="PackedScene" uid="uid://c223pyi3d8dmw" path="res://tests/nodes/CharacterBody/tests/character_body_3d/slide_along_static_body.tscn" id="1_oc7v8"]
+[ext_resource type="PackedScene" uid="uid://bsepray3dcb01" path="res://tests/nodes/CharacterBody/tests/character_body_3d/separation_ray.tscn" id="2_sepray"]
 
 [sub_resource type="GDScript" id="GDScript_4th54"]
 script/source = "extends TestScene
@@ -30,3 +31,5 @@ static_body_shape = 5
 static_body_position = Vector3(6, 0, 0)
 static_body_rotation_degrees = Vector3(90, 90, 0)
 character_body_shapes_failing = []
+
+[node name="separation_ray" parent="." instance=ExtResource("2_sepray")]

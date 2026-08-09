@@ -584,13 +584,19 @@ impl RapierSpace {
                                 if !contact.collided {
                                     continue;
                                 }
-                                if !is_valid_recovery_contact(
-                                    body_shape,
-                                    body_shape_transform,
-                                    col_shape,
-                                    &contact,
-                                    p_margin,
-                                ) {
+                                // A separation ray's witness point legitimately sits outside
+                                // the shape's own bounds, so the check below, which drops
+                                // bogus contacts from scaled or skewed shapes, would throw
+                                // valid ray contacts away.
+                                if body_shape.as_separation_ray().is_none()
+                                    && !is_valid_recovery_contact(
+                                        body_shape,
+                                        body_shape_transform,
+                                        col_shape,
+                                        &contact,
+                                        p_margin,
+                                    )
+                                {
                                     continue;
                                 }
                                 let mut did_collide = true;
@@ -636,12 +642,15 @@ impl RapierSpace {
             if !collided {
                 break;
             }
+            // Reports that contacts were found, not that the body had to move, so it must
+            // stay set even when the correction below is negligible. Step 3 keys off it to
+            // report resting contacts, which is the only way `is_on_floor` becomes true for a
+            // body held up by a separation ray: rays are excluded from the sweep and so never
+            // drive the `safe_fraction < 1` branch.
             recovered = true;
             let recover_motion =
                 recover_motion_from_contacts(&sr, &priorities, contact_count, min_contact_depth);
-            // Break if recovery motion is too small to be meaningful
             if vector_length(recover_motion) < MIN_RECOVERY_THRESHOLD {
-                recovered = false;
                 break;
             }
             *p_recover_motion += recover_motion;
@@ -660,7 +669,7 @@ impl RapierSpace {
         p_body: &RapierBody,
         p_transform: &Transform,
         p_motion: Vector,
-        _p_collide_separation_ray: bool,
+        p_collide_separation_ray: bool,
         _contact_max_allowed_penetration: f32,
         p_margin: f32,
         p_closest_safe: &mut f32,
@@ -703,6 +712,14 @@ impl RapierSpace {
             if let Some(body_shape) =
                 physics_shapes.get(&p_body.get_base().get_shape(physics_ids, body_shape_idx))
             {
+                // Blocking the sweep is what snaps a body to the ground, but outside of
+                // snapping a falling character would be stopped short by its own stilt.
+                if !p_collide_separation_ray
+                    && let Some((_, slide_on_slope)) = body_shape.as_separation_ray()
+                    && !slide_on_slope
+                {
+                    continue;
+                }
                 let body_shape_transform =
                     *p_transform * p_body.get_base().get_shape_transform(body_shape_idx);
                 let mut body_shape_info = shape_info_from_body_shape(

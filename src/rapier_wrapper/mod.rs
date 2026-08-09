@@ -9,6 +9,8 @@ pub mod physics_hooks;
 pub mod physics_world;
 pub mod prelude;
 pub mod query;
+pub mod separation_ray;
+pub mod separation_ray_dispatcher;
 pub mod settings;
 pub mod shape;
 pub mod user_data;

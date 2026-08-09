@@ -6,6 +6,8 @@ pub use super::handle::*;
 pub use super::physics_hooks::*;
 pub use super::physics_world::*;
 pub use super::query::*;
+pub use super::separation_ray::*;
+pub use super::separation_ray_dispatcher::*;
 pub use super::settings::*;
 pub use super::shape::*;
 pub use super::user_data::*;

@@ -19,3 +19,4 @@ script = ExtResource("1_leel8")
 [node name="one_way_collision_sides" parent="." instance=ExtResource("4_ows00")]
 
 [node name="one_way_collision_tilemap" parent="." instance=ExtResource("5_owt00")]
+

@@ -463,6 +463,25 @@ impl PhysicsEngine {
         (&[], &[])
     }
 
+    pub fn shape_create_separation_ray(
+        &mut self,
+        length: Real,
+        slide_on_slope: bool,
+        handle: ShapeHandle,
+    ) {
+        let shape = SharedShape::new(SeparationRayShape::new(length, slide_on_slope));
+        self.insert_shape(shape, handle);
+    }
+
+    pub fn shape_get_separation_ray(&self, shape_handle: ShapeHandle) -> (Real, bool) {
+        if let Some(shape) = self.get_shape(shape_handle)
+            && let Some(shape) = shape.as_shape::<SeparationRayShape>()
+        {
+            return (shape.length, shape.slide_on_slope);
+        }
+        (0.0, false)
+    }
+
     pub fn shape_get_aabb(&self, handle: ShapeHandle) -> rapier::prelude::Aabb {
         if let Some(shape) = self.get_shape(handle) {
             return shape.compute_local_aabb();

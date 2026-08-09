@@ -42,6 +42,7 @@ func test_start() -> void:
 			body_query.motion = Vector2(mid_screen_width / 0.016, 0)
 			result = d_space.collide_shape(body_query)
 			queue_redraw()
+			p_monitor.add_test_result(not result.is_empty())
 			
 		if true: # limit the scope
 			p_monitor.add_test("Return [1,1] when shape is inside a Body")
@@ -71,7 +72,7 @@ func test_start() -> void:
 			area_query.motion = Vector2(-mid_screen_width / 0.016, 0)
 			area_query.collide_with_areas = true
 			var result = d_space.cast_motion(area_query)
-			p_monitor.add_test_result(!result.is_empty() and is_between(result, 0.0126, 0.016))
+			p_monitor.add_test_result(!result.is_empty() and is_impact(result) and is_between(result, 0.011, 0.016))
 
 		if true:
 			p_monitor.add_test("Can not collide with Area")
@@ -137,7 +138,7 @@ func test_start() -> void:
 			body_query.collide_with_bodies = true
 			body_query.collision_mask = pow(2, 2-1) # second layer
 			var result = d_space.cast_motion(body_query)
-			p_monitor.add_test_result(!result.is_empty() and is_between(result, 0.0126, 0.016))
+			p_monitor.add_test_result(!result.is_empty() and is_impact(result) and is_between(result, 0.011, 0.016))
 
 		# Rotation
 		if true:
@@ -156,7 +157,7 @@ func test_start() -> void:
 			body_query_rot.motion = Vector2(mid_screen_width / 0.016, 0)
 			body_query_rot.collide_with_bodies = true
 			var result2 = d_space.cast_motion(body_query_rot)
-			p_monitor.add_test_result(!result1.is_empty() and !result2.is_empty() and is_eq(result1, [1,1]) and is_between(result2, 0.0126, 0.016))
+			p_monitor.add_test_result(!result1.is_empty() and !result2.is_empty() and is_eq(result1, [1,1]) and is_impact(result2) and is_between(result2, 0.011, 0.016))
 		
 		PhysicsServer2D.free_rid(shape_rid)
 		p_monitor.monitor_completed()
@@ -185,6 +186,11 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	for col in result:
 		draw_circle(col, 1, Color.RED)
+
+func is_impact(p_array: PackedFloat32Array) -> bool:
+	# cast_motion contract: [safe, unsafe]. Safe is how far the shape can advance without
+	# colliding, unsafe the first fraction where it does, so unsafe has to come after safe.
+	return 0.0 < p_array[0] and p_array[0] < p_array[1] and p_array[1] <= 1.0
 
 func is_between(p_array: PackedFloat32Array, p_min: float, p_max: float, p_epsilon :=0.00001):
 	return (p_min - p_epsilon) <= p_array[0] and  p_array[0] <= (p_max + p_epsilon) and (p_min - p_epsilon) <= p_array[1] and p_array[1] <= (p_max + p_epsilon)

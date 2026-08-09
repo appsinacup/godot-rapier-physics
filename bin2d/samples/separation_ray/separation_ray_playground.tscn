@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bsepray2dplay"]
+
+[ext_resource type="Script" path="res://samples/separation_ray/separation_ray_playground.gd" id="1_sepray"]
+
+[node name="separation_ray_playground" type="Node2D"]
+script = ExtResource("1_sepray")

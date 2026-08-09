@@ -42,7 +42,11 @@ impl IRapierShape for RapierSeparationRayShape {
         false
     }
 
-    fn set_data(&mut self, data: Variant, _physics_engine: &mut PhysicsEngine) {
+    fn as_separation_ray(&self) -> Option<(f32, bool)> {
+        Some((self.length, self.slide_on_slope))
+    }
+
+    fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine) {
         if data.get_type() != VariantType::DICTIONARY {
             godot_error!(
                 "RapierSeparationRayShape data must be a dictionary. Got {}",
@@ -63,12 +67,19 @@ impl IRapierShape for RapierSeparationRayShape {
             .get_or_nil("slide_on_slope")
             .try_to()
             .unwrap_or_default();
+        physics_engine.shape_create_separation_ray(
+            self.length,
+            self.slide_on_slope,
+            self.base.get_id(),
+        );
+        self.base.reset_aabb(physics_engine);
     }
 
-    fn get_data(&self, _physics_engine: &PhysicsEngine) -> Variant {
+    fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant {
+        let (length, slide_on_slope) = physics_engine.shape_get_separation_ray(self.base.get_id());
         let mut dictionary = VarDictionary::new();
-        dictionary.set("length", self.length);
-        dictionary.set("slide_on_slope", self.slide_on_slope);
+        dictionary.set("length", length);
+        dictionary.set("slide_on_slope", slide_on_slope);
         dictionary.to_variant()
     }
 }
