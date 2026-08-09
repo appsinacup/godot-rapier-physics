@@ -1,9 +1,10 @@
-[gd_scene load_steps=13 format=3 uid="uid://jd2c3mg4v3bh"]
+[gd_scene load_steps=14 format=3 uid="uid://jd2c3mg4v3bh"]
 
 [ext_resource type="Script" path="res://base/class/test_scene_child.gd" id="1_6eclx"]
 [ext_resource type="PackedScene" uid="uid://bxrk6vpptw3in" path="res://tests/nodes/RigidBody/tests/2d/rectangle_stack.tscn" id="1_cclgc"]
 [ext_resource type="PackedScene" uid="uid://3o0nkl6b4h10" path="res://tests/nodes/RigidBody/tests/2d/maximum_rectangle.tscn" id="2_p0tuo"]
 [ext_resource type="PackedScene" uid="uid://7usnv0hqg67g" path="res://tests/nodes/RigidBody/tests/2d/continuous_detection.tscn" id="3_2mxd6"]
+[ext_resource type="PackedScene" path="res://tests/nodes/RigidBody/tests/2d/continuous_detection_dynamic.tscn" id="13_ccddyn"]
 [ext_resource type="PackedScene" uid="uid://nqktmpb0a6er" path="res://tests/nodes/RigidBody/tests/2d/contact_monitor.tscn" id="4_n6ed2"]
 [ext_resource type="PackedScene" uid="uid://bn1ox1w8nnydx" path="res://tests/nodes/RigidBody/tests/2d/rectangle_pyramid.tscn" id="6_wt8n6"]
 [ext_resource type="PackedScene" uid="uid://c8rd0ut3utr8l" path="res://tests/nodes/RigidBody/tests/2d/basic_api.tscn" id="7_8ojwc"]
@@ -40,3 +41,7 @@ wall_type = 1
 [node name="center_of_mass" parent="." instance=ExtResource("11_com2d")]
 
 [node name="force_at_point" parent="." instance=ExtResource("12_fap2d")]
+
+[node name="continuous_detection_dynamic" parent="." instance=ExtResource("13_ccddyn")]
+
+

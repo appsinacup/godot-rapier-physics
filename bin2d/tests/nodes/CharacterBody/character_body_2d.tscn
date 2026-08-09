@@ -1,24 +1,33 @@
-[gd_scene load_steps=8 format=3 uid="uid://dl8jh1yybnmc7"]
+[gd_scene format=3 uid="uid://dl8jh1yybnmc7"]
 
-[ext_resource type="Script" path="res://base/class/test_scene_child.gd" id="1_dma0p"]
+[ext_resource type="Script" uid="uid://bnjyhmyy8iy0o" path="res://base/class/test_scene_child.gd" id="1_dma0p"]
 [ext_resource type="PackedScene" uid="uid://bcvyoyk4gx8hd" path="res://tests/nodes/CharacterBody/tests/character_body_2d/detect_surface_type_with_pressure.tscn" id="2_eie1l"]
 [ext_resource type="PackedScene" uid="uid://clt6d1xruk034" path="res://tests/nodes/CharacterBody/tests/character_body_2d/floor_snap_length.tscn" id="3_6m7xl"]
-[ext_resource type="PackedScene" path="res://tests/nodes/CharacterBody/tests/character_body_2d/slide_on_ceiling.tscn" id="4_c1exd"]
+[ext_resource type="PackedScene" uid="uid://dplo6k3cmfows" path="res://tests/nodes/CharacterBody/tests/character_body_2d/slide_on_ceiling.tscn" id="4_c1exd"]
 [ext_resource type="PackedScene" uid="uid://b8c3ipxt4fjlo" path="res://tests/nodes/CharacterBody/tests/character_body_2d/floor_constant_speed.tscn" id="5_q1u5f"]
 [ext_resource type="PackedScene" path="res://tests/nodes/CharacterBody/tests/character_body_2d/far_origin_wall_delta.tscn" id="6_i489x"]
 [ext_resource type="PackedScene" path="res://tests/nodes/CharacterBody/tests/character_body_2d/animatable_pushes_stationary_character.tscn" id="7_s4xkq"]
+[ext_resource type="PackedScene" uid="uid://bsepray2dcb01" path="res://tests/nodes/CharacterBody/tests/character_body_2d/separation_ray.tscn" id="8_sepray"]
+[ext_resource type="PackedScene" uid="uid://bhdm8lk4jkhw8" path="res://tests/nodes/CharacterBody/tests/character_body_2d/floor_block_on_wall.tscn" id="reg_floor_bl"]
+[ext_resource type="PackedScene" uid="uid://d1dhxcp2scxyl" path="res://tests/nodes/CharacterBody/tests/character_body_2d/floor_max_angle.tscn" id="reg_floor_ma"]
 
-[node name="Scene" type="Node"]
+[node name="Scene" type="Node" unique_id=955144006]
 script = ExtResource("1_dma0p")
 
-[node name="detect_surface_type_with_pressure" parent="." instance=ExtResource("2_eie1l")]
+[node name="detect_surface_type_with_pressure" parent="." unique_id=185865595 instance=ExtResource("2_eie1l")]
 
-[node name="testing_floor_snap_circle" parent="." instance=ExtResource("3_6m7xl")]
+[node name="testing_floor_snap_circle" parent="." unique_id=510375786 instance=ExtResource("3_6m7xl")]
 
-[node name="testing_slide_on_ceiling_cap" parent="." instance=ExtResource("4_c1exd")]
+[node name="testing_slide_on_ceiling_cap" parent="." unique_id=1292639095 instance=ExtResource("4_c1exd")]
 
-[node name="constant_speed" parent="." instance=ExtResource("5_q1u5f")]
+[node name="constant_speed" parent="." unique_id=908491753 instance=ExtResource("5_q1u5f")]
 
-[node name="far_origin_wall_delta" parent="." instance=ExtResource("6_i489x")]
+[node name="far_origin_wall_delta" parent="." unique_id=1989076510 instance=ExtResource("6_i489x")]
 
-[node name="animatable_pushes_stationary_character" parent="." instance=ExtResource("7_s4xkq")]
+[node name="animatable_pushes_stationary_character" parent="." unique_id=348608233 instance=ExtResource("7_s4xkq")]
+
+[node name="separation_ray" parent="." unique_id=1209043660 instance=ExtResource("8_sepray")]
+
+[node name="floor_block_on_wall" parent="." instance=ExtResource("reg_floor_bl")]
+
+[node name="floor_max_angle" parent="." instance=ExtResource("reg_floor_ma")]

@@ -2,7 +2,7 @@ use std::ops::Mul;
 
 use godot::global::godot_error;
 use godot::global::godot_warn;
-use rapier::parry;
+use rapier::parry::query::QueryDispatcher;
 use rapier::parry::query::ShapeCastOptions;
 use rapier::parry::query::ShapeCastStatus;
 use rapier::prelude::*;
@@ -84,6 +84,14 @@ pub struct ContactResult {
     pub pixel_point2: Vector,
     pub normal1: Vector,
     pub normal2: Vector,
+}
+/// Floor for the distance parry is asked to look ahead by. Parry reports a contact only
+/// strictly closer than this, so it has to stay above zero for shapes that rest exactly
+/// touching to be seen at all. Callers still compare against their own margin.
+const MIN_CONTACT_PREDICTION: Real = 0.002;
+
+fn contact_prediction(margin: Real) -> Real {
+    Real::max(MIN_CONTACT_PREDICTION, margin)
 }
 #[derive(Default)]
 pub struct QueryExcludedInfo {
@@ -398,13 +406,24 @@ impl PhysicsEngine {
                 if shape_vel1.length_squared() < DEFAULT_EPSILON
                     && shape_vel2.length_squared() < DEFAULT_EPSILON
                 {
-                    let contact_result = parry::query::contact(
-                        &shape_transform1,
-                        shared_shape1.as_ref(),
-                        &shape_transform2,
-                        shared_shape2.as_ref(),
-                        0.0,
-                    );
+                    let pos12 = shape_transform1.inv_mul(&shape_transform2);
+                    // Parry only reports a contact strictly closer than the prediction
+                    // distance, so querying with zero misses shapes that rest exactly
+                    // touching, which is where the solver leaves them. The depth test below
+                    // is what actually decides whether they collide.
+                    let contact_result = separation_ray_query_dispatcher()
+                        .contact(
+                            &pos12,
+                            shared_shape1.as_ref(),
+                            shared_shape2.as_ref(),
+                            contact_prediction(0.0),
+                        )
+                        .map(|contact| {
+                            contact.map(|mut contact| {
+                                contact.transform_by_mut(&shape_transform1, &shape_transform2);
+                                contact
+                            })
+                        });
                     match contact_result {
                         Ok(None) => {}
                         Ok(Some(contact)) => {
@@ -425,12 +444,12 @@ impl PhysicsEngine {
                     }
                     return result;
                 }
-                let toi_result = parry::query::cast_shapes(
-                    &shape_transform1,
-                    shape_vel1,
+                let pos12 = shape_transform1.inv_mul(&shape_transform2);
+                let vel12 = shape_transform1.rotation.inverse() * (shape_vel2 - shape_vel1);
+                let toi_result = separation_ray_query_dispatcher().cast_shapes(
+                    &pos12,
+                    vel12,
                     shared_shape1.as_ref(),
-                    &shape_transform2,
-                    shape_vel2,
                     shared_shape2.as_ref(),
                     shape_cast_options,
                 );
@@ -545,6 +564,12 @@ impl PhysicsEngine {
             }
         }
         let mut manifolds: Vec<ContactManifold> = Vec::new();
+        // Candidates come from a loosened AABB rather than a strict overlap test, which would
+        // reject shapes that sit inside the margin without touching and so never let the
+        // manifold step below see them.
+        let query_aabb = shared_shape
+            .compute_aabb(&shape_transform_with_motion)
+            .loosened(contact_prediction(margin));
         for (_collider_handle, collider) in physics_world
             .physics_objects
             .broad_phase
@@ -557,7 +582,7 @@ impl PhysicsEngine {
                 &physics_world.physics_objects.collider_set,
                 filter,
             )
-            .intersect_shape(shape_transform_with_motion, shared_shape.as_ref())
+            .intersect_aabb_conservative(query_aabb)
         {
             manifolds.clear();
             let pos12 = shape_transform_with_motion.inv_mul(collider.position());
@@ -569,7 +594,7 @@ impl PhysicsEngine {
                     &pos12,
                     shared_shape.as_ref(),
                     collider.shape(),
-                    margin,
+                    contact_prediction(margin),
                     &mut manifolds,
                     &mut None,
                 );
@@ -578,6 +603,12 @@ impl PhysicsEngine {
                     break;
                 }
                 for contact in &m.points {
+                    // Parry only reports contacts strictly closer than the prediction
+                    // distance, so the manifold is generated with a floor and the margin is
+                    // applied here instead.
+                    if contact.dist > margin {
+                        continue;
+                    }
                     let contact_p1 = shape_transform_with_motion * contact.local_p1;
                     let contact_p2 = collider.position() * contact.local_p2;
                     let mut this_contact: WitnessPair = WitnessPair::new();
@@ -636,9 +667,10 @@ impl PhysicsEngine {
                     // Candidates come from an AABB loosened by the margin, not from a strict
                     // overlap test: a shape resting just outside the other still counts as a hit
                     // when it is within the margin, which is what Godot's queries report.
+                    let prediction = contact_prediction(margin);
                     let query_aabb = shared_shape
                         .compute_aabb(&shape_transform)
-                        .loosened(margin.max(0.0));
+                        .loosened(prediction);
                     for (collider_handle, collider) in physics_world
                         .physics_objects
                         .broad_phase
@@ -658,9 +690,12 @@ impl PhysicsEngine {
                             .physics_objects
                             .narrow_phase
                             .query_dispatcher()
-                            .contact(&pos12, shared_shape.as_ref(), collider.shape(), margin)
+                            .contact(&pos12, shared_shape.as_ref(), collider.shape(), prediction)
                         {
-                            Ok(Some(contact)) => {
+                            // Parry only reports a contact strictly closer than the prediction
+                            // distance, so querying with `margin` alone misses shapes that rest
+                            // exactly touching, which is where rapier's solver leaves them.
+                            Ok(Some(contact)) if contact.dist <= margin => {
                                 let mut result = ShapeCastResult::new();
                                 result.collided = true;
                                 result.collider = collider_handle;
@@ -680,7 +715,7 @@ impl PhysicsEngine {
                                     break;
                                 }
                             }
-                            Ok(None) => {}
+                            Ok(_) => {}
                             Err(err) => godot_error!("contact error: {:?}", err),
                         }
                     }
@@ -754,6 +789,7 @@ impl PhysicsEngine {
                                 physics_world.get_collider_user_data(collider_handle);
                             result.toi = hit.time_of_impact;
                             result.toi_unsafe = hit.time_of_impact;
+
                             // In QueryPipeline::cast_shapes(),
                             // world shapes is the hidden first parameter, and the scanner shape is the second,
                             // so the order of normals and witnesses needs to be swapped
@@ -764,22 +800,25 @@ impl PhysicsEngine {
                             result.pixel_witness1 =
                                 shape_transform * hit.witness2 + shape_vel * hit.time_of_impact;
                             result.pixel_witness2 = hit.witness1;
-                            // the time of impact isn't exact. Compute unsafe time of impact.
+                            // `toi` is the furthest the shape can advance without colliding and
+                            // `toi_unsafe` the first fraction where it does, so the two must
+                            // not be equal. The cast stops on contact, leaving no separation
+                            // to close, so advancing by one contact prediction is enough to
+                            // overlap at any approach angle.
                             if needs_exact {
                                 let mut hit_transform = shape_transform;
                                 hit_transform.translation += shape_vel * hit.time_of_impact;
                                 let pos12 = hit_transform.inv_mul(collider.position());
-                                // They are separated.
-                                if let Ok(distance) = physics_world
+                                let separation = physics_world
                                     .physics_objects
                                     .narrow_phase
                                     .query_dispatcher()
                                     .distance(&pos12, shared_shape.as_ref(), collider.shape())
-                                    && distance > DEFAULT_EPSILON
-                                {
-                                    // Distance increased by an arbitrary 0.001 amount so that Godot's Shapecast2D node returns more reliable hits.
-                                    result.toi_unsafe += (distance + 0.001) / velocity_size;
-                                }
+                                    .unwrap_or(0.0)
+                                    .max(0.0);
+                                result.toi_unsafe = (result.toi
+                                    + (separation + MIN_CONTACT_PREDICTION) / velocity_size)
+                                    .min(1.0);
                             }
                             results.push(result);
                         } else {
@@ -875,20 +914,27 @@ impl PhysicsEngine {
         margin: Real,
     ) -> ContactResult {
         let mut result = ContactResult::default();
-        let prediction = Real::max(0.002, margin);
+        let prediction = contact_prediction(margin);
         if let Some(raw_shared_shape1) = self.get_shape(shape_info1.handle) {
             let shared_shape1 = scale_shape(raw_shared_shape1, shape_info1);
             if let Some(raw_shared_shape2) = self.get_shape(shape_info2.handle) {
                 let shared_shape2 = scale_shape(raw_shared_shape2, shape_info2);
                 let shape_transform1 = shape_info1.transform;
                 let shape_transform2 = shape_info2.transform;
-                match parry::query::contact(
-                    &shape_transform1,
-                    shared_shape1.as_ref(),
-                    &shape_transform2,
-                    shared_shape2.as_ref(),
-                    prediction,
-                ) {
+                let pos12 = shape_transform1.inv_mul(&shape_transform2);
+                match separation_ray_query_dispatcher()
+                    .contact(
+                        &pos12,
+                        shared_shape1.as_ref(),
+                        shared_shape2.as_ref(),
+                        prediction,
+                    )
+                    .map(|contact| {
+                        contact.map(|mut contact| {
+                            contact.transform_by_mut(&shape_transform1, &shape_transform2);
+                            contact
+                        })
+                    }) {
                     Ok(None) => {}
                     Ok(Some(contact)) => {
                         // the distance is negative if there is intersection

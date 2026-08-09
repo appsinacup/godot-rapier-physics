@@ -40,6 +40,10 @@ pub trait IRapierShape {
     fn get_mut_base(&mut self) -> &mut RapierShapeBase;
     fn get_type(&self) -> ShapeType;
     fn allows_one_way_collision(&self) -> bool;
+    /// The ray's length and `slide_on_slope` flag, or `None` for every other shape.
+    fn as_separation_ray(&self) -> Option<(f32, bool)> {
+        None
+    }
     fn set_data(&mut self, data: Variant, physics_engine: &mut PhysicsEngine);
     fn get_data(&self, physics_engine: &PhysicsEngine) -> Variant;
 }
@@ -82,6 +86,12 @@ macro_rules! impl_rapier_shape_trait {
             fn allows_one_way_collision(&self) -> bool {
                 match self {
                     $(Self::$variant(s) => s.allows_one_way_collision(),)*
+                }
+            }
+
+            fn as_separation_ray(&self) -> Option<(f32, bool)> {
+                match self {
+                    $(Self::$variant(s) => s.as_separation_ray(),)*
                 }
             }
 

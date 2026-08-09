@@ -191,7 +191,7 @@ impl PhysicsWorld {
             physics_objects: PhysicsObjects {
                 island_manager: IslandManager::new(),
                 broad_phase: DefaultBroadPhase::new(),
-                narrow_phase: NarrowPhase::new(),
+                narrow_phase: NarrowPhase::with_query_dispatcher(separation_ray_query_dispatcher()),
                 impulse_joint_set: ImpulseJointSet::new(),
                 multibody_joint_set: MultibodyJointSet::new(),
                 ccd_solver: CCDSolver::new(),
@@ -803,6 +803,11 @@ impl PhysicsEngine {
     }
 
     #[cfg(feature = "serde-serialize")]
+    /// Rapier marks `NarrowPhase::query_dispatcher` as `serde(skip)` and offers no setter, so
+    /// the imported narrow phase reverts to rapier's default dispatcher and separation rays
+    /// stop producing simulation contacts. Replacing the narrow phase would restore them but
+    /// drop the contact graph the snapshot carries, leaving it out of step with the imported
+    /// broad phase. Motion tests build the dispatcher per query and are unaffected.
     pub fn world_import(
         &mut self,
         world_handle: WorldHandle,

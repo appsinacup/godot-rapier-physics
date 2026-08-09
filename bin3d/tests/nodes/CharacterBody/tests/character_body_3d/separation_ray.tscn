@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bsepray3dcb01"]
+
+[ext_resource type="Script" path="res://tests/nodes/CharacterBody/tests/character_body_3d/separation_ray.gd" id="1_sepray"]
+
+[node name="testing_separation_ray" type="Node3D"]
+script = ExtResource("1_sepray")
