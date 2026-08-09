@@ -8,7 +8,6 @@
 pub enum Span {
     Step,
     Solver,
-    BeforeActive,
     ActiveSync,
     Events,
     EventsCollision,
@@ -17,6 +16,10 @@ pub enum Span {
     FlushQueries,
     FlushCollect,
     FlushDispatch,
+    /// Only the callable invocation inside a dispatched body-state sync, so the cost of
+    /// crossing into Godot can be told apart from the bookkeeping around it. Dispatch minus
+    /// this is what optimising our own code could ever recover.
+    FlushCall,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -38,10 +41,9 @@ mod enabled {
 
     use super::*;
 
-    const SPANS: [(Span, &str); 11] = [
+    const SPANS: [(Span, &str); 12] = [
         (Span::Step, "rapier/step_ms"),
         (Span::Solver, "rapier/solver_ms"),
-        (Span::BeforeActive, "rapier/before_active_ms"),
         (Span::ActiveSync, "rapier/active_sync_ms"),
         (Span::Events, "rapier/events_ms"),
         (Span::EventsCollision, "rapier/events_collision_ms"),
@@ -50,6 +52,7 @@ mod enabled {
         (Span::FlushQueries, "rapier/flush_queries_ms"),
         (Span::FlushCollect, "rapier/flush_collect_ms"),
         (Span::FlushDispatch, "rapier/flush_dispatch_ms"),
+        (Span::FlushCall, "rapier/flush_call_ms"),
     ];
     const GAUGES: [(Gauge, &str); 4] = [
         (Gauge::ActiveBodies, "rapier/active_bodies"),

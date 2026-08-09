@@ -11,8 +11,6 @@ pub struct OneWayDirection {
     pub pixel_body2_margin: Real,
     pub body1_direction: Vector,
     pub body2_direction: Vector,
-    pub previous_linear_velocity1: Vector,
-    pub previous_linear_velocity2: Vector,
 }
 pub type CollisionFilterCallback = fn(
     filter_info: &CollisionFilterInfo,
