@@ -53,6 +53,10 @@ fn linux_performance_cores() -> Option<usize> {
         .sum();
     (cores > 0).then_some(cores)
 }
+#[cfg(feature = "dim2")]
+const RUN_ON_SEPARATE_THREAD: &str = "physics/2d/run_on_separate_thread";
+#[cfg(feature = "dim3")]
+const RUN_ON_SEPARATE_THREAD: &str = "physics/3d/run_on_separate_thread";
 const SOLVER_NUM_ITERATIONS: &str = "physics/rapier/solver/num_iterations";
 const SOLVER_NUM_INTERNAL_STABILIZATION_ITERATIONS: &str =
     "physics/rapier/solver/num_internal_stabilization_iterations";
@@ -151,9 +155,22 @@ impl Default for MotionSettings {
 
 static MOTION_SETTINGS: std::sync::OnceLock<MotionSettings> = std::sync::OnceLock::new();
 
+/// Set when the extension reaches `InitStage::Servers`, after which reading project settings is
+/// safe. Stands in for `godot::sys::is_initialized()`, which gdext removed in 0.5.5 without a
+/// public replacement; anything reached before that point has to fall back to defaults.
+static BINDINGS_READY: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+pub fn mark_bindings_ready() {
+    BINDINGS_READY.store(true, std::sync::atomic::Ordering::Relaxed);
+}
+
+fn bindings_ready() -> bool {
+    BINDINGS_READY.load(std::sync::atomic::Ordering::Relaxed)
+}
+
 pub fn motion_settings() -> &'static MotionSettings {
     MOTION_SETTINGS.get_or_init(|| {
-        if !godot::sys::is_initialized() {
+        if !bindings_ready() {
             return MotionSettings::default();
         }
         MotionSettings {
@@ -458,6 +475,18 @@ impl RapierProjectSettings {
         project_settings
             .get_setting_with_override(ORIENTED_CONCAVE_POLYLINE)
             .to::<bool>()
+    }
+
+    /// Whether Godot runs the physics server on its own thread. Read once: Godot decides this
+    /// at startup, when it either wraps the server in a command queue or calls it inline.
+    pub fn is_run_on_separate_thread() -> bool {
+        static ON_SEPARATE_THREAD: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+        *ON_SEPARATE_THREAD.get_or_init(|| {
+            ProjectSettings::singleton()
+                .get_setting_with_override(RUN_ON_SEPARATE_THREAD)
+                .try_to()
+                .unwrap_or(false)
+        })
     }
 
     /// Deliberately not a project setting: a thread count saved on one machine is wrong on

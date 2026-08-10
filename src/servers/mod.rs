@@ -39,6 +39,7 @@ pub fn register_server() {
             .to_string_name();
     let create_server = Callable::from_class_static(&factory_class_name, "create_server");
     manager.register_server("Rapier2D", &create_server);
+    rapier_project_settings::mark_bindings_ready();
 }
 #[cfg(feature = "dim3")]
 pub fn register_server() {
@@ -49,6 +50,7 @@ pub fn register_server() {
             .to_string_name();
     let create_server = Callable::from_class_static(&factory_class_name, "create_server");
     manager.register_server("Rapier3D", &create_server);
+    rapier_project_settings::mark_bindings_ready();
 }
 #[cfg(feature = "dim2")]
 fn print_version() {

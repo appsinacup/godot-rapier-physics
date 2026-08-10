@@ -1,6 +1,21 @@
 # Changelog
 
+## v0.35.2
+
+## What's Changed
+* remove experimental threads. Also take out unused code. by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/612
+
+
+**Full Changelog**: https://github.com/appsinacup/godot-rapier-physics/compare/v0.35.1...v0.35.2
+
 ## v0.35.1
+
+## What's Changed
+* Remove project setting presets by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/609
+* add separation ray. by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/611
+
+
+**Full Changelog**: https://github.com/appsinacup/godot-rapier-physics/compare/v0.35.0...v0.35.1
 
 ## v0.35.0
 

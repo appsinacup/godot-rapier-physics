@@ -373,10 +373,25 @@ impl RapierPhysicsServerImpl {
         0.0
     }
 
+    /// Godot only calls the server from one thread, but when it runs physics on its own thread
+    /// that thread is not the caller's: state read outside the sync window is being read while
+    /// the step is writing it. Reported rather than locked, matching Godot Physics, Jolt and
+    /// Box3D -- none of which lock -- because a lock on the default single-threaded path would
+    /// cost every project to protect a case only threaded projects can reach.
+    fn state_is_accessible(&self) -> bool {
+        !RapierProjectSettings::is_run_on_separate_thread() || self.doing_sync
+    }
+
     pub(super) fn space_get_direct_state(
         &mut self,
         space: Rid,
     ) -> Option<Gd<PhysicsDirectSpaceState>> {
+        if !self.state_is_accessible() {
+            godot_error!(
+                "Space state is inaccessible right now, wait for iteration or physics process notification."
+            );
+            return None;
+        }
         let physics_data = physics_data();
         if let Some(space) = physics_data.spaces.get(&space) {
             return space.get_direct_state().clone();
@@ -1621,6 +1636,12 @@ impl RapierPhysicsServerImpl {
         &mut self,
         body: Rid,
     ) -> Option<Gd<PhysicsDirectBodyState>> {
+        if !self.state_is_accessible() {
+            godot_error!(
+                "Body state is inaccessible right now, wait for iteration or physics process notification."
+            );
+            return None;
+        }
         let physics_data = physics_data();
         if let Some(body) = physics_data.collision_objects.get_mut(&body)
             && let Some(body) = body.get_mut_body()
