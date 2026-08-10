@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bscalingbench2d"]
+
+[ext_resource type="Script" path="res://tests/performance/scaling_bench.gd" id="1_bench"]
+
+[node name="ScalingBench" type="Node2D"]
+script = ExtResource("1_bench")

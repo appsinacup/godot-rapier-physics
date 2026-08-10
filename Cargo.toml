@@ -12,7 +12,9 @@ crate-type = ["cdylib", "staticlib", "rlib"]
 [features]
 default = []
 test = []
-profiling = []
+# rapier's `Timer` compiles to nothing without its own `profiler` feature, so enabling the
+# counters alone would report zeros for every stage.
+profiling = ["rapier2d?/profiler", "rapier2d-f64?/profiler", "rapier3d?/profiler", "rapier3d-f64?/profiler"]
 dim2 = []
 dim3 = []
 single = []

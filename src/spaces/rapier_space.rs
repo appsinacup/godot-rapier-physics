@@ -688,7 +688,7 @@ impl RapierSpace {
         WorldSettings {
             particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
             smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
-            counters_enabled: false,
+            counters_enabled: cfg!(feature = "profiling"),
             boundary_coef: RapierProjectSettings::get_fluid_boundary_coef() as real,
             #[cfg(feature = "parallel")]
             thread_count: RapierProjectSettings::get_num_threads(),
@@ -734,7 +734,7 @@ impl RapierSpace {
         let world_settings = WorldSettings {
             particle_radius: RapierProjectSettings::get_fluid_particle_radius() as real,
             smoothing_factor: RapierProjectSettings::get_fluid_smoothing_factor() as real,
-            counters_enabled: false,
+            counters_enabled: cfg!(feature = "profiling"),
             boundary_coef: RapierProjectSettings::get_fluid_boundary_coef() as real,
             #[cfg(feature = "parallel")]
             thread_count: RapierProjectSettings::get_num_threads(),
@@ -772,6 +772,10 @@ impl RapierSpace {
         {
             let _span = crate::servers::rapier_profiler::scope(
                 crate::servers::rapier_profiler::Span::FlushDispatch,
+            );
+            crate::servers::rapier_profiler::set_gauge(
+                crate::servers::rapier_profiler::Gauge::FlushCallbacks,
+                callbacks.len() as u64,
             );
             for callback in callbacks.drain(..) {
                 callback.call();

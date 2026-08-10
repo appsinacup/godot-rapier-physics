@@ -491,9 +491,19 @@ impl RapierProjectSettings {
 
     /// Deliberately not a project setting: a thread count saved on one machine is wrong on
     /// the next. Computed once per run.
+    ///
+    /// `GODOT_RAPIER_NUM_THREADS` overrides it for the run. Not a shipping knob -- it exists so
+    /// the same scene can be measured at 1 vs N workers, which is the only way to tell a serial
+    /// bottleneck apart from a threading-overhead one.
     #[cfg(feature = "parallel")]
     pub fn get_num_threads() -> usize {
         static NUM_THREADS: std::sync::OnceLock<usize> = std::sync::OnceLock::new();
-        *NUM_THREADS.get_or_init(|| performance_core_count().max(1))
+        *NUM_THREADS.get_or_init(|| {
+            std::env::var("GODOT_RAPIER_NUM_THREADS")
+                .ok()
+                .and_then(|v| v.parse::<usize>().ok())
+                .filter(|n| *n > 0)
+                .unwrap_or_else(|| performance_core_count().max(1))
+        })
     }
 }

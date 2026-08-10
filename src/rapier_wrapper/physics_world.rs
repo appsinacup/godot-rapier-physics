@@ -170,12 +170,33 @@ impl Clone for PhysicsObjects {
         }
     }
 }
+/// The one worker pool every space steps on.
+///
+/// Per-world pools would multiply the workers by the space count -- a project with SubViewports
+/// has several World2Ds, and each carries its own space -- while only one space ever steps at a
+/// time. The surplus threads never do useful work, but they do sit in rayon's pre-sleep
+/// yield loop competing for the same cores as the thread actually stepping.
+///
+/// Sized on first use; `thread_count` comes from `RapierProjectSettings::get_num_threads`, which
+/// is itself computed once per run, so every space asks for the same size anyway.
+#[cfg(feature = "parallel")]
+fn shared_thread_pool(thread_count: usize) -> &'static rapier::rayon::ThreadPool {
+    static POOL: std::sync::OnceLock<rapier::rayon::ThreadPool> = std::sync::OnceLock::new();
+    POOL.get_or_init(|| {
+        rapier::rayon::ThreadPoolBuilder::new()
+            .num_threads(thread_count)
+            .thread_name(|i| format!("rapier-worker-{i}"))
+            .build()
+            .expect("failed to build the rapier worker pool")
+    })
+}
+
 pub struct PhysicsWorld {
     pub physics_objects: PhysicsObjects,
     pub physics_pipeline: PhysicsPipeline,
     pub fluids_pipeline: FluidsPipeline,
     #[cfg(feature = "parallel")]
-    pub thread_pool: rapier::rayon::ThreadPool,
+    pub thread_pool: &'static rapier::rayon::ThreadPool,
 }
 impl PhysicsWorld {
     pub fn new(settings: &WorldSettings) -> PhysicsWorld {
@@ -207,10 +228,7 @@ impl PhysicsWorld {
                 settings.boundary_coef,
             ),
             #[cfg(feature = "parallel")]
-            thread_pool: rapier::rayon::ThreadPoolBuilder::new()
-                .num_threads(settings.thread_count)
-                .build()
-                .unwrap(),
+            thread_pool: shared_thread_pool(settings.thread_count),
         }
     }
 
@@ -294,6 +312,7 @@ impl PhysicsWorld {
                 &event_handler,
             );
         }
+        profiler::record_step_counters(&self.physics_pipeline.counters);
         if self.fluids_pipeline.liquid_world.fluids().len() > 0 {
             let _span = profiler::scope(profiler::Span::Fluids);
             self.fluids_pipeline.step(
