@@ -72,6 +72,9 @@ impl PendingQueryCallback {
                 // leaves these dangling. Godot's own server defers body removal for this.
                 let callable: *const Callable = callable;
                 let arg: *const Variant = body.get_direct_state_variant();
+                let _span = crate::servers::rapier_profiler::scope(
+                    crate::servers::rapier_profiler::Span::FlushCall,
+                );
                 unsafe {
                     (*callable).call(std::slice::from_ref(&*arg));
                 }

@@ -163,7 +163,6 @@ pub struct RapierBodyState {
     pub(crate) marked_active: bool,
     pub(crate) constant_force: Vector,
     pub(crate) linear_velocity: Vector,
-    pub(crate) previous_linear_velocity: Vector,
     pub(crate) active: bool,
     pub(crate) impulse: Vector,
     pub(crate) torque: Angle,
@@ -579,7 +578,6 @@ impl RapierBody {
 
     fn clear_velocities(&mut self, physics_engine: &mut PhysicsEngine) {
         self.state.linear_velocity = Vector::ZERO;
-        self.state.previous_linear_velocity = Vector::ZERO;
         self.state.angular_velocity = ANGLE_ZERO;
         self.state.to_add_linear_velocity = Vector::ZERO;
         self.state.to_add_angular_velocity = ANGLE_ZERO;
@@ -1387,14 +1385,6 @@ impl RapierBody {
                 .get_mut_state()
                 .body_remove_from_deactivated_state_sync_list(self.base.get_id());
         }
-    }
-
-    pub fn set_previous_linear_velocity(&mut self, p_velocity: Vector) {
-        self.state.previous_linear_velocity = p_velocity;
-    }
-
-    pub fn get_previous_linear_velocity(&self) -> Vector {
-        self.state.previous_linear_velocity
     }
 
     pub fn on_update_active(

@@ -12,7 +12,7 @@ inputs:
     description: Rust extra flags.
   features:
     required: true
-    description: Comma-separated cargo features, e.g. serde-serialize,parallel,experimental-threads,register-docs
+    description: Comma-separated cargo features, e.g. serde-serialize,parallel,register-docs
   api_feature:
     required: false
     default: api-custom

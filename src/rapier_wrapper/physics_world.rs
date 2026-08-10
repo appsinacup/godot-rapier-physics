@@ -29,10 +29,6 @@ pub struct JointHandle {
 pub struct ActiveBodyInfo {
     pub body_user_data: UserData,
 }
-pub struct BeforeActiveBodyInfo {
-    pub body_user_data: UserData,
-    pub previous_velocity: Vector,
-}
 #[derive(Default)]
 pub struct ContactPointInfo {
     pub pixel_local_pos_1: Vector,
@@ -228,22 +224,6 @@ impl PhysicsWorld {
         physics_ids: &PhysicsIds,
     ) {
         let _step_span = profiler::scope(profiler::Span::Step);
-        {
-            let _span = profiler::scope(profiler::Span::BeforeActive);
-            for handle in self.physics_objects.island_manager.active_bodies() {
-                if let Some(body) = self.physics_objects.rigid_body_set.get(handle) {
-                    let before_active_body_info = BeforeActiveBodyInfo {
-                        body_user_data: self.get_rigid_body_user_data(handle),
-                        previous_velocity: body.linvel(),
-                    };
-                    space.before_active_body_callback(
-                        &before_active_body_info,
-                        physics_collision_objects,
-                        physics_ids,
-                    );
-                }
-            }
-        }
         let mut integration_parameters = IntegrationParameters {
             length_unit: settings.length_unit,
             dt: settings.dt,
