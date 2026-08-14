@@ -141,3 +141,7 @@ The 2D part is pretty stable, though there are some issues, the 3D part is still
 In order to build it as a module, go to:
 - [Godot Rapier Physics Module 2D](https://github.com/appsinacup/godot-rapier-physics-module-2d)
 - [Godot Rapier Physics Module 3D](https://github.com/appsinacup/godot-rapier-physics-module-3d)
+
+## Star History
+
+[![Star History Chart](https://star-history.dera.page/svg?repos=appsinacup/godot-rapier-physics&type=date&legend=top-left)](https://star-history.dera.page/#appsinacup/godot-rapier-physics&type=date&legend=top-left)
