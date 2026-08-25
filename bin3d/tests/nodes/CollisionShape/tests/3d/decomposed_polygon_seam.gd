@@ -69,9 +69,9 @@ func test_start() -> void:
 
 		if p_monitor.frame == 90:
 			p_monitor.add_test("Keeps its speed across the seam at the ramp foot")
-			# Until the parts of a decomposed polygon become one shape rapier can see as a whole,
-			# the speculative margin still reaches the cut between them and the body catches on it.
-			p_monitor.add_test_expected_to_fail()
+			# Until 3D grows the compound-collider path 2D has, the speculative margin still
+			# reaches the cut between the parts and the body catches on it.
+			p_monitor.add_test_engine_expected_to_fail(["Rapier3D"])
 			var retained: float = slowest_at_seam / speed_before_seam if speed_before_seam > 0.0 else 0.0
 			if retained < MIN_RETAINED_SPEED_RATIO:
 				p_monitor.add_test_error("retained only %.0f%% of %.2f m/s" % [retained * 100.0, speed_before_seam])
