@@ -907,6 +907,15 @@ impl PhysicsEngine {
         cpt_hit
     }
 
+    /// Whether `position` lies inside the shape placed by `shape_info`.
+    pub fn shape_contains_point(&self, shape_info: ShapeInfo, position: Vector) -> bool {
+        if let Some(shape) = self.get_shape(shape_info.handle) {
+            let shape = crate::rapier_wrapper::collider::scale_shape(shape, shape_info);
+            return shape.contains_point(&shape_info.transform, position);
+        }
+        false
+    }
+
     pub fn shapes_contact(
         &self,
         shape_info1: ShapeInfo,

@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://du31nbhldjjtp"]
+[gd_scene load_steps=11 format=3 uid="uid://du31nbhldjjtp"]
 
 [ext_resource type="PackedScene" uid="uid://c8jq3yssvlovo" path="res://tests/nodes/DirectSpaceState/tests/2d/intersect_ray.tscn" id="1_0n16d"]
 [ext_resource type="PackedScene" uid="uid://byf328f57nfhv" path="res://tests/nodes/DirectSpaceState/tests/2d/intersect_point.tscn" id="2_la0b3"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://bcollideshaperc1" path="res://tests/nodes/DirectSpaceState/tests/2d/collide_shape_resting_contact.tscn" id="6_csrc"]
 [ext_resource type="PackedScene" path="res://tests/nodes/DirectSpaceState/tests/2d/collide_shape.tscn" id="7_clsh"]
 [ext_resource type="PackedScene" uid="uid://bcastmotioncon1" path="res://tests/nodes/DirectSpaceState/tests/2d/cast_motion_contract.tscn" id="8_cmc"]
+[ext_resource type="PackedScene" path="res://tests/nodes/DirectSpaceState/tests/2d/compound_shape_indices.tscn" id="9_csi2d"]
 
 [sub_resource type="GDScript" id="GDScript_weqxb"]
 script/source = "extends TestScene
@@ -31,3 +32,5 @@ script = SubResource("GDScript_weqxb")
 [node name="collide_shape" parent="." instance=ExtResource("7_clsh")]
 
 [node name="cast_motion_contract" parent="." instance=ExtResource("8_cmc")]
+
+[node name="compound_shape_indices" parent="." instance=ExtResource("9_csi2d")]

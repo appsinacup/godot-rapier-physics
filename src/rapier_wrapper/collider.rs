@@ -382,6 +382,91 @@ impl PhysicsEngine {
         }
     }
 
+    /// Builds a compound from a collision object's shapes, cuts between the parts marked as
+    /// interior so nothing collides with them.
+    ///
+    /// Godot decomposes a concave polygon into convex pieces and hands them over one shape at a
+    /// time. Kept as separate colliders they have no idea they are neighbours, and the cuts
+    /// between them collide like real surfaces.
+    #[cfg(feature = "dim2")]
+    fn build_compound_shape(&self, parts: &[ShapeInfo]) -> Option<SharedShape> {
+        let mut compound_parts = Vec::with_capacity(parts.len());
+        for part in parts {
+            let shape = self.get_shape(part.handle)?;
+            compound_parts.push((part.transform, scale_shape(shape, *part)));
+        }
+
+        if compound_parts.is_empty() {
+            return None;
+        }
+
+        let mut compound = rapier::parry::shape::Compound::new(compound_parts);
+        compound.set_flags(rapier::parry::shape::CompoundFlags::FIX_INTERNAL_EDGES);
+        Some(SharedShape::new(compound))
+    }
+
+    #[cfg(feature = "dim2")]
+    pub fn collider_create_solid_compound(
+        &mut self,
+        world_handle: WorldHandle,
+        parts: &[ShapeInfo],
+        mat: &Material,
+        body_handle: RigidBodyHandle,
+        user_data: &UserData,
+    ) -> ColliderHandle {
+        let Some(shape) = self.build_compound_shape(parts) else {
+            return ColliderHandle::invalid();
+        };
+
+        let mut collider = ColliderBuilder::new(shape)
+            .contact_force_event_threshold(-Real::MAX)
+            .density(0.0)
+            .build();
+        collider.set_friction(mat.friction);
+        collider.set_restitution(mat.restitution);
+        collider.set_friction_combine_rule(CoefficientCombineRule::Min);
+        collider.set_restitution_combine_rule(CoefficientCombineRule::ClampedSum);
+        collider.set_collision_groups(InteractionGroups {
+            memberships: Group::from(mat.collision_layer),
+            filter: Group::from(mat.collision_mask),
+            test_mode: InteractionTestMode::Or,
+        });
+        collider.set_solver_groups(InteractionGroups {
+            memberships: Group::GROUP_1,
+            filter: Group::GROUP_1,
+            test_mode: InteractionTestMode::Or,
+        });
+        collider.set_contact_skin(mat.contact_skin);
+        collider.user_data = user_data.get_data();
+
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
+            return physics_world.insert_collider(collider, body_handle);
+        }
+        ColliderHandle::invalid()
+    }
+
+    /// Replaces an existing compound collider's shape with one rebuilt from `parts`, keeping the
+    /// collider (and the contact pairs referencing it) alive across a shape edit.
+    #[cfg(feature = "dim2")]
+    pub fn collider_update_solid_compound(
+        &mut self,
+        world_handle: WorldHandle,
+        collider_handle: ColliderHandle,
+        parts: &[ShapeInfo],
+    ) {
+        let Some(shape) = self.build_compound_shape(parts) else {
+            return;
+        };
+        if let Some(physics_world) = self.get_mut_world(world_handle)
+            && let Some(collider) = physics_world
+                .physics_objects
+                .collider_set
+                .get_mut(collider_handle)
+        {
+            collider.set_shape(shape);
+        }
+    }
+
     pub fn collider_create_sensor(
         &mut self,
         world_handle: WorldHandle,

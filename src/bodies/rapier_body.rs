@@ -1821,6 +1821,11 @@ impl RapierBody {
             self.mass_properties_changed(physics_engine, physics_spaces, physics_ids);
         }
         self.set_space_after(physics_engine, physics_spaces, physics_ids);
+        // Entering or leaving STATIC can change whether the shapes belong in one compound.
+        #[cfg(feature = "dim2")]
+        if self.base.compound_collider != self.base.wants_compound_collider() {
+            self.recreate_shapes(physics_engine, physics_spaces, physics_ids);
+        }
     }
 
     pub fn set_state(

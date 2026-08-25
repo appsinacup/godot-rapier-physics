@@ -160,6 +160,17 @@ impl RapierDirectSpaceStateImpl {
                 if let Some(object) = try_node_from_instance_id(instance_id) {
                     unsafe { result.set_collider(object) }
                 }
+                // A compound collider names its whole object as shape 0; the ray's feature id
+                // carries which part was actually hit.
+                #[cfg(feature = "dim2")]
+                if collision_object_2d.get_base().compound_collider
+                    && let rapier::geometry::FeatureId::Face(part_index) = hit_info.feature
+                    && let Some(hit_shape) = collision_object_2d
+                        .get_base()
+                        .shape_index_for_compound_part(part_index)
+                {
+                    result.shape = hit_shape as i32;
+                }
             }
             #[cfg(feature = "dim3")]
             match hit_info.feature {
@@ -238,10 +249,38 @@ impl RapierDirectSpaceStateImpl {
             let Some(collision_object_2d) = physics_data.collision_objects.get(&rid) else {
                 continue;
             };
+            let instance_id = collision_object_2d.get_base().get_instance_id();
+            // A compound collider names its whole object as shape 0; report each shape actually
+            // containing the point instead, the way one collider per shape used to.
+            #[cfg(feature = "dim2")]
+            if collision_object_2d.get_base().compound_collider {
+                let base = collision_object_2d.get_base();
+                for (index, shape) in base.state.shapes.iter().enumerate() {
+                    if shape.disabled || output_count >= max_results {
+                        continue;
+                    }
+                    let shape_transform = base.get_transform() * base.get_shape_transform(index);
+                    let shape_info = shape_info_from_body_shape(shape.id, shape_transform);
+                    if !physics_data
+                        .physics_engine
+                        .shape_contains_point(shape_info, vector_to_rapier(position))
+                    {
+                        continue;
+                    }
+                    let result_slice = &mut results_slice[output_count];
+                    result_slice.rid = rid;
+                    result_slice.shape = index as i32;
+                    result_slice.collider_id = ObjectId { id: instance_id };
+                    if let Some(object) = try_node_from_instance_id(instance_id) {
+                        unsafe { result_slice.set_collider(object) }
+                    }
+                    output_count += 1;
+                }
+                continue;
+            }
             let result_slice = &mut results_slice[output_count];
             result_slice.rid = rid;
             result_slice.shape = shape_index as i32;
-            let instance_id = collision_object_2d.get_base().get_instance_id();
             result_slice.collider_id = ObjectId { id: instance_id };
             if let Some(object) = try_node_from_instance_id(instance_id) {
                 unsafe { result_slice.set_collider(object) }
@@ -315,9 +354,35 @@ impl RapierDirectSpaceStateImpl {
                 &physics_data.ids,
             );
             if let Some(collision_object_2d) = physics_data.collision_objects.get(&rid) {
+                let instance_id = collision_object_2d.get_base().get_instance_id();
+                // A compound collider names its whole object as shape 0; report each touching
+                // shape instead, the way one collider per shape used to.
+                #[cfg(feature = "dim2")]
+                if collision_object_2d.get_base().compound_collider {
+                    for (index, _) in compound_shape_contacts(
+                        collision_object_2d.get_base(),
+                        shape_info,
+                        margin,
+                        &physics_data.physics_engine,
+                    ) {
+                        if cpt >= max_results {
+                            break;
+                        }
+                        results_slice[cpt].shape = index as i32;
+                        results_slice[cpt].rid = rid;
+                        results_slice[cpt].collider_id = ObjectId { id: instance_id };
+                        if let Some(object) = try_node_from_instance_id(instance_id) {
+                            unsafe { results_slice[cpt].set_collider(object) }
+                        }
+                        cpt += 1;
+                    }
+                    if cpt >= max_results {
+                        break;
+                    }
+                    continue;
+                }
                 results_slice[cpt].shape = shape_index as i32;
                 results_slice[cpt].rid = rid;
-                let instance_id = collision_object_2d.get_base().get_instance_id();
                 results_slice[cpt].collider_id = ObjectId { id: instance_id };
                 if let Some(object) = try_node_from_instance_id(instance_id) {
                     unsafe { results_slice[cpt].set_collider(object) }
@@ -560,9 +625,50 @@ impl RapierDirectSpaceStateImpl {
             r_info.normal = vector_to_godot(deepest_collision.normal2);
             r_info.rid = rid;
             r_info.shape = shape_index as i32;
+            // A compound collider names its whole object as shape 0; the deepest of its shapes'
+            // own contacts is the one this rest info describes.
+            #[cfg(feature = "dim2")]
+            if collision_object_2d.get_base().compound_collider {
+                let deepest = compound_shape_contacts(
+                    collision_object_2d.get_base(),
+                    shape_info,
+                    margin,
+                    &physics_data.physics_engine,
+                )
+                .into_iter()
+                .min_by(|(_, a), (_, b)| a.pixel_distance.total_cmp(&b.pixel_distance));
+                if let Some((index, _)) = deepest {
+                    r_info.shape = index as i32;
+                }
+            }
             r_info.point = collision_point;
             return true;
         }
         false
     }
+}
+
+/// The enabled shapes of a compound object that `query_shape_info` touches, as
+/// (shape index, contact). A compound collider reports its whole object as shape 0, so queries
+/// against it resolve the shapes themselves.
+#[cfg(feature = "dim2")]
+fn compound_shape_contacts(
+    object: &crate::bodies::rapier_collision_object_base::RapierCollisionObjectBase,
+    query_shape_info: ShapeInfo,
+    margin: f32,
+    physics_engine: &PhysicsEngine,
+) -> Vec<(usize, ContactResult)> {
+    let mut contacts = Vec::new();
+    for (index, shape) in object.state.shapes.iter().enumerate() {
+        if shape.disabled {
+            continue;
+        }
+        let shape_transform = object.get_transform() * object.get_shape_transform(index);
+        let shape_info = shape_info_from_body_shape(shape.id, shape_transform);
+        let contact = physics_engine.shapes_contact(query_shape_info, shape_info, margin);
+        if contact.collided {
+            contacts.push((index, contact));
+        }
+    }
+    contacts
 }
