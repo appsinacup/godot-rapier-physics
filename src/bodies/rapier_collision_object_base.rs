@@ -430,6 +430,7 @@ impl RapierCollisionObjectBase {
         physics_engine: &mut PhysicsEngine,
     ) {
         let teleport = self.state.transform == Transform::IDENTITY;
+        let old_scale = transform_scale(&self.state.transform);
         self.state.transform = p_transform;
         self.state.inv_transform = transform_inverse(&self.state.transform);
         if !self.is_valid() {
@@ -446,6 +447,15 @@ impl RapierCollisionObjectBase {
             teleport,
             wake_up,
         );
+        // Only origin and rotation reach the rigid body; the object's scale lives in the colliders'
+        // own scaled shapes, so a scale change has to be pushed to each of them. Updating the shape
+        // transforms rather than recreating the shapes avoids losing collisions for a step (#398).
+        if transform_scale(&self.state.transform) != old_scale {
+            for i in 0..self.state.shapes.len() {
+                let shape = self.state.shapes[i];
+                self.update_shape_transform(&shape, physics_engine);
+            }
+        }
     }
 
     pub fn get_transform(&self) -> Transform {

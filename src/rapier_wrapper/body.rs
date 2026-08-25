@@ -271,8 +271,20 @@ impl PhysicsEngine {
                     .get_mut(*collider)
                 {
                     if !base_only {
+                        // Rapier has no change flag for a collider's material, so a contact pair
+                        // that already exists keeps solving with the coefficients it was built
+                        // with -- a body told to stop being slippery goes on sliding. Re-setting
+                        // the shape is the change rapier answers by invalidating that pair's
+                        // workspace, which is what lets the new coefficients reach those contacts.
+                        let material_changed = col.friction() != mat.friction
+                            || col.restitution() != mat.restitution
+                            || col.contact_skin() != mat.contact_skin;
                         col.set_friction(mat.friction);
                         col.set_restitution(mat.restitution);
+                        if material_changed {
+                            let shape = col.shared_shape().clone();
+                            col.set_shape(shape);
+                        }
                     }
                     if let Some(coupling_boundary_entry) =
                         physics_world.fluids_pipeline.coupling.entries.get(collider)

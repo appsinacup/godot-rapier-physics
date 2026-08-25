@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://bs884rv61i0xg"]
+[gd_scene load_steps=5 format=3 uid="uid://bs884rv61i0xg"]
 
 [ext_resource type="PackedScene" uid="uid://bioauuuhvoo03" path="res://tests/nodes/CollisionShape/tests/3d/collision_precision.tscn" id="1_25700"]
 [ext_resource type="PackedScene" uid="uid://cg72r5vu1t53" path="res://tests/nodes/CollisionShape/tests/3d/convex_collision_detection.tscn" id="1_ohyv1"]
+[ext_resource type="PackedScene" path="res://tests/nodes/CollisionShape/tests/3d/decomposed_polygon_seam.tscn" id="9_seam3d"]
 
 [sub_resource type="GDScript" id="GDScript_tacvx"]
 script/source = "extends TestScene
@@ -58,3 +59,5 @@ type = 4
 shape_tested = 101
 static_shape = 2
 type = 4
+
+[node name="decomposed_polygon_seam" parent="." instance=ExtResource("9_seam3d")]

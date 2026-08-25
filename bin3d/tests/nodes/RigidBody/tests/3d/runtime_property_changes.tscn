@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tests/nodes/RigidBody/tests/3d/runtime_property_changes.gd" id="1_rpc17"]
+
+[node name="runtime_property_changes" type="Node3D"]
+script = ExtResource("1_rpc17")

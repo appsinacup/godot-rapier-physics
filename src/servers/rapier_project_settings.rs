@@ -118,6 +118,16 @@ const ORIENTED_CONCAVE_POLYLINE: &str = "physics/rapier/logic/oriented_concave_p
 const LENGTH_UNIT_VALUE: real = 100.0;
 #[cfg(feature = "dim2")]
 const LENGTH_UNIT_HINT: &str = "1,100,1,suffix:length_unit,or_greater";
+// rapier 0.35 raised its own prediction distance tenfold, to 0.02, for a wider speculative margin.
+// Scaled by the length unit that is a 2 px band in 2D and a 2 cm one in 3D -- either way wide
+// enough to reach the internal edges Godot leaves behind when it decomposes a concave collision
+// polygon into convex pieces, and to turn those edges into contacts a sliding body catches on.
+// Both values sit just under the width where that starts happening. 3D cannot go as low: the
+// margin is what stops fast bodies tunnelling, and below this the CCD tests start failing.
+#[cfg(feature = "dim2")]
+const NORMALIZED_PREDICTION_DISTANCE_VALUE: real = 0.004;
+#[cfg(feature = "dim3")]
+const NORMALIZED_PREDICTION_DISTANCE_VALUE: real = 0.005;
 #[cfg(feature = "dim2")]
 const FLUID_PARTICLE_VALUE: real = 20.0;
 #[cfg(feature = "dim3")]
@@ -322,9 +332,10 @@ impl RapierProjectSettings {
             "0,10,0.00001,or_greater",
             false,
         );
+        let normalized_prediction_distance = NORMALIZED_PREDICTION_DISTANCE_VALUE;
         register_setting_ranged(
             SOLVER_NORMALIZED_PREDICTION_DISTANCE,
-            Variant::from(integration_parameters.normalized_prediction_distance),
+            Variant::from(normalized_prediction_distance),
             "0,10,0.00001,or_greater",
             false,
         );
@@ -334,9 +345,11 @@ impl RapierProjectSettings {
             "1,10000,0.00001,or_greater",
             false,
         );
+        // Which predictive contacts count as real ones is reported against the same margin that
+        // generates them, so this tracks the prediction distance rather than rapier's value.
         register_setting_ranged(
             SOLVER_PREDICTIVE_CONTACT_ALLOWANCE_THRESHOLD,
-            Variant::from(integration_parameters.normalized_prediction_distance),
+            Variant::from(normalized_prediction_distance),
             "0,1,0.00001,or_greater",
             false,
         );

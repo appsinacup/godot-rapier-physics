@@ -416,12 +416,29 @@ impl RapierArea {
         this_shape: usize,
         space: &mut RapierSpace,
     ) {
-        // If the other object is an area:
-        if let Some(other_collider) = other_collider
-            && let Some(other_area) = other_collider.get_mut_area()
-            && (self.area_monitor_callback.is_none() || !other_area.is_monitorable())
+        // The filters below decide whether a *new* overlap may be reported. One that is already
+        // monitored still has to receive its exit event after the filters stop matching, or its
+        // monitor would never be cleared.
+        let monitor_key = OrderedMonitorKey::new(RapierAreaState::monitor_key(
+            this_collider_handle,
+            other_collider_handle,
+        ));
+        if !self.state.monitored_objects.contains_key(&monitor_key)
+            && let Some(other_collider) = other_collider
         {
-            return;
+            // Godot only lets an area detect what its own mask covers, whereas the colliders'
+            // interaction groups are matched with `Or` so that a pair reaches both sides. The
+            // direction each area cares about is therefore resolved here rather than in rapier.
+            if self.base.get_collision_mask() & other_collider.get_base().get_collision_layer() == 0
+            {
+                return;
+            }
+            // If the other object is an area:
+            if let Some(other_area) = other_collider.get_area()
+                && (self.area_monitor_callback.is_none() || !other_area.is_monitorable())
+            {
+                return;
+            }
         }
         let event_report = EventReport {
             id: other_collider_id,
@@ -829,6 +846,38 @@ impl RapierArea {
 
     pub fn is_monitorable(&self) -> bool {
         self.monitorable
+    }
+
+    // Layer and mask both decide which of the current overlaps this area is allowed to report, so
+    // the colliders are recreated to replay those overlaps through the new filter, the way
+    // `set_monitorable` does. Recreating within a step cancels out against what is already
+    // monitored.
+    pub fn set_collision_layer(
+        &mut self,
+        layer: u32,
+        physics_engine: &mut PhysicsEngine,
+        physics_spaces: &mut PhysicsSpaces,
+        physics_ids: &PhysicsIds,
+    ) {
+        if self.base.get_collision_layer() == layer {
+            return;
+        }
+        self.base.set_collision_layer(layer, physics_engine);
+        self.recreate_shapes(physics_engine, physics_spaces, physics_ids);
+    }
+
+    pub fn set_collision_mask(
+        &mut self,
+        mask: u32,
+        physics_engine: &mut PhysicsEngine,
+        physics_spaces: &mut PhysicsSpaces,
+        physics_ids: &PhysicsIds,
+    ) {
+        if self.base.get_collision_mask() == mask {
+            return;
+        }
+        self.base.set_collision_mask(mask, physics_engine);
+        self.recreate_shapes(physics_engine, physics_spaces, physics_ids);
     }
 
     pub fn get_priority(&self) -> i32 {
