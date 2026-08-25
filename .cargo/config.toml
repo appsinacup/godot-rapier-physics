@@ -1,3 +1,17 @@
+# Windows has no Visual C++ runtime until someone installs the redistributable, so a DLL that
+# links it dynamically fails to load on a clean machine with "Error 126: The specified module could
+# not be found" -- while Godot itself, which is linked statically, starts fine. Link the CRT into
+# the extension so it carries what it needs. Safe here because nothing owned by the CRT crosses the
+# GDExtension boundary: the plugin allocates and frees on its own side of a C API.
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]
+
+[target.i686-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]
+
+[target.aarch64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]
+
 [target.wasm32-unknown-emscripten]
 rustflags = [
   "-C", "link-args=-sSIDE_MODULE=2",

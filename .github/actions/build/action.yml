@@ -25,6 +25,10 @@ inputs:
     required: false
     default: ''
     description: Rust toolchain override. Defaults to rust-toolchain.toml.
+  glibc:
+    required: false
+    default: ''
+    description: Oldest glibc to link against, e.g. 2.28. Builds through cargo-zigbuild when set.
 
 runs:
   using: composite
@@ -50,7 +54,18 @@ runs:
         if [ -z "$TOOLCHAIN" ]; then
           TOOLCHAIN=$(grep -E '^channel' rust-toolchain.toml | sed -E 's/channel = "(.*)"/\1/')
         fi
-        GDRUST_GODOT_BIN="${GODOT4:-}" cargo +"$TOOLCHAIN" build --target=${{ inputs.arch }} --profile=${{ inputs.profile }} --features="${{ inputs.features }},${{ inputs.api_feature }}" ${{ inputs.extra_flags }}
+        # Linking on the runner binds every symbol to the runner's glibc, which is far newer than
+        # the one Godot itself targets. zigbuild links against stubs for an older glibc instead, so
+        # the artifacts keep loading on distros the runner has already moved past. It drops the
+        # version suffix again for cargo, leaving the output where the copy step below expects it.
+        if [ -n "${{ inputs.glibc }}" ]; then
+          BUILD="zigbuild"
+          TARGET="${{ inputs.arch }}.${{ inputs.glibc }}"
+        else
+          BUILD="build"
+          TARGET="${{ inputs.arch }}"
+        fi
+        GDRUST_GODOT_BIN="${GODOT4:-}" cargo +"$TOOLCHAIN" "$BUILD" --target="$TARGET" --profile=${{ inputs.profile }} --features="${{ inputs.features }},${{ inputs.api_feature }}" ${{ inputs.extra_flags }}
     - name: Copy to release
       shell: sh
       run: |

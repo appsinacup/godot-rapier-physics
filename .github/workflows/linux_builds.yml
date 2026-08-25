@@ -35,11 +35,31 @@ jobs:
           sudo apt install gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf
           # LLVM for godot-rust api-custom bindgen
           sudo apt-get install llvm-dev libclang-dev clang
+      # Godot's own Linux binaries target glibc 2.28, so the extension has to reach at least as far
+      # back, not as far back as whatever the runner happens to ship.
+      - name: Setup Zig
+        uses: mlugg/setup-zig@v2
+        with:
+          version: 0.14.1
+      - name: Setup cargo-zigbuild
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-zigbuild
       - name: Build
         uses: ./.github/actions/build
         with:
           arch: ${{ matrix.arch }}
+          glibc: "2.28"
           features: serde-serialize,parallel,register-docs,${{ matrix.precision }}-${{ matrix.dimensions.feature }}
+      - name: Check glibc floor
+        shell: bash
+        run: |
+          max=$(readelf -V target/release/libgodot_rapier.so | grep -o 'GLIBC_[0-9.]\+' | sort -uV | tail -1)
+          echo "highest glibc symbol version required: $max"
+          if [ "$(printf '%s\n' "$max" GLIBC_2.28 | sort -V | tail -1)" != "GLIBC_2.28" ]; then
+            echo "::error::linked against $max, above the 2.28 floor -- zigbuild did not take effect"
+            exit 1
+          fi
       - name: Copy to bin
         shell: sh
         run: |
