@@ -32,9 +32,11 @@ func test_start() -> void:
 
 	add_check("mass", func(b): b.mass = 5.0, push)
 	add_check("inertia", func(b): b.inertia = Vector3(8, 8, 8), spin)
+	# Free space: the response to an off-center impulse depends directly on the center of mass,
+	# and without contacts the comparison is deterministic on every engine.
 	add_check("center of mass", func(b):
 		b.center_of_mass_mode = RigidBody3D.CENTER_OF_MASS_MODE_CUSTOM
-		b.center_of_mass = Vector3(0, 0.45, 0), offset_push)
+		b.center_of_mass = Vector3(0, 0.45, 0), offset_push, true, false)
 	add_check("gravity scale", func(b): b.gravity_scale = 0.0, push)
 	add_check("friction", func(b): b.physics_material_override.friction = 0.0, push)
 	add_check("bounce", func(b): b.physics_material_override.bounce = 0.9, push)
@@ -75,6 +77,13 @@ func test_start() -> void:
 				var position_drift: float = (moved_early - moved_late).length()
 				var rotation_drift := (early.global_basis.get_euler() - late.global_basis.get_euler()).length()
 				p_monitor.add_test("%s applied at runtime matches applied at creation" % c["name"])
+				if c["name"] == "center of mass":
+					# Godot Physics itself responds differently to a center of mass applied at
+					# runtime than to one applied at creation, even free of contacts. Rapier
+					# propagates it fully, so the parity holds only there.
+					p_monitor.add_test_engine_expected_to_fail(
+						["GodotPhysics3D", "Godot Physics 3D"]
+					)
 				if position_drift >= POSITION_TOLERANCE:
 					p_monitor.add_test_error("position drifted by %f" % position_drift)
 				if rotation_drift >= ROTATION_TOLERANCE:
@@ -87,11 +96,14 @@ func test_start() -> void:
 # `floating` swaps the floor for a pair of walls, so that a property which stops the body colliding
 # lets it pass through a wall instead of dropping it -- otherwise the two bodies would start
 # falling at different times and drift apart for reasons that have nothing to do with the property.
-func add_check(p_name: String, p_apply: Callable, p_stimulus: Callable, p_floating := false) -> void:
+func add_check(
+	p_name: String, p_apply: Callable, p_stimulus: Callable, p_floating := false, p_walls := true
+) -> void:
 	lane += 12.0
 	if p_floating:
-		add_wall(Vector3(-2, 0, lane))
-		add_wall(Vector3(10, 0, lane))
+		if p_walls:
+			add_wall(Vector3(-2, 0, lane))
+			add_wall(Vector3(10, 0, lane))
 	else:
 		add_floor(lane)
 	var early := add_body(Vector3(-6, 0, lane), p_floating)

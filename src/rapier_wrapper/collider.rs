@@ -388,7 +388,6 @@ impl PhysicsEngine {
     /// Godot decomposes a concave polygon into convex pieces and hands them over one shape at a
     /// time. Kept as separate colliders they have no idea they are neighbours, and the cuts
     /// between them collide like real surfaces.
-    #[cfg(feature = "dim2")]
     fn build_compound_shape(&self, parts: &[ShapeInfo]) -> Option<SharedShape> {
         let mut compound_parts = Vec::with_capacity(parts.len());
         for part in parts {
@@ -405,7 +404,6 @@ impl PhysicsEngine {
         Some(SharedShape::new(compound))
     }
 
-    #[cfg(feature = "dim2")]
     pub fn collider_create_solid_compound(
         &mut self,
         world_handle: WorldHandle,
@@ -447,7 +445,6 @@ impl PhysicsEngine {
 
     /// Replaces an existing compound collider's shape with one rebuilt from `parts`, keeping the
     /// collider (and the contact pairs referencing it) alive across a shape edit.
-    #[cfg(feature = "dim2")]
     pub fn collider_update_solid_compound(
         &mut self,
         world_handle: WorldHandle,

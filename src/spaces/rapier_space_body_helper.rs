@@ -1627,7 +1627,6 @@ mod tests {
 /// A compound collider carries every shape of its object but reports all of them as the first
 /// one, so each shape has to be tested individually.
 fn reported_shape_indices(object: &RapierCollisionObjectBase, reported: usize) -> Vec<usize> {
-    #[cfg(feature = "dim2")]
     if object.compound_collider {
         return object
             .state
@@ -1638,7 +1637,5 @@ fn reported_shape_indices(object: &RapierCollisionObjectBase, reported: usize) -
             .map(|(index, _)| index)
             .collect();
     }
-    #[cfg(feature = "dim3")]
-    let _ = object;
     vec![reported]
 }

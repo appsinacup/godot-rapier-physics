@@ -162,7 +162,6 @@ impl RapierDirectSpaceStateImpl {
                 }
                 // A compound collider names its whole object as shape 0; the ray's feature id
                 // carries which part was actually hit.
-                #[cfg(feature = "dim2")]
                 if collision_object_2d.get_base().compound_collider
                     && let rapier::geometry::FeatureId::Face(part_index) = hit_info.feature
                     && let Some(hit_shape) = collision_object_2d
@@ -252,7 +251,6 @@ impl RapierDirectSpaceStateImpl {
             let instance_id = collision_object_2d.get_base().get_instance_id();
             // A compound collider names its whole object as shape 0; report each shape actually
             // containing the point instead, the way one collider per shape used to.
-            #[cfg(feature = "dim2")]
             if collision_object_2d.get_base().compound_collider {
                 let base = collision_object_2d.get_base();
                 for (index, shape) in base.state.shapes.iter().enumerate() {
@@ -357,7 +355,6 @@ impl RapierDirectSpaceStateImpl {
                 let instance_id = collision_object_2d.get_base().get_instance_id();
                 // A compound collider names its whole object as shape 0; report each touching
                 // shape instead, the way one collider per shape used to.
-                #[cfg(feature = "dim2")]
                 if collision_object_2d.get_base().compound_collider {
                     for (index, _) in compound_shape_contacts(
                         collision_object_2d.get_base(),
@@ -627,7 +624,6 @@ impl RapierDirectSpaceStateImpl {
             r_info.shape = shape_index as i32;
             // A compound collider names its whole object as shape 0; the deepest of its shapes'
             // own contacts is the one this rest info describes.
-            #[cfg(feature = "dim2")]
             if collision_object_2d.get_base().compound_collider {
                 let deepest = compound_shape_contacts(
                     collision_object_2d.get_base(),
@@ -651,7 +647,6 @@ impl RapierDirectSpaceStateImpl {
 /// The enabled shapes of a compound object that `query_shape_info` touches, as
 /// (shape index, contact). A compound collider reports its whole object as shape 0, so queries
 /// against it resolve the shapes themselves.
-#[cfg(feature = "dim2")]
 fn compound_shape_contacts(
     object: &crate::bodies::rapier_collision_object_base::RapierCollisionObjectBase,
     query_shape_info: ShapeInfo,

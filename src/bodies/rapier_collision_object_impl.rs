@@ -20,7 +20,6 @@ impl RapierCollisionObjectBase {
         physics_spaces: &mut PhysicsSpaces,
         physics_ids: &PhysicsIds,
     ) {
-        #[cfg(feature = "dim2")]
         {
             if collision_object.get_base().compound_collider {
                 // Still compound after the edit: swap the shape in place so the collider, and
@@ -83,7 +82,6 @@ impl RapierCollisionObjectBase {
     ///
     /// The handle lives on the first enabled shape; the rest hold an invalid one, so the per-shape
     /// paths that key off a handle skip them and only this collider is destroyed later.
-    #[cfg(feature = "dim2")]
     fn recreate_as_compound(
         collision_object: &mut dyn IRapierCollisionObject,
         physics_engine: &mut PhysicsEngine,
@@ -146,11 +144,8 @@ impl RapierCollisionObjectBase {
         }
         // The shape that tips the object past one is what turns it into a compound; from then on
         // new shapes join the compound directly instead of getting a collider of their own.
-        #[cfg(feature = "dim2")]
         let joins_compound = collision_object.get_base().compound_collider
             || collision_object.get_base().wants_compound_collider();
-        #[cfg(not(feature = "dim2"))]
-        let joins_compound = false;
         if joins_compound {
             #[cfg(feature = "dim2")]
             Self::recreate_shapes(
@@ -180,7 +175,6 @@ impl RapierCollisionObjectBase {
         physics_spaces: &mut PhysicsSpaces,
         physics_ids: &PhysicsIds,
     ) {
-        #[cfg(feature = "dim2")]
         if collision_object.get_base().compound_collider {
             // The compound baked this shape's geometry, so any of its parts changing means a
             // rebuild.
@@ -230,7 +224,6 @@ impl RapierCollisionObjectBase {
         if p_index >= collision_object.get_base().state.shapes.len() {
             return;
         }
-        #[cfg(feature = "dim2")]
         if collision_object.get_base().compound_collider {
             let shape = collision_object.get_base().state.shapes[p_index];
             if let Some(shape) = physics_shapes.get_mut(&get_id_rid(shape.id, physics_ids)) {
@@ -289,7 +282,6 @@ impl RapierCollisionObjectBase {
         if p_index >= collision_object.get_base().state.shapes.len() {
             return;
         }
-        #[cfg(feature = "dim2")]
         if collision_object.get_base().compound_collider {
             let old_shape = collision_object.get_base().state.shapes[p_index];
             if let Some(shape) = physics_shapes.get_mut(&get_id_rid(old_shape.id, physics_ids)) {
@@ -385,7 +377,6 @@ impl RapierCollisionObjectBase {
         }
         collision_object.get_mut_base().state.shapes[p_index].disabled = p_disabled;
         // Toggling a shape can also flip the whole object into or out of compound form.
-        #[cfg(feature = "dim2")]
         if collision_object.get_base().compound_collider
             || collision_object.get_base().wants_compound_collider()
         {
