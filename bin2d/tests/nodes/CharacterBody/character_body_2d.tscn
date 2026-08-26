@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://bsepray2dcb01" path="res://tests/nodes/CharacterBody/tests/character_body_2d/separation_ray.tscn" id="8_sepray"]
 [ext_resource type="PackedScene" uid="uid://bhdm8lk4jkhw8" path="res://tests/nodes/CharacterBody/tests/character_body_2d/floor_block_on_wall.tscn" id="reg_floor_bl"]
 [ext_resource type="PackedScene" uid="uid://d1dhxcp2scxyl" path="res://tests/nodes/CharacterBody/tests/character_body_2d/floor_max_angle.tscn" id="reg_floor_ma"]
+[ext_resource type="PackedScene" path="res://tests/nodes/CharacterBody/tests/character_body_2d/steepening_slope.tscn" id="reg_steep"]
 
 [node name="Scene" type="Node" unique_id=955144006]
 script = ExtResource("1_dma0p")
@@ -31,3 +32,5 @@ script = ExtResource("1_dma0p")
 [node name="floor_block_on_wall" parent="." instance=ExtResource("reg_floor_bl")]
 
 [node name="floor_max_angle" parent="." instance=ExtResource("reg_floor_ma")]
+
+[node name="steepening_slope" parent="." instance=ExtResource("reg_steep")]

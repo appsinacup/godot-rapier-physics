@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tests/nodes/CharacterBody/tests/character_body_2d/steepening_slope.gd" id="1_steep"]
+
+[node name="steepening_slope" type="Node2D"]
+script = ExtResource("1_steep")

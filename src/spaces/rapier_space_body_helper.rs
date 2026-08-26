@@ -984,6 +984,11 @@ impl RapierSpace {
             return false;
         }
         let mut best_depth = 0.0;
+        // A contact the motion merely rests against cannot end the motion: sliding along a normal
+        // the motion is already tangent to leaves the motion unchanged, and the caller retries the
+        // same slide forever. Contacts that actually oppose the motion therefore win over deeper
+        // ones that do not.
+        let mut best_blocks_motion = false;
         let mut best_collision_body = None;
         let mut best_collision_shape_index: i32 = -1;
         let mut best_body_shape_index = -1;
@@ -1090,7 +1095,10 @@ impl RapierSpace {
                                     continue;
                                 }
                                 let depth = contact_depth(contact.pixel_distance, p_margin);
-                                if depth > best_depth {
+                                let blocks_motion =
+                                    is_motion_blocked_by_contact(&contact, p_motion);
+                                if (blocks_motion, depth) > (best_blocks_motion, best_depth) {
+                                    best_blocks_motion = blocks_motion;
                                     best_depth = depth;
                                     best_collision_body = Some(collision_body);
                                     best_collision_shape_index = shape_index as i32;
