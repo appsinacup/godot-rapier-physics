@@ -25,8 +25,10 @@ fn heights_from_image(image: &Gd<Image>) -> Option<PackedFloatArray> {
     let data = image.get_data();
     let bytes = data.as_slice();
     let heights: Vec<real> = bytes
-        .chunks_exact(size_of::<f32>())
-        .map(|sample| f32::from_le_bytes([sample[0], sample[1], sample[2], sample[3]]) as real)
+        .as_chunks::<{ size_of::<f32>() }>()
+        .0
+        .iter()
+        .map(|sample| f32::from_le_bytes(*sample) as real)
         .collect();
     Some(PackedFloatArray::from(heights.as_slice()))
 }
