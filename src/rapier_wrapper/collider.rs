@@ -399,8 +399,11 @@ impl PhysicsEngine {
             return None;
         }
 
-        let mut compound = rapier::parry::shape::Compound::new(compound_parts);
-        compound.set_flags(rapier::parry::shape::CompoundFlags::FIX_INTERNAL_EDGES);
+        let compound = rapier::parry::shape::Compound::new(compound_parts);
+        // TODO: re-enable once the internal edge fix is released in parry. Needs the
+        // `CompoundFlags` API, which only exists in the local parry branch, so the
+        // `[patch.crates-io]` block in Cargo.toml has to come back with it.
+        // compound.set_flags(rapier::parry::shape::CompoundFlags::FIX_INTERNAL_EDGES);
         Some(SharedShape::new(compound))
     }
 

@@ -77,3 +77,10 @@ opt-level = 1
 
 [package.metadata.docs.rs]
 license-file = "LICENSE"
+
+# TODO: re-enable together with the `set_flags(CompoundFlags::FIX_INTERNAL_EDGES)` call in
+# src/rapier_wrapper/collider.rs once that API ships in a released parry.
+# LOCAL ONLY -- do not commit. Points at the parry checkout carrying CompoundFlags.
+# [patch.crates-io]
+# parry2d = { path = "/Users/dragosdaian/Documents/appsinacup/parry/crates/parry2d" }
+# parry3d = { path = "/Users/dragosdaian/Documents/appsinacup/parry/crates/parry3d" }
