@@ -258,6 +258,17 @@ fn can_be_compound_part(shape: &SharedShape) -> bool {
     shape.as_composite_shape().is_none() && !shape_is_halfspace(shape)
 }
 
+/// [`can_be_compound_part`] by handle, for deciding whether an object's shapes belong in one
+/// compound before any of them are built.
+///
+/// A shape that is not registered is not disqualifying on its own: the build refuses it later and
+/// the object falls back to one collider per shape.
+pub fn shape_can_be_compound_part(engine: &PhysicsEngine, shape_handle: ShapeHandle) -> bool {
+    engine
+        .get_shape(shape_handle)
+        .is_none_or(can_be_compound_part)
+}
+
 /// The parts `shape` contributes to a compound placed at `transform`, or `None` if it cannot be a
 /// part of one at all.
 ///
@@ -265,7 +276,10 @@ fn can_be_compound_part(shape: &SharedShape) -> bool {
 /// of its own. Nesting one compound inside another is rejected outright, so those pieces are
 /// spliced in as parts in their own right -- which keeps the object on a single compound, and the
 /// internal edge fix covering it.
-fn compound_parts_for(transform: Pose, shape: SharedShape) -> Option<Vec<(Pose, SharedShape)>> {
+fn shape_as_compound_parts(
+    transform: Pose,
+    shape: SharedShape,
+) -> Option<Vec<(Pose, SharedShape)>> {
     match shape.as_compound() {
         Some(compound) => compound
             .shapes()
@@ -427,7 +441,7 @@ impl PhysicsEngine {
         let mut compound_parts = Vec::with_capacity(parts.len());
         for part in parts {
             let shape = scale_shape(self.get_shape(part.handle)?, *part);
-            compound_parts.extend(compound_parts_for(part.transform, shape)?);
+            compound_parts.extend(shape_as_compound_parts(part.transform, shape)?);
         }
 
         if compound_parts.is_empty() {

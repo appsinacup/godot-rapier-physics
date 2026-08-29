@@ -534,12 +534,16 @@ mod tests {
     /// A world boundary is a compound of one halfspace and a concave polygon is a polyline, so
     /// both are composite. Feeding either to `Compound::new` panics with "Nested composite shapes
     /// are not allowed", which would take the whole extension down.
+    fn not_a_compound_part(engine: &PhysicsEngine, handle: ShapeHandle) -> bool {
+        !crate::rapier_wrapper::collider::shape_can_be_compound_part(engine, handle)
+    }
+
     #[test]
     fn composite_shapes_are_recognised() {
         let mut physics_engine = PhysicsEngine::default();
 
         physics_engine.shape_create_halfspace(Vector::new(0.0, 1.0), 0.0, 1);
-        assert!(physics_engine.shape_is_composite(1), "world boundary");
+        assert!(not_a_compound_part(&physics_engine, 1), "world boundary");
 
         // Built directly rather than through `shape_create_concave_polyline`, which reads a
         // project setting and so needs a live Godot binding.
@@ -549,7 +553,7 @@ mod tests {
             Vector::new(1.0, 1.0),
         ]);
         physics_engine.insert_shape(SharedShape::polyline(segments, None), 2);
-        assert!(physics_engine.shape_is_composite(2), "concave polygon");
+        assert!(not_a_compound_part(&physics_engine, 2), "concave polygon");
 
         let convex = vec![
             Vector::new(0.0, 0.0),
@@ -558,7 +562,7 @@ mod tests {
             Vector::new(0.0, 1.0),
         ];
         assert!(physics_engine.shape_create_convex_polyline(&convex, 3));
-        assert!(!physics_engine.shape_is_composite(3), "convex polygon");
+        assert!(!not_a_compound_part(&physics_engine, 3), "convex polygon");
     }
 
     #[test]

@@ -740,16 +740,6 @@ impl PhysicsEngine {
         self.shapes.get(&shape_handle)
     }
 
-    /// Whether the shape is itself made of sub-shapes, the way a polyline, trimesh, heightfield or
-    /// compound is.
-    ///
-    /// `Compound::new` rejects such a shape as a part, so they cannot go into a compound collider.
-    /// Asking parry keeps this in step with the rule it enforces.
-    pub fn shape_is_composite(&self, shape_handle: ShapeHandle) -> bool {
-        self.get_shape(shape_handle)
-            .is_some_and(|shape| shape.as_composite_shape().is_some())
-    }
-
     pub fn world_create(&mut self, settings: &WorldSettings, handle: WorldHandle) {
         let mut physics_world = PhysicsWorld::new(settings);
         physics_world.physics_objects.handle = handle;
