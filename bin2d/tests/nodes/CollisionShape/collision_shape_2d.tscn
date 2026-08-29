@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://c6prk86pe8y63"]
+[gd_scene load_steps=9 format=3 uid="uid://c6prk86pe8y63"]
 
 [ext_resource type="PackedScene" uid="uid://crocifwg477on" path="res://tests/nodes/CollisionShape/tests/2d/rigid_one_way_collision.tscn" id="1_dop01"]
 [ext_resource type="Script" path="res://base/class/test_scene_child.gd" id="1_leel8"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://tests/nodes/CollisionShape/tests/2d/one_way_collision_sides.tscn" id="4_ows00"]
 [ext_resource type="PackedScene" path="res://tests/nodes/CollisionShape/tests/2d/one_way_collision_tilemap.tscn" id="5_owt00"]
 [ext_resource type="PackedScene" path="res://tests/nodes/CollisionShape/tests/2d/decomposed_polygon_seam.tscn" id="6_seam2d"]
+[ext_resource type="PackedScene" path="res://tests/nodes/CollisionShape/tests/2d/compound_composite_shapes.tscn" id="7_ccs2d"]
 
 [node name="collision_shape_2d" type="Node2D"]
 script = ExtResource("1_leel8")
@@ -22,3 +23,5 @@ script = ExtResource("1_leel8")
 [node name="one_way_collision_tilemap" parent="." instance=ExtResource("5_owt00")]
 
 [node name="decomposed_polygon_seam" parent="." instance=ExtResource("6_seam2d")]
+
+[node name="compound_composite_shapes" parent="." instance=ExtResource("7_ccs2d")]

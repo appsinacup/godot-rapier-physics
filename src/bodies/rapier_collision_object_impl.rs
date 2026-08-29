@@ -24,7 +24,10 @@ impl RapierCollisionObjectBase {
             if collision_object.get_base().compound_collider {
                 // Still compound after the edit: swap the shape in place so the collider, and
                 // every contact pair referencing it, survives.
-                if collision_object.get_base().wants_compound_collider() {
+                if collision_object
+                    .get_base()
+                    .wants_compound_collider(physics_engine)
+                {
                     collision_object
                         .get_base()
                         .update_compound_collider(physics_engine);
@@ -39,14 +42,21 @@ impl RapierCollisionObjectBase {
                 );
                 collision_object.get_mut_base().compound_collider = false;
             }
-            if collision_object.get_base().wants_compound_collider() {
-                Self::recreate_as_compound(
+            if collision_object
+                .get_base()
+                .wants_compound_collider(physics_engine)
+            {
+                let built = Self::recreate_as_compound(
                     collision_object,
                     physics_engine,
                     physics_spaces,
                     physics_ids,
                 );
-                return;
+                if built {
+                    return;
+                }
+                // Refused once the shapes were already torn down. Fall through and give each its
+                // own collider, rather than leave the object with none.
             }
         }
         for i in 0..collision_object.get_base().get_shape_count() as usize {
@@ -82,12 +92,17 @@ impl RapierCollisionObjectBase {
     ///
     /// The handle lives on the first enabled shape; the rest hold an invalid one, so the per-shape
     /// paths that key off a handle skip them and only this collider is destroyed later.
+    ///
+    /// Returns whether the compound was built. Scaling and skewing are applied here, after the
+    /// per-shape colliders are torn down, and they can turn a shape into one that cannot be a
+    /// compound part -- so a refusal arrives too late to avoid, and the caller has to put the
+    /// object back on per-shape colliders rather than leave it with none.
     fn recreate_as_compound(
         collision_object: &mut dyn IRapierCollisionObject,
         physics_engine: &mut PhysicsEngine,
         physics_spaces: &mut PhysicsSpaces,
         physics_ids: &PhysicsIds,
-    ) {
+    ) -> bool {
         for i in 0..collision_object.get_base().get_shape_count() as usize {
             let shape = collision_object.get_base().state.shapes[i];
             if shape.collider_handle != ColliderHandle::invalid() {
@@ -112,6 +127,7 @@ impl RapierCollisionObjectBase {
             first.collider_handle = handle;
         }
         collision_object.get_mut_base().compound_collider = handle != ColliderHandle::invalid();
+        collision_object.get_base().compound_collider
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -145,7 +161,9 @@ impl RapierCollisionObjectBase {
         // The shape that tips the object past one is what turns it into a compound; from then on
         // new shapes join the compound directly instead of getting a collider of their own.
         let joins_compound = collision_object.get_base().compound_collider
-            || collision_object.get_base().wants_compound_collider();
+            || collision_object
+                .get_base()
+                .wants_compound_collider(physics_engine);
         if joins_compound {
             #[cfg(feature = "dim2")]
             Self::recreate_shapes(
@@ -378,7 +396,9 @@ impl RapierCollisionObjectBase {
         collision_object.get_mut_base().state.shapes[p_index].disabled = p_disabled;
         // Toggling a shape can also flip the whole object into or out of compound form.
         if collision_object.get_base().compound_collider
-            || collision_object.get_base().wants_compound_collider()
+            || collision_object
+                .get_base()
+                .wants_compound_collider(physics_engine)
         {
             Self::recreate_shapes(
                 collision_object,

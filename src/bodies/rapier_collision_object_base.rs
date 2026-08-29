@@ -190,7 +190,11 @@ impl RapierCollisionObjectBase {
     /// Only static solid bodies without one-way shapes for now: a compound reports contacts by
     /// subshape rather than by collider, which per-shape one-way filtering and sensor events
     /// cannot express.
-    pub(crate) fn wants_compound_collider(&self) -> bool {
+    ///
+    /// Composite shapes -- concave polygons, heightmaps, world boundaries -- are excluded too: a
+    /// compound cannot nest them, and they are already one collider covering many pieces, which is
+    /// what the compound exists to achieve.
+    pub(crate) fn wants_compound_collider(&self, physics_engine: &PhysicsEngine) -> bool {
         self.collision_object_type == CollisionObjectType::Body
             && self.mode == BodyMode::STATIC
             && self.state.shapes.iter().filter(|s| !s.disabled).count() > 1
@@ -199,6 +203,11 @@ impl RapierCollisionObjectBase {
                 .shapes
                 .iter()
                 .any(|s| s.one_way_collision && !s.disabled)
+            && !self
+                .state
+                .shapes
+                .iter()
+                .any(|s| !s.disabled && physics_engine.shape_is_composite(s.id))
     }
 
     /// The enabled shapes as compound parts, with the object's scale baked in the way

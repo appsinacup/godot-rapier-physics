@@ -248,6 +248,36 @@ fn shape_is_halfspace(shape: &SharedShape) -> bool {
     }
     shape.shape_type() == ShapeType::HalfSpace
 }
+/// Whether a shape can sit directly inside a compound.
+///
+/// `Compound::new` panics on a composite part rather than reporting an error, and a panic there
+/// takes the whole extension down, so this is asked rather than assumed. A half-space is refused on
+/// top of that: it is legal as a part, but its AABB spans the whole space, which would leave the
+/// compound's bounding volume infinite and useless to the broad phase.
+fn can_be_compound_part(shape: &SharedShape) -> bool {
+    shape.as_composite_shape().is_none() && !shape_is_halfspace(shape)
+}
+
+/// The parts `shape` contributes to a compound placed at `transform`, or `None` if it cannot be a
+/// part of one at all.
+///
+/// A 2D skew is applied by decomposing the shape into convex pieces, which comes back as a compound
+/// of its own. Nesting one compound inside another is rejected outright, so those pieces are
+/// spliced in as parts in their own right -- which keeps the object on a single compound, and the
+/// internal edge fix covering it.
+fn compound_parts_for(transform: Pose, shape: SharedShape) -> Option<Vec<(Pose, SharedShape)>> {
+    match shape.as_compound() {
+        Some(compound) => compound
+            .shapes()
+            .iter()
+            .map(|(part_transform, part)| {
+                can_be_compound_part(part).then(|| (transform * part_transform, part.clone()))
+            })
+            .collect(),
+        None => can_be_compound_part(&shape).then(|| vec![(transform, shape)]),
+    }
+}
+
 impl PhysicsEngine {
     pub fn collider_set_modify_contacts_enabled(
         &mut self,
@@ -382,17 +412,22 @@ impl PhysicsEngine {
         }
     }
 
-    /// Builds a compound from a collision object's shapes, cuts between the parts marked as
-    /// interior so nothing collides with them.
+    /// One compound holding a collision object's shapes, with the seams between them cut so nothing
+    /// collides with the object's interior.
     ///
     /// Godot decomposes a concave polygon into convex pieces and hands them over one shape at a
     /// time. Kept as separate colliders they have no idea they are neighbours, and the cuts
     /// between them collide like real surfaces.
-    fn build_compound_shape(&self, parts: &[ShapeInfo]) -> Option<SharedShape> {
+    ///
+    /// `None` means these shapes cannot share a compound -- one of them is not registered, or one
+    /// cannot be a compound part -- and the object has to stay on one collider per shape instead.
+    /// [`RapierCollisionObjectBase::wants_compound_collider`] keeps the known cases from getting
+    /// this far, so reaching `None` here is the safety net rather than the usual route.
+    pub(crate) fn try_build_compound_shape(&self, parts: &[ShapeInfo]) -> Option<SharedShape> {
         let mut compound_parts = Vec::with_capacity(parts.len());
         for part in parts {
-            let shape = self.get_shape(part.handle)?;
-            compound_parts.push((part.transform, scale_shape(shape, *part)));
+            let shape = scale_shape(self.get_shape(part.handle)?, *part);
+            compound_parts.extend(compound_parts_for(part.transform, shape)?);
         }
 
         if compound_parts.is_empty() {
@@ -415,7 +450,7 @@ impl PhysicsEngine {
         body_handle: RigidBodyHandle,
         user_data: &UserData,
     ) -> ColliderHandle {
-        let Some(shape) = self.build_compound_shape(parts) else {
+        let Some(shape) = self.try_build_compound_shape(parts) else {
             return ColliderHandle::invalid();
         };
 
@@ -454,7 +489,7 @@ impl PhysicsEngine {
         collider_handle: ColliderHandle,
         parts: &[ShapeInfo],
     ) {
-        let Some(shape) = self.build_compound_shape(parts) else {
+        let Some(shape) = self.try_build_compound_shape(parts) else {
             return;
         };
         if let Some(physics_world) = self.get_mut_world(world_handle)

@@ -496,6 +496,71 @@ impl PhysicsEngine {
 #[cfg(all(test, feature = "dim2"))]
 mod tests {
     use super::*;
+    /// A skewed shape is decomposed into convex pieces, which comes back as a compound. Those
+    /// pieces have to be spliced into the object's compound as parts of their own: nesting is
+    /// rejected, and falling back to one collider per shape would drop the internal edge fix.
+    #[test]
+    fn skewed_shape_is_flattened_into_the_compound() {
+        let mut physics_engine = PhysicsEngine::default();
+        let square = vec![
+            Vector::new(0.0, 0.0),
+            Vector::new(2.0, 0.0),
+            Vector::new(2.0, 2.0),
+            Vector::new(0.0, 2.0),
+        ];
+        assert!(physics_engine.shape_create_convex_polyline(&square, 1));
+
+        let mut info = shape_info_from_body_shape(1, Transform::IDENTITY);
+        info.skew = 0.5;
+        let skewed = crate::rapier_wrapper::collider::scale_shape(
+            physics_engine.get_shape(1).unwrap(),
+            info,
+        );
+        assert!(skewed.as_compound().is_some(), "skew produces a compound");
+
+        let built = physics_engine
+            .try_build_compound_shape(&[info, info])
+            .expect("a skewed shape must not sink the whole compound");
+        let compound = built.as_compound().expect("compound");
+        assert!(
+            compound
+                .shapes()
+                .iter()
+                .all(|(_, part)| part.as_composite_shape().is_none()),
+            "every part is flat"
+        );
+    }
+
+    /// A world boundary is a compound of one halfspace and a concave polygon is a polyline, so
+    /// both are composite. Feeding either to `Compound::new` panics with "Nested composite shapes
+    /// are not allowed", which would take the whole extension down.
+    #[test]
+    fn composite_shapes_are_recognised() {
+        let mut physics_engine = PhysicsEngine::default();
+
+        physics_engine.shape_create_halfspace(Vector::new(0.0, 1.0), 0.0, 1);
+        assert!(physics_engine.shape_is_composite(1), "world boundary");
+
+        // Built directly rather than through `shape_create_concave_polyline`, which reads a
+        // project setting and so needs a live Godot binding.
+        let segments = point_array_to_vec(&vec![
+            Vector::new(0.0, 0.0),
+            Vector::new(1.0, 0.0),
+            Vector::new(1.0, 1.0),
+        ]);
+        physics_engine.insert_shape(SharedShape::polyline(segments, None), 2);
+        assert!(physics_engine.shape_is_composite(2), "concave polygon");
+
+        let convex = vec![
+            Vector::new(0.0, 0.0),
+            Vector::new(1.0, 0.0),
+            Vector::new(1.0, 1.0),
+            Vector::new(0.0, 1.0),
+        ];
+        assert!(physics_engine.shape_create_convex_polyline(&convex, 3));
+        assert!(!physics_engine.shape_is_composite(3), "convex polygon");
+    }
+
     #[test]
     fn convex_shape_preserves_ccw_convex_polyline_points() {
         let mut physics_engine = PhysicsEngine::default();
