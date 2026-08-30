@@ -521,7 +521,7 @@ mod tests {
         let built = physics_engine
             .try_build_compound_shape(&[info, info])
             .expect("a skewed shape must not sink the whole compound");
-        let compound = built.as_compound().expect("compound");
+        let compound = built.shape.as_compound().expect("compound");
         assert!(
             compound
                 .shapes()
@@ -529,6 +529,13 @@ mod tests {
                 .all(|(_, part)| part.as_composite_shape().is_none()),
             "every part is flat"
         );
+        // Every part names the shape it came from, in order. A convex shape still decomposes into
+        // a single piece, so this happens to be one part per shape here, but the query paths must
+        // not assume that -- only the sources say which shape a part belongs to.
+        assert_eq!(built.part_sources.len(), compound.shapes().len());
+        assert!(built.part_sources.contains(&0));
+        assert!(built.part_sources.contains(&1));
+        assert!(built.part_sources.windows(2).all(|w| w[0] <= w[1]));
     }
 
     /// A world boundary is a compound of one halfspace and a concave polygon is a polyline, so

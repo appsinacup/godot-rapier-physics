@@ -160,19 +160,16 @@ impl RapierDirectSpaceStateImpl {
                 if let Some(object) = try_node_from_instance_id(instance_id) {
                     unsafe { result.set_collider(object) }
                 }
-                // TODO: re-enable together with the parry branch (see the TODO in
-                // src/rapier_wrapper/collider.rs). A compound collider names its whole object as
-                // shape 0, and only the patched parry rewrites the ray's feature id to the part
-                // that was hit. Released parry leaves the part's own face index there, so this
-                // would map an unrelated face onto a real shape index and report the wrong shape.
-                // if collision_object_2d.get_base().compound_collider
-                //     && let rapier::geometry::FeatureId::Face(part_index) = hit_info.feature
-                //     && let Some(hit_shape) = collision_object_2d
-                //         .get_base()
-                //         .shape_index_for_compound_part(part_index)
-                // {
-                //     result.shape = hit_shape as i32;
-                // }
+                // A compound collider answers for every shape it took; the ray's feature id
+                // carries which of them was actually hit.
+                if collision_object_2d.get_base().hit_is_compound(shape_index)
+                    && let rapier::geometry::FeatureId::Face(part_index) = hit_info.feature
+                    && let Some(hit_shape) = collision_object_2d
+                        .get_base()
+                        .shape_index_for_compound_part(part_index)
+                {
+                    result.shape = hit_shape as i32;
+                }
             }
             #[cfg(feature = "dim3")]
             match hit_info.feature {
@@ -252,11 +249,13 @@ impl RapierDirectSpaceStateImpl {
                 continue;
             };
             let instance_id = collision_object_2d.get_base().get_instance_id();
-            // A compound collider names its whole object as shape 0; report each shape actually
-            // containing the point instead, the way one collider per shape used to.
-            if collision_object_2d.get_base().compound_collider {
+            // A compound collider answers for every shape it took; report each of those actually
+            // containing the point instead, the way one collider per shape used to. Shapes it did
+            // not take have colliders of their own and are reported through those, so expanding
+            // only the members is what keeps them from being reported twice.
+            if collision_object_2d.get_base().hit_is_compound(shape_index) {
                 let base = collision_object_2d.get_base();
-                for (index, shape) in base.state.shapes.iter().enumerate() {
+                for (index, shape) in base.compound_shapes() {
                     if shape.disabled || output_count >= max_results {
                         continue;
                     }
@@ -358,7 +357,7 @@ impl RapierDirectSpaceStateImpl {
                 let instance_id = collision_object_2d.get_base().get_instance_id();
                 // A compound collider names its whole object as shape 0; report each touching
                 // shape instead, the way one collider per shape used to.
-                if collision_object_2d.get_base().compound_collider {
+                if collision_object_2d.get_base().hit_is_compound(shape_index) {
                     for (index, _) in compound_shape_contacts(
                         collision_object_2d.get_base(),
                         shape_info,
@@ -627,7 +626,7 @@ impl RapierDirectSpaceStateImpl {
             r_info.shape = shape_index as i32;
             // A compound collider names its whole object as shape 0; the deepest of its shapes'
             // own contacts is the one this rest info describes.
-            if collision_object_2d.get_base().compound_collider {
+            if collision_object_2d.get_base().hit_is_compound(shape_index) {
                 let deepest = compound_shape_contacts(
                     collision_object_2d.get_base(),
                     shape_info,
@@ -657,7 +656,7 @@ fn compound_shape_contacts(
     physics_engine: &PhysicsEngine,
 ) -> Vec<(usize, ContactResult)> {
     let mut contacts = Vec::new();
-    for (index, shape) in object.state.shapes.iter().enumerate() {
+    for (index, shape) in object.compound_shapes() {
         if shape.disabled {
             continue;
         }

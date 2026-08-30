@@ -620,8 +620,7 @@ dependencies = [
 [[package]]
 name = "parry2d"
 version = "0.30.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b7637d1087885e0bd9421938e79b66b4eb2e08afcb0c717a312ed917daefa528"
+source = "git+https://github.com/Ughuuu/parry?branch=compound-pseudo-normal#1279005d2c184eb4a90b42f4edca20dcd017fb14"
 dependencies = [
  "approx",
  "arrayvec",
@@ -650,8 +649,7 @@ dependencies = [
 [[package]]
 name = "parry2d-f64"
 version = "0.30.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cc4dc9d407475690de5f87740b33254163d11e98df650690d8ae6ce690c42fc2"
+source = "git+https://github.com/Ughuuu/parry?branch=compound-pseudo-normal#1279005d2c184eb4a90b42f4edca20dcd017fb14"
 dependencies = [
  "approx",
  "arrayvec",
@@ -680,8 +678,7 @@ dependencies = [
 [[package]]
 name = "parry3d"
 version = "0.30.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "01b00bf3ea4e0961a3f44aeb666b7dc3b0e87027b629561bd8283a7f6b2e2ed1"
+source = "git+https://github.com/Ughuuu/parry?branch=compound-pseudo-normal#1279005d2c184eb4a90b42f4edca20dcd017fb14"
 dependencies = [
  "approx",
  "arrayvec",
@@ -712,8 +709,7 @@ dependencies = [
 [[package]]
 name = "parry3d-f64"
 version = "0.30.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8c5f71cd1d7f0c475116a52c61baa8d0de69fc258bc4debf86cb4c4ca8f35f3f"
+source = "git+https://github.com/Ughuuu/parry?branch=compound-pseudo-normal#1279005d2c184eb4a90b42f4edca20dcd017fb14"
 dependencies = [
  "approx",
  "arrayvec",

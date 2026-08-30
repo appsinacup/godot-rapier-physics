@@ -1015,9 +1015,9 @@ impl RapierPhysicsServerImpl {
                 margin,
                 direction,
             );
-            // One-way filtering is per shape, which a compound collider cannot express, so
-            // gaining or losing it can change which layout the shapes belong in.
-            if body.get_base().compound_collider
+            // One-way filtering is per shape, which a compound collider cannot express, so gaining
+            // or losing it moves the shape into or out of the compound.
+            if body.get_base().is_compound()
                 != body
                     .get_base()
                     .wants_compound_collider(&physics_data.physics_engine)

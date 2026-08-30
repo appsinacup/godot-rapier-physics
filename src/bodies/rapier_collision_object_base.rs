@@ -96,9 +96,18 @@ pub struct RapierCollisionObjectBase {
     pub(crate) activation_angular_threshold: real,
     pub(crate) activation_linear_threshold: real,
     pub(crate) activation_time_until_sleep: real,
-    /// Whether the object's shapes currently live in one compound collider, held by the first
-    /// enabled shape, instead of one collider each.
-    pub(crate) compound_collider: bool,
+    /// The shape holding the object's compound collider, when it has one.
+    ///
+    /// Shapes that are not compound parts keep colliders of their own alongside it, so the
+    /// compound cannot be found by looking for the first valid handle -- this names it.
+    compound_anchor: Option<usize>,
+    /// The shapes gathered into that compound, in the order they were built.
+    compound_members: Vec<usize>,
+    /// For each part of that compound, the index of the shape it was built from.
+    ///
+    /// Not one part per shape: a skew is applied by decomposing the shape, and those pieces are
+    /// spliced in individually.
+    compound_part_shapes: Vec<usize>,
 }
 impl Default for RapierCollisionObjectBase {
     fn default() -> Self {
@@ -151,7 +160,9 @@ impl RapierCollisionObjectBase {
             activation_angular_threshold,
             activation_linear_threshold,
             activation_time_until_sleep,
-            compound_collider: false,
+            compound_anchor: None,
+            compound_members: Vec::new(),
+            compound_part_shapes: Vec::new(),
         }
     }
 
@@ -191,34 +202,77 @@ impl RapierCollisionObjectBase {
     /// subshape rather than by collider, which per-shape one-way filtering and sensor events
     /// cannot express.
     ///
-    /// Shapes that cannot be a compound part -- concave polygons, heightmaps, world boundaries --
-    /// are excluded too. A compound cannot nest them, and they are already one collider covering
-    /// many pieces, which is what the compound exists to achieve.
+    /// Shapes the compound cannot speak for are left out of it and keep a collider each, while the
+    /// rest still gather into one -- so a single such shape no longer costs every other shape the
+    /// seam fix.
     pub(crate) fn wants_compound_collider(&self, physics_engine: &PhysicsEngine) -> bool {
         self.collision_object_type == CollisionObjectType::Body
             && self.mode == BodyMode::STATIC
-            && self.state.shapes.iter().filter(|s| !s.disabled).count() > 1
-            && !self
-                .state
-                .shapes
-                .iter()
-                .any(|s| s.one_way_collision && !s.disabled)
-            && self
-                .state
-                .shapes
-                .iter()
-                .filter(|s| !s.disabled)
-                .all(|s| shape_can_be_compound_part(physics_engine, s.id))
+            && self.compound_candidates(physics_engine).count() > 1
     }
 
-    /// The enabled shapes as compound parts, with the object's scale baked in the way
-    /// [`Self::update_shape_transform`] bakes it into a standalone collider.
-    fn compound_parts(&self) -> Vec<ShapeInfo> {
-        let scale = transform_scale(&self.state.transform);
+    /// The shapes that would go into the object's compound, in index order.
+    ///
+    /// Left out are shapes that cannot legally be a compound part -- concave polygons, heightmaps,
+    /// world boundaries -- and one-way shapes. One-way filtering is answered per collider, from the
+    /// shape index in its user data, and a compound reports one index for every part it holds, so a
+    /// one-way shape has to keep a collider of its own to stay one-way.
+    ///
+    /// Only meaningful together with the rest of [`Self::wants_compound_collider`]; on its own it
+    /// says nothing about whether the object should have a compound at all.
+    fn compound_candidates<'a>(
+        &'a self,
+        physics_engine: &'a PhysicsEngine,
+    ) -> impl Iterator<Item = usize> + 'a {
         self.state
             .shapes
             .iter()
-            .filter(|shape| !shape.disabled)
+            .enumerate()
+            .filter(|(_, shape)| !shape.disabled && !shape.one_way_collision)
+            .filter(move |(_, shape)| shape_can_be_compound_part(physics_engine, shape.id))
+            .map(|(index, _)| index)
+    }
+
+    /// Whether the object currently holds a compound collider.
+    pub(crate) fn is_compound(&self) -> bool {
+        self.compound_anchor.is_some()
+    }
+
+    /// Whether a collider reporting `shape_index` is the object's compound rather than one of the
+    /// shapes keeping a collider of its own.
+    pub(crate) fn hit_is_compound(&self, shape_index: usize) -> bool {
+        self.compound_anchor == Some(shape_index)
+    }
+
+    /// The shapes gathered into the compound, which a hit on it stands for.
+    pub(crate) fn compound_member_indices(&self) -> &[usize] {
+        &self.compound_members
+    }
+
+    /// The shapes the compound took, with their indices.
+    pub(crate) fn compound_shapes(&self) -> impl Iterator<Item = (usize, &CollisionObjectShape)> {
+        self.compound_members
+            .iter()
+            .filter_map(|&index| self.state.shapes.get(index).map(|shape| (index, shape)))
+    }
+
+    /// Whether the shape is one the compound took, rather than one keeping its own collider.
+    pub(crate) fn is_compound_member(&self, shape_index: usize) -> bool {
+        self.compound_members.contains(&shape_index)
+    }
+
+    /// The shape holding the compound collider.
+    pub(super) fn compound_anchor_index(&self) -> Option<usize> {
+        self.compound_anchor
+    }
+
+    /// The member shapes as compound parts, with the object's scale baked in the way
+    /// [`Self::update_shape_transform`] bakes it into a standalone collider.
+    fn compound_parts(&self) -> Vec<ShapeInfo> {
+        let scale = transform_scale(&self.state.transform);
+        self.compound_members
+            .iter()
+            .filter_map(|&index| self.state.shapes.get(index))
             .map(|shape| {
                 let mut info = shape_info_from_body_shape(shape.id, shape.xform);
                 info.scale = vector_to_rapier(vector_to_godot(info.scale) * scale);
@@ -228,58 +282,74 @@ impl RapierCollisionObjectBase {
             .collect()
     }
 
+    /// Gathers the object's eligible shapes into one compound collider, leaving the rest to keep a
+    /// collider each.
+    ///
+    /// The handle is reported so the caller can park it on the anchor shape; an invalid one means
+    /// the compound was refused and every shape has to go back to a collider of its own.
     pub(super) fn create_compound_collider(
-        &self,
+        &mut self,
         mat: Material,
         physics_engine: &mut PhysicsEngine,
     ) -> ColliderHandle {
+        self.compound_members = self.compound_candidates(physics_engine).collect();
+        let Some(&anchor) = self.compound_members.first() else {
+            return ColliderHandle::invalid();
+        };
         if !self.is_valid() {
             return ColliderHandle::invalid();
         }
         let mut user_data = UserData::default();
-        self.set_collider_user_data(&mut user_data, 0);
-        physics_engine.collider_create_solid_compound(
+        self.set_collider_user_data(&mut user_data, anchor);
+        let (handle, part_sources) = physics_engine.collider_create_solid_compound(
             self.state.space_id,
             &self.compound_parts(),
             &mat,
             self.state.body_handle,
             &user_data,
-        )
+        );
+        self.compound_anchor = (handle != ColliderHandle::invalid()).then_some(anchor);
+        self.set_compound_part_shapes(part_sources);
+        handle
+    }
+
+    /// Forgets the compound, so the object is back to a collider per shape.
+    pub(super) fn clear_compound(&mut self) {
+        self.compound_anchor = None;
+        self.compound_members.clear();
+        self.compound_part_shapes.clear();
+    }
+
+    /// Records which shape each compound part came from, translating the part sources -- which
+    /// index the members in order -- into indices into all of the object's shapes.
+    fn set_compound_part_shapes(&mut self, part_sources: Vec<usize>) {
+        self.compound_part_shapes = part_sources
+            .into_iter()
+            .filter_map(|source| self.compound_members.get(source).copied())
+            .collect();
     }
 
     /// Rebuilds the compound collider's shape in place, keeping the collider -- and every contact
     /// pair referencing it -- alive, so no exit and enter events fire for a geometry edit.
-    pub(super) fn update_compound_collider(&self, physics_engine: &mut PhysicsEngine) {
-        physics_engine.collider_update_solid_compound(
+    pub(super) fn update_compound_collider(&mut self, physics_engine: &mut PhysicsEngine) {
+        let part_sources = physics_engine.collider_update_solid_compound(
             self.state.space_id,
             self.compound_collider_handle(),
             &self.compound_parts(),
         );
+        self.set_compound_part_shapes(part_sources);
     }
 
-    /// The shape index behind a compound part, inverting the enabled-shapes-in-order mapping
-    /// [`Self::compound_parts`] builds the compound with.
-    // Its only caller is the ray path in rapier_direct_space_state_impl.rs, disabled until the
-    // parry branch lands. `expect` rather than `allow` so re-enabling that caller fails the build
-    // here and this attribute gets removed with it.
-    #[expect(dead_code)]
+    /// The shape a compound part was built from.
     pub(crate) fn shape_index_for_compound_part(&self, part_index: u32) -> Option<usize> {
-        self.state
-            .shapes
-            .iter()
-            .enumerate()
-            .filter(|(_, shape)| !shape.disabled)
-            .nth(part_index as usize)
-            .map(|(index, _)| index)
+        self.compound_part_shapes.get(part_index as usize).copied()
     }
 
     /// The collider holding the whole object while it is a compound.
     fn compound_collider_handle(&self) -> ColliderHandle {
-        self.state
-            .shapes
-            .iter()
+        self.compound_anchor
+            .and_then(|anchor| self.state.shapes.get(anchor))
             .map(|shape| shape.collider_handle)
-            .find(|handle| *handle != ColliderHandle::invalid())
             .unwrap_or(ColliderHandle::invalid())
     }
 
@@ -349,14 +419,15 @@ impl RapierCollisionObjectBase {
     }
 
     pub(super) fn update_shape_transform(
-        &self,
-        shape: &CollisionObjectShape,
+        &mut self,
+        shape_index: usize,
+        shape: CollisionObjectShape,
         physics_engine: &mut PhysicsEngine,
     ) {
         // A compound bakes every shape's transform into the one collider, so a single shape moving
         // means rebuilding it -- pushing this shape's transform onto the collider would replace
         // the whole compound with just this shape.
-        if self.compound_collider {
+        if self.is_compound() && self.compound_members.contains(&shape_index) {
             self.update_compound_collider(physics_engine);
             return;
         }
@@ -562,7 +633,7 @@ impl RapierCollisionObjectBase {
         if transform_scale(&self.state.transform) != old_scale {
             for i in 0..self.state.shapes.len() {
                 let shape = self.state.shapes[i];
-                self.update_shape_transform(&shape, physics_engine);
+                self.update_shape_transform(i, shape, physics_engine);
             }
         }
     }

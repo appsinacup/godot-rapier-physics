@@ -1304,18 +1304,12 @@ impl PhysicsEngine {
 }
 /// The shape indices of `object` a motion query has to test, given the index a collider reported.
 ///
-/// A compound collider carries every shape of its object but reports all of them as the first
-/// one, so each shape has to be tested individually.
+/// A compound collider carries several of its object's shapes but reports them all as one, so each
+/// has to be tested individually. Shapes the compound did not take report through colliders of
+/// their own and stand for themselves.
 fn reported_shape_indices(object: &RapierCollisionObjectBase, reported: usize) -> Vec<usize> {
-    if object.compound_collider {
-        return object
-            .state
-            .shapes
-            .iter()
-            .enumerate()
-            .filter(|(_, shape)| !shape.disabled)
-            .map(|(index, _)| index)
-            .collect();
+    if object.hit_is_compound(reported) {
+        return object.compound_member_indices().to_vec();
     }
     vec![reported]
 }
