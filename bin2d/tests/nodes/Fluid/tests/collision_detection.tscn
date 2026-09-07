@@ -1,0 +1,41 @@
+[gd_scene format=3 uid="uid://b48od3a28mtso"]
+
+[ext_resource type="Script" uid="uid://bhpw1px0wrsqc" path="res://tests/nodes/Fluid/tests/collision_detection.gd" id="1_jxqib"]
+[ext_resource type="Script" uid="uid://d4kq5akkly15i" path="res://addons/godot-rapier2d/faucet_2d.gd" id="2_ax2x2"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_g4v7s"]
+size = Vector2(527.4369, 37.696136)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_4vc0j"]
+size = Vector2(323.80255, 48.414963)
+
+[node name="collision_detection" type="Node2D" unique_id=1783469513]
+script = ExtResource("1_jxqib")
+
+[node name="Faucet2D" type="Fluid2D" parent="." unique_id=416621925]
+debug_draw = true
+position = Vector2(571, 217)
+script = ExtResource("2_ax2x2")
+width = 1
+height = 1
+metadata/_custom_type_script = "uid://d4kq5akkly15i"
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=840902403]
+position = Vector2(578, 325)
+
+[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=85177313]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D" unique_id=337185651]
+unique_name_in_owner = true
+position = Vector2(580.4487, 454.78088)
+shape = SubResource("RectangleShape2D_g4v7s")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="StaticBody2D" unique_id=312446084]
+position = Vector2(267, 318)
+rotation = 1.1059654
+shape = SubResource("RectangleShape2D_4vc0j")
+
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="StaticBody2D" unique_id=1667487283]
+position = Vector2(908.4487, 326.78088)
+rotation = -0.9804168
+shape = SubResource("RectangleShape2D_4vc0j")
