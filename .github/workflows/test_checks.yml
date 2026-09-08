@@ -70,16 +70,18 @@ jobs:
           esac
 
       - name: Run Godot Test Suite
-        continue-on-error: true
         shell: bash
         run: |
           set +e
           set -o pipefail
           "$GODOT4" --headless --path ./bin${{ matrix.dimensions.short }} --import 2>&1 | tee godot-import-${{ matrix.dimensions.short }}.log
           import_status=${PIPESTATUS[0]}
+          # Godot has aborted while shutting down after a headless import on the Linux runner, long
+          # after the import itself finished. Importing is only a prerequisite here, so its exit
+          # status is reported and then dropped: an import that really failed shows up as a failing
+          # test run below, which is what this job gates on.
           if [ "$import_status" -ne 0 ]; then
-            echo "Godot ${{ matrix.dimensions.name }} import failed with status ${import_status}"
-            exit "$import_status"
+            echo "::warning::Godot ${{ matrix.dimensions.name }} import exited with status ${import_status}; running the tests anyway"
           fi
 
           "$GODOT4" --headless --path ./bin${{ matrix.dimensions.short }} start.tscn 2>&1 | tee godot-tests-${{ matrix.dimensions.short }}.log

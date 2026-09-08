@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tests/nodes/CollisionShape/tests/2d/compound_grows_with_shapes.gd" id="1_cgws2d"]
+
+[node name="compound_grows_with_shapes" type="Node2D"]
+script = ExtResource("1_cgws2d")

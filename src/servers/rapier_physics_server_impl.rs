@@ -1017,10 +1017,9 @@ impl RapierPhysicsServerImpl {
             );
             // One-way filtering is per shape, which a compound collider cannot express, so gaining
             // or losing it moves the shape into or out of the compound.
-            if body.get_base().is_compound()
-                != body
-                    .get_base()
-                    .wants_compound_collider(&physics_data.physics_engine)
+            if !body
+                .get_base()
+                .compound_is_current(&physics_data.physics_engine)
             {
                 body.recreate_shapes(
                     &mut physics_data.physics_engine,

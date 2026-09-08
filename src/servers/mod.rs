@@ -3,7 +3,8 @@ use godot::prelude::*;
 
 use crate::servers::rapier_project_settings::RapierProjectSettings;
 use crate::types::PhysicsServer;
-const PLUGIN_VERSION: &str = env!("CARGO_PKG_VERSION");
+/// The plugin version, as printed on startup and reported by the server's `get_version`.
+pub(crate) const PLUGIN_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub mod rapier_math;
 #[cfg(feature = "dim2")]
 pub mod rapier_physics_server_2d;

@@ -238,6 +238,23 @@ impl RapierCollisionObjectBase {
         self.compound_anchor.is_some()
     }
 
+    /// Whether the colliders the object holds are the ones its shapes now call for.
+    ///
+    /// A compound can only be rebuilt in place while it still holds exactly the shapes it would be
+    /// built from now. Swapping its shape says nothing about which shapes keep a collider of their
+    /// own or which one anchors the compound, so a membership that has moved on -- a shape added,
+    /// removed, disabled, or turned one-way -- has to go through a full rebuild instead, or the
+    /// shapes the compound no longer speaks for end up with no collider at all.
+    pub(crate) fn compound_is_current(&self, physics_engine: &PhysicsEngine) -> bool {
+        if !self.is_compound() {
+            return !self.wants_compound_collider(physics_engine);
+        }
+        self.wants_compound_collider(physics_engine)
+            && self
+                .compound_candidates(physics_engine)
+                .eq(self.compound_members.iter().copied())
+    }
+
     /// Whether a collider reporting `shape_index` is the object's compound rather than one of the
     /// shapes keeping a collider of its own.
     pub(crate) fn hit_is_compound(&self, shape_index: usize) -> bool {
