@@ -5,9 +5,5 @@
         "single-dim2",
         "serde-serialize",
         "test"
-    ],
-    "rust-analyzer.check.overrideCommand": [
-        "./scripts/check.sh",
-        "--message-format=json"
     ]
 }
