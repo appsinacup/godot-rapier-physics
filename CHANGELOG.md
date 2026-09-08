@@ -4,6 +4,13 @@
 
 ## v0.35.3
 
+## What's Changed
+* Fixes to area vs area. Ghost collision fix for compound shape. and other fixes. by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/620
+* Fix compond nested colliders by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/623
+
+
+**Full Changelog**: https://github.com/appsinacup/godot-rapier-physics/compare/v0.35.2...v0.35.3
+
 ## v0.35.2
 
 ## What's Changed
