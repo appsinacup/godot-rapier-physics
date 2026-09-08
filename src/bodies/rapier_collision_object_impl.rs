@@ -22,11 +22,11 @@ impl RapierCollisionObjectBase {
     ) {
         {
             if collision_object.get_base().is_compound() {
-                // Still compound after the edit: swap the shape in place so the collider, and
-                // every contact pair referencing it, survives.
+                // Holding the same shapes after the edit: swap the shape in place so the collider,
+                // and every contact pair referencing it, survives.
                 if collision_object
                     .get_base()
-                    .wants_compound_collider(physics_engine)
+                    .compound_is_current(physics_engine)
                 {
                     collision_object
                         .get_mut_base()
@@ -170,14 +170,13 @@ impl RapierCollisionObjectBase {
                 .get_mut_base()
                 .add_owner(collision_object.get_base().get_id());
         }
-        // The shape that tips the object past one is what turns it into a compound; from then on
-        // new shapes join the compound directly instead of getting a collider of their own.
-        let joins_compound = collision_object.get_base().is_compound()
-            || collision_object
-                .get_base()
-                .wants_compound_collider(physics_engine);
-        if joins_compound {
-            #[cfg(feature = "dim2")]
+        // The shape that tips the object past one is what turns it into a compound, and from then
+        // on every further shape the compound can speak for joins it rather than getting a collider
+        // of its own -- both of which mean rebuilding it around the new membership.
+        if !collision_object
+            .get_base()
+            .compound_is_current(physics_engine)
+        {
             Self::recreate_shapes(
                 collision_object,
                 physics_engine,
@@ -406,11 +405,12 @@ impl RapierCollisionObjectBase {
             return;
         }
         collision_object.get_mut_base().state.shapes[p_index].disabled = p_disabled;
-        // Toggling a shape can also flip the whole object into or out of compound form.
-        if collision_object.get_base().is_compound()
-            || collision_object
-                .get_base()
-                .wants_compound_collider(physics_engine)
+        // Toggling a shape the compound speaks for changes what it holds, and can flip the whole
+        // object into or out of compound form. A shape that keeps a collider of its own is left to
+        // the per-shape path below, which is the only one that can destroy or rebuild that collider.
+        if !collision_object
+            .get_base()
+            .compound_is_current(physics_engine)
         {
             Self::recreate_shapes(
                 collision_object,

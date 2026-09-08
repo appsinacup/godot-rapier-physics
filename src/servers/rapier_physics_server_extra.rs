@@ -897,6 +897,14 @@ macro_rules! make_rapier_server_godot_impl {
             }
 
             #[func]
+            /// Get the version of the plugin, the one printed on startup (eg. `"0.35.2"`).
+            /// Answered without going through the physics server, so it reads the same whether or
+            /// not Rapier is the engine the project is set to use.
+            fn get_version() -> GString {
+                GString::from($crate::servers::PLUGIN_VERSION)
+            }
+
+            #[func]
             /// Get the stats of the physics server.
             fn get_stats() -> VarDictionary {
                 let mut dictionary = VarDictionary::new();
