@@ -248,6 +248,30 @@ fn shape_is_halfspace(shape: &SharedShape) -> bool {
     }
     shape.shape_type() == ShapeType::HalfSpace
 }
+/// Couples a solid collider to the fluid solver, so fluid particles see it as a boundary.
+///
+/// Every solid collider needs this, whether it holds one shape of a collision object or all of them
+/// gathered into a compound: a collider the fluids pipeline has no boundary for is one that fluid
+/// flows straight through.
+fn register_fluid_boundary(
+    physics_world: &mut crate::rapier_wrapper::physics_world::PhysicsWorld,
+    collider_handle: ColliderHandle,
+    mat: &Material,
+) {
+    let interaction_groups = salva::object::interaction_groups::InteractionGroups {
+        memberships: mat.collision_layer.into(),
+        filter: mat.collision_mask.into(),
+    };
+    let boundary_handle = physics_world
+        .fluids_pipeline
+        .liquid_world
+        .add_boundary(Boundary::new(Vec::new(), interaction_groups));
+    physics_world.fluids_pipeline.coupling.register_coupling(
+        boundary_handle,
+        collider_handle,
+        ColliderSampling::DynamicContactSampling,
+    );
+}
 /// Whether a shape can sit directly inside a compound.
 ///
 /// `Compound::new` panics on a composite part rather than reporting an error, and a panic there
@@ -400,19 +424,7 @@ impl PhysicsEngine {
                 let collider_handle = physics_world.insert_collider(collider, body_handle);
                 // register fluid coupling. Dynamic coupling doens't work for halfspace
                 if !is_shape_halfspace {
-                    let interaction_groups = salva::object::interaction_groups::InteractionGroups {
-                        memberships: mat.collision_layer.into(),
-                        filter: mat.collision_mask.into(),
-                    };
-                    let boundary_handle = physics_world
-                        .fluids_pipeline
-                        .liquid_world
-                        .add_boundary(Boundary::new(Vec::new(), interaction_groups));
-                    physics_world.fluids_pipeline.coupling.register_coupling(
-                        boundary_handle,
-                        collider_handle,
-                        ColliderSampling::DynamicContactSampling,
-                    );
+                    register_fluid_boundary(physics_world, collider_handle, mat);
                 }
                 return collider_handle;
             }
@@ -503,10 +515,12 @@ impl PhysicsEngine {
         collider.user_data = user_data.get_data();
 
         if let Some(physics_world) = self.get_mut_world(world_handle) {
-            return (
-                physics_world.insert_collider(collider, body_handle),
-                built.part_sources,
-            );
+            let collider_handle = physics_world.insert_collider(collider, body_handle);
+            // A compound never holds a halfspace -- `can_be_compound_part` refuses one -- so unlike
+            // a standalone collider there is no case here that dynamic contact sampling cannot
+            // handle.
+            register_fluid_boundary(physics_world, collider_handle, mat);
+            return (collider_handle, built.part_sources);
         }
         (ColliderHandle::invalid(), Vec::new())
     }
