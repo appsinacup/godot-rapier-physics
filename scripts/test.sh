@@ -7,10 +7,12 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     # Linux: Use the 'godot' command assuming it's in the PATH or defined by an alias
     GODOT="godot"
+elif [[ "$OSTYPE" == "cygwin" ]]; then
+    GODOT="godot"
 else
     echo "Unsupported OS: $OSTYPE"
     exit 1
 fi
 
 # Run the 2D regression test runner. The scene exits with a non-zero status on regressions.
-"$GODOT" --headless --path ./bin2d start.tscn
+"$GODOT" --headless --path ./bin2d --scene start.tscn
