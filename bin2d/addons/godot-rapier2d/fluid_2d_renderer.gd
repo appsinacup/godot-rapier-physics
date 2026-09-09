@@ -20,12 +20,10 @@ func _process(_delta):
 	if fluid == null:
 		return
 	global_transform = fluid.global_transform
-	var index = 0
 	multimesh.instance_count = fluid.points.size()
 	var points = fluid.points
 	for i in points.size():
 		var point = points[i]
 		var new_transform: Transform2D = Transform2D(0, mesh_scale, 0, point)
-		multimesh.set_instance_transform_2d(index, new_transform)
-		multimesh.set_instance_color(index, color)
-		index += 1
+		multimesh.set_instance_transform_2d(i, new_transform)
+		multimesh.set_instance_color(i, color)
