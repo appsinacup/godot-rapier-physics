@@ -1,0 +1,82 @@
+[gd_scene format=3 uid="uid://bdd8f5nlc0yyg"]
+
+[ext_resource type="Script" uid="uid://d4kq5akkly15i" path="res://addons/godot-rapier2d/faucet_2d.gd" id="1_pwuan"]
+[ext_resource type="Script" uid="uid://qo8bibm1ntwf" path="res://addons/godot-rapier2d/fluid_2d_shader_renderer.gd" id="2_0joeu"]
+[ext_resource type="Material" uid="uid://cysnk7s2ll173" path="res://addons/godot-rapier2d/water_shader.tres" id="3_ons4d"]
+
+[sub_resource type="Curve2D" id="Curve2D_pwuan"]
+_data = {
+"points": PackedVector2Array(-94.317924, -315.10764, 94.317924, 315.10764, -12, 32, -848.8613, -8.574357, 848.8613, 8.574357, 1292, 685)
+}
+point_count = 2
+
+[sub_resource type="Animation" id="Animation_0joeu"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Path2D/PathFollow2D:progress_ratio")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+
+[sub_resource type="Animation" id="Animation_ons4d"]
+resource_name = "move_camera"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Path2D/PathFollow2D:progress_ratio")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 1.0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_dtniq"]
+_data = {
+&"RESET": SubResource("Animation_0joeu"),
+&"move_camera": SubResource("Animation_ons4d")
+}
+
+[node name="FluidShader" type="Node2D" unique_id=1736580555]
+
+[node name="Faucet2D" type="Fluid2D" parent="." unique_id=801520235]
+lifetime = 10.0
+script = ExtResource("1_pwuan")
+width = 2
+metadata/_custom_type_script = "uid://d4kq5akkly15i"
+
+[node name="Path2D" type="Path2D" parent="." unique_id=455099448]
+curve = SubResource("Curve2D_pwuan")
+
+[node name="PathFollow2D" type="PathFollow2D" parent="Path2D" unique_id=1343695824]
+position = Vector2(-12, 32)
+rotation = 1.2799637
+
+[node name="Camera2D" type="Camera2D" parent="Path2D/PathFollow2D" unique_id=1560066805]
+
+[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=1666024307]
+position = Vector2(88, 314)
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=561012141]
+polygon = PackedVector2Array(-108, 95, -19, 353, 275, 571, 720, 695, 903, 706, 903, 1061, -278, 1061, -278, -99, -126, -99)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=12913154]
+libraries/ = SubResource("AnimationLibrary_dtniq")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1113217376 node_paths=PackedStringArray("fluid", "camera")]
+script = ExtResource("2_0joeu")
+fluid = NodePath("../Faucet2D")
+camera = NodePath("../Path2D/PathFollow2D/Camera2D")
+water_material = ExtResource("3_ons4d")
+
+[connection signal="animation_finished" from="AnimationPlayer" to="AnimationPlayer" method="play" unbinds=1 binds= [&"move_camera"]]
+[connection signal="ready" from="AnimationPlayer" to="AnimationPlayer" method="play" binds= [&"move_camera"]]

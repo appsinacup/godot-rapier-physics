@@ -73,14 +73,14 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	if camera != null:
+		var viewport_size = get_viewport().get_visible_rect().size
 		inside_camera.offset = camera.offset
 		inside_camera.zoom = camera.zoom
-		inside_camera.transform = camera.transform
+		inside_camera.transform = camera.global_transform
 		sub_viewport_container.scale = Vector2(1.0 / camera.zoom.x, 1.0 / camera.zoom.y)
-		sub_viewport_container.position = camera.global_position
-		sub_viewport.size = sub_viewport_container.size
-		if camera.anchor_mode == Camera2D.AnchorMode.ANCHOR_MODE_FIXED_TOP_LEFT:
-			sub_viewport_container.position -= sub_viewport_container.size / 2
+		sub_viewport_container.position = Vector2.ZERO
+		sub_viewport_container.size = viewport_size
+		sub_viewport.size = viewport_size
 		if !camera.ignore_rotation:
 			sub_viewport_container.rotation = camera.global_rotation
 		else:
