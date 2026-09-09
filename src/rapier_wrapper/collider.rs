@@ -474,7 +474,7 @@ impl PhysicsEngine {
         }
 
         let mut compound = rapier::parry::shape::Compound::new(compound_parts);
-        compound.set_flags(rapier::parry::shape::CompoundFlags::FIX_INTERNAL_EDGES);
+        compound.set_flags(rapier::parry::shape::CompoundFlags::FIX_INTERNAL_EDGES, None);
         Some(CompoundShape {
             shape: SharedShape::new(compound),
             part_sources,

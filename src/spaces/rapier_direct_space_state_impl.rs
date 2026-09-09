@@ -160,13 +160,16 @@ impl RapierDirectSpaceStateImpl {
                 if let Some(object) = try_node_from_instance_id(instance_id) {
                     unsafe { result.set_collider(object) }
                 }
-                // A compound collider answers for every shape it took; the ray's feature id
-                // carries which of them was actually hit.
+                // A compound collider answers for every shape it took; the ray hits one of them,
+                // and only casting against each says which.
                 if collision_object_2d.get_base().hit_is_compound(shape_index)
-                    && let rapier::geometry::FeatureId::Face(part_index) = hit_info.feature
-                    && let Some(hit_shape) = collision_object_2d
-                        .get_base()
-                        .shape_index_for_compound_part(part_index)
+                    && let Some(hit_shape) = compound_shape_hit_by_ray(
+                        collision_object_2d.get_base(),
+                        from,
+                        dir,
+                        vector_length(end),
+                        &physics_data.physics_engine,
+                    )
                 {
                     result.shape = hit_shape as i32;
                 }
@@ -644,6 +647,37 @@ impl RapierDirectSpaceStateImpl {
         }
         false
     }
+}
+
+/// The shape of a compound object the ray reaches first, by index.
+///
+/// A compound collider reports its whole object under one shape index, and the queries that go
+/// through it report the compound's own features rather than which part answered, so the shapes are
+/// cast against individually here.
+fn compound_shape_hit_by_ray(
+    object: &crate::bodies::rapier_collision_object_base::RapierCollisionObjectBase,
+    from: Vector,
+    dir: Vector,
+    length: real,
+    physics_engine: &PhysicsEngine,
+) -> Option<usize> {
+    let from = vector_to_rapier(from);
+    let dir = vector_to_rapier(dir);
+    let mut nearest: Option<(usize, rapier::math::Real)> = None;
+    for (index, shape) in object.compound_shapes() {
+        if shape.disabled {
+            continue;
+        }
+        let shape_transform = object.get_transform() * object.get_shape_transform(index);
+        let shape_info = shape_info_from_body_shape(shape.id, shape_transform);
+        let Some(toi) = physics_engine.shape_cast_ray(shape_info, from, dir, length) else {
+            continue;
+        };
+        if nearest.is_none_or(|(_, best)| toi < best) {
+            nearest = Some((index, toi));
+        }
+    }
+    nearest.map(|(index, _)| index)
 }
 
 /// The enabled shapes of a compound object that `query_shape_info` touches, as

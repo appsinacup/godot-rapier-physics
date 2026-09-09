@@ -620,7 +620,7 @@ dependencies = [
 [[package]]
 name = "parry2d"
 version = "0.30.2"
-source = "git+https://github.com/Ughuuu/parry?branch=compound-pseudo-normal#1279005d2c184eb4a90b42f4edca20dcd017fb14"
+source = "git+https://github.com/dimforge/parry?rev=3609fcc6bffecbc9ae7d865603e79645f8654c96#3609fcc6bffecbc9ae7d865603e79645f8654c96"
 dependencies = [
  "approx",
  "arrayvec",
@@ -649,7 +649,7 @@ dependencies = [
 [[package]]
 name = "parry2d-f64"
 version = "0.30.2"
-source = "git+https://github.com/Ughuuu/parry?branch=compound-pseudo-normal#1279005d2c184eb4a90b42f4edca20dcd017fb14"
+source = "git+https://github.com/dimforge/parry?rev=3609fcc6bffecbc9ae7d865603e79645f8654c96#3609fcc6bffecbc9ae7d865603e79645f8654c96"
 dependencies = [
  "approx",
  "arrayvec",
@@ -678,7 +678,7 @@ dependencies = [
 [[package]]
 name = "parry3d"
 version = "0.30.2"
-source = "git+https://github.com/Ughuuu/parry?branch=compound-pseudo-normal#1279005d2c184eb4a90b42f4edca20dcd017fb14"
+source = "git+https://github.com/dimforge/parry?rev=3609fcc6bffecbc9ae7d865603e79645f8654c96#3609fcc6bffecbc9ae7d865603e79645f8654c96"
 dependencies = [
  "approx",
  "arrayvec",
@@ -709,7 +709,7 @@ dependencies = [
 [[package]]
 name = "parry3d-f64"
 version = "0.30.2"
-source = "git+https://github.com/Ughuuu/parry?branch=compound-pseudo-normal#1279005d2c184eb4a90b42f4edca20dcd017fb14"
+source = "git+https://github.com/dimforge/parry?rev=3609fcc6bffecbc9ae7d865603e79645f8654c96#3609fcc6bffecbc9ae7d865603e79645f8654c96"
 dependencies = [
  "approx",
  "arrayvec",
@@ -781,9 +781,9 @@ dependencies = [
 
 [[package]]
 name = "rapier2d"
-version = "0.35.1"
+version = "0.35.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "74bfd393193e08a812ba0c83c7c844dff29979fd30f96de2854cdea507350065"
+checksum = "7da2cd77e3c7385ae61bac2357edd4e4775a149c8610fda2c7fc4477cabe0487"
 dependencies = [
  "approx",
  "arrayvec",
@@ -805,9 +805,9 @@ dependencies = [
 
 [[package]]
 name = "rapier2d-f64"
-version = "0.35.1"
+version = "0.35.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a6ec50134c2d52265d34bae2a657d450c7bf0501f3e0e1b983abf0046eec77da"
+checksum = "60d083d6e7bebb42db54d1a82c2e8db19c7adffbe6bf2bf0c8ebfb4cde78bae0"
 dependencies = [
  "approx",
  "arrayvec",
@@ -828,9 +828,9 @@ dependencies = [
 
 [[package]]
 name = "rapier3d"
-version = "0.35.1"
+version = "0.35.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e1c797fd96e34ae075c7b849741f89968ebedb86b584023420d68a1993bdc5cc"
+checksum = "0b14829af0960a134e2c39605bd6617a5c70e9837ce1b7c3c738efedc6fd8610"
 dependencies = [
  "approx",
  "arrayvec",
@@ -852,9 +852,9 @@ dependencies = [
 
 [[package]]
 name = "rapier3d-f64"
-version = "0.35.1"
+version = "0.35.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "37b190a04d82374606416c5bd651a805d754985e5895fefcb34a8f248cf38fa2"
+checksum = "1de28806014bf4f5e24be5d99ce7564c4f3cbd5b06b430eaa2192c1a0cd1dfba"
 dependencies = [
  "approx",
  "arrayvec",

@@ -47,10 +47,10 @@ glamx = { version = "0.3", default-features = false, features = ["scalar-math"],
 # Since rapier 0.35, `enhanced-determinism` costs no measurable performance and composes
 # with SIMD and `parallel`, so cross-platform determinism is always on instead of being a
 # separate, slower build. SIMD itself is unconditional upstream (scalar fallback elsewhere).
-rapier2d = { version = "0.35.1", features = ["enhanced-determinism"], optional = true }
-rapier2d-f64 = { version = "0.35.1", features = ["enhanced-determinism"], optional = true }
-rapier3d = { version = "0.35.1", features = ["enhanced-determinism"], optional = true }
-rapier3d-f64 = { version = "0.35.1", features = ["enhanced-determinism"], optional = true }
+rapier2d = { version = "0.35.3", features = ["enhanced-determinism"], optional = true }
+rapier2d-f64 = { version = "0.35.3", features = ["enhanced-determinism"], optional = true }
+rapier3d = { version = "0.35.3", features = ["enhanced-determinism"], optional = true }
+rapier3d-f64 = { version = "0.35.3", features = ["enhanced-determinism"], optional = true }
 salva2d = { version = "0.10.0", features = ["rapier"], optional = true }
 salva2d-f64 = { version = "0.10.0", features = ["rapier"], optional = true }
 salva3d = { version = "0.10.0", features = ["rapier"], optional = true }
@@ -78,12 +78,12 @@ opt-level = 1
 [package.metadata.docs.rs]
 license-file = "LICENSE"
 
-# Until these land in a released parry, the compound collider needs two things only this branch
-# has: `CompoundFlags::FIX_INTERNAL_EDGES`, which stops the seams between a compound's parts from
-# colliding, and a `Compound` ray/point query that reports which part was hit. All four crates are
-# patched so the double-precision features build against the same branch.
+# The compound collider needs `CompoundFlags::FIX_INTERNAL_EDGES`, which stops the seams between a
+# compound's parts from colliding. It is merged upstream (dimforge/parry#442) but not in a released
+# parry yet -- 0.30.2 predates it -- so the merge commit is pinned until the next release. All four
+# crates are patched so the double-precision features build against the same revision.
 [patch.crates-io]
-parry2d = { git = "https://github.com/Ughuuu/parry", branch = "compound-pseudo-normal" }
-parry3d = { git = "https://github.com/Ughuuu/parry", branch = "compound-pseudo-normal" }
-parry2d-f64 = { git = "https://github.com/Ughuuu/parry", branch = "compound-pseudo-normal" }
-parry3d-f64 = { git = "https://github.com/Ughuuu/parry", branch = "compound-pseudo-normal" }
+parry2d = { git = "https://github.com/dimforge/parry", rev = "3609fcc6bffecbc9ae7d865603e79645f8654c96" }
+parry3d = { git = "https://github.com/dimforge/parry", rev = "3609fcc6bffecbc9ae7d865603e79645f8654c96" }
+parry2d-f64 = { git = "https://github.com/dimforge/parry", rev = "3609fcc6bffecbc9ae7d865603e79645f8654c96" }
+parry3d-f64 = { git = "https://github.com/dimforge/parry", rev = "3609fcc6bffecbc9ae7d865603e79645f8654c96" }
