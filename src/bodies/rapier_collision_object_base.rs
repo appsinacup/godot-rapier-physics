@@ -103,11 +103,6 @@ pub struct RapierCollisionObjectBase {
     compound_anchor: Option<usize>,
     /// The shapes gathered into that compound, in the order they were built.
     compound_members: Vec<usize>,
-    /// For each part of that compound, the index of the shape it was built from.
-    ///
-    /// Not one part per shape: a skew is applied by decomposing the shape, and those pieces are
-    /// spliced in individually.
-    compound_part_shapes: Vec<usize>,
 }
 impl Default for RapierCollisionObjectBase {
     fn default() -> Self {
@@ -162,7 +157,6 @@ impl RapierCollisionObjectBase {
             activation_time_until_sleep,
             compound_anchor: None,
             compound_members: Vec::new(),
-            compound_part_shapes: Vec::new(),
         }
     }
 
@@ -318,7 +312,7 @@ impl RapierCollisionObjectBase {
         }
         let mut user_data = UserData::default();
         self.set_collider_user_data(&mut user_data, anchor);
-        let (handle, part_sources) = physics_engine.collider_create_solid_compound(
+        let handle = physics_engine.collider_create_solid_compound(
             self.state.space_id,
             &self.compound_parts(),
             &mat,
@@ -326,7 +320,6 @@ impl RapierCollisionObjectBase {
             &user_data,
         );
         self.compound_anchor = (handle != ColliderHandle::invalid()).then_some(anchor);
-        self.set_compound_part_shapes(part_sources);
         handle
     }
 
@@ -334,32 +327,16 @@ impl RapierCollisionObjectBase {
     pub(super) fn clear_compound(&mut self) {
         self.compound_anchor = None;
         self.compound_members.clear();
-        self.compound_part_shapes.clear();
-    }
-
-    /// Records which shape each compound part came from, translating the part sources -- which
-    /// index the members in order -- into indices into all of the object's shapes.
-    fn set_compound_part_shapes(&mut self, part_sources: Vec<usize>) {
-        self.compound_part_shapes = part_sources
-            .into_iter()
-            .filter_map(|source| self.compound_members.get(source).copied())
-            .collect();
     }
 
     /// Rebuilds the compound collider's shape in place, keeping the collider -- and every contact
     /// pair referencing it -- alive, so no exit and enter events fire for a geometry edit.
     pub(super) fn update_compound_collider(&mut self, physics_engine: &mut PhysicsEngine) {
-        let part_sources = physics_engine.collider_update_solid_compound(
+        physics_engine.collider_update_solid_compound(
             self.state.space_id,
             self.compound_collider_handle(),
             &self.compound_parts(),
         );
-        self.set_compound_part_shapes(part_sources);
-    }
-
-    /// The shape a compound part was built from.
-    pub(crate) fn shape_index_for_compound_part(&self, part_index: u32) -> Option<usize> {
-        self.compound_part_shapes.get(part_index as usize).copied()
     }
 
     /// The collider holding the whole object while it is a compound.

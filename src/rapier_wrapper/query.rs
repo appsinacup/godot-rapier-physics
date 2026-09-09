@@ -916,6 +916,20 @@ impl PhysicsEngine {
         false
     }
 
+    /// How far along the ray the shape placed by `shape_info` is hit, or `None` if the ray misses
+    /// it within `length`.
+    pub fn shape_cast_ray(
+        &self,
+        shape_info: ShapeInfo,
+        from: Vector,
+        dir: Vector,
+        length: Real,
+    ) -> Option<Real> {
+        let shape = self.get_shape(shape_info.handle)?;
+        let shape = crate::rapier_wrapper::collider::scale_shape(shape, shape_info);
+        shape.cast_ray(&shape_info.transform, &Ray::new(from, dir), length, true)
+    }
+
     pub fn shapes_contact(
         &self,
         shape_info1: ShapeInfo,
