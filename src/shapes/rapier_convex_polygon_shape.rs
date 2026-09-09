@@ -125,7 +125,6 @@ impl IRapierShape for RapierConvexPolygonShape {
 }
 #[cfg(feature = "test")]
 mod tests {
-    use godot::prelude::*;
 
     use super::*;
     use crate::servers::rapier_physics_singleton::PhysicsShapes;

@@ -28,7 +28,6 @@ Utils="*res://base/Utils.gd"
 
 [display]
 
-window/size/mode=2
 window/subwindows/embed_subwindows=false
 
 [dotnet]
