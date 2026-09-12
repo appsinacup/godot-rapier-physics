@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://c5gcp1vsswiri"]
+
+[ext_resource type="Script" uid="uid://dw02uitv0b86o" path="res://tests/nodes/Fluid/tests/iterate_on_data.gd" id="1_6khp1"]
+[ext_resource type="Script" uid="uid://d4kq5akkly15i" path="res://addons/godot-rapier2d/faucet_2d.gd" id="2_45r3w"]
+
+[node name="iterate_on_data" type="Node2D" unique_id=928729618]
+script = ExtResource("1_6khp1")
+metadata/_custom_type_script = "uid://rif6b2kxe37h"
+
+[node name="Faucet2D" type="Fluid2D" parent="." unique_id=1870455752]
+debug_draw = true
+lifetime = 1.0
+position = Vector2(5, 5)
+script = ExtResource("2_45r3w")
+metadata/_custom_type_script = "uid://d4kq5akkly15i"
