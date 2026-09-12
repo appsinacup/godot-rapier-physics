@@ -2,8 +2,11 @@
 
 [ext_resource type="Script" uid="uid://bnjyhmyy8iy0o" path="res://base/class/test_scene_child.gd" id="1_m1km4"]
 [ext_resource type="PackedScene" uid="uid://b48od3a28mtso" path="res://tests/nodes/Fluid/tests/collision_detection.tscn" id="2_qjk6k"]
+[ext_resource type="PackedScene" uid="uid://c5gcp1vsswiri" path="res://tests/nodes/Fluid/tests/iterate_on_data.tscn" id="3_g08ej"]
 
 [node name="fluid_2d" type="Node2D" unique_id=1224020166]
 script = ExtResource("1_m1km4")
 
 [node name="collision_detection" parent="." unique_id=1783469513 instance=ExtResource("2_qjk6k")]
+
+[node name="iterate_on_data" parent="." unique_id=928729618 instance=ExtResource("3_g08ej")]
