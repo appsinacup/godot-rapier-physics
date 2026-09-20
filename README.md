@@ -150,6 +150,18 @@ Rapier is its physics too, stepped on a fixed 60 Hz tick, but the determinism co
 
 It is at `0.1` and builds from source for now. Godot Rapier Physics is a separate project and is still maintained.
 
+## AI Usage
+
+This project uses AI to aid in software development (and accepts AI contributions). In order for the code quality to remain high, and to not have a ton of bugs, crashes, etc. We use a set of best practices, that are used all throughout the industry, such as: manual testing, automated testing, architecting it, creating spec docs, linting, benchmarking, etc. More can be found out here: [CONTRIBUTING.md](CONTRIBUTING.md)
+
+Every bit of code is tested against this pipeline / process. There is also an automated CI that runs automated tests to ensure that features still work/
+
+There is also a lot of observability and documentation which we use, as the codebase is large and it will keep growing, so having a high level understanding of it is very important, as well as a low level one. For that we have both references from code for nodes/properties, but also documentation and blogposts per features:
+
+- [ARCHITECTURE.md](ARCHITECTURE.md)
+- [CHANGELOG.md](CHANGELOG.md)
+- [Feature List](https://godot.rapier.rs/docs/progress)
+
 ## Star History
 
 [![Star History Chart](https://star-history.dera.page/svg?repos=appsinacup/godot-rapier-physics&type=date&legend=top-left)](https://star-history.dera.page/#appsinacup/godot-rapier-physics&type=date&legend=top-left)
