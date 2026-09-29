@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://dw5fjp1ehoisl"]
+[gd_scene load_steps=5 format=3 uid="uid://dw5fjp1ehoisl"]
 
 [ext_resource type="Script" path="res://base/class/test_scene_child.gd" id="1_6eclx"]
 [ext_resource type="PackedScene" uid="uid://bi8fhkhrlsbc6" path="res://tests/nodes/Area/tests/2d/basic_api.tscn" id="2_j0ocs"]
 [ext_resource type="PackedScene" uid="uid://cqv4g2347xrx5" path="res://tests/nodes/Area/tests/2d/space_override.tscn" id="3_10ilb"]
+[ext_resource type="PackedScene" path="res://tests/nodes/Area/tests/2d/world_boundary_mask.tscn" id="4_wbmask"]
 
 [node name="area_2d" type="Node2D"]
 script = ExtResource("1_6eclx")
@@ -10,3 +11,5 @@ script = ExtResource("1_6eclx")
 [node name="basic_api" parent="." instance=ExtResource("2_j0ocs")]
 
 [node name="space_override" parent="." instance=ExtResource("3_10ilb")]
+
+[node name="world_boundary_mask" parent="." instance=ExtResource("4_wbmask")]
