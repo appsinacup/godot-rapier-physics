@@ -39,7 +39,7 @@ pub const GODOT_ONE_WAY_DOT_EPSILON: Real = 1.0e-5_f32;
 // `contact_dir` is the unit contact normal oriented away from the one-way shape, matching the
 // normal Godot's `GodotBodyPair2D::setup` tests against the shape's one-way direction.
 fn update_as_godot_one_way_platform(
-    context: &mut ContactModificationContext,
+    manifold: &mut ModifiableManifold,
     contact_dir: Vector,
     valid_dir: Vector,
 ) {
@@ -47,25 +47,25 @@ fn update_as_godot_one_way_platform(
     const CONTACT_CURRENTLY_ALLOWED: u32 = 1;
     const CONTACT_CURRENTLY_FORBIDDEN: u32 = 2;
     let contact_is_ok = contact_dir.dot(valid_dir) > GODOT_ONE_WAY_DOT_EPSILON;
-    match *context.user_data {
+    match *manifold.user_data {
         CONTACT_CONFIGURATION_UNKNOWN => {
             if contact_is_ok {
-                *context.user_data = CONTACT_CURRENTLY_ALLOWED;
+                *manifold.user_data = CONTACT_CURRENTLY_ALLOWED;
             } else {
-                context.solver_contacts.clear();
-                *context.user_data = CONTACT_CURRENTLY_FORBIDDEN;
+                manifold.solver_contacts.clear();
+                *manifold.user_data = CONTACT_CURRENTLY_FORBIDDEN;
             }
         }
         CONTACT_CURRENTLY_FORBIDDEN => {
-            if contact_is_ok && context.solver_contacts.iter().all(|c| c.dist > 0.0) {
-                *context.user_data = CONTACT_CURRENTLY_ALLOWED;
+            if contact_is_ok && manifold.solver_contacts.iter().all(|c| c.dist > 0.0) {
+                *manifold.user_data = CONTACT_CURRENTLY_ALLOWED;
             } else {
-                context.solver_contacts.clear();
+                manifold.solver_contacts.clear();
             }
         }
         CONTACT_CURRENTLY_ALLOWED => {
-            if context.solver_contacts.is_empty() {
-                *context.user_data = CONTACT_CONFIGURATION_UNKNOWN;
+            if manifold.solver_contacts.is_empty() {
+                *manifold.user_data = CONTACT_CONFIGURATION_UNKNOWN;
             }
         }
         _ => unreachable!(),
@@ -73,7 +73,7 @@ fn update_as_godot_one_way_platform(
 }
 impl PhysicsHooks for PhysicsHooksCollisionFilter<'_> {
     fn filter_contact_pair(&self, context: &PairFilterContext) -> Option<SolverFlags> {
-        let result = Some(SolverFlags::COMPUTE_IMPULSES);
+        let result = Some(SolverFlags::COMPUTE_RIGID_IMPULSES);
         let Some(collider1) = context.colliders.get(context.collider1) else {
             return result;
         };
@@ -100,10 +100,11 @@ impl PhysicsHooks for PhysicsHooksCollisionFilter<'_> {
     }
 
     fn modify_solver_contacts(&self, context: &mut ContactModificationContext) {
-        let Some(collider1) = context.colliders.get(context.collider1) else {
+        let colliders = context.colliders;
+        let Some(collider1) = colliders.get(context.collider1) else {
             return;
         };
-        let Some(collider2) = context.colliders.get(context.collider2) else {
+        let Some(collider2) = colliders.get(context.collider2) else {
             return;
         };
         let filter_info = CollisionFilterInfo {
@@ -121,14 +122,19 @@ impl PhysicsHooks for PhysicsHooksCollisionFilter<'_> {
         } else {
             OneWayDirection::default()
         };
-        // `context.normal` points from collider1 towards collider2, so it has to be flipped when
+        // Soft bodies are never created, so every pair has a manifold.
+        let Some(manifold) = context.rigid_mut() else {
+            return;
+        };
+        // `manifold.normal` points from collider1 towards collider2, so it has to be flipped when
         // collider1 is the one-way shape for the dot product to keep Godot's meaning.
+        let normal = *manifold.normal;
         if one_way_direction.body1 {
             let valid_dir = collider1.position().rotation * one_way_direction.body1_direction;
-            update_as_godot_one_way_platform(context, -*context.normal, valid_dir);
+            update_as_godot_one_way_platform(manifold, -normal, valid_dir);
         } else if one_way_direction.body2 {
             let valid_dir = collider2.position().rotation * one_way_direction.body2_direction;
-            update_as_godot_one_way_platform(context, *context.normal, valid_dir);
+            update_as_godot_one_way_platform(manifold, normal, valid_dir);
         }
     }
 }

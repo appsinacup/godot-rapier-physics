@@ -126,6 +126,7 @@ pub struct PhysicsObjects {
     pub narrow_phase: NarrowPhase,
     pub impulse_joint_set: ImpulseJointSet,
     pub multibody_joint_set: MultibodyJointSet,
+    pub soft_body_set: SoftBodySet,
     pub ccd_solver: CCDSolver,
 
     pub collider_set: ColliderSet,
@@ -158,6 +159,7 @@ impl Clone for PhysicsObjects {
             narrow_phase: self.narrow_phase.clone(),
             impulse_joint_set: self.impulse_joint_set.clone(),
             multibody_joint_set: self.multibody_joint_set.clone(),
+            soft_body_set: self.soft_body_set.clone(),
             ccd_solver: self.ccd_solver.clone(),
 
             collider_set: self.collider_set.clone(),
@@ -211,6 +213,7 @@ impl PhysicsWorld {
                 narrow_phase: NarrowPhase::with_query_dispatcher(separation_ray_query_dispatcher()),
                 impulse_joint_set: ImpulseJointSet::new(),
                 multibody_joint_set: MultibodyJointSet::new(),
+                soft_body_set: SoftBodySet::new(),
                 ccd_solver: CCDSolver::new(),
 
                 rigid_body_set: RigidBodySet::new(),
@@ -290,6 +293,7 @@ impl PhysicsWorld {
                         &mut self.physics_objects.collider_set,
                         &mut self.physics_objects.impulse_joint_set,
                         &mut self.physics_objects.multibody_joint_set,
+                        &mut self.physics_objects.soft_body_set,
                         &mut self.physics_objects.ccd_solver,
                         &physics_hooks,
                         &event_handler,
@@ -307,6 +311,7 @@ impl PhysicsWorld {
                 &mut self.physics_objects.collider_set,
                 &mut self.physics_objects.impulse_joint_set,
                 &mut self.physics_objects.multibody_joint_set,
+                &mut self.physics_objects.soft_body_set,
                 &mut self.physics_objects.ccd_solver,
                 &physics_hooks,
                 &event_handler,
@@ -483,6 +488,7 @@ impl PhysicsWorld {
             collider_handle,
             &mut self.physics_objects.island_manager,
             &mut self.physics_objects.rigid_body_set,
+            &mut self.physics_objects.soft_body_set,
             false,
         ) {
             self.physics_objects.removed_colliders_user_data.insert(
@@ -524,6 +530,7 @@ impl PhysicsWorld {
             &mut self.physics_objects.collider_set,
             &mut self.physics_objects.impulse_joint_set,
             &mut self.physics_objects.multibody_joint_set,
+            &mut self.physics_objects.soft_body_set,
             false,
         ) {
             self.physics_objects.removed_rigid_bodies_user_data.insert(

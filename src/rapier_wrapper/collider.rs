@@ -293,6 +293,16 @@ pub fn shape_can_be_compound_part(engine: &PhysicsEngine, shape_handle: ShapeHan
         .is_none_or(can_be_compound_part)
 }
 
+/// A built compound, and which of the shapes it was built from each of its parts came from.
+///
+/// Not one part per shape: a shape that is flattened in contributes several, so the query paths
+/// need this to name the shape a part belongs to.
+pub struct CompoundShape {
+    pub shape: SharedShape,
+    /// For each part of the compound, its index into the `parts` the compound was built from.
+    pub part_sources: Vec<usize>,
+}
+
 /// The parts `shape` contributes to a compound placed at `transform`, or `None` if it cannot be a
 /// part of one at all.
 ///
@@ -449,11 +459,14 @@ impl PhysicsEngine {
     /// cannot be a compound part -- and the object has to stay on one collider per shape instead.
     /// [`RapierCollisionObjectBase::wants_compound_collider`] keeps the known cases from getting
     /// this far, so reaching `None` here is the safety net rather than the usual route.
-    pub(crate) fn try_build_compound_shape(&self, parts: &[ShapeInfo]) -> Option<SharedShape> {
+    pub(crate) fn try_build_compound_shape(&self, parts: &[ShapeInfo]) -> Option<CompoundShape> {
         let mut compound_parts = Vec::with_capacity(parts.len());
-        for part in parts {
+        let mut part_sources = Vec::with_capacity(parts.len());
+        for (source, part) in parts.iter().enumerate() {
             let shape = scale_shape(self.get_shape(part.handle)?, *part);
-            compound_parts.extend(shape_as_compound_parts(part.transform, shape)?);
+            let flattened = shape_as_compound_parts(part.transform, shape)?;
+            part_sources.extend(std::iter::repeat_n(source, flattened.len()));
+            compound_parts.extend(flattened);
         }
 
         if compound_parts.is_empty() {
@@ -465,7 +478,10 @@ impl PhysicsEngine {
             rapier::parry::shape::CompoundFlags::FIX_INTERNAL_EDGES,
             None,
         );
-        Some(SharedShape::new(compound))
+        Some(CompoundShape {
+            shape: SharedShape::new(compound),
+            part_sources,
+        })
     }
 
     pub fn collider_create_solid_compound(
@@ -475,12 +491,12 @@ impl PhysicsEngine {
         mat: &Material,
         body_handle: RigidBodyHandle,
         user_data: &UserData,
-    ) -> ColliderHandle {
-        let Some(shape) = self.try_build_compound_shape(parts) else {
-            return ColliderHandle::invalid();
+    ) -> (ColliderHandle, Vec<usize>) {
+        let Some(built) = self.try_build_compound_shape(parts) else {
+            return (ColliderHandle::invalid(), Vec::new());
         };
 
-        let mut collider = ColliderBuilder::new(shape)
+        let mut collider = ColliderBuilder::new(built.shape)
             .contact_force_event_threshold(-Real::MAX)
             .density(0.0)
             .build();
@@ -507,9 +523,9 @@ impl PhysicsEngine {
             // a standalone collider there is no case here that dynamic contact sampling cannot
             // handle.
             register_fluid_boundary(physics_world, collider_handle, mat);
-            return collider_handle;
+            return (collider_handle, built.part_sources);
         }
-        ColliderHandle::invalid()
+        (ColliderHandle::invalid(), Vec::new())
     }
 
     /// Replaces an existing compound collider's shape with one rebuilt from `parts`, keeping the
@@ -519,10 +535,11 @@ impl PhysicsEngine {
         world_handle: WorldHandle,
         collider_handle: ColliderHandle,
         parts: &[ShapeInfo],
-    ) {
-        let Some(shape) = self.try_build_compound_shape(parts) else {
-            return;
+    ) -> Vec<usize> {
+        let Some(built) = self.try_build_compound_shape(parts) else {
+            return Vec::new();
         };
+        let shape = built.shape;
         if let Some(physics_world) = self.get_mut_world(world_handle)
             && let Some(collider) = physics_world
                 .physics_objects
@@ -531,6 +548,7 @@ impl PhysicsEngine {
         {
             collider.set_shape(shape);
         }
+        built.part_sources
     }
 
     pub fn collider_create_sensor(

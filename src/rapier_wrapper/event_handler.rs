@@ -48,4 +48,7 @@ impl EventHandler for ContactEventHandler {
             }
         }
     }
+
+    fn handle_soft_body_tear_event(&self, _soft_bodies: &SoftBodySet, _event: &SoftBodyTearEvent) {
+    }
 }

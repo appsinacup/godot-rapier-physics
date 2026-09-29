@@ -5,6 +5,7 @@ use godot::global::godot_warn;
 use rapier::parry::query::QueryDispatcher;
 use rapier::parry::query::ShapeCastOptions;
 use rapier::parry::query::ShapeCastStatus;
+use rapier::parry::shape::SubShapeId;
 use rapier::prelude::*;
 
 use crate::rapier_wrapper::physics_world::PhysicsWorld as RapierWrapperPhysicsWorld;
@@ -18,6 +19,7 @@ pub struct RayHitInfo {
     pub collider: ColliderHandle,
     pub user_data: UserData,
     pub feature: FeatureId,
+    pub subshape: SubShapeId,
 }
 impl RayHitInfo {
     pub fn default() -> RayHitInfo {
@@ -27,6 +29,7 @@ impl RayHitInfo {
             collider: ColliderHandle::invalid(),
             user_data: UserData::invalid_user_data(),
             feature: FeatureId::default(),
+            subshape: 0,
         }
     }
 }
@@ -128,6 +131,7 @@ fn update_ray_hit_info(
     hit_info.collider = handle;
     hit_info.user_data = physics_world.get_collider_user_data(handle);
     hit_info.feature = intersection.feature;
+    hit_info.subshape = intersection.subshape;
     true
 }
 #[derive(Default)]
@@ -814,7 +818,7 @@ impl PhysicsEngine {
                                     .narrow_phase
                                     .query_dispatcher()
                                     .distance(&pos12, shared_shape.as_ref(), collider.shape())
-                                    .unwrap_or(0.0)
+                                    .map_or(0.0, |d| d.distance)
                                     .max(0.0);
                                 result.toi_unsafe = (result.toi
                                     + (separation + MIN_CONTACT_PREDICTION) / velocity_size)
@@ -914,20 +918,6 @@ impl PhysicsEngine {
             return shape.contains_point(&shape_info.transform, position);
         }
         false
-    }
-
-    /// How far along the ray the shape placed by `shape_info` is hit, or `None` if the ray misses
-    /// it within `length`.
-    pub fn shape_cast_ray(
-        &self,
-        shape_info: ShapeInfo,
-        from: Vector,
-        dir: Vector,
-        length: Real,
-    ) -> Option<Real> {
-        let shape = self.get_shape(shape_info.handle)?;
-        let shape = crate::rapier_wrapper::collider::scale_shape(shape, shape_info);
-        shape.cast_ray(&shape_info.transform, &Ray::new(from, dir), length, true)
     }
 
     pub fn shapes_contact(
