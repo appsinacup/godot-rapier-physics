@@ -206,9 +206,9 @@ checksum = "f70749695b063ecbf6b62949ccccde2e733ec3ecbbd71d467dca4e5c6c97cca0"
 
 [[package]]
 name = "glam"
-version = "0.33.3"
+version = "0.33.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7360bd2cd76e0cd9032d42cf2922155cecea2685b0cfa4630c3246df030bcfd6"
+checksum = "35b4e837a1d133645d1dcf283e146a4b9901e390a1c13545f959cfed3a72f24f"
 dependencies = [
  "approx",
  "libm",
@@ -217,12 +217,12 @@ dependencies = [
 
 [[package]]
 name = "glamx"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9847f980afb0628849bcd6a406cdffd29eb9d53fca83e1646005901a9acd4c5c"
+checksum = "28d74079318e3a077bd3d15faa90fde24fa37bb9f157f92f853e6019a15fd413"
 dependencies = [
  "approx",
- "glam 0.33.3",
+ "glam 0.33.11",
  "nalgebra",
  "num-traits",
  "serde",
@@ -310,7 +310,7 @@ dependencies = [
 
 [[package]]
 name = "godot-rapier"
-version = "0.35.4"
+version = "0.36.0"
 dependencies = [
  "bincode",
  "glamx",
@@ -494,7 +494,7 @@ dependencies = [
  "glam 0.30.10",
  "glam 0.31.1",
  "glam 0.32.1",
- "glam 0.33.3",
+ "glam 0.33.11",
  "matrixmultiply",
  "nalgebra-macros",
  "num-complex",
@@ -553,13 +553,13 @@ dependencies = [
 
 [[package]]
 name = "num-derive"
-version = "0.4.2"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed3955f1a9c7c0c15e092f9c887db08b1fc683305fdf6eb6684f22555355e202"
+checksum = "e4e98dc3b890f6c23a0f9d3d491a2823d0dea0fa656302a13dd225fa924112a8"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.119",
+ "syn 3.0.3",
 ]
 
 [[package]]
@@ -619,8 +619,9 @@ dependencies = [
 
 [[package]]
 name = "parry2d"
-version = "0.30.2"
-source = "git+https://github.com/Ughuuu/parry?branch=compound-pseudo-normal#1279005d2c184eb4a90b42f4edca20dcd017fb14"
+version = "0.31.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fe1ba500175e957aaa27ddc92290ec8ff503d73331365443660816d6302e2a31"
 dependencies = [
  "approx",
  "arrayvec",
@@ -648,8 +649,9 @@ dependencies = [
 
 [[package]]
 name = "parry2d-f64"
-version = "0.30.2"
-source = "git+https://github.com/Ughuuu/parry?branch=compound-pseudo-normal#1279005d2c184eb4a90b42f4edca20dcd017fb14"
+version = "0.31.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4f0d7c5731bcbff3cefdca822e64693f9654598377475030f25946a3417be856"
 dependencies = [
  "approx",
  "arrayvec",
@@ -677,8 +679,9 @@ dependencies = [
 
 [[package]]
 name = "parry3d"
-version = "0.30.2"
-source = "git+https://github.com/Ughuuu/parry?branch=compound-pseudo-normal#1279005d2c184eb4a90b42f4edca20dcd017fb14"
+version = "0.31.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7b626edc0b497dba4bdf6e1e0797895294ed9f61dac2bd28cb5d34d37ad2ca7e"
 dependencies = [
  "approx",
  "arrayvec",
@@ -708,8 +711,9 @@ dependencies = [
 
 [[package]]
 name = "parry3d-f64"
-version = "0.30.2"
-source = "git+https://github.com/Ughuuu/parry?branch=compound-pseudo-normal#1279005d2c184eb4a90b42f4edca20dcd017fb14"
+version = "0.31.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ffb9e04261f1783d8f66f36767b2b73132a63c9b30b12a5ed47e1faa240f7591"
 dependencies = [
  "approx",
  "arrayvec",
@@ -781,9 +785,9 @@ dependencies = [
 
 [[package]]
 name = "rapier2d"
-version = "0.35.1"
+version = "0.36.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "74bfd393193e08a812ba0c83c7c844dff29979fd30f96de2854cdea507350065"
+checksum = "e6708b492a19e936d66ba45fd0749ea8e20275f9a8e9891050944c35b8305349"
 dependencies = [
  "approx",
  "arrayvec",
@@ -805,9 +809,9 @@ dependencies = [
 
 [[package]]
 name = "rapier2d-f64"
-version = "0.35.1"
+version = "0.36.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a6ec50134c2d52265d34bae2a657d450c7bf0501f3e0e1b983abf0046eec77da"
+checksum = "c71e462d8ffd7f96bd7499b20c486af0c698b293c2e51a4c5131014523831db5"
 dependencies = [
  "approx",
  "arrayvec",
@@ -828,9 +832,9 @@ dependencies = [
 
 [[package]]
 name = "rapier3d"
-version = "0.35.1"
+version = "0.36.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e1c797fd96e34ae075c7b849741f89968ebedb86b584023420d68a1993bdc5cc"
+checksum = "c2e2b20538584bb3ba5bfe6a66c2d9a242ee17d15e5398be0fa35279c7d73739"
 dependencies = [
  "approx",
  "arrayvec",
@@ -852,9 +856,9 @@ dependencies = [
 
 [[package]]
 name = "rapier3d-f64"
-version = "0.35.1"
+version = "0.36.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "37b190a04d82374606416c5bd651a805d754985e5895fefcb34a8f248cf38fa2"
+checksum = "c28c8d3fba1ae7bd3051fa8295217a695f5cac724c5be71921514fe3e14c5dd9"
 dependencies = [
  "approx",
  "arrayvec",
@@ -963,8 +967,7 @@ dependencies = [
 [[package]]
 name = "salva2d"
 version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4192bc60c2e206b7514738fbfbddc2246113442327ffed375c6c1a08032943be"
+source = "git+https://github.com/Ughuuu/salva?branch=update-to-rapier-0.36#6c460e5754711c2f3363635aa93d4f80eda60ca2"
 dependencies = [
  "approx",
  "bitflags",
@@ -982,8 +985,7 @@ dependencies = [
 [[package]]
 name = "salva2d-f64"
 version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "30dcaffb7989f4a6a7d0d8af229c331ed51b4959c67bc57c2f8de431848e140b"
+source = "git+https://github.com/Ughuuu/salva?branch=update-to-rapier-0.36#6c460e5754711c2f3363635aa93d4f80eda60ca2"
 dependencies = [
  "approx",
  "bitflags",
@@ -1000,8 +1002,7 @@ dependencies = [
 [[package]]
 name = "salva3d"
 version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2e289e6dc5a40d662ff20e436f9828fad24e90e390b11849468d387ff401521f"
+source = "git+https://github.com/Ughuuu/salva?branch=update-to-rapier-0.36#6c460e5754711c2f3363635aa93d4f80eda60ca2"
 dependencies = [
  "approx",
  "bitflags",
@@ -1019,8 +1020,7 @@ dependencies = [
 [[package]]
 name = "salva3d-f64"
 version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6778dede6853433a6dbd3c370c81abf96504adc4a2a3963a432d9fb2f12b4db4"
+source = "git+https://github.com/Ughuuu/salva?branch=update-to-rapier-0.36#6c460e5754711c2f3363635aa93d4f80eda60ca2"
 dependencies = [
  "approx",
  "bitflags",

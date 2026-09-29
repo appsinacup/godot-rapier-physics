@@ -73,7 +73,7 @@ See [godot-rust/ExtensionLibrary](https://godot-rust.github.io/docs/gdext/master
 
 ```toml
 [dependencies]
-godot-rapier = { git = "https://github.com/appsinacup/godot-rapier-physics.git", tag = "v0.35.4", features = ["single-dim2"] }
+godot-rapier = { git = "https://github.com/appsinacup/godot-rapier-physics.git", tag = "v0.36.0", features = ["single-dim2"] }
 ```
 
 Feature sets matching the shipped addon builds:
@@ -135,6 +135,7 @@ The 2D part is pretty stable, though there are some issues, the 3D part is still
 
 - Double builds need to be manually built.
 - No support for asymmetric collisions (eg. object 1 hitting object 2 but object 2 not hitting object 1). This is the exact check rapier does: `(A.layer & B.mask) != 0 || (B.layer & A.mask) != 0`
+- 2D `intersect_point` skips objects with `input_pickable` off, and physics bodies have it off by default. Godot doesn't tell a GDExtension whether a point query comes from mouse picking or from a script, so Rapier honors `input_pickable` for both to keep mouse picking correct. To get Godot's behavior for script queries, either turn on `input_pickable` on the bodies or disable the `physics/rapier/queries/point_query_honors_pickable` project setting. With the setting off, mouse picking also reaches non-pickable objects.
 
 # Module build
 
@@ -149,6 +150,18 @@ The authors of this addon are also building [**Balaur**](https://balaurengine.or
 Rapier is its physics too, stepped on a fixed 60 Hz tick, but the determinism covers the whole engine rather than just the physics server: same inputs, same bits on every platform, with a digest per tick, record and replay, and rollback. Scripts are written in [Rune](https://rune-rs.github.io) and hot reload in milliseconds with the state intact.
 
 It is at `0.1` and builds from source for now. Godot Rapier Physics is a separate project and is still maintained.
+
+## AI Usage
+
+This project uses AI to aid in software development (and accepts AI contributions). In order for the code quality to remain high, and to not have a ton of bugs, crashes, etc. We use a set of best practices, that are used all throughout the industry, such as: manual testing, automated testing, architecting it, creating spec docs, linting, benchmarking, etc. More can be found out here: [CONTRIBUTING.md](CONTRIBUTING.md)
+
+Every bit of code is tested against this pipeline / process. There is also an automated CI that runs automated tests to ensure that features still work/
+
+There is also a lot of observability and documentation which we use, as the codebase is large and it will keep growing, so having a high level understanding of it is very important, as well as a low level one. For that we have both references from code for nodes/properties, but also documentation and blogposts per features:
+
+- [ARCHITECTURE.md](ARCHITECTURE.md)
+- [CHANGELOG.md](CHANGELOG.md)
+- [Feature List](https://godot.rapier.rs/docs/progress)
 
 ## Star History
 

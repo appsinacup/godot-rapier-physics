@@ -1,6 +1,6 @@
 [package]
 name = "godot-rapier"
-version = "0.35.4"
+version = "0.36.0"
 edition = "2024"
 license = "MIT"
 rust-version = "1.94"
@@ -47,14 +47,18 @@ glamx = { version = "0.3", default-features = false, features = ["scalar-math"],
 # Since rapier 0.35, `enhanced-determinism` costs no measurable performance and composes
 # with SIMD and `parallel`, so cross-platform determinism is always on instead of being a
 # separate, slower build. SIMD itself is unconditional upstream (scalar fallback elsewhere).
-rapier2d = { version = "0.35.1", features = ["enhanced-determinism"], optional = true }
-rapier2d-f64 = { version = "0.35.1", features = ["enhanced-determinism"], optional = true }
-rapier3d = { version = "0.35.1", features = ["enhanced-determinism"], optional = true }
-rapier3d-f64 = { version = "0.35.1", features = ["enhanced-determinism"], optional = true }
-salva2d = { version = "0.10.0", features = ["rapier"], optional = true }
-salva2d-f64 = { version = "0.10.0", features = ["rapier"], optional = true }
-salva3d = { version = "0.10.0", features = ["rapier"], optional = true }
-salva3d-f64 = { version = "0.10.0", features = ["rapier"], optional = true }
+rapier2d = { version = "0.36.0", features = ["enhanced-determinism"], optional = true }
+rapier2d-f64 = { version = "0.36.0", features = ["enhanced-determinism"], optional = true }
+rapier3d = { version = "0.36.0", features = ["enhanced-determinism"], optional = true }
+rapier3d-f64 = { version = "0.36.0", features = ["enhanced-determinism"], optional = true }
+# salva 0.10.0 on crates.io is built against rapier 0.35, so its fluid pipeline would take a
+# different `ColliderSet` type than ours; its rapier 0.36 update comes from a branch until released.
+# A git dependency rather than a `[patch.crates-io]`, which only the root workspace honours: crates
+# depending on godot-rapier would otherwise still resolve salva from crates.io.
+salva2d = { git = "https://github.com/Ughuuu/salva", branch = "update-to-rapier-0.36", features = ["rapier"], optional = true }
+salva2d-f64 = { git = "https://github.com/Ughuuu/salva", branch = "update-to-rapier-0.36", features = ["rapier"], optional = true }
+salva3d = { git = "https://github.com/Ughuuu/salva", branch = "update-to-rapier-0.36", features = ["rapier"], optional = true }
+salva3d-f64 = { git = "https://github.com/Ughuuu/salva", branch = "update-to-rapier-0.36", features = ["rapier"], optional = true }
 serde = { version = "1.0", features = ["derive"], optional = true }
 serde_json = { version = "1.0", optional = true }
 
@@ -77,13 +81,3 @@ opt-level = 1
 
 [package.metadata.docs.rs]
 license-file = "LICENSE"
-
-# Until these land in a released parry, the compound collider needs two things only this branch
-# has: `CompoundFlags::FIX_INTERNAL_EDGES`, which stops the seams between a compound's parts from
-# colliding, and a `Compound` ray/point query that reports which part was hit. All four crates are
-# patched so the double-precision features build against the same branch.
-[patch.crates-io]
-parry2d = { git = "https://github.com/Ughuuu/parry", branch = "compound-pseudo-normal" }
-parry3d = { git = "https://github.com/Ughuuu/parry", branch = "compound-pseudo-normal" }
-parry2d-f64 = { git = "https://github.com/Ughuuu/parry", branch = "compound-pseudo-normal" }
-parry3d-f64 = { git = "https://github.com/Ughuuu/parry", branch = "compound-pseudo-normal" }

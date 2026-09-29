@@ -10,6 +10,8 @@ use rapier::parry::query::QueryDispatcherChain;
 use rapier::parry::query::Ray;
 use rapier::parry::query::ShapeCastHit;
 use rapier::parry::query::ShapeCastOptions;
+use rapier::parry::query::ShapeDistance;
+use rapier::parry::query::ShapeIntersection;
 use rapier::parry::query::Unsupported;
 use rapier::parry::query::details::NormalConstraints;
 use rapier::parry::shape::PackedFeatureId;
@@ -57,13 +59,16 @@ fn contact_ray_shape(
         axis
     };
     let point2_1 = point1 + normal1 * dist;
-    Some(Contact::new(
-        point1,
-        pos12.inverse_transform_point(point2_1),
-        normal1,
-        -(pos12.rotation.inverse() * normal1),
-        dist,
-    ))
+    Some(
+        Contact::new(
+            point1,
+            pos12.inverse_transform_point(point2_1),
+            normal1,
+            -(pos12.rotation.inverse() * normal1),
+            dist,
+        )
+        .with_subshapes(0, hit.subshape),
+    )
 }
 /// `None` when neither shape is a ray, which callers turn into `Unsupported` so the rest of
 /// the chain handles the pair.
@@ -93,14 +98,22 @@ impl QueryDispatcher for SeparationRayDispatcher {
         pos12: &Pose,
         g1: &dyn Shape,
         g2: &dyn Shape,
-    ) -> Result<bool, Unsupported> {
+    ) -> Result<ShapeIntersection, Unsupported> {
         match contact_any_order(pos12, g1, g2, 0.0) {
-            Some(contact) => Ok(contact.is_some_and(|c| c.dist <= 0.0)),
+            Some(Some(c)) if c.dist <= 0.0 => {
+                Ok(ShapeIntersection::new(true).with_subshapes(c.subshape1, c.subshape2))
+            }
+            Some(_) => Ok(ShapeIntersection::new(false)),
             None => Err(Unsupported),
         }
     }
 
-    fn distance(&self, pos12: &Pose, g1: &dyn Shape, g2: &dyn Shape) -> Result<Real, Unsupported> {
+    fn distance(
+        &self,
+        pos12: &Pose,
+        g1: &dyn Shape,
+        g2: &dyn Shape,
+    ) -> Result<ShapeDistance, Unsupported> {
         let (s1, s2) = (segment_substitute(g1), segment_substitute(g2));
         if s1.is_none() && s2.is_none() {
             return Err(Unsupported);

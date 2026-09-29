@@ -160,13 +160,12 @@ impl RapierDirectSpaceStateImpl {
                 if let Some(object) = try_node_from_instance_id(instance_id) {
                     unsafe { result.set_collider(object) }
                 }
-                // A compound collider answers for every shape it took; the ray's feature id
-                // carries which of them was actually hit.
+                // A compound collider answers for every shape it took; the ray's sub-shape is the
+                // part that was actually hit.
                 if collision_object_2d.get_base().hit_is_compound(shape_index)
-                    && let rapier::geometry::FeatureId::Face(part_index) = hit_info.feature
                     && let Some(hit_shape) = collision_object_2d
                         .get_base()
-                        .shape_index_for_compound_part(part_index)
+                        .shape_index_for_compound_part(hit_info.subshape)
                 {
                     result.shape = hit_shape as i32;
                 }
