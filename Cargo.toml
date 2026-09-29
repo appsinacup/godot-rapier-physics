@@ -51,10 +51,14 @@ rapier2d = { version = "0.36.0", features = ["enhanced-determinism"], optional =
 rapier2d-f64 = { version = "0.36.0", features = ["enhanced-determinism"], optional = true }
 rapier3d = { version = "0.36.0", features = ["enhanced-determinism"], optional = true }
 rapier3d-f64 = { version = "0.36.0", features = ["enhanced-determinism"], optional = true }
-salva2d = { version = "0.10.0", features = ["rapier"], optional = true }
-salva2d-f64 = { version = "0.10.0", features = ["rapier"], optional = true }
-salva3d = { version = "0.10.0", features = ["rapier"], optional = true }
-salva3d-f64 = { version = "0.10.0", features = ["rapier"], optional = true }
+# salva 0.10.0 on crates.io is built against rapier 0.35, so its fluid pipeline would take a
+# different `ColliderSet` type than ours; its rapier 0.36 update comes from a branch until released.
+# A git dependency rather than a `[patch.crates-io]`, which only the root workspace honours: crates
+# depending on godot-rapier would otherwise still resolve salva from crates.io.
+salva2d = { git = "https://github.com/Ughuuu/salva", branch = "update-to-rapier-0.36", features = ["rapier"], optional = true }
+salva2d-f64 = { git = "https://github.com/Ughuuu/salva", branch = "update-to-rapier-0.36", features = ["rapier"], optional = true }
+salva3d = { git = "https://github.com/Ughuuu/salva", branch = "update-to-rapier-0.36", features = ["rapier"], optional = true }
+salva3d-f64 = { git = "https://github.com/Ughuuu/salva", branch = "update-to-rapier-0.36", features = ["rapier"], optional = true }
 serde = { version = "1.0", features = ["derive"], optional = true }
 serde_json = { version = "1.0", optional = true }
 
@@ -77,11 +81,3 @@ opt-level = 1
 
 [package.metadata.docs.rs]
 license-file = "LICENSE"
-
-# salva 0.10.0 on crates.io is built against rapier 0.35, so its fluid pipeline would take a
-# different `ColliderSet` type than ours. Its rapier 0.36 update comes from a branch until released.
-[patch.crates-io]
-salva2d = { git = "https://github.com/Ughuuu/salva", branch = "update-to-rapier-0.36" }
-salva2d-f64 = { git = "https://github.com/Ughuuu/salva", branch = "update-to-rapier-0.36" }
-salva3d = { git = "https://github.com/Ughuuu/salva", branch = "update-to-rapier-0.36" }
-salva3d-f64 = { git = "https://github.com/Ughuuu/salva", branch = "update-to-rapier-0.36" }
