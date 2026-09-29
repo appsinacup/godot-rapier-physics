@@ -135,6 +135,7 @@ The 2D part is pretty stable, though there are some issues, the 3D part is still
 
 - Double builds need to be manually built.
 - No support for asymmetric collisions (eg. object 1 hitting object 2 but object 2 not hitting object 1). This is the exact check rapier does: `(A.layer & B.mask) != 0 || (B.layer & A.mask) != 0`
+- 2D `intersect_point` skips objects with `input_pickable` off, and physics bodies have it off by default. Godot doesn't tell a GDExtension whether a point query comes from mouse picking or from a script, so Rapier honors `input_pickable` for both to keep mouse picking correct. To get Godot's behavior for script queries, either turn on `input_pickable` on the bodies or disable the `physics/rapier/queries/point_query_honors_pickable` project setting. With the setting off, mouse picking also reaches non-pickable objects.
 
 # Module build
 
