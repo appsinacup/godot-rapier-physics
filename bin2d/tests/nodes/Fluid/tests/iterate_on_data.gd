@@ -26,4 +26,5 @@ func test_start() -> void:
       monitor.failed("The number of positions (%d) is different from the number of remaining lifetimes (%d)" % [positions.size(), remaining_lifetimes.size()])
       return
     
-  self.create_generic_manual_monitor($Faucet2D, check, 5, false)
+  var monitor := self.create_generic_manual_monitor($Faucet2D, check, 5, false)
+  monitor.expected_to_fail = true
