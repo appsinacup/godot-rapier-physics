@@ -100,10 +100,23 @@ impl Default for Contact {
 pub struct IdWithPriority {
     pub id: RapierId,
     pub priority: i32,
+    #[cfg_attr(
+        feature = "serde-serialize",
+        serde(default = "IdWithPriority::single_ref")
+    )]
+    pub ref_count: u32,
 }
 impl IdWithPriority {
     pub fn new(id: RapierId, priority: i32) -> Self {
-        Self { id, priority }
+        Self {
+            id,
+            priority,
+            ref_count: Self::single_ref(),
+        }
+    }
+
+    fn single_ref() -> u32 {
+        1
     }
 }
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
@@ -173,6 +186,27 @@ pub struct RapierBodyState {
     pub(crate) areas: Vec<IdWithPriority>,
     pub(crate) contacts: Vec<Contact>,
     pub(crate) contact_count: i32,
+}
+impl RapierBodyState {
+    fn add_area_ref(&mut self, area: RapierId, priority: i32) {
+        if let Some(entry) = self.areas.iter_mut().find(|entry| entry.id == area) {
+            entry.ref_count += 1;
+            entry.priority = priority;
+        } else {
+            self.areas.push(IdWithPriority::new(area, priority));
+        }
+        self.areas.sort_by_key(|entry| entry.priority);
+    }
+
+    fn remove_area_ref(&mut self, area: RapierId) {
+        if let Some(index) = self.areas.iter().position(|entry| entry.id == area) {
+            let entry = &mut self.areas[index];
+            entry.ref_count = entry.ref_count.saturating_sub(1);
+            if entry.ref_count == 0 {
+                self.areas.remove(index);
+            }
+        }
+    }
 }
 #[derive(Debug)]
 pub struct RapierBody {
@@ -713,21 +747,17 @@ impl RapierBody {
 
     pub fn add_area(&mut self, p_area: &RapierArea, space: &mut RapierSpace) {
         if p_area.has_any_space_override() {
-            let area_id = p_area.get_base().get_id();
-            let priority = p_area.get_priority();
             self.state
-                .areas
-                .push(IdWithPriority::new(area_id, priority));
-            self.state.areas.sort_by_key(|a| a.priority);
+                .add_area_ref(p_area.get_base().get_id(), p_area.get_priority());
             self.on_area_updated(space);
         }
     }
 
     pub fn remove_area(&mut self, area: RapierId, space: &mut RapierSpace) {
+        self.state.remove_area_ref(area);
         if !self.base.is_space_valid() {
             return;
         }
-        self.state.areas.retain(|&x| x.id != area);
         self.on_area_updated(space);
     }
 
@@ -2558,5 +2588,52 @@ impl Drop for RapierBody {
         if let Some(direct_state) = &self.direct_state {
             direct_state.clone().free();
         }
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    fn area_ids(state: &RapierBodyState) -> Vec<RapierId> {
+        state.areas.iter().map(|entry| entry.id).collect()
+    }
+    #[test]
+    fn area_stays_until_last_shape_pair_leaves() {
+        let mut state = RapierBodyState::default();
+        for _ in 0..4 {
+            state.add_area_ref(7, 0);
+        }
+        assert_eq!(area_ids(&state), vec![7]);
+        for _ in 0..3 {
+            state.remove_area_ref(7);
+            assert_eq!(area_ids(&state), vec![7]);
+        }
+        state.remove_area_ref(7);
+        assert!(state.areas.is_empty());
+    }
+    #[test]
+    fn removing_uncounted_area_is_ignored() {
+        let mut state = RapierBodyState::default();
+        state.add_area_ref(7, 0);
+        state.remove_area_ref(8);
+        assert_eq!(area_ids(&state), vec![7]);
+        state.remove_area_ref(7);
+        state.remove_area_ref(7);
+        assert!(state.areas.is_empty());
+    }
+    #[test]
+    fn areas_stay_sorted_by_refreshed_priority() {
+        let mut state = RapierBodyState::default();
+        state.add_area_ref(1, 5);
+        state.add_area_ref(2, 1);
+        state.add_area_ref(3, 3);
+        assert_eq!(area_ids(&state), vec![2, 3, 1]);
+        state.add_area_ref(1, 5); // 2 refs at priority 5
+        state.remove_area_ref(1);
+        state.add_area_ref(1, 0); // 2 refs at priority 0
+        assert_eq!(area_ids(&state), vec![1, 2, 3]);
+        state.remove_area_ref(1); // 1 ref at priority 0
+        assert_eq!(area_ids(&state), vec![1, 2, 3]);
+        state.remove_area_ref(1); // no more refs
+        assert_eq!(area_ids(&state), vec![2, 3]);
     }
 }

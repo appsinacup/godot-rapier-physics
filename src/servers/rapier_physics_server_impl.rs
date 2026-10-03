@@ -467,6 +467,19 @@ impl RapierPhysicsServerImpl {
 
     pub(super) fn area_set_space(&mut self, area: Rid, space: Rid) {
         let physics_data = physics_data();
+        if let Some(area_object) = physics_data.collision_objects.get(&area)
+            && let Some(rapier_area) = area_object.get_area()
+            && rapier_area.has_any_space_override()
+            && area_object.get_base().get_space(&physics_data.ids) != space
+        {
+            let area_id = area_object.get_base().get_id();
+            RapierArea::disable_space_override(
+                &area_id,
+                &mut physics_data.spaces,
+                &mut physics_data.collision_objects,
+                &physics_data.ids,
+            );
+        }
         if let Some(area) = physics_data.collision_objects.get_mut(&area) {
             if let Some(area) = area.get_mut_area() {
                 area.clear_monitored_objects();
