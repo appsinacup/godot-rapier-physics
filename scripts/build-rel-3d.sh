@@ -1,10 +1,19 @@
+set -eu
 cargo fmt -- --config-path rustfmt.toml
 cargo clippy --fix --allow-dirty --features="single-dim3,serde-serialize,parallel,api-4-7"
+cargo build --release --features="single-dim3,serde-serialize,parallel,api-4-7,register-docs"
+mkdir -p bin3d/addons/godot-rapier3d/bin/editor/libgodot_rapier.macos.framework
+cp -R bin3d/addons/godot-rapier3d/bin/libgodot_rapier.macos.framework/Resources bin3d/addons/godot-rapier3d/bin/editor/libgodot_rapier.macos.framework/
+cp target/release/libgodot_rapier.dylib bin3d/addons/godot-rapier3d/bin/editor/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
 cargo build --release --features="single-dim3,serde-serialize,parallel,api-4-7"
 rm bin3d/addons/godot-rapier3d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
 rm /Users/dragosdaian/Documents/Godot-Physics-Tests/addons/godot-rapier3d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
 cp target/release/libgodot_rapier.dylib bin3d/addons/godot-rapier3d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
 cp target/release/libgodot_rapier.dylib /Users/dragosdaian/Documents/Godot-Physics-Tests/addons/godot-rapier3d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
+mkdir -p /Users/dragosdaian/Documents/Godot-Physics-Tests/addons/godot-rapier3d/bin/editor
+cp -R bin3d/addons/godot-rapier3d/bin/editor/libgodot_rapier.macos.framework /Users/dragosdaian/Documents/Godot-Physics-Tests/addons/godot-rapier3d/bin/editor/
 
 xattr -rc bin3d/addons/godot-rapier3d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
 xattr -rc /Users/dragosdaian/Documents/Godot-Physics-Tests/addons/godot-rapier3d/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
+xattr -rc bin3d/addons/godot-rapier3d/bin/editor/libgodot_rapier.macos.framework
+xattr -rc /Users/dragosdaian/Documents/Godot-Physics-Tests/addons/godot-rapier3d/bin/editor/libgodot_rapier.macos.framework

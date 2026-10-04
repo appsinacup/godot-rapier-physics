@@ -28,10 +28,10 @@ jobs:
           arch: ${{ matrix.arch }}
           toolchain: nightly-2025-12-12
           features: serde-serialize,parallel,${{ matrix.precision }}-${{ matrix.dimensions.feature }}
-      - name: Copy to bin
+      - name: Package export and editor libraries
         shell: sh
         run: |
-          mv target/release/libgodot_rapier.dylib bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib
+          sh scripts/package-build.sh macos "${{ matrix.dimensions.short }}" "${{ matrix.arch }}"
       - name: Mac Sign
         uses: ughuuu/godot-cpp-template/.github/actions/sign@add-more-stuff/options-to-build
         with:
@@ -44,11 +44,22 @@ jobs:
           APPLE_DEV_TEAM_ID: ${{ secrets.APPLE_DEV_TEAM_ID }}
           APPLE_DEV_APP_ID: ${{ secrets.APPLE_DEV_APP_ID }}
         if: github.ref == 'refs/heads/main'
-      - name: Copy to bin
+      - name: Release temporary signing keychain
         shell: sh
-        run: |
-          mv target/release/libgodot_rapier.arm64.a bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.arm64.a
-          mv target/release/libgodot_rapier.x86_64.a bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.macos.framework/libgodot_rapier.macos.x86_64.a
+        run: security delete-keychain ephemeral.keychain
+        if: github.ref == 'refs/heads/main'
+      - name: Mac Sign Editor
+        uses: ughuuu/godot-cpp-template/.github/actions/sign@add-more-stuff/options-to-build
+        with:
+          FRAMEWORK_PATH: bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/editor/libgodot_rapier.macos.framework
+          SIGN_FLAGS: "--deep"
+          APPLE_CERT_BASE64: ${{ secrets.APPLE_CERT_BASE64 }}
+          APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
+          APPLE_DEV_PASSWORD: ${{ secrets.APPLE_DEV_PASSWORD }}
+          APPLE_DEV_ID: ${{ secrets.APPLE_DEV_ID }}
+          APPLE_DEV_TEAM_ID: ${{ secrets.APPLE_DEV_TEAM_ID }}
+          APPLE_DEV_APP_ID: ${{ secrets.APPLE_DEV_APP_ID }}
+        if: github.ref == 'refs/heads/main'
       - name: Upload
         uses: actions/upload-artifact@v6
         with:
@@ -56,6 +67,7 @@ jobs:
           path: |
             bin${{ matrix.dimensions.short }}/**/*.dylib
             bin${{ matrix.dimensions.short }}/**/CodeResources
+            bin${{ matrix.dimensions.short }}/**/Info.plist
           if-no-files-found: error
 
       - name: Upload Static

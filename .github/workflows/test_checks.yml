@@ -48,26 +48,37 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cargo build --features="${{ matrix.dimensions.feature }},test,register-docs,api-4-7"
+          base_features="${{ matrix.dimensions.feature }},test,api-4-7"
+          base_dir="bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin"
+          for variant in release editor; do
+            features="$base_features"
+            addon_dir="$base_dir"
+            if [ "$variant" = editor ]; then
+              features="$features,register-docs"
+              addon_dir="$base_dir/editor"
+              mkdir -p "$addon_dir/libgodot_rapier.macos.framework"
+              cp -R "$base_dir/libgodot_rapier.macos.framework/Resources" "$addon_dir/libgodot_rapier.macos.framework/"
+            fi
+            cargo build --features="$features"
+            case "$RUNNER_OS" in
+              Linux)
+                cp target/debug/libgodot_rapier.so "$addon_dir/libgodot_rapier.linux.x86_64-unknown-linux-gnu.so"
+                ;;
+              macOS)
+                dylib="$addon_dir/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib"
+                cp target/debug/libgodot_rapier.dylib "$dylib"
+                codesign --force --sign - "$dylib"
+                ;;
+              Windows)
+                cp target/debug/godot_rapier.dll "$addon_dir/libgodot_rapier.windows.x86_64-pc-windows-msvc.dll"
+                ;;
+              *)
+                echo "Unsupported runner OS: $RUNNER_OS"
+                exit 1
+                ;;
+            esac
 
-          addon_dir="bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin"
-          case "$RUNNER_OS" in
-            Linux)
-              cp target/debug/libgodot_rapier.so "$addon_dir/libgodot_rapier.linux.x86_64-unknown-linux-gnu.so"
-              ;;
-            macOS)
-              dylib="$addon_dir/libgodot_rapier.macos.framework/libgodot_rapier.macos.dylib"
-              cp target/debug/libgodot_rapier.dylib "$dylib"
-              codesign --force --sign - "$dylib"
-              ;;
-            Windows)
-              cp target/debug/godot_rapier.dll "$addon_dir/libgodot_rapier.windows.x86_64-pc-windows-msvc.dll"
-              ;;
-            *)
-              echo "Unsupported runner OS: $RUNNER_OS"
-              exit 1
-              ;;
-          esac
+          done
 
       - name: Run Godot Test Suite
         shell: bash

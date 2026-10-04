@@ -61,7 +61,7 @@ Exact simulation every time (on same platform)|Exact simulation on multiple plat
     - [Rapier Physics 2D](https://store.godotengine.org/asset/appsinacup/rapier-physics-2d-fast-version-with-parallel-simd-solver/)
     - [Rapier Physics 3D](https://store.godotengine.org/asset/appsinacup/rapier-physics-3d-fast-version-with-parallel-simd-solver/)
 
-    Note: There is a single build per dimension. It runs the parallel SIMD solver and is cross platform deterministic.
+    Note: Each dimension ships an export library and an editor library. Godot selects them automatically; the editor library includes built-in class documentation. Both run the parallel SIMD solver and are cross platform deterministic.
 
 - Manual: Download the [latest github release](https://github.com/appsinacup/godot-rapier-physics/releases/latest) and move only the `addons` folder into your project `addons` folder.
 
@@ -82,6 +82,8 @@ Feature sets matching the shipped addon builds:
 | - | - |
 | 2D | `single-dim2`, `serde-serialize`, `parallel`, `experimental-threads`, `api-4-7` |
 | 3D | `single-dim3`, `serde-serialize`, `parallel`, `experimental-threads`, `api-4-7` |
+
+Editor libraries add `register-docs` to these feature sets and live under `bin/editor/`. Both debug and release exports use the libraries without this feature from `bin/`. Each CI job builds the two variants sequentially.
 
 Use exactly one Godot API feature: `api-4-4`, `api-4-5`, `api-4-6`, or `api-4-7`.
 

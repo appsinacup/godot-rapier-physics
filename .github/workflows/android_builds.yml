@@ -49,11 +49,10 @@ jobs:
         with:
           arch: ${{ matrix.arch }}
           features: serde-serialize,parallel,${{ matrix.precision }}-${{ matrix.dimensions.feature }}
-      - name: Copy to bin
+      - name: Package export and editor libraries
         shell: sh
         run: |
-          mv target/release/libgodot_rapier.so bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.android.${{ matrix.arch }}.so
-          mv target/release/libgodot_rapier.a bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.android.${{ matrix.arch }}.a
+          sh scripts/package-build.sh android "${{ matrix.dimensions.short }}" "${{ matrix.arch }}"
       - name: Upload
         uses: actions/upload-artifact@v6
         with:

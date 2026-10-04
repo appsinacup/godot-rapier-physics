@@ -12,7 +12,7 @@ inputs:
     description: Rust extra flags.
   features:
     required: true
-    description: Comma-separated cargo features, e.g. serde-serialize,parallel,register-docs
+    description: Base cargo features without register-docs; editor builds add it automatically.
   api_feature:
     required: false
     default: api-custom
@@ -47,17 +47,14 @@ runs:
         rustup toolchain install "$TOOLCHAIN"
         rustup component add rust-src --toolchain "$TOOLCHAIN"
         rustup target add ${{ inputs.arch }} --toolchain "$TOOLCHAIN"
-    - name: Build
+    - name: Build export and editor libraries sequentially
       shell: sh
       run: |
+        set -eu
         TOOLCHAIN="${{ inputs.toolchain }}"
         if [ -z "$TOOLCHAIN" ]; then
           TOOLCHAIN=$(grep -E '^channel' rust-toolchain.toml | sed -E 's/channel = "(.*)"/\1/')
         fi
-        # Linking on the runner binds every symbol to the runner's glibc, which is far newer than
-        # the one Godot itself targets. zigbuild links against stubs for an older glibc instead, so
-        # the artifacts keep loading on distros the runner has already moved past. It drops the
-        # version suffix again for cargo, leaving the output where the copy step below expects it.
         if [ -n "${{ inputs.glibc }}" ]; then
           BUILD="zigbuild"
           TARGET="${{ inputs.arch }}.${{ inputs.glibc }}"
@@ -65,29 +62,27 @@ runs:
           BUILD="build"
           TARGET="${{ inputs.arch }}"
         fi
-        GDRUST_GODOT_BIN="${GODOT4:-}" cargo +"$TOOLCHAIN" "$BUILD" --target="$TARGET" --profile=${{ inputs.profile }} --features="${{ inputs.features }},${{ inputs.api_feature }}" ${{ inputs.extra_flags }}
-    - name: Copy to release
-      shell: sh
-      run: |
-        mkdir -p target/release
-        rm -rf target/release
-        cp -rf target/${{ inputs.arch }}/${{ inputs.profile }} target/release
-    - name: Build Rapier Macos Universal
-      shell: sh
-      # we already built for x86_64-apple-darwin for mac, now build arm64
-      if: ${{ inputs.arch == 'x86_64-apple-darwin'}}
-      run: |
-        mkdir -p target/release
-        TOOLCHAIN="${{ inputs.toolchain }}"
-        if [ -z "$TOOLCHAIN" ]; then
-          TOOLCHAIN=$(grep -E '^channel' rust-toolchain.toml | sed -E 's/channel = "(.*)"/\1/')
+        if [ "${{ inputs.arch }}" = x86_64-apple-darwin ]; then
+          rustup target add aarch64-apple-darwin --toolchain "$TOOLCHAIN"
         fi
-        rustup target add aarch64-apple-darwin --toolchain "$TOOLCHAIN"
-        GDRUST_GODOT_BIN="${GODOT4:-}" cargo +"$TOOLCHAIN" build --target=aarch64-apple-darwin --profile=${{ inputs.profile }} --features="${{ inputs.features }},${{ inputs.api_feature }}" ${{ inputs.extra_flags }}
-        lipo -create -output target/release/libgodot_rapier.dylib target/aarch64-apple-darwin/${{ inputs.profile }}/libgodot_rapier.dylib target/x86_64-apple-darwin/${{ inputs.profile }}/libgodot_rapier.dylib
-    - name: Move Static Libs macOS
-      shell: sh
-      if: ${{ inputs.arch == 'x86_64-apple-darwin'}}
-      run: |
-        mv target/x86_64-apple-darwin/${{ inputs.profile }}/libgodot_rapier.a target/release/libgodot_rapier.x86_64.a
-        mv target/aarch64-apple-darwin/${{ inputs.profile }}/libgodot_rapier.a target/release/libgodot_rapier.arm64.a
+        for VARIANT in release editor; do
+          FEATURES="${{ inputs.features }},${{ inputs.api_feature }}"
+          if [ "$VARIANT" = editor ]; then
+            FEATURES="$FEATURES,register-docs"
+          fi
+          GDRUST_GODOT_BIN="${GODOT4:-}" cargo +"$TOOLCHAIN" "$BUILD" --target="$TARGET" --profile=${{ inputs.profile }} --features="$FEATURES" ${{ inputs.extra_flags }}
+          # Save this variant before the next cargo build replaces the target's output.
+          rm -rf "target/$VARIANT"
+          mkdir -p "target/$VARIANT"
+          for LIBRARY in target/${{ inputs.arch }}/${{ inputs.profile }}/*; do
+            case "$LIBRARY" in
+              *.so|*.dll|*.dylib|*.wasm|*.a|*.lib) cp "$LIBRARY" "target/$VARIANT/" ;;
+            esac
+          done
+          if [ "${{ inputs.arch }}" = x86_64-apple-darwin ]; then
+            GDRUST_GODOT_BIN="${GODOT4:-}" cargo +"$TOOLCHAIN" build --target=aarch64-apple-darwin --profile=${{ inputs.profile }} --features="$FEATURES" ${{ inputs.extra_flags }}
+            lipo -create -output "target/$VARIANT/libgodot_rapier.dylib" target/aarch64-apple-darwin/${{ inputs.profile }}/libgodot_rapier.dylib target/x86_64-apple-darwin/${{ inputs.profile }}/libgodot_rapier.dylib
+            cp target/x86_64-apple-darwin/${{ inputs.profile }}/libgodot_rapier.a "target/$VARIANT/libgodot_rapier.x86_64.a"
+            cp target/aarch64-apple-darwin/${{ inputs.profile }}/libgodot_rapier.a "target/$VARIANT/libgodot_rapier.arm64.a"
+          fi
+        done
