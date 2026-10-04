@@ -50,7 +50,7 @@ jobs:
         with:
           arch: ${{ matrix.arch }}
           glibc: "2.28"
-          features: serde-serialize,parallel,register-docs,${{ matrix.precision }}-${{ matrix.dimensions.feature }}
+          features: serde-serialize,parallel,${{ matrix.precision }}-${{ matrix.dimensions.feature }}
       - name: Check glibc floor
         shell: bash
         run: |

@@ -80,8 +80,8 @@ Feature sets matching the shipped addon builds:
 
 | Build | Features |
 | - | - |
-| 2D | `single-dim2`, `serde-serialize`, `parallel`, `experimental-threads`, `register-docs`, `api-4-7` |
-| 3D | `single-dim3`, `serde-serialize`, `parallel`, `experimental-threads`, `register-docs`, `api-4-7` |
+| 2D | `single-dim2`, `serde-serialize`, `parallel`, `experimental-threads`, `api-4-7` |
+| 3D | `single-dim3`, `serde-serialize`, `parallel`, `experimental-threads`, `api-4-7` |
 
 Use exactly one Godot API feature: `api-4-4`, `api-4-5`, `api-4-6`, or `api-4-7`.
 
