@@ -277,12 +277,20 @@ impl RapierPhysicsServerImpl {
         if !result_count.ptr().is_null() {
             unsafe { *result_count.ptr() = 0 };
         }
-        let [shape_a, shape_b] = physics_data.shapes.get_disjoint_mut([&shape_a, &shape_b]);
-        let (Some(shape_a), Some(shape_b)) = (shape_a, shape_b) else {
+        let Some(shape_a_handle) = physics_data
+            .shapes
+            .get(&shape_a)
+            .map(|shape| shape.get_base().get_id())
+        else {
             return false;
         };
-        let shape_a_handle = shape_a.get_base().get_id();
-        let shape_b_handle = shape_b.get_base().get_id();
+        let Some(shape_b_handle) = physics_data
+            .shapes
+            .get(&shape_b)
+            .map(|shape| shape.get_base().get_id())
+        else {
+            return false;
+        };
         let shape_a_info = shape_info_from_body_shape(shape_a_handle, xform_a);
         let shape_b_info = shape_info_from_body_shape(shape_b_handle, xform_b);
         let rapier_a_motion = vector_to_rapier(motion_a);

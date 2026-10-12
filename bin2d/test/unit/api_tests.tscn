@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://cc2ig1s2mncgp"]
+[gd_scene load_steps=8 format=3 uid="uid://cc2ig1s2mncgp"]
 
 [ext_resource type="Script" path="res://test/unit/test_body.gd" id="1_qwomm"]
 [ext_resource type="Script" path="res://test/unit/test_joint_base.gd" id="2_yboo1"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://test/unit/test_pin_joint.gd" id="4_i26sy"]
 [ext_resource type="Script" path="res://test/unit/test_space.gd" id="5_eeqei"]
 [ext_resource type="Script" path="res://test/unit/test_separation_ray.gd" id="6_sepray"]
+[ext_resource type="Script" path="res://test/unit/test_shape.gd" id="7_shape"]
 
 [node name="Tests" type="Node2D"]
 
@@ -31,3 +32,6 @@ script = ExtResource("5_eeqei")
 
 [node name="TestSeparationRay" type="Node2D" parent="."]
 script = ExtResource("6_sepray")
+
+[node name="TestShape" type="Node2D" parent="."]
+script = ExtResource("7_shape")
