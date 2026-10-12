@@ -5,9 +5,7 @@ use rapier::na::RealField;
 #[cfg_attr(feature = "dim2", class(base=Object, init, rename=RapierMath2D))]
 #[cfg_attr(feature = "dim3", class(base=Object, init, rename=RapierMath3D))]
 /// Contains Rapier Deterministic Math functions.
-pub struct RapierMath {
-    base: Base<Object>,
-}
+pub struct RapierMath {}
 #[godot_api]
 impl RapierMath {
     #[func]

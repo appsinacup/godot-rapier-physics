@@ -720,7 +720,9 @@ impl PhysicsEngine {
                                 }
                             }
                             Ok(_) => {}
-                            Err(err) => godot_error!("contact error: {:?}", err),
+                            Err(err) => {
+                                godot_error!("contact error: {:?}", err);
+                            }
                         }
                     }
                 } else {
