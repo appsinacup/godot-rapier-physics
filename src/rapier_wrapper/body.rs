@@ -13,17 +13,23 @@ pub struct SleepThresholds {
     pub time_until_sleep: Real,
     pub length_unit: Real,
 }
+/// Returns whether the position changed. A kinematic target isn't applied before the step.
 fn set_rigid_body_properties_internal(
     rigid_body: &mut RigidBody,
     pos: Vector,
     rot: Rotation,
     teleport: bool,
     wake_up: bool,
-) {
+) -> bool {
+    let pose = Pose::from_parts(pos, rot);
     if rigid_body.is_dynamic() || rigid_body.is_fixed() || teleport {
-        rigid_body.set_position(Pose::from_parts(pos, rot), wake_up);
+        // The condition under which `set_position` flags the body as moved.
+        let moved = *rigid_body.position() != pose || *rigid_body.next_position() != pose;
+        rigid_body.set_position(pose, wake_up);
+        moved
     } else {
-        rigid_body.set_next_kinematic_position(Pose::from_parts(pos, rot));
+        rigid_body.set_next_kinematic_position(pose);
+        false
     }
 }
 impl PhysicsEngine {
@@ -193,8 +199,18 @@ impl PhysicsEngine {
                 .physics_objects
                 .rigid_body_set
                 .get_mut(body_handle)
+            && set_rigid_body_properties_internal(body, pixel_pos, rot, teleport, wake_up)
         {
-            set_rigid_body_properties_internal(body, pixel_pos, rot, teleport, wake_up);
+            // `get_mut` adds the collider to rapier's modified list. Rapier itself adds a moved
+            // body's colliders at the step, and `update_queries` adds them when it runs. Adding
+            // them now gives the step the same order either way. The broad phase's tree depends on
+            // that order.
+            for collider in body.colliders() {
+                physics_world
+                    .physics_objects
+                    .collider_set
+                    .get_mut(*collider);
+            }
         }
         self.body_wake_up_connected_rigidbodies(world_handle, body_handle);
     }

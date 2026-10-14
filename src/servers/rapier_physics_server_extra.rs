@@ -870,6 +870,22 @@ macro_rules! make_rapier_server_godot_impl {
             }
 
             #[func]
+            /// Update the queries of [param space] without stepping. They then see the bodies,
+            /// areas and shapes added or moved since the last [method space_step]. Otherwise they
+            /// see them as they were at the last step. A kinematic body still only moves at the
+            /// step. Calling it or not doesn't change the next step. Its cost grows with the size
+            /// of the space.
+            fn space_update_queries(space: Rid) {
+                let Some(physics_singleton) = try_rapier_physics_server() else {
+                    return;
+                };
+                physics_singleton
+                    .bind()
+                    .implementation
+                    .space_update_queries(&space);
+            }
+
+            #[func]
             /// Get the id of the object by rid. The id can be saved and used when reloading the scene.
             fn get_rapier_id(rid: Rid) -> i64 {
                 let Some(physics_singleton) = try_rapier_physics_server() else {

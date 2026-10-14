@@ -2719,7 +2719,24 @@ impl RapierPhysicsServerImpl {
         if !self.active {
             return;
         }
-        let settings = SimulationSettings {
+        let settings = self.simulation_settings(step);
+        RapierSpace::step(step, space_rid, physics_data, settings);
+    }
+
+    pub(super) fn space_update_queries(&self, space_rid: &Rid) {
+        let physics_data = physics_data();
+        let Some(space) = physics_data.spaces.get(space_rid) else {
+            return;
+        };
+        // The query update doesn't depend on the step length.
+        let settings = self.simulation_settings(0.0);
+        physics_data
+            .physics_engine
+            .world_update_queries(space.get_state().get_id(), &settings);
+    }
+
+    fn simulation_settings(&self, step: f32) -> SimulationSettings {
+        SimulationSettings {
             dt: step,
             length_unit: self.length_unit,
             max_ccd_substeps: self.max_ccd_substeps,
@@ -2735,8 +2752,7 @@ impl RapierPhysicsServerImpl {
             num_internal_stabilization_iterations: self.num_internal_stabilization_iterations,
             contact_damping_ratio: self.contact_damping_ratio,
             contact_natural_frequency: self.contact_natural_frequency,
-        };
-        RapierSpace::step(step, space_rid, physics_data, settings);
+        }
     }
 
     pub(super) fn space_flush_queries(space: &Rid) {
