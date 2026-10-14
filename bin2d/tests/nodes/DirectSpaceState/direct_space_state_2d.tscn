@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://du31nbhldjjtp"]
+[gd_scene load_steps=17 format=3 uid="uid://du31nbhldjjtp"]
 
 [ext_resource type="PackedScene" uid="uid://c8jq3yssvlovo" path="res://tests/nodes/DirectSpaceState/tests/2d/intersect_ray.tscn" id="1_0n16d"]
 [ext_resource type="PackedScene" uid="uid://byf328f57nfhv" path="res://tests/nodes/DirectSpaceState/tests/2d/intersect_point.tscn" id="2_la0b3"]
@@ -9,6 +9,12 @@
 [ext_resource type="PackedScene" path="res://tests/nodes/DirectSpaceState/tests/2d/collide_shape.tscn" id="7_clsh"]
 [ext_resource type="PackedScene" uid="uid://bcastmotioncon1" path="res://tests/nodes/DirectSpaceState/tests/2d/cast_motion_contract.tscn" id="8_cmc"]
 [ext_resource type="PackedScene" path="res://tests/nodes/DirectSpaceState/tests/2d/compound_shape_indices.tscn" id="9_csi2d"]
+[ext_resource type="PackedScene" path="res://tests/nodes/DirectSpaceState/tests/2d/update_queries_moves.tscn" id="10_uqm2d"]
+[ext_resource type="PackedScene" path="res://tests/nodes/DirectSpaceState/tests/2d/update_queries_added.tscn" id="11_uqa2d"]
+[ext_resource type="PackedScene" path="res://tests/nodes/DirectSpaceState/tests/2d/update_queries_reused_index.tscn" id="12_uqr2d"]
+[ext_resource type="PackedScene" path="res://tests/nodes/DirectSpaceState/tests/2d/update_queries_kinematic.tscn" id="13_uqk2d"]
+[ext_resource type="PackedScene" path="res://tests/nodes/DirectSpaceState/tests/2d/update_queries_state.tscn" id="14_uqs2d"]
+[ext_resource type="PackedScene" path="res://tests/nodes/DirectSpaceState/tests/2d/update_queries_rollback.tscn" id="15_uqrb2d"]
 
 [sub_resource type="GDScript" id="GDScript_weqxb"]
 script/source = "extends TestScene
@@ -34,3 +40,15 @@ script = SubResource("GDScript_weqxb")
 [node name="cast_motion_contract" parent="." instance=ExtResource("8_cmc")]
 
 [node name="compound_shape_indices" parent="." instance=ExtResource("9_csi2d")]
+
+[node name="update_queries_moves" parent="." instance=ExtResource("10_uqm2d")]
+
+[node name="update_queries_added" parent="." instance=ExtResource("11_uqa2d")]
+
+[node name="update_queries_reused_index" parent="." instance=ExtResource("12_uqr2d")]
+
+[node name="update_queries_kinematic" parent="." instance=ExtResource("13_uqk2d")]
+
+[node name="update_queries_state" parent="." instance=ExtResource("14_uqs2d")]
+
+[node name="update_queries_rollback" parent="." instance=ExtResource("15_uqrb2d")]

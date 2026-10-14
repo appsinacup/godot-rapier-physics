@@ -1,6 +1,12 @@
-[gd_scene load_steps=3 format=3 uid="uid://du31nbhldj3d0"]
+[gd_scene load_steps=9 format=3 uid="uid://du31nbhldj3d0"]
 
 [ext_resource type="PackedScene" path="res://tests/nodes/DirectSpaceState/tests/3d/rest_info_velocity.tscn" id="1_riv3d"]
+[ext_resource type="PackedScene" path="res://tests/nodes/DirectSpaceState/tests/3d/update_queries_moves.tscn" id="2_uqm3d"]
+[ext_resource type="PackedScene" path="res://tests/nodes/DirectSpaceState/tests/3d/update_queries_added.tscn" id="3_uqa3d"]
+[ext_resource type="PackedScene" path="res://tests/nodes/DirectSpaceState/tests/3d/update_queries_reused_index.tscn" id="4_uqr3d"]
+[ext_resource type="PackedScene" path="res://tests/nodes/DirectSpaceState/tests/3d/update_queries_kinematic.tscn" id="5_uqk3d"]
+[ext_resource type="PackedScene" path="res://tests/nodes/DirectSpaceState/tests/3d/update_queries_state.tscn" id="6_uqs3d"]
+[ext_resource type="PackedScene" path="res://tests/nodes/DirectSpaceState/tests/3d/update_queries_rollback.tscn" id="7_uqrb3d"]
 
 [sub_resource type="GDScript" id="GDScript_dss3d"]
 script/source = "extends TestScene
@@ -10,3 +16,15 @@ script/source = "extends TestScene
 script = SubResource("GDScript_dss3d")
 
 [node name="rest_info_velocity" parent="." instance=ExtResource("1_riv3d")]
+
+[node name="update_queries_moves" parent="." instance=ExtResource("2_uqm3d")]
+
+[node name="update_queries_added" parent="." instance=ExtResource("3_uqa3d")]
+
+[node name="update_queries_reused_index" parent="." instance=ExtResource("4_uqr3d")]
+
+[node name="update_queries_kinematic" parent="." instance=ExtResource("5_uqk3d")]
+
+[node name="update_queries_state" parent="." instance=ExtResource("6_uqs3d")]
+
+[node name="update_queries_rollback" parent="." instance=ExtResource("7_uqrb3d")]

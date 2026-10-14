@@ -5,6 +5,7 @@ use std::sync::mpsc;
 
 use godot::global::godot_error;
 use hashbrown::HashMap;
+use rapier::data::HasModifiedFlag;
 use rapier::data::Index;
 use rapier::parry::utils::PoseOpt;
 use rapier::prelude::*;
@@ -149,6 +150,13 @@ pub struct PhysicsObjects {
     )]
     pub removed_colliders_user_data: BTreeMap<OrderedColliderHandle, UserData>,
 
+    /// The broad phase before `update_queries` first changed it since the last step. The next step
+    /// restores it. The shape of the tree depends on when its leaves were updated, and so does the
+    /// order of the pairs the step finds. The simulation must not depend on whether queries were
+    /// updated.
+    #[cfg_attr(feature = "serde-serialize", serde(default))]
+    pub broad_phase_before_queries_update: Option<DefaultBroadPhase>,
+
     pub handle: WorldHandle,
 }
 impl Clone for PhysicsObjects {
@@ -167,6 +175,8 @@ impl Clone for PhysicsObjects {
 
             removed_rigid_bodies_user_data: self.removed_rigid_bodies_user_data.clone(),
             removed_colliders_user_data: self.removed_colliders_user_data.clone(),
+
+            broad_phase_before_queries_update: self.broad_phase_before_queries_update.clone(),
 
             handle: self.handle,
         }
@@ -191,6 +201,30 @@ fn shared_thread_pool(thread_count: usize) -> &'static rapier::rayon::ThreadPool
             .build()
             .expect("failed to build the rapier worker pool")
     })
+}
+
+fn integration_parameters(settings: &SimulationSettings) -> IntegrationParameters {
+    let mut integration_parameters = IntegrationParameters {
+        length_unit: settings.length_unit,
+        dt: settings.dt,
+        contact_softness: SpringCoefficients {
+            natural_frequency: settings.contact_natural_frequency,
+            damping_ratio: settings.contact_damping_ratio,
+        },
+        max_ccd_substeps: settings.max_ccd_substeps,
+        normalized_allowed_linear_error: settings.normalized_allowed_linear_error,
+        normalized_max_corrective_velocity: settings.normalized_max_corrective_velocity,
+        normalized_prediction_distance: settings.normalized_prediction_distance,
+        normalized_max_linear_velocity: settings.normalized_max_linear_velocity,
+        num_internal_stabilization_iterations: settings.num_internal_stabilization_iterations,
+        warmstart_joints: true,
+        ..Default::default()
+    };
+    if let Some(iterations) = NonZeroUsize::new(settings.num_solver_iterations) {
+        integration_parameters.num_solver_iterations = iterations.into();
+    }
+    integration_parameters.num_internal_pgs_iterations = settings.num_internal_pgs_iterations;
+    integration_parameters
 }
 
 pub struct PhysicsWorld {
@@ -222,6 +256,8 @@ impl PhysicsWorld {
                 removed_rigid_bodies_user_data: BTreeMap::new(),
                 removed_colliders_user_data: BTreeMap::new(),
 
+                broad_phase_before_queries_update: None,
+
                 handle: WorldHandle::default(),
             },
             physics_pipeline,
@@ -245,26 +281,7 @@ impl PhysicsWorld {
         physics_ids: &PhysicsIds,
     ) {
         let _step_span = profiler::scope(profiler::Span::Step);
-        let mut integration_parameters = IntegrationParameters {
-            length_unit: settings.length_unit,
-            dt: settings.dt,
-            contact_softness: SpringCoefficients {
-                natural_frequency: settings.contact_natural_frequency,
-                damping_ratio: settings.contact_damping_ratio,
-            },
-            max_ccd_substeps: settings.max_ccd_substeps,
-            normalized_allowed_linear_error: settings.normalized_allowed_linear_error,
-            normalized_max_corrective_velocity: settings.normalized_max_corrective_velocity,
-            normalized_prediction_distance: settings.normalized_prediction_distance,
-            normalized_max_linear_velocity: settings.normalized_max_linear_velocity,
-            num_internal_stabilization_iterations: settings.num_internal_stabilization_iterations,
-            warmstart_joints: true,
-            ..Default::default()
-        };
-        if let Some(iterations) = NonZeroUsize::new(settings.num_solver_iterations) {
-            integration_parameters.num_solver_iterations = iterations.into();
-        }
-        integration_parameters.num_internal_pgs_iterations = settings.num_internal_pgs_iterations;
+        let integration_parameters = integration_parameters(settings);
         let gravity = settings.pixel_gravity;
         let liquid_gravity = settings.pixel_liquid_gravity;
         let physics_hooks = PhysicsHooksCollisionFilter {
@@ -277,6 +294,13 @@ impl PhysicsWorld {
         let (collision_send, collision_recv) = mpsc::channel();
         let (contact_force_send, contact_force_recv) = mpsc::channel();
         let event_handler = ContactEventHandler::new(collision_send, contact_force_send);
+        if let Some(broad_phase) = self
+            .physics_objects
+            .broad_phase_before_queries_update
+            .take()
+        {
+            self.physics_objects.broad_phase = broad_phase;
+        }
         {
             let _solver_span = profiler::scope(profiler::Span::Solver);
             #[cfg(feature = "parallel")]
@@ -464,6 +488,59 @@ impl PhysicsWorld {
         // remove all the removed colliders and rigidbodies user data
         self.physics_objects.removed_rigid_bodies_user_data.clear();
         self.physics_objects.removed_colliders_user_data.clear();
+    }
+
+    /// Syncs the colliders modified since the last step and their broad-phase leaves. Queries read
+    /// both. Rapier only syncs them during a step. A kinematic target isn't a position change: like
+    /// in Godot, queries see a kinematic body where it is until the step.
+    pub fn update_queries(&mut self, settings: &SimulationSettings) {
+        let integration_parameters = integration_parameters(settings);
+        // No soft-CCD or soft-body margins. They depend on the step length.
+        let aabb_margin = integration_parameters.prediction_distance() / 2.0;
+        let physics_objects = &mut self.physics_objects;
+        // A collider's world position follows its body's, as the step would set it. A moved body's
+        // colliders were marked as modified in `body_set_transform`.
+        let mut repositioned = Vec::new();
+        // In handle order. It doesn't depend on the order of the changes.
+        for (handle, collider) in physics_objects.collider_set.iter_enabled() {
+            if !collider.has_modified_flag() {
+                continue;
+            }
+            let mut position = *collider.position();
+            if let Some(parent) = collider.parent()
+                && let Some(body) = physics_objects.rigid_body_set.get(parent)
+                && let Some(pos_wrt_parent) = collider.position_wrt_parent()
+            {
+                let new_position = *body.position() * *pos_wrt_parent;
+                // Left to rapier's `Quarantine` at the step. It disables the body instead.
+                if !new_position.is_finite() {
+                    continue;
+                }
+                if position != new_position {
+                    position = new_position;
+                    repositioned.push((handle, new_position));
+                }
+            }
+            // What `compute_collision_aabb` gives once the collider is repositioned.
+            let aabb = collider
+                .shape()
+                .compute_aabb(&position)
+                .loosened(collider.contact_skin() + aabb_margin);
+            if aabb.mins.is_finite() && aabb.maxs.is_finite() {
+                if physics_objects.broad_phase_before_queries_update.is_none() {
+                    physics_objects.broad_phase_before_queries_update =
+                        Some(physics_objects.broad_phase.clone());
+                }
+                physics_objects
+                    .broad_phase
+                    .set_aabb(&integration_parameters, handle, aabb);
+            }
+        }
+        for (handle, position) in repositioned {
+            if let Some(collider) = physics_objects.collider_set.get_mut(handle) {
+                collider.set_position(position);
+            }
+        }
     }
 
     pub fn insert_collider(
@@ -823,6 +900,16 @@ impl PhysicsEngine {
         let mut physics_world = PhysicsWorld::new(settings);
         physics_world.physics_objects = physics_objects;
         self.physics_worlds.insert(world_handle, physics_world);
+    }
+
+    pub fn world_update_queries(
+        &mut self,
+        world_handle: WorldHandle,
+        settings: &SimulationSettings,
+    ) {
+        if let Some(physics_world) = self.get_mut_world(world_handle) {
+            physics_world.update_queries(settings);
+        }
     }
 
     #[allow(clippy::too_many_arguments)]
