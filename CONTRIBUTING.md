@@ -103,6 +103,8 @@ cargo build --release --features="single-dim2,api-4-7"
 cargo build --release --features="single-dim3,api-4-7"
 ```
 
+The commands above build export libraries without class documentation. For editor use, add `register-docs` and copy that build into the corresponding `bin/editor/` path. Copy each variant **before** building the other one, since Cargo replaces the output for the same target/profile. The development scripts handle the editor paths automatically.
+
 4. Copy the output to bin folder of the addon:
 
 Eg. macOS
@@ -111,10 +113,18 @@ cp target/release/libgodot_rapier.dylib bin2d/addons/godot-rapier2d/bin/libgodot
 ```
 Eg. Windows
 ```bash
-cp target/release/godot_rapier.dll bin2d/addons/godot-rapier2d/bin/godot_rapier.windows.x86_64-pc-windows-msvc.dll
+cp target/release/godot_rapier.dll bin2d/addons/godot-rapier2d/bin/libgodot_rapier.windows.x86_64-pc-windows-msvc.dll
 ```
 
-For the correct path to use inside the bin folder, look inside the `bin2d/addons/godot-rapier2d.gdextension` or the `bin3d/addons/godot-rapier3d.gdextension`.
+5. Build and copy the editor variant. For example, on Windows:
+
+```bash
+cargo build --release --features="single-dim2,api-4-7,register-docs"
+mkdir -p bin2d/addons/godot-rapier2d/bin/editor
+cp target/release/godot_rapier.dll bin2d/addons/godot-rapier2d/bin/editor/libgodot_rapier.windows.x86_64-pc-windows-msvc.dll
+```
+
+For macOS, also copy the framework's `Resources/` directory into the editor framework. For the correct paths, look inside `bin2d/addons/godot-rapier2d/godot-rapier2d.gdextension` or `bin3d/addons/godot-rapier3d/godot-rapier3d.gdextension`. The `editor.debug` entries must precede the export entries: debug exports also have the `debug` feature, but do not have the `editor` feature.
 
 ## Build script
 

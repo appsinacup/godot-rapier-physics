@@ -24,13 +24,11 @@ jobs:
         uses: ./.github/actions/build
         with:
           arch: ${{ matrix.arch }}
-          features: serde-serialize,parallel,register-docs,${{ matrix.precision }}-${{ matrix.dimensions.feature }}
-      - name: Copy to bin
+          features: serde-serialize,parallel,${{ matrix.precision }}-${{ matrix.dimensions.feature }}
+      - name: Package export and editor libraries
         shell: sh
         run: |
-          ls target/release
-          mv target/release/godot_rapier.dll bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.windows.${{ matrix.arch }}.dll
-          mv target/release/godot_rapier.lib bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.windows.${{ matrix.arch }}.a
+          sh scripts/package-build.sh windows "${{ matrix.dimensions.short }}" "${{ matrix.arch }}"
       - name: Upload
         uses: actions/upload-artifact@v6
         with:

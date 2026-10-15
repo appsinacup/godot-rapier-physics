@@ -58,12 +58,10 @@ jobs:
           profile: release-wasm
           toolchain: nightly-2025-12-12
           features: serde-serialize,${{ matrix.precision }}-${{ matrix.dimensions.feature }},${{ matrix.build_param.feature }}
-      - name: Copy to bin
+      - name: Package export and editor libraries
         shell: sh
         run: |
-          ls target/release
-          mv target/release/godot_rapier.wasm bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/${{ matrix.build_param.folder }}/godot_rapier.wasm
-          mv target/release/libgodot_rapier.a bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/${{ matrix.build_param.folder }}/libgodot_rapier.a
+          sh scripts/package-build.sh web "${{ matrix.dimensions.short }}" "${{ matrix.arch }}" "${{ matrix.build_param.folder }}"
       - name: Upload
         uses: actions/upload-artifact@v6
         with:

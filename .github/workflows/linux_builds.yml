@@ -50,21 +50,22 @@ jobs:
         with:
           arch: ${{ matrix.arch }}
           glibc: "2.28"
-          features: serde-serialize,parallel,register-docs,${{ matrix.precision }}-${{ matrix.dimensions.feature }}
+          features: serde-serialize,parallel,${{ matrix.precision }}-${{ matrix.dimensions.feature }}
       - name: Check glibc floor
         shell: bash
         run: |
-          max=$(readelf -V target/release/libgodot_rapier.so | grep -o 'GLIBC_[0-9.]\+' | sort -uV | tail -1)
-          echo "highest glibc symbol version required: $max"
-          if [ "$(printf '%s\n' "$max" GLIBC_2.28 | sort -V | tail -1)" != "GLIBC_2.28" ]; then
-            echo "::error::linked against $max, above the 2.28 floor -- zigbuild did not take effect"
-            exit 1
-          fi
-      - name: Copy to bin
+          for variant in release editor; do
+            max=$(readelf -V target/$variant/libgodot_rapier.so | grep -o 'GLIBC_[0-9.]\+' | sort -uV | tail -1)
+            echo "highest glibc symbol version required: $max"
+            if [ "$(printf '%s\n' "$max" GLIBC_2.28 | sort -V | tail -1)" != "GLIBC_2.28" ]; then
+              echo "::error::linked against $max, above the 2.28 floor -- zigbuild did not take effect"
+              exit 1
+            fi
+          done
+      - name: Package export and editor libraries
         shell: sh
         run: |
-          mv target/release/libgodot_rapier.so bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.linux.${{ matrix.arch }}.so
-          mv target/release/libgodot_rapier.a bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin/libgodot_rapier.linux.${{ matrix.arch }}.a
+          sh scripts/package-build.sh linux "${{ matrix.dimensions.short }}" "${{ matrix.arch }}"
       - name: Upload
         uses: actions/upload-artifact@v6
         with:
