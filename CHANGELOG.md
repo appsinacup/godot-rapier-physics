@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.36.1
+
+## What's Changed
+* keep area space overrides until last body shape exits the area by @sebutaur in https://github.com/appsinacup/godot-rapier-physics/pull/643
+* Fix Shape2D collision with a shared resource by @upalvstavai in https://github.com/appsinacup/godot-rapier-physics/pull/650
+* feat: add `space_update_queries` to see moves before the next step by @BimDav in https://github.com/appsinacup/godot-rapier-physics/pull/652
+* Ship separate editor and export libraries by @dajiaohuang in https://github.com/appsinacup/godot-rapier-physics/pull/646
+* Build the CI test extension with serde-serialize by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/661
+* Fix character bodies losing the floor among many nearby bodies by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/656
+* Pass the body state and user data to force integration callbacks by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/657
+* Apply joint body and IK axis changes at runtime by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/658
+* Report resting contacts within rounding from rest_info by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/659
+* Queue RID frees from other threads until the next step by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/660
+* Add a project setting for the solver thread count by @Ughuuu in https://github.com/appsinacup/godot-rapier-physics/pull/662
+
+## New Contributors
+* @sebutaur made their first contribution in https://github.com/appsinacup/godot-rapier-physics/pull/643
+* @upalvstavai made their first contribution in https://github.com/appsinacup/godot-rapier-physics/pull/650
+* @BimDav made their first contribution in https://github.com/appsinacup/godot-rapier-physics/pull/652
+* @dajiaohuang made their first contribution in https://github.com/appsinacup/godot-rapier-physics/pull/646
+
+**Full Changelog**: https://github.com/appsinacup/godot-rapier-physics/compare/v0.36.0...v0.36.1
+
 ## v0.36.0
 
 ## v0.35.4
