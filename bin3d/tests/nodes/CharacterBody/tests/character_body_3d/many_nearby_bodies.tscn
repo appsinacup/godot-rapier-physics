@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tests/nodes/CharacterBody/tests/character_body_3d/many_nearby_bodies.gd" id="1_nearby"]
+
+[node name="many_nearby_bodies" type="Node3D"]
+script = ExtResource("1_nearby")

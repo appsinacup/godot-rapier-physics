@@ -450,38 +450,27 @@ impl RapierSpace {
         collision_mask: u32,
         collide_with_bodies: bool,
         collide_with_areas: bool,
-        results: &mut [PointHitInfo],
-        max_results: usize,
         exclude_body: Rid,
         physics_engine: &PhysicsEngine,
         physics_collision_objects: &PhysicsCollisionObjects,
         physics_ids: &PhysicsIds,
-    ) -> i32 {
-        if max_results < 1 {
-            return 0;
-        }
-        let rect_begin = aabb.position - aabb.size;
-        let rect_end = aabb.end();
-        let mut handle_excluded_info = QueryExcludedInfo::default();
-        let mut query_exclude = Vec::new();
-        query_exclude.resize_with(max_results, Default::default);
-        handle_excluded_info.query_exclude = query_exclude;
-        handle_excluded_info.query_collision_layer_mask = collision_mask;
-        handle_excluded_info.query_exclude_size = 0;
-        handle_excluded_info.query_exclude_body = exclude_body.to_u64() as i64;
+    ) -> Vec<PointHitInfo> {
+        let handle_excluded_info = QueryExcludedInfo {
+            query_collision_layer_mask: collision_mask,
+            query_exclude_body: exclude_body.to_u64() as i64,
+            ..Default::default()
+        };
         physics_engine.intersect_aabb(
             self.get_state().get_id(),
-            vector_to_rapier(rect_begin),
-            vector_to_rapier(rect_end),
+            vector_to_rapier(aabb.position),
+            vector_to_rapier(aabb.end()),
             collide_with_bodies,
             collide_with_areas,
-            results,
-            max_results,
             &handle_excluded_info,
             physics_collision_objects,
             physics_ids,
             self,
-        ) as i32
+        )
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -507,7 +496,6 @@ impl RapierSpace {
         let mut recover_attempts = motion_settings().recover_attempts;
         let body_aabb = p_body.get_aabb(physics_shapes, physics_ids);
         loop {
-            let mut results = [PointHitInfo::default(); 32];
             let mut sr = [Vector::default(); 64]; // Store contact points (2 per contact, max 32 contacts)
             let mut priorities = [0.0; 32];
             let mut contact_count = 0;
@@ -515,20 +503,18 @@ impl RapierSpace {
             // Undo the currently transform the physics server is aware of and apply the provided one
             let margin_aabb = *p_transform * body_aabb;
             let margin_aabb = margin_aabb.grow(p_margin);
-            let result_count = self.rapier_intersect_aabb(
+            let results = self.rapier_intersect_aabb(
                 margin_aabb,
                 p_body.get_base().get_collision_mask(),
                 true,
                 false,
-                &mut results,
-                32,
                 p_body.get_base().get_rid(),
                 physics_engine,
                 physics_collision_objects,
                 physics_ids,
             );
             // Optimization
-            if result_count == 0 {
+            if results.is_empty() {
                 break;
             }
             let mut collided = false;
@@ -546,9 +532,7 @@ impl RapierSpace {
                         body_shape.get_base().get_id(),
                         body_shape_transform,
                     );
-                    for result_idx in 0..result_count {
-                        let result_idx = result_idx as usize;
-                        let result = &mut results[result_idx];
+                    for result in &results {
                         if !result.user_data.is_valid() {
                             continue;
                         }
@@ -699,20 +683,17 @@ impl RapierSpace {
         let mut motion_aabb = margin_aabb;
         motion_aabb.position += p_motion;
         motion_aabb = motion_aabb.merge(margin_aabb);
-        let mut results = [PointHitInfo::default(); 32];
-        let result_count = self.rapier_intersect_aabb(
+        let results = self.rapier_intersect_aabb(
             motion_aabb,
             p_body.get_base().get_collision_mask(),
             true,
             false,
-            &mut results,
-            32,
             p_body.get_base().get_rid(),
             physics_engine,
             physics_collision_objects,
             physics_ids,
         );
-        if result_count == 0 {
+        if results.is_empty() {
             return;
         }
         for body_shape_idx in 0..p_body.get_base().get_shape_count() {
@@ -740,9 +721,7 @@ impl RapierSpace {
                 let mut best_safe = 1.0;
                 let mut best_unsafe = 1.0;
                 let mut stuck = false;
-                for result_idx in 0..result_count {
-                    let result_idx = result_idx as usize;
-                    let result = &mut results[result_idx];
+                for result in &results {
                     if !result.user_data.is_valid() {
                         continue;
                     }
@@ -966,21 +945,18 @@ impl RapierSpace {
         let mut motion_aabb = margin_aabb;
         motion_aabb.position += p_motion;
         motion_aabb = motion_aabb.merge(margin_aabb);
-        let mut results = [PointHitInfo::default(); 32];
-        let result_count = self.rapier_intersect_aabb(
+        let results = self.rapier_intersect_aabb(
             motion_aabb,
             p_body.get_base().get_collision_mask(),
             true,
             false,
-            &mut results,
-            32,
             p_body.get_base().get_rid(),
             physics_engine,
             physics_collision_objects,
             physics_ids,
         );
         // Optimization
-        if result_count == 0 {
+        if results.is_empty() {
             return false;
         }
         let mut best_depth = 0.0;
@@ -1019,8 +995,7 @@ impl RapierSpace {
                     body_shape_obj.get_base().get_id(),
                     body_shape_transform,
                 );
-                for result_idx in 0..result_count {
-                    let result = &mut results[result_idx as usize];
+                for result in &results {
                     if !result.user_data.is_valid() {
                         continue;
                     }

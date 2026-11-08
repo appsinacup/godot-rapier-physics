@@ -666,6 +666,7 @@ impl RapierBody {
         self.force_integration_callback = None;
         if callable.is_valid() {
             self.force_integration_callback = Some(callable);
+            self.create_direct_state();
             if let Some(direct_state) = self.direct_state_variant() {
                 self.force_integration_array.push(&direct_state);
                 if !udata.is_nil() {
@@ -2108,36 +2109,18 @@ impl RapierBody {
     }
 
     pub fn get_aabb(&self, physics_shapes: &PhysicsShapes, physics_ids: &PhysicsIds) -> Rect {
-        let mut shapes_found = false;
-        let mut body_aabb = Rect::default();
-        let shape_count = self.base.get_shape_count() as usize;
-        for i in 0..shape_count {
+        let mut body_aabb: Option<Rect> = None;
+        for i in 0..self.base.get_shape_count() as usize {
             if self.base.is_shape_disabled(i) {
                 continue;
             }
             if let Some(shape) = physics_shapes.get(&self.base.get_shape(physics_ids, i)) {
-                let mut shape_transform = self.base.get_shape_transform(i);
-                if !shapes_found {
-                    body_aabb = shape.get_base().get_aabb(shape_transform.origin);
-                    shape_transform.origin = Vector::default();
-                    body_aabb.size = transform_scale(&shape_transform) * body_aabb.size;
-                    shapes_found = true;
-                } else {
-                    let mut shape_aabb = shape.get_base().get_aabb(shape_transform.origin);
-                    shape_transform.origin = Vector::default();
-                    shape_aabb.size = transform_scale(&shape_transform) * shape_aabb.size;
-                    body_aabb = body_aabb.merge(shape_aabb);
-                }
+                let shape_aabb =
+                    self.base.get_shape_transform(i) * shape.get_base().get_aabb(Vector::default());
+                body_aabb = Some(body_aabb.map_or(shape_aabb, |aabb| aabb.merge(shape_aabb)));
             }
         }
-        // HACK Rotation fix hack, do different
-        body_aabb.size.x = body_aabb.size.x.max(body_aabb.size.y);
-        body_aabb.size.y = body_aabb.size.x;
-        #[cfg(feature = "dim3")]
-        if crate::rapier::prelude::DIM == 3 {
-            body_aabb.size.z = body_aabb.size.x;
-        }
-        body_aabb
+        body_aabb.unwrap_or_default()
     }
 
     pub fn total_linear_damping(&self) -> real {
