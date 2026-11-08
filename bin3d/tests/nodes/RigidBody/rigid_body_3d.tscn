@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://cri8nuohiravf"]
+[gd_scene load_steps=11 format=3 uid="uid://cri8nuohiravf"]
 
 [ext_resource type="PackedScene" uid="uid://giro4ikkullp" path="res://tests/nodes/RigidBody/tests/3d/shape_stack.tscn" id="1_etrmd"]
 [ext_resource type="PackedScene" uid="uid://dsqnhw3pojva0" path="res://tests/nodes/RigidBody/tests/3d/continuous_detection.tscn" id="2_ek4cl"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://tests/nodes/RigidBody/tests/3d/inverse_inertia_tensor.tscn" id="5_iit3d"]
 [ext_resource type="PackedScene" path="res://tests/nodes/RigidBody/tests/3d/multi_shape_inertia.tscn" id="6_msi3d"]
 [ext_resource type="PackedScene" path="res://tests/nodes/RigidBody/tests/3d/runtime_property_changes.tscn" id="7_rpc3d"]
+[ext_resource type="PackedScene" path="res://tests/nodes/RigidBody/tests/3d/runtime_joint_nodes.tscn" id="reg_runtime_joint_nodes"]
 [ext_resource type="PackedScene" path="res://tests/nodes/RigidBody/tests/3d/force_integration_callback.tscn" id="reg_force_integration_callback"]
 
 [sub_resource type="GDScript" id="GDScript_3dmc3"]
@@ -43,5 +44,7 @@ expected_to_fail = Array[int]([0])
 [node name="multi_shape_inertia" parent="." instance=ExtResource("6_msi3d")]
 
 [node name="runtime_property_changes" parent="." instance=ExtResource("7_rpc3d")]
+
+[node name="runtime_joint_nodes" parent="." instance=ExtResource("reg_runtime_joint_nodes")]
 
 [node name="force_integration_callback" parent="." instance=ExtResource("reg_force_integration_callback")]

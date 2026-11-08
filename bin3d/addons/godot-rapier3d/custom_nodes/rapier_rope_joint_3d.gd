@@ -5,9 +5,15 @@ extends Node3D
 ## Attaches to both bodies at this node's global position.
 
 ## First body attached to the joint.
-@export var node_a: NodePath
+@export var node_a: NodePath:
+	set(value):
+		node_a = value
+		_rebuild()
 ## Second body attached to the joint.
-@export var node_b: NodePath
+@export var node_b: NodePath:
+	set(value):
+		node_b = value
+		_rebuild()
 ## Rope length: how far apart the attachment points may drift.
 @export_range(0.01, 1000.0, 0.01, "or_greater", "suffix:m") var max_distance: float = 1.0:
 	set(value):

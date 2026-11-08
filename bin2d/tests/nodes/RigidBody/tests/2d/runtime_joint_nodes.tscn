@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tests/nodes/RigidBody/tests/2d/runtime_joint_nodes.gd" id="1_rjn"]
+
+[node name="runtime_joint_nodes" type="Node2D"]
+script = ExtResource("1_rjn")
