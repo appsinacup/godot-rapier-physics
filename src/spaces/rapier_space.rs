@@ -277,20 +277,20 @@ impl RapierSpace {
             direct_state_array = Some(body.get_direct_state_array().clone());
             fi_array = Some(body.get_force_integration_array().clone());
         }
-        if let Some(state_sync_callback) = state_sync_callback
-            && let Some(direct_state_array) = direct_state_array
-        {
-            callbacks.push(PendingQueryCallback::Callv {
-                callable: state_sync_callback,
-                args: direct_state_array,
-            });
-        }
         if let Some(fi_callback) = fi_callback
             && let Some(fi_array) = fi_array
         {
             callbacks.push(PendingQueryCallback::Callv {
                 callable: fi_callback,
                 args: fi_array,
+            });
+        }
+        if let Some(state_sync_callback) = state_sync_callback
+            && let Some(direct_state_array) = direct_state_array
+        {
+            callbacks.push(PendingQueryCallback::Callv {
+                callable: state_sync_callback,
+                args: direct_state_array,
             });
         }
         callbacks
