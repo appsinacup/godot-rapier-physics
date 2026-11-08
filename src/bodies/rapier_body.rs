@@ -666,6 +666,7 @@ impl RapierBody {
         self.force_integration_callback = None;
         if callable.is_valid() {
             self.force_integration_callback = Some(callable);
+            self.create_direct_state();
             if let Some(direct_state) = self.direct_state_variant() {
                 self.force_integration_array.push(&direct_state);
                 if !udata.is_nil() {
