@@ -110,6 +110,8 @@ const FLUID_PARTICLE_RADIUS: &str = "physics/rapier/fluid/fluid_particle_radius_
 const FLUID_PARTICLE_RADIUS: &str = "physics/rapier/fluid/fluid_particle_radius_3d";
 const FLUID_SMOOTHING_FACTOR: &str = "physics/rapier/fluid/fluid_smoothing_factor";
 const FLUID_BOUNDARY_COEFF: &str = "physics/rapier/fluid/fluid_boundary_coefficient";
+#[cfg(feature = "parallel")]
+const NUM_THREADS: &str = "physics/rapier/solver/num_threads";
 #[cfg(feature = "dim2")]
 const LENGTH_UNIT: &str = "physics/rapier/solver/length_unit_2d";
 #[cfg(feature = "dim2")]
@@ -360,6 +362,8 @@ impl RapierProjectSettings {
             PropertyHint::NONE,
             "",
         );
+        #[cfg(feature = "parallel")]
+        register_setting_ranged(NUM_THREADS, Variant::from(0), "0,256,1,or_greater", true);
         register_setting_ranged(
             FLUID_PARTICLE_RADIUS,
             Variant::from(FLUID_PARTICLE_VALUE),
@@ -489,20 +493,25 @@ impl RapierProjectSettings {
         })
     }
 
-    /// Deliberately not a project setting: a thread count saved on one machine is wrong on
-    /// the next. Computed once per run.
+    /// The setting defaults to zero, which uses the machine's performance core count: a fixed
+    /// count saved on one machine is wrong on the next. Computed once per run.
     ///
-    /// `GODOT_RAPIER_NUM_THREADS` overrides it for the run. Not a shipping knob -- it exists so
-    /// the same scene can be measured at 1 vs N workers, which is the only way to tell a serial
-    /// bottleneck apart from a threading-overhead one.
+    /// `GODOT_RAPIER_NUM_THREADS` overrides it for the run, so the same scene can be measured at
+    /// 1 vs N workers, which is the only way to tell a serial bottleneck apart from a
+    /// threading-overhead one.
     #[cfg(feature = "parallel")]
     pub fn get_num_threads() -> usize {
-        static NUM_THREADS: std::sync::OnceLock<usize> = std::sync::OnceLock::new();
-        *NUM_THREADS.get_or_init(|| {
+        static CACHED_NUM_THREADS: std::sync::OnceLock<usize> = std::sync::OnceLock::new();
+        *CACHED_NUM_THREADS.get_or_init(|| {
             std::env::var("GODOT_RAPIER_NUM_THREADS")
                 .ok()
                 .and_then(|v| v.parse::<usize>().ok())
                 .filter(|n| *n > 0)
+                .or_else(|| {
+                    usize::try_from(Self::get_setting_int(NUM_THREADS))
+                        .ok()
+                        .filter(|n| *n > 0)
+                })
                 .unwrap_or_else(|| performance_core_count().max(1))
         })
     }
