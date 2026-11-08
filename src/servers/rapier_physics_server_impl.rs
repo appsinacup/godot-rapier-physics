@@ -52,6 +52,9 @@ use crate::shapes::rapier_shape_base::RapierShapeBase;
 use crate::shapes::rapier_world_boundary_shape::RapierWorldBoundaryShape;
 use crate::spaces::rapier_space::RapierSpace;
 use crate::types::*;
+
+static OFF_THREAD_FREES: std::sync::Mutex<Vec<Rid>> = std::sync::Mutex::new(Vec::new());
+
 pub struct RapierPhysicsServerImpl {
     pub id: RapierId,
     pub active: bool,
@@ -2597,7 +2600,27 @@ impl RapierPhysicsServerImpl {
         }
     }
 
+    /// Frees from other threads, such as the .NET finalizer, wait for the next step because the
+    /// physics state is not synchronized.
     pub(super) fn free_rid(&mut self, rid: Rid) {
+        if godot::init::is_main_thread() {
+            self.free_rid_now(rid);
+        } else if let Ok(mut pending) = OFF_THREAD_FREES.lock() {
+            pending.push(rid);
+        }
+    }
+
+    pub(super) fn free_off_thread_rids(&mut self) {
+        let pending = OFF_THREAD_FREES
+            .lock()
+            .map(|mut pending| std::mem::take(&mut *pending))
+            .unwrap_or_default();
+        for rid in pending {
+            self.free_rid_now(rid);
+        }
+    }
+
+    fn free_rid_now(&mut self, rid: Rid) {
         let physics_data = physics_data();
         let mut space_to_reset = Rid::Invalid;
         if let Some(mut shape) = physics_data.shapes.remove(&rid) {
@@ -2678,6 +2701,7 @@ impl RapierPhysicsServerImpl {
     }
 
     pub(super) fn step(&mut self, step: f32) {
+        self.free_off_thread_rids();
         let physics_data = physics_data();
         if !self.active {
             return;
