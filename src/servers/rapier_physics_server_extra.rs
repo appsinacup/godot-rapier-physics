@@ -857,10 +857,9 @@ macro_rules! make_rapier_server_godot_impl {
                 let Some(mut physics_singleton) = try_rapier_physics_server() else {
                     return;
                 };
-                physics_singleton
-                    .bind_mut()
-                    .implementation
-                    .space_step(&space, delta);
+                let mut physics_server = physics_singleton.bind_mut();
+                physics_server.implementation.free_off_thread_rids();
+                physics_server.implementation.space_step(&space, delta);
             }
 
             #[func]
