@@ -853,14 +853,12 @@ impl PhysicsEngine {
         aabb_max: Vector,
         collide_with_body: bool,
         collide_with_area: bool,
-        hit_info_slice: &mut [PointHitInfo],
-        max_results: usize,
         handle_excluded_info: &QueryExcludedInfo,
         physics_collision_objects: &PhysicsCollisionObjects,
         physics_ids: &PhysicsIds,
         space: &RapierSpace,
-    ) -> usize {
-        let mut cpt_hit = 0;
+    ) -> Vec<PointHitInfo> {
+        let mut hits = Vec::new();
         if let Some(physics_world) = self.get_world(world_handle) {
             let aabb = Aabb {
                 mins: aabb_min,
@@ -901,16 +899,13 @@ impl PhysicsEngine {
                 if !valid_hit {
                     continue;
                 }
-                // Callback called on each collider hit by the ray.
-                hit_info_slice[cpt_hit].collider = handle;
-                hit_info_slice[cpt_hit].user_data = physics_world.get_collider_user_data(handle);
-                cpt_hit += 1;
-                if cpt_hit >= max_results {
-                    break;
-                }
+                hits.push(PointHitInfo {
+                    collider: handle,
+                    user_data: physics_world.get_collider_user_data(handle),
+                });
             }
         }
-        cpt_hit
+        hits
     }
 
     /// Whether `position` lies inside the shape placed by `shape_info`.
