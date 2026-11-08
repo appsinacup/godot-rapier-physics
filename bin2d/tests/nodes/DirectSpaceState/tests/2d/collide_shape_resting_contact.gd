@@ -3,6 +3,7 @@ extends PhysicsUnitTest2D
 const BODY_RADIUS := 15.0
 const QUERY_RADIUS := 4.0
 const TOUCHING_DISTANCE := BODY_RADIUS + QUERY_RADIUS
+const ROUNDING_GAP := 0.001
 
 var simulation_duration := 10
 
@@ -38,6 +39,12 @@ func test_start() -> void:
 		p_monitor.add_test("Does not report a separated shape")
 		p_monitor.add_test_result(not collides_at(d_space, shape_rid, TOUCHING_DISTANCE + 1.0))
 
+		p_monitor.add_test("Rest info reports a shape within rounding of touching")
+		p_monitor.add_test_result(has_rest_info_at(d_space, shape_rid, TOUCHING_DISTANCE + ROUNDING_GAP))
+
+		p_monitor.add_test("Rest info does not report a separated shape")
+		p_monitor.add_test_result(not has_rest_info_at(d_space, shape_rid, TOUCHING_DISTANCE + 1.0))
+
 		PhysicsServer2D.free_rid(shape_rid)
 		p_monitor.monitor_completed()
 
@@ -52,6 +59,13 @@ func collides_at(
 	query.collide_with_bodies = true
 	query.margin = p_margin
 	return not p_space.collide_shape(query).is_empty()
+
+func has_rest_info_at(p_space: PhysicsDirectSpaceState2D, p_shape_rid: RID, p_distance: float) -> bool:
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape_rid = p_shape_rid
+	query.transform = Transform2D(0, CENTER + Vector2(p_distance, 0))
+	query.collide_with_bodies = true
+	return not p_space.get_rest_info(query).is_empty()
 
 func build_body(p_position: Vector2) -> StaticBody2D:
 	var body := StaticBody2D.new()

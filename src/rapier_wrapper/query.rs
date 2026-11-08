@@ -696,10 +696,10 @@ impl PhysicsEngine {
                             .query_dispatcher()
                             .contact(&pos12, shared_shape.as_ref(), collider.shape(), prediction)
                         {
-                            // Parry only reports a contact strictly closer than the prediction
-                            // distance, so querying with `margin` alone misses shapes that rest
-                            // exactly touching, which is where rapier's solver leaves them.
-                            Ok(Some(contact)) if contact.dist <= margin => {
+                            // Rapier's solver leaves resting shapes touching, within rounding on
+                            // either side of zero, so every contact closer than the prediction
+                            // counts, even with no margin.
+                            Ok(Some(contact)) => {
                                 let mut result = ShapeCastResult::new();
                                 result.collided = true;
                                 result.collider = collider_handle;
@@ -719,7 +719,7 @@ impl PhysicsEngine {
                                     break;
                                 }
                             }
-                            Ok(_) => {}
+                            Ok(None) => {}
                             Err(err) => {
                                 godot_error!("contact error: {:?}", err);
                             }
