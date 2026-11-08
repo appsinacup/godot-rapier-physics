@@ -21,16 +21,19 @@ extends PinJoint2D
 @export var ik_constrain_x: bool = true:
 	set(value):
 		ik_constrain_x = value
+		_update_constrained_axes()
 
 ## Constrain movement along Y while solving IK.
 @export var ik_constrain_y: bool = true:
 	set(value):
 		ik_constrain_y = value
+		_update_constrained_axes()
 
 ## Constrain rotation while solving IK.
 @export var ik_constrain_rotation: bool = false:
 	set(value):
 		ik_constrain_rotation = value
+		_update_constrained_axes()
 
 @export_group("IK Solver Settings")
 

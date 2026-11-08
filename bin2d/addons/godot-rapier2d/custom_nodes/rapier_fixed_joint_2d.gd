@@ -4,9 +4,15 @@ extends Node2D
 ## Locks all relative motion between two bodies so they move as one rigid assembly.
 
 ## First body attached to the joint.
-@export var node_a: NodePath
+@export var node_a: NodePath:
+	set(value):
+		node_a = value
+		_rebuild()
 ## Second body attached to the joint.
-@export var node_b: NodePath
+@export var node_b: NodePath:
+	set(value):
+		node_b = value
+		_rebuild()
 ## Disable to let the joint keep the bodies' collision with each other.
 @export var disable_collision: bool = true:
 	set(value):
