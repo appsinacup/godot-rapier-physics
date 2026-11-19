@@ -143,7 +143,6 @@ impl RapierCollisionObjectBase {
     }
 
     #[allow(clippy::too_many_arguments)]
-    #[allow(clippy::too_many_arguments)]
     pub(super) fn add_shape(
         collision_object: &mut dyn IRapierCollisionObject,
         p_shape_id: RapierId,
