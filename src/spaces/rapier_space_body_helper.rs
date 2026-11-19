@@ -290,10 +290,10 @@ impl RapierSpace {
         physics_collision_objects: &PhysicsCollisionObjects,
         physics_ids: &PhysicsIds,
     ) -> bool {
-        for exclude_index in 0..handle_excluded_info.query_exclude_size {
-            if handle_excluded_info.query_exclude[exclude_index] == collider_handle {
-                return true;
-            }
+        if handle_excluded_info.query_exclude[..handle_excluded_info.query_exclude_size]
+            .contains(&collider_handle)
+        {
+            return true;
         }
         let (collision_object_2d, _) =
             RapierCollisionObjectBase::get_collider_user_data(user_data, physics_ids);

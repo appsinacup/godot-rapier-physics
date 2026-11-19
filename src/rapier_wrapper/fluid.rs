@@ -193,8 +193,8 @@ impl PhysicsEngine {
                 .fluids()
                 .get(handle_to_fluid_handle(fluid_handle))
         {
-            for i in 0..fluid.positions.len() {
-                array.push(salva_vector_to_godot(fluid.positions[i]));
+            for position in &fluid.positions {
+                array.push(salva_vector_to_godot(*position));
             }
         }
         array
@@ -213,8 +213,8 @@ impl PhysicsEngine {
                 .fluids()
                 .get(handle_to_fluid_handle(fluid_handle))
         {
-            for i in 0..fluid.positions.len() {
-                array.push(vector_to_godot(fluid.velocities[i]));
+            for velocity in &fluid.velocities {
+                array.push(vector_to_godot(*velocity));
             }
         }
         array
@@ -233,8 +233,8 @@ impl PhysicsEngine {
                 .fluids()
                 .get(handle_to_fluid_handle(fluid_handle))
         {
-            for i in 0..fluid.positions.len() {
-                array.push(vector_to_godot(fluid.accelerations[i]));
+            for acceleration in &fluid.accelerations {
+                array.push(vector_to_godot(*acceleration));
             }
         }
         array
