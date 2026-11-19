@@ -44,10 +44,6 @@ jobs:
           APPLE_DEV_TEAM_ID: ${{ secrets.APPLE_DEV_TEAM_ID }}
           APPLE_DEV_APP_ID: ${{ secrets.APPLE_DEV_APP_ID }}
         if: github.ref == 'refs/heads/main'
-      - name: Release temporary signing keychain
-        shell: sh
-        run: security delete-keychain ephemeral.keychain
-        if: github.ref == 'refs/heads/main'
       - name: Mac Sign Editor
         uses: ughuuu/godot-cpp-template/.github/actions/sign@add-more-stuff/options-to-build
         with:
@@ -59,6 +55,10 @@ jobs:
           APPLE_DEV_ID: ${{ secrets.APPLE_DEV_ID }}
           APPLE_DEV_TEAM_ID: ${{ secrets.APPLE_DEV_TEAM_ID }}
           APPLE_DEV_APP_ID: ${{ secrets.APPLE_DEV_APP_ID }}
+        if: github.ref == 'refs/heads/main'
+      - name: Release temporary signing keychain
+        shell: sh
+        run: security delete-keychain ephemeral.keychain
         if: github.ref == 'refs/heads/main'
       - name: Upload
         uses: actions/upload-artifact@v6
