@@ -32,6 +32,15 @@ jobs:
         shell: sh
         run: |
           sh scripts/package-build.sh macos "${{ matrix.dimensions.short }}" "${{ matrix.arch }}"
+      # Static libraries ship in a separate artifact, so they must not be sealed into the framework signature.
+      - name: Move static libraries out of frameworks
+        shell: sh
+        run: |
+          addon="bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin"
+          for variant in . editor; do
+            mkdir -p "static-stash/$variant"
+            mv "$addon/$variant/libgodot_rapier.macos.framework"/*.a "static-stash/$variant/"
+          done
       - name: Mac Sign
         uses: ughuuu/godot-cpp-template/.github/actions/sign@add-more-stuff/options-to-build
         with:
@@ -60,6 +69,13 @@ jobs:
         shell: sh
         run: security delete-keychain ephemeral.keychain
         if: github.ref == 'refs/heads/main'
+      - name: Restore static libraries into frameworks
+        shell: sh
+        run: |
+          addon="bin${{ matrix.dimensions.short }}/addons/godot-rapier${{ matrix.dimensions.short }}/bin"
+          for variant in . editor; do
+            mv "static-stash/$variant"/*.a "$addon/$variant/libgodot_rapier.macos.framework/"
+          done
       - name: Upload
         uses: actions/upload-artifact@v6
         with:
